@@ -215,7 +215,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
   const [inboundPage, setInboundPage] = useState(1);
+  const [inboundTotal, setInboundTotal] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isLoadingView, setIsLoadingView] = useState(false);
+  const [inboundRefreshKey, setInboundRefreshKey] = useState(0);
   const INBOUND_LIMIT = 10;
 
   // Form state - Basic Details
@@ -331,49 +335,71 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     };
   }, []);
 
-  // Initialize with dummy data on mount if empty
   useEffect(() => {
-    const orders = formValues.inboundOrdersList || [];
-    if (orders.length === 0) {
-      const dummyData = generateDummyInboundOrders();
-      const syntheticEvent = { target: { value: dummyData } };
-      handleChange("inboundOrdersList")(syntheticEvent);
-      setOrdersList(dummyData);
-    } else {
-      setOrdersList(orders);
-    }
-  }, [formValues.inboundOrdersList, handleChange]);
-
-  // Update local list when formValues change
-  useEffect(() => {
-    if (formValues.inboundOrdersList) {
-      setOrdersList(formValues.inboundOrdersList);
-    }
-  }, [formValues.inboundOrdersList]);
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!callId) return;
+    let cancelled = false;
+    const loadInboundOrders = async () => {
+      setIsLoadingOrders(true);
+      try {
+        const res = await inboundOrderService.getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        if (cancelled) return;
+        const data = Array.isArray(res?.data?.data) ? res.data.data : [];
+        const total = res?.data?.pagination?.total || 0;
+        setOrdersList(data);
+        setInboundTotal(total);
+      } catch (err) {
+        console.error("Failed to load inbound orders", err);
+      } finally {
+        if (!cancelled) setIsLoadingOrders(false);
+      }
+    };
+    loadInboundOrders();
+    return () => { cancelled = true; };
+  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, inboundPage, inboundRefreshKey]);
 
   const handleOpenModal = (order = null) => {
     if (order) {
       setEditingOrder(order);
-      const orderItems = order.orders || [{
-        id: 1,
-        orderNo: "",
-        poDo: "",
-        quantity: "",
-        packageType: "",
-        description: "",
-        transportation: false,
-        typeOfVehicle: "",
-        fromLocation: "",
-        pickUpFrom: "",
-        toLocation: "",
-        driverName: "",
-        slotNo: "",
-        reason: "",
-        dispatchDate: ""
-      }];
+      const apiItems = Array.isArray(order.items) ? order.items : [];
+      const orderItems = apiItems.length > 0
+        ? apiItems.map((item, idx) => ({
+            id: item.inbound_item_id || idx + 1,
+            orderNo: item.order_no || "",
+            poDo: item.po_no || "",
+            quantity: item.quantity || "",
+            packageType: String(item.package_type_id || ""),
+            description: item.description || "",
+            transportation: item.transportation_required === 1,
+            typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
+            fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+            pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
+            toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
+            driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+            slotNo: "",
+            reason: "",
+            dispatchDate: "",
+          }))
+        : [{
+            id: 1,
+            orderNo: "",
+            poDo: "",
+            quantity: "",
+            packageType: "",
+            description: "",
+            transportation: false,
+            typeOfVehicle: "",
+            fromLocation: "",
+            pickUpFrom: "",
+            toLocation: "",
+            driverName: "",
+            slotNo: "",
+            reason: "",
+            dispatchDate: "",
+          }];
       setFormData({
-        date: order.date || "",
-        warehouse: order.warehouse || "",
+        date: order.inbound_date || order.date || "",
+        warehouse: String(order.warehouse_id || order.warehouse || ""),
         remarks: order.remarks || "",
         orders: orderItems,
       });
@@ -545,42 +571,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
       await inboundOrderService.saveInboundOrder(payload);
 
-      // Update local list after successful API call
-      const newOrders = formData.orders.map((order, index) => ({
-        id: editingOrder
-          ? editingOrder.id + index
-          : ordersList.length > 0
-            ? Math.max(...ordersList.map((m) => m.id)) + index + 1
-            : index + 1,
-        orderNo: order.orderNo || `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
-        date: formData.date,
-        warehouse: formData.warehouse,
-        poDo: order.poDo,
-        quantity: order.quantity,
-        packageType: order.packageType,
-        description: order.description,
-        transportation: order.transportation || false,
-        typeOfVehicle: order.typeOfVehicle || "",
-        fromLocation: order.fromLocation || "",
-        pickUpFrom: order.pickUpFrom || "",
-        toLocation: order.toLocation || "",
-        driverName: order.driverName || "",
-        slotNo: order.slotNo || "",
-        reason: order.reason || "",
-        dispatchDate: order.dispatchDate || "",
-      }));
-
-      if (editingOrder) {
-        const updatedList = ordersList.filter((order) => order.id !== editingOrder.id);
-        const finalList = [...updatedList, ...newOrders];
-        setOrdersList(finalList);
-        handleChange("inboundOrdersList")({ target: { value: finalList } });
-      } else {
-        const updatedList = [...ordersList, ...newOrders];
-        setOrdersList(updatedList);
-        handleChange("inboundOrdersList")({ target: { value: updatedList } });
-      }
-
+      setInboundRefreshKey((k) => k + 1);
       handleCloseModal();
     } catch (err) {
       console.error("Failed to save inbound order", err);
@@ -627,10 +618,19 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }
   };
 
-  const handleViewOrder = (order) => {
+  const handleViewOrder = async (order) => {
     handleCloseDropdown();
-    setViewingOrder(order);
     setShowViewModal(true);
+    setIsLoadingView(true);
+    try {
+      const res = await inboundOrderService.getInboundById(order.inbound_id);
+      setViewingOrder(res?.data?.data || order);
+    } catch (err) {
+      console.error("Failed to load inbound order details", err);
+      setViewingOrder(order);
+    } finally {
+      setIsLoadingView(false);
+    }
   };
 
   const handleCloseViewModal = () => {
@@ -2027,97 +2027,85 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderViewBody = () => {
+    if (isLoadingView) {
+      return (
+        <div className="modal-body">
+          <div style={{ textAlign: "center", padding: "40px", color: "#666", fontSize: "15px" }}>Loading...</div>
+        </div>
+      );
+    }
+
     if (!viewingOrder) return null;
 
-    const stripHtml = (html) => {
-      if (!html) return "";
-      const tmp = document.createElement("DIV");
-      tmp.innerHTML = html;
-      return tmp.textContent || tmp.innerText || "";
-    };
+    const items = Array.isArray(viewingOrder.items) ? viewingOrder.items : [];
 
     return (
       <div className="modal-body">
         <div className="view-vessel-container" style={{ padding: "20px" }}>
-          {/* Order Information */}
+          {/* Inbound Header */}
           <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Order No</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.orderNo || "-"}</div>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Inbound No</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.inbound_no || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingOrder.date) || "-"}</div>
-            </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.poDo || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingOrder.inbound_date) || "-"}</div>
             </div>
           </div>
 
-          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.quantity || "-"}</div>
-            </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.packageType || "-"}</div>
-            </div>
-          </div>
-
-          <div className="view-row" style={{ marginBottom: "20px" }}>
-            <div className="view-item" style={{ width: "100%" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.description || "-"}</div>
-            </div>
-          </div>
-
-          {/* Transportation Details */}
-          {viewingOrder.transportation && (
-            <>
-              <div style={{ borderTop: "1px solid #e2e2ea", paddingTop: "20px", marginTop: "20px" }}>
-                <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>Transportation Details</h4>
-                <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Type of Vehicle</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.typeOfVehicle || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>From Location</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.fromLocation || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Pick-Up From</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.pickUpFrom || "-"}</div>
-                  </div>
-                </div>
-                <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>To Location</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.toLocation || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Driver Name</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.driverName || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Slot No</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.slotNo || "-"}</div>
-                  </div>
-                </div>
-                <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Reason</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.reason || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Dispatch Date</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.dispatchDate ? formatDate(viewingOrder.dispatchDate) : "-"}</div>
-                  </div>
-                </div>
+          {viewingOrder.remarks && (
+            <div className="view-row" style={{ marginBottom: "20px" }}>
+              <div className="view-item" style={{ width: "100%" }}>
+                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Remarks</div>
+                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.remarks}</div>
               </div>
-            </>
+            </div>
+          )}
+
+          {/* Items */}
+          {items.length > 0 && (
+            <div style={{ borderTop: "1px solid #e2e2ea", paddingTop: "20px", marginTop: "4px" }}>
+              <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>Order Items</h4>
+              {items.map((item, idx) => (
+                <div key={item.inbound_item_id || idx} style={{ marginBottom: "24px", padding: "16px", backgroundColor: "#f9f9f9", borderRadius: "8px", border: "1px solid #e2e2ea" }}>
+                  <div style={{ fontWeight: "600", color: "#00368c", marginBottom: "12px", fontSize: "14px" }}>
+                    Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
+                  </div>
+                  <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "12px" }}>
+                    <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>PO/DO</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.po_no || "-"}</div>
+                    </div>
+                    <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Quantity</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.quantity ?? "-"}</div>
+                    </div>
+                    <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Package Type</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.package_type || "-"}</div>
+                    </div>
+                  </div>
+                  {item.description && (
+                    <div className="view-row" style={{ marginBottom: "12px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Description</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.description}</div>
+                    </div>
+                  )}
+                  {item.transportation_required === 1 && item.transportation && (
+                    <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
+                      <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Transportation</div>
+                      <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                        <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                          <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Pick-Up From</div>
+                          <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.transportation.pickup_location || "-"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -2194,55 +2182,63 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </tr>
           </thead>
           <tbody>
-            {ordersList.length > 0 ? (
-              ordersList.slice((inboundPage - 1) * INBOUND_LIMIT, inboundPage * INBOUND_LIMIT).map((order) => (
-                <tr key={order.id}>
+            {isLoadingOrders ? (
+              <tr>
+                <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</td>
+              </tr>
+            ) : ordersList.length > 0 ? (
+              ordersList.map((order) => {
+                const firstItem = Array.isArray(order.items) ? order.items[0] : null;
+                const rowKey = order.inbound_id ?? order.id ?? Math.random();
+                const description = firstItem?.description || "";
+                return (
+                <tr key={rowKey}>
                   <td>
-                    <div className="material-table-cell">{order.orderNo || ""}</div>
+                    <div className="material-table-cell">{order.inbound_no || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {formatDate(order.date)}
+                      {formatDate(order.inbound_date || order.date)}
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{order.poDo || ""}</div>
+                    <div className="material-table-cell">{firstItem?.po_no || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{order.quantity || ""}</div>
+                    <div className="material-table-cell">{firstItem?.quantity ?? ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{order.packageType || ""}</div>
+                    <div className="material-table-cell">{firstItem?.package_type || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {order.description && order.description.length > 25 ? (
+                      {description.length > 25 ? (
                         <>
                           <Tooltip
-                            id={`description-tooltip-${order.id}`}
+                            id={`description-tooltip-${rowKey}`}
                             place="right"
-                            content={order.description}
+                            content={description}
                             className="material-table-tooltip"
                           />
                           <span
-                            data-tooltip-id={`description-tooltip-${order.id}`}
+                            data-tooltip-id={`description-tooltip-${rowKey}`}
                             style={{ cursor: "help" }}
                           >
-                            {order.description.substring(0, 25)}...
+                            {description.substring(0, 25)}...
                           </span>
                         </>
                       ) : (
-                        <span>{order.description || ""}</span>
+                        <span>{description}</span>
                       )}
                     </div>
                   </td>
                   <td style={{ position: "relative", overflow: "visible" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start" }}>
-                      <Tooltip id={`view-order-${order.id}`} place="left" content="View" />
+                      <Tooltip id={`view-order-${rowKey}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewOrder(order)}
-                        data-tooltip-id={`view-order-${order.id}`}
+                        data-tooltip-id={`view-order-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -2264,11 +2260,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
-                      <Tooltip id={`print-order-${order.id}`} place="left" content="Print" />
+                      <Tooltip id={`print-order-${rowKey}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintOrder(order)}
-                        data-tooltip-id={`print-order-${order.id}`}
+                        data-tooltip-id={`print-order-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -2295,11 +2291,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <Tooltip id={`convert-order-${order.id}`} place="left" content=" Convert" />
+                      <Tooltip id={`convert-order-${rowKey}`} place="left" content=" Convert" />
                       <button
                         type="button"
                         onClick={() => handleConvertToLanding(order)}
-                        data-tooltip-id={`convert-order-${order.id}`}
+                        data-tooltip-id={`convert-order-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -2325,12 +2321,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M12 4V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === order.id ? 9999 : "auto" }}>
-                        <Tooltip id={`more-actions-${order.id}`} place="left" content="More actions" />
+                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === rowKey ? 9999 : "auto" }}>
+                        <Tooltip id={`more-actions-${rowKey}`} place="left" content="More actions" />
                         <button
                           type="button"
-                          onClick={(e) => handleToggleDropdown(order.id, e)}
-                          data-tooltip-id={`more-actions-${order.id}`}
+                          onClick={(e) => handleToggleDropdown(rowKey, e)}
+                          data-tooltip-id={`more-actions-${rowKey}`}
                           style={{
                             padding: "6px 8px",
                             backgroundColor: "transparent",
@@ -2355,7 +2351,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             <circle cx="12" cy="18" r="1.5" fill="currentColor" />
                           </svg>
                         </button>
-                        {openDropdownId === order.id && createPortal(
+                        {openDropdownId === rowKey && createPortal(
                           <div
                             data-dropdown-menu
                             style={{
@@ -2405,7 +2401,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               type="button"
                               onClick={() => {
                                 handleCloseDropdown();
-                                handleDelete(order.id);
+                                handleDelete(order.inbound_id ?? order.id);
                               }}
                               style={{
                                 width: "100%",
@@ -2438,24 +2434,25 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
-                  No inbound orders added yet. Click "Add" to add a new order.
+                  No inbound orders found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
         </div>
-        {ordersList.length > 0 && (() => {
-          const totalPages = Math.ceil(ordersList.length / INBOUND_LIMIT);
+        {inboundTotal > 0 && (() => {
+          const totalPages = Math.ceil(inboundTotal / INBOUND_LIMIT);
           const start = (inboundPage - 1) * INBOUND_LIMIT + 1;
-          const end = Math.min(inboundPage * INBOUND_LIMIT, ordersList.length);
+          const end = Math.min(inboundPage * INBOUND_LIMIT, inboundTotal);
           return (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
-              <span>Showing {start} to {end} of {ordersList.length} entries</span>
+              <span>Showing {start} to {end} of {inboundTotal} entries</span>
               <div style={{ display: "flex", gap: "4px" }}>
                 <button onClick={() => setInboundPage(p => Math.max(1, p - 1))} disabled={inboundPage === 1} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: inboundPage === 1 ? "#f8f9fa" : "#fff", color: inboundPage === 1 ? "#aaa" : "#00368c", cursor: inboundPage === 1 ? "default" : "pointer" }}>&lt;</button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
