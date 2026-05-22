@@ -1,26 +1,18 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
-import DateTimePickerField from "../../../../CardFormTabs/components/DateTimePickerField";
 import userService from "../../../../../../services/userService";
 import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../CardFormTabs/tabs/operation/operationConstants";
 import { getGroSupervisorStaticDocuments } from "./groSupervisorStaticDocuments";
+import {
+  getGroSupervisorTasksForCard,
+  createEmptyTaskAssignment,
+} from "./groSupervisorStaticTasks";
+import GROSupervisorAssignTask from "./GROSupervisorAssignTask";
 import GROSupervisorDocumentLibrary from "./GROSupervisorDocumentLibrary";
 
-const resolveTaskTitle = (card) => {
-  const candidates = [
-    card?.task_name,
-    card?.taskName,
-    card?.raw?.task_name,
-    card?.raw?.taskName,
-    card?.title,
-    card?.cardName,
-    card?.card_name,
-  ];
-  for (const c of candidates) {
-    if (c != null && String(c).trim() !== "") return String(c).trim();
-  }
-  return "Task";
+const SUPERVISOR_TABS = {
+  assign: "assign",
+  documents: "documents",
 };
 
 const parseUsersByRoleResponse = (res) => {
@@ -42,15 +34,29 @@ const parseUsersByRoleResponse = (res) => {
 };
 
 function GROSupervisorCardView({ card }) {
-  const taskTitle = useMemo(() => resolveTaskTitle(card), [card]);
+  const tasks = useMemo(() => getGroSupervisorTasksForCard(card), [card]);
   const staticDocuments = useMemo(() => getGroSupervisorStaticDocuments(), []);
 
-  const [assignedUserId, setAssignedUserId] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [dueTime, setDueTime] = useState("");
-  const [remarks, setRemarks] = useState("");
+  const [activeTab, setActiveTab] = useState(SUPERVISOR_TABS.assign);
+  const [assignments, setAssignments] = useState(() => {
+    const initial = {};
+    getGroSupervisorTasksForCard(card).forEach((t) => {
+      initial[t.id] = createEmptyTaskAssignment();
+    });
+    return initial;
+  });
   const [userOptions, setUserOptions] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
+
+  useEffect(() => {
+    setAssignments((prev) => {
+      const next = { ...prev };
+      tasks.forEach((t) => {
+        if (!next[t.id]) next[t.id] = createEmptyTaskAssignment();
+      });
+      return next;
+    });
+  }, [tasks]);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,73 +78,51 @@ function GROSupervisorCardView({ card }) {
     };
   }, []);
 
-  const handleAssignedUserChange = useCallback((e) => {
-    setAssignedUserId(e?.target?.value ?? "");
-  }, []);
-
-  const handleDueDateTimeChange = useCallback(({ date, time }) => {
-    setDueDate(date || "");
-    setDueTime(time != null && time !== "" ? String(time).slice(0, 5) : "");
+  const handleAssignmentChange = useCallback((taskId, patch) => {
+    setAssignments((prev) => ({
+      ...prev,
+      [taskId]: { ...(prev[taskId] ?? createEmptyTaskAssignment()), ...patch },
+    }));
   }, []);
 
   return (
     <div className="gro-card-view gro-supervisor-card-view">
-      <section className="gro-supervisor-section gro-supervisor-task-section" aria-labelledby="gro-supervisor-task-heading">
-        <div className="gro-supervisor-section-head">
-          <h3 id="gro-supervisor-task-heading" className="gro-supervisor-section-title">
-            Task Assign User
-          </h3>
+      <div className="gro-supervisor-tabs-bar">
+        <div className="gro-pass-segments gro-supervisor-tabs" role="tablist" aria-label="GRO Supervisor views">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === SUPERVISOR_TABS.assign}
+            className={`gro-pass-segment${activeTab === SUPERVISOR_TABS.assign ? " gro-pass-segment--active" : ""}`}
+            onClick={() => setActiveTab(SUPERVISOR_TABS.assign)}
+          >
+            Assign Task
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === SUPERVISOR_TABS.documents}
+            className={`gro-pass-segment${activeTab === SUPERVISOR_TABS.documents ? " gro-pass-segment--active" : ""}`}
+            onClick={() => setActiveTab(SUPERVISOR_TABS.documents)}
+          >
+            Document Library
+          </button>
         </div>
-        <div className="gro-supervisor-task-card">
-          <div className="gro-supervisor-task-name-block">
-            <span className="gro-supervisor-field-label">Task</span>
-            <p className="gro-supervisor-task-name">{taskTitle}</p>
-          </div>
-          <div className="gro-supervisor-task-form-grid">
-            <div className="gro-supervisor-field">
-              <label className="gro-supervisor-field-label">Assigned User</label>
-              <div className="cf-select gro-supervisor-select-wrap">
-                <SearchableSelect
-                  value={assignedUserId}
-                  onChange={handleAssignedUserChange}
-                  options={userOptions}
-                  placeholder={usersLoading ? "Loading users…" : "Select assigned user"}
-                  searchPlaceholder={deriveSearchPlaceholder("Select assigned user")}
-                  disabled={usersLoading}
-                  className="gro-supervisor-searchable-select"
-                />
-              </div>
-            </div>
-            <div className="gro-supervisor-field gro-supervisor-field--datetime">
-              <label className="gro-supervisor-field-label" htmlFor="gro-supervisor-due-datetime">
-                Due Date
-              </label>
-              <DateTimePickerField
-                dateValue={dueDate}
-                timeValue={dueTime}
-                onDateTimeChange={handleDueDateTimeChange}
-                placeholder="YYYY-MM-DD hh:mm"
-                popperClassName="gro-supervisor-datetime-popper"
-              />
-            </div>
-            <div className="gro-supervisor-field gro-supervisor-field--remarks">
-              <label className="gro-supervisor-field-label" htmlFor="gro-supervisor-remarks">
-                Remarks
-              </label>
-              <textarea
-                id="gro-supervisor-remarks"
-                className="gro-supervisor-remarks-input"
-                rows={3}
-                placeholder="Add remarks (optional)"
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
 
-      <GROSupervisorDocumentLibrary documents={staticDocuments} />
+      <div className="gro-supervisor-tab-panel">
+        {activeTab === SUPERVISOR_TABS.assign ? (
+          <GROSupervisorAssignTask
+            tasks={tasks}
+            assignments={assignments}
+            onAssignmentChange={handleAssignmentChange}
+            userOptions={userOptions}
+            usersLoading={usersLoading}
+          />
+        ) : (
+          <GROSupervisorDocumentLibrary documents={staticDocuments} hideHeading />
+        )}
+      </div>
     </div>
   );
 }

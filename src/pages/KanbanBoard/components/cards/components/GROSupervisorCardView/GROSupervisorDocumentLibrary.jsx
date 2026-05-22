@@ -22,12 +22,14 @@ const IconView = () => (
   </svg>
 );
 
-function GROSupervisorDocumentLibrary({ documents }) {
+function GROSupervisorDocumentLibrary({ documents, hideHeading = false }) {
   return (
-    <div className="gro-document-section gro-supervisor-doc-section">
-      <div className="gro-document-header">
-        <h3 className="gro-documents-heading">Document Library</h3>
-      </div>
+    <div className="gro-document-section gro-supervisor-doc-section" role="tabpanel" aria-label="Document Library">
+      {!hideHeading ? (
+        <div className="gro-document-header">
+          <h3 className="gro-documents-heading">Document Library</h3>
+        </div>
+      ) : null}
       <div className="gro-document-list gro-supervisor-document-list">
         {documents.map((doc) => {
           const rowKey = doc.__rowKey;
@@ -99,6 +101,7 @@ function GROSupervisorDocumentLibrary({ documents }) {
 
 GROSupervisorDocumentLibrary.propTypes = {
   documents: PropTypes.array.isRequired,
+  hideHeading: PropTypes.bool,
 };
 
 export default GROSupervisorDocumentLibrary;
