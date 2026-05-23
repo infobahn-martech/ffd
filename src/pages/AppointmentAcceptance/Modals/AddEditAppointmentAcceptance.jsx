@@ -9,6 +9,13 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 
+const stripHtml = (html) => {
+  if (!html) return "";
+  const tmp = document.createElement("DIV");
+  tmp.innerHTML = html;
+  return (tmp.textContent || tmp.innerText || "").trim();
+};
+
 export function ReportTemplatesModal({
   showModal,
   closeModal,
@@ -38,7 +45,7 @@ export function ReportTemplatesModal({
           report_type_id: String(template?.report_type_id ?? ""),
           port_id: String(template?.port_id ?? ""),
           call_type_id: String(template?.call_type_id ?? ""),
-          subject: template?.subject ?? "",
+          subject: stripHtml(template?.subject),
           body: template?.body ?? "",
         }
         : {
@@ -52,6 +59,7 @@ export function ReportTemplatesModal({
   );
 
   const {
+    register,
     handleSubmit,
     control,
     reset,
@@ -70,7 +78,7 @@ export function ReportTemplatesModal({
         report_type_id: String(template?.report_type_id ?? ""),
         port_id: String(template?.port_id ?? ""),
         call_type_id: String(template?.call_type_id ?? ""),
-        subject: template?.subject ?? "",
+        subject: stripHtml(template?.subject),
         body: template?.body ?? "",
       });
     }
@@ -250,31 +258,20 @@ export function ReportTemplatesModal({
             </div>
           </div>
 
-          {/* ROW 3 — Subject (ReactQuill) */}
+          {/* ROW 3 — Subject (textarea) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
               <label style={{ marginBottom: "8px", display: "block" }}>
                 Subject <span className="text-danger">*</span>
               </label>
-              <Controller
-                name="subject"
-                control={control}
-                rules={{
+              <textarea
+                className={`form-control ${errors.subject ? "is-invalid" : ""}`}
+                rows={4}
+                placeholder="Enter subject..."
+                {...register("subject", {
                   required: "Subject is required",
-                  validate: (value) => !isHtmlEmpty(value) || "Subject is required",
-                }}
-                render={({ field }) => (
-                  <div className="react-quill-wrapper">
-                    <ReactQuill
-                      theme="snow"
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      modules={quillModules}
-                      formats={quillFormats}
-                      placeholder="Enter subject..."
-                    />
-                  </div>
-                )}
+                  validate: (value) => value?.trim()?.length > 0 || "Subject is required",
+                })}
               />
               {errors.subject && (
                 <span
