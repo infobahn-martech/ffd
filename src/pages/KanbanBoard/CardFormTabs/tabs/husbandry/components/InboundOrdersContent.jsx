@@ -2297,7 +2297,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <button
           type="button"
           className="material-add-btn"
-          onClick={handleOpenModal}
+          onClick={() => handleOpenModal()}
           style={{ backgroundColor: "#00368c" }}
         >
           + Add
