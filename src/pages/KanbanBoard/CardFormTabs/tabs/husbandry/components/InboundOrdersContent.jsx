@@ -1142,7 +1142,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </h3>
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Date">
+                <FormField label="Date *">
                   <DateTimePickerField
                     dateValue={formData.date}
                     timeValue={formData.time}
@@ -1160,7 +1160,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               </div>
 
               <div className="col-md-6 mb-2">
-                <FormField label="Warehouse">
+                <FormField label="Warehouse *">
                   <FormSelect
                     value={formData.warehouse}
                     onChange={(e) => {
