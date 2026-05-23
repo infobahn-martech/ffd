@@ -2614,7 +2614,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               Are you sure you want to delete this inbound order?
             </p>
             <p style={{ fontSize: "14px", color: "#555", marginBottom: "0", wordBreak: "break-all" }}>
-              <strong>{deletingOrder?.order_no || deletingOrder?.orderNo || `#${deletingOrder?.inbound_id ?? deletingOrder?.id ?? ""}`}</strong>
+              <strong>{deletingOrder?.inbound_no || deletingOrder?.order_no || deletingOrder?.orderNo || `#${deletingOrder?.inbound_id ?? deletingOrder?.id ?? ""}`}</strong>
             </p>
           </div>
         }
