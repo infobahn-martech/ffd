@@ -3924,7 +3924,7 @@ ${body}
             ) : (
               <div className={isAddMode ? "general-add-mode-wrapper" : "general-view-mode-wrapper"}>
                 <div
-                  className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout general-add-card-layout"} general-tab-form-layout`}
+                  className={`${!isAddMode ? "general-info-two-column general-info-view-with-tasks" : "general-info-two-column general-add-3col-layout general-add-card-layout"} general-tab-form-layout`}
                 >
                   <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
                     <div className={isAddMode ? "general-add-form-scroll" : "general-view-form-scroll"}>
@@ -4866,21 +4866,25 @@ ${body}
                         </div>
                       )} */}
                       <div className="general-info-right">
-                        <div className="daily-task-box-wrapper">
-                          <DailyTaskTodo
-                            tasks={mappedOperatorKpiTasks}
-                            accentColor={accentColor}
-                            isLoading={operatorKpiLoading}
-                            error={operatorKpiError}
-                          />
+                        <div className="general-info-tasks-rail">
+                          <div className="general-info-tasks-card general-info-tasks-card--daily">
+                            <div className="daily-task-box-wrapper">
+                              <DailyTaskTodo
+                                tasks={mappedOperatorKpiTasks}
+                                accentColor={accentColor}
+                                isLoading={operatorKpiLoading}
+                                error={operatorKpiError}
+                              />
+                            </div>
+                          </div>
+                          <div className="general-info-tasks-card general-info-tasks-card--operation">
+                            <OperationTasksPanel
+                              cardColor={accentColor}
+                              isViewOnly={isViewMode}
+                              embedded
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="general-info-operation-tasks">
-                        <OperationTasksPanel
-                          cardColor={accentColor}
-                          isViewOnly={isViewMode}
-                          embedded
-                        />
                       </div>
                     </>
                   )}

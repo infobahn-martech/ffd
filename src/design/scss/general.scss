@@ -144,20 +144,78 @@
   min-width: 0;
 }
 
-.general-info-operation-tasks {
+/* Side-by-side Daily Tasks + Operation Tasks within the General tab right column */
+.general-info-tasks-rail {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 18px;
   width: 100%;
   min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+}
+
+.general-info-tasks-card {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
   align-self: stretch;
 }
 
-.cf-section.general-info-section .general-info-three-column.general-tab-form-layout {
-  .general-info-operation-tasks {
-    margin-top: 22px;
-    min-height: 0;
+.general-info-tasks-card--daily .daily-task-box-wrapper {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.general-info-tasks-card--operation .operation-tasks-panel--embedded {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cf-section.general-info-section .general-info-view-with-tasks.general-tab-form-layout {
+  .general-info-right {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
     overflow: hidden;
+  }
+
+  .general-info-tasks-rail .daily-task-todo-wrapper,
+  .general-info-tasks-rail .operation-task-card {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .general-info-tasks-rail .daily-task-todo-wrapper {
+    max-width: none;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .general-info-tasks-rail .daily-task-todo-wrapper .cf-field {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-right: 0;
+  }
+
+  .general-info-tasks-rail .daily-task-list-scroll {
+    flex: 1 1 auto;
+    min-height: 80px;
+    max-height: none;
   }
 }
 
@@ -167,13 +225,14 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: min(640px, calc(100vh - 220px));
+  height: 100%;
 
   .operation-task-card {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    flex: 1;
+    flex: 1 1 auto;
+    height: 100%;
     border-radius: 12px;
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.04),
@@ -195,9 +254,9 @@
   .operation-task-list {
     overflow-y: auto;
     overflow-x: hidden;
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
-    max-height: min(560px, calc(100vh - 280px));
+    max-height: none;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -247,6 +306,7 @@
 
   .operation-task-view-only-note {
     margin: 10px 0 0;
+    flex-shrink: 0;
     font-size: 11px;
   }
 }
@@ -329,33 +389,47 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     margin-top: 22px;
+  }
+
+  &.general-info-view-with-tasks .general-info-right {
+    overflow: hidden;
   }
 }
 
-/* General tab (CardFormTabs/General.jsx): 40–60 columns, compact upload, taller Quill */
+/* General tab (CardFormTabs/General.jsx): form left, task cards right */
 .cf-section.general-info-section .general-tab-form-layout {
   grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
-  gap: 86px;
+  gap: 28px;
 }
 
+.cf-section.general-info-section .general-info-two-column.general-tab-form-layout,
 .cf-section.general-info-section .general-info-three-column.general-tab-form-layout {
   flex: 1;
   min-height: 0;
   overflow: hidden;
   align-items: stretch;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr) minmax(0, 0.8fr);
-  gap: 24px;
+  gap: 28px;
 
   @media (min-width: 768px) {
-    /* Cap row height to the section so the left column’s inner scroll can engage */
     grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .general-info-left {
     overflow: hidden;
     min-height: 0;
+  }
+}
+
+.cf-section.general-info-section .general-info-view-with-tasks.general-tab-form-layout {
+  grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
+  gap: 24px;
+
+  @media (min-width: 1200px) {
+    .general-info-tasks-rail {
+      min-height: min(520px, calc(100vh - 240px));
+    }
   }
 }
 
@@ -370,37 +444,16 @@
     grid-template-columns: 1fr;
   }
 
-  .general-info-three-column .general-info-operation-tasks {
-    margin-top: 0;
+  .general-info-tasks-rail {
+    flex-direction: column;
+    gap: 16px;
   }
 
-  .operation-tasks-panel--embedded .operation-task-list {
-    max-height: min(420px, 50vh);
-  }
-}
-
-@media (max-width: 1600px) {
-  .general-info-three-column {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .general-info-three-column .general-info-right,
-  .general-info-three-column .general-info-operation-tasks {
-    grid-column: auto;
-  }
-
-  .general-info-three-column .general-info-operation-tasks {
-    grid-column: 1 / -1;
-  }
-
-  .operation-tasks-panel--embedded {
-    max-height: none;
-
-    .operation-task-list {
-      max-height: min(480px, 55vh);
-    }
+  .cf-section.general-info-section .general-info-view-with-tasks.general-tab-form-layout .general-info-tasks-rail {
+    min-height: 0;
   }
 }
+
 
 .cf-section.general-info-section .general-tab-form-layout .general-info-left .document-upload-zone {
   height: auto;
@@ -464,13 +517,13 @@
   }
 }
 
-/* Daily Task/Todo Box Wrapper - fixed in right column, never scrolls */
+/* Daily Task/Todo Box Wrapper */
 .daily-task-box-wrapper {
   width: 100%;
   max-width: 100%;
   min-width: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-start;
   padding-top: 0;
   flex-shrink: 0;
@@ -484,6 +537,11 @@
 
 .cf-section.general-info-section .daily-task-todo-wrapper {
   max-width: min(100%, 480px);
+}
+
+.cf-section.general-info-section .general-info-tasks-rail .daily-task-todo-wrapper {
+  max-width: none;
+  width: 100%;
 }
 
 @media (max-width: 767px) {
