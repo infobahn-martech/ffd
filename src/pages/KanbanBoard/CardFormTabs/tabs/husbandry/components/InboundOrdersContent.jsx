@@ -611,7 +611,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const payload = {
       call_id: callId,
       warehouse_id: Number(formData.warehouse) || 0,
-      inbound_date: formData.date,
+      inbound_date: formData.date && formData.time ? `${formData.date}T${formData.time}:00` : formData.date,
       remarks: formData.remarks || "",
       items,
     };
