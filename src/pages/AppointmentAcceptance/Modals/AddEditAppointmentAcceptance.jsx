@@ -1,6 +1,7 @@
 import { useForm, Controller } from "react-hook-form";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import CustomModal from "../../../components/CustomModal";
+import Gateway from "../../../gateway/gateway";
 import useAppointmentAcceptanceReducer from "../../../store/AppointmentAcceptanceReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -117,16 +118,58 @@ export function ReportTemplatesModal({
     return stripped.length === 0;
   };
 
-  const quillModules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ color: [] }, { background: [] }],
-      ["link", "image"],
-      ["clean"],
-    ],
+  const quillRef = useRef(null);
+
+  const handleQuillImageUpload = () => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("image_file", file);
+
+      try {
+        const response = await Gateway.post("/report_template/upload_image", formData);
+
+        const fileUrl =
+          response?.data?.file_url ?? response?.data?.data?.file_url;
+
+        if (fileUrl) {
+          const quill = quillRef.current?.getEditor();
+          const range = quill?.getSelection(true);
+
+          quill.insertEmbed(range?.index ?? 0, "image", fileUrl);
+          quill.setSelection((range?.index ?? 0) + 1);
+        }
+      } catch (error) {
+        console.error("Image upload failed:", error);
+      }
+    };
   };
+
+  const quillModules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          [{ color: [] }, { background: [] }],
+          ["link", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: handleQuillImageUpload,
+        },
+      },
+    }),
+    []
+  );
 
   const quillFormats = [
     "header",
@@ -295,6 +338,7 @@ export function ReportTemplatesModal({
                 render={({ field }) => (
                   <div className="react-quill-wrapper">
                     <ReactQuill
+                      ref={quillRef}
                       theme="snow"
                       value={field.value || ""}
                       onChange={field.onChange}
