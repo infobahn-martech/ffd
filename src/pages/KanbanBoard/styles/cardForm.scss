@@ -1993,3 +1993,109 @@ $gro-supervisor-control-border: #d0d5dd;
     padding-right: 12px;
   }
 }
+
+/* CardForm header — floating card type picker */
+.cardform-type-picker-popover {
+  width: 272px;
+  max-height: min(320px, calc(100vh - 32px));
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.cardform-type-picker-header {
+  padding: 10px 14px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.cardform-type-picker-status {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.cardform-type-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.cardform-type-picker-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: "Open Sans", sans-serif;
+}
+
+.cardform-type-picker-row:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.cardform-type-picker-row:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.cardform-type-picker-row--selected {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+.cardform-type-picker-row-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.cardform-type-picker-row-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.topbar-icon-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: none;
+}

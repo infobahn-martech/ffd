@@ -164,11 +164,40 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard((prev) => (prev?.id === id ? { ...prev, color: nextColor } : prev));
   }, []);
 
+  const patchCardType = useCallback((cardId, cardTypeId, meta = {}) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    const nextTypeId =
+      cardTypeId != null && String(cardTypeId).trim() !== "" ? String(cardTypeId).trim() : null;
+    const patch = {
+      card_type_id: nextTypeId,
+      cardTypeId: nextTypeId,
+      type_name: meta.type_name,
+      type_color_code: meta.color_code,
+      type_icon_name: meta.icon_name,
+    };
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return {
+          ...wf,
+          cards: {
+            ...wf.cards,
+            [id]: { ...c, ...patch },
+          },
+        };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
+  }, []);
+
   return {
     workflows,
     setWorkflows,
     refetchBoard,
     patchCardColor,
+    patchCardType,
     boardLoading,
     boardLoadError,
     selectedCard,

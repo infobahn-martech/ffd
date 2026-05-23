@@ -44,6 +44,7 @@ export default function KanbanBoardPage() {
     setWorkflows,
     refetchBoard,
     patchCardColor,
+    patchCardType,
     boardLoading,
     boardLoadError,
     selectedCard,
@@ -280,8 +281,10 @@ export default function KanbanBoardPage() {
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
           variant={resolveCardFormVariant(selectedCard?.workflow_role_id, userRoleId)}
+          boardId={selectedBoardId}
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
           patchCardColor={patchCardColor}
+          patchCardType={patchCardType}
         />
       )}
 
