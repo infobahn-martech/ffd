@@ -2599,29 +2599,32 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         className="material-management-modal"
         show={showDeleteModal}
         closeModal={handleCancelDelete}
-        header={<h1 className="modal-title">Delete Inbound Order</h1>}
+        header={null}
         body={
-          <div className="modal-body" style={{ padding: "24px", textAlign: "center" }}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginBottom: "16px", color: "#dc3545" }}>
-              <path d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18A2 2 0 003.54 21H20.46A2 2 0 0022.18 18L13.71 3.86A2 2 0 0010.29 3.86Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p style={{ fontSize: "16px", fontWeight: "600", color: "#1a1a1a", marginBottom: "8px" }}>Are you sure?</p>
-            <p style={{ fontSize: "14px", color: "#666", marginBottom: "0" }}>
-              You are about to delete inbound order{" "}
-              <strong style={{ color: "#1a1a1a" }}>
-                {deletingOrder?.order_no || deletingOrder?.orderNo || `#${deletingOrder?.inbound_id ?? deletingOrder?.id ?? ""}`}
-              </strong>
-              . This action cannot be undone.
+          <div style={{ padding: "40px 32px 24px", textAlign: "center" }}>
+            <div style={{ marginBottom: "20px" }}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 6H5H21" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6L18.1 19.1C18.0426 19.9467 17.6704 20.7406 17.0557 21.3268C16.4409 21.913 15.6306 22.2438 14.782 22.2438H9.218C8.36936 22.2438 7.55908 21.913 6.94431 21.3268C6.32954 20.7406 5.95744 19.9467 5.9 19.1L5 6H19Z" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 11V17" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M14 11V17" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p style={{ fontSize: "18px", fontWeight: "700", color: "#00368c", marginBottom: "8px" }}>
+              Are you sure you want to delete this inbound order?
+            </p>
+            <p style={{ fontSize: "14px", color: "#555", marginBottom: "0", wordBreak: "break-all" }}>
+              <strong>{deletingOrder?.order_no || deletingOrder?.orderNo || `#${deletingOrder?.inbound_id ?? deletingOrder?.id ?? ""}`}</strong>
             </p>
           </div>
         }
         footer={
-          <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: "16px", padding: "8px 32px 32px" }}>
             <button
               type="button"
               onClick={handleCancelDelete}
               disabled={isLoadingDelete}
-              style={{ padding: "10px 20px", backgroundColor: "#f5f5f5", color: "#333", border: "1px solid #e2e2ea", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" }}
+              style={{ padding: "10px 32px", backgroundColor: "#e8f0fe", color: "#333", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "15px", fontWeight: "500", minWidth: "120px" }}
             >
               Cancel
             </button>
@@ -2629,9 +2632,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               type="button"
               onClick={handleConfirmDelete}
               disabled={isLoadingDelete}
-              style={{ padding: "10px 20px", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "6px", cursor: isLoadingDelete ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: isLoadingDelete ? 0.7 : 1 }}
+              style={{ padding: "10px 32px", backgroundColor: "#e53935", color: "white", border: "none", borderRadius: "8px", cursor: isLoadingDelete ? "not-allowed" : "pointer", fontSize: "15px", fontWeight: "500", minWidth: "120px", opacity: isLoadingDelete ? 0.7 : 1 }}
             >
-              {isLoadingDelete ? "Deleting..." : "Delete"}
+              {isLoadingDelete ? "Deleting..." : "Confirm"}
             </button>
           </div>
         }
