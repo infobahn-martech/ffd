@@ -9480,7 +9480,7 @@ body .modal-backdrop.show {
 }
 
 .operation-task-row.operation-task-row--nested {
-  padding: 14px 0 15px;
+  padding: 10px 0 11px;
   border-bottom: 1px solid #f0f2f6;
 
   &:last-child {
@@ -9495,8 +9495,8 @@ body .modal-backdrop.show {
 .operation-task-row {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 21px;
+  gap: 6px;
+  padding: 12px 21px;
   border-bottom: 1px solid #f0f2f6;
   transition: background-color 0.15s ease;
 
@@ -9556,35 +9556,82 @@ body .modal-backdrop.show {
   color: #b42318;
 }
 
-.operation-task-row-meta {
-  display: grid;
-  grid-template-columns: minmax(145px, 230px) 1fr;
-  gap: 11px 24px;
-}
-
-.operation-task-meta-item {
+.operation-task-row-details {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   min-width: 0;
 }
 
-.operation-task-meta-label {
+.operation-task-detail-line {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+.operation-task-detail-label {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
   color: #8b93a7;
+  letter-spacing: 0.02em;
 }
 
-.operation-task-meta-value {
-  font-size: 13px;
-  color: #4b5563;
-  line-height: 1.45;
+.operation-task-detail-value {
+  color: #374151;
+  font-weight: 500;
 }
 
-.operation-task-meta-value--remarks {
-  color: #6b7280;
+.operation-task-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  min-width: 0;
+}
+
+.operation-task-progress-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.operation-task-progress-track {
+  flex: 1;
+  min-width: 48px;
+  height: 4px;
+  border-radius: 999px;
+  background: #e8ecf2;
+  overflow: hidden;
+}
+
+.operation-task-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.operation-task-progress-fill--pending {
+  background: linear-gradient(90deg, #90caf9, #42a5f5);
+}
+
+.operation-task-progress-fill--in-progress {
+  background: linear-gradient(90deg, #ffb74d, #fb8c00);
+}
+
+.operation-task-progress-fill--completed {
+  background: linear-gradient(90deg, #81c784, #43a047);
+}
+
+.operation-task-progress-pct {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 28px;
+  text-align: right;
 }
 
 .operation-task-view-only-note {
@@ -9595,10 +9642,6 @@ body .modal-backdrop.show {
 }
 
 @media (max-width: 768px) {
-  .operation-task-row-meta {
-    grid-template-columns: 1fr;
-  }
-
   .operation-task-section-list {
     margin-left: 20px;
     margin-right: 16px;

@@ -15,6 +15,17 @@ const STATUS_CLASS_MAP = {
   [TASK_STATUS.REJECTED]: "operation-task-status--rejected",
 };
 
+const STATUS_PROGRESS_MAP = {
+  [TASK_STATUS.PENDING]: 0,
+  [TASK_STATUS.IN_PROGRESS]: 50,
+  [TASK_STATUS.COMPLETED]: 100,
+  [TASK_STATUS.REJECTED]: 0,
+};
+
+function getStatusProgress(status) {
+  return STATUS_PROGRESS_MAP[status] ?? 0;
+}
+
 export const dummyTaskSections = [
   {
     id: 1,
@@ -25,21 +36,21 @@ export const dummyTaskSections = [
         title: "Vessel Registration",
         assignedTo: "Port Operations Team",
         status: TASK_STATUS.IN_PROGRESS,
-        remarks: "Registration documents submitted.",
+        documentCount: 2,
       },
       {
         id: 102,
         title: "Inward Clearance",
         assignedTo: "Port Operations Team",
         status: TASK_STATUS.PENDING,
-        remarks: "Awaiting vessel ETA and cargo manifest finalization.",
+        documentCount: 0,
       },
       {
         id: 103,
         title: "CG Pass",
         assignedTo: "Port Security Office",
         status: TASK_STATUS.COMPLETED,
-        remarks: "Coast guard passes issued for listed crew and visitors.",
+        documentCount: 4,
       },
     ],
   },
@@ -52,14 +63,14 @@ export const dummyTaskSections = [
         title: "Import Declaration",
         assignedTo: "Customs Liaison Unit",
         status: TASK_STATUS.PENDING,
-        remarks: "Declaration draft prepared; pending vessel arrival confirmation.",
+        documentCount: 1,
       },
       {
         id: 202,
         title: "Bayan Document",
         assignedTo: "Customs Liaison Unit",
         status: TASK_STATUS.IN_PROGRESS,
-        remarks: "Bayan filing in progress with supporting invoices attached.",
+        documentCount: 3,
       },
     ],
   },
@@ -72,7 +83,7 @@ export const dummyTaskSections = [
         title: "Permit Application",
         assignedTo: "Marine Services Desk",
         status: TASK_STATUS.COMPLETED,
-        remarks: "Permit issued and uploaded to vessel file; valid through departure.",
+        documentCount: 2,
       },
     ],
   },
@@ -89,6 +100,41 @@ function TaskStatusBadge({ status }) {
 }
 
 TaskStatusBadge.propTypes = {
+  status: PropTypes.string.isRequired,
+};
+
+function TaskProgressIndicator({ status }) {
+  const percent = getStatusProgress(status);
+  const progressClass =
+    percent === 100
+      ? "operation-task-progress-fill--completed"
+      : percent === 50
+        ? "operation-task-progress-fill--in-progress"
+        : "operation-task-progress-fill--pending";
+
+  return (
+    <div className="operation-task-progress" aria-label={`Task progress ${percent}%`}>
+      <span className="operation-task-detail-label">Progress:</span>
+      <div className="operation-task-progress-body">
+        <div
+          className="operation-task-progress-track"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+        >
+          <div
+            className={`operation-task-progress-fill ${progressClass}`}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+        <span className="operation-task-progress-pct">{percent}%</span>
+      </div>
+    </div>
+  );
+}
+
+TaskProgressIndicator.propTypes = {
   status: PropTypes.string.isRequired,
 };
 
@@ -136,19 +182,20 @@ function OperationTasksPanel({
                       <span className="operation-task-name">{task.title}</span>
                       <TaskStatusBadge status={task.status} />
                     </div>
-                    <div className="operation-task-row-meta">
-                      <span className="operation-task-meta-item">
-                        <span className="operation-task-meta-label">Assigned</span>
-                        <span className="operation-task-meta-value">
+                    <div className="operation-task-row-details">
+                      <p className="operation-task-detail-line">
+                        <span className="operation-task-detail-label">Assigned User:</span>{" "}
+                        <span className="operation-task-detail-value">
                           {task.assignedTo || "Unassigned"}
                         </span>
-                      </span>
-                      <span className="operation-task-meta-item">
-                        <span className="operation-task-meta-label">Remarks</span>
-                        <span className="operation-task-meta-value operation-task-meta-value--remarks">
-                          {task.remarks || "—"}
+                      </p>
+                      <p className="operation-task-detail-line">
+                        <span className="operation-task-detail-label">Documents:</span>{" "}
+                        <span className="operation-task-detail-value">
+                          {task.documentCount ?? 0}
                         </span>
-                      </span>
+                      </p>
+                      <TaskProgressIndicator status={task.status} />
                     </div>
                   </li>
                 ))}
@@ -176,7 +223,7 @@ OperationTasksPanel.propTypes = {
           title: PropTypes.string.isRequired,
           assignedTo: PropTypes.string,
           status: PropTypes.string,
-          remarks: PropTypes.string,
+          documentCount: PropTypes.number,
         })
       ).isRequired,
     })

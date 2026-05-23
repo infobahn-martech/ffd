@@ -293,7 +293,7 @@
   }
 
   .operation-task-row.operation-task-row--nested {
-    padding: 10px 0 11px;
+    padding: 8px 0 9px;
   }
 
   .operation-task-name {
@@ -306,17 +306,31 @@
     font-size: 11px;
   }
 
-  .operation-task-row-meta {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .operation-task-row-details {
+    gap: 2px;
   }
 
-  .operation-task-meta-label {
+  .operation-task-detail-line {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .operation-task-detail-label {
     font-size: 10px;
   }
 
-  .operation-task-meta-value {
-    font-size: 12px;
+  .operation-task-progress {
+    gap: 6px;
+    margin-top: 1px;
+  }
+
+  .operation-task-progress-track {
+    height: 3px;
+  }
+
+  .operation-task-progress-pct {
+    font-size: 10px;
+    min-width: 26px;
   }
 
   .operation-task-view-only-note {
