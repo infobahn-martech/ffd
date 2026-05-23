@@ -1156,7 +1156,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     placeholder="YYYY-MM-DD hh:mm"
                   />
                 </FormField>
-                {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.date}</span>}
+                {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.date}</span>}
               </div>
 
               <div className="col-md-6 mb-2">
@@ -1171,7 +1171,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     placeholder="Select warehouse"
                   />
                 </FormField>
-                {formErrors.warehouse && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.warehouse}</span>}
+                {formErrors.warehouse && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.warehouse}</span>}
               </div>
 
               <div className="col-md-12 mb-2">
@@ -1376,7 +1376,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             placeholder="Enter PO/DO number..."
                           />
                         </FormField>
-                        {formErrors[`o${index}_poDo`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_poDo`]}</span>}
+                        {formErrors[`o${index}_poDo`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_poDo`]}</span>}
                       </div>
 
                       <div className="col-lg-4 col-md-6">
@@ -1391,7 +1391,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             placeholder="Enter quantity..."
                           />
                         </FormField>
-                        {formErrors[`o${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_quantity`]}</span>}
+                        {formErrors[`o${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_quantity`]}</span>}
                       </div>
 
                       <div className="col-lg-6 col-md-12">
@@ -1417,7 +1417,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             placeholder="Select package type..."
                           />
                         </FormField>
-                        {formErrors[`o${index}_packageType`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_packageType`]}</span>}
+                        {formErrors[`o${index}_packageType`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_packageType`]}</span>}
                       </div>
                     </div>
 
@@ -1449,7 +1449,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Select type of vehicle..."
                               />
                             </FormField>
-                            {formErrors[`o${index}_typeOfVehicle`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_typeOfVehicle`]}</span>}
+                            {formErrors[`o${index}_typeOfVehicle`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_typeOfVehicle`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
@@ -1464,7 +1464,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Select from location..."
                               />
                             </FormField>
-                            {formErrors[`o${index}_fromLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_fromLocation`]}</span>}
+                            {formErrors[`o${index}_fromLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_fromLocation`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
@@ -1490,7 +1490,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Select to location..."
                               />
                             </FormField>
-                            {formErrors[`o${index}_toLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_toLocation`]}</span>}
+                            {formErrors[`o${index}_toLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_toLocation`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
@@ -1505,7 +1505,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Select driver name..."
                               />
                             </FormField>
-                            {formErrors[`o${index}_driverName`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_driverName`]}</span>}
+                            {formErrors[`o${index}_driverName`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_driverName`]}</span>}
                           </div>
                         </div>
                       )}
