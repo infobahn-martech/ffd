@@ -373,6 +373,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   // File upload handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
