@@ -6,13 +6,17 @@ import "react-tooltip/dist/react-tooltip.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
-import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
+import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
 import vehicleService from "../../../../../../services/vehicleService";
+import MaterialTablePagination from "./MaterialTablePagination";
 
 const extractListFromApi = (body) => {
   if (body == null) return [];
@@ -26,6 +30,22 @@ const mergeOptionForValue = (options, value) => {
   const s = String(value);
   if (options.some((o) => o.value === s)) return options;
   return [...options, { value: s, label: s }];
+};
+
+const parseISODate = (value) => {
+  if (!value) return null;
+  const normalized = String(value).slice(0, 10);
+  const [year, month, day] = normalized.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const toISODate = (date) => {
+  if (!date) return "";
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 };
 
 // Generate dummy inbound orders data
@@ -199,13 +219,30 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 };
 
 const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
+  const {
+    saveInboundOrder,
+    updateInboundOrder,
+    deleteInboundOrder,
+    getAllInbound,
+    getInboundById,
+    clearInboundDetail,
+    inboundOrders,
+    inboundTotal,
+    isLoadingList: isLoadingOrders,
+    isLoadingView,
+    isLoadingSave: isSubmitting,
+    isBeingUpdated,
+    isLoadingDelete,
+    inboundDetail: viewingOrder,
+  } = useInboundOrderReducer((state) => state);
+
   const [showModal, setShowModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [ordersList, setOrdersList] = useState([]);
   const [editingOrder, setEditingOrder] = useState(null);
   const [convertingOrder, setConvertingOrder] = useState(null);
-  const [viewingOrder, setViewingOrder] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
@@ -214,12 +251,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
   const [inboundPage, setInboundPage] = useState(1);
+  const [formErrors, setFormErrors] = useState({});
   const INBOUND_LIMIT = 10;
 
   // Form state - Basic Details
   const [formData, setFormData] = useState({
     date: "",
     warehouse: "",
+    remarks: "",
     orders: [{
       id: 1,
       orderNo: "",
@@ -328,49 +367,55 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     };
   }, []);
 
-  // Initialize with dummy data on mount if empty
   useEffect(() => {
-    const orders = formValues.inboundOrdersList || [];
-    if (orders.length === 0) {
-      const dummyData = generateDummyInboundOrders();
-      const syntheticEvent = { target: { value: dummyData } };
-      handleChange("inboundOrdersList")(syntheticEvent);
-      setOrdersList(dummyData);
-    } else {
-      setOrdersList(orders);
-    }
-  }, [formValues.inboundOrdersList, handleChange]);
-
-  // Update local list when formValues change
-  useEffect(() => {
-    if (formValues.inboundOrdersList) {
-      setOrdersList(formValues.inboundOrdersList);
-    }
-  }, [formValues.inboundOrdersList]);
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!callId) return;
+    getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, inboundPage]);
 
   const handleOpenModal = (order = null) => {
     if (order) {
       setEditingOrder(order);
-      const orderItems = order.orders || [{
-        id: 1,
-        orderNo: "",
-        poDo: "",
-        quantity: "",
-        packageType: "",
-        description: "",
-        transportation: false,
-        typeOfVehicle: "",
-        fromLocation: "",
-        pickUpFrom: "",
-        toLocation: "",
-        driverName: "",
-        slotNo: "",
-        reason: "",
-        dispatchDate: ""
-      }];
+      const apiItems = Array.isArray(order.items) ? order.items : [];
+      const orderItems = apiItems.length > 0
+        ? apiItems.map((item, idx) => ({
+            id: item.inbound_item_id || idx + 1,
+            orderNo: item.order_no || "",
+            poDo: item.po_no || "",
+            quantity: item.quantity || "",
+            packageType: String(item.package_type_id || ""),
+            description: item.description || "",
+            transportation: item.transportation_required === 1,
+            typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
+            fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+            pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
+            toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
+            driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+            slotNo: "",
+            reason: "",
+            dispatchDate: "",
+          }))
+        : [{
+            id: 1,
+            orderNo: "",
+            poDo: "",
+            quantity: "",
+            packageType: "",
+            description: "",
+            transportation: false,
+            typeOfVehicle: "",
+            fromLocation: "",
+            pickUpFrom: "",
+            toLocation: "",
+            driverName: "",
+            slotNo: "",
+            reason: "",
+            dispatchDate: "",
+          }];
       setFormData({
-        date: order.date || "",
-        warehouse: order.warehouse || "",
+        date: order.inbound_date || order.date || "",
+        warehouse: String(order.warehouse_id || order.warehouse || ""),
+        remarks: order.remarks || "",
         orders: orderItems,
       });
       // Set expanded state for all orders
@@ -384,6 +429,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         date: "",
         warehouse: "",
+        remarks: "",
         orders: [{
           id: 1,
           orderNo: "",
@@ -410,9 +456,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingOrder(null);
+    setFormErrors({});
     setFormData({
       date: "",
       warehouse: "",
+      remarks: "",
       orders: [{
         id: 1,
         orderNo: "",
@@ -449,7 +497,39 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.date) errors.date = "Date is required";
+    if (!formData.warehouse) errors.warehouse = "Warehouse is required";
+    formData.orders.forEach((order, idx) => {
+      if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
+      if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
+      if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
+      if (order.transportation) {
+        if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
+        if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
+        if (!order.toLocation) errors[`o${idx}_toLocation`] = "To location is required";
+        if (!order.driverName) errors[`o${idx}_driverName`] = "Driver is required";
+      }
+    });
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddNewOrder = () => {
+    const lastOrder = formData.orders[formData.orders.length - 1];
+    if (lastOrder && (!lastOrder.poDo || !lastOrder.quantity || !lastOrder.packageType)) {
+      const idx = formData.orders.length - 1;
+      setFormErrors((prev) => ({
+        ...prev,
+        [`o${idx}_poDo`]: !lastOrder.poDo ? "PO/DO is required" : undefined,
+        [`o${idx}_quantity`]: !lastOrder.quantity ? "Quantity is required" : undefined,
+        [`o${idx}_packageType`]: !lastOrder.packageType ? "Package Type is required" : undefined,
+      }));
+      // Expand the last order so errors are visible
+      setExpandedOrders((prev) => ({ ...prev, [lastOrder.id]: true }));
+      return;
+    }
     const newOrderId = formData.orders.length > 0 ? Math.max(...formData.orders.map((o) => o.id)) + 1 : 1;
     setFormData((prev) => ({
       ...prev,
@@ -503,60 +583,64 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
 
-    // Create orders from formData.orders array
-    const newOrders = formData.orders.map((order, index) => ({
-      id: editingOrder
-        ? editingOrder.id + index
-        : ordersList.length > 0
-          ? Math.max(...ordersList.map((m) => m.id)) + index + 1
-          : index + 1,
-      orderNo: order.orderNo || `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
-      date: formData.date,
-      warehouse: formData.warehouse,
-      poDo: order.poDo,
-      quantity: order.quantity,
-      packageType: order.packageType,
-      description: order.description,
-      transportation: order.transportation || false,
-      typeOfVehicle: order.typeOfVehicle || "",
-      fromLocation: order.fromLocation || "",
-      pickUpFrom: order.pickUpFrom || "",
-      toLocation: order.toLocation || "",
-      driverName: order.driverName || "",
-      slotNo: order.slotNo || "",
-      reason: order.reason || "",
-      dispatchDate: order.dispatchDate || "",
-    }));
+    const items = formData.orders.map((order) => {
+      const item = {
+        po_no: order.poDo,
+        quantity: Number(order.quantity) || 0,
+        package_type_id: Number(order.packageType) || 0,
+        description: order.description || "",
+        transportation_required: order.transportation ? 1 : 0,
+      };
+      if (order.transportation) {
+        item.transportation = {
+          vehicle_type_id: Number(order.typeOfVehicle) || 0,
+          from_location_id: Number(order.fromLocation) || 0,
+          pickup_location: order.pickUpFrom || "",
+          to_location_id: Number(order.toLocation) || 0,
+          driver_id: Number(order.driverName) || 0,
+        };
+      }
+      return item;
+    });
 
-    if (editingOrder) {
-      // Update existing orders - replace all orders with same basic details
-      const updatedList = ordersList.filter((order) => order.id !== editingOrder.id);
-      const finalList = [...updatedList, ...newOrders];
-      setOrdersList(finalList);
+    const payload = {
+      call_id: callId,
+      warehouse_id: Number(formData.warehouse) || 0,
+      inbound_date: formData.date,
+      remarks: formData.remarks || "",
+      items,
+    };
 
-      // Update formValues
-      const syntheticEvent = { target: { value: finalList } };
-      handleChange("inboundOrdersList")(syntheticEvent);
+    if (editingOrder?.inbound_id) {
+      updateInboundOrder({
+        inboundId: editingOrder.inbound_id,
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        },
+      });
     } else {
-      // Create new orders
-      const updatedList = [...ordersList, ...newOrders];
-      setOrdersList(updatedList);
-
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("inboundOrdersList")(syntheticEvent);
+      saveInboundOrder({
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        },
+      });
     }
-
-    handleCloseModal();
   };
 
   const handleReset = () => {
     setFormData({
       date: "",
       warehouse: "",
+      remarks: "",
       orders: [{
         id: 1,
         orderNo: "",
@@ -578,26 +662,39 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setExpandedOrders({ 1: true });
   };
 
-  const handleDelete = (orderId) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      const updatedList = ordersList.filter(order => order.id !== orderId);
-      setOrdersList(updatedList);
+  const handleDelete = (order) => {
+    handleCloseDropdown();
+    setDeletingOrder(order);
+    setShowDeleteModal(true);
+  };
 
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("inboundOrdersList")(syntheticEvent);
-    }
+  const handleConfirmDelete = () => {
+    if (!deletingOrder) return;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    deleteInboundOrder({
+      inboundId: deletingOrder.inbound_id ?? deletingOrder.id,
+      cb: () => {
+        setShowDeleteModal(false);
+        setDeletingOrder(null);
+        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+      },
+    });
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingOrder(null);
   };
 
   const handleViewOrder = (order) => {
     handleCloseDropdown();
-    setViewingOrder(order);
     setShowViewModal(true);
+    getInboundById({ inboundId: order.inbound_id });
   };
 
   const handleCloseViewModal = () => {
     setShowViewModal(false);
-    setViewingOrder(null);
+    clearInboundDetail();
   };
 
   const handleToggleDropdown = (orderId, e) => {
@@ -1034,7 +1131,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Create Inbound Order"}</h1>
+      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
     </>
   );
 
@@ -1050,56 +1147,47 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Date">
-                  <div className="cf-select cf-date-input">
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => handleFormChange("date", e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        fontSize: "14px",
-                        color: "#1a1a1a",
-                        fontFamily: "inherit",
-                        padding: 0,
-                        flex: 1,
-                        cursor: "pointer",
+                  <div className="cf-input">
+                    <DatePicker
+                      selected={parseISODate(formData.date)}
+                      onChange={(date) => {
+                        handleFormChange("date", toISODate(date));
+                        if (formErrors.date) setFormErrors((prev) => { const e = { ...prev }; delete e.date; return e; });
                       }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="premium-date-input"
+                      popperClassName="premium-datepicker-popper"
+                      calendarClassName="premium-datepicker-calendar"
+                      showPopperArrow={false}
                     />
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        flexShrink: 0,
-                        marginLeft: "8px",
-                        color: "#666",
-                        pointerEvents: "none",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
                   </div>
                 </FormField>
+                {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.date}</span>}
               </div>
 
               <div className="col-md-6 mb-2">
                 <FormField label="Warehouse">
                   <FormSelect
                     value={formData.warehouse}
-                    onChange={(e) => handleFormChange("warehouse", e.target.value)}
+                    onChange={(e) => {
+                      handleFormChange("warehouse", e.target.value);
+                      if (formErrors.warehouse) setFormErrors((prev) => { const e = { ...prev }; delete e.warehouse; return e; });
+                    }}
                     options={mergeOptionForValue(warehouseLocationOptions, formData.warehouse)}
                     placeholder="Select warehouse"
+                  />
+                </FormField>
+                {formErrors.warehouse && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.warehouse}</span>}
+              </div>
+
+              <div className="col-md-12 mb-2">
+                <FormField label="Remarks">
+                  <FormTextarea
+                    value={formData.remarks}
+                    onChange={(e) => handleFormChange("remarks", e.target.value)}
+                    placeholder="Enter remarks..."
+                    rows={3}
                   />
                 </FormField>
               </div>
@@ -1255,25 +1343,33 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="PO/DO">
+                        <FormField label="PO/DO *">
                           <FormInput
                             type="text"
                             value={order.poDo}
-                            onChange={(e) => handleOrderChange(order.id, "poDo", e.target.value)}
+                            onChange={(e) => {
+                              handleOrderChange(order.id, "poDo", e.target.value);
+                              if (formErrors[`o${index}_poDo`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_poDo`]; return e; });
+                            }}
                             placeholder="Enter PO/DO number..."
                           />
                         </FormField>
+                        {formErrors[`o${index}_poDo`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_poDo`]}</span>}
                       </div>
 
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="Quantity">
+                        <FormField label="Quantity *">
                           <FormInput
                             type="number"
                             value={order.quantity}
-                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
+                            onChange={(e) => {
+                              handleOrderChange(order.id, "quantity", e.target.value);
+                              if (formErrors[`o${index}_quantity`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_quantity`]; return e; });
+                            }}
                             placeholder="Enter quantity..."
                           />
                         </FormField>
+                        {formErrors[`o${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_quantity`]}</span>}
                       </div>
 
                       <div className="col-lg-6 col-md-12">
@@ -1288,14 +1384,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-lg-6 col-md-12">
-                        <FormField label="Package Type">
+                        <FormField label="Package Type *">
                           <FormSelect
                             value={order.packageType}
-                            onChange={(e) => handleOrderChange(order.id, "packageType", e.target.value)}
+                            onChange={(e) => {
+                              handleOrderChange(order.id, "packageType", e.target.value);
+                              if (formErrors[`o${index}_packageType`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_packageType`]; return e; });
+                            }}
                             options={mergeOptionForValue(packageTypeOptions, order.packageType)}
                             placeholder="Select package type..."
                           />
                         </FormField>
+                        {formErrors[`o${index}_packageType`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_packageType`]}</span>}
                       </div>
                     </div>
 
@@ -1316,25 +1416,33 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       {order.transportation && (
                         <div className="row g-2 mb-1">
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Type of Vehicle">
+                            <FormField label="Type of Vehicle *">
                               <FormSelect
                                 value={order.typeOfVehicle}
-                                onChange={(e) => handleOrderChange(order.id, "typeOfVehicle", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "typeOfVehicle", e.target.value);
+                                  if (formErrors[`o${index}_typeOfVehicle`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_typeOfVehicle`]; return e; });
+                                }}
                                 options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
                                 placeholder="Select type of vehicle..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_typeOfVehicle`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_typeOfVehicle`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="From Location">
+                            <FormField label="From Location *">
                               <FormSelect
                                 value={order.fromLocation}
-                                onChange={(e) => handleOrderChange(order.id, "fromLocation", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "fromLocation", e.target.value);
+                                  if (formErrors[`o${index}_fromLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_fromLocation`]; return e; });
+                                }}
                                 options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_fromLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_fromLocation`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
@@ -1349,28 +1457,63 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="To Location">
+                            <FormField label="To Location *">
                               <FormSelect
                                 value={order.toLocation}
-                                onChange={(e) => handleOrderChange(order.id, "toLocation", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "toLocation", e.target.value);
+                                  if (formErrors[`o${index}_toLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_toLocation`]; return e; });
+                                }}
                                 options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_toLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_toLocation`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Driver Name">
+                            <FormField label="Driver Name *">
                               <FormSelect
                                 value={order.driverName}
-                                onChange={(e) => handleOrderChange(order.id, "driverName", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "driverName", e.target.value);
+                                  if (formErrors[`o${index}_driverName`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_driverName`]; return e; });
+                                }}
                                 options={mergeOptionForValue(materialDriverOptions, order.driverName)}
                                 placeholder="Select driver name..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_driverName`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_driverName`]}</span>}
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    {/* Plus button to add next order item without scrolling up */}
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #e2e2ea" }}>
+                      <button
+                        type="button"
+                        onClick={handleAddNewOrder}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "6px 14px",
+                          backgroundColor: "#00368c",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        Add Order
+                      </button>
                     </div>
                   </div>
                 )}
@@ -1420,18 +1563,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <button
           type="submit"
           form="inboundOrderForm"
+          disabled={isSubmitting || isBeingUpdated}
           style={{
             padding: "10px 20px",
             backgroundColor: "#00368c",
             color: "white",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer",
+            cursor: (isSubmitting || isBeingUpdated) ? "not-allowed" : "pointer",
             fontSize: "14px",
             fontWeight: "500",
+            opacity: (isSubmitting || isBeingUpdated) ? 0.7 : 1,
           }}
         >
-          Save
+          {editingOrder ? (isBeingUpdated ? "Updating..." : "Update") : (isSubmitting ? "Saving..." : "Save")}
         </button>
       </div>
     </div>
@@ -1976,97 +2121,89 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderViewBody = () => {
+    if (isLoadingView) {
+      return (
+        <div className="modal-body">
+          <div style={{ textAlign: "center", padding: "40px", color: "#666", fontSize: "15px" }}>Loading...</div>
+        </div>
+      );
+    }
+
     if (!viewingOrder) return null;
 
-    const stripHtml = (html) => {
-      if (!html) return "";
-      const tmp = document.createElement("DIV");
-      tmp.innerHTML = html;
-      return tmp.textContent || tmp.innerText || "";
-    };
+    const items = Array.isArray(viewingOrder.items) ? viewingOrder.items : [];
 
     return (
       <div className="modal-body">
         <div className="view-vessel-container" style={{ padding: "20px" }}>
-          {/* Order Information */}
+          {/* Inbound Header */}
           <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Order No</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.orderNo || "-"}</div>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Inbound No</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.inbound_no || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingOrder.date) || "-"}</div>
-            </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.poDo || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingOrder.inbound_date) || "-"}</div>
             </div>
           </div>
 
-          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.quantity || "-"}</div>
-            </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.packageType || "-"}</div>
-            </div>
-          </div>
-
-          <div className="view-row" style={{ marginBottom: "20px" }}>
-            <div className="view-item" style={{ width: "100%" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.description || "-"}</div>
-            </div>
-          </div>
-
-          {/* Transportation Details */}
-          {viewingOrder.transportation && (
-            <>
-              <div style={{ borderTop: "1px solid #e2e2ea", paddingTop: "20px", marginTop: "20px" }}>
-                <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>Transportation Details</h4>
-                <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Type of Vehicle</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.typeOfVehicle || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>From Location</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.fromLocation || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Pick-Up From</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.pickUpFrom || "-"}</div>
-                  </div>
-                </div>
-                <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>To Location</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.toLocation || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Driver Name</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.driverName || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Slot No</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.slotNo || "-"}</div>
-                  </div>
-                </div>
-                <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Reason</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.reason || "-"}</div>
-                  </div>
-                  <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                    <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Dispatch Date</div>
-                    <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.dispatchDate ? formatDate(viewingOrder.dispatchDate) : "-"}</div>
-                  </div>
-                </div>
+          {viewingOrder.remarks && (
+            <div className="view-row" style={{ marginBottom: "20px" }}>
+              <div className="view-item" style={{ width: "100%" }}>
+                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Remarks</div>
+                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingOrder.remarks}</div>
               </div>
-            </>
+            </div>
+          )}
+
+          {/* Items */}
+          {items.length > 0 && (
+            <div style={{ borderTop: "1px solid #e2e2ea", paddingTop: "20px", marginTop: "4px" }}>
+              <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>Order Items</h4>
+              {items.map((item, idx) => (
+                <div key={item.inbound_item_id || idx} style={{ marginBottom: "24px", padding: "16px", backgroundColor: "#f9f9f9", borderRadius: "8px", border: "1px solid #e2e2ea" }}>
+                  <div style={{ fontWeight: "600", color: "#00368c", marginBottom: "12px", fontSize: "14px" }}>
+                    Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
+                  </div>
+                  <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "12px" }}>
+                    <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>PO/DO</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.po_no || "-"}</div>
+                    </div>
+                    <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Quantity</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.quantity ?? "-"}</div>
+                    </div>
+                    <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Package Type</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>
+                        {item.package_type ||
+                          packageTypeOptions.find((o) => o.value === String(item.package_type_id))?.label ||
+                          "-"}
+                      </div>
+                    </div>
+                  </div>
+                  {item.description && (
+                    <div className="view-row" style={{ marginBottom: "12px" }}>
+                      <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Description</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.description}</div>
+                    </div>
+                  )}
+                  {item.transportation_required === 1 && item.transportation && (
+                    <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
+                      <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Transportation</div>
+                      <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                        <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                          <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Pick-Up From</div>
+                          <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.transportation.pickup_location || "-"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -2143,55 +2280,67 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </tr>
           </thead>
           <tbody>
-            {ordersList.length > 0 ? (
-              ordersList.slice((inboundPage - 1) * INBOUND_LIMIT, inboundPage * INBOUND_LIMIT).map((order) => (
-                <tr key={order.id}>
+            {isLoadingOrders ? (
+              <tr>
+                <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</td>
+              </tr>
+            ) : inboundOrders.length > 0 ? (
+              inboundOrders.map((order) => {
+                const firstItem = Array.isArray(order.items) ? order.items[0] : null;
+                const rowKey = order.inbound_id ?? order.id ?? Math.random();
+                const description = firstItem?.description || "";
+                return (
+                <tr key={rowKey}>
                   <td>
-                    <div className="material-table-cell">{order.orderNo || ""}</div>
+                    <div className="material-table-cell">{order.inbound_no || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {formatDate(order.date)}
+                      {formatDate(order.inbound_date || order.date)}
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{order.poDo || ""}</div>
+                    <div className="material-table-cell">{firstItem?.po_no || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{order.quantity || ""}</div>
-                  </td>
-                  <td>
-                    <div className="material-table-cell">{order.packageType || ""}</div>
+                    <div className="material-table-cell">{firstItem?.quantity ?? ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {order.description && order.description.length > 25 ? (
+                      {firstItem?.package_type ||
+                        packageTypeOptions.find((o) => o.value === String(firstItem?.package_type_id))?.label ||
+                        ""}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="material-table-cell">
+                      {description.length > 25 ? (
                         <>
                           <Tooltip
-                            id={`description-tooltip-${order.id}`}
+                            id={`description-tooltip-${rowKey}`}
                             place="right"
-                            content={order.description}
+                            content={description}
                             className="material-table-tooltip"
                           />
                           <span
-                            data-tooltip-id={`description-tooltip-${order.id}`}
+                            data-tooltip-id={`description-tooltip-${rowKey}`}
                             style={{ cursor: "help" }}
                           >
-                            {order.description.substring(0, 25)}...
+                            {description.substring(0, 25)}...
                           </span>
                         </>
                       ) : (
-                        <span>{order.description || ""}</span>
+                        <span>{description}</span>
                       )}
                     </div>
                   </td>
                   <td style={{ position: "relative", overflow: "visible" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start" }}>
-                      <Tooltip id={`view-order-${order.id}`} place="left" content="View" />
+                      <Tooltip id={`view-order-${rowKey}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewOrder(order)}
-                        data-tooltip-id={`view-order-${order.id}`}
+                        data-tooltip-id={`view-order-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -2213,11 +2362,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
-                      <Tooltip id={`print-order-${order.id}`} place="left" content="Print" />
+                      <Tooltip id={`print-order-${rowKey}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintOrder(order)}
-                        data-tooltip-id={`print-order-${order.id}`}
+                        data-tooltip-id={`print-order-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -2244,11 +2393,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <Tooltip id={`convert-order-${order.id}`} place="left" content=" Convert" />
+                      <Tooltip id={`convert-order-${rowKey}`} place="left" content=" Convert" />
                       <button
                         type="button"
                         onClick={() => handleConvertToLanding(order)}
-                        data-tooltip-id={`convert-order-${order.id}`}
+                        data-tooltip-id={`convert-order-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -2274,12 +2423,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M12 4V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === order.id ? 9999 : "auto" }}>
-                        <Tooltip id={`more-actions-${order.id}`} place="left" content="More actions" />
+                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === rowKey ? 9999 : "auto" }}>
+                        <Tooltip id={`more-actions-${rowKey}`} place="left" content="More actions" />
                         <button
                           type="button"
-                          onClick={(e) => handleToggleDropdown(order.id, e)}
-                          data-tooltip-id={`more-actions-${order.id}`}
+                          onClick={(e) => handleToggleDropdown(rowKey, e)}
+                          data-tooltip-id={`more-actions-${rowKey}`}
                           style={{
                             padding: "6px 8px",
                             backgroundColor: "transparent",
@@ -2304,7 +2453,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             <circle cx="12" cy="18" r="1.5" fill="currentColor" />
                           </svg>
                         </button>
-                        {openDropdownId === order.id && createPortal(
+                        {openDropdownId === rowKey && createPortal(
                           <div
                             data-dropdown-menu
                             style={{
@@ -2353,8 +2502,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             <button
                               type="button"
                               onClick={() => {
-                                handleCloseDropdown();
-                                handleDelete(order.id);
+                                handleDelete(order);
                               }}
                               style={{
                                 width: "100%",
@@ -2387,34 +2535,24 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
-                  No inbound orders added yet. Click "Add" to add a new order.
+                  No inbound orders found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
         </div>
-        {ordersList.length > 0 && (() => {
-          const totalPages = Math.ceil(ordersList.length / INBOUND_LIMIT);
-          const start = (inboundPage - 1) * INBOUND_LIMIT + 1;
-          const end = Math.min(inboundPage * INBOUND_LIMIT, ordersList.length);
-          return (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
-              <span>Showing {start} to {end} of {ordersList.length} entries</span>
-              <div style={{ display: "flex", gap: "4px" }}>
-                <button onClick={() => setInboundPage(p => Math.max(1, p - 1))} disabled={inboundPage === 1} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: inboundPage === 1 ? "#f8f9fa" : "#fff", color: inboundPage === 1 ? "#aaa" : "#00368c", cursor: inboundPage === 1 ? "default" : "pointer" }}>&lt;</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setInboundPage(p)} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: inboundPage === p ? "#00368c" : "#fff", color: inboundPage === p ? "#fff" : "#00368c", cursor: "pointer", fontWeight: inboundPage === p ? 600 : 400 }}>{p}</button>
-                ))}
-                <button onClick={() => setInboundPage(p => Math.min(totalPages, p + 1))} disabled={inboundPage === totalPages} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: inboundPage === totalPages ? "#f8f9fa" : "#fff", color: inboundPage === totalPages ? "#aaa" : "#00368c", cursor: inboundPage === totalPages ? "default" : "pointer" }}>&gt;</button>
-              </div>
-            </div>
-          );
-        })()}
+        <MaterialTablePagination
+          page={inboundPage}
+          total={inboundTotal}
+          limit={INBOUND_LIMIT}
+          onPageChange={setInboundPage}
+        />
       </div>
 
       <CustomModal
@@ -2445,6 +2583,52 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         body={renderViewBody()}
         footer={renderViewFooter()}
         dialgName="modal-dialog modal-dialog-centered"
+      />
+
+      <CustomModal
+        className="material-management-modal"
+        show={showDeleteModal}
+        closeModal={handleCancelDelete}
+        header={null}
+        body={
+          <div style={{ padding: "40px 32px 24px", textAlign: "center" }}>
+            <div style={{ marginBottom: "20px" }}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 6H5H21" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6L18.1 19.1C18.0426 19.9467 17.6704 20.7406 17.0557 21.3268C16.4409 21.913 15.6306 22.2438 14.782 22.2438H9.218C8.36936 22.2438 7.55908 21.913 6.94431 21.3268C6.32954 20.7406 5.95744 19.9467 5.9 19.1L5 6H19Z" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 11V17" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M14 11V17" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p style={{ fontSize: "18px", fontWeight: "700", color: "#00368c", marginBottom: "8px" }}>
+              Are you sure you want to delete this inbound order?
+            </p>
+            <p style={{ fontSize: "14px", color: "#555", marginBottom: "0", wordBreak: "break-all" }}>
+              <strong>{deletingOrder?.inbound_no || deletingOrder?.order_no || deletingOrder?.orderNo || `#${deletingOrder?.inbound_id ?? deletingOrder?.id ?? ""}`}</strong>
+            </p>
+          </div>
+        }
+        footer={
+          <div style={{ display: "flex", justifyContent: "center", gap: "16px", padding: "8px 32px 32px" }}>
+            <button
+              type="button"
+              onClick={handleCancelDelete}
+              disabled={isLoadingDelete}
+              style={{ padding: "10px 32px", backgroundColor: "#e8f0fe", color: "#333", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "15px", fontWeight: "500", minWidth: "120px" }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={isLoadingDelete}
+              style={{ padding: "10px 32px", backgroundColor: "#e53935", color: "white", border: "none", borderRadius: "8px", cursor: isLoadingDelete ? "not-allowed" : "pointer", fontSize: "15px", fontWeight: "500", minWidth: "120px", opacity: isLoadingDelete ? 0.7 : 1 }}
+            >
+              {isLoadingDelete ? "Deleting..." : "Confirm"}
+            </button>
+          </div>
+        }
+        dialgName="modal-dialog modal-dialog-centered modal-sm"
       />
     </div>
   );
