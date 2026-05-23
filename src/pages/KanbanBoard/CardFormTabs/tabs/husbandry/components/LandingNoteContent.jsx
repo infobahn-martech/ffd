@@ -879,11 +879,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <FormField label="Date">
                 <DateTimePickerField
                   dateValue={formData.date}
-                  timeValue=""
+                  timeValue={formData.time}
                   onDateChange={(e) => handleFormChange("date", e.target.value)}
+                  onTimeChange={(e) => handleFormChange("time", e.target.value)}
                   dateFieldName="date"
-                  placeholder="Select date"
-                  dateOnly
+                  timeFieldName="time"
+                  placeholder="YYYY-MM-DD hh:mm"
                 />
               </FormField>
             </div>
@@ -920,7 +921,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     />
                     <div className="upload-zone-content">
-                      <div className="upload-icon-wrapper"></div>
                       <div className="upload-text-content">
                         <p className="upload-main-text">
                           Drag and drop your files here, or{" "}
