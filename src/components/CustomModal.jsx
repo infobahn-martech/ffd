@@ -21,6 +21,7 @@ export default function CustomModal({
       onHide={closeModal}
       backdrop="static"
       centered={!disableCenter}
+      enforceFocus={false}
     >
       <Modal.Header closeButton={false}>{header || null}</Modal.Header>
       {createModal ? (
