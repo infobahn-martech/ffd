@@ -496,13 +496,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const errors = {};
     if (!formData.date) errors.date = "Date is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
-    if (!formData.remarks) errors.remarks = "Remarks is required";
     formData.orders.forEach((order, idx) => {
-      if (!order.orderNo) errors[`o${idx}_orderNo`] = "Order No is required";
       if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
-      if (!order.description) errors[`o${idx}_description`] = "Description is required";
       if (order.transportation) {
         if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
         if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
@@ -516,15 +513,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleAddNewOrder = () => {
     const lastOrder = formData.orders[formData.orders.length - 1];
-    if (lastOrder && (!lastOrder.orderNo || !lastOrder.poDo || !lastOrder.quantity || !lastOrder.packageType || !lastOrder.description)) {
+    if (lastOrder && (!lastOrder.poDo || !lastOrder.quantity || !lastOrder.packageType)) {
       const idx = formData.orders.length - 1;
       setFormErrors((prev) => ({
         ...prev,
-        [`o${idx}_orderNo`]: !lastOrder.orderNo ? "Order No is required" : undefined,
         [`o${idx}_poDo`]: !lastOrder.poDo ? "PO/DO is required" : undefined,
         [`o${idx}_quantity`]: !lastOrder.quantity ? "Quantity is required" : undefined,
         [`o${idx}_packageType`]: !lastOrder.packageType ? "Package Type is required" : undefined,
-        [`o${idx}_description`]: !lastOrder.description ? "Description is required" : undefined,
       }));
       // Expand the last order so errors are visible
       setExpandedOrders((prev) => ({ ...prev, [lastOrder.id]: true }));
@@ -1180,18 +1175,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               </div>
 
               <div className="col-md-12 mb-2">
-                <FormField label="Remarks *">
+                <FormField label="Remarks">
                   <FormTextarea
                     value={formData.remarks}
-                    onChange={(e) => {
-                      handleFormChange("remarks", e.target.value);
-                      if (formErrors.remarks) setFormErrors((prev) => { const e = { ...prev }; delete e.remarks; return e; });
-                    }}
+                    onChange={(e) => handleFormChange("remarks", e.target.value)}
                     placeholder="Enter remarks..."
                     rows={3}
                   />
                 </FormField>
-                {formErrors.remarks && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.remarks}</span>}
               </div>
             </div>
           </div>
@@ -1363,18 +1354,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "0 0 8px 8px" }}>
                     <div className="row g-2 mb-1">
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="Order No *">
+                        <FormField label="Order No">
                           <FormInput
                             type="text"
                             value={order.orderNo}
-                            onChange={(e) => {
-                              handleOrderChange(order.id, "orderNo", e.target.value);
-                              if (formErrors[`o${index}_orderNo`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_orderNo`]; return e; });
-                            }}
+                            onChange={(e) => handleOrderChange(order.id, "orderNo", e.target.value)}
                             placeholder="Enter order number..."
                           />
                         </FormField>
-                        {formErrors[`o${index}_orderNo`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_orderNo`]}</span>}
                       </div>
 
                       <div className="col-lg-4 col-md-6">
@@ -1408,18 +1395,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-lg-6 col-md-12">
-                        <FormField label="Description *">
+                        <FormField label="Description">
                           <FormInput
                             type="text"
                             value={order.description}
-                            onChange={(e) => {
-                              handleOrderChange(order.id, "description", e.target.value);
-                              if (formErrors[`o${index}_description`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_description`]; return e; });
-                            }}
+                            onChange={(e) => handleOrderChange(order.id, "description", e.target.value)}
                             placeholder="Enter description..."
                           />
                         </FormField>
-                        {formErrors[`o${index}_description`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors[`o${index}_description`]}</span>}
                       </div>
 
                       <div className="col-lg-6 col-md-12">
