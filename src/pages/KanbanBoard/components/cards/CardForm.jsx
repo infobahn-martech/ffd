@@ -21,7 +21,6 @@ import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Re
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../components/NavTabButton";
 import GROCardView from "./components/GROCardView";
-import GROSupervisorCardView from "./components/GROSupervisorCardView";
 
 // Constants - All tabs
 const ALL_TOP_TABS = [
@@ -918,9 +917,10 @@ function CardForm({
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
-  const effectiveVariant = isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))
-    ? "empty"
-    : variant;
+  const effectiveVariant =
+    isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))
+      ? "gro"
+      : variant;
 
   const location = useLocation();
   const isDriverVariant = effectiveVariant === "driver";
@@ -929,7 +929,6 @@ function CardForm({
   const isGROVariant = effectiveVariant === "gro";
   const isCustomVariant = effectiveVariant === "custom";
   const isGROStyleView = isGROVariant || isCustomVariant;
-  const isEmptyVariant = effectiveVariant === "empty";
   const isDriverStyleView = isDriverVariant || isHotelVariant;
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
@@ -1286,7 +1285,7 @@ function CardForm({
         return;
       }
 
-      if (isGROStyleView || isEmptyVariant) {
+      if (isGROStyleView) {
         return;
       }
 
@@ -1334,7 +1333,6 @@ function CardForm({
     [
       isAddMode,
       isGROStyleView,
-      isEmptyVariant,
       card?.id,
       card?.card_id,
       card?.color,
@@ -1368,8 +1366,6 @@ function CardForm({
           <MWPCardView card={card} />
         ) : isGROStyleView ? (
           <GROCardView card={card} mode={isCustomVariant ? "custom" : "gro"} />
-        ) : isEmptyVariant ? (
-          <GROSupervisorCardView card={card} />
         ) : (
           <>
             {!isAddMode && !isMWPVariant && !isGROStyleView && (
@@ -1382,7 +1378,6 @@ function CardForm({
             )}
             {!isMWPVariant &&
               !isGROStyleView &&
-              !isEmptyVariant &&
               renderTabContent(
                 activeTopTab,
                 card,
@@ -1398,7 +1393,7 @@ function CardForm({
               )}
           </>
         )}
-        {!isAddMode && !isMWPVariant && !isEmptyVariant && (
+        {!isAddMode && !isMWPVariant && (
           <CardFormFooter
             accentColor={accentColor}
             onUpdate={handleUpdate}
@@ -1448,7 +1443,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
-  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro", "custom", "empty"]),
+  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro", "custom"]),
   onBoardRefresh: PropTypes.func,
   patchCardColor: PropTypes.func,
 };
