@@ -397,13 +397,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             dispatchDate: "",
           }];
       const rawDate = order.inbound_date || order.date || "";
-      const parsedDT = rawDate ? new Date(rawDate) : null;
-      const editDate = parsedDT && !Number.isNaN(parsedDT.getTime())
-        ? `${parsedDT.getFullYear()}-${String(parsedDT.getMonth() + 1).padStart(2, "0")}-${String(parsedDT.getDate()).padStart(2, "0")}`
-        : rawDate;
-      const editTime = parsedDT && !Number.isNaN(parsedDT.getTime())
-        ? `${String(parsedDT.getHours()).padStart(2, "0")}:${String(parsedDT.getMinutes()).padStart(2, "0")}`
-        : "";
+      // "YYYY-MM-DD" (date-only) strings are parsed as UTC midnight by new Date(),
+      // which shifts to local time (e.g. +05:30 in Sri Lanka). Detect and split manually.
+      const hasTimePart = rawDate.includes("T") || rawDate.includes(" ");
+      let editDate = rawDate;
+      let editTime = "";
+      if (rawDate && hasTimePart) {
+        const parsedDT = new Date(rawDate);
+        if (!Number.isNaN(parsedDT.getTime())) {
+          editDate = `${parsedDT.getFullYear()}-${String(parsedDT.getMonth() + 1).padStart(2, "0")}-${String(parsedDT.getDate()).padStart(2, "0")}`;
+          editTime = `${String(parsedDT.getHours()).padStart(2, "0")}:${String(parsedDT.getMinutes()).padStart(2, "0")}`;
+        }
+      }
       setFormData({
         date: editDate,
         time: editTime,
