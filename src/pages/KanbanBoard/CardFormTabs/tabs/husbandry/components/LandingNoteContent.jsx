@@ -338,6 +338,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   // File upload handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -907,11 +912,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 <div className="document-upload-wrapper">
                   <div
                     className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+                    onDragEnter={handleDragEnter}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={handleBrowseClick}
-                    style={{ "--card-color": cardColor || "#00368c", cursor: "pointer" }}
+                    style={{ "--card-color": cardColor || "#00368c" }}
                   >
                     <input
                       ref={fileInputRef}
@@ -923,6 +929,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     />
                     <div className="upload-zone-content">
+                      <div className="upload-icon-wrapper"></div>
                       <div className="upload-text-content">
                         <p className="upload-main-text">
                           Drag and drop your files here, or{" "}
@@ -935,10 +942,18 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="document-file-preview-list">
                       {selectedFiles.map((file, index) => (
                         <div key={index} className="document-file-preview-item">
+                          <div className="document-file-preview-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
                           <div className="document-file-preview-info">
                             <span className="document-file-preview-name">{file.name}</span>
                             <span className="document-file-preview-size">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                              {file.size < 1024 * 1024
+                                ? `${(file.size / 1024).toFixed(1)} KB`
+                                : `${(file.size / 1024 / 1024).toFixed(2)} MB`}
                             </span>
                           </div>
                           <button
