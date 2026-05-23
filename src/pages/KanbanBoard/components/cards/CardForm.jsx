@@ -5,6 +5,7 @@ import kanbanBoardService from "../../../../services/kanbanBoardService";
 import { mapSalesOrderResponse } from "../../../../helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
+import { Tag, Layers3, AlertTriangle, Sticker } from "lucide-react";
 import { notify } from "../../../../components/Toaster";
 import "../../styles/cardForm.scss";
 import "../../../../design/scss/general.scss";
@@ -229,6 +230,13 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, 
     setIsColorPickerOpen(false);
   };
 
+  const handleTopbarPlaceholderAction = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const TOPBAR_ICON_SIZE = 20;
+
   return (
     <div className="cardform-topbar" style={{ backgroundColor: topbarColor }}>
       <div>
@@ -247,6 +255,42 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, 
         )}
       </div>
       <div className="cardform-topbar-right">
+        <button
+          type="button"
+          className="topbar-icon-btn"
+          onClick={handleTopbarPlaceholderAction}
+          title="Tag"
+          aria-label="Tag"
+        >
+          <Tag size={TOPBAR_ICON_SIZE} aria-hidden />
+        </button>
+        <button
+          type="button"
+          className="topbar-icon-btn"
+          onClick={handleTopbarPlaceholderAction}
+          title="Type"
+          aria-label="Type"
+        >
+          <Layers3 size={TOPBAR_ICON_SIZE} aria-hidden />
+        </button>
+        <button
+          type="button"
+          className="topbar-icon-btn"
+          onClick={handleTopbarPlaceholderAction}
+          title="Blocker"
+          aria-label="Blocker"
+        >
+          <AlertTriangle size={TOPBAR_ICON_SIZE} aria-hidden />
+        </button>
+        <button
+          type="button"
+          className="topbar-icon-btn"
+          onClick={handleTopbarPlaceholderAction}
+          title="Sticker"
+          aria-label="Sticker"
+        >
+          <Sticker size={TOPBAR_ICON_SIZE} aria-hidden />
+        </button>
         <div className="topbar-color-picker-wrapper">
           <button
             ref={colorPickerTriggerRef}

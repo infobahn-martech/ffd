@@ -115,7 +115,8 @@
 .cardform-topbar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* Color Picker Wrapper */
@@ -253,6 +254,16 @@
   height: 18px;
   filter: brightness(0) invert(1);
   opacity: 0.9;
+}
+
+.topbar-icon-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #fff;
+  stroke: currentColor;
+  flex-shrink: 0;
+  pointer-events: none;
+  opacity: 0.95;
 }
 
 /* Close button */
