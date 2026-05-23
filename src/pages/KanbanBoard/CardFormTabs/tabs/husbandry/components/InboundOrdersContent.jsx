@@ -14,7 +14,13 @@ import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
 import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
+import inboundOrderService from "../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../services/vehicleService";
+import {
+  splitApiDateTimeParts,
+  buildApiDateTime,
+  formatDisplayDateTime,
+} from "../../../../../../helpers/dateTimeFieldUtils";
 import MaterialTablePagination from "./MaterialTablePagination";
 
 const extractListFromApi = (body) => {
@@ -357,79 +363,27 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
   }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, inboundPage]);
 
-  const handleOpenModal = (order = null) => {
-    if (order) {
-      setEditingOrder(order);
-      const apiItems = Array.isArray(order.items) ? order.items : [];
-      const orderItems = apiItems.length > 0
-        ? apiItems.map((item, idx) => ({
-            id: item.inbound_item_id || idx + 1,
-            orderNo: item.order_no || "",
-            poDo: item.po_no || "",
-            quantity: item.quantity || "",
-            packageType: String(item.package_type_id || ""),
-            description: item.description || "",
-            transportation: item.transportation_required === 1,
-            typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
-            fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
-            pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
-            toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
-            driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
-            slotNo: "",
-            reason: "",
-            dispatchDate: "",
-          }))
-        : [{
-            id: 1,
-            orderNo: "",
-            poDo: "",
-            quantity: "",
-            packageType: "",
-            description: "",
-            transportation: false,
-            typeOfVehicle: "",
-            fromLocation: "",
-            pickUpFrom: "",
-            toLocation: "",
-            driverName: "",
-            slotNo: "",
-            reason: "",
-            dispatchDate: "",
-          }];
-      const rawDate = order.inbound_date || order.date || "";
-      // "YYYY-MM-DD" (date-only) strings are parsed as UTC midnight by new Date(),
-      // which shifts to local time (e.g. +05:30 in Sri Lanka). Detect and split manually.
-      const hasTimePart = rawDate.includes("T") || rawDate.includes(" ");
-      let editDate = rawDate;
-      let editTime = "";
-      if (rawDate && hasTimePart) {
-        const parsedDT = new Date(rawDate);
-        if (!Number.isNaN(parsedDT.getTime())) {
-          editDate = `${parsedDT.getFullYear()}-${String(parsedDT.getMonth() + 1).padStart(2, "0")}-${String(parsedDT.getDate()).padStart(2, "0")}`;
-          editTime = `${String(parsedDT.getHours()).padStart(2, "0")}:${String(parsedDT.getMinutes()).padStart(2, "0")}`;
-        }
-      }
-      setFormData({
-        date: editDate,
-        time: editTime,
-        warehouse: String(order.warehouse_id || order.warehouse || ""),
-        remarks: order.remarks || "",
-        orders: orderItems,
-      });
-      // Set expanded state for all orders
-      const expandedState = {};
-      orderItems.forEach((item) => {
-        expandedState[item.id] = true;
-      });
-      setExpandedOrders(expandedState);
-    } else {
-      setEditingOrder(null);
-      setFormData({
-        date: "",
-        time: "",
-        warehouse: "",
-        remarks: "",
-        orders: [{
+  const populateFormFromOrder = (order) => {
+    const apiItems = Array.isArray(order.items) ? order.items : [];
+    const orderItems = apiItems.length > 0
+      ? apiItems.map((item, idx) => ({
+          id: item.inbound_item_id || idx + 1,
+          orderNo: item.order_no || "",
+          poDo: item.po_no || "",
+          quantity: item.quantity || "",
+          packageType: String(item.package_type_id || ""),
+          description: item.description || "",
+          transportation: item.transportation_required === 1,
+          typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
+          fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+          pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
+          toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
+          driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: "",
+        }))
+      : [{
           id: 1,
           orderNo: "",
           poDo: "",
@@ -444,11 +398,73 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           driverName: "",
           slotNo: "",
           reason: "",
-          dispatchDate: ""
-        }],
-      });
-      setExpandedOrders({ 1: true });
+          dispatchDate: "",
+        }];
+
+    const { date: editDate, time: editTime } = splitApiDateTimeParts(
+      order.inbound_date || order.date || "",
+      order.inbound_time || order.time || ""
+    );
+
+    setFormData({
+      date: editDate,
+      time: editTime,
+      warehouse: String(order.warehouse_id || order.warehouse || ""),
+      remarks: order.remarks || "",
+      orders: orderItems,
+    });
+
+    const expandedState = {};
+    orderItems.forEach((item) => {
+      expandedState[item.id] = true;
+    });
+    setExpandedOrders(expandedState);
+  };
+
+  const handleOpenModal = (order = null) => {
+    if (order) {
+      setEditingOrder(order);
+      populateFormFromOrder(order);
+      setShowModal(true);
+
+      const inboundId = order.inbound_id ?? order.id;
+      if (inboundId != null && inboundId !== "") {
+        inboundOrderService
+          .getInboundById(inboundId)
+          .then(({ data }) => {
+            const detail = data?.data;
+            if (detail) populateFormFromOrder(detail);
+          })
+          .catch(() => {});
+      }
+      return;
     }
+
+    setEditingOrder(null);
+    setFormData({
+      date: "",
+      time: "",
+      warehouse: "",
+      remarks: "",
+      orders: [{
+        id: 1,
+        orderNo: "",
+        poDo: "",
+        quantity: "",
+        packageType: "",
+        description: "",
+        transportation: false,
+        typeOfVehicle: "",
+        fromLocation: "",
+        pickUpFrom: "",
+        toLocation: "",
+        driverName: "",
+        slotNo: "",
+        reason: "",
+        dispatchDate: "",
+      }],
+    });
+    setExpandedOrders({ 1: true });
     setShowModal(true);
   };
 
@@ -500,6 +516,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const validateForm = () => {
     const errors = {};
     if (!formData.date) errors.date = "Date is required";
+    else if (!formData.time) errors.date = "Time is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
     formData.orders.forEach((order, idx) => {
       if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
@@ -611,7 +628,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const payload = {
       call_id: callId,
       warehouse_id: Number(formData.warehouse) || 0,
-      inbound_date: formData.date && formData.time ? `${formData.date}T${formData.time}:00` : formData.date,
+      inbound_date: buildApiDateTime(formData.date, formData.time),
+      inbound_time: (formData.time || "").slice(0, 5),
       remarks: formData.remarks || "",
       items,
     };
@@ -669,15 +687,30 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setShowDeleteModal(true);
   };
 
+  const resolveInboundId = (order) => {
+    const raw = order?.inbound_id ?? order?.id;
+    if (raw == null || raw === "") return null;
+    return raw;
+  };
+
   const handleConfirmDelete = () => {
     if (!deletingOrder) return;
+    const inboundId = resolveInboundId(deletingOrder);
+    if (inboundId == null) return;
+
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    const pageAfterDelete =
+      inboundOrders.length <= 1 && inboundPage > 1 ? inboundPage - 1 : inboundPage;
+
     deleteInboundOrder({
-      inboundId: deletingOrder.inbound_id ?? deletingOrder.id,
+      inboundId,
       cb: () => {
         setShowDeleteModal(false);
         setDeletingOrder(null);
-        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        if (pageAfterDelete !== inboundPage) {
+          setInboundPage(pageAfterDelete);
+        }
+        getAllInbound({ call_id: callId, page: pageAfterDelete, limit: INBOUND_LIMIT });
       },
     });
   };
@@ -690,7 +723,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleViewOrder = (order) => {
     handleCloseDropdown();
     setShowViewModal(true);
-    getInboundById({ inboundId: order.inbound_id });
+    const inboundId = resolveInboundId(order);
+    if (inboundId != null) {
+      getInboundById({ inboundId });
+    }
   };
 
   const handleCloseViewModal = () => {
@@ -1105,15 +1141,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   };
 
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const formatDate = (dateString, separateTime) => formatDisplayDateTime(dateString, separateTime);
 
   const slotNoOptions = [
     { value: "Slot 1", label: "Slot 1" },
@@ -1151,17 +1179,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <DateTimePickerField
                     dateValue={formData.date}
                     timeValue={formData.time}
-                    onDateChange={(e) => {
-                      handleFormChange("date", e.target.value);
-                      if (!formData.time) {
-                        const now = new Date();
-                        const hh = String(now.getHours()).padStart(2, "0");
-                        const mm = String(Math.round(now.getMinutes() / 5) * 5 % 60).padStart(2, "0");
-                        handleFormChange("time", `${hh}:${mm}`);
-                      }
-                      if (formErrors.date) setFormErrors((prev) => { const e = { ...prev }; delete e.date; return e; });
+                    onDateTimeChange={(nextValues) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        date: nextValues.date,
+                        time: nextValues.time,
+                      }));
+                      if (formErrors.date) setFormErrors((prev) => { const next = { ...prev }; delete next.date; return next; });
                     }}
-                    onTimeChange={(e) => handleFormChange("time", e.target.value)}
                     dateFieldName="date"
                     timeFieldName="time"
                     placeholder="YYYY-MM-DD hh:mm"
@@ -2177,7 +2202,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingOrder.inbound_date) || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingOrder.inbound_date, viewingOrder.inbound_time || viewingOrder.time) || "-"}</div>
             </div>
           </div>
 
@@ -2329,7 +2354,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {formatDate(order.inbound_date || order.date)}
+                      {formatDate(order.inbound_date || order.date, order.inbound_time || order.time)}
                     </div>
                   </td>
                   <td>
