@@ -396,9 +396,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             reason: "",
             dispatchDate: "",
           }];
+      const rawDate = order.inbound_date || order.date || "";
+      const parsedDT = rawDate ? new Date(rawDate) : null;
+      const editDate = parsedDT && !Number.isNaN(parsedDT.getTime())
+        ? `${parsedDT.getFullYear()}-${String(parsedDT.getMonth() + 1).padStart(2, "0")}-${String(parsedDT.getDate()).padStart(2, "0")}`
+        : rawDate;
+      const editTime = parsedDT && !Number.isNaN(parsedDT.getTime())
+        ? `${String(parsedDT.getHours()).padStart(2, "0")}:${String(parsedDT.getMinutes()).padStart(2, "0")}`
+        : "";
       setFormData({
-        date: order.inbound_date || order.date || "",
-        time: "",
+        date: editDate,
+        time: editTime,
         warehouse: String(order.warehouse_id || order.warehouse || ""),
         remarks: order.remarks || "",
         orders: orderItems,
