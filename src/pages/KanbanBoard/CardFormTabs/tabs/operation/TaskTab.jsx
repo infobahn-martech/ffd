@@ -158,9 +158,6 @@ function OperationTasksPanel({
         </ul>
       </div>
 
-      {isViewOnly ? (
-        <p className="operation-task-view-only-note">Tasks are read-only in this view.</p>
-      ) : null}
     </div>
   );
 }
