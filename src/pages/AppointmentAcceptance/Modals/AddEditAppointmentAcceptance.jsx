@@ -261,7 +261,7 @@ export function ReportTemplatesModal({
           {/* ROW 3 — Subject (textarea) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
-              <label style={{ marginBottom: "8px", display: "block" }}>
+              <label className="report-template-label">
                 Subject <span className="text-danger">*</span>
               </label>
               <textarea
@@ -287,7 +287,7 @@ export function ReportTemplatesModal({
           {/* ROW 4 — Body (ReactQuill) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
-              <label style={{ marginBottom: "8px", display: "block" }}>
+              <label className="report-template-label">
                 Body <span className="text-danger">*</span>
               </label>
               <Controller

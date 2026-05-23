@@ -675,3 +675,37 @@ input[type=number] {
         box-shadow: none !important;
     }
 }
+
+.report-template-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 10px;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+
+    color: #344054;
+    letter-spacing: 0.2px;
+}
+
+.report-template-label .text-danger {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.desig-inp textarea.form-control {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+}
+
+.react-quill-wrapper .ql-toolbar {
+    border-radius: 12px 12px 0 0;
+}
+
+.react-quill-wrapper .ql-container {
+    border-radius: 0 0 12px 12px;
+    min-height: 160px;
+}
