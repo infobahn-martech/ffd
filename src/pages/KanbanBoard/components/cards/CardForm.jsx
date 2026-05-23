@@ -1188,6 +1188,7 @@ function CardForm({
 
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const groCardViewRef = useRef(null);
 
   useEffect(() => {
     if (show && isAddMode) setHasSubmitted(false);
@@ -1202,12 +1203,23 @@ function CardForm({
     [close, onBoardRefresh]
   );
 
+  const validateGroCardBeforeAction = useCallback(() => {
+    if (!isGROVariant || isCustomVariant) return true;
+    const message = groCardViewRef.current?.validate?.();
+    if (message) {
+      notify(message, "warn");
+      return false;
+    }
+    return true;
+  }, [isGROVariant, isCustomVariant]);
+
   const handleUpdate = useCallback(() => {
+    if (!validateGroCardBeforeAction()) return;
     // TODO: Add API call to update card
     // NOTE: topbarColor is visual only - never save it to card.color
     // card.color must remain fixed and unchanged
     close();
-  }, [close]);
+  }, [close, validateGroCardBeforeAction]);
 
   const addModeSaveProps = useMemo(
     () =>
@@ -1241,6 +1253,7 @@ function CardForm({
 
   const handleStepClick = useCallback((stepLabel, stepNumber) => {
     if (!moveCardToColumn || !card?.id) return;
+    if (!validateGroCardBeforeAction()) return;
 
     // Step-by-step validation: only allow moving to adjacent steps (forward or backward by 1)
     if (currentStep !== null) {
@@ -1255,7 +1268,7 @@ function CardForm({
     if (targetColumnId) {
       moveCardToColumn(card.id, targetColumnId);
     }
-  }, [moveCardToColumn, card?.id, columns, columnOrder, currentStep]);
+  }, [moveCardToColumn, card?.id, columns, columnOrder, currentStep, validateGroCardBeforeAction]);
 
   // Non-GRO: topbar tracks card.color when it changes (visual only).
   useEffect(() => {
@@ -1365,7 +1378,12 @@ function CardForm({
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
         ) : isGROStyleView ? (
-          <GROCardView card={card} mode={isCustomVariant ? "custom" : "gro"} />
+          <GROCardView
+            ref={groCardViewRef}
+            card={card}
+            mode={isCustomVariant ? "custom" : "gro"}
+            userRoleId={userRoleId}
+          />
         ) : (
           <>
             {!isAddMode && !isMWPVariant && !isGROStyleView && (

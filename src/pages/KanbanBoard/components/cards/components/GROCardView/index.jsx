@@ -1,9 +1,14 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { notify } from "../../../../../../components/Toaster";
+import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
+import userService from "../../../../../../services/userService";
+import { mergeOptionIfMissing } from "../../../../../../helpers/callFileFormOptions";
+import { isGROSupervisorRole } from "../../../../../../helpers/groUserRoles";
+import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../CardFormTabs/tabs/operation/operationConstants";
 import groService from "../../../../../../services/groService";
-import GroSummaryCard from "./GroSummaryCard";
+import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
 import InwardClearanceView, { DocumentActionConfirmModal, InwardClearanceToolbar } from "./InwardClearanceView";
 import PassRequestsView from "./PassRequestsView";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
@@ -17,6 +22,10 @@ import {
   splitInwardDateTimeString,
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
+  parseGroUsersByRoleResponse,
+  resolveGroRequestedOperatorDisplay,
+  resolveGroAssignedUserIdFromDetail,
+  resolveGroAssignedUserDisplayName,
   getGroDocumentVerifyStatus,
   flattenGroPassRows,
   buildGroPassIssueDateString,
@@ -28,8 +37,12 @@ import {
 
 const EMPTY_WORK_ORDERS = [];
 
-function GROCardView({ card, mode = "gro" }) {
+const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRoleId = null }, ref) {
   const isCustomClearance = mode === "custom";
+  const hidePassTabs = mode === "gro" || isCustomClearance;
+  const isGroSupervisorViewer =
+    isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
+  const showAssignedUserSelect = mode === "gro" && isGroSupervisorViewer;
 
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -63,6 +76,10 @@ function GROCardView({ card, mode = "gro" }) {
   const [bulkPassSubmitting, setBulkPassSubmitting] = useState(false);
   const [bulkPassFormError, setBulkPassFormError] = useState("");
   const [bulkPassPopoverRect, setBulkPassPopoverRect] = useState(null);
+  const [assignedUserId, setAssignedUserId] = useState("");
+  const [assignedUserError, setAssignedUserError] = useState("");
+  const [groUserOptions, setGroUserOptions] = useState([]);
+  const [groUsersLoading, setGroUsersLoading] = useState(false);
   const bulkPassUploadBtnRef = useRef(null);
   const bulkPassPopoverPortalRef = useRef(null);
   const bulkPassFileInputRef = useRef(null);
@@ -91,15 +108,15 @@ function GROCardView({ card, mode = "gro" }) {
     callDetail?.port_id != null && callDetail.port_id !== "" ? String(callDetail.port_id) : ""
   );
   const vesselNameSummary = firstNonEmptyGroDisplay(callDetail?.vessel_name, card?.vesselName);
-  const assignedOperatorFromDetail =
-    typeof callDetail?.assigned_operator === "string" ? callDetail.assigned_operator : "";
-  const assignedOperatorSummary = firstNonEmptyGroDisplay(
-    callDetail?.requested_operator,
-    callDetail?.assigned_operator_name,
-    assignedOperatorFromDetail,
-    callDetail?.assigned_operator_id != null && callDetail.assigned_operator_id !== ""
-      ? String(callDetail.assigned_operator_id)
-      : ""
+  const requestedOperatorSummary = resolveGroRequestedOperatorDisplay(callDetail);
+  const assignedUserReadOnlySummary = resolveGroAssignedUserDisplayName(
+    callDetail,
+    assignedUserId || resolveGroAssignedUserIdFromDetail(callDetail),
+    groUserOptions
+  );
+  const assignedUserSelectOptions = useMemo(
+    () => mergeOptionIfMissing(groUserOptions, assignedUserId),
+    [groUserOptions, assignedUserId]
   );
 
   const resetInwardClearanceFields = () => {
@@ -119,6 +136,57 @@ function GROCardView({ card, mode = "gro" }) {
   }, [callId]);
 
   useEffect(() => {
+    if (!callDetail) return;
+    setAssignedUserId(resolveGroAssignedUserIdFromDetail(callDetail));
+    setAssignedUserError("");
+  }, [callDetail]);
+
+  useEffect(() => {
+    if (!showAssignedUserSelect) {
+      setGroUserOptions([]);
+      setGroUsersLoading(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setGroUsersLoading(true);
+    userService
+      .getUsersByRole({ role_id: PRE_ARRIVAL_GRO_ROLE_ID })
+      .then((res) => {
+        if (!cancelled) setGroUserOptions(parseGroUsersByRoleResponse(res));
+      })
+      .catch(() => {
+        if (!cancelled) setGroUserOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setGroUsersLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showAssignedUserSelect]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      validate: () => {
+        if (!showAssignedUserSelect) {
+          setAssignedUserError("");
+          return null;
+        }
+        if (!String(assignedUserId ?? "").trim()) {
+          const message = "Assigned User is required.";
+          setAssignedUserError(message);
+          return message;
+        }
+        setAssignedUserError("");
+        return null;
+      },
+    }),
+    [showAssignedUserSelect, assignedUserId]
+  );
+
+  useEffect(() => {
+    if (hidePassTabs) return;
     if (groMainView === GRO_MAIN_VIEWS.inward) return;
     if (callId == null || callId === "") {
       setPassRequestsError("Unable to load pass requests: missing call id.");
@@ -158,7 +226,7 @@ function GROCardView({ card, mode = "gro" }) {
     return () => {
       cancelled = true;
     };
-  }, [groMainView, callId, passRequestsState.callId, passRequestsState.cg]);
+  }, [hidePassTabs, groMainView, callId, passRequestsState.callId, passRequestsState.cg]);
 
   const switchGroMainView = useCallback((next) => {
     setGroMainView(next);
@@ -170,11 +238,11 @@ function GROCardView({ card, mode = "gro" }) {
   }, []);
 
   useEffect(() => {
-    if (!isCustomClearance) return;
+    if (!hidePassTabs) return;
     if (groMainView === GRO_MAIN_VIEWS.cg || groMainView === GRO_MAIN_VIEWS.zawil) {
       switchGroMainView(GRO_MAIN_VIEWS.inward);
     }
-  }, [isCustomClearance, groMainView, switchGroMainView]);
+  }, [hidePassTabs, groMainView, switchGroMainView]);
 
   const selectDocumentsTab = useCallback(() => {
     setGroMainView(GRO_MAIN_VIEWS.inward);
@@ -557,12 +625,12 @@ function GROCardView({ card, mode = "gro" }) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const documentsSectionTitle =
-    groMainView === GRO_MAIN_VIEWS.cg
-      ? "CG Pass"
-      : groMainView === GRO_MAIN_VIEWS.zawil
-        ? "Zawil Pass"
-        : "Documents";
+  const documentsSectionTitle = "Documents";
+
+  const handleAssignedUserChange = useCallback((e) => {
+    setAssignedUserId(e?.target?.value ?? "");
+    setAssignedUserError("");
+  }, []);
 
   const bulkPassPopoverStyle =
     showPassBulkPopover && bulkPassPopoverRect != null
@@ -616,12 +684,30 @@ function GROCardView({ card, mode = "gro" }) {
 
   return (
     <div className="gro-card-view">
-      <div className="gro-summary-grid">
+      <div className="gro-summary-grid gro-summary-grid--six-col">
         <GroSummaryCard label="Call Type" value={callTypeSummary} />
         <GroSummaryCard label="Billing Entity" value={billingEntitySummary} />
         <GroSummaryCard label="Port" value={portSummary} />
         <GroSummaryCard label="Vessel Name" value={vesselNameSummary} />
-        <GroSummaryCard label="Assigned Operator" value={assignedOperatorSummary} />
+        <GroSummaryCard label="Requested Operator" value={requestedOperatorSummary} />
+        {showAssignedUserSelect ? (
+          <GroSummaryFieldCard label="Assigned User" error={assignedUserError}>
+            <SearchableSelect
+              value={assignedUserId}
+              onChange={handleAssignedUserChange}
+              options={assignedUserSelectOptions}
+              placeholder={groUsersLoading ? "Loading…" : "Select user"}
+              searchPlaceholder={deriveSearchPlaceholder("Select user")}
+              disabled={groUsersLoading || isGroLoading}
+              hasError={Boolean(assignedUserError)}
+              className="gro-summary-searchable-select"
+              menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+              menuPosition="fixed"
+            />
+          </GroSummaryFieldCard>
+        ) : mode === "gro" ? (
+          <GroSummaryCard label="Assigned User" value={assignedUserReadOnlySummary} />
+        ) : null}
       </div>
 
       <div className="gro-document-section">
@@ -632,9 +718,9 @@ function GROCardView({ card, mode = "gro" }) {
               <div
                 className="gro-pass-segments"
                 role="tablist"
-                aria-label={isCustomClearance ? "Documents and Bayan" : "Pass and clearance views"}
+                aria-label={isCustomClearance ? "Documents and Bayan" : "Documents and inward clearance"}
               >
-                {!isCustomClearance ? (
+                {!hidePassTabs ? (
                   <>
                     <button
                       type="button"
@@ -683,7 +769,9 @@ function GROCardView({ card, mode = "gro" }) {
                   isSavingInward={isSavingInward}
                   isGroLoadingDisabled={isGroLoading || isSavingInward || callId == null || callId === ""}
                 />
-              ) : (groMainView === GRO_MAIN_VIEWS.cg || groMainView === GRO_MAIN_VIEWS.zawil) && passSelectedRowIds.size > 0 ? (
+              ) : !hidePassTabs &&
+                (groMainView === GRO_MAIN_VIEWS.cg || groMainView === GRO_MAIN_VIEWS.zawil) &&
+                passSelectedRowIds.size > 0 ? (
                 <div className="gro-inward-anchor gro-pass-bulk-upload-anchor">
                   <button
                     ref={bulkPassUploadBtnRef}
@@ -709,7 +797,7 @@ function GROCardView({ card, mode = "gro" }) {
           </div>
         </div>
 
-        {groMainView === GRO_MAIN_VIEWS.inward ? (
+        {hidePassTabs || groMainView === GRO_MAIN_VIEWS.inward ? (
           <InwardClearanceView
             documents={documents}
             isGroLoading={isGroLoading}
@@ -765,11 +853,14 @@ function GROCardView({ card, mode = "gro" }) {
       />
     </div>
   );
-}
+});
 
 GROCardView.propTypes = {
   card: PropTypes.object,
   mode: PropTypes.oneOf(["gro", "custom"]),
+  userRoleId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
+
+GROCardView.displayName = "GROCardView";
 
 export default GROCardView;

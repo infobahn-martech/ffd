@@ -202,6 +202,58 @@ export const firstNonEmptyGroDisplay = (...candidates) => {
   return "-";
 };
 
+/** Users list from POST /users/get_users_by_role */
+export const parseGroUsersByRoleResponse = (res) => {
+  const body = res?.data ?? res;
+  const list = Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : [];
+  return list
+    .map((row) => {
+      const id = row?.user_id ?? row?.id ?? row?.userid;
+      if (id == null || String(id).trim() === "") return null;
+      const label =
+        row?.name ?? row?.user_name ?? row?.username ?? row?.full_name ?? `User ${id}`;
+      return { value: String(id), label: String(label).trim() || `User ${id}` };
+    })
+    .filter(Boolean);
+};
+
+export const resolveGroRequestedOperatorDisplay = (detail) => {
+  const asString =
+    typeof detail?.requested_operator === "string" ? detail.requested_operator.trim() : "";
+  return firstNonEmptyGroDisplay(
+    asString || null,
+    detail?.requested_operator_name,
+    detail?.requested_operator_id != null && detail.requested_operator_id !== ""
+      ? String(detail.requested_operator_id)
+      : ""
+  );
+};
+
+export const resolveGroAssignedUserIdFromDetail = (detail) => {
+  const raw =
+    detail?.assigned_user_id ??
+    detail?.assigned_user ??
+    detail?.assigned_operator_id ??
+    detail?.assigned_operator;
+  if (raw == null || String(raw).trim() === "") return "";
+  return String(raw).trim();
+};
+
+export const resolveGroAssignedUserDisplayName = (detail, userId, userOptions = []) => {
+  const fromDetail = firstNonEmptyGroDisplay(
+    detail?.assigned_user_name,
+    detail?.assigned_operator_name,
+    typeof detail?.assigned_operator === "string" && !/^\d+$/.test(String(detail.assigned_operator).trim())
+      ? detail.assigned_operator
+      : ""
+  );
+  if (fromDetail !== "-") return fromDetail;
+  const id = String(userId ?? "").trim();
+  if (!id) return "-";
+  const match = userOptions.find((o) => String(o.value) === id);
+  return match?.label ?? id;
+};
+
 /** Title-case all-caps API labels (e.g. "CREW LIST"); leave mixed-case strings unchanged. */
 export const formatGroDocumentDisplayName = (raw) => {
   if (raw == null) return "";

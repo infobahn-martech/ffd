@@ -48,6 +48,58 @@
   word-break: break-word;
 }
 
+.gro-summary-grid--six-col {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.gro-summary-card--field {
+  display: flex;
+  flex-direction: column;
+}
+
+.gro-summary-control {
+  margin-top: 8px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.gro-summary-card--field .gro-summary-searchable-select.cf-searchable-select {
+  width: 100%;
+}
+
+.gro-summary-card--field .cf-multi-select-email-input {
+  min-height: 44px;
+  height: 44px;
+  padding: 0 40px 0 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #ffffff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.gro-summary-card--field .cf-multi-select-email-input:hover {
+  border-color: #98a2b3;
+}
+
+.gro-summary-card--field .cf-multi-select-email-input:focus-within {
+  border-color: #3e5ebd;
+  box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.12);
+}
+
+.gro-summary-card--error .cf-multi-select-email-input {
+  border-color: #dc2626;
+}
+
+.gro-summary-field-error {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+}
+
 .gro-card-view .gro-document-section {
   display: flex;
   flex-direction: column;
@@ -1238,8 +1290,15 @@ body .gro-doc-action-modal .modal-dialog {
   }
 }
 
+@media (max-width: 1400px) {
+  .gro-summary-grid--six-col {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 900px) {
-  .gro-summary-grid {
+  .gro-summary-grid,
+  .gro-summary-grid--six-col {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 14px;
   }
