@@ -7,6 +7,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import DateTimePickerField from "../../../components/DateTimePickerField";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -219,6 +220,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   // Form state - Basic Details
   const [formData, setFormData] = useState({
     date: "",
+    time: "",
     warehouse: "",
     orders: [{
       id: 1,
@@ -242,6 +244,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   // Form state for Convert to Landing modal
   const [convertFormData, setConvertFormData] = useState({
     date: "",
+    time: "",
     warehouse: "",
     receivedFrom: "",
     location: "",
@@ -383,6 +386,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setEditingOrder(null);
       setFormData({
         date: "",
+        time: "",
         warehouse: "",
         orders: [{
           id: 1,
@@ -834,6 +838,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setConvertingOrder(null);
     setConvertFormData({
       date: "",
+      time: "",
       warehouse: "",
       receivedFrom: "",
       location: "",
@@ -1050,46 +1055,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Date">
-                  <div className="cf-select cf-date-input">
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => handleFormChange("date", e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        fontSize: "14px",
-                        color: "#1a1a1a",
-                        fontFamily: "inherit",
-                        padding: 0,
-                        flex: 1,
-                        cursor: "pointer",
-                      }}
-                    />
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        flexShrink: 0,
-                        marginLeft: "8px",
-                        color: "#666",
-                        pointerEvents: "none",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
+                  <DateTimePickerField
+                    dateValue={formData.date}
+                    timeValue={formData.time}
+                    onDateChange={(e) => handleFormChange("date", e.target.value)}
+                    onTimeChange={(e) => handleFormChange("time", e.target.value)}
+                    dateFieldName="date"
+                    timeFieldName="time"
+                    placeholder="YYYY-MM-DD hh:mm"
+                  />
                 </FormField>
               </div>
 
@@ -1456,46 +1430,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Date">
-                  <div className="cf-select cf-date-input">
-                    <input
-                      type="date"
-                      value={convertFormData.date}
-                      onChange={(e) => handleConvertFormChange("date", e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        fontSize: "14px",
-                        color: "#1a1a1a",
-                        fontFamily: "inherit",
-                        padding: 0,
-                        flex: 1,
-                        cursor: "pointer",
-                      }}
-                    />
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        flexShrink: 0,
-                        marginLeft: "8px",
-                        color: "#666",
-                        pointerEvents: "none",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
+                  <DateTimePickerField
+                    dateValue={convertFormData.date}
+                    timeValue={convertFormData.time}
+                    onDateChange={(e) => handleConvertFormChange("date", e.target.value)}
+                    onTimeChange={(e) => handleConvertFormChange("time", e.target.value)}
+                    dateFieldName="date"
+                    timeFieldName="time"
+                    placeholder="YYYY-MM-DD hh:mm"
+                  />
                 </FormField>
               </div>
 
@@ -1834,46 +1777,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                         <div className="col-lg-4 col-md-6">
                           <FormField label="Dispatch Date">
-                            <div className="cf-select cf-date-input">
-                              <input
-                                type="date"
-                                value={order.dispatchDate}
-                                onChange={(e) => handleConvertOrderChange(order.id, "dispatchDate", e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  background: "transparent",
-                                  fontSize: "14px",
-                                  color: "#1a1a1a",
-                                  fontFamily: "inherit",
-                                  padding: 0,
-                                  flex: 1,
-                                  cursor: "pointer",
-                                }}
-                              />
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                style={{
-                                  flexShrink: 0,
-                                  marginLeft: "8px",
-                                  color: "#666",
-                                  pointerEvents: "none",
-                                  position: "relative",
-                                  zIndex: 1,
-                                }}
-                              >
-                                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                              </svg>
-                            </div>
+                            <DateTimePickerField
+                              dateValue={order.dispatchDate}
+                              timeValue=""
+                              onDateChange={(e) => handleConvertOrderChange(order.id, "dispatchDate", e.target.value)}
+                              dateFieldName="dispatchDate"
+                              placeholder="YYYY-MM-DD"
+                              dateOnly
+                            />
                           </FormField>
                         </div>
                       </div>
