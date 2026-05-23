@@ -1153,6 +1153,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     timeValue={formData.time}
                     onDateChange={(e) => {
                       handleFormChange("date", e.target.value);
+                      if (!formData.time) {
+                        const now = new Date();
+                        const hh = String(now.getHours()).padStart(2, "0");
+                        const mm = String(Math.round(now.getMinutes() / 5) * 5 % 60).padStart(2, "0");
+                        handleFormChange("time", `${hh}:${mm}`);
+                      }
                       if (formErrors.date) setFormErrors((prev) => { const e = { ...prev }; delete e.date; return e; });
                     }}
                     onTimeChange={(e) => handleFormChange("time", e.target.value)}

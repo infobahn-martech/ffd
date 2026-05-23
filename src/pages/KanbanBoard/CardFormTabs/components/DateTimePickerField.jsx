@@ -9,14 +9,14 @@ import "../../../../design/scss/general.scss";
 const padDateTimePart = (value) => String(value).padStart(2, "0");
 
 const combineDateTime = (dateValue, timeValue) => {
-  if (!dateValue || !timeValue) return null;
+  if (!dateValue) return null;
   const [year, month, day] = String(dateValue)
     .split("-")
     .map((part) => Number(part));
 
   if (!year || !month || !day) return null;
 
-  const [hours = 0, minutes = 0] = String(timeValue)
+  const [hours = 0, minutes = 0] = String(timeValue || "00:00")
     .split(":")
     .map((part) => Number(part));
 
