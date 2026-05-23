@@ -5,6 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import DateTimePickerField from "../../../components/DateTimePickerField";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -61,6 +62,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [formData, setFormData] = useState({
     orderNo: "",
     date: "",
+    time: "",
     poDo: "",
     deliveryProof: [],
     quantity: "",
@@ -106,6 +108,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         orderNo: "",
         date: "",
+        time: "",
         poDo: "",
         deliveryProof: [],
         quantity: "",
@@ -123,6 +126,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       orderNo: "",
       date: "",
+      time: "",
       poDo: "",
       deliveryProof: [],
       quantity: "",
@@ -455,14 +459,15 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="col-12 mb-3">
               <FormField label="Date">
-                <div className="cf-input">
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleFormChange("date", e.target.value)}
-                    placeholder="Select date"
-                  />
-                </div>
+                <DateTimePickerField
+                  dateValue={formData.date}
+                  timeValue={formData.time}
+                  onDateChange={(e) => handleFormChange("date", e.target.value)}
+                  onTimeChange={(e) => handleFormChange("time", e.target.value)}
+                  dateFieldName="date"
+                  timeFieldName="time"
+                  placeholder="YYYY-MM-DD hh:mm"
+                />
               </FormField>
             </div>
 
