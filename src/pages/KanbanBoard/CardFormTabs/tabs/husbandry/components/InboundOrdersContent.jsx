@@ -7,8 +7,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DateTimePickerField from "../../../components/DateTimePickerField";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -30,22 +29,6 @@ const mergeOptionForValue = (options, value) => {
   const s = String(value);
   if (options.some((o) => o.value === s)) return options;
   return [...options, { value: s, label: s }];
-};
-
-const parseISODate = (value) => {
-  if (!value) return null;
-  const normalized = String(value).slice(0, 10);
-  const [year, month, day] = normalized.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  return new Date(year, month - 1, day);
-};
-
-const toISODate = (date) => {
-  if (!date) return "";
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 };
 
 // Generate dummy inbound orders data
@@ -257,6 +240,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   // Form state - Basic Details
   const [formData, setFormData] = useState({
     date: "",
+    time: "",
     warehouse: "",
     remarks: "",
     orders: [{
@@ -414,6 +398,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           }];
       setFormData({
         date: order.inbound_date || order.date || "",
+        time: "",
         warehouse: String(order.warehouse_id || order.warehouse || ""),
         remarks: order.remarks || "",
         orders: orderItems,
@@ -428,6 +413,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setEditingOrder(null);
       setFormData({
         date: "",
+        time: "",
         warehouse: "",
         remarks: "",
         orders: [{
@@ -459,6 +445,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setFormErrors({});
     setFormData({
       date: "",
+      time: "",
       warehouse: "",
       remarks: "",
       orders: [{
@@ -639,6 +626,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleReset = () => {
     setFormData({
       date: "",
+      time: "",
       warehouse: "",
       remarks: "",
       orders: [{
@@ -1147,21 +1135,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Date">
-                  <div className="cf-input">
-                    <DatePicker
-                      selected={parseISODate(formData.date)}
-                      onChange={(date) => {
-                        handleFormChange("date", toISODate(date));
-                        if (formErrors.date) setFormErrors((prev) => { const e = { ...prev }; delete e.date; return e; });
-                      }}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="dd/mm/yyyy"
-                      className="premium-date-input"
-                      popperClassName="premium-datepicker-popper"
-                      calendarClassName="premium-datepicker-calendar"
-                      showPopperArrow={false}
-                    />
-                  </div>
+                  <DateTimePickerField
+                    dateValue={formData.date}
+                    timeValue={formData.time}
+                    onDateChange={(e) => {
+                      handleFormChange("date", e.target.value);
+                      if (formErrors.date) setFormErrors((prev) => { const e = { ...prev }; delete e.date; return e; });
+                    }}
+                    onTimeChange={(e) => handleFormChange("time", e.target.value)}
+                    dateFieldName="date"
+                    timeFieldName="time"
+                    placeholder="YYYY-MM-DD hh:mm"
+                  />
                 </FormField>
                 {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.date}</span>}
               </div>
