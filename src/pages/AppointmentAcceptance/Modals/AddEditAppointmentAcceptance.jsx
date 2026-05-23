@@ -155,11 +155,11 @@ export function ReportTemplatesModal({
       <div className="lead-form">
         <form id="reportTemplatesForm" onSubmit={handleSubmit(onSubmit)}>
 
-          {/* ROW 1 — Report Type + Port */}
+          {/* ROW 1 — Report Type, Port, Call Type */}
           <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
+            <div className="permInputs row g-3">
               {/* REPORT TYPE */}
-              <div className="col-lg-6 col-sm-12">
+              <div className="col-lg-4 col-md-4 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
                     Report Type <span className="text-danger">*</span>
@@ -189,7 +189,7 @@ export function ReportTemplatesModal({
               </div>
 
               {/* PORT */}
-              <div className="col-lg-6 col-sm-12">
+              <div className="col-lg-4 col-md-4 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
                     Port <span className="text-danger">*</span>
@@ -221,13 +221,8 @@ export function ReportTemplatesModal({
                 </div>
               </div>
 
-            </div>
-          </div>
-
-          {/* ROW 2 — Call Type */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
-              <div className="col-lg-12 col-sm-12">
+              {/* CALL TYPE */}
+              <div className="col-lg-4 col-md-4 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
                     Call Type <span className="text-danger">*</span>
@@ -258,7 +253,7 @@ export function ReportTemplatesModal({
             </div>
           </div>
 
-          {/* ROW 3 — Subject (textarea) */}
+          {/* ROW 2 — Subject (textarea) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
               <label className="report-template-label">
@@ -284,7 +279,7 @@ export function ReportTemplatesModal({
             </div>
           </div>
 
-          {/* ROW 4 — Body (ReactQuill) */}
+          {/* ROW 3 — Body (ReactQuill) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
               <label className="report-template-label">
