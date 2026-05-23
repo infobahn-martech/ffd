@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import "../../../../../design/scss/operations.scss";
 
 const TASK_STATUS = {
   PENDING: "Pending",
@@ -14,7 +15,7 @@ const STATUS_CLASS_MAP = {
   [TASK_STATUS.REJECTED]: "operation-task-status--rejected",
 };
 
-const dummyTaskSections = [
+export const dummyTaskSections = [
   {
     id: 1,
     title: "GRO",
@@ -91,85 +92,99 @@ TaskStatusBadge.propTypes = {
   status: PropTypes.string.isRequired,
 };
 
-function TaskTab({
-  card,
-  formValues,
-  handleChange,
+function OperationTasksPanel({
   cardColor,
   isViewOnly = false,
-  callId = "",
+  embedded = false,
+  taskSections = dummyTaskSections,
+  className = "",
 }) {
-  const taskSections = dummyTaskSections;
+  const panelClassName = [
+    embedded ? "operation-tasks-panel--embedded" : "operation-task-tab-body",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="cardform-left-full operation-task-tab" style={{ "--card-color": cardColor }}>
-      <div className="operation-content-header">
-        <h3 className="operation-content-title">Tasks</h3>
-      </div>
-
-      <div className="operation-task-tab-body">
-        <div className="operation-task-card">
-          <div className="operation-task-card-header">
-            <span className="operation-task-card-title">Operation Tasks</span>
-          </div>
-
-          <ul className="operation-task-list" role="list">
-            {taskSections.map((section) => (
-              <li key={section.id} className="operation-task-section">
-                <div className="operation-task-section-head">
-                  <h4 className="operation-task-section-title" id={`operation-task-section-${section.id}`}>
-                    {section.title}
-                  </h4>
-                </div>
-
-                <ul
-                  className="operation-task-section-list"
-                  role="list"
-                  aria-labelledby={`operation-task-section-${section.id}`}
-                >
-                  {section.tasks.map((task) => (
-                    <li key={task.id} className="operation-task-row operation-task-row--nested" role="listitem">
-                      <div className="operation-task-row-main">
-                        <span className="operation-task-name">{task.title}</span>
-                        <TaskStatusBadge status={task.status} />
-                      </div>
-                      <div className="operation-task-row-meta">
-                        <span className="operation-task-meta-item">
-                          <span className="operation-task-meta-label">Assigned</span>
-                          <span className="operation-task-meta-value">
-                            {task.assignedTo || "Unassigned"}
-                          </span>
-                        </span>
-                        <span className="operation-task-meta-item">
-                          <span className="operation-task-meta-label">Remarks</span>
-                          <span className="operation-task-meta-value operation-task-meta-value--remarks">
-                            {task.remarks || "—"}
-                          </span>
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
+    <div
+      className={panelClassName}
+      style={cardColor ? { "--card-color": cardColor } : undefined}
+    >
+      <div className="operation-task-card">
+        <div className="operation-task-card-header">
+          <span className="operation-task-card-title">Operation Tasks</span>
         </div>
 
-        {isViewOnly ? (
-          <p className="operation-task-view-only-note">Tasks are read-only in this view.</p>
-        ) : null}
+        <ul className="operation-task-list" role="list">
+          {taskSections.map((section) => (
+            <li key={section.id} className="operation-task-section">
+              <div className="operation-task-section-head">
+                <h4 className="operation-task-section-title" id={`operation-task-section-${section.id}`}>
+                  {section.title}
+                </h4>
+              </div>
+
+              <ul
+                className="operation-task-section-list"
+                role="list"
+                aria-labelledby={`operation-task-section-${section.id}`}
+              >
+                {section.tasks.map((task) => (
+                  <li key={task.id} className="operation-task-row operation-task-row--nested" role="listitem">
+                    <div className="operation-task-row-main">
+                      <span className="operation-task-name">{task.title}</span>
+                      <TaskStatusBadge status={task.status} />
+                    </div>
+                    <div className="operation-task-row-meta">
+                      <span className="operation-task-meta-item">
+                        <span className="operation-task-meta-label">Assigned</span>
+                        <span className="operation-task-meta-value">
+                          {task.assignedTo || "Unassigned"}
+                        </span>
+                      </span>
+                      <span className="operation-task-meta-item">
+                        <span className="operation-task-meta-label">Remarks</span>
+                        <span className="operation-task-meta-value operation-task-meta-value--remarks">
+                          {task.remarks || "—"}
+                        </span>
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
       </div>
+
+      {isViewOnly ? (
+        <p className="operation-task-view-only-note">Tasks are read-only in this view.</p>
+      ) : null}
     </div>
   );
 }
 
-TaskTab.propTypes = {
-  card: PropTypes.object,
-  formValues: PropTypes.object,
-  handleChange: PropTypes.func,
+OperationTasksPanel.propTypes = {
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
-  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  embedded: PropTypes.bool,
+  taskSections: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      title: PropTypes.string.isRequired,
+      tasks: PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+          title: PropTypes.string.isRequired,
+          assignedTo: PropTypes.string,
+          status: PropTypes.string,
+          remarks: PropTypes.string,
+        })
+      ).isRequired,
+    })
+  ),
+  className: PropTypes.string,
 };
 
-export default TaskTab;
+export default OperationTasksPanel;

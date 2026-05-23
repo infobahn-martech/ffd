@@ -15,6 +15,7 @@ import vesselTypeService from "../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../services/bargeTypeService";
 import vesselService from "../../../../../services/vesselService";
 import kpiTasksService from "../../../../../services/kpiTasksService";
+import OperationTasksPanel from "../operation/TaskTab";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import {
@@ -4873,6 +4874,13 @@ ${body}
                             error={operatorKpiError}
                           />
                         </div>
+                      </div>
+                      <div className="general-info-operation-tasks">
+                        <OperationTasksPanel
+                          cardColor={accentColor}
+                          isViewOnly={isViewMode}
+                          embedded
+                        />
                       </div>
                     </>
                   )}

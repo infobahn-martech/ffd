@@ -11,7 +11,6 @@ import PreArrival from "./PreArrival";
 import Arrival from "./Arrival";
 import Departure from "./Departure";
 import CheckListTab from "./CheckListTab";
-import TaskTab from "./TaskTab";
 import {
   OPERATION_TABS,
   SABER_APPLIED_BY_SEDRES,
@@ -453,16 +452,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               isDAModule={isDAModule}
               cardDetail={callDetailData}
               callDetailLoading={callDetailLoading}
-            />
-          )}
-          {activeOperationTab === OPERATION_TABS.TASKS && (
-            <TaskTab
-              card={card}
-              formValues={viewOnlyFormValues}
-              handleChange={handleChange}
-              cardColor={cardColor}
-              isViewOnly={isViewOnly}
-              callId={currentCallId}
             />
           )}
         </div>
