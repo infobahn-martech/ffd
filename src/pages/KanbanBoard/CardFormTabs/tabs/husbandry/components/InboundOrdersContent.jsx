@@ -72,88 +72,68 @@ const generateDummyInboundOrders = () => {
 // AttachmentsList Component (from Operation.jsx)
 const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
   return (
-    <div className="attachment-list-wrapper">
-      <div className="attachment-upload-section">
-        <div
-          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-          onDragEnter={onDragEnter}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          style={{ "--card-color": cardColor || "#00368c" }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="file-input-hidden"
-            accept="*/*"
-            multiple
-            onChange={onFileInputChange}
-          />
-          <div className="upload-zone-content">
-            <div className="upload-icon-wrapper">
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ color: cardColor || "#00368c" }}
-              >
-                <path
-                  d="M12 15V3M12 3L8 7M12 3L16 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7 11L12 6L17 11"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="upload-text-content">
-              <p className="upload-main-text">
-                Drag and drop your files here, or{" "}
-                <span className="upload-link">click to browse</span>
-              </p>
-              <p className="upload-sub-text">Supports all file formats</p>
-            </div>
-            {attachments.length > 0 && (
-              <div className="upload-zone-files-list">
-                {attachments.map((item, index) => (
-                  <div key={index} className="upload-zone-file-item">
-                    <span className="upload-zone-file-name">{item.name || item}</span>
-                    <button
-                      className="upload-zone-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(index);
-                      }}
-                      type="button"
-                      title="Remove file"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+    <div className="document-upload-wrapper">
+      <div
+        className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onClick={() => fileInputRef.current?.click()}
+        style={{ "--card-color": cardColor || "#00368c" }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="file-input-hidden"
+          accept="*/*"
+          multiple
+          onChange={onFileInputChange}
+        />
+        <div className="upload-zone-content">
+          <div className="upload-icon-wrapper"></div>
+          <div className="upload-text-content">
+            <p className="upload-main-text">
+              Drag and drop your files here, or{" "}
+              <span className="upload-link">click to browse</span>
+            </p>
           </div>
         </div>
       </div>
+      {attachments.length > 0 && (
+        <div className="document-file-preview-list">
+          {attachments.map((item, index) => (
+            <div key={index} className="document-file-preview-item">
+              <div className="document-file-preview-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="document-file-preview-info">
+                <span className="document-file-preview-name">{item.name || item}</span>
+                {item.size != null && (
+                  <span className="document-file-preview-size">
+                    {item.size < 1024 * 1024
+                      ? `${(item.size / 1024).toFixed(1)} KB`
+                      : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
+                  </span>
+                )}
+              </div>
+              <button
+                className="document-file-preview-remove"
+                onClick={(e) => { e.stopPropagation(); onRemove(index); }}
+                type="button"
+                title="Remove file"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
