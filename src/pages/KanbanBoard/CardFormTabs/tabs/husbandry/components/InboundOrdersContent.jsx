@@ -240,6 +240,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [convertingOrder, setConvertingOrder] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
@@ -659,15 +661,28 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setExpandedOrders({ 1: true });
   };
 
-  const handleDelete = (inboundId) => {
-    if (!window.confirm("Are you sure you want to delete this inbound order?")) return;
+  const handleDelete = (order) => {
+    handleCloseDropdown();
+    setDeletingOrder(order);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingOrder) return;
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
     deleteInboundOrder({
-      inboundId,
+      inboundId: deletingOrder.inbound_id ?? deletingOrder.id,
       cb: () => {
+        setShowDeleteModal(false);
+        setDeletingOrder(null);
         getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
       },
     });
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingOrder(null);
   };
 
   const handleViewOrder = (order) => {
@@ -2486,8 +2501,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             <button
                               type="button"
                               onClick={() => {
-                                handleCloseDropdown();
-                                handleDelete(order.inbound_id ?? order.id);
+                                handleDelete(order);
                               }}
                               style={{
                                 width: "100%",
@@ -2579,6 +2593,49 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         body={renderViewBody()}
         footer={renderViewFooter()}
         dialgName="modal-dialog modal-dialog-centered"
+      />
+
+      <CustomModal
+        className="material-management-modal"
+        show={showDeleteModal}
+        closeModal={handleCancelDelete}
+        header={<h1 className="modal-title">Delete Inbound Order</h1>}
+        body={
+          <div className="modal-body" style={{ padding: "24px", textAlign: "center" }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginBottom: "16px", color: "#dc3545" }}>
+              <path d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18A2 2 0 003.54 21H20.46A2 2 0 0022.18 18L13.71 3.86A2 2 0 0010.29 3.86Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p style={{ fontSize: "16px", fontWeight: "600", color: "#1a1a1a", marginBottom: "8px" }}>Are you sure?</p>
+            <p style={{ fontSize: "14px", color: "#666", marginBottom: "0" }}>
+              You are about to delete inbound order{" "}
+              <strong style={{ color: "#1a1a1a" }}>
+                {deletingOrder?.order_no || deletingOrder?.orderNo || `#${deletingOrder?.inbound_id ?? deletingOrder?.id ?? ""}`}
+              </strong>
+              . This action cannot be undone.
+            </p>
+          </div>
+        }
+        footer={
+          <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
+            <button
+              type="button"
+              onClick={handleCancelDelete}
+              disabled={isLoadingDelete}
+              style={{ padding: "10px 20px", backgroundColor: "#f5f5f5", color: "#333", border: "1px solid #e2e2ea", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={isLoadingDelete}
+              style={{ padding: "10px 20px", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "6px", cursor: isLoadingDelete ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: isLoadingDelete ? 0.7 : 1 }}
+            >
+              {isLoadingDelete ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        }
+        dialgName="modal-dialog modal-dialog-centered modal-sm"
       />
     </div>
   );
