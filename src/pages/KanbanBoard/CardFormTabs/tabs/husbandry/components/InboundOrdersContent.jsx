@@ -220,6 +220,8 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const {
     saveInboundOrder,
+    updateInboundOrder,
+    deleteInboundOrder,
     getAllInbound,
     getInboundById,
     clearInboundDetail,
@@ -228,6 +230,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     isLoadingList: isLoadingOrders,
     isLoadingView,
     isLoadingSave: isSubmitting,
+    isBeingUpdated,
+    isLoadingDelete,
     inboundDetail: viewingOrder,
   } = useInboundOrderReducer((state) => state);
 
@@ -609,13 +613,24 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       items,
     };
 
-    saveInboundOrder({
-      data: payload,
-      cb: () => {
-        handleCloseModal();
-        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
-      },
-    });
+    if (editingOrder?.inbound_id) {
+      updateInboundOrder({
+        inboundId: editingOrder.inbound_id,
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        },
+      });
+    } else {
+      saveInboundOrder({
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        },
+      });
+    }
   };
 
   const handleReset = () => {
@@ -644,8 +659,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setExpandedOrders({ 1: true });
   };
 
-  const handleDelete = () => {
-    window.alert("Delete is not yet available for inbound orders.");
+  const handleDelete = (inboundId) => {
+    if (!window.confirm("Are you sure you want to delete this inbound order?")) return;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    deleteInboundOrder({
+      inboundId,
+      cb: () => {
+        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+      },
+    });
   };
 
   const handleViewOrder = (order) => {
@@ -1525,20 +1547,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <button
           type="submit"
           form="inboundOrderForm"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isBeingUpdated}
           style={{
             padding: "10px 20px",
             backgroundColor: "#00368c",
             color: "white",
             border: "none",
             borderRadius: "6px",
-            cursor: isSubmitting ? "not-allowed" : "pointer",
+            cursor: (isSubmitting || isBeingUpdated) ? "not-allowed" : "pointer",
             fontSize: "14px",
             fontWeight: "500",
-            opacity: isSubmitting ? 0.7 : 1,
+            opacity: (isSubmitting || isBeingUpdated) ? 0.7 : 1,
           }}
         >
-          {isSubmitting ? "Saving..." : "Save"}
+          {editingOrder ? (isBeingUpdated ? "Updating..." : "Update") : (isSubmitting ? "Saving..." : "Save")}
         </button>
       </div>
     </div>

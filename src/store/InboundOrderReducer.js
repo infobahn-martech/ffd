@@ -6,6 +6,8 @@ const useInboundOrderReducer = create((set) => ({
     isLoadingSave: false,
     isLoadingList: false,
     isLoadingView: false,
+    isBeingUpdated: false,
+    isLoadingDelete: false,
     inboundOrders: [],
     inboundTotal: 0,
     inboundDetail: null,
@@ -49,6 +51,36 @@ const useInboundOrderReducer = create((set) => ({
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isLoadingView: false, inboundDetail: null });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+
+    updateInboundOrder: async ({ inboundId, data, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data: resData } = await inboundOrderService.updateInboundOrder(inboundId, data);
+            set({ isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(resData?.message ?? 'Inbound order updated successfully');
+            cb?.();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({ isBeingUpdated: false });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+
+    deleteInboundOrder: async ({ inboundId, cb }) => {
+        try {
+            set({ isLoadingDelete: true });
+            const { data: resData } = await inboundOrderService.deleteInboundOrder(inboundId);
+            set({ isLoadingDelete: false });
+            const { success } = useAlertReducer.getState();
+            success(resData?.message ?? 'Inbound order deleted successfully');
+            cb?.();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({ isLoadingDelete: false });
             error(err?.response?.data?.message ?? err.message);
         }
     },
