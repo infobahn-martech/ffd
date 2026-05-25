@@ -203,25 +203,160 @@ const resolveCardTypeIdFromCard = (card) => {
   return raw != null && String(raw).trim() !== "" ? String(raw).trim() : null;
 };
 
-const normalizeBoardCardTypeRow = (row) => {
+const resolveCardTagIdFromCard = (card) => {
+  const raw =
+    card?.card_tag_id ??
+    card?.cardTagId ??
+    card?.tag_id ??
+    card?.tagId ??
+    card?.raw?.card_tag_id ??
+    card?.raw?.tag_id;
+  return raw != null && String(raw).trim() !== "" ? String(raw).trim() : null;
+};
+
+const resolveCardBlockerIdFromCard = (card) => {
+  const raw =
+    card?.card_blocker_id ??
+    card?.cardBlockerId ??
+    card?.raw?.card_blocker_id ??
+    card?.raw?.cardBlockerId;
+  return raw != null && String(raw).trim() !== "" ? String(raw).trim() : null;
+};
+
+const resolveCardStickerIdFromCard = (card) => {
+  const raw =
+    card?.card_sticker_id ??
+    card?.cardStickerId ??
+    card?.raw?.card_sticker_id ??
+    card?.raw?.cardStickerId;
+  return raw != null && String(raw).trim() !== "" ? String(raw).trim() : null;
+};
+
+const unwrapListFromApi = (data, arrayKeys) => {
+  if (Array.isArray(data)) return data;
+  for (const key of arrayKeys) {
+    if (data?.status === "success" && Array.isArray(data[key])) return data[key];
+    if (Array.isArray(data?.[key])) return data[key];
+  }
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
+
+const normalizeMetaPickerRow = (row, { idField, nameField, defaultName }) => {
+  const idRaw = row?.[idField];
   const hex = normalizeHexColor(row?.color_code || "#64748b");
   return {
-    card_type_id: row?.card_type_id,
-    type_name: String(row?.type_name ?? "").trim() || "Unnamed type",
+    id: idRaw != null && String(idRaw).trim() !== "" ? String(idRaw).trim() : "",
+    name: String(row?.[nameField] ?? "").trim() || defaultName,
     color_code: hex,
     iconKey: mapBackendIconNameToIconKey(row?.icon_name),
   };
 };
 
-const unwrapCardTypesFromApi = (data) => {
-  if (Array.isArray(data)) return data;
-  if (data?.status === "success" && Array.isArray(data.card_types)) return data.card_types;
-  if (Array.isArray(data?.card_types)) return data.card_types;
-  if (Array.isArray(data?.data)) return data.data;
-  return [];
+const normalizeBoardCardTypeRow = (row) =>
+  normalizeMetaPickerRow(row, {
+    idField: "card_type_id",
+    nameField: "type_name",
+    defaultName: "Unnamed type",
+  });
+
+const normalizeBoardCardTagRow = (row) =>
+  normalizeMetaPickerRow(row, {
+    idField: "tag_id",
+    nameField: "tag_name",
+    defaultName: "Unnamed tag",
+  });
+
+const normalizeBoardCardBlockerRow = (row) =>
+  normalizeMetaPickerRow(row, {
+    idField: "card_blocker_id",
+    nameField: "blocker_name",
+    defaultName: "Unnamed blocker",
+  });
+
+const normalizeBoardCardStickerRow = (row) =>
+  normalizeMetaPickerRow(row, {
+    idField: "card_sticker_id",
+    nameField: "sticker_name",
+    defaultName: "Unnamed sticker",
+  });
+
+const BOARD_META_PICKERS = {
+  type: {
+    header: "Card type",
+    emptyLabel: "types",
+    resolveSelectedId: resolveCardTypeIdFromCard,
+    listKeys: ["card_types"],
+    normalizeRow: normalizeBoardCardTypeRow,
+    fetchByBoard: (boardId) => kanbanBoardService.getCardTypesByBoard(boardId),
+    updateCard: (cardId, itemId) =>
+      kanbanBoardService.updateCardType({ card_id: cardId, card_type_id: itemId }),
+    buildMeta: (row) => ({
+      type_name: row.name,
+      color_code: row.color_code,
+      icon_name: row.iconKey,
+    }),
+    loadError: "Could not load card types.",
+    updateError: "Could not update card type.",
+    successMsg: "Card type updated.",
+  },
+  tag: {
+    header: "Card tag",
+    emptyLabel: "tags",
+    resolveSelectedId: resolveCardTagIdFromCard,
+    listKeys: ["card_tags", "tags"],
+    normalizeRow: normalizeBoardCardTagRow,
+    fetchByBoard: (boardId) => kanbanBoardService.getCardTagsByBoard(boardId),
+    updateCard: (cardId, itemId) =>
+      kanbanBoardService.updateCardTag({ card_id: cardId, card_tag_id: itemId }),
+    buildMeta: (row) => ({
+      name: row.name,
+      color_code: row.color_code,
+      icon_name: row.iconKey,
+    }),
+    loadError: "Could not load card tags.",
+    updateError: "Could not update card tag.",
+    successMsg: "Card tag updated.",
+  },
+  blocker: {
+    header: "Card blocker",
+    emptyLabel: "blockers",
+    resolveSelectedId: resolveCardBlockerIdFromCard,
+    listKeys: ["card_blockers", "blockers", "kanban_card_blockers"],
+    normalizeRow: normalizeBoardCardBlockerRow,
+    fetchByBoard: (boardId) => kanbanBoardService.getCardBlockersByBoard(boardId),
+    updateCard: (cardId, itemId) =>
+      kanbanBoardService.updateCardBlocker({ card_id: cardId, card_blocker_id: itemId }),
+    buildMeta: (row) => ({
+      name: row.name,
+      color_code: row.color_code,
+      icon_name: row.iconKey,
+    }),
+    loadError: "Could not load card blockers.",
+    updateError: "Could not update card blocker.",
+    successMsg: "Card blocker updated.",
+  },
+  sticker: {
+    header: "Card sticker",
+    emptyLabel: "stickers",
+    resolveSelectedId: resolveCardStickerIdFromCard,
+    listKeys: ["card_stickers", "stickers"],
+    normalizeRow: normalizeBoardCardStickerRow,
+    fetchByBoard: (boardId) => kanbanBoardService.getCardStickersByBoard(boardId),
+    updateCard: (cardId, itemId) =>
+      kanbanBoardService.updateCardSticker({ card_id: cardId, card_sticker_id: itemId }),
+    buildMeta: (row) => ({
+      name: row.name,
+      color_code: row.color_code,
+      icon_name: row.iconKey,
+    }),
+    loadError: "Could not load card stickers.",
+    updateError: "Could not update card sticker.",
+    successMsg: "Card sticker updated.",
+  },
 };
 
-const CardTypePickerSwatch = ({ colorCode, iconKey }) => {
+const CardMetaPickerSwatch = ({ colorCode, iconKey }) => {
   const fg = contrastIconFg(colorCode);
   return (
     <span className="cardform-type-picker-row-icon" style={{ backgroundColor: colorCode }} aria-hidden>
@@ -230,9 +365,76 @@ const CardTypePickerSwatch = ({ colorCode, iconKey }) => {
   );
 };
 
-CardTypePickerSwatch.propTypes = {
+CardMetaPickerSwatch.propTypes = {
   colorCode: PropTypes.string.isRequired,
   iconKey: PropTypes.string,
+};
+
+const CardMetaPickerPopover = ({
+  header,
+  floaterStyle,
+  wrapRef,
+  loading,
+  items,
+  selectedId,
+  saving,
+  emptyLabel,
+  hasBoardId,
+  onSelect,
+}) => (
+  <div
+    ref={wrapRef}
+    className="cardform-type-picker-popover"
+    style={floaterStyle}
+    role="listbox"
+    aria-label={header}
+  >
+    <div className="cardform-type-picker-header">{header}</div>
+    {loading ? (
+      <div className="cardform-type-picker-status">Loading…</div>
+    ) : items.length === 0 ? (
+      <div className="cardform-type-picker-status">
+        {hasBoardId ? `No ${emptyLabel} available for this board.` : "Board id is missing."}
+      </div>
+    ) : (
+      <ul className="cardform-type-picker-list">
+        {items.map((row) => {
+          const isSelected = selectedId === row.id;
+          return (
+            <li key={row.id || row.name}>
+              <button
+                type="button"
+                className={`cardform-type-picker-row${isSelected ? " cardform-type-picker-row--selected" : ""}`}
+                onClick={() => onSelect(row)}
+                disabled={saving}
+                role="option"
+                aria-selected={isSelected}
+              >
+                <CardMetaPickerSwatch colorCode={row.color_code} iconKey={row.iconKey} />
+                <span className="cardform-type-picker-row-label">{row.name}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </div>
+);
+
+CardMetaPickerPopover.propTypes = {
+  header: PropTypes.string.isRequired,
+  floaterStyle: PropTypes.object.isRequired,
+  wrapRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
+  ]),
+  loading: PropTypes.bool,
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedId: PropTypes.string,
+  saving: PropTypes.bool,
+  emptyLabel: PropTypes.string.isRequired,
+  hasBoardId: PropTypes.bool,
+  onSelect: PropTypes.func.isRequired,
 };
 
 // Sub-components
@@ -246,23 +448,46 @@ const TopBar = ({
   handleChange,
   boardId,
   onCardTypeChange,
+  onCardTagChange,
+  onCardBlockerChange,
+  onCardStickerChange,
 }) => {
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [pickerFloaterStyle, setPickerFloaterStyle] = useState({});
-  const [isTypePickerOpen, setIsTypePickerOpen] = useState(false);
-  const [typePickerFloaterStyle, setTypePickerFloaterStyle] = useState({});
-  const [cardTypes, setCardTypes] = useState([]);
-  const [cardTypesLoading, setCardTypesLoading] = useState(false);
-  const [typeSaving, setTypeSaving] = useState(false);
-  const [selectedCardTypeId, setSelectedCardTypeId] = useState(() => resolveCardTypeIdFromCard(card));
+  const [openPicker, setOpenPicker] = useState(null);
+  const [metaPickerFloaterStyle, setMetaPickerFloaterStyle] = useState({});
+  const [pickerLists, setPickerLists] = useState({ type: [], tag: [], blocker: [], sticker: [] });
+  const [pickerLoading, setPickerLoading] = useState({
+    type: false,
+    tag: false,
+    blocker: false,
+    sticker: false,
+  });
+  const [metaSaving, setMetaSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(() => ({
+    type: resolveCardTypeIdFromCard(card),
+    tag: resolveCardTagIdFromCard(card),
+    blocker: resolveCardBlockerIdFromCard(card),
+    sticker: resolveCardStickerIdFromCard(card),
+  }));
   const colorPickerTriggerRef = useRef(null);
   const pickerFloaterWrapRef = useRef(null);
-  const typePickerTriggerRef = useRef(null);
-  const typePickerFloaterWrapRef = useRef(null);
-  const cardTypesFetchRef = useRef(0);
+  const metaPickerTriggerRefs = useRef({ type: null, tag: null, blocker: null, sticker: null });
+  const metaPickerFloaterWrapRef = useRef(null);
+  const metaPickerFetchRef = useRef({ type: 0, tag: 0, blocker: 0, sticker: 0 });
 
   const cardId = card?.code || card?.id || "";
   const cardTitle = card?.title || "";
+
+  const metaPickerOnChange = useMemo(
+    () => ({
+      type: onCardTypeChange,
+      tag: onCardTagChange,
+      blocker: onCardBlockerChange,
+      sticker: onCardStickerChange,
+    }),
+    [onCardTypeChange, onCardTagChange, onCardBlockerChange, onCardStickerChange]
+  );
 
   const resolvedBoardId = useMemo(() => {
     if (boardId != null && String(boardId).trim() !== "") {
@@ -274,44 +499,70 @@ const TopBar = ({
   }, [boardId, card]);
 
   useEffect(() => {
-    setSelectedCardTypeId(resolveCardTypeIdFromCard(card));
-  }, [card?.id, card?.card_type_id, card?.cardTypeId, card?.raw?.card_type_id]);
+    setSelectedIds({
+      type: resolveCardTypeIdFromCard(card),
+      tag: resolveCardTagIdFromCard(card),
+      blocker: resolveCardBlockerIdFromCard(card),
+      sticker: resolveCardStickerIdFromCard(card),
+    });
+  }, [
+    card?.id,
+    card?.card_type_id,
+    card?.cardTypeId,
+    card?.raw?.card_type_id,
+    card?.card_tag_id,
+    card?.cardTagId,
+    card?.tag_id,
+    card?.raw?.card_tag_id,
+    card?.raw?.tag_id,
+    card?.card_blocker_id,
+    card?.cardBlockerId,
+    card?.raw?.card_blocker_id,
+    card?.card_sticker_id,
+    card?.cardStickerId,
+    card?.raw?.card_sticker_id,
+  ]);
 
-  const fetchCardTypesForBoard = useCallback(async () => {
-    if (!resolvedBoardId) {
-      setCardTypes([]);
-      return;
-    }
-    const fetchId = ++cardTypesFetchRef.current;
-    setCardTypesLoading(true);
-    try {
-      const res = await kanbanBoardService.getCardTypesByBoard(resolvedBoardId);
-      if (fetchId !== cardTypesFetchRef.current) return;
-      const body = res?.data;
-      if (body && typeof body === "object" && body.status === "error") {
+  const fetchPickerList = useCallback(
+    async (pickerKey) => {
+      const config = BOARD_META_PICKERS[pickerKey];
+      if (!config) return;
+      if (!resolvedBoardId) {
+        setPickerLists((prev) => ({ ...prev, [pickerKey]: [] }));
+        return;
+      }
+      const fetchId = ++metaPickerFetchRef.current[pickerKey];
+      setPickerLoading((prev) => ({ ...prev, [pickerKey]: true }));
+      try {
+        const res = await config.fetchByBoard(resolvedBoardId);
+        if (fetchId !== metaPickerFetchRef.current[pickerKey]) return;
+        const body = res?.data;
+        if (body && typeof body === "object" && body.status === "error") {
+          const msg =
+            typeof body.message === "string" && body.message.trim()
+              ? body.message
+              : config.loadError;
+          throw new Error(msg);
+        }
+        const list = unwrapListFromApi(body, config.listKeys).map(config.normalizeRow);
+        setPickerLists((prev) => ({ ...prev, [pickerKey]: list }));
+      } catch (err) {
+        if (fetchId !== metaPickerFetchRef.current[pickerKey]) return;
+        setPickerLists((prev) => ({ ...prev, [pickerKey]: [] }));
         const msg =
-          typeof body.message === "string" && body.message.trim()
-            ? body.message
-            : "Could not load card types.";
-        throw new Error(msg);
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          config.loadError;
+        notify(typeof msg === "string" ? msg : config.loadError, "error");
+      } finally {
+        if (fetchId === metaPickerFetchRef.current[pickerKey]) {
+          setPickerLoading((prev) => ({ ...prev, [pickerKey]: false }));
+        }
       }
-      const list = unwrapCardTypesFromApi(body).map(normalizeBoardCardTypeRow);
-      setCardTypes(list);
-    } catch (err) {
-      if (fetchId !== cardTypesFetchRef.current) return;
-      setCardTypes([]);
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Could not load card types.";
-      notify(typeof msg === "string" ? msg : "Could not load card types.", "error");
-    } finally {
-      if (fetchId === cardTypesFetchRef.current) {
-        setCardTypesLoading(false);
-      }
-    }
-  }, [resolvedBoardId]);
+    },
+    [resolvedBoardId]
+  );
 
   useLayoutEffect(() => {
     if (!isColorPickerOpen) return;
@@ -330,106 +581,102 @@ const TopBar = ({
   }, [isColorPickerOpen]);
 
   useLayoutEffect(() => {
-    if (!isTypePickerOpen) return;
-    const anchor = typePickerTriggerRef.current;
+    if (!openPicker) return;
+    const anchor = metaPickerTriggerRefs.current[openPicker];
     if (!anchor) return;
     const r = anchor.getBoundingClientRect();
     const width = TYPE_PICKER_WIDTH;
     const left = Math.max(16, Math.min(r.right - width, window.innerWidth - width - 16));
     const top = Math.min(r.bottom + 8, window.innerHeight - 16);
-    setTypePickerFloaterStyle({
+    setMetaPickerFloaterStyle({
       position: "fixed",
       top,
       left,
       zIndex: 13040,
     });
-  }, [isTypePickerOpen]);
+  }, [openPicker]);
 
   useEffect(() => {
-    if (!isColorPickerOpen && !isTypePickerOpen) return;
+    if (!isColorPickerOpen && !openPicker) return;
     const onMouseDown = (event) => {
       if (colorPickerTriggerRef.current?.contains(event.target)) return;
       if (pickerFloaterWrapRef.current?.contains(event.target)) return;
-      if (typePickerTriggerRef.current?.contains(event.target)) return;
-      if (typePickerFloaterWrapRef.current?.contains(event.target)) return;
+      if (metaPickerFloaterWrapRef.current?.contains(event.target)) return;
+      for (const key of Object.keys(metaPickerTriggerRefs.current)) {
+        if (metaPickerTriggerRefs.current[key]?.contains(event.target)) return;
+      }
       setIsColorPickerOpen(false);
-      setIsTypePickerOpen(false);
+      setOpenPicker(null);
     };
     document.addEventListener("mousedown", onMouseDown);
     return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [isColorPickerOpen, isTypePickerOpen]);
+  }, [isColorPickerOpen, openPicker]);
 
   const handleToggleColorPicker = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsTypePickerOpen(false);
+    setOpenPicker(null);
     setIsColorPickerOpen((open) => !open);
   };
 
-  const handleToggleTypePicker = (e) => {
+  const handleToggleMetaPicker = (pickerKey) => (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (isAddMode) return;
     setIsColorPickerOpen(false);
-    setIsTypePickerOpen((open) => {
-      const next = !open;
+    setOpenPicker((current) => {
+      const next = current === pickerKey ? null : pickerKey;
       if (next) {
-        fetchCardTypesForBoard();
+        fetchPickerList(next);
       }
       return next;
     });
   };
 
-  const handleSelectCardType = async (typeRow) => {
-    if (isAddMode || typeSaving) return;
+  const handleSelectMetaItem = async (pickerKey, row) => {
+    if (isAddMode || metaSaving) return;
+    const config = BOARD_META_PICKERS[pickerKey];
+    if (!config || !row?.id) return;
+
     const cardIdRaw = card?.id ?? card?.card_id;
     if (cardIdRaw == null || String(cardIdRaw).trim() === "") {
-      notify("Cannot update card type: missing card id.", "error");
+      notify(`Cannot update card ${config.emptyLabel.slice(0, -1)}: missing card id.`, "error");
       return;
     }
-    const typeIdRaw = typeRow?.card_type_id;
-    if (typeIdRaw == null || String(typeIdRaw).trim() === "") return;
 
     const cardIdStr = String(cardIdRaw).trim();
-    const typeIdStr = String(typeIdRaw).trim();
-    if (selectedCardTypeId === typeIdStr) {
-      setIsTypePickerOpen(false);
+    const itemIdStr = String(row.id).trim();
+    if (selectedIds[pickerKey] === itemIdStr) {
+      setOpenPicker(null);
       return;
     }
 
-    setTypeSaving(true);
+    setMetaSaving(true);
     try {
-      const res = await kanbanBoardService.updateCardType({
-        card_id: cardIdStr,
-        card_type_id: typeIdStr,
-      });
+      const res = await config.updateCard(cardIdStr, itemIdStr);
       const body = res?.data;
       if (body && typeof body === "object" && body.status === "error") {
         const msg =
           typeof body.message === "string" && body.message.trim()
             ? body.message
-            : "Could not update card type.";
+            : config.updateError;
         throw new Error(msg);
       }
 
-      const meta = {
-        type_name: typeRow.type_name,
-        color_code: typeRow.color_code,
-        icon_name: typeRow.iconKey,
-      };
-      setSelectedCardTypeId(typeIdStr);
-      onCardTypeChange?.(typeIdStr, meta);
-      notify("Card type updated.", "success");
-      setIsTypePickerOpen(false);
+      const meta = config.buildMeta(row);
+      setSelectedIds((prev) => ({ ...prev, [pickerKey]: itemIdStr }));
+      metaPickerOnChange[pickerKey]?.(itemIdStr, meta);
+      notify(config.successMsg, "success");
+      setOpenPicker(null);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         err?.message ||
-        "Could not update card type.";
-      notify(typeof msg === "string" ? msg : "Could not update card type.", "error");
+        config.updateError;
+      notify(typeof msg === "string" ? msg : config.updateError, "error");
     } finally {
-      setTypeSaving(false);
+      setMetaSaving(false);
     }
   };
 
@@ -451,12 +698,27 @@ const TopBar = ({
     setIsColorPickerOpen(false);
   };
 
-  const handleTopbarPlaceholderAction = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
   const TOPBAR_ICON_SIZE = 20;
+  const openPickerConfig = openPicker ? BOARD_META_PICKERS[openPicker] : null;
+
+  const renderMetaPickerButton = (pickerKey, IconComponent, title) => (
+    <button
+      key={pickerKey}
+      ref={(el) => {
+        metaPickerTriggerRefs.current[pickerKey] = el;
+      }}
+      type="button"
+      className="topbar-icon-btn"
+      onClick={handleToggleMetaPicker(pickerKey)}
+      title={title}
+      aria-label={title}
+      aria-expanded={openPicker === pickerKey}
+      aria-haspopup="listbox"
+      disabled={isAddMode}
+    >
+      <IconComponent size={TOPBAR_ICON_SIZE} aria-hidden />
+    </button>
+  );
 
   return (
     <div className="cardform-topbar" style={{ backgroundColor: topbarColor }}>
@@ -476,93 +738,28 @@ const TopBar = ({
         )}
       </div>
       <div className="cardform-topbar-right">
-        <button
-          type="button"
-          className="topbar-icon-btn"
-          onClick={handleTopbarPlaceholderAction}
-          title="Tag"
-          aria-label="Tag"
-        >
-          <Tag size={TOPBAR_ICON_SIZE} aria-hidden />
-        </button>
-        <button
-          ref={typePickerTriggerRef}
-          type="button"
-          className="topbar-icon-btn"
-          onClick={handleToggleTypePicker}
-          title="Type"
-          aria-label="Type"
-          aria-expanded={isTypePickerOpen}
-          aria-haspopup="listbox"
-          disabled={isAddMode}
-        >
-          <Layers3 size={TOPBAR_ICON_SIZE} aria-hidden />
-        </button>
-        {isTypePickerOpen &&
+        {renderMetaPickerButton("tag", Tag, "Tag")}
+        {renderMetaPickerButton("type", Layers3, "Type")}
+        {openPicker &&
+          openPickerConfig &&
           typeof document !== "undefined" &&
           createPortal(
-            <div
-              ref={typePickerFloaterWrapRef}
-              className="cardform-type-picker-popover"
-              style={typePickerFloaterStyle}
-              role="listbox"
-              aria-label="Card types"
-            >
-              <div className="cardform-type-picker-header">Card type</div>
-              {cardTypesLoading ? (
-                <div className="cardform-type-picker-status">Loading types…</div>
-              ) : cardTypes.length === 0 ? (
-                <div className="cardform-type-picker-status">
-                  {resolvedBoardId ? "No types available for this board." : "Board id is missing."}
-                </div>
-              ) : (
-                <ul className="cardform-type-picker-list">
-                  {cardTypes.map((typeRow) => {
-                    const typeIdStr =
-                      typeRow.card_type_id != null ? String(typeRow.card_type_id) : "";
-                    const isSelected = selectedCardTypeId === typeIdStr;
-                    return (
-                      <li key={typeIdStr || typeRow.type_name}>
-                        <button
-                          type="button"
-                          className={`cardform-type-picker-row${isSelected ? " cardform-type-picker-row--selected" : ""}`}
-                          onClick={() => handleSelectCardType(typeRow)}
-                          disabled={typeSaving}
-                          role="option"
-                          aria-selected={isSelected}
-                        >
-                          <CardTypePickerSwatch
-                            colorCode={typeRow.color_code}
-                            iconKey={typeRow.iconKey}
-                          />
-                          <span className="cardform-type-picker-row-label">{typeRow.type_name}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>,
+            <CardMetaPickerPopover
+              header={openPickerConfig.header}
+              floaterStyle={metaPickerFloaterStyle}
+              wrapRef={metaPickerFloaterWrapRef}
+              loading={pickerLoading[openPicker]}
+              items={pickerLists[openPicker] ?? []}
+              selectedId={selectedIds[openPicker]}
+              saving={metaSaving}
+              emptyLabel={openPickerConfig.emptyLabel}
+              hasBoardId={Boolean(resolvedBoardId)}
+              onSelect={(row) => handleSelectMetaItem(openPicker, row)}
+            />,
             document.body
           )}
-        <button
-          type="button"
-          className="topbar-icon-btn"
-          onClick={handleTopbarPlaceholderAction}
-          title="Blocker"
-          aria-label="Blocker"
-        >
-          <AlertTriangle size={TOPBAR_ICON_SIZE} aria-hidden />
-        </button>
-        <button
-          type="button"
-          className="topbar-icon-btn"
-          onClick={handleTopbarPlaceholderAction}
-          title="Sticker"
-          aria-label="Sticker"
-        >
-          <Sticker size={TOPBAR_ICON_SIZE} aria-hidden />
-        </button>
+        {renderMetaPickerButton("blocker", AlertTriangle, "Blocker")}
+        {renderMetaPickerButton("sticker", Sticker, "Sticker")}
         <div className="topbar-color-picker-wrapper">
           <button
             ref={colorPickerTriggerRef}
@@ -608,7 +805,9 @@ TopBar.propTypes = {
   handleChange: PropTypes.func,
   boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onCardTypeChange: PropTypes.func,
-  patchCardType: PropTypes.func,
+  onCardTagChange: PropTypes.func,
+  onCardBlockerChange: PropTypes.func,
+  onCardStickerChange: PropTypes.func,
 };
 
 const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
@@ -1235,6 +1434,9 @@ function CardForm({
   onBoardRefresh,
   patchCardColor,
   patchCardType,
+  patchCardBlocker,
+  patchCardSticker,
+  patchCardTag,
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
@@ -1619,6 +1821,36 @@ function CardForm({
     [isAddMode, card?.id, card?.card_id, patchCardType]
   );
 
+  const handleTopbarCardTagChange = useCallback(
+    (tagId, meta) => {
+      if (isAddMode) return;
+      const cardIdRaw = card?.id ?? card?.card_id;
+      if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
+      patchCardTag?.(String(cardIdRaw).trim(), tagId, meta);
+    },
+    [isAddMode, card?.id, card?.card_id, patchCardTag]
+  );
+
+  const handleTopbarCardBlockerChange = useCallback(
+    (blockerId, meta) => {
+      if (isAddMode) return;
+      const cardIdRaw = card?.id ?? card?.card_id;
+      if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
+      patchCardBlocker?.(String(cardIdRaw).trim(), blockerId, meta);
+    },
+    [isAddMode, card?.id, card?.card_id, patchCardBlocker]
+  );
+
+  const handleTopbarCardStickerChange = useCallback(
+    (stickerId, meta) => {
+      if (isAddMode) return;
+      const cardIdRaw = card?.id ?? card?.card_id;
+      if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
+      patchCardSticker?.(String(cardIdRaw).trim(), stickerId, meta);
+    },
+    [isAddMode, card?.id, card?.card_id, patchCardSticker]
+  );
+
   const handleTopbarColorChange = useCallback(
     (newColor) => {
       const normalized = normalizeHexColor(newColor, DEFAULT_ACCENT_COLOR);
@@ -1705,6 +1937,9 @@ function CardForm({
           handleChange={handleChange}
           boardId={boardId}
           onCardTypeChange={handleTopbarCardTypeChange}
+          onCardTagChange={handleTopbarCardTagChange}
+          onCardBlockerChange={handleTopbarCardBlockerChange}
+          onCardStickerChange={handleTopbarCardStickerChange}
         />
         {isDriverStyleView ? (
           <DriverCardView card={card} variant={effectiveVariant} />
@@ -1799,6 +2034,9 @@ CardForm.propTypes = {
   onBoardRefresh: PropTypes.func,
   patchCardColor: PropTypes.func,
   patchCardType: PropTypes.func,
+  patchCardBlocker: PropTypes.func,
+  patchCardSticker: PropTypes.func,
+  patchCardTag: PropTypes.func,
 };
 
 export default CardForm;

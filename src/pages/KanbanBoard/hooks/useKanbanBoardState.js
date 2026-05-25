@@ -192,12 +192,81 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
   }, []);
 
+  const patchCardBlocker = useCallback((cardId, blockerId, meta = {}) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    const nextId =
+      blockerId != null && String(blockerId).trim() !== "" ? String(blockerId).trim() : null;
+    const patch = {
+      card_blocker_id: nextId,
+      cardBlockerId: nextId,
+      blocker_name: meta.name,
+      blocker_color_code: meta.color_code,
+      blocker_icon_name: meta.icon_name,
+    };
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return { ...wf, cards: { ...wf.cards, [id]: { ...c, ...patch } } };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
+  }, []);
+
+  const patchCardSticker = useCallback((cardId, stickerId, meta = {}) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    const nextId =
+      stickerId != null && String(stickerId).trim() !== "" ? String(stickerId).trim() : null;
+    const patch = {
+      card_sticker_id: nextId,
+      cardStickerId: nextId,
+      sticker_name: meta.name,
+      sticker_color_code: meta.color_code,
+      sticker_icon_name: meta.icon_name,
+    };
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return { ...wf, cards: { ...wf.cards, [id]: { ...c, ...patch } } };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
+  }, []);
+
+  const patchCardTag = useCallback((cardId, tagId, meta = {}) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    const nextId = tagId != null && String(tagId).trim() !== "" ? String(tagId).trim() : null;
+    const patch = {
+      card_tag_id: nextId,
+      cardTagId: nextId,
+      tag_id: nextId,
+      tag_name: meta.name,
+      tag_color_code: meta.color_code,
+      tag_icon_name: meta.icon_name,
+    };
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return { ...wf, cards: { ...wf.cards, [id]: { ...c, ...patch } } };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
+  }, []);
+
   return {
     workflows,
     setWorkflows,
     refetchBoard,
     patchCardColor,
     patchCardType,
+    patchCardBlocker,
+    patchCardSticker,
+    patchCardTag,
     boardLoading,
     boardLoadError,
     selectedCard,

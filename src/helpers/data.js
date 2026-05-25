@@ -214,6 +214,20 @@ export function mapBoardWorkflowFromApi(workflow) {
               card.card_type_id != null && String(card.card_type_id).trim() !== ""
                 ? String(card.card_type_id)
                 : null,
+            card_tag_id:
+              card.card_tag_id != null && String(card.card_tag_id).trim() !== ""
+                ? String(card.card_tag_id)
+                : card.tag_id != null && String(card.tag_id).trim() !== ""
+                  ? String(card.tag_id)
+                  : null,
+            card_blocker_id:
+              card.card_blocker_id != null && String(card.card_blocker_id).trim() !== ""
+                ? String(card.card_blocker_id)
+                : null,
+            card_sticker_id:
+              card.card_sticker_id != null && String(card.card_sticker_id).trim() !== ""
+                ? String(card.card_sticker_id)
+                : null,
             raw: card,
             cardSource: "api",
           };
