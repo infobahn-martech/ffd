@@ -281,10 +281,58 @@ const normalizeBoardCardStickerRow = (row) =>
     defaultName: "Unnamed sticker",
   });
 
+const toDynamicIconKey = (raw) => {
+  if (raw == null || String(raw).trim() === "") return null;
+  return mapBackendIconNameToIconKey(String(raw).trim());
+};
+
+const resolveTopbarMetaFromCard = (card) => ({
+  type: {
+    iconKey: toDynamicIconKey(card?.type_icon_name),
+    color_code:
+      card?.type_color_code != null && String(card.type_color_code).trim() !== ""
+        ? normalizeHexColor(card.type_color_code)
+        : null,
+    name: card?.type_name,
+  },
+  tag: {
+    name: card?.tag_name,
+  },
+  blocker: {
+    iconKey: toDynamicIconKey(card?.blocker_icon_name),
+    color_code:
+      card?.blocker_color_code != null && String(card.blocker_color_code).trim() !== ""
+        ? normalizeHexColor(card.blocker_color_code)
+        : null,
+    name: card?.blocker_name,
+  },
+  sticker: {
+    iconKey: toDynamicIconKey(card?.sticker_icon_name),
+    color_code:
+      card?.sticker_color_code != null && String(card.sticker_color_code).trim() !== ""
+        ? normalizeHexColor(card.sticker_color_code)
+        : null,
+    name: card?.sticker_name,
+  },
+});
+
+const selectionMetaFromPickerRow = (pickerKey, row) => {
+  if (pickerKey === "tag") {
+    return { name: row.name };
+  }
+  return {
+    iconKey: row.iconKey,
+    color_code: row.color_code,
+    name: row.name,
+  };
+};
+
 const BOARD_META_PICKERS = {
   type: {
     header: "Card type",
     emptyLabel: "types",
+    showRowIcon: true,
+    showTopbarDynamicIcon: true,
     resolveSelectedId: resolveCardTypeIdFromCard,
     listKeys: ["card_types"],
     normalizeRow: normalizeBoardCardTypeRow,
@@ -303,6 +351,8 @@ const BOARD_META_PICKERS = {
   tag: {
     header: "Card tag",
     emptyLabel: "tags",
+    showRowIcon: false,
+    showTopbarDynamicIcon: false,
     resolveSelectedId: resolveCardTagIdFromCard,
     listKeys: ["card_tags", "tags"],
     normalizeRow: normalizeBoardCardTagRow,
@@ -339,6 +389,8 @@ const BOARD_META_PICKERS = {
   sticker: {
     header: "Card sticker",
     emptyLabel: "stickers",
+    showRowIcon: true,
+    showTopbarDynamicIcon: true,
     resolveSelectedId: resolveCardStickerIdFromCard,
     listKeys: ["card_stickers", "stickers"],
     normalizeRow: normalizeBoardCardStickerRow,
@@ -380,6 +432,7 @@ const CardMetaPickerPopover = ({
   saving,
   emptyLabel,
   hasBoardId,
+  showRowIcon = true,
   onSelect,
 }) => (
   <div
@@ -404,13 +457,15 @@ const CardMetaPickerPopover = ({
             <li key={row.id || row.name}>
               <button
                 type="button"
-                className={`cardform-type-picker-row${isSelected ? " cardform-type-picker-row--selected" : ""}`}
+                className={`cardform-type-picker-row${isSelected ? " cardform-type-picker-row--selected" : ""}${!showRowIcon ? " cardform-type-picker-row--text-only" : ""}`}
                 onClick={() => onSelect(row)}
                 disabled={saving}
                 role="option"
                 aria-selected={isSelected}
               >
-                <CardMetaPickerSwatch colorCode={row.color_code} iconKey={row.iconKey} />
+                {showRowIcon ? (
+                  <CardMetaPickerSwatch colorCode={row.color_code} iconKey={row.iconKey} />
+                ) : null}
                 <span className="cardform-type-picker-row-label">{row.name}</span>
               </button>
             </li>
@@ -434,6 +489,7 @@ CardMetaPickerPopover.propTypes = {
   saving: PropTypes.bool,
   emptyLabel: PropTypes.string.isRequired,
   hasBoardId: PropTypes.bool,
+  showRowIcon: PropTypes.bool,
   onSelect: PropTypes.func.isRequired,
 };
 
@@ -470,6 +526,7 @@ const TopBar = ({
     blocker: resolveCardBlockerIdFromCard(card),
     sticker: resolveCardStickerIdFromCard(card),
   }));
+  const [selectedMeta, setSelectedMeta] = useState(() => resolveTopbarMetaFromCard(card));
   const colorPickerTriggerRef = useRef(null);
   const pickerFloaterWrapRef = useRef(null);
   const metaPickerTriggerRefs = useRef({ type: null, tag: null, blocker: null, sticker: null });
@@ -505,23 +562,50 @@ const TopBar = ({
       blocker: resolveCardBlockerIdFromCard(card),
       sticker: resolveCardStickerIdFromCard(card),
     });
+    setSelectedMeta(resolveTopbarMetaFromCard(card));
   }, [
     card?.id,
     card?.card_type_id,
     card?.cardTypeId,
     card?.raw?.card_type_id,
+    card?.type_name,
+    card?.type_color_code,
+    card?.type_icon_name,
     card?.card_tag_id,
     card?.cardTagId,
     card?.tag_id,
+    card?.tag_name,
     card?.raw?.card_tag_id,
     card?.raw?.tag_id,
     card?.card_blocker_id,
     card?.cardBlockerId,
+    card?.blocker_name,
+    card?.blocker_color_code,
+    card?.blocker_icon_name,
     card?.raw?.card_blocker_id,
     card?.card_sticker_id,
     card?.cardStickerId,
+    card?.sticker_name,
+    card?.sticker_color_code,
+    card?.sticker_icon_name,
     card?.raw?.card_sticker_id,
   ]);
+
+  useEffect(() => {
+    setSelectedMeta((prev) => {
+      let next = prev;
+      let changed = false;
+      for (const pickerKey of ["type", "blocker", "sticker"]) {
+        const id = selectedIds[pickerKey];
+        if (!id || prev[pickerKey]?.iconKey) continue;
+        const row = pickerLists[pickerKey]?.find((r) => r.id === id);
+        if (!row?.iconKey) continue;
+        next = { ...next, [pickerKey]: selectionMetaFromPickerRow(pickerKey, row) };
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [pickerLists, selectedIds]);
 
   const fetchPickerList = useCallback(
     async (pickerKey) => {
@@ -665,6 +749,10 @@ const TopBar = ({
 
       const meta = config.buildMeta(row);
       setSelectedIds((prev) => ({ ...prev, [pickerKey]: itemIdStr }));
+      setSelectedMeta((prev) => ({
+        ...prev,
+        [pickerKey]: selectionMetaFromPickerRow(pickerKey, row),
+      }));
       metaPickerOnChange[pickerKey]?.(itemIdStr, meta);
       notify(config.successMsg, "success");
       setOpenPicker(null);
@@ -701,24 +789,49 @@ const TopBar = ({
   const TOPBAR_ICON_SIZE = 20;
   const openPickerConfig = openPicker ? BOARD_META_PICKERS[openPicker] : null;
 
-  const renderMetaPickerButton = (pickerKey, IconComponent, title) => (
-    <button
-      key={pickerKey}
-      ref={(el) => {
-        metaPickerTriggerRefs.current[pickerKey] = el;
-      }}
-      type="button"
-      className="topbar-icon-btn"
-      onClick={handleToggleMetaPicker(pickerKey)}
-      title={title}
-      aria-label={title}
-      aria-expanded={openPicker === pickerKey}
-      aria-haspopup="listbox"
-      disabled={isAddMode}
-    >
-      <IconComponent size={TOPBAR_ICON_SIZE} aria-hidden />
-    </button>
-  );
+  const renderMetaPickerButton = (pickerKey, DefaultIcon, title) => {
+    const config = BOARD_META_PICKERS[pickerKey];
+    const meta = selectedMeta[pickerKey];
+    const hasSelection = Boolean(selectedIds[pickerKey]);
+    const useDynamicTopbarIcon =
+      config?.showTopbarDynamicIcon && hasSelection && meta?.iconKey;
+    const dynamicSwatchColor = meta?.color_code || "#64748b";
+
+    const buttonLabel = hasSelection && meta?.name ? `${title}: ${meta.name}` : title;
+
+    return (
+      <button
+        key={pickerKey}
+        ref={(el) => {
+          metaPickerTriggerRefs.current[pickerKey] = el;
+        }}
+        type="button"
+        className={`topbar-icon-btn${useDynamicTopbarIcon ? " topbar-icon-btn--dynamic" : ""}`}
+        onClick={handleToggleMetaPicker(pickerKey)}
+        title={buttonLabel}
+        aria-label={buttonLabel}
+        aria-expanded={openPicker === pickerKey}
+        aria-haspopup="listbox"
+        disabled={isAddMode}
+      >
+        {useDynamicTopbarIcon ? (
+          <span
+            className="topbar-icon-btn-dynamic-swatch"
+            style={{ backgroundColor: dynamicSwatchColor }}
+            aria-hidden
+          >
+            <DynamicIcon
+              iconKey={meta.iconKey}
+              size={18}
+              color={contrastIconFg(dynamicSwatchColor)}
+            />
+          </span>
+        ) : (
+          <DefaultIcon size={TOPBAR_ICON_SIZE} aria-hidden />
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="cardform-topbar" style={{ backgroundColor: topbarColor }}>
@@ -754,6 +867,7 @@ const TopBar = ({
               saving={metaSaving}
               emptyLabel={openPickerConfig.emptyLabel}
               hasBoardId={Boolean(resolvedBoardId)}
+              showRowIcon={openPickerConfig.showRowIcon !== false}
               onSelect={(row) => handleSelectMetaItem(openPicker, row)}
             />,
             document.body
