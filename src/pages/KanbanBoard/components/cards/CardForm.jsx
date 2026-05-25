@@ -218,8 +218,10 @@ const resolveCardBlockerIdFromCard = (card) => {
   const raw =
     card?.card_blocker_id ??
     card?.cardBlockerId ??
+    card?.blocker_id ??
     card?.raw?.card_blocker_id ??
-    card?.raw?.cardBlockerId;
+    card?.raw?.cardBlockerId ??
+    card?.raw?.blocker_id;
   return raw != null && String(raw).trim() !== "" ? String(raw).trim() : null;
 };
 
@@ -227,8 +229,10 @@ const resolveCardStickerIdFromCard = (card) => {
   const raw =
     card?.card_sticker_id ??
     card?.cardStickerId ??
+    card?.sticker_id ??
     card?.raw?.card_sticker_id ??
-    card?.raw?.cardStickerId;
+    card?.raw?.cardStickerId ??
+    card?.raw?.sticker_id;
   return raw != null && String(raw).trim() !== "" ? String(raw).trim() : null;
 };
 
@@ -242,79 +246,114 @@ const unwrapListFromApi = (data, arrayKeys) => {
   return [];
 };
 
-const normalizeMetaPickerRow = (row, { idField, nameField, defaultName }) => {
-  const idRaw = row?.[idField];
+const normalizeMetaPickerRow = (row, { idFields, nameField, defaultName }) => {
+  const fields = Array.isArray(idFields) ? idFields : [idFields];
+  const idRaw = fields.map((f) => row?.[f]).find((v) => v != null && String(v).trim() !== "");
   const hex = normalizeHexColor(row?.color_code || "#64748b");
+  const rawIcon = row?.icon_name ?? row?.icon;
+  const iconTrimmed = rawIcon != null ? String(rawIcon).trim() : "";
   return {
-    id: idRaw != null && String(idRaw).trim() !== "" ? String(idRaw).trim() : "",
-    name: String(row?.[nameField] ?? "").trim() || defaultName,
+    id: idRaw != null ? String(idRaw).trim() : "",
+    name: String(row?.[nameField] ?? row?.label ?? "").trim() || defaultName,
     color_code: hex,
-    iconKey: mapBackendIconNameToIconKey(row?.icon_name),
+    iconKey: iconTrimmed ? mapBackendIconNameToIconKey(iconTrimmed) : null,
   };
 };
 
 const normalizeBoardCardTypeRow = (row) =>
   normalizeMetaPickerRow(row, {
-    idField: "card_type_id",
+    idFields: ["card_type_id", "type_id"],
     nameField: "type_name",
     defaultName: "Unnamed type",
   });
 
 const normalizeBoardCardTagRow = (row) =>
   normalizeMetaPickerRow(row, {
-    idField: "tag_id",
+    idFields: ["tag_id", "card_tag_id"],
     nameField: "tag_name",
     defaultName: "Unnamed tag",
   });
 
 const normalizeBoardCardBlockerRow = (row) =>
   normalizeMetaPickerRow(row, {
-    idField: "card_blocker_id",
+    idFields: ["card_blocker_id", "blocker_id", "id"],
     nameField: "blocker_name",
     defaultName: "Unnamed blocker",
   });
 
 const normalizeBoardCardStickerRow = (row) =>
   normalizeMetaPickerRow(row, {
-    idField: "card_sticker_id",
+    idFields: ["card_sticker_id", "sticker_id", "id"],
     nameField: "sticker_name",
     defaultName: "Unnamed sticker",
   });
+
+const mergeSelectionMeta = (prev, fromCard) => {
+  if (!fromCard && !prev) return {};
+  if (!fromCard) return prev || {};
+  if (!prev) return fromCard;
+  return {
+    name: fromCard.name ?? prev.name,
+    color_code: fromCard.color_code ?? prev.color_code,
+    iconKey: fromCard.iconKey ?? prev.iconKey,
+  };
+};
 
 const toDynamicIconKey = (raw) => {
   if (raw == null || String(raw).trim() === "") return null;
   return mapBackendIconNameToIconKey(String(raw).trim());
 };
 
-const resolveTopbarMetaFromCard = (card) => ({
-  type: {
-    iconKey: toDynamicIconKey(card?.type_icon_name),
-    color_code:
-      card?.type_color_code != null && String(card.type_color_code).trim() !== ""
-        ? normalizeHexColor(card.type_color_code)
-        : null,
-    name: card?.type_name,
-  },
-  tag: {
-    name: card?.tag_name,
-  },
-  blocker: {
-    iconKey: toDynamicIconKey(card?.blocker_icon_name),
-    color_code:
-      card?.blocker_color_code != null && String(card.blocker_color_code).trim() !== ""
-        ? normalizeHexColor(card.blocker_color_code)
-        : null,
-    name: card?.blocker_name,
-  },
-  sticker: {
-    iconKey: toDynamicIconKey(card?.sticker_icon_name),
-    color_code:
-      card?.sticker_color_code != null && String(card.sticker_color_code).trim() !== ""
-        ? normalizeHexColor(card.sticker_color_code)
-        : null,
-    name: card?.sticker_name,
-  },
-});
+const resolveTopbarMetaFromCard = (card) => {
+  const raw = card?.raw;
+  return {
+    type: {
+      iconKey: toDynamicIconKey(
+        card?.type_icon_name ?? raw?.type_icon_name ?? raw?.icon_name
+      ),
+      color_code:
+        card?.type_color_code != null && String(card.type_color_code).trim() !== ""
+          ? normalizeHexColor(card.type_color_code)
+          : raw?.type_color_code != null && String(raw.type_color_code).trim() !== ""
+            ? normalizeHexColor(raw.type_color_code)
+            : raw?.color_code != null && String(raw.color_code).trim() !== ""
+              ? normalizeHexColor(raw.color_code)
+              : null,
+      name: card?.type_name ?? raw?.type_name,
+    },
+    tag: {
+      name: card?.tag_name ?? raw?.tag_name,
+    },
+    blocker: {
+      iconKey: toDynamicIconKey(
+        card?.blocker_icon_name ?? raw?.blocker_icon_name ?? raw?.icon_name
+      ),
+      color_code:
+        card?.blocker_color_code != null && String(card.blocker_color_code).trim() !== ""
+          ? normalizeHexColor(card.blocker_color_code)
+          : raw?.blocker_color_code != null && String(raw.blocker_color_code).trim() !== ""
+            ? normalizeHexColor(raw.blocker_color_code)
+            : raw?.color_code != null && String(raw.color_code).trim() !== ""
+              ? normalizeHexColor(raw.color_code)
+              : null,
+      name: card?.blocker_name ?? raw?.blocker_name,
+    },
+    sticker: {
+      iconKey: toDynamicIconKey(
+        card?.sticker_icon_name ?? raw?.sticker_icon_name ?? raw?.icon_name
+      ),
+      color_code:
+        card?.sticker_color_code != null && String(card.sticker_color_code).trim() !== ""
+          ? normalizeHexColor(card.sticker_color_code)
+          : raw?.sticker_color_code != null && String(raw.sticker_color_code).trim() !== ""
+            ? normalizeHexColor(raw.sticker_color_code)
+            : raw?.color_code != null && String(raw.color_code).trim() !== ""
+              ? normalizeHexColor(raw.color_code)
+              : null,
+      name: card?.sticker_name ?? raw?.sticker_name,
+    },
+  };
+};
 
 const selectionMetaFromPickerRow = (pickerKey, row) => {
   if (pickerKey === "tag") {
@@ -508,6 +547,11 @@ const TopBar = ({
   onCardBlockerChange,
   onCardStickerChange,
 }) => {
+  const effectiveCard = useMemo(
+    () => (isAddMode ? { ...card, ...formValues } : card),
+    [isAddMode, card, formValues]
+  );
+
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [pickerFloaterStyle, setPickerFloaterStyle] = useState({});
   const [openPicker, setOpenPicker] = useState(null);
@@ -521,12 +565,12 @@ const TopBar = ({
   });
   const [metaSaving, setMetaSaving] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => ({
-    type: resolveCardTypeIdFromCard(card),
-    tag: resolveCardTagIdFromCard(card),
-    blocker: resolveCardBlockerIdFromCard(card),
-    sticker: resolveCardStickerIdFromCard(card),
+    type: resolveCardTypeIdFromCard(effectiveCard),
+    tag: resolveCardTagIdFromCard(effectiveCard),
+    blocker: resolveCardBlockerIdFromCard(effectiveCard),
+    sticker: resolveCardStickerIdFromCard(effectiveCard),
   }));
-  const [selectedMeta, setSelectedMeta] = useState(() => resolveTopbarMetaFromCard(card));
+  const [selectedMeta, setSelectedMeta] = useState(() => resolveTopbarMetaFromCard(effectiveCard));
   const colorPickerTriggerRef = useRef(null);
   const pickerFloaterWrapRef = useRef(null);
   const metaPickerTriggerRefs = useRef({ type: null, tag: null, blocker: null, sticker: null });
@@ -556,39 +600,39 @@ const TopBar = ({
   }, [boardId, card]);
 
   useEffect(() => {
+    const source = effectiveCard;
     setSelectedIds({
-      type: resolveCardTypeIdFromCard(card),
-      tag: resolveCardTagIdFromCard(card),
-      blocker: resolveCardBlockerIdFromCard(card),
-      sticker: resolveCardStickerIdFromCard(card),
+      type: resolveCardTypeIdFromCard(source),
+      tag: resolveCardTagIdFromCard(source),
+      blocker: resolveCardBlockerIdFromCard(source),
+      sticker: resolveCardStickerIdFromCard(source),
     });
-    setSelectedMeta(resolveTopbarMetaFromCard(card));
+    setSelectedMeta((prev) => {
+      const fromCard = resolveTopbarMetaFromCard(source);
+      return {
+        type: mergeSelectionMeta(prev?.type, fromCard.type),
+        tag: { name: fromCard.tag?.name ?? prev?.tag?.name },
+        blocker: mergeSelectionMeta(prev?.blocker, fromCard.blocker),
+        sticker: mergeSelectionMeta(prev?.sticker, fromCard.sticker),
+      };
+    });
   }, [
-    card?.id,
-    card?.card_type_id,
-    card?.cardTypeId,
-    card?.raw?.card_type_id,
-    card?.type_name,
-    card?.type_color_code,
-    card?.type_icon_name,
-    card?.card_tag_id,
-    card?.cardTagId,
-    card?.tag_id,
-    card?.tag_name,
-    card?.raw?.card_tag_id,
-    card?.raw?.tag_id,
-    card?.card_blocker_id,
-    card?.cardBlockerId,
-    card?.blocker_name,
-    card?.blocker_color_code,
-    card?.blocker_icon_name,
-    card?.raw?.card_blocker_id,
-    card?.card_sticker_id,
-    card?.cardStickerId,
-    card?.sticker_name,
-    card?.sticker_color_code,
-    card?.sticker_icon_name,
-    card?.raw?.card_sticker_id,
+    effectiveCard,
+    isAddMode,
+    formValues?.card_type_id,
+    formValues?.type_name,
+    formValues?.type_color_code,
+    formValues?.type_icon_name,
+    formValues?.card_tag_id,
+    formValues?.tag_name,
+    formValues?.card_blocker_id,
+    formValues?.blocker_name,
+    formValues?.blocker_color_code,
+    formValues?.blocker_icon_name,
+    formValues?.card_sticker_id,
+    formValues?.sticker_name,
+    formValues?.sticker_color_code,
+    formValues?.sticker_icon_name,
   ]);
 
   useEffect(() => {
@@ -597,11 +641,18 @@ const TopBar = ({
       let changed = false;
       for (const pickerKey of ["type", "blocker", "sticker"]) {
         const id = selectedIds[pickerKey];
-        if (!id || prev[pickerKey]?.iconKey) continue;
+        if (!id) continue;
         const row = pickerLists[pickerKey]?.find((r) => r.id === id);
-        if (!row?.iconKey) continue;
-        next = { ...next, [pickerKey]: selectionMetaFromPickerRow(pickerKey, row) };
-        changed = true;
+        if (!row) continue;
+        const rowMeta = selectionMetaFromPickerRow(pickerKey, row);
+        if (
+          rowMeta.iconKey !== prev[pickerKey]?.iconKey ||
+          rowMeta.color_code !== prev[pickerKey]?.color_code ||
+          rowMeta.name !== prev[pickerKey]?.name
+        ) {
+          next = { ...next, [pickerKey]: rowMeta };
+          changed = true;
+        }
       }
       return changed ? next : prev;
     });
@@ -706,7 +757,6 @@ const TopBar = ({
   const handleToggleMetaPicker = (pickerKey) => (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isAddMode) return;
     setIsColorPickerOpen(false);
     setOpenPicker((current) => {
       const next = current === pickerKey ? null : pickerKey;
@@ -718,9 +768,26 @@ const TopBar = ({
   };
 
   const handleSelectMetaItem = async (pickerKey, row) => {
-    if (isAddMode || metaSaving) return;
+    if (metaSaving) return;
     const config = BOARD_META_PICKERS[pickerKey];
     if (!config || !row?.id) return;
+
+    const itemIdStr = String(row.id).trim();
+    if (selectedIds[pickerKey] === itemIdStr) {
+      setOpenPicker(null);
+      return;
+    }
+
+    const meta = config.buildMeta(row);
+    const rowMeta = selectionMetaFromPickerRow(pickerKey, row);
+
+    if (isAddMode) {
+      setSelectedIds((prev) => ({ ...prev, [pickerKey]: itemIdStr }));
+      setSelectedMeta((prev) => ({ ...prev, [pickerKey]: rowMeta }));
+      metaPickerOnChange[pickerKey]?.(itemIdStr, meta);
+      setOpenPicker(null);
+      return;
+    }
 
     const cardIdRaw = card?.id ?? card?.card_id;
     if (cardIdRaw == null || String(cardIdRaw).trim() === "") {
@@ -729,12 +796,6 @@ const TopBar = ({
     }
 
     const cardIdStr = String(cardIdRaw).trim();
-    const itemIdStr = String(row.id).trim();
-    if (selectedIds[pickerKey] === itemIdStr) {
-      setOpenPicker(null);
-      return;
-    }
-
     setMetaSaving(true);
     try {
       const res = await config.updateCard(cardIdStr, itemIdStr);
@@ -747,11 +808,10 @@ const TopBar = ({
         throw new Error(msg);
       }
 
-      const meta = config.buildMeta(row);
       setSelectedIds((prev) => ({ ...prev, [pickerKey]: itemIdStr }));
       setSelectedMeta((prev) => ({
         ...prev,
-        [pickerKey]: selectionMetaFromPickerRow(pickerKey, row),
+        [pickerKey]: rowMeta,
       }));
       metaPickerOnChange[pickerKey]?.(itemIdStr, meta);
       notify(config.successMsg, "success");
@@ -812,7 +872,6 @@ const TopBar = ({
         aria-label={buttonLabel}
         aria-expanded={openPicker === pickerKey}
         aria-haspopup="listbox"
-        disabled={isAddMode}
       >
         {useDynamicTopbarIcon ? (
           <span
@@ -1927,7 +1986,16 @@ function CardForm({
   // Topbar color: add mode → formValues.cardColor (create_call_file). View → POST kanban_card/update_card_color when onBoardRefresh is set, then patch board state (no full refetch).
   const handleTopbarCardTypeChange = useCallback(
     (cardTypeId, meta) => {
-      if (isAddMode) return;
+      if (isAddMode) {
+        setFormValues((prev) => ({
+          ...prev,
+          card_type_id: cardTypeId,
+          type_name: meta.type_name,
+          type_color_code: meta.color_code,
+          type_icon_name: meta.icon_name,
+        }));
+        return;
+      }
       const cardIdRaw = card?.id ?? card?.card_id;
       if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
       patchCardType?.(String(cardIdRaw).trim(), cardTypeId, meta);
@@ -1937,7 +2005,15 @@ function CardForm({
 
   const handleTopbarCardTagChange = useCallback(
     (tagId, meta) => {
-      if (isAddMode) return;
+      if (isAddMode) {
+        setFormValues((prev) => ({
+          ...prev,
+          card_tag_id: tagId,
+          tag_id: tagId,
+          tag_name: meta.name,
+        }));
+        return;
+      }
       const cardIdRaw = card?.id ?? card?.card_id;
       if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
       patchCardTag?.(String(cardIdRaw).trim(), tagId, meta);
@@ -1947,7 +2023,17 @@ function CardForm({
 
   const handleTopbarCardBlockerChange = useCallback(
     (blockerId, meta) => {
-      if (isAddMode) return;
+      if (isAddMode) {
+        setFormValues((prev) => ({
+          ...prev,
+          card_blocker_id: blockerId,
+          blocker_id: blockerId,
+          blocker_name: meta.name,
+          blocker_color_code: meta.color_code,
+          blocker_icon_name: meta.icon_name,
+        }));
+        return;
+      }
       const cardIdRaw = card?.id ?? card?.card_id;
       if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
       patchCardBlocker?.(String(cardIdRaw).trim(), blockerId, meta);
@@ -1957,7 +2043,17 @@ function CardForm({
 
   const handleTopbarCardStickerChange = useCallback(
     (stickerId, meta) => {
-      if (isAddMode) return;
+      if (isAddMode) {
+        setFormValues((prev) => ({
+          ...prev,
+          card_sticker_id: stickerId,
+          sticker_id: stickerId,
+          sticker_name: meta.name,
+          sticker_color_code: meta.color_code,
+          sticker_icon_name: meta.icon_name,
+        }));
+        return;
+      }
       const cardIdRaw = card?.id ?? card?.card_id;
       if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
       patchCardSticker?.(String(cardIdRaw).trim(), stickerId, meta);
