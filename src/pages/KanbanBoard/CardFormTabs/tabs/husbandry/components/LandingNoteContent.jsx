@@ -1607,6 +1607,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <span className="material-list-title-bar"></span>
           Landing Note
         </h3>
+        <button
+          type="button"
+          className="material-add-btn"
+          onClick={() => handleOpenModal()}
+          style={{ backgroundColor: "#00368c" }}
+        >
+          + Add
+        </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
@@ -1625,9 +1633,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           </thead>
           <tbody>
             {isLoadingList ? (
-              <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>Loading...</td></tr>
-            ) : null}
-            {!isLoadingList && landingNotes.length > 0 ? (
+              <tr><td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>Loading...</td></tr>
+            ) : landingNotes.length > 0 ? (
               landingNotes.map((note) => (
                 <tr key={note.landing_note_id}>
                   <td>
