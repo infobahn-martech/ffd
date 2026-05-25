@@ -6,8 +6,14 @@ import "react-tooltip/dist/react-tooltip.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
-import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import MaterialTablePagination from "./MaterialTablePagination";
 import DateTimePickerField from "../../../components/DateTimePickerField";
+import {
+  buildApiDateTime,
+  formatDisplayDateTime,
+  splitApiDateTimeParts,
+} from "../../../../../../helpers/dateTimeFieldUtils";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -48,88 +54,68 @@ const generateDummyLandingNotes = () => {
 // AttachmentsList Component (from Operation.jsx)
 const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
   return (
-    <div className="attachment-list-wrapper">
-      <div className="attachment-upload-section">
-        <div
-          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-          onDragEnter={onDragEnter}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          style={{ "--card-color": cardColor || "#00368c" }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="file-input-hidden"
-            accept="*/*"
-            multiple
-            onChange={onFileInputChange}
-          />
-          <div className="upload-zone-content">
-            <div className="upload-icon-wrapper">
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ color: cardColor || "#00368c" }}
-              >
-                <path
-                  d="M12 15V3M12 3L8 7M12 3L16 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7 11L12 6L17 11"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="upload-text-content">
-              <p className="upload-main-text">
-                Drag and drop your files here, or{" "}
-                <span className="upload-link">click to browse</span>
-              </p>
-              <p className="upload-sub-text">Supports all file formats</p>
-            </div>
-            {attachments.length > 0 && (
-              <div className="upload-zone-files-list">
-                {attachments.map((item, index) => (
-                  <div key={index} className="upload-zone-file-item">
-                    <span className="upload-zone-file-name">{item.name || item}</span>
-                    <button
-                      className="upload-zone-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(index);
-                      }}
-                      type="button"
-                      title="Remove file"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+    <div className="document-upload-wrapper">
+      <div
+        className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onClick={() => fileInputRef.current?.click()}
+        style={{ "--card-color": cardColor || "#00368c" }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="file-input-hidden"
+          accept="*/*"
+          multiple
+          onChange={onFileInputChange}
+        />
+        <div className="upload-zone-content">
+          <div className="upload-icon-wrapper"></div>
+          <div className="upload-text-content">
+            <p className="upload-main-text">
+              Drag and drop your files here, or{" "}
+              <span className="upload-link">click to browse</span>
+            </p>
           </div>
         </div>
       </div>
+      {attachments.length > 0 && (
+        <div className="document-file-preview-list">
+          {attachments.map((item, index) => (
+            <div key={index} className="document-file-preview-item">
+              <div className="document-file-preview-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="document-file-preview-info">
+                <span className="document-file-preview-name">{item.name || item}</span>
+                {item.size != null && (
+                  <span className="document-file-preview-size">
+                    {item.size < 1024 * 1024
+                      ? `${(item.size / 1024).toFixed(1)} KB`
+                      : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
+                  </span>
+                )}
+              </div>
+              <button
+                className="document-file-preview-remove"
+                onClick={(e) => { e.stopPropagation(); onRemove(index); }}
+                type="button"
+                title="Remove file"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -193,6 +179,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [viewingNote, setViewingNote] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
   const fileInputRef = useRef(null);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
@@ -236,12 +223,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   }, [formValues.landingNoteList]);
 
   const handleOpenModal = (note = null) => {
+    setFormErrors({});
     if (note) {
+      const { date, time } = splitApiDateTimeParts(note.date || "", note.time || "");
       setEditingNote(note);
       setFormData({
         landingNoteNo: note.landingNoteNo || "",
-        date: note.date || "",
-        time: note.time || "",
+        date,
+        time,
         poDo: note.poDo || "",
         landingProof: note.landingProof || [],
         quantity: note.quantity || "",
@@ -269,6 +258,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingNote(null);
+    setFormErrors({});
     setFormData({
       landingNoteNo: "",
       date: "",
@@ -287,10 +277,33 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       ...prev,
       [field]: value,
     }));
+    setFormErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.date) errors.date = "Date is required";
+    else if (!formData.time) errors.date = "Time is required";
+    if (!String(formData.poDo || "").trim()) errors.poDo = "PO/DO is required";
+    if (!selectedFiles.length) errors.landingProof = "Landing proof is required";
+    if (!String(formData.quantity || "").trim()) errors.quantity = "Quantity is required";
+    else if (Number(formData.quantity) <= 0) errors.quantity = "Quantity must be greater than 0";
+    if (!String(formData.packageType || "").trim()) errors.packageType = "Package Type is required";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+    const landingDateTime = buildApiDateTime(formData.date, formData.time);
 
     if (editingNote) {
       // Update existing note
@@ -299,7 +312,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           ? {
             ...note,
             landingNoteNo: formData.landingNoteNo || note.landingNoteNo,
-            date: formData.date,
+            date: landingDateTime,
+            time: formData.time,
             poDo: formData.poDo,
             landingProof: selectedFiles,
             quantity: formData.quantity,
@@ -318,7 +332,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       const newNote = {
         id: notesList.length > 0 ? Math.max(...notesList.map(m => m.id)) + 1 : 1,
         landingNoteNo: formData.landingNoteNo || `LN-${String(notesList.length + 1).padStart(5, '0')}`,
-        date: formData.date,
+        date: landingDateTime,
+        time: formData.time,
         poDo: formData.poDo,
         landingProof: selectedFiles,
         quantity: formData.quantity,
@@ -378,6 +393,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     });
 
     setSelectedFiles((prev) => [...prev, ...validFiles]);
+    if (validFiles.length > 0) {
+      setFormErrors((prev) => {
+        if (!prev.landingProof) return prev;
+        const next = { ...prev };
+        delete next.landingProof;
+        return next;
+      });
+    }
   };
 
   const handleRemoveFile = (index) => {
@@ -385,13 +408,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDisplayDateTime(dateString);
   };
 
   const packageTypeOptions = [
@@ -416,7 +433,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   // Form state for Convert to Dispatch modal
   const [convertFormData, setConvertFormData] = useState({
     date: "",
-    time: "",
     warehouse: "",
     signature: "",
     deliveryLocation: "",
@@ -513,7 +529,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setConvertingNote(null);
     setConvertFormData({
       date: "",
-      time: "",
       warehouse: "",
       signature: "",
       deliveryLocation: "",
@@ -867,10 +882,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderBody = () => (
-    <div className="modal-body" style={{ padding: "24px" }}>
+    <div className="modal-body">
       <div className="lead-form">
         <form id="landingNoteForm" onSubmit={handleSubmit}>
-          <div className="permInputs row">
+          <div className="permInputs row mb-lg-3">
             <div className="col-12 mb-3">
               <FormField label="Landing Note No">
                 <FormInput
@@ -882,33 +897,48 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
             </div>
 
-            <div className="col-md-6 mb-3">
-              <FormField label="Date">
+            <div className="col-12 mb-3">
+              <FormField label="Date and Time *">
                 <DateTimePickerField
                   dateValue={formData.date}
                   timeValue={formData.time}
-                  onDateChange={(e) => handleFormChange("date", e.target.value)}
-                  onTimeChange={(e) => handleFormChange("time", e.target.value)}
+                  onDateTimeChange={(nextValues) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      date: nextValues.date,
+                      time: nextValues.time,
+                    }));
+                    setFormErrors((prev) => {
+                      if (!prev.date) return prev;
+                      const next = { ...prev };
+                      delete next.date;
+                      return next;
+                    });
+                  }}
                   dateFieldName="date"
                   timeFieldName="time"
-                  placeholder="YYYY-MM-DD hh:mm"
+                  placeholder="YYYY-MM-DD HH:mm"
+                  hasError={!!formErrors.date}
                 />
               </FormField>
+              {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.date}</span>}
             </div>
 
-            <div className="col-md-6 mb-3">
-              <FormField label="PO/DO">
+            <div className="col-12 mb-3">
+              <FormField label="PO/DO *">
                 <FormInput
                   type="text"
                   value={formData.poDo}
                   onChange={(e) => handleFormChange("poDo", e.target.value)}
                   placeholder="Enter PO/DO number..."
+                  className={formErrors.poDo ? "is-invalid" : ""}
                 />
               </FormField>
+              {formErrors.poDo && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.poDo}</span>}
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Landing Proof">
+              <FormField label="Landing Proof *">
                 <div className="document-upload-wrapper">
                   <div
                     className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
@@ -917,7 +947,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={handleBrowseClick}
-                    style={{ "--card-color": cardColor || "#00368c" }}
+                    style={{
+                      "--card-color": cardColor || "#00368c",
+                      borderColor: formErrors.landingProof ? "#dc3545" : undefined,
+                    }}
                   >
                     <input
                       ref={fileInputRef}
@@ -958,10 +991,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
                           <button
                             className="document-file-preview-remove"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveFile(index);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); handleRemoveFile(index); }}
                             type="button"
                             title="Remove file"
                           >
@@ -975,37 +1005,42 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   )}
                 </div>
               </FormField>
+              {formErrors.landingProof && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px", marginBottom: "4px" }}>{formErrors.landingProof}</span>}
             </div>
 
-            <div className="col-md-6 mb-3">
-              <FormField label="Quantity">
+            <div className="col-12 mb-3">
+              <FormField label="Quantity *">
                 <FormInput
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => handleFormChange("quantity", e.target.value)}
                   placeholder="Enter quantity..."
+                  className={formErrors.quantity ? "is-invalid" : ""}
                 />
               </FormField>
+              {formErrors.quantity && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.quantity}</span>}
             </div>
 
-            <div className="col-md-6 mb-3">
-              <FormField label="Package Type">
+            <div className="col-12 mb-3">
+              <FormField label="Package Type *">
                 <FormSelect
                   value={formData.packageType}
                   onChange={(e) => handleFormChange("packageType", e.target.value)}
                   options={packageTypeOptions}
                   placeholder="Select package type..."
+                  className={formErrors.packageType ? "is-invalid" : ""}
                 />
               </FormField>
+              {formErrors.packageType && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.packageType}</span>}
             </div>
 
             <div className="col-12 mb-3">
               <FormField label="Description">
-                <FormTextarea
+                <FormInput
+                  type="text"
                   value={formData.description}
                   onChange={(e) => handleFormChange("description", e.target.value)}
                   placeholder="Enter description..."
-                  rows={3}
                 />
               </FormField>
             </div>
@@ -1016,36 +1051,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderFooter = () => (
-    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
+    <div className="modal-footer">
       <button
         type="button"
+        className="btn btn-secondary"
         onClick={handleCloseModal}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#f5f5f5",
-          color: "#333",
-          border: "1px solid #e2e2ea",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-        }}
       >
         Cancel
       </button>
       <button
         type="submit"
         form="landingNoteForm"
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#00368c",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-        }}
+        className="btn btn-primary"
+        style={{ backgroundColor: "#00368c" }}
       >
         {editingNote ? "Update Note" : "Add Note"}
       </button>
@@ -1081,15 +1099,46 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <div className="row mb-lg-3">
                 <div className="col-md-6 mb-3">
                   <FormField label="Date">
-                    <DateTimePickerField
-                      dateValue={convertFormData.date}
-                      timeValue={convertFormData.time}
-                      onDateChange={(e) => handleConvertFormChange("date", e.target.value)}
-                      onTimeChange={(e) => handleConvertFormChange("time", e.target.value)}
-                      dateFieldName="date"
-                      timeFieldName="time"
-                      placeholder="YYYY-MM-DD hh:mm"
-                    />
+                    <div className="cf-select cf-date-input">
+                      <input
+                        type="date"
+                        value={convertFormData.date}
+                        onChange={(e) => handleConvertFormChange("date", e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          outline: "none",
+                          background: "transparent",
+                          fontSize: "14px",
+                          color: "#1a1a1a",
+                          fontFamily: "inherit",
+                          padding: 0,
+                          flex: 1,
+                          cursor: "pointer",
+                        }}
+                      />
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          flexShrink: 0,
+                          marginLeft: "8px",
+                          color: "#666",
+                          pointerEvents: "none",
+                          position: "relative",
+                          zIndex: 1,
+                        }}
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </div>
                   </FormField>
                 </div>
 
@@ -1934,23 +1983,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           </tbody>
         </table>
         </div>
-        {notesList.length > 0 && (() => {
-          const totalPages = Math.ceil(notesList.length / LANDING_LIMIT);
-          const start = (landingPage - 1) * LANDING_LIMIT + 1;
-          const end = Math.min(landingPage * LANDING_LIMIT, notesList.length);
-          return (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
-              <span>Showing {start} to {end} of {notesList.length} entries</span>
-              <div style={{ display: "flex", gap: "4px" }}>
-                <button onClick={() => setLandingPage(p => Math.max(1, p - 1))} disabled={landingPage === 1} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: landingPage === 1 ? "#f8f9fa" : "#fff", color: landingPage === 1 ? "#aaa" : "#00368c", cursor: landingPage === 1 ? "default" : "pointer" }}>&lt;</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setLandingPage(p)} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: landingPage === p ? "#00368c" : "#fff", color: landingPage === p ? "#fff" : "#00368c", cursor: "pointer", fontWeight: landingPage === p ? 600 : 400 }}>{p}</button>
-                ))}
-                <button onClick={() => setLandingPage(p => Math.min(totalPages, p + 1))} disabled={landingPage === totalPages} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: landingPage === totalPages ? "#f8f9fa" : "#fff", color: landingPage === totalPages ? "#aaa" : "#00368c", cursor: landingPage === totalPages ? "default" : "pointer" }}>&gt;</button>
-              </div>
-            </div>
-          );
-        })()}
+        <MaterialTablePagination
+          page={landingPage}
+          total={notesList.length}
+          limit={LANDING_LIMIT}
+          onPageChange={setLandingPage}
+        />
       </div>
 
       <CustomModal
