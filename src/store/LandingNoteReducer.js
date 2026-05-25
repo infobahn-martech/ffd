@@ -15,9 +15,10 @@ const useLandingNoteReducer = create((set) => ({
         try {
             set({ isLoadingList: true });
             const { data } = await landingNoteService.getAllLandingNotes(params);
+            const notes = data?.data ?? [];
             set({
-                landingNotes: data?.data ?? [],
-                landingNoteTotal: data?.pagination?.total ?? 0,
+                landingNotes: notes,
+                landingNoteTotal: data?.pagination?.total ?? notes.length,
                 isLoadingList: false,
             });
         } catch (err) {

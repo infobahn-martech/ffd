@@ -188,17 +188,18 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (note) {
       const { date, time } = splitApiDateTimeParts(note.landing_date || "", note.landing_time || "");
       setEditingNote(note);
+      const firstItem = note.items?.[0] ?? {};
       setFormData({
         landingNoteNo: note.landing_note_no || "",
         date,
         time,
-        poDo: note.po_do || "",
-        landingProof: note.landing_proof || [],
-        quantity: note.quantity || "",
-        packageType: note.package_type || "",
-        description: note.description || "",
+        poDo: firstItem.po_no || "",
+        landingProof: note.document ? [note.document] : [],
+        quantity: firstItem.quantity || "",
+        packageType: firstItem.package_type || "",
+        description: firstItem.description || "",
       });
-      setSelectedFiles(note.landing_proof || []);
+      setSelectedFiles(note.document ? [note.document] : []);
     } else {
       setEditingNote(null);
       setFormData({
@@ -416,10 +417,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       orders: [{
         id: 1,
         orderNo: note.landing_note_no || "",
-        poDo: note.po_do || "",
-        quantity: note.quantity || "",
-        packageType: note.package_type || "",
-        description: note.description || "",
+        poDo: note.items?.[0]?.po_no || "",
+        quantity: note.items?.[0]?.quantity || "",
+        packageType: note.items?.[0]?.package_type || "",
+        description: note.items?.[0]?.description || "",
         transportation: false,
         typeOfVehicle: "",
         fromLocation: "",
@@ -750,23 +751,23 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
             <div class="print-row">
               <div class="print-label">PO/DO:</div>
-              <div class="print-value">${note.po_do || "-"}</div>
+              <div class="print-value">${note.items?.[0]?.po_no || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Quantity:</div>
-              <div class="print-value">${note.quantity || "-"}</div>
+              <div class="print-value">${note.items?.[0]?.quantity || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Package Type:</div>
-              <div class="print-value">${note.package_type || "-"}</div>
+              <div class="print-value">${note.items?.[0]?.package_type || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Description:</div>
-              <div class="print-value">${note.description || "-"}</div>
+              <div class="print-value">${note.items?.[0]?.description || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Landing Proof:</div>
-              <div class="print-value">${note.landing_proof && note.landing_proof.length > 0 ? `${note.landing_proof.length} file(s)` : "No files"}</div>
+              <div class="print-value">${note.document ? note.document.file_name || "1 file" : "No files"}</div>
             </div>
           </div>
 
@@ -1528,23 +1529,23 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.po_do || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.po_no || "-"}</div>
             </div>
           </div>
 
           <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.quantity || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.quantity || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.package_type || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.package_type || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Proof</div>
               <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>
-                {viewingNote.landing_proof && viewingNote.landing_proof.length > 0 ? `${viewingNote.landing_proof.length} file(s)` : "No files"}
+                {viewingNote.document ? viewingNote.document.file_name || "1 file" : "No files"}
               </div>
             </div>
           </div>
@@ -1552,7 +1553,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="view-row" style={{ marginBottom: "20px" }}>
             <div className="view-item" style={{ width: "100%" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.description || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.description || "-"}</div>
             </div>
           </div>
         </div>
@@ -1638,13 +1639,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.po_do || ""}</div>
+                    <div className="material-table-cell">{note.items?.[0]?.po_no || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {note.landing_proof && note.landing_proof.length > 0 ? (
+                      {note.document ? (
                         <span style={{ color: "#00368c", cursor: "pointer" }}>
-                          {note.landing_proof.length} file(s)
+                          {note.document.file_name || "1 file"}
                         </span>
                       ) : (
                         <span style={{ color: "#999" }}>No files</span>
@@ -1652,31 +1653,34 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.quantity || ""}</div>
+                    <div className="material-table-cell">{note.items?.[0]?.quantity || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.package_type || ""}</div>
+                    <div className="material-table-cell">{note.items?.[0]?.package_type || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {note.description && note.description.length > 13 ? (
-                        <>
-                          <Tooltip
-                            id={`description-tooltip-${note.landing_note_id}`}
-                            place="right"
-                            content={note.description}
-                            className="material-table-tooltip"
-                          />
-                          <span
-                            data-tooltip-id={`description-tooltip-${note.landing_note_id}`}
-                            style={{ cursor: "help" }}
-                          >
-                            {note.description.substring(0, 13)}...
-                          </span>
-                        </>
-                      ) : (
-                        <span>{note.description || ""}</span>
-                      )}
+                      {(() => {
+                        const desc = note.items?.[0]?.description || "";
+                        return desc.length > 13 ? (
+                          <>
+                            <Tooltip
+                              id={`description-tooltip-${note.landing_note_id}`}
+                              place="right"
+                              content={desc}
+                              className="material-table-tooltip"
+                            />
+                            <span
+                              data-tooltip-id={`description-tooltip-${note.landing_note_id}`}
+                              style={{ cursor: "help" }}
+                            >
+                              {desc.substring(0, 13)}...
+                            </span>
+                          </>
+                        ) : (
+                          <span>{desc}</span>
+                        );
+                      })()}
                     </div>
                   </td>
                   <td style={{ position: "relative", whiteSpace: "nowrap", overflow: "visible" }}>
