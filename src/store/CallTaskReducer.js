@@ -8,7 +8,10 @@ const useCallTaskReducer = create((set, get) => ({
   tasksCallId: "",
 
   getTasksByCall: async ({ callId }) => {
-    if (!callId) {
+    const trimmed =
+      callId === undefined || callId === null ? "" : String(callId).trim();
+
+    if (!trimmed) {
       set({
         callTasks: [],
         tasksErrorMessage: "",
@@ -19,16 +22,16 @@ const useCallTaskReducer = create((set, get) => ({
     }
 
     try {
-      set({ isLoadingTasks: true, tasksErrorMessage: "", tasksCallId: callId });
-      const { data } = await callTaskService.getTasksByCall({ callId });
+      set({ isLoadingTasks: true, tasksErrorMessage: "", tasksCallId: trimmed });
+      const { data } = await callTaskService.getTasksByCall(trimmed);
       const rows = Array.isArray(data?.data) ? data.data : [];
 
-      if (get().tasksCallId === callId) {
+      if (get().tasksCallId === trimmed) {
         set({ callTasks: rows, isLoadingTasks: false });
       }
     } catch (err) {
       console.error("[CallTaskReducer] getTasksByCall failed", err);
-      if (get().tasksCallId === callId) {
+      if (get().tasksCallId === trimmed) {
         set({
           callTasks: [],
           tasksErrorMessage:
