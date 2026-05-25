@@ -46,6 +46,11 @@ const normalizeWholeQuantity = (value) => {
   return String(Math.trunc(numericValue));
 };
 
+const toPositiveId = (value) => {
+  const numericValue = Number(value);
+  return Number.isInteger(numericValue) && numericValue > 0 ? numericValue : null;
+};
+
 
 // Generate dummy inbound orders data
 const generateDummyInboundOrders = () => {
@@ -1188,6 +1193,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!convertFormData.date) errors.date = "Date is required";
     else if (!convertFormData.time) errors.date = "Time is required";
     if (!convertFormData.warehouse) errors.warehouse = "Warehouse is required";
+    else if (!toPositiveId(convertFormData.warehouse)) errors.warehouse = "Valid warehouse is required";
     if (!convertFormData.receivedFrom) errors.receivedFrom = "Received From is required";
     if (!convertFormData.location) errors.location = "Location is required";
 
@@ -1207,22 +1213,37 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       if (!order.packageType) {
         errors[`co${idx}_packageType`] = "Package Type is required";
         hasOrderError = true;
+      } else if (!toPositiveId(order.packageType)) {
+        errors[`co${idx}_packageType`] = "Valid package type is required";
+        hasOrderError = true;
       }
       if (order.transportation) {
         if (!order.typeOfVehicle) {
           errors[`co${idx}_typeOfVehicle`] = "Vehicle type is required";
           hasOrderError = true;
+        } else if (!toPositiveId(order.typeOfVehicle)) {
+          errors[`co${idx}_typeOfVehicle`] = "Valid vehicle type is required";
+          hasOrderError = true;
         }
         if (!order.fromLocation) {
           errors[`co${idx}_fromLocation`] = "From location is required";
+          hasOrderError = true;
+        } else if (!toPositiveId(order.fromLocation)) {
+          errors[`co${idx}_fromLocation`] = "Valid from location is required";
           hasOrderError = true;
         }
         if (!order.toLocation) {
           errors[`co${idx}_toLocation`] = "To location is required";
           hasOrderError = true;
+        } else if (!toPositiveId(order.toLocation)) {
+          errors[`co${idx}_toLocation`] = "Valid to location is required";
+          hasOrderError = true;
         }
         if (!order.driverName) {
           errors[`co${idx}_driverName`] = "Driver is required";
+          hasOrderError = true;
+        } else if (!toPositiveId(order.driverName)) {
+          errors[`co${idx}_driverName`] = "Valid driver is required";
           hasOrderError = true;
         }
       }
@@ -1236,44 +1257,70 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleConvertSubmit = (e) => {
+  const handleConvertSubmit = async (e) => {
     e.preventDefault();
     if (!validateConvertForm()) return;
 
-    const inboundId = convertingOrder?.inbound_id ?? convertingOrder?.id;
+    const inboundId = toPositiveId(convertingOrder?.inbound_id ?? convertingOrder?.id);
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!inboundId || !callId) return;
 
-    const payload = {
-      inbound_id: inboundId,
-      call_id: callId,
-      warehouse_id: Number(convertFormData.warehouse) || 0,
-      landing_date: buildApiDateTime(convertFormData.date, convertFormData.time),
-      landing_time: (convertFormData.time || "").slice(0, 5),
-      received_from: convertFormData.receivedFrom || "",
-      location: convertFormData.location || "",
-      remarks: convertFormData.remarks || "",
-      items: convertFormData.orders.map((order) => ({
-        inbound_item_id: order.inboundItemId,
+    let ordersForPayload = convertFormData.orders;
+    if (ordersForPayload.some((order) => !toPositiveId(order.inboundItemId))) {
+      try {
+        const { data } = await inboundOrderService.getInboundById(inboundId);
+        const detailItems = Array.isArray(data?.data?.items) ? data.data.items : [];
+        if (detailItems.length === ordersForPayload.length) {
+          ordersForPayload = ordersForPayload.map((order, idx) => ({
+            ...order,
+            inboundItemId: detailItems[idx]?.inbound_item_id ?? order.inboundItemId,
+          }));
+        }
+      } catch (err) {
+        const { error } = useInboundOrderReducer.getState();
+        error(err?.response?.data?.message ?? err.message);
+        return;
+      }
+    }
+
+    const items = ordersForPayload.map((order) => {
+      const inboundItemId = toPositiveId(order.inboundItemId);
+      return {
+        ...(inboundItemId ? { inbound_item_id: inboundItemId } : {}),
         order_no: order.orderNo || "",
         po_no: order.poDo || "",
         quantity: Number(order.quantity) || 0,
-        package_type_id: Number(order.packageType) || 0,
+        package_type_id: toPositiveId(order.packageType),
         description: order.description || "",
         slot_no: order.slotNo || "",
         reason: order.reason || "",
         transportation_required: order.transportation ? 1 : 0,
         ...(order.transportation ? {
-          vehicle_type_id: Number(order.typeOfVehicle) || 0,
-          from_location_id: Number(order.fromLocation) || 0,
+          vehicle_type_id: toPositiveId(order.typeOfVehicle),
+          from_location_id: toPositiveId(order.fromLocation),
           pickup_location: order.pickUpFrom || "",
-          to_location_id: Number(order.toLocation) || 0,
-          driver_id: Number(order.driverName) || 0,
+          to_location_id: toPositiveId(order.toLocation),
+          driver_id: toPositiveId(order.driverName),
         } : {}),
-      })),
-    };
+      };
+    });
+
+    const fd = new FormData();
+    fd.append("inbound_id", inboundId);
+    fd.append("call_id", callId);
+    fd.append("warehouse_id", toPositiveId(convertFormData.warehouse));
+    fd.append("landing_date", convertFormData.date || "");
+    fd.append("landing_time", (convertFormData.time || "").slice(0, 5));
+    fd.append("received_from", convertFormData.receivedFrom || "");
+    fd.append("location", convertFormData.location || "");
+    fd.append("remarks", convertFormData.remarks || "");
+    fd.append("items", JSON.stringify(items));
+    if (convertFormData.documents && convertFormData.documents.length > 0) {
+      fd.append("file", convertFormData.documents[0].file);
+    }
 
     convertInboundToLandingNote({
-      data: payload,
+      data: fd,
       cb: () => {
         handleCloseConvertModal();
         getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
