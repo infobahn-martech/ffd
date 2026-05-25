@@ -3,260 +3,142 @@ import { FiX, FiSearch } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import '../../../design/scss/business-rules-modal.scss';
 
-// Business rules data based on the image description
 const businessRules = [
-  { 
-    id: 1, 
-    name: 'Card is created', 
+  {
+    id: 1,
+    name: 'Card is created',
     icon: 'create',
-    description: 'This rule triggers when a new card is created in the system. It allows you to set up automated actions that occur immediately after card creation, such as sending notifications, assigning default values, or triggering workflows.'
+    description:
+      'Triggers when a new card is created. Use this to send notifications, assign defaults, or start workflows automatically.',
   },
-  { 
-    id: 2, 
-    name: 'Recurring create cards', 
-    icon: 'recurring-create',
-    description: 'Automatically creates cards on a recurring schedule based on your specified frequency (daily, weekly, monthly, etc.). This is useful for recurring tasks, meetings, or periodic reviews that need to be tracked consistently.'
-  },
-  { 
-    id: 3, 
-    name: 'Card is updated', 
+  {
+    id: 2,
+    name: 'Card is updated',
     icon: 'update',
-    description: 'Triggers when any field or property of a card is modified. Use this rule to track changes, update related cards, send change notifications, or maintain audit logs of card modifications.'
+    description:
+      'Triggers when any field on a card changes. Use this to track changes, update related cards, or send change notifications.',
   },
-  { 
-    id: 4, 
-    name: 'Recurring update cards', 
-    icon: 'recurring-update',
-    description: 'Automatically updates cards on a recurring basis. This rule can refresh card data, update status fields, or perform scheduled maintenance tasks on cards at regular intervals.'
-  },
-  { 
-    id: 5, 
-    name: 'Card updated by email', 
-    icon: 'email-update',
-    description: 'Allows cards to be updated via email. When an email is received matching specific criteria, the corresponding card is automatically updated with the email content, attachments, or metadata.'
-  },
-  { 
-    id: 6, 
-    name: 'Child card is blocked', 
-    icon: 'child-blocked',
-    description: 'Triggers when a child card (sub-card) is marked as blocked. This rule can notify stakeholders, prevent parent card progression, or trigger escalation procedures when child tasks are blocked.'
-  },
-  { 
-    id: 7, 
-    name: 'All children are unblocked', 
-    icon: 'children-unblocked',
-    description: 'Activates when all child cards of a parent card are unblocked. This rule can automatically resume parent card workflows, send completion notifications, or update parent card status when all dependencies are resolved.'
-  },
-  { 
-    id: 8, 
-    name: 'Card is moved', 
+  {
+    id: 3,
+    name: 'Card is moved',
     icon: 'moved',
-    description: 'Triggers when a card is moved between columns, lanes, or boards. Use this rule to track card progression, update status fields, send movement notifications, or trigger workflows based on card location changes.'
+    description:
+      'Triggers when a card moves between columns or lanes. Use this to update status, notify stakeholders, or run location-based workflows.',
   },
-  { 
-    id: 9, 
-    name: 'Child card is moved', 
+  {
+    id: 4,
+    name: 'Child card is blocked',
+    icon: 'child-blocked',
+    description:
+      'Triggers when a child card is marked blocked. Use this to notify stakeholders, pause parent progress, or escalate blocked work.',
+  },
+  {
+    id: 5,
+    name: 'Child card is moved',
     icon: 'child-moved',
-    description: 'Activates when a child card is moved to a different location. This rule can update parent card status, synchronize child card movements with parent workflows, or trigger notifications about child card progression.'
+    description:
+      'Triggers when a child card moves. Use this to sync parent status, align child movement with parent workflows, or send updates.',
   },
-  { 
-    id: 10, 
-    name: 'Child card is updated', 
-    icon: 'child-updated',
-    description: 'Triggers when any child card is modified. This rule can automatically update parent card summaries, recalculate parent card metrics, or notify stakeholders about changes in child card status.'
-  },
-  { 
-    id: 11, 
-    name: 'All children are moved', 
+  {
+    id: 6,
+    name: 'All children are moved',
     icon: 'all-children-moved',
-    description: 'Activates when all child cards have been moved to a specific location or status. This rule can automatically complete parent cards, trigger final reviews, or initiate next-phase workflows when all child tasks reach their target state.'
-  },
-  { 
-    id: 12, 
-    name: 'Relative card is moved', 
-    icon: 'relative-moved',
-    description: 'Triggers when a related or linked card is moved. This rule maintains relationships between cards, synchronizes movements of related items, or updates cross-references when relative cards change position.'
-  },
-  { 
-    id: 13, 
-    name: 'Relative card is updated', 
-    icon: 'relative-updated',
-    description: 'Activates when a related or linked card is modified. This rule can propagate updates to related cards, maintain data consistency across linked items, or trigger cascading updates in connected workflows.'
-  },
-  { 
-    id: 14, 
-    name: 'Time-based rule', 
-    icon: 'time-based',
-    description: 'Executes actions based on time conditions such as specific dates, time intervals, or scheduled events. This rule enables time-triggered automation, deadline management, and scheduled task execution.'
-  },
-  { 
-    id: 15, 
-    name: 'WIP limit is reached', 
-    icon: 'wip-reached',
-    description: 'Triggers when the Work In Progress (WIP) limit for a column or lane is reached. This rule can prevent new card assignments, notify team members about capacity limits, or trigger workflow adjustments to manage workload.'
-  },
-  { 
-    id: 16, 
-    name: 'WIP limit is exceeded', 
-    icon: 'wip-exceeded',
-    description: 'Activates when the WIP limit is exceeded, indicating over-capacity. This rule can send alerts, block new card assignments, trigger escalation procedures, or automatically redistribute work to maintain optimal workflow balance.'
+    description:
+      'Triggers when every child card has moved to the target location or status. Use this to complete parents or start the next phase.',
   },
 ];
 
-// Icon component for business rules
 const BusinessRuleIcon = ({ iconType }) => {
-  const iconStyle = {
-    width: '48px',
-    height: '48px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '12px',
-    marginBottom: '12px',
-  };
-
-  // Simple icon representations based on the descriptions
   const renderIcon = () => {
     switch (iconType) {
       case 'create':
         return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#10B981" />
-            <path d="M16 10v12M10 16h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        );
-      case 'recurring-create':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="12" fill="#10B981" />
-            <path d="M16 8v8M12 12h8" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            <path d="M16 20c0 2.5 2 4.5 4.5 4.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
+            <rect x="4" y="4" width="32" height="32" rx="6" fill="#10B981" />
+            <path
+              d="M20 13v14M13 20h14"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
           </svg>
         );
       case 'update':
         return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#F59E0B" />
-            <path d="M12 16l4 4 8-8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
-      case 'recurring-update':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="12" fill="#F59E0B" />
-            <path d="M12 16l4 4 8-8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
-      case 'email-update':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="8" width="24" height="16" rx="2" fill="#F59E0B" />
-            <path d="M4 10l12 8 12-8" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        );
-      case 'child-blocked':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="12" fill="#EF4444" />
-            <path d="M10 10l12 12M22 10l-12 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-        );
-      case 'children-unblocked':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#10B981" />
-            <path d="M10 16l4 4 8-8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
+            <rect x="4" y="4" width="32" height="32" rx="6" fill="#F59E0B" />
+            <path
+              d="M14 20l5 5 11-12"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         );
       case 'moved':
         return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#3B82F6" />
-            <path d="M12 16h8M16 12l4 4-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
+            <rect x="4" y="4" width="32" height="32" rx="6" fill="#3B82F6" />
+            <path
+              d="M15 20h10M22 15l5 5-5 5"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case 'child-blocked':
+        return (
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
+            <circle cx="20" cy="20" r="16" fill="#EF4444" />
+            <path
+              d="M13 13l14 14M27 13L13 27"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
           </svg>
         );
       case 'child-moved':
         return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#3B82F6" />
-            <rect x="8" y="8" width="8" height="8" rx="2" fill="white" opacity="0.3" />
-            <path d="M16 16h4M18 14l2 2-2 2" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
-      case 'child-updated':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#F59E0B" />
-            <rect x="8" y="8" width="8" height="8" rx="2" fill="white" opacity="0.3" />
-            <path d="M16 16l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
+            <rect x="4" y="4" width="32" height="32" rx="6" fill="#3B82F6" />
+            <rect x="9" y="9" width="10" height="10" rx="2" fill="white" fillOpacity="0.9" />
+            <path
+              d="M21 20h8M26 16l4 4-4 4"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         );
       case 'all-children-moved':
         return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#3B82F6" />
-            <rect x="8" y="6" width="6" height="6" rx="1" fill="white" opacity="0.3" />
-            <rect x="8" y="14" width="6" height="6" rx="1" fill="white" opacity="0.3" />
-            <rect x="8" y="22" width="6" height="6" rx="1" fill="white" opacity="0.3" />
-            <path d="M18 16h4M20 14l2 2-2 2" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
-      case 'relative-moved':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#3B82F6" />
-            <rect x="8" y="10" width="16" height="3" rx="1.5" fill="white" opacity="0.3" />
-            <rect x="8" y="19" width="16" height="3" rx="1.5" fill="white" opacity="0.3" />
-            <path d="M20 16h4M22 14l2 2-2 2" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
-      case 'relative-updated':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#F59E0B" />
-            <rect x="8" y="10" width="16" height="3" rx="1.5" fill="white" opacity="0.3" />
-            <rect x="8" y="19" width="16" height="3" rx="1.5" fill="white" opacity="0.3" />
-            <path d="M20 16l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
-      case 'time-based':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="12" fill="#F59E0B" />
-            <circle cx="16" cy="16" r="1.5" fill="white" />
-            <path d="M16 10v6l4 4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        );
-      case 'wip-reached':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M16 4L4 12v8c0 6.627 5.373 12 12 12s12-5.373 12-12v-8L16 4z" fill="#F59E0B" />
-            <circle cx="16" cy="16" r="8" fill="white" opacity="0.2" />
-            <path d="M16 8v8l4 4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        );
-      case 'wip-exceeded':
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M16 4L4 12v8c0 6.627 5.373 12 12 12s12-5.373 12-12v-8L16 4z" fill="#EF4444" />
-            <circle cx="16" cy="16" r="8" fill="white" opacity="0.2" />
-            <path d="M16 8v8l4 4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            <path d="M8 8l16 16M24 8L8 24" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
+            <rect x="4" y="4" width="32" height="32" rx="6" fill="#3B82F6" />
+            <rect x="9" y="8" width="7" height="5" rx="1" fill="white" fillOpacity="0.9" />
+            <rect x="9" y="15" width="7" height="5" rx="1" fill="white" fillOpacity="0.9" />
+            <rect x="9" y="22" width="7" height="5" rx="1" fill="white" fillOpacity="0.9" />
+            <path
+              d="M20 20h9M25 16l4 4-4 4"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         );
       default:
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="4" width="24" height="24" rx="4" fill="#6B7280" />
-          </svg>
-        );
+        return null;
     }
   };
 
-  return <div style={iconStyle}>{renderIcon()}</div>;
+  return <div className="business-rules-card-icon">{renderIcon()}</div>;
 };
 
-// Detail Modal Component
 const BusinessRuleDetailModal = ({ show, onClose, rule }) => {
   if (!rule) return null;
 
@@ -280,9 +162,10 @@ const BusinessRuleDetailModal = ({ show, onClose, rule }) => {
         </button>
       </Modal.Header>
       <Modal.Body className="business-rule-detail-modal-body">
-        <div className="business-rule-detail-description">
-          {rule.description}
+        <div className="business-rule-detail-icon">
+          <BusinessRuleIcon iconType={rule.icon} />
         </div>
+        <p className="business-rule-detail-description">{rule.description}</p>
       </Modal.Body>
     </Modal>
   );
@@ -293,8 +176,8 @@ const BusinessRulesModal = ({ show, onClose }) => {
   const [selectedRule, setSelectedRule] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const filteredRules = businessRules.filter(rule =>
-    rule.name.toLowerCase().includes(searchValue.toLowerCase())
+  const filteredRules = businessRules.filter((rule) =>
+    rule.name.toLowerCase().includes(searchValue.toLowerCase().trim())
   );
 
   const handleCardClick = (rule) => {
@@ -328,7 +211,6 @@ const BusinessRulesModal = ({ show, onClose }) => {
           </button>
         </Modal.Header>
         <Modal.Body className="business-rules-modal-body">
-          {/* Search Section */}
           <div className="business-rules-search-section">
             <div className="business-rules-search-wrapper">
               <FiSearch className="business-rules-search-icon" />
@@ -342,25 +224,23 @@ const BusinessRulesModal = ({ show, onClose }) => {
             </div>
           </div>
 
-          {/* Cards Grid Section */}
           <div className="business-rules-grid-wrapper">
             {filteredRules.length > 0 ? (
               <div className="business-rules-grid">
-                {filteredRules.map(rule => (
-                  <div 
-                    key={rule.id} 
+                {filteredRules.map((rule) => (
+                  <button
+                    key={rule.id}
+                    type="button"
                     className="business-rules-card"
                     onClick={() => handleCardClick(rule)}
                   >
                     <BusinessRuleIcon iconType={rule.icon} />
-                    <h3 className="business-rules-card-title">{rule.name}</h3>
-                  </div>
+                    <span className="business-rules-card-title">{rule.name}</span>
+                  </button>
                 ))}
               </div>
             ) : (
-              <div className="business-rules-empty-state">
-                No business rules found
-              </div>
+              <div className="business-rules-empty-state">No business rules found</div>
             )}
           </div>
         </Modal.Body>
@@ -376,4 +256,3 @@ const BusinessRulesModal = ({ show, onClose }) => {
 };
 
 export default BusinessRulesModal;
-

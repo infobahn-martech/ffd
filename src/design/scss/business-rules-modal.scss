@@ -3,7 +3,7 @@
 .business-rules-modal {
   .modal-dialog {
     max-width: 1200px;
-    width: 90%;
+    width: 94%;
     margin: 1.5rem auto;
 
     @media ($sm-991) {
@@ -31,7 +31,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 28px 20px;
+  padding: 28px 40px 24px;
   border-bottom: 1px solid #e5e7eb;
   background: #ffffff;
 
@@ -84,15 +84,12 @@
 }
 
 .business-rules-search-section {
-  padding: 20px 28px;
+  padding: 24px 40px;
   border-bottom: 1px solid #e5e7eb;
   background: #f8f9fc;
-  display: flex;
-  justify-content: flex-end;
 
   @media ($sm-767) {
-    padding: 16px 20px;
-    justify-content: flex-start;
+    padding: 18px 24px;
   }
 }
 
@@ -100,12 +97,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 523px;
   width: 100%;
-
-  @media ($sm-767) {
-    max-width: 100%;
-  }
 }
 
 .business-rules-search-icon {
@@ -115,11 +107,12 @@
   width: 18px;
   height: 18px;
   z-index: 1;
+  pointer-events: none;
 }
 
 .business-rules-search-input {
   width: 100%;
-  padding: 10px 14px 10px 42px;
+  padding: 13px 16px 13px 44px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font: normal normal 400 14px/1.5 $font-primary;
@@ -127,23 +120,15 @@
   background: #ffffff;
   outline: none;
   box-shadow: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    border-color: #e5e7eb;
-    outline: none;
-    box-shadow: none;
+    border-color: #d1d5db;
   }
 
   &:focus {
-    border-color: #e5e7eb;
-    outline: none;
-    box-shadow: none;
-  }
-
-  &:active {
-    border-color: #e5e7eb;
-    outline: none;
-    box-shadow: none;
+    border-color: #00368c;
+    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
   }
 
   &::placeholder {
@@ -152,44 +137,26 @@
 }
 
 .business-rules-grid-wrapper {
-  max-height: calc(80vh - 200px);
-  overflow-y: auto;
-  padding: 24px 28px;
+  padding: 36px 40px 40px;
+  overflow: visible;
 
   @media ($sm-767) {
-    padding: 16px 20px;
+    padding: 24px;
   }
-
-  // Transparent scrollbar styling
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: transparent;
-  }
-
-  // Firefox scrollbar styling - transparent
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
 }
 
 .business-rules-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
 
   @media ($sm-991) {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
 
-  @media ($sm-767) {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  @media ($sm-579) {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 }
@@ -198,19 +165,22 @@
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 20px;
+  padding: 40px 28px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-height: 160px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  min-height: 200px;
   justify-content: center;
+  width: 100%;
+  font: inherit;
+  color: inherit;
 
   &:hover {
     border-color: #00368c;
-    box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
+    box-shadow: 0 4px 14px rgba(0, 54, 140, 0.12);
     transform: translateY(-2px);
   }
 
@@ -218,18 +188,37 @@
     transform: translateY(0);
   }
 
+  &:focus-visible {
+    outline: 2px solid rgba(0, 54, 140, 0.4);
+    outline-offset: 2px;
+  }
+
   @media ($sm-767) {
-    padding: 16px;
-    min-height: 140px;
+    padding: 28px 20px 24px;
+    min-height: 160px;
+  }
+}
+
+.business-rules-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  flex-shrink: 0;
+
+  svg {
+    width: 56px;
+    height: 56px;
   }
 }
 
 .business-rules-card-title {
-  font: normal normal 500 14px/1.4 $font-primary;
-  color: $txtColor;
+  font: normal normal 500 16px/1.45 $font-primary;
+  color: #4b5563;
   margin: 0;
   word-wrap: break-word;
   width: 100%;
+  display: block;
 
   @media ($sm-767) {
     font-size: 13px;
@@ -237,20 +226,20 @@
 }
 
 .business-rules-empty-state {
-  padding: 60px 28px;
+  padding: 48px 28px;
   text-align: center;
   font: normal normal 400 14px/1.5 $font-primary;
   color: #9ca3af;
 
   @media ($sm-767) {
-    padding: 40px 20px;
+    padding: 36px 20px;
   }
 }
 
 // Business Rule Detail Modal
 .business-rule-detail-modal {
   .modal-dialog {
-    max-width: 600px;
+    max-width: 520px;
     width: 90%;
     margin: 1.5rem auto;
 
@@ -268,11 +257,6 @@
     overflow: hidden;
     background: #ffffff;
   }
-
-  .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-  }
 }
 
 .business-rule-detail-modal-header {
@@ -289,13 +273,13 @@
 }
 
 .business-rule-detail-modal-title {
-  font: normal normal 600 24px/1.3 $font-primary;
+  font: normal normal 600 22px/1.3 $font-primary;
   color: $colorPrimary;
   margin: 0;
   letter-spacing: -0.02em;
 
   @media ($sm-767) {
-    font-size: 22px;
+    font-size: 20px;
   }
 }
 
@@ -327,21 +311,30 @@
 }
 
 .business-rule-detail-modal-body {
-  padding: 32px 28px;
+  padding: 28px 28px 32px;
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   @media ($sm-767) {
-    padding: 24px 20px;
+    padding: 24px 20px 28px;
   }
 }
 
+.business-rule-detail-icon {
+  margin-bottom: 20px;
+}
+
 .business-rule-detail-description {
-  font: normal normal 400 16px/1.6 $font-primary;
+  font: normal normal 400 15px/1.6 $font-primary;
   color: $txtColor;
   text-align: center;
+  margin: 0;
+  max-width: 420px;
 
   @media ($sm-767) {
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.55;
   }
 }
