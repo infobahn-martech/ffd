@@ -2295,6 +2295,26 @@ function General({
     const formPayload = {
       ...formValues,
       swimlane_id: swimlaneId,
+      card_type_id:
+        formValues?.card_type_id ?? card?.card_type_id ?? card?.cardTypeId ?? card?.raw?.card_type_id,
+      card_tag_id:
+        formValues?.card_tag_id ??
+        formValues?.tag_id ??
+        card?.card_tag_id ??
+        card?.tag_id ??
+        card?.raw?.card_tag_id,
+      card_blocker_id:
+        formValues?.card_blocker_id ??
+        formValues?.blocker_id ??
+        card?.card_blocker_id ??
+        card?.blocker_id ??
+        card?.raw?.card_blocker_id,
+      card_sticker_id:
+        formValues?.card_sticker_id ??
+        formValues?.sticker_id ??
+        card?.card_sticker_id ??
+        card?.sticker_id ??
+        card?.raw?.card_sticker_id,
       entity_fields: entityFieldsPayload,
       time_objects: (Array.isArray(stageTimeObjects) ? stageTimeObjects : [])
         .map((item) => {

@@ -118,6 +118,10 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
 
   appendStringField("card_title", fv.cardTitle);
   appendStringField("card_color", str(fv.card_color ?? fv.cardColor) || "#2e7d32");
+  appendStringField("card_type_id", fv.card_type_id ?? fv.type_id);
+  appendStringField("card_tag_id", fv.card_tag_id ?? fv.tag_id);
+  appendStringField("card_blocker_id", fv.card_blocker_id ?? fv.blocker_id);
+  appendStringField("card_sticker_id", fv.card_sticker_id ?? fv.sticker_id);
   appendStringField("owner_id", fv.owner);
   appendStringField("port_id", fv.port);
   appendStringField("call_type", fv.typeOfCall);
