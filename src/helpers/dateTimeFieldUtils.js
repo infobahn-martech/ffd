@@ -1,63 +1,80 @@
-const padDateTimePart = (value) => String(value).padStart(2, "0");
+const pad2 = (n) => String(n).padStart(2, "0");
 
-const toValidDate = (value) => {
-  if (!value) return null;
+export function splitApiDateTimeParts(raw, separateTime) {
+  let date = "";
+  let time = "";
 
-  const parsedValue = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(parsedValue.getTime()) ? null : parsedValue;
-};
-
-export const buildApiDateTime = (dateValue, timeValue = "00:00") => {
-  if (!dateValue) return "";
-
-  const time = timeValue || "00:00";
-  return `${dateValue} ${time}`;
-};
-
-export const splitApiDateTimeParts = (dateValue, timeValue = "") => {
-  if (!dateValue) return { date: "", time: "" };
-
-  const dateText = String(dateValue);
-  const directMatch = dateText.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}))?/);
-
-  if (directMatch) {
-    return {
-      date: directMatch[1],
-      time: directMatch[2] || String(timeValue || "").slice(0, 5),
-    };
+  const timeFromField = String(separateTime ?? "").trim();
+  if (timeFromField) {
+    const timeMatch = timeFromField.match(/^(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      time = `${pad2(timeMatch[1])}:${timeMatch[2]}`;
+    }
   }
 
-  const parsedDate = toValidDate(dateValue);
-  if (!parsedDate) {
-    return {
-      date: dateText,
-      time: String(timeValue || "").slice(0, 5),
-    };
+  if (raw == null || String(raw).trim() === "") {
+    return { date, time };
   }
 
-  return {
-    date: `${parsedDate.getFullYear()}-${padDateTimePart(parsedDate.getMonth() + 1)}-${padDateTimePart(parsedDate.getDate())}`,
-    time: `${padDateTimePart(parsedDate.getHours())}:${padDateTimePart(parsedDate.getMinutes())}`,
-  };
-};
+  const normalized = String(raw).trim().replace("T", " ");
+  const [datePart = "", timeRaw = ""] = normalized.split(/\s+/);
 
-export const formatDisplayDateTime = (dateValue, timeValue = "") => {
-  const { date, time } = splitApiDateTimeParts(dateValue, timeValue);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+    date = datePart;
+    if (!time && timeRaw) {
+      const timeMatch = String(timeRaw).match(/^(\d{1,2}):(\d{2})/);
+      if (timeMatch) {
+        time = `${pad2(timeMatch[1])}:${timeMatch[2]}`;
+      }
+    }
+  }
+
+  return { date, time };
+}
+
+export function buildApiDateTime(dateStr, timeStr) {
+  const datePart = String(dateStr ?? "").trim();
+  if (!datePart) return "";
+
+  const rawTime = String(timeStr ?? "").trim();
+  let hh = "00";
+  let mm = "00";
+
+  if (rawTime) {
+    const segs = rawTime.split(":").map((s) => s.trim());
+    if (segs.length >= 2) {
+      hh = pad2(Number(segs[0]) || 0);
+      mm = pad2(Number(segs[1]) || 0);
+    }
+  }
+
+  return `${datePart} ${hh}:${mm}:00`;
+}
+
+export function buildApiDateTimeIso(dateStr, timeStr) {
+  const datePart = String(dateStr ?? "").trim();
+  if (!datePart) return "";
+  const rawTime = String(timeStr ?? "00:00").trim() || "00:00";
+  const segs = rawTime.split(":");
+  const hh = pad2(Number(segs[0]) || 0);
+  const mm = pad2(Number(segs[1]) || 0);
+  return `${datePart}T${hh}:${mm}:00`;
+}
+
+export function formatDisplayDateTime(raw, separateTime) {
+  const { date, time } = splitApiDateTimeParts(raw, separateTime);
   if (!date) return "";
-
-  const parsedDate = toValidDate(`${date}T${time || "00:00"}`);
-  if (!parsedDate) return date;
-
-  return parsedDate.toLocaleString("en-GB", {
+  const effectiveTime = time || "00:00";
+  const [year, month, day] = date.split("-").map(Number);
+  const [hours, minutes] = effectiveTime.split(":").map(Number);
+  const d = new Date(year, month - 1, day, hours || 0, minutes || 0);
+  if (Number.isNaN(d.getTime())) return String(raw);
+  return d.toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
     day: "2-digit",
-    ...(time
-      ? {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }
-      : {}),
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   });
-};
+}

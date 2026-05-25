@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { notify } from "../../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 import userService from "../../../../../../services/userService";
-import { mergeOptionIfMissing } from "../../../../../../helpers/callFileFormOptions";
 import { isGROSupervisorRole } from "../../../../../../helpers/groUserRoles";
 import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../CardFormTabs/tabs/operation/operationConstants";
 import groService from "../../../../../../services/groService";
@@ -19,6 +18,7 @@ import {
   parseGroDocumentsResponse,
   groApiErrorMessage,
   resolveGroCallId,
+  resolveGroPortId,
   splitInwardDateTimeString,
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
@@ -85,6 +85,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const bulkPassFileInputRef = useRef(null);
 
   const callId = resolveGroCallId(card);
+  const groPortId = useMemo(() => resolveGroPortId(callDetail, card), [callDetail, card]);
 
   const callTypeSummary = firstNonEmptyGroDisplay(
     callDetail?.call_type,
@@ -114,10 +115,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     assignedUserId || resolveGroAssignedUserIdFromDetail(callDetail),
     groUserOptions
   );
-  const assignedUserSelectOptions = useMemo(
-    () => mergeOptionIfMissing(groUserOptions, assignedUserId),
-    [groUserOptions, assignedUserId]
-  );
+  const assignedUserSelectOptions = groUserOptions;
 
   const resetInwardClearanceFields = () => {
     setInwardFile(null);
@@ -147,10 +145,16 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
       setGroUsersLoading(false);
       return undefined;
     }
+    const portId = Number(groPortId);
+    if (!Number.isFinite(portId) || portId <= 0) {
+      setGroUserOptions([]);
+      setGroUsersLoading(false);
+      return undefined;
+    }
     let cancelled = false;
     setGroUsersLoading(true);
     userService
-      .getUsersByRole({ role_id: PRE_ARRIVAL_GRO_ROLE_ID })
+      .getUsersByRole({ role_id: PRE_ARRIVAL_GRO_ROLE_ID, port_id: portId })
       .then((res) => {
         if (!cancelled) setGroUserOptions(parseGroUsersByRoleResponse(res));
       })
@@ -163,7 +167,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     return () => {
       cancelled = true;
     };
-  }, [showAssignedUserSelect]);
+  }, [showAssignedUserSelect, groPortId]);
 
   useImperativeHandle(
     ref,

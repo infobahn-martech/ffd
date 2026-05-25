@@ -2388,22 +2388,27 @@ $send-report-optional: #80868b;
   }
 
   .compact-file-upload-label {
-    flex: 1 1 200px;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 3px;
     min-width: 0;
+    width: 100%;
   }
 
   .compact-file-upload-label-top {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
+    width: 100%;
     min-width: 0;
   }
 
   .compact-file-upload-title {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 13px;
     font-weight: 600;
     color: #1f2937;
@@ -2434,6 +2439,7 @@ $send-report-optional: #80868b;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    margin-left: auto;
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 10px;
@@ -8946,20 +8952,38 @@ body .material-management-modal {
     }
   }
 
-  /* File upload zone */
+  /* File upload zone — compact height to match field widths */
   .document-upload-zone {
+    height: auto !important;
+    min-height: 56px !important;
+    max-width: 100% !important;
+    padding: 8px 16px !important;
     border-color: #e2e6ff !important;
 
     &:hover {
       border-color: #e2e6ff !important;
       background: rgba(226, 230, 255, 0.1) !important;
+      transform: none !important;
+      box-shadow: none !important;
     }
 
     &.dragging {
       border-color: #e2e6ff !important;
       background: rgba(226, 230, 255, 0.15) !important;
       box-shadow: 0 0 0 4px rgba(226, 230, 255, 0.3) !important;
+      transform: none !important;
     }
+  }
+
+  .upload-zone-content {
+    min-height: 0 !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .upload-icon-wrapper {
+    display: none !important;
   }
 
   /* File upload buttons */
@@ -9014,6 +9038,13 @@ body .material-management-modal {
 
   .upload-link {
     color: #e2e6ff !important;
+  }
+
+  /* Upload text — smaller to match compact zone height */
+  .upload-main-text {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.3 !important;
   }
 
   /* Modal title */

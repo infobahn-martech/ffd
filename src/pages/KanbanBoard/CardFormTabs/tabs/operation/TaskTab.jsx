@@ -103,12 +103,15 @@ TaskStatusBadge.propTypes = {
   status: PropTypes.string.isRequired,
 };
 
-function TaskProgressIndicator({ status }) {
-  const percent = getStatusProgress(status);
+function TaskProgressIndicator({ status, progress }) {
+  const percent =
+    typeof progress === "number" && !Number.isNaN(progress)
+      ? Math.min(100, Math.max(0, Math.round(progress)))
+      : getStatusProgress(status);
   const progressClass =
     percent === 100
       ? "operation-task-progress-fill--completed"
-      : percent === 50
+      : percent > 0
         ? "operation-task-progress-fill--in-progress"
         : "operation-task-progress-fill--pending";
 
@@ -136,6 +139,7 @@ function TaskProgressIndicator({ status }) {
 
 TaskProgressIndicator.propTypes = {
   status: PropTypes.string.isRequired,
+  progress: PropTypes.number,
 };
 
 function OperationTasksPanel({
@@ -143,6 +147,8 @@ function OperationTasksPanel({
   isViewOnly = false,
   embedded = false,
   taskSections = dummyTaskSections,
+  isLoading = false,
+  error = "",
   className = "",
 }) {
   const panelClassName = [
@@ -163,7 +169,20 @@ function OperationTasksPanel({
         </div>
 
         <ul className="operation-task-list" role="list">
-          {taskSections.map((section) => (
+          {isLoading ? (
+            <li className="operation-task-empty">
+              <p>Loading operation tasks...</p>
+            </li>
+          ) : error ? (
+            <li className="operation-task-empty">
+              <p>{error}</p>
+            </li>
+          ) : taskSections.length === 0 ? (
+            <li className="operation-task-empty">
+              <p>No operation tasks available.</p>
+            </li>
+          ) : null}
+          {!isLoading && !error && taskSections.map((section) => (
             <li key={section.id} className="operation-task-section">
               <div className="operation-task-section-head">
                 <h4 className="operation-task-section-title" id={`operation-task-section-${section.id}`}>
@@ -195,7 +214,7 @@ function OperationTasksPanel({
                           {task.documentCount ?? 0}
                         </span>
                       </p>
-                      <TaskProgressIndicator status={task.status} />
+                      <TaskProgressIndicator status={task.status} progress={task.progress} />
                     </div>
                   </li>
                 ))}
@@ -224,10 +243,13 @@ OperationTasksPanel.propTypes = {
           assignedTo: PropTypes.string,
           status: PropTypes.string,
           documentCount: PropTypes.number,
+          progress: PropTypes.number,
         })
       ).isRequired,
     })
   ),
+  isLoading: PropTypes.bool,
+  error: PropTypes.string,
   className: PropTypes.string,
 };
 

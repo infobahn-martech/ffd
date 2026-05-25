@@ -6,6 +6,7 @@ import { buildPreArrivalReportBody } from "../../services/sendReportBodyBuilder"
 import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
   collectPreArrivalProcessAttachments,
+  mergeChecklistItemsIntoDocumentHandling,
 } from "./preArrivalDocumentHandling";
 import preArrivalService from "../../../../../services/preArrivalService";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
@@ -197,96 +198,10 @@ DocumentGroupCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const STATIC_PRE_ARRIVAL_DOCUMENT_ROWS = {
-  gro: [
-    { id: "static-gro-registry", name: "Registry", document_name: "Registry", is_required: false, files: [] },
-    { id: "static-gro-tonnage", name: "Tonnage", document_name: "Tonnage", is_required: false, files: [] },
-    {
-      id: "static-gro-radio",
-      name: "Ship Radio Station License",
-      document_name: "Ship Radio Station License",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-gro-health",
-      name: "Maritime Health Declaration",
-      document_name: "Maritime Health Declaration",
-      is_required: false,
-      files: [],
-    },
-  ],
-  customClearance: [
-    { id: "static-cc-bayan", name: "Bayan Document", document_name: "Bayan Document", is_required: false, files: [] },
-    {
-      id: "static-cc-inspection",
-      name: "Customs Inspection",
-      document_name: "Customs Inspection",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-cc-inward",
-      name: "Inward Clearance",
-      document_name: "Inward Clearance",
-      is_required: false,
-      files: [],
-    },
-  ],
-  mwp: [
-    {
-      id: "static-mwp-permit",
-      name: "Marine Work Permit",
-      document_name: "Marine Work Permit",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-mwp-safety",
-      name: "Safety Checklist",
-      document_name: "Safety Checklist",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-mwp-completion",
-      name: "Work Completion Document",
-      document_name: "Work Completion Document",
-      is_required: false,
-      files: [],
-    },
-  ],
-};
-
-function resolvePreArrivalDocumentRows(apiRows, staticRows) {
-  const rows = Array.isArray(apiRows) ? apiRows : [];
-  const hasApiData = rows.some(
-    (row) =>
-      row?.call_task_document_id != null ||
-      row?.document_id != null ||
-      row?.file_url ||
-      row?.status != null ||
-      (Array.isArray(row?.files) && row.files.length > 0)
-  );
-  return hasApiData ? rows : staticRows;
-}
-
 function PreArrivalDocumentHandlingSection({ formValues }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
   const stageFiles = Array.isArray(dh.stageFiles) ? dh.stageFiles : [];
-
-  const groDocuments = resolvePreArrivalDocumentRows(
-    dh.documents?.gro,
-    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.gro
-  );
-  const customClearanceDocuments = resolvePreArrivalDocumentRows(
-    dh.documents?.customClearance,
-    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.customClearance
-  );
-  const mwpDocuments = resolvePreArrivalDocumentRows(
-    dh.documents?.mwp,
-    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.mwp
-  );
+  const roleGroups = Array.isArray(dh.roleGroups) ? dh.roleGroups : [];
 
   return (
     <div className="document-handling-section">
@@ -313,41 +228,23 @@ function PreArrivalDocumentHandlingSection({ formValues }) {
         <h3 className="document-handling-section__heading">Document handling</h3>
       </div>
 
-      <DocumentGroupCard title="GRO documents">
-        {groDocuments.map((doc) => (
-          <CompactFileUploadRow
-            key={doc.id}
-            label={doc.document_name || doc.name}
-            files={doc.files || []}
-            status={doc.status}
-            remarks={doc.remarks}
-          />
-        ))}
-      </DocumentGroupCard>
-
-      <DocumentGroupCard title="Custom clearance documents">
-        {customClearanceDocuments.map((doc) => (
-          <CompactFileUploadRow
-            key={doc.id}
-            label={doc.document_name || doc.name}
-            files={doc.files || []}
-            status={doc.status}
-            remarks={doc.remarks}
-          />
-        ))}
-      </DocumentGroupCard>
-
-      <DocumentGroupCard title="MWP documents">
-        {mwpDocuments.map((doc) => (
-          <CompactFileUploadRow
-            key={doc.id}
-            label={doc.document_name || doc.name}
-            files={doc.files || []}
-            status={doc.status}
-            remarks={doc.remarks}
-          />
-        ))}
-      </DocumentGroupCard>
+      {roleGroups.map((group) => {
+        const title = String(group?.role_name || "Documents").trim();
+        const cardTitle = /documents?$/i.test(title) ? title : `${title} documents`;
+        return (
+          <DocumentGroupCard key={`role-${group?.role_id ?? title}`} title={cardTitle}>
+            {(group?.items || []).map((doc) => (
+              <CompactFileUploadRow
+                key={`${group?.role_id ?? title}-${doc.id}`}
+                label={doc.document_name || doc.name}
+                files={doc.files || []}
+                status={doc.status}
+                remarks={doc.remarks}
+              />
+            ))}
+          </DocumentGroupCard>
+        );
+      })}
     </div>
   );
 }
@@ -387,6 +284,7 @@ function PreArrival({
   eventFields = [],
   portId,
   callTypeId,
+  vesselTypeId,
 }) {
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
   const [isSendingReport, setIsSendingReport] = useState(false);
@@ -416,6 +314,7 @@ function PreArrival({
   const coordinatesFetchGenRef = useRef(0);
   const pendingCoordinateIdRef = useRef(null);
   const preArrivalDocumentsDetailRef = useRef({ taskDocuments: [], stageDocuments: [] });
+  const checklistFetchKeyRef = useRef("");
 
   const callId = useMemo(
     () => String(card?.call_id ?? card?.callId ?? formValues?.call_id ?? formValues?.callId ?? card?.id ?? "").trim(),
@@ -475,6 +374,7 @@ function PreArrival({
   useEffect(() => {
     pendingCoordinateIdRef.current = null;
     preArrivalDocumentsDetailRef.current = { taskDocuments: [], stageDocuments: [] };
+    checklistFetchKeyRef.current = "";
     emailPreviewFromDetailRef.current = false;
     setPreArrivalDetailAssigneeHints({ gro: null, customClearance: null });
     setPreArrivalDetailDocSkip({
@@ -485,11 +385,68 @@ function PreArrival({
     });
   }, [callId]);
 
+  const checklistRequestIds = useMemo(() => {
+    const resolvedPortId = Number(
+      resolveFormId(portId, formValues?.port_id, formValues?.portId, card?.port_id, card?.portId)
+    );
+    const resolvedCallTypeId = Number(
+      resolveFormId(
+        callTypeId,
+        formValues?.call_type_id,
+        formValues?.typeOfCall,
+        formValues?.callTypeId,
+        card?.call_type_id,
+        card?.typeOfCall
+      )
+    );
+    const resolvedVesselTypeId = Number(
+      resolveFormId(
+        vesselTypeId,
+        formValues?.vesselType,
+        formValues?.vessel_type_id,
+        card?.vessel_type_id
+      )
+    );
+    if (
+      !Number.isFinite(resolvedPortId) ||
+      resolvedPortId <= 0 ||
+      !Number.isFinite(resolvedCallTypeId) ||
+      resolvedCallTypeId <= 0 ||
+      !Number.isFinite(resolvedVesselTypeId) ||
+      resolvedVesselTypeId <= 0
+    ) {
+      return null;
+    }
+    return {
+      port_id: resolvedPortId,
+      call_type_id: resolvedCallTypeId,
+      vessel_type_id: resolvedVesselTypeId,
+      key: `${resolvedPortId}|${resolvedCallTypeId}|${resolvedVesselTypeId}`,
+    };
+  }, [
+    portId,
+    callTypeId,
+    vesselTypeId,
+    formValues?.port_id,
+    formValues?.portId,
+    formValues?.call_type_id,
+    formValues?.typeOfCall,
+    formValues?.callTypeId,
+    formValues?.vesselType,
+    formValues?.vessel_type_id,
+    card?.port_id,
+    card?.portId,
+    card?.call_type_id,
+    card?.typeOfCall,
+    card?.vessel_type_id,
+  ]);
+
   const documentHandlingRowsKey = useMemo(() => {
     const dh = formValues.preArrivalDocumentHandling;
-    const groIds = (dh?.documents?.gro || []).map((r) => r.id).join(",");
-    const ccIds = (dh?.documents?.customClearance || []).map((r) => r.id).join(",");
-    return `${formValues.assignedGro || ""}|${formValues.assignedCustom || ""}|${groIds}|${ccIds}`;
+    const roleGroupKey = (dh?.roleGroups || [])
+      .map((g) => `${g.role_id}:${(g.items || []).map((r) => r.id).join(",")}`)
+      .join("|");
+    return `${formValues.assignedGro || ""}|${formValues.assignedCustom || ""}|${roleGroupKey}`;
   }, [
     formValues.preArrivalDocumentHandling,
     formValues.assignedGro,
@@ -510,6 +467,53 @@ function PreArrival({
       handleChange("preArrivalDocumentHandling")({ target: { value: nextDh } });
     }
   }, [handleChange]);
+
+  useEffect(() => {
+    if (isViewOnly || !checklistRequestIds) return;
+
+    const requestKey = checklistRequestIds.key;
+    if (checklistFetchKeyRef.current === requestKey) return;
+
+    const ac = new AbortController();
+    let cancelled = false;
+
+    const loadChecklistDocuments = async () => {
+      try {
+        const res = await preArrivalService.getChecklistItemsByRole({
+          port_id: checklistRequestIds.port_id,
+          call_type_id: checklistRequestIds.call_type_id,
+          vessel_type_id: checklistRequestIds.vessel_type_id,
+        });
+        if (ac.signal.aborted || cancelled) return;
+
+        const body = res?.data ?? res;
+        const status = body?.status;
+        if (typeof status === "string" && status.toLowerCase() === "error") return;
+
+        const apiRoleGroups = body?.data ?? [];
+        const dhCurrent = formValuesRef.current?.preArrivalDocumentHandling;
+        const nextDh = mergeChecklistItemsIntoDocumentHandling(dhCurrent, apiRoleGroups);
+        if (JSON.stringify(nextDh) === JSON.stringify(dhCurrent)) {
+          checklistFetchKeyRef.current = requestKey;
+          return;
+        }
+
+        handleChange("preArrivalDocumentHandling")({ target: { value: nextDh } });
+        checklistFetchKeyRef.current = requestKey;
+      } catch (error) {
+        if (!ac.signal.aborted && !cancelled) {
+          console.error("[Operation] pre_arrival/get_checklist_items_by_role failed", error);
+        }
+      }
+    };
+
+    loadChecklistDocuments();
+
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [checklistRequestIds, isViewOnly, handleChange]);
 
   const fetchPreArrivalDetail = useCallback(
     async (abortSignal) => {
@@ -1182,6 +1186,7 @@ PreArrival.propTypes = {
   eventFields: PropTypes.array,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  vesselTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default PreArrival;

@@ -36,6 +36,15 @@ export function getApiCardDisplayTitle(card) {
   return "";
 }
 
+/** Task label for API cards when backend sends task_name. */
+export function getApiCardTaskName(card) {
+  if (!card || typeof card !== "object") return "";
+  if (hasText(card.taskName)) return String(card.taskName).trim();
+  if (hasText(card.task_name)) return String(card.task_name).trim();
+  if (hasText(card.raw?.task_name)) return String(card.raw.task_name).trim();
+  return "";
+}
+
 /** First letter of username for avatar (uppercase). */
 export function getUsernameInitial(username) {
   if (!hasText(username)) return "";

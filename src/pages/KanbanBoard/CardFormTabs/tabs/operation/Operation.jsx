@@ -179,6 +179,22 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
       card?.typeOfCall,
     ]
   );
+  const preArrivalVesselTypeId = useMemo(
+    () =>
+      callDetailData?.vessel_type_id ??
+      callDetailData?.vesselTypeId ??
+      callDetailData?.vessel?.vessel_type_id ??
+      formValues?.vesselType ??
+      formValues?.vessel_type_id ??
+      card?.vessel_type_id ??
+      "",
+    [
+      callDetailData,
+      formValues?.vesselType,
+      formValues?.vessel_type_id,
+      card?.vessel_type_id,
+    ]
+  );
 
   useEffect(() => {
     if (isAddMode || !currentCallId) {
@@ -412,6 +428,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               eventFields={preArrivalEventFields}
               portId={preArrivalPortId}
               callTypeId={preArrivalCallTypeId}
+              vesselTypeId={preArrivalVesselTypeId}
             />
           )}
           {activeOperationTab === OPERATION_TABS.ARRIVAL && (

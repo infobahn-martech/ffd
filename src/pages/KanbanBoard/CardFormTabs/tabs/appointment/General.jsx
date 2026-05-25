@@ -15,7 +15,9 @@ import vesselTypeService from "../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../services/bargeTypeService";
 import vesselService from "../../../../../services/vesselService";
 import kpiTasksService from "../../../../../services/kpiTasksService";
+import useCallTaskReducer from "../../../../../store/CallTaskReducer";
 import OperationTasksPanel from "../operation/TaskTab";
+import { mapCallTasksToSections } from "../operation/operationTasksMapper";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import {
@@ -1289,7 +1291,6 @@ const htmlToPlainText = (html = "") =>
     .replace(/&nbsp;/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
-
 const firstNonEmptyString = (...values) => {
   for (const value of values) {
     if (value === undefined || value === null) continue;
@@ -1461,7 +1462,7 @@ const EmailPreviewPanel = ({
   const fromValue = touchedFields?.from_email
     ? (editableFields?.from_email ?? "")
     : resolveEditablePreviewFieldValue(false, editableFields?.from_email, previewFromApi.from, fallbackFromValue) ||
-      "operations@shipping.com";
+    "operations@shipping.com";
   const fallbackToValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
   const toValue = resolveEditablePreviewFieldValue(
     touchedFields?.to_email,
@@ -1490,7 +1491,7 @@ const EmailPreviewPanel = ({
   const subjectValue = touchedFields?.subject
     ? (editableFields?.subject ?? "")
     : resolveEditablePreviewFieldValue(false, editableFields?.subject, previewFromApi.subject, subjectFallback) ||
-      "Appointment Update";
+    "Appointment Update";
   return (
     <div className="general-add-preview-panel general-add-preview-panel--split-scroll">
       <div className="email-preview-topbar">
@@ -1760,6 +1761,11 @@ function General({
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
   const [operatorKpiError, setOperatorKpiError] = useState("");
+  const callTasks = useCallTaskReducer((state) => state.callTasks);
+  const isLoadingCallTasks = useCallTaskReducer((state) => state.isLoadingTasks);
+  const callTasksError = useCallTaskReducer((state) => state.tasksErrorMessage);
+  const getTasksByCall = useCallTaskReducer((state) => state.getTasksByCall);
+  const clearCallTasks = useCallTaskReducer((state) => state.clearCallTasks);
 
   const currentCallId = useMemo(
     () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
@@ -1898,6 +1904,20 @@ function General({
       delayText: row?.delay_text ? String(row.delay_text) : "",
     }));
   }, [operatorKpiTasks]);
+
+  const mappedOperationTaskSections = useMemo(
+    () => mapCallTasksToSections(callTasks),
+    [callTasks]
+  );
+
+  useEffect(() => {
+    if (isAddMode) {
+      clearCallTasks();
+      return;
+    }
+
+    void getTasksByCall({ callId: currentCallId });
+  }, [isAddMode, currentCallId, getTasksByCall, clearCallTasks]);
 
   useEffect(() => {
     if (isAddMode) {
@@ -2275,6 +2295,26 @@ function General({
     const formPayload = {
       ...formValues,
       swimlane_id: swimlaneId,
+      card_type_id:
+        formValues?.card_type_id ?? card?.card_type_id ?? card?.cardTypeId ?? card?.raw?.card_type_id,
+      card_tag_id:
+        formValues?.card_tag_id ??
+        formValues?.tag_id ??
+        card?.card_tag_id ??
+        card?.tag_id ??
+        card?.raw?.card_tag_id,
+      card_blocker_id:
+        formValues?.card_blocker_id ??
+        formValues?.blocker_id ??
+        card?.card_blocker_id ??
+        card?.blocker_id ??
+        card?.raw?.card_blocker_id,
+      card_sticker_id:
+        formValues?.card_sticker_id ??
+        formValues?.sticker_id ??
+        card?.card_sticker_id ??
+        card?.sticker_id ??
+        card?.raw?.card_sticker_id,
       entity_fields: entityFieldsPayload,
       time_objects: (Array.isArray(stageTimeObjects) ? stageTimeObjects : [])
         .map((item) => {
@@ -4884,6 +4924,9 @@ ${body}
                             cardColor={accentColor}
                             isViewOnly={isViewMode}
                             embedded
+                            taskSections={mappedOperationTaskSections}
+                            isLoading={isLoadingCallTasks}
+                            error={callTasksError}
                           />
                         </div>
                       </div>

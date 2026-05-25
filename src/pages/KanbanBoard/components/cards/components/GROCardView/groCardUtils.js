@@ -47,6 +47,32 @@ export const resolveGroCallId = (card) => {
   return raw;
 };
 
+/** Numeric port id for `users/get_users_by_role` (from call detail or kanban card). */
+export const resolveGroPortId = (detail, card) => {
+  const portObj = detail?.port && typeof detail.port === "object" ? detail.port : null;
+  const cardPort = card?.port;
+  const cardPortAsId =
+    typeof cardPort === "number" ||
+    (typeof cardPort === "string" && /^\d+$/.test(String(cardPort).trim()))
+      ? cardPort
+      : null;
+  const candidates = [
+    detail?.port_id,
+    detail?.portId,
+    portObj?.port_id,
+    portObj?.id,
+    card?.port_id,
+    card?.portId,
+    cardPortAsId,
+  ];
+  for (const value of candidates) {
+    if (value === undefined || value === null) continue;
+    const normalized = String(value).trim();
+    if (normalized) return normalized;
+  }
+  return null;
+};
+
 export const buildGroFallbackDocuments = () =>
   GRO_DOCUMENT_TYPES.map((document_name) => ({
     document_name,
@@ -218,11 +244,20 @@ export const parseGroUsersByRoleResponse = (res) => {
 };
 
 export const resolveGroRequestedOperatorDisplay = (detail) => {
-  const asString =
+  const requestedStr =
     typeof detail?.requested_operator === "string" ? detail.requested_operator.trim() : "";
+  const assignedOperatorLabel =
+    typeof detail?.assigned_operator === "string" && !/^\d+$/.test(String(detail.assigned_operator).trim())
+      ? String(detail.assigned_operator).trim()
+      : "";
   return firstNonEmptyGroDisplay(
-    asString || null,
+    assignedOperatorLabel || null,
+    detail?.assigned_operator_name,
+    requestedStr || null,
     detail?.requested_operator_name,
+    detail?.assigned_operator_id != null && detail.assigned_operator_id !== ""
+      ? String(detail.assigned_operator_id)
+      : "",
     detail?.requested_operator_id != null && detail.requested_operator_id !== ""
       ? String(detail.requested_operator_id)
       : ""
@@ -230,11 +265,7 @@ export const resolveGroRequestedOperatorDisplay = (detail) => {
 };
 
 export const resolveGroAssignedUserIdFromDetail = (detail) => {
-  const raw =
-    detail?.assigned_user_id ??
-    detail?.assigned_user ??
-    detail?.assigned_operator_id ??
-    detail?.assigned_operator;
+  const raw = detail?.assigned_user_id ?? detail?.assigned_user;
   if (raw == null || String(raw).trim() === "") return "";
   return String(raw).trim();
 };

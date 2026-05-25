@@ -45,6 +45,9 @@ export default function KanbanBoardPage() {
     refetchBoard,
     patchCardColor,
     patchCardType,
+    patchCardBlocker,
+    patchCardSticker,
+    patchCardTag,
     boardLoading,
     boardLoadError,
     selectedCard,
@@ -285,6 +288,9 @@ export default function KanbanBoardPage() {
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
           patchCardColor={patchCardColor}
           patchCardType={patchCardType}
+          patchCardBlocker={patchCardBlocker}
+          patchCardSticker={patchCardSticker}
+          patchCardTag={patchCardTag}
         />
       )}
 

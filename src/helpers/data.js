@@ -176,7 +176,7 @@ export function mapBoardWorkflowFromApi(workflow) {
               ? normalizeHexColor(String(card.card_color).trim(), stageColor)
               : null;
 
-          // FE display: vesselName / cardName / title, user (avatar), timeLeft, progress — see CardItem ApiKanbanCardFull.
+          // FE display: vesselName / taskName / cardName / title, user (avatar), timeLeft, progress — see CardItem ApiKanbanCardFull.
           cards[cardId] = {
             id: cardId,
             laneId: laneKey,
@@ -188,6 +188,14 @@ export function mapBoardWorkflowFromApi(workflow) {
             name: card.billing_entity || "",
             user: card.username || "",
             vesselName: card.vessel_name || "",
+            taskName:
+              card.task_name != null && String(card.task_name).trim() !== ""
+                ? String(card.task_name).trim()
+                : "",
+            taskId:
+              card.task_id != null && String(card.task_id).trim() !== ""
+                ? String(card.task_id).trim()
+                : "",
             port: card.port_id != null && String(card.port_id).trim() !== "" ? String(card.port_id) : "",
             callId: String(card.call_id || ""),
             vesselId: String(card.vessel_id || ""),
@@ -205,6 +213,20 @@ export function mapBoardWorkflowFromApi(workflow) {
             card_type_id:
               card.card_type_id != null && String(card.card_type_id).trim() !== ""
                 ? String(card.card_type_id)
+                : null,
+            card_tag_id:
+              card.card_tag_id != null && String(card.card_tag_id).trim() !== ""
+                ? String(card.card_tag_id)
+                : card.tag_id != null && String(card.tag_id).trim() !== ""
+                  ? String(card.tag_id)
+                  : null,
+            card_blocker_id:
+              card.card_blocker_id != null && String(card.card_blocker_id).trim() !== ""
+                ? String(card.card_blocker_id)
+                : null,
+            card_sticker_id:
+              card.card_sticker_id != null && String(card.card_sticker_id).trim() !== ""
+                ? String(card.card_sticker_id)
                 : null,
             raw: card,
             cardSource: "api",
