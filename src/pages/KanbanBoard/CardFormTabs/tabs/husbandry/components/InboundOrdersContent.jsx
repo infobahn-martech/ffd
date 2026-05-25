@@ -1160,6 +1160,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev,
         documents: updatedAttachments,
       }));
+      if (convertFormErrors.file) setConvertFormErrors((prev) => { const n = { ...prev }; delete n.file; return n; });
     }
   };
 
@@ -1178,6 +1179,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev,
         documents: updatedAttachments,
       }));
+      if (convertFormErrors.file) setConvertFormErrors((prev) => { const n = { ...prev }; delete n.file; return n; });
     }
     if (documentsFileInputRef.current) {
       documentsFileInputRef.current.value = "";
@@ -1203,6 +1205,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     else if (!toPositiveId(convertFormData.warehouse)) errors.warehouse = "Valid warehouse is required";
     if (!convertFormData.receivedFrom) errors.receivedFrom = "Received From is required";
     if (!convertFormData.location) errors.location = "Location is required";
+    if (!convertFormData.documents || convertFormData.documents.length === 0) errors.file = "File upload is required";
 
     convertFormData.orders.forEach((order, idx) => {
       let hasOrderError = false;
@@ -2287,7 +2290,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
             {/* Document Upload - Full Width */}
             <div className="mb-lg-3 mb-sm-0" style={{ marginBottom: "24px" }}>
-              <FormField label="Document Upload">
+              <FormField label="Document Upload *">
                 <div style={{ marginTop: "8px" }}>
                   <AttachmentsList
                     attachments={convertFormData.documents || []}
@@ -2302,6 +2305,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     fileInputRef={documentsFileInputRef}
                     onFileInputChange={handleDocumentsFileInputChange}
                   />
+                  {convertFormErrors.file && (
+                    <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px" }}>
+                      {convertFormErrors.file}
+                    </span>
+                  )}
                 </div>
               </FormField>
             </div>
