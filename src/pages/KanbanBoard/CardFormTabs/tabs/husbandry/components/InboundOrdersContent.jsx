@@ -202,6 +202,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     saveInboundOrder,
     updateInboundOrder,
     deleteInboundOrder,
+    convertInboundToLandingNote,
     getAllInbound,
     getInboundById,
     clearInboundDetail,
@@ -212,6 +213,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     isLoadingSave: isSubmitting,
     isBeingUpdated,
     isLoadingDelete,
+    isBeingConverted,
     inboundDetail: viewingOrder,
   } = useInboundOrderReducer((state) => state);
 
@@ -1223,7 +1225,45 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertSubmit = (e) => {
     e.preventDefault();
     if (!validateConvertForm()) return;
-    handleCloseConvertModal();
+
+    const inboundId = convertingOrder?.inbound_id ?? convertingOrder?.id;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+
+    const payload = {
+      inbound_id: inboundId,
+      call_id: callId,
+      warehouse_id: convertFormData.warehouse,
+      landing_date: buildApiDateTime(convertFormData.date, convertFormData.time),
+      landing_time: (convertFormData.time || "").slice(0, 5),
+      received_from: convertFormData.receivedFrom || "",
+      location: convertFormData.location || "",
+      remarks: convertFormData.remarks || "",
+      items: convertFormData.orders.map((order) => ({
+        order_no: order.orderNo || "",
+        po_no: order.poDo || "",
+        quantity: Number(order.quantity) || 0,
+        package_type: order.packageType || "",
+        description: order.description || "",
+        slot_no: order.slotNo || "",
+        reason: order.reason || "",
+        transportation_required: order.transportation ? 1 : 0,
+        ...(order.transportation ? {
+          vehicle_type_id: order.typeOfVehicle || "",
+          from_location_id: order.fromLocation || "",
+          pickup_location: order.pickUpFrom || "",
+          to_location_id: order.toLocation || "",
+          driver_id: order.driverName || "",
+        } : {}),
+      })),
+    };
+
+    convertInboundToLandingNote({
+      data: payload,
+      cb: () => {
+        handleCloseConvertModal();
+        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+      },
+    });
   };
 
 
@@ -2226,18 +2266,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="convertToLandingForm"
+        disabled={isBeingConverted}
         style={{
           padding: "10px 20px",
           backgroundColor: "#00368c",
           color: "white",
           border: "none",
           borderRadius: "6px",
-          cursor: "pointer",
+          cursor: isBeingConverted ? "not-allowed" : "pointer",
           fontSize: "14px",
           fontWeight: "500",
+          opacity: isBeingConverted ? 0.7 : 1,
         }}
       >
-        Convert
+        {isBeingConverted ? "Converting..." : "Convert"}
       </button>
     </div>
   );
