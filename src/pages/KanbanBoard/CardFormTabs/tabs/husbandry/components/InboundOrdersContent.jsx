@@ -1313,7 +1313,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("call_id", callId);
     fd.append("warehouse_id", toPositiveId(convertFormData.warehouse));
     fd.append("landing_date", convertFormData.date || "");
-    fd.append("landing_time", (convertFormData.time || "").slice(0, 5));
     fd.append("received_from", convertFormData.receivedFrom || "");
     fd.append("location", convertFormData.location || "");
     fd.append("signature", convertFormData.signature || "");
