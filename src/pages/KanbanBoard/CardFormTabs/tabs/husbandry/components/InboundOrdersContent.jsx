@@ -40,6 +40,13 @@ const mergeOptionForValue = (options, value) => {
   return [...options, { value: s, label: s }];
 };
 
+const normalizeWholeQuantity = (value) => {
+  if (value == null || value === "") return "";
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return "";
+  return String(Math.trunc(numericValue));
+};
+
 // Generate dummy inbound orders data
 const generateDummyInboundOrders = () => {
   const packageTypes = ["Box", "Pallet", "Crate", "Bag", "Container"];
@@ -288,7 +295,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           id: item.inbound_item_id || idx + 1,
           orderNo: item.order_no || "",
           poDo: item.po_no || "",
-          quantity: item.quantity || "",
+          quantity: normalizeWholeQuantity(item.quantity),
           packageType: String(item.package_type_id || ""),
           description: item.description || "",
           transportation: Number(item.transportation_required) === 1 || !!(item.transportation?.vehicle_type_id || item.transportation?.driver_id),
@@ -434,20 +441,25 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const validateForm = () => {
     const errors = {};
+    const newExpanded = { ...expandedOrders };
     if (!formData.date) errors.date = "Date is required";
     else if (!formData.time) errors.date = "Time is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
     formData.orders.forEach((order, idx) => {
-      if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
-      if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
-      if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
+      let hasOrderError = false;
+      if (!order.poDo) { errors[`o${idx}_poDo`] = "PO/DO is required"; hasOrderError = true; }
+      if (!order.quantity) { errors[`o${idx}_quantity`] = "Quantity is required"; hasOrderError = true; }
+      else if (!/^[1-9]\d*$/.test(String(order.quantity))) { errors[`o${idx}_quantity`] = "Quantity must be a whole number"; hasOrderError = true; }
+      if (!order.packageType) { errors[`o${idx}_packageType`] = "Package Type is required"; hasOrderError = true; }
       if (order.transportation) {
-        if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
-        if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
-        if (!order.toLocation) errors[`o${idx}_toLocation`] = "To location is required";
-        if (!order.driverName) errors[`o${idx}_driverName`] = "Driver is required";
+        if (!order.typeOfVehicle) { errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required"; hasOrderError = true; }
+        if (!order.fromLocation) { errors[`o${idx}_fromLocation`] = "From location is required"; hasOrderError = true; }
+        if (!order.toLocation) { errors[`o${idx}_toLocation`] = "To location is required"; hasOrderError = true; }
+        if (!order.driverName) { errors[`o${idx}_driverName`] = "Driver is required"; hasOrderError = true; }
       }
+      if (hasOrderError) newExpanded[order.id] = true;
     });
+    setExpandedOrders(newExpanded);
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -783,7 +795,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </div>
             <div class="print-row">
               <div class="print-label">Quantity:</div>
-              <div class="print-value">${order.quantity || "-"}</div>
+              <div class="print-value">${normalizeWholeQuantity(order.quantity) || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Package Type:</div>
@@ -864,7 +876,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           id: item.inbound_item_id || idx + 1,
           orderNo: item.order_no || "",
           poDo: item.po_no || "",
-          quantity: item.quantity || "",
+          quantity: normalizeWholeQuantity(item.quantity),
           packageType: String(item.package_type_id || ""),
           description: item.description || "",
           transportation: Number(item.transportation_required) === 1 || !!(item.transportation?.vehicle_type_id || item.transportation?.driver_id),
@@ -881,7 +893,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           id: 1,
           orderNo: order.orderNo || "",
           poDo: order.poDo || "",
-          quantity: order.quantity || "",
+          quantity: normalizeWholeQuantity(order.quantity),
           packageType: String(order.packageType || ""),
           description: order.description || "",
           transportation: order.transportation || false,
@@ -1104,6 +1116,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       }
       if (!order.quantity) {
         errors[`co${idx}_quantity`] = "Quantity is required";
+        hasOrderError = true;
+      } else if (!/^[1-9]\d*$/.test(String(order.quantity))) {
+        errors[`co${idx}_quantity`] = "Quantity must be a whole number";
         hasOrderError = true;
       }
       if (!order.packageType) {
@@ -1422,11 +1437,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="col-lg-4 col-md-6">
                         <FormField label="Quantity *">
                           <FormInput
-                            type="number"
+                            type="text"
                             value={order.quantity}
                             onChange={(e) => {
-                              handleOrderChange(order.id, "quantity", e.target.value);
-                              if (formErrors[`o${index}_quantity`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_quantity`]; return e; });
+                              const value = e.target.value;
+                              if (value === "" || /^[1-9]\d*$/.test(value)) {
+                                handleOrderChange(order.id, "quantity", value);
+                                if (formErrors[`o${index}_quantity`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_quantity`]; return e; });
+                              }
                             }}
                             placeholder="Enter quantity..."
                           />
@@ -1901,9 +1919,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="col-lg-4 col-md-6">
                         <FormField label="Quantity *">
                           <FormInput
-                            type="number"
+                            type="text"
                             value={order.quantity}
-                            onChange={(e) => { handleConvertOrderChange(order.id, "quantity", e.target.value); if (convertFormErrors[`co${index}_quantity`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_quantity`]; return n; }); }}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "" || /^[1-9]\d*$/.test(value)) {
+                                handleConvertOrderChange(order.id, "quantity", value);
+                                if (convertFormErrors[`co${index}_quantity`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_quantity`]; return n; });
+                              }
+                            }}
                             placeholder="Enter quantity..."
                             className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""}
                           />
@@ -2211,7 +2235,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                     <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
                       <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Quantity</div>
-                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.quantity ?? "-"}</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{normalizeWholeQuantity(item.quantity) || "-"}</div>
                     </div>
                     <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
                       <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Package Type</div>
@@ -2341,7 +2365,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">{firstItem?.po_no || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{firstItem?.quantity ?? ""}</div>
+                    <div className="material-table-cell">{normalizeWholeQuantity(firstItem?.quantity)}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
