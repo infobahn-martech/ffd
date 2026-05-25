@@ -288,14 +288,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const noteItems = landingNoteDetail?.items || editingNote?.items || [];
     const items = noteItems.map((item) => {
+      const slotNoId = item.slot_no_id != null && item.slot_no_id !== "" ? Number(item.slot_no_id) : null;
+      const reasonId = item.reason_id != null && item.reason_id !== "" ? Number(item.reason_id) : null;
       const entry = {
         quantity: Number(item.quantity) || 0,
-        slot_no_id: Number(item.slot_no_id) || 0,
-        reason_id: Number(item.reason_id) || 0,
-        dispatch_date: item.dispatch_date || "",
+        slot_no_id: slotNoId,
+        reason_id: reasonId,
+        dispatch_date: item.dispatch_date || null,
         transportation_required: Number(item.transportation_required) || 0,
       };
-      if (item.landing_note_item_id) entry.landing_note_item_id = item.landing_note_item_id;
+      if (item.inbound_item_id) entry.inbound_item_id = Number(item.inbound_item_id);
       if (Number(item.transportation_required) === 1 && item.transportation) {
         entry.transportation = {
           vehicle_type_id: item.transportation.vehicle_type_id || null,
