@@ -5,6 +5,7 @@ import landingNoteService from '../services/landingNoteService';
 const useLandingNoteReducer = create((set) => ({
     isLoadingList: false,
     isLoadingView: false,
+    isBeingAdded: false,
     isBeingUpdated: false,
     isLoadingDelete: false,
     landingNotes: [],
@@ -36,6 +37,21 @@ const useLandingNoteReducer = create((set) => ({
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isLoadingView: false, landingNoteDetail: null });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+
+    addLandingNote: async ({ data, cb }) => {
+        try {
+            set({ isBeingAdded: true });
+            const { data: resData } = await landingNoteService.addLandingNote(data);
+            set({ isBeingAdded: false });
+            const { success } = useAlertReducer.getState();
+            success(resData?.message ?? 'Landing note added successfully');
+            cb?.();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({ isBeingAdded: false });
             error(err?.response?.data?.message ?? err.message);
         }
     },

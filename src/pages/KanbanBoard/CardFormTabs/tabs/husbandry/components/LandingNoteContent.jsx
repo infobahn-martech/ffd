@@ -141,9 +141,11 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     getAllLandingNotes,
+    addLandingNote,
     landingNotes,
     landingNoteTotal,
     isLoadingList,
+    isBeingAdded,
   } = useLandingNoteReducer((state) => state);
 
   const [showModal, setShowModal] = useState(false);
@@ -265,10 +267,26 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    const landingDateTime = buildApiDateTime(formData.date, formData.time);
 
-    // Update and delete API wiring handled in T11/T12
-    handleCloseModal();
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    const landingDateTime = buildApiDateTime(formData.date, formData.time);
+    const payload = {
+      call_id: callId,
+      landing_date: landingDateTime,
+      landing_time: (formData.time || "").slice(0, 5),
+      po_do: formData.poDo,
+      quantity: Number(formData.quantity),
+      package_type: formData.packageType,
+      description: formData.description || "",
+    };
+
+    addLandingNote({
+      data: payload,
+      cb: () => {
+        handleCloseModal();
+        getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+      },
+    });
   };
 
   // File upload handlers
@@ -976,8 +994,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         form="landingNoteForm"
         className="btn btn-primary"
         style={{ backgroundColor: "#00368c" }}
+        disabled={isBeingAdded}
       >
-        {editingNote ? "Update Note" : "Add Note"}
+        {isBeingAdded ? "Adding..." : editingNote ? "Update Note" : "Add Note"}
       </button>
     </div>
   );
