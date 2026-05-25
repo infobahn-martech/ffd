@@ -14,42 +14,11 @@ import {
   formatDisplayDateTime,
   splitApiDateTimeParts,
 } from "../../../../../../helpers/dateTimeFieldUtils";
+import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 
-// Generate dummy landing note data
-const generateDummyLandingNotes = () => {
-  const packageTypes = ["Box", "Pallet", "Crate", "Bag", "Container"];
-  const descriptions = [
-    "Spare parts for vessel maintenance",
-    "Safety equipment and supplies",
-    "Food and beverage items",
-    "Technical equipment",
-    "Cleaning supplies",
-    "Medical supplies",
-    "Office supplies",
-    "Tools and hardware"
-  ];
-
-  const dummyNotes = [];
-  for (let i = 1; i <= 10; i++) {
-    const noteDate = new Date();
-    noteDate.setDate(noteDate.getDate() - Math.floor(Math.random() * 30));
-
-    dummyNotes.push({
-      id: i,
-      landingNoteNo: `LN-${String(i).padStart(5, '0')}`,
-      date: noteDate.toISOString().split('T')[0],
-      poDo: `PO-${String(i).padStart(4, '0')}`,
-      landingProof: [],
-      quantity: Math.floor(Math.random() * 100) + 1,
-      packageType: packageTypes[Math.floor(Math.random() * packageTypes.length)],
-      description: descriptions[Math.floor(Math.random() * descriptions.length)],
-    });
-  }
-  return dummyNotes;
-};
 
 // AttachmentsList Component (from Operation.jsx)
 const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
@@ -170,10 +139,16 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 };
 
 const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
+  const {
+    getAllLandingNotes,
+    landingNotes,
+    landingNoteTotal,
+    isLoadingList,
+  } = useLandingNoteReducer((state) => state);
+
   const [showModal, setShowModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [notesList, setNotesList] = useState([]);
   const [editingNote, setEditingNote] = useState(null);
   const [convertingNote, setConvertingNote] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
@@ -202,25 +177,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     description: "",
   });
 
-  // Initialize with dummy data on mount if empty
   useEffect(() => {
-    const notes = formValues.landingNoteList || [];
-    if (notes.length === 0) {
-      const dummyData = generateDummyLandingNotes();
-      const syntheticEvent = { target: { value: dummyData } };
-      handleChange("landingNoteList")(syntheticEvent);
-      setNotesList(dummyData);
-    } else {
-      setNotesList(notes);
-    }
-  }, [formValues.landingNoteList, handleChange]);
-
-  // Update local list when formValues change
-  useEffect(() => {
-    if (formValues.landingNoteList) {
-      setNotesList(formValues.landingNoteList);
-    }
-  }, [formValues.landingNoteList]);
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!callId) return;
+    getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, landingPage]);
 
   const handleOpenModal = (note = null) => {
     setFormErrors({});
@@ -305,50 +266,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!validateForm()) return;
     const landingDateTime = buildApiDateTime(formData.date, formData.time);
 
-    if (editingNote) {
-      // Update existing note
-      const updatedList = notesList.map(note =>
-        note.id === editingNote.id
-          ? {
-            ...note,
-            landingNoteNo: formData.landingNoteNo || note.landingNoteNo,
-            date: landingDateTime,
-            time: formData.time,
-            poDo: formData.poDo,
-            landingProof: selectedFiles,
-            quantity: formData.quantity,
-            packageType: formData.packageType,
-            description: formData.description,
-          }
-          : note
-      );
-      setNotesList(updatedList);
-
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("landingNoteList")(syntheticEvent);
-    } else {
-      // Create new note
-      const newNote = {
-        id: notesList.length > 0 ? Math.max(...notesList.map(m => m.id)) + 1 : 1,
-        landingNoteNo: formData.landingNoteNo || `LN-${String(notesList.length + 1).padStart(5, '0')}`,
-        date: landingDateTime,
-        time: formData.time,
-        poDo: formData.poDo,
-        landingProof: selectedFiles,
-        quantity: formData.quantity,
-        packageType: formData.packageType,
-        description: formData.description,
-      };
-
-      const updatedList = [...notesList, newNote];
-      setNotesList(updatedList);
-
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("landingNoteList")(syntheticEvent);
-    }
-
+    // Update and delete API wiring handled in T11/T12
     handleCloseModal();
   };
 
@@ -419,15 +337,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Container", label: "Container" },
   ];
 
-  const handleDelete = (noteId) => {
-    if (window.confirm("Are you sure you want to delete this landing note?")) {
-      const updatedList = notesList.filter(note => note.id !== noteId);
-      setNotesList(updatedList);
-
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("landingNoteList")(syntheticEvent);
-    }
+  const handleDelete = (_noteId) => {
+    // Delete API wiring handled in T12
   };
 
   // Form state for Convert to Dispatch modal
@@ -1712,8 +1623,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </tr>
           </thead>
           <tbody>
-            {notesList.length > 0 ? (
-              notesList.slice((landingPage - 1) * LANDING_LIMIT, landingPage * LANDING_LIMIT).map((note) => (
+            {isLoadingList ? (
+              <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>Loading...</td></tr>
+            ) : null}
+            {!isLoadingList && landingNotes.length > 0 ? (
+              landingNotes.map((note) => (
                 <tr key={note.id}>
                   <td>
                     <div className="material-table-cell">{note.landingNoteNo || ""}</div>
@@ -1985,7 +1899,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         </div>
         <MaterialTablePagination
           page={landingPage}
-          total={notesList.length}
+          total={landingNoteTotal}
           limit={LANDING_LIMIT}
           onPageChange={setLandingPage}
         />
