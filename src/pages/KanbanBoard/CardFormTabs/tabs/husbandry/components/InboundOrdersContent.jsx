@@ -17,6 +17,7 @@ import packingTypeService from "../../../../../../services/packingTypeService";
 import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
 import inboundOrderService from "../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../services/vehicleService";
+import driverService from "../../../../../../services/driverService";
 import {
   splitApiDateTimeParts,
   buildApiDateTime,
@@ -288,8 +289,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         const [whRes, pkgRes, vehRes, drvRes] = await Promise.all([
           logisticsWarehouseService.getWarehouseLocations(),
           packingTypeService.getPackingTypes(),
-          vehicleService.getMaterialVehicles(),
-          vehicleService.getMaterialDrivers(),
+          vehicleService.getAllTransportVehicles(),
+          driverService.getAllDrivers(),
         ]);
         if (cancelled) return;
         const whRows = extractListFromApi(whRes?.data);
