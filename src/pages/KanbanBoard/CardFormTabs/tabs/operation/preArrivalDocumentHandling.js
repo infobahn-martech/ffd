@@ -114,6 +114,112 @@ export function mergePreArrivalDocumentHandling(currentHandling, apiPayload) {
   };
 }
 
+function roleNameToProcessKey(roleName) {
+  const normalized = String(roleName || "").trim().toLowerCase();
+  if (/gro/.test(normalized)) return "gro";
+  if (/custom\s*clearance/.test(normalized)) return "customClearance";
+  return null;
+}
+
+function mapChecklistItemRows(items) {
+  return (Array.isArray(items) ? items : []).map((item, index) => {
+    const checklistItemId = item?.checklist_item_id ?? item?.checklistItemId ?? item?.id;
+    const label = String(item?.item_name || item?.itemName || item?.name || "Document").trim();
+    const id =
+      checklistItemId != null && String(checklistItemId).trim() !== ""
+        ? String(checklistItemId)
+        : `checklist-item-${index}`;
+    return {
+      id,
+      checklist_item_id: checklistItemId != null ? Number(checklistItemId) : null,
+      name: label,
+      document_name: label,
+      is_required: Boolean(item?.is_required ?? item?.required),
+      files: [],
+    };
+  });
+}
+
+/**
+ * Maps `pre_arrival/get_checklist_items_by_role` groups into GRO / Custom Clearance document rows.
+ * @param {Array} roleGroups — `data` array from API
+ * @returns {{ gro: object[], customClearance: object[] }}
+ */
+export function mapChecklistItemsByRoleToDocuments(roleGroups) {
+  const out = { gro: [], customClearance: [] };
+  for (const group of Array.isArray(roleGroups) ? roleGroups : []) {
+    const processKey = roleNameToProcessKey(group?.role_name ?? group?.role);
+    if (!processKey) continue;
+    out[processKey] = mapChecklistItemRows(group?.items);
+  }
+  return out;
+}
+
+/**
+ * Applies checklist template rows while preserving uploads/status from existing handling state.
+ */
+export function mergeChecklistItemsIntoDocumentHandling(currentHandling, checklistDocuments) {
+  const base =
+    currentHandling && typeof currentHandling === "object"
+      ? currentHandling
+      : { ...DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING };
+
+  const mergeProcessRows = (processKey, templateRows = []) => {
+    const currentRows = base?.documents?.[processKey] || [];
+    if (!templateRows.length) return currentRows;
+
+    return templateRows.map((templateRow, index) => {
+      const templateId = templateRow?.id != null ? String(templateRow.id) : "";
+      const byId = currentRows.find((row) => String(row?.id) === templateId);
+      const byChecklistId = currentRows.find(
+        (row) =>
+          templateRow?.checklist_item_id != null &&
+          Number(row?.checklist_item_id ?? row?.document_id) === Number(templateRow.checklist_item_id)
+      );
+      const byName = currentRows.find(
+        (row) =>
+          String(row?.document_name || row?.name || "")
+            .trim()
+            .toLowerCase() ===
+          String(templateRow?.document_name || templateRow?.name || "")
+            .trim()
+            .toLowerCase()
+      );
+      const matched = byId || byChecklistId || byName;
+
+      return {
+        ...templateRow,
+        id: templateId || `checklist-item-${index}`,
+        files: Array.isArray(matched?.files) ? matched.files : [],
+        status: matched?.status ?? templateRow?.status ?? null,
+        remarks: matched?.remarks ?? templateRow?.remarks ?? null,
+        call_task_document_id:
+          matched?.call_task_document_id ?? templateRow?.call_task_document_id ?? null,
+        document_id: matched?.document_id ?? templateRow?.document_id ?? templateRow?.checklist_item_id ?? null,
+        file_url: matched?.file_url ?? templateRow?.file_url ?? null,
+        file_name: matched?.file_name ?? templateRow?.file_name ?? null,
+      };
+    });
+  };
+
+  const groRows = mergeProcessRows("gro", checklistDocuments?.gro);
+  const customRows = mergeProcessRows("customClearance", checklistDocuments?.customClearance);
+
+  return {
+    selectedProcesses: {
+      gro: Boolean(base?.selectedProcesses?.gro) || groRows.length > 0,
+      customClearance:
+        Boolean(base?.selectedProcesses?.customClearance) || customRows.length > 0,
+    },
+    documents: {
+      gro: groRows.length ? groRows : base?.documents?.gro || [],
+      customClearance: customRows.length ? customRows : base?.documents?.customClearance || [],
+      mwp: base?.documents?.mwp,
+    },
+    stageFiles: Array.isArray(base?.stageFiles) ? base.stageFiles : [],
+  };
+}
+
 export function collectPreArrivalProcessAttachments(documentHandling) {
   if (!documentHandling?.documents) return [];
   const out = [];

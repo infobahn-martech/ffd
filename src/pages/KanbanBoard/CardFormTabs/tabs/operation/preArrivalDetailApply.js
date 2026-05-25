@@ -65,7 +65,7 @@ export function findTaskDocumentGroupByRole(taskDocuments, roleId) {
     return arr.find(
       (e) =>
         Number(e?.role_id) === PRE_ARRIVAL_GRO_ROLE_ID ||
-        /^gro$/i.test(String(e?.role || "").trim())
+        /gro/i.test(String(e?.role || e?.role_name || "").trim())
     );
   }
   if (roleId === PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID) {
@@ -185,15 +185,59 @@ export function mergePreArrivalDetailDocuments(currentHandling, taskDocuments = 
     });
   };
 
+  const mergeBuiltIntoTemplate = (processKey, builtRows) => {
+    if (!builtRows?.length) return;
+    const templateRows = dh.documents[processKey] || [];
+    if (!templateRows.length) {
+      dh.documents[processKey] = builtRows;
+      return;
+    }
+
+    const merged = templateRows.map((templateRow) => {
+      const templateId = String(templateRow?.id ?? "");
+      const built = builtRows.find(
+        (row) =>
+          String(row?.id) === templateId ||
+          (templateRow?.checklist_item_id != null &&
+            Number(row?.document_id ?? row?.checklist_item_id) ===
+              Number(templateRow.checklist_item_id))
+      );
+      if (!built) return templateRow;
+      return {
+        ...templateRow,
+        status: built.status ?? templateRow.status,
+        remarks: built.remarks ?? templateRow.remarks,
+        call_task_document_id: built.call_task_document_id ?? templateRow.call_task_document_id,
+        document_id: built.document_id ?? templateRow.document_id,
+        file_url: built.file_url ?? templateRow.file_url,
+        file_name: built.file_name ?? templateRow.file_name,
+        files:
+          Array.isArray(built.files) && built.files.length ? built.files : templateRow.files,
+      };
+    });
+
+    for (const builtRow of builtRows) {
+      const exists = merged.some(
+        (row) =>
+          String(row?.id) === String(builtRow?.id) ||
+          (builtRow?.document_id != null &&
+            String(row?.document_id ?? row?.id) === String(builtRow.document_id))
+      );
+      if (!exists) merged.push(builtRow);
+    }
+
+    dh.documents[processKey] = merged;
+  };
+
   const groBuilt = buildRowsForProcess("gro");
   if (groBuilt?.length) {
-    dh.documents.gro = groBuilt;
+    mergeBuiltIntoTemplate("gro", groBuilt);
     dh.selectedProcesses.gro = true;
   }
 
   const ccBuilt = buildRowsForProcess("customClearance");
   if (ccBuilt?.length) {
-    dh.documents.customClearance = ccBuilt;
+    mergeBuiltIntoTemplate("customClearance", ccBuilt);
     dh.selectedProcesses.customClearance = true;
   }
 

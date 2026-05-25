@@ -11,6 +11,9 @@ const preArrivalService = {
 
   sendPreArrivalReport: (payload) =>
     Gateway.post("arrival/send_report", payload),
+
+  getChecklistItemsByRole: (payload) =>
+    Gateway.post("pre_arrival/get_checklist_items_by_role", payload),
 };
 
 export default preArrivalService;
