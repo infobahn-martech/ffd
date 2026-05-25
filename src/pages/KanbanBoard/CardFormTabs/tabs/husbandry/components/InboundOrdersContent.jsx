@@ -1098,8 +1098,24 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleConvertSubmit = (e) => {
     e.preventDefault();
-    console.log("Convert to Landing form submitted:", convertFormData);
-    // Here you can implement the logic to save/convert the order to landing note
+
+    const existingNotes = formValues.landingNoteList || [];
+    const maxId = existingNotes.length > 0 ? Math.max(...existingNotes.map((n) => n.id)) : 0;
+
+    const newNotes = convertFormData.orders.map((order, idx) => ({
+      id: maxId + idx + 1,
+      landingNoteNo: order.orderNo || `LN-${String(maxId + idx + 1).padStart(5, "0")}`,
+      date: convertFormData.date,
+      poDo: order.poDo,
+      landingProof: convertFormData.documents || [],
+      quantity: order.quantity,
+      packageType: order.packageType,
+      description: order.description,
+    }));
+
+    const updatedList = [...existingNotes, ...newNotes];
+    handleChange("landingNoteList")({ target: { value: updatedList } });
+
     handleCloseConvertModal();
   };
 
