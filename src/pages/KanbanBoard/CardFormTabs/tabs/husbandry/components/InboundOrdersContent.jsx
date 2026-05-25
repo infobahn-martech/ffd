@@ -936,14 +936,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }, 250);
   };
 
-  const applyConvertFormFromOrder = (orderData) => {
-    const { date: editDate, time: editTime } = splitApiDateTimeParts(
-      orderData.inbound_date || orderData.date || "",
-      orderData.inbound_time || orderData.time || ""
-    );
-
+  const buildConvertOrderItems = (orderData) => {
     const apiItems = Array.isArray(orderData.items) ? orderData.items : [];
-    const orderItems = apiItems.length > 0
+    return apiItems.length > 0
       ? apiItems.map((item, idx) => ({
           id: item.inbound_item_id || idx + 1,
           inboundItemId: item.inbound_item_id || null,
@@ -980,11 +975,22 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           reason: orderData.reason || "",
           dispatchDate: orderData.dispatchDate || "",
         }];
+  };
+
+  const handleConvertToLanding = (order) => {
+    handleCloseDropdown();
+    setConvertingOrder(order);
+
+    const { date: editDate, time: editTime } = splitApiDateTimeParts(
+      order.inbound_date || order.date || "",
+      order.inbound_time || order.time || ""
+    );
+    const orderItems = buildConvertOrderItems(order);
 
     setConvertFormData({
       date: editDate,
       time: editTime || (editDate ? "00:00" : ""),
-      warehouse: String(orderData.warehouse_id || orderData.warehouse || ""),
+      warehouse: String(order.warehouse_id || order.warehouse || ""),
       receivedFrom: "",
       location: "",
       signature: "",
@@ -992,16 +998,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: orderItems,
     });
-
     const expandedState = {};
     orderItems.forEach((item) => { expandedState[item.id] = true; });
     setExpandedConvertOrders(expandedState);
-  };
-
-  const handleConvertToLanding = (order) => {
-    handleCloseDropdown();
-    setConvertingOrder(order);
-    applyConvertFormFromOrder(order);
     setShowConvertModal(true);
 
     const inboundId = order.inbound_id ?? order.id;
@@ -1010,7 +1009,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         .getInboundById(inboundId)
         .then(({ data }) => {
           const detail = data?.data;
-          if (detail) applyConvertFormFromOrder(detail);
+          if (!detail) return;
+          const detailItems = buildConvertOrderItems(detail);
+          setConvertFormData((prev) => ({ ...prev, orders: detailItems }));
+          const exp = {};
+          detailItems.forEach((item) => { exp[item.id] = true; });
+          setExpandedConvertOrders(exp);
         })
         .catch(() => {});
     }
