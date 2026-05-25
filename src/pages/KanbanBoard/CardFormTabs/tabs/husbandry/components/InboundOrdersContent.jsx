@@ -1207,60 +1207,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!convertFormData.location) errors.location = "Location is required";
     if (!convertFormData.documents || convertFormData.documents.length === 0) errors.file = "File upload is required";
 
-    convertFormData.orders.forEach((order, idx) => {
-      let hasOrderError = false;
-      if (!order.poDo) {
-        errors[`co${idx}_poDo`] = "PO/DO is required";
-        hasOrderError = true;
-      }
-      if (!order.quantity) {
-        errors[`co${idx}_quantity`] = "Quantity is required";
-        hasOrderError = true;
-      } else if (!/^[1-9]\d*$/.test(String(order.quantity))) {
-        errors[`co${idx}_quantity`] = "Quantity must be a whole number";
-        hasOrderError = true;
-      }
-      if (!order.packageType) {
-        errors[`co${idx}_packageType`] = "Package Type is required";
-        hasOrderError = true;
-      } else if (!toPositiveId(order.packageType)) {
-        errors[`co${idx}_packageType`] = "Valid package type is required";
-        hasOrderError = true;
-      }
-      if (order.transportation) {
-        if (!order.typeOfVehicle) {
-          errors[`co${idx}_typeOfVehicle`] = "Vehicle type is required";
-          hasOrderError = true;
-        } else if (!toPositiveId(order.typeOfVehicle)) {
-          errors[`co${idx}_typeOfVehicle`] = "Valid vehicle type is required";
-          hasOrderError = true;
-        }
-        if (!order.fromLocation) {
-          errors[`co${idx}_fromLocation`] = "From location is required";
-          hasOrderError = true;
-        } else if (!toPositiveId(order.fromLocation)) {
-          errors[`co${idx}_fromLocation`] = "Valid from location is required";
-          hasOrderError = true;
-        }
-        if (!order.toLocation) {
-          errors[`co${idx}_toLocation`] = "To location is required";
-          hasOrderError = true;
-        } else if (!toPositiveId(order.toLocation)) {
-          errors[`co${idx}_toLocation`] = "Valid to location is required";
-          hasOrderError = true;
-        }
-        if (!order.driverName) {
-          errors[`co${idx}_driverName`] = "Driver is required";
-          hasOrderError = true;
-        } else if (!toPositiveId(order.driverName)) {
-          errors[`co${idx}_driverName`] = "Valid driver is required";
-          hasOrderError = true;
-        }
-      }
-      if (hasOrderError) {
-        newExpanded[order.id] = true;
-      }
-    });
+    // No per-item validation needed — order details are read-only from original inbound
 
     setExpandedConvertOrders(newExpanded);
     setConvertFormErrors(errors);
@@ -1295,24 +1242,24 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
     const items = ordersForPayload.map((order) => {
       const inboundItemId = toPositiveId(order.inboundItemId);
-      return {
+      const item = {
         ...(inboundItemId ? { inbound_item_id: inboundItemId } : {}),
-        order_no: order.orderNo || "",
-        po_no: order.poDo || "",
         quantity: Number(order.quantity) || 0,
-        package_type_id: toPositiveId(order.packageType),
-        description: order.description || "",
         slot_no_id: toPositiveId(order.slotNo) ?? 0,
-        reason: order.reason || "",
+        reason_id: toPositiveId(order.reason) ?? 0,
+        dispatch_date: order.dispatchDate || "",
         transportation_required: order.transportation ? 1 : 0,
-        ...(order.transportation ? {
+      };
+      if (order.transportation) {
+        item.transportation = {
           vehicle_type_id: toPositiveId(order.typeOfVehicle),
           from_location_id: toPositiveId(order.fromLocation),
           pickup_location: order.pickUpFrom || "",
           to_location_id: toPositiveId(order.toLocation),
           driver_id: toPositiveId(order.driverName),
-        } : {}),
-      };
+        };
+      }
+      return item;
     });
 
     const fd = new FormData();
@@ -1877,19 +1824,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               </div>
 
               <div className="col-md-6 mb-2">
-                <FormField label="Warehouse *">
-                  <FormSelect
-                    value={convertFormData.warehouse}
-                    onChange={(e) => {
-                      handleConvertFormChange("warehouse", e.target.value);
-                      if (convertFormErrors.warehouse) setConvertFormErrors((prev) => { const n = { ...prev }; delete n.warehouse; return n; });
-                    }}
-                    options={mergeOptionForValue(warehouseLocationOptions, convertFormData.warehouse)}
-                    placeholder="Select warehouse"
-                    className={convertFormErrors.warehouse ? "is-invalid" : ""}
-                  />
+                <FormField label="Warehouse">
+                  <div className="cf-input" style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}>
+                    <input
+                      type="text"
+                      value={warehouseLocationOptions.find(o => o.value === convertFormData.warehouse)?.label || convertFormData.warehouse || ""}
+                      readOnly
+                      style={{ background: "transparent", cursor: "not-allowed", color: "#555" }}
+                    />
+                  </div>
                 </FormField>
-                {convertFormErrors.warehouse && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.warehouse}</span>}
               </div>
             </div>
 
@@ -2081,198 +2025,103 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                 {expandedConvertOrders[order.id] && (
                   <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "0 0 8px 8px" }}>
-                    <div className="row g-2 mb-1">
-                      <div className="col-lg-4 col-md-6">
-                        <FormField label="Order No">
-                          <FormInput
-                            type="text"
-                            value={order.orderNo}
-                            onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)}
-                            placeholder="Enter order number..."
-                          />
-                        </FormField>
-                      </div>
 
-                      <div className="col-lg-4 col-md-6">
-                        <FormField label="PO/DO *">
-                          <FormInput
-                            type="text"
-                            value={order.poDo}
-                            onChange={(e) => { handleConvertOrderChange(order.id, "poDo", e.target.value); if (convertFormErrors[`co${index}_poDo`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_poDo`]; return n; }); }}
-                            placeholder="Enter PO/DO number..."
-                            className={convertFormErrors[`co${index}_poDo`] ? "is-invalid" : ""}
-                          />
-                        </FormField>
-                        {convertFormErrors[`co${index}_poDo`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_poDo`]}</span>}
-                      </div>
-
-                      <div className="col-lg-4 col-md-6">
-                        <FormField label="Quantity *">
-                          <FormInput
-                            type="text"
-                            value={order.quantity}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === "" || /^[1-9]\d*$/.test(value)) {
-                                handleConvertOrderChange(order.id, "quantity", value);
-                                if (convertFormErrors[`co${index}_quantity`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_quantity`]; return n; });
-                              }
-                            }}
-                            placeholder="Enter quantity..."
-                            className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""}
-                          />
-                        </FormField>
-                        {convertFormErrors[`co${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_quantity`]}</span>}
-                      </div>
-
-                      <div className="col-lg-6 col-md-12">
-                        <FormField label="Description">
-                          <FormInput
-                            type="text"
-                            value={order.description}
-                            onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)}
-                            placeholder="Enter description..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-lg-6 col-md-12">
-                        <FormField label="Package Type *">
-                          <FormSelect
-                            value={order.packageType}
-                            onChange={(e) => { handleConvertOrderChange(order.id, "packageType", e.target.value); if (convertFormErrors[`co${index}_packageType`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_packageType`]; return n; }); }}
-                            options={mergeOptionForValue(packageTypeOptions, order.packageType)}
-                            placeholder="Select package type..."
-                            className={convertFormErrors[`co${index}_packageType`] ? "is-invalid" : ""}
-                          />
-                        </FormField>
-                        {convertFormErrors[`co${index}_packageType`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_packageType`]}</span>}
+                    {/* Read-only inbound order details */}
+                    <div style={{ backgroundColor: "#f8f9fa", borderRadius: "6px", padding: "12px", marginBottom: "14px" }}>
+                      <p style={{ fontSize: "12px", color: "#888", margin: "0 0 8px 0", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>Inbound Order Details (Read-only)</p>
+                      <div className="row g-2">
+                        {order.orderNo && (
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Order No">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={order.orderNo} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
+                            </FormField>
+                          </div>
+                        )}
+                        {order.poDo && (
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="PO/DO">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={order.poDo} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
+                            </FormField>
+                          </div>
+                        )}
+                        <div className="col-lg-4 col-md-6">
+                          <FormField label="Quantity">
+                            <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                              <input type="text" value={order.quantity} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                            </div>
+                          </FormField>
+                        </div>
+                        {order.description && (
+                          <div className="col-lg-6 col-md-12">
+                            <FormField label="Description">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={order.description} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
+                            </FormField>
+                          </div>
+                        )}
+                        {order.packageType && (
+                          <div className="col-lg-6 col-md-12">
+                            <FormField label="Package Type">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={packageTypeOptions.find(o => o.value === order.packageType)?.label || order.packageType} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
+                            </FormField>
+                          </div>
+                        )}
+                        {order.transportation && (
+                          <>
+                            {order.typeOfVehicle && <div className="col-lg-4 col-md-6"><FormField label="Vehicle Type"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={materialVehicleOptions.find(o => o.value === order.typeOfVehicle)?.label || order.typeOfVehicle} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.fromLocation && <div className="col-lg-4 col-md-6"><FormField label="From Location"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={warehouseLocationOptions.find(o => o.value === order.fromLocation)?.label || order.fromLocation} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.pickUpFrom && <div className="col-lg-4 col-md-6"><FormField label="Pick-Up From"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={order.pickUpFrom} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.toLocation && <div className="col-lg-4 col-md-6"><FormField label="To Location"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={warehouseLocationOptions.find(o => o.value === order.toLocation)?.label || order.toLocation} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.driverName && <div className="col-lg-4 col-md-6"><FormField label="Driver"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={materialDriverOptions.find(o => o.value === order.driverName)?.label || order.driverName} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    {/* Transportation Section */}
-                    <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #e2e2ea" }}>
-                      <div style={{ marginBottom: "10px" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                          <input
-                            type="checkbox"
-                            checked={order.transportation || false}
-                            onChange={(e) => handleConvertOrderChange(order.id, "transportation", e.target.checked)}
-                            style={{ cursor: "pointer", width: "18px", height: "18px" }}
+                    {/* Editable landing note fields */}
+                    <div className="row g-2 mb-1">
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Slot No">
+                          <FormSelect
+                            value={order.slotNo}
+                            onChange={(e) => handleConvertOrderChange(order.id, "slotNo", e.target.value)}
+                            options={slotNoOptions}
+                            placeholder="Select slot no..."
                           />
-                          <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
-                        </label>
+                        </FormField>
                       </div>
 
-                      {order.transportation && (
-                        <div className="row g-2 mb-1">
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="Type of Vehicle *">
-                              <FormSelect
-                                value={order.typeOfVehicle}
-                                onChange={(e) => { handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value); if (convertFormErrors[`co${index}_typeOfVehicle`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_typeOfVehicle`]; return n; }); }}
-                                options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
-                                placeholder="Select type of vehicle..."
-                                className={convertFormErrors[`co${index}_typeOfVehicle`] ? "is-invalid" : ""}
-                              />
-                            </FormField>
-                            {convertFormErrors[`co${index}_typeOfVehicle`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_typeOfVehicle`]}</span>}
-                          </div>
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Reason">
+                          <FormSelect
+                            value={order.reason}
+                            onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)}
+                            options={reasonOptions}
+                            placeholder="Select reason..."
+                          />
+                        </FormField>
+                      </div>
 
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="From Location *">
-                              <FormSelect
-                                value={order.fromLocation}
-                                onChange={(e) => { handleConvertOrderChange(order.id, "fromLocation", e.target.value); if (convertFormErrors[`co${index}_fromLocation`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_fromLocation`]; return n; }); }}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
-                                placeholder="Select from location..."
-                                className={convertFormErrors[`co${index}_fromLocation`] ? "is-invalid" : ""}
-                              />
-                            </FormField>
-                            {convertFormErrors[`co${index}_fromLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_fromLocation`]}</span>}
-                          </div>
-
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="Pick-Up From">
-                              <FormInput
-                                type="text"
-                                value={order.pickUpFrom}
-                                onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
-                                placeholder="Enter pick-up location..."
-                              />
-                            </FormField>
-                          </div>
-
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="To Location *">
-                              <FormSelect
-                                value={order.toLocation}
-                                onChange={(e) => { handleConvertOrderChange(order.id, "toLocation", e.target.value); if (convertFormErrors[`co${index}_toLocation`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_toLocation`]; return n; }); }}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
-                                placeholder="Select to location..."
-                                className={convertFormErrors[`co${index}_toLocation`] ? "is-invalid" : ""}
-                              />
-                            </FormField>
-                            {convertFormErrors[`co${index}_toLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_toLocation`]}</span>}
-                          </div>
-
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="Driver Name *">
-                              <FormSelect
-                                value={order.driverName}
-                                onChange={(e) => { handleConvertOrderChange(order.id, "driverName", e.target.value); if (convertFormErrors[`co${index}_driverName`]) setConvertFormErrors((prev) => { const n = { ...prev }; delete n[`co${index}_driverName`]; return n; }); }}
-                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
-                                placeholder="Select driver name..."
-                                className={convertFormErrors[`co${index}_driverName`] ? "is-invalid" : ""}
-                              />
-                            </FormField>
-                            {convertFormErrors[`co${index}_driverName`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_driverName`]}</span>}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Slot No, Reason, Dispatch Date - After Transportation */}
-                      <div className="row g-2 mb-1" style={{ marginTop: "12px" }}>
-                        <div className="col-lg-4 col-md-6">
-                          <FormField label="Slot No">
-                            <FormSelect
-                              value={order.slotNo}
-                              onChange={(e) => handleConvertOrderChange(order.id, "slotNo", e.target.value)}
-                              options={slotNoOptions}
-                              placeholder="Select slot no..."
-                            />
-                          </FormField>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <FormField label="Reason">
-                            <FormSelect
-                              value={order.reason}
-                              onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)}
-                              options={reasonOptions}
-                              placeholder="Select reason..."
-                            />
-                          </FormField>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <FormField label="Dispatch Date/Time">
-                            <DateTimePickerField
-                              dateValue={order.dispatchDate || ""}
-                              timeValue=""
-                              onDateTimeChange={(nextValues) => {
-                                handleConvertOrderChange(
-                                  order.id,
-                                  "dispatchDate",
-                                  buildApiDateTime(nextValues.date, nextValues.time)
-                                );
-                              }}
-                              dateFieldName={`co_${order.id}_dispatchDate`}
-                              timeFieldName=""
-                              placeholder="YYYY-MM-DD HH:mm"
-                            />
-                          </FormField>
-                        </div>
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Dispatch Date">
+                          <DateTimePickerField
+                            dateValue={order.dispatchDate || ""}
+                            timeValue=""
+                            onDateTimeChange={(nextValues) => {
+                              handleConvertOrderChange(order.id, "dispatchDate", nextValues.date || "");
+                            }}
+                            dateFieldName={`co_${order.id}_dispatchDate`}
+                            timeFieldName=""
+                            placeholder="YYYY-MM-DD"
+                          />
+                        </FormField>
                       </div>
                     </div>
 
