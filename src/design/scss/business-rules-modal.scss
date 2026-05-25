@@ -242,6 +242,7 @@
 }
 
 .business-rule-form-modal {
+  --bs-modal-padding: 0;
   z-index: 1066 !important;
 
   .modal-dialog {
@@ -261,6 +262,7 @@
   }
 
   .modal-content {
+    padding: 0 !important;
     border: none;
     border-radius: 16px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
