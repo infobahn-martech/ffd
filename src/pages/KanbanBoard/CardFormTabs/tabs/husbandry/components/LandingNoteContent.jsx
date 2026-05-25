@@ -141,11 +141,11 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     getAllLandingNotes,
-    addLandingNote,
+    updateLandingNote,
     landingNotes,
     landingNoteTotal,
     isLoadingList,
-    isBeingAdded,
+    isBeingUpdated,
   } = useLandingNoteReducer((state) => state);
 
   const [showModal, setShowModal] = useState(false);
@@ -280,13 +280,17 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       description: formData.description || "",
     };
 
-    addLandingNote({
-      data: payload,
-      cb: () => {
-        handleCloseModal();
-        getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-      },
-    });
+    if (editingNote) {
+      const landingNoteId = editingNote.landing_note_id ?? editingNote.id;
+      updateLandingNote({
+        landingNoteId,
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+        },
+      });
+    }
   };
 
   // File upload handlers
@@ -807,7 +811,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{editingNote ? "Edit Landing Note" : "Add Landing Note"}</h1>
+      <h1 className="modal-title">Edit Landing Note</h1>
     </>
   );
 
@@ -994,9 +998,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         form="landingNoteForm"
         className="btn btn-primary"
         style={{ backgroundColor: "#00368c" }}
-        disabled={isBeingAdded}
+        disabled={isBeingUpdated}
       >
-        {isBeingAdded ? "Adding..." : editingNote ? "Update Note" : "Add Note"}
+        {isBeingUpdated ? "Updating..." : "Update Note"}
       </button>
     </div>
   );
@@ -1626,14 +1630,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <span className="material-list-title-bar"></span>
           Landing Note
         </h3>
-        <button
-          type="button"
-          className="material-add-btn"
-          onClick={() => handleOpenModal()}
-          style={{ backgroundColor: "#00368c" }}
-        >
-          + Add
-        </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
