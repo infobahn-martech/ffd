@@ -241,6 +241,98 @@ export function mergePreArrivalDetailDocuments(currentHandling, taskDocuments = 
     dh.selectedProcesses.customClearance = true;
   }
 
+  if (Array.isArray(dh.roleGroups) && dh.roleGroups.length) {
+    for (const group of dh.roleGroups) {
+      const roleId = Number(group?.role_id);
+      if (Number.isNaN(roleId)) continue;
+      const items = flatItems.filter((t) => Number(t?.role_id) === roleId);
+      if (!items.length) continue;
+
+      const idOrder = [];
+      const seen = new Set();
+      for (const t of items) {
+        const idStr = String(t.document_id);
+        if (!seen.has(idStr)) {
+          seen.add(idStr);
+          idOrder.push(idStr);
+        }
+      }
+
+      const builtRows = idOrder.map((idStr) => {
+        const first = items.find((x) => String(x.document_id) === idStr);
+        const existing = (group.items || []).find((r) => String(r.id) === idStr);
+        const documentName = String(
+          first?.document_name || existing?.document_name || existing?.name || "Document"
+        );
+        const uploadedFileName = first?.file_name || existing?.file_name || null;
+        const row = {
+          id: idStr,
+          document_name: documentName,
+          name: documentName,
+          is_required: Boolean(existing?.is_required),
+          status: first?.status ?? existing?.status ?? null,
+          remarks: first?.remarks ?? existing?.remarks ?? null,
+          call_task_document_id: first?.call_task_document_id ?? existing?.call_task_document_id ?? null,
+          document_id: first?.document_id ?? existing?.document_id ?? null,
+          file_url: first?.file_url ?? existing?.file_url ?? null,
+          file_name: uploadedFileName,
+          files: Array.isArray(existing?.files) ? [...existing.files] : [],
+        };
+        for (const t of items) {
+          if (String(t.document_id) !== idStr) continue;
+          const fn = t.file_name || uploadedFileName || "uploaded-file";
+          const u = String(t.file_url || "").trim();
+          if (u) pushFile(row, { name: fn, url: u });
+        }
+        return row;
+      });
+
+      const templateRows = group.items || [];
+      if (!templateRows.length) {
+        group.items = builtRows;
+      } else {
+        const merged = templateRows.map((templateRow) => {
+          const templateId = String(templateRow?.id ?? "");
+          const built = builtRows.find(
+            (row) =>
+              String(row?.id) === templateId ||
+              (templateRow?.checklist_item_id != null &&
+                Number(row?.document_id ?? row?.checklist_item_id) ===
+                  Number(templateRow.checklist_item_id))
+          );
+          if (!built) return templateRow;
+          return {
+            ...templateRow,
+            status: built.status ?? templateRow.status,
+            remarks: built.remarks ?? templateRow.remarks,
+            call_task_document_id: built.call_task_document_id ?? templateRow.call_task_document_id,
+            document_id: built.document_id ?? templateRow.document_id,
+            file_url: built.file_url ?? templateRow.file_url,
+            file_name: built.file_name ?? templateRow.file_name,
+            files:
+              Array.isArray(built.files) && built.files.length ? built.files : templateRow.files,
+          };
+        });
+        for (const builtRow of builtRows) {
+          const exists = merged.some(
+            (row) =>
+              String(row?.id) === String(builtRow?.id) ||
+              (builtRow?.document_id != null &&
+                String(row?.document_id ?? row?.id) === String(builtRow.document_id))
+          );
+          if (!exists) merged.push(builtRow);
+        }
+        group.items = merged;
+      }
+
+      if (taskRoles.has(roleId)) {
+        const roleLabel = String(group?.role_name || "").trim();
+        if (/gro/i.test(roleLabel)) dh.selectedProcesses.gro = true;
+        if (/custom\s*clearance/i.test(roleLabel)) dh.selectedProcesses.customClearance = true;
+      }
+    }
+  }
+
   return dh;
 }
 

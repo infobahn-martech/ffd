@@ -6,7 +6,6 @@ import { buildPreArrivalReportBody } from "../../services/sendReportBodyBuilder"
 import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
   collectPreArrivalProcessAttachments,
-  mapChecklistItemsByRoleToDocuments,
   mergeChecklistItemsIntoDocumentHandling,
 } from "./preArrivalDocumentHandling";
 import preArrivalService from "../../../../../services/preArrivalService";
@@ -199,88 +198,10 @@ DocumentGroupCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const STATIC_PRE_ARRIVAL_DOCUMENT_ROWS = {
-  gro: [
-    { id: "static-gro-registry", name: "Registry", document_name: "Registry", is_required: false, files: [] },
-    { id: "static-gro-tonnage", name: "Tonnage", document_name: "Tonnage", is_required: false, files: [] },
-    {
-      id: "static-gro-radio",
-      name: "Ship Radio Station License",
-      document_name: "Ship Radio Station License",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-gro-health",
-      name: "Maritime Health Declaration",
-      document_name: "Maritime Health Declaration",
-      is_required: false,
-      files: [],
-    },
-  ],
-  customClearance: [
-    { id: "static-cc-bayan", name: "Bayan Document", document_name: "Bayan Document", is_required: false, files: [] },
-    {
-      id: "static-cc-inspection",
-      name: "Customs Inspection",
-      document_name: "Customs Inspection",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-cc-inward",
-      name: "Inward Clearance",
-      document_name: "Inward Clearance",
-      is_required: false,
-      files: [],
-    },
-  ],
-  mwp: [
-    {
-      id: "static-mwp-permit",
-      name: "Marine Work Permit",
-      document_name: "Marine Work Permit",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-mwp-safety",
-      name: "Safety Checklist",
-      document_name: "Safety Checklist",
-      is_required: false,
-      files: [],
-    },
-    {
-      id: "static-mwp-completion",
-      name: "Work Completion Document",
-      document_name: "Work Completion Document",
-      is_required: false,
-      files: [],
-    },
-  ],
-};
-
-function resolvePreArrivalDocumentRows(apiRows, staticRows) {
-  const rows = Array.isArray(apiRows) ? apiRows : [];
-  return rows.length ? rows : staticRows;
-}
-
 function PreArrivalDocumentHandlingSection({ formValues }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
   const stageFiles = Array.isArray(dh.stageFiles) ? dh.stageFiles : [];
-
-  const groDocuments = resolvePreArrivalDocumentRows(
-    dh.documents?.gro,
-    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.gro
-  );
-  const customClearanceDocuments = resolvePreArrivalDocumentRows(
-    dh.documents?.customClearance,
-    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.customClearance
-  );
-  const mwpDocuments = resolvePreArrivalDocumentRows(
-    dh.documents?.mwp,
-    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.mwp
-  );
+  const roleGroups = Array.isArray(dh.roleGroups) ? dh.roleGroups : [];
 
   return (
     <div className="document-handling-section">
@@ -307,41 +228,23 @@ function PreArrivalDocumentHandlingSection({ formValues }) {
         <h3 className="document-handling-section__heading">Document handling</h3>
       </div>
 
-      <DocumentGroupCard title="GRO documents">
-        {groDocuments.map((doc) => (
-          <CompactFileUploadRow
-            key={`gro-${doc.id}`}
-            label={doc.document_name || doc.name}
-            files={doc.files || []}
-            status={doc.status}
-            remarks={doc.remarks}
-          />
-        ))}
-      </DocumentGroupCard>
-
-      <DocumentGroupCard title="Custom clearance documents">
-        {customClearanceDocuments.map((doc) => (
-          <CompactFileUploadRow
-            key={`customClearance-${doc.id}`}
-            label={doc.document_name || doc.name}
-            files={doc.files || []}
-            status={doc.status}
-            remarks={doc.remarks}
-          />
-        ))}
-      </DocumentGroupCard>
-
-      <DocumentGroupCard title="MWP documents">
-        {mwpDocuments.map((doc) => (
-          <CompactFileUploadRow
-            key={doc.id}
-            label={doc.document_name || doc.name}
-            files={doc.files || []}
-            status={doc.status}
-            remarks={doc.remarks}
-          />
-        ))}
-      </DocumentGroupCard>
+      {roleGroups.map((group) => {
+        const title = String(group?.role_name || "Documents").trim();
+        const cardTitle = /documents?$/i.test(title) ? title : `${title} documents`;
+        return (
+          <DocumentGroupCard key={`role-${group?.role_id ?? title}`} title={cardTitle}>
+            {(group?.items || []).map((doc) => (
+              <CompactFileUploadRow
+                key={`${group?.role_id ?? title}-${doc.id}`}
+                label={doc.document_name || doc.name}
+                files={doc.files || []}
+                status={doc.status}
+                remarks={doc.remarks}
+              />
+            ))}
+          </DocumentGroupCard>
+        );
+      })}
     </div>
   );
 }
@@ -540,9 +443,10 @@ function PreArrival({
 
   const documentHandlingRowsKey = useMemo(() => {
     const dh = formValues.preArrivalDocumentHandling;
-    const groIds = (dh?.documents?.gro || []).map((r) => r.id).join(",");
-    const ccIds = (dh?.documents?.customClearance || []).map((r) => r.id).join(",");
-    return `${formValues.assignedGro || ""}|${formValues.assignedCustom || ""}|${groIds}|${ccIds}`;
+    const roleGroupKey = (dh?.roleGroups || [])
+      .map((g) => `${g.role_id}:${(g.items || []).map((r) => r.id).join(",")}`)
+      .join("|");
+    return `${formValues.assignedGro || ""}|${formValues.assignedCustom || ""}|${roleGroupKey}`;
   }, [
     formValues.preArrivalDocumentHandling,
     formValues.assignedGro,
@@ -586,10 +490,9 @@ function PreArrival({
         const status = body?.status;
         if (typeof status === "string" && status.toLowerCase() === "error") return;
 
-        const roleGroups = body?.data ?? [];
-        const checklistDocuments = mapChecklistItemsByRoleToDocuments(roleGroups);
+        const apiRoleGroups = body?.data ?? [];
         const dhCurrent = formValuesRef.current?.preArrivalDocumentHandling;
-        const nextDh = mergeChecklistItemsIntoDocumentHandling(dhCurrent, checklistDocuments);
+        const nextDh = mergeChecklistItemsIntoDocumentHandling(dhCurrent, apiRoleGroups);
         if (JSON.stringify(nextDh) === JSON.stringify(dhCurrent)) {
           checklistFetchKeyRef.current = requestKey;
           return;

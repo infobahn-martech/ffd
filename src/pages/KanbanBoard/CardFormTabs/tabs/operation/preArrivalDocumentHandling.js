@@ -8,16 +8,10 @@ export const DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING = {
     gro: false,
     customClearance: false,
   },
+  roleGroups: [],
   documents: {
-    gro: [
-      { id: "pre-gro-1", name: "GRO appointment confirmation", is_required: true, files: [] },
-      { id: "pre-gro-2", name: "Berthing allocation (GRO)", is_required: false, files: [] },
-    ],
-    customClearance: [
-      { id: "pre-cc-1", name: "Customs import declaration", is_required: true, files: [] },
-      { id: "pre-cc-2", name: "Bill of lading / cargo manifest", is_required: true, files: [] },
-      { id: "pre-cc-3", name: "Delivery order", is_required: false, files: [] },
-    ],
+    gro: [],
+    customClearance: [],
   },
 };
 
@@ -141,95 +135,146 @@ function mapChecklistItemRows(items) {
 }
 
 /**
- * Maps `pre_arrival/get_checklist_items_by_role` groups into GRO / Custom Clearance document rows.
- * @param {Array} roleGroups — `data` array from API
- * @returns {{ gro: object[], customClearance: object[] }}
+ * Maps `pre_arrival/get_checklist_items_by_role` `data` into UI role groups (one card per role).
+ * @param {Array} apiRoleGroups
+ * @returns {Array<{ role_id: number|null, role_name: string, items: object[] }>}
+ */
+export function mapChecklistRoleGroupsFromApi(apiRoleGroups) {
+  return (Array.isArray(apiRoleGroups) ? apiRoleGroups : [])
+    .map((group) => ({
+      role_id: group?.role_id ?? group?.roleId ?? null,
+      role_name: String(group?.role_name || group?.role || "Documents").trim(),
+      items: mapChecklistItemRows(group?.items),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+/**
+ * @deprecated Use {@link mapChecklistRoleGroupsFromApi}; kept for callers that bucket by process key.
  */
 export function mapChecklistItemsByRoleToDocuments(roleGroups) {
   const out = { gro: [], customClearance: [] };
-  for (const group of Array.isArray(roleGroups) ? roleGroups : []) {
-    const processKey = roleNameToProcessKey(group?.role_name ?? group?.role);
+  for (const group of mapChecklistRoleGroupsFromApi(roleGroups)) {
+    const processKey = roleNameToProcessKey(group.role_name);
     if (!processKey) continue;
-    out[processKey] = mapChecklistItemRows(group?.items);
+    out[processKey] = group.items;
   }
   return out;
 }
 
+function syncDocumentsFromRoleGroups(roleGroups) {
+  const documents = { gro: [], customClearance: [] };
+  for (const group of Array.isArray(roleGroups) ? roleGroups : []) {
+    const processKey = roleNameToProcessKey(group?.role_name);
+    if (processKey) documents[processKey] = group.items || [];
+  }
+  return documents;
+}
+
+function mergeTemplateRowsWithCurrent(templateRows = [], currentRows = []) {
+  return templateRows.map((templateRow, index) => {
+    const templateId = templateRow?.id != null ? String(templateRow.id) : "";
+    const byId = currentRows.find((row) => String(row?.id) === templateId);
+    const byChecklistId = currentRows.find(
+      (row) =>
+        templateRow?.checklist_item_id != null &&
+        Number(row?.checklist_item_id ?? row?.document_id) === Number(templateRow.checklist_item_id)
+    );
+    const byName = currentRows.find(
+      (row) =>
+        String(row?.document_name || row?.name || "")
+          .trim()
+          .toLowerCase() ===
+        String(templateRow?.document_name || templateRow?.name || "")
+          .trim()
+          .toLowerCase()
+    );
+    const matched = byId || byChecklistId || byName;
+
+    return {
+      ...templateRow,
+      id: templateId || `checklist-item-${index}`,
+      files: Array.isArray(matched?.files) ? matched.files : [],
+      status: matched?.status ?? templateRow?.status ?? null,
+      remarks: matched?.remarks ?? templateRow?.remarks ?? null,
+      call_task_document_id:
+        matched?.call_task_document_id ?? templateRow?.call_task_document_id ?? null,
+      document_id: matched?.document_id ?? templateRow?.document_id ?? templateRow?.checklist_item_id ?? null,
+      file_url: matched?.file_url ?? templateRow?.file_url ?? null,
+      file_name: matched?.file_name ?? templateRow?.file_name ?? null,
+    };
+  });
+}
+
 /**
  * Applies checklist template rows while preserving uploads/status from existing handling state.
+ * @param {object} currentHandling
+ * @param {Array} apiRoleGroups — raw `data` from `get_checklist_items_by_role`
  */
-export function mergeChecklistItemsIntoDocumentHandling(currentHandling, checklistDocuments) {
+export function mergeChecklistItemsIntoDocumentHandling(currentHandling, apiRoleGroups) {
   const base =
     currentHandling && typeof currentHandling === "object"
       ? currentHandling
       : { ...DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING };
 
-  const mergeProcessRows = (processKey, templateRows = []) => {
-    const currentRows = base?.documents?.[processKey] || [];
-    if (!templateRows.length) return currentRows;
+  const mappedGroups = mapChecklistRoleGroupsFromApi(apiRoleGroups);
+  const currentGroups = Array.isArray(base?.roleGroups) ? base.roleGroups : [];
 
-    return templateRows.map((templateRow, index) => {
-      const templateId = templateRow?.id != null ? String(templateRow.id) : "";
-      const byId = currentRows.find((row) => String(row?.id) === templateId);
-      const byChecklistId = currentRows.find(
-        (row) =>
-          templateRow?.checklist_item_id != null &&
-          Number(row?.checklist_item_id ?? row?.document_id) === Number(templateRow.checklist_item_id)
-      );
-      const byName = currentRows.find(
-        (row) =>
-          String(row?.document_name || row?.name || "")
-            .trim()
-            .toLowerCase() ===
-          String(templateRow?.document_name || templateRow?.name || "")
-            .trim()
-            .toLowerCase()
-      );
-      const matched = byId || byChecklistId || byName;
+  const roleGroups = mappedGroups.map((apiGroup) => {
+    const roleId = apiGroup.role_id != null ? Number(apiGroup.role_id) : null;
+    const nameKey = String(apiGroup.role_name || "").trim().toLowerCase();
+    const currentGroup = currentGroups.find(
+      (group) =>
+        (roleId != null && !Number.isNaN(roleId) && Number(group?.role_id) === roleId) ||
+        String(group?.role_name || "")
+          .trim()
+          .toLowerCase() === nameKey
+    );
+    return {
+      role_id: apiGroup.role_id ?? currentGroup?.role_id ?? null,
+      role_name: apiGroup.role_name || currentGroup?.role_name || "Documents",
+      items: mergeTemplateRowsWithCurrent(apiGroup.items, currentGroup?.items || []),
+    };
+  });
 
-      return {
-        ...templateRow,
-        id: templateId || `checklist-item-${index}`,
-        files: Array.isArray(matched?.files) ? matched.files : [],
-        status: matched?.status ?? templateRow?.status ?? null,
-        remarks: matched?.remarks ?? templateRow?.remarks ?? null,
-        call_task_document_id:
-          matched?.call_task_document_id ?? templateRow?.call_task_document_id ?? null,
-        document_id: matched?.document_id ?? templateRow?.document_id ?? templateRow?.checklist_item_id ?? null,
-        file_url: matched?.file_url ?? templateRow?.file_url ?? null,
-        file_name: matched?.file_name ?? templateRow?.file_name ?? null,
-      };
-    });
-  };
-
-  const groRows = mergeProcessRows("gro", checklistDocuments?.gro);
-  const customRows = mergeProcessRows("customClearance", checklistDocuments?.customClearance);
+  const documents = syncDocumentsFromRoleGroups(roleGroups);
 
   return {
     selectedProcesses: {
-      gro: Boolean(base?.selectedProcesses?.gro) || groRows.length > 0,
+      gro: Boolean(base?.selectedProcesses?.gro) || documents.gro.length > 0,
       customClearance:
-        Boolean(base?.selectedProcesses?.customClearance) || customRows.length > 0,
+        Boolean(base?.selectedProcesses?.customClearance) || documents.customClearance.length > 0,
     },
+    roleGroups,
     documents: {
-      gro: groRows.length ? groRows : base?.documents?.gro || [],
-      customClearance: customRows.length ? customRows : base?.documents?.customClearance || [],
-      mwp: base?.documents?.mwp,
+      gro: documents.gro,
+      customClearance: documents.customClearance,
     },
     stageFiles: Array.isArray(base?.stageFiles) ? base.stageFiles : [],
   };
 }
 
 export function collectPreArrivalProcessAttachments(documentHandling) {
-  if (!documentHandling?.documents) return [];
+  if (!documentHandling) return [];
   const out = [];
-  ["gro", "customClearance"].forEach((key) => {
-    (documentHandling.documents[key] || []).forEach((row) => {
-      (row?.files || []).forEach((file) => {
-        if (file) out.push(file);
+  const roleGroups = Array.isArray(documentHandling.roleGroups) ? documentHandling.roleGroups : [];
+  if (roleGroups.length) {
+    roleGroups.forEach((group) => {
+      (group?.items || []).forEach((row) => {
+        (row?.files || []).forEach((file) => {
+          if (file) out.push(file);
+        });
       });
     });
-  });
+  } else if (documentHandling.documents) {
+    ["gro", "customClearance"].forEach((key) => {
+      (documentHandling.documents[key] || []).forEach((row) => {
+        (row?.files || []).forEach((file) => {
+          if (file) out.push(file);
+        });
+      });
+    });
+  }
   (documentHandling.stageFiles || []).forEach((file) => {
     if (file) out.push(file);
   });
