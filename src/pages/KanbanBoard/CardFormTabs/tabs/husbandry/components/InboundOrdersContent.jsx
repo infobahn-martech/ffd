@@ -1299,7 +1299,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         quantity: Number(order.quantity) || 0,
         package_type_id: toPositiveId(order.packageType),
         description: order.description || "",
-        slot_no_id: toPositiveId(order.slotNo),
+        slot_no_id: toPositiveId(order.slotNo) ?? 0,
         reason: order.reason || "",
         transportation_required: order.transportation ? 1 : 0,
         ...(order.transportation ? {
