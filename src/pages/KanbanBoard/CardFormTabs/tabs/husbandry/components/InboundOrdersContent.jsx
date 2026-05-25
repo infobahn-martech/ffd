@@ -930,16 +930,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }, 250);
   };
 
-  const handleConvertToLanding = (order) => {
-    handleCloseDropdown();
-    setConvertingOrder(order);
-
+  const applyConvertFormFromOrder = (orderData) => {
     const { date: editDate, time: editTime } = splitApiDateTimeParts(
-      order.inbound_date || order.date || "",
-      order.inbound_time || order.time || ""
+      orderData.inbound_date || orderData.date || "",
+      orderData.inbound_time || orderData.time || ""
     );
 
-    const apiItems = Array.isArray(order.items) ? order.items : [];
+    const apiItems = Array.isArray(orderData.items) ? orderData.items : [];
     const orderItems = apiItems.length > 0
       ? apiItems.map((item, idx) => ({
           id: item.inbound_item_id || idx + 1,
@@ -962,26 +959,26 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       : [{
           id: 1,
           inboundItemId: null,
-          orderNo: order.orderNo || "",
-          poDo: order.poDo || "",
-          quantity: normalizeWholeQuantity(order.quantity),
-          packageType: String(order.packageType || ""),
-          description: order.description || "",
-          transportation: order.transportation || false,
-          typeOfVehicle: String(order.typeOfVehicle || ""),
-          fromLocation: String(order.fromLocation || ""),
-          pickUpFrom: order.pickUpFrom || "",
-          toLocation: String(order.toLocation || ""),
-          driverName: String(order.driverName || ""),
-          slotNo: order.slotNo || "",
-          reason: order.reason || "",
-          dispatchDate: order.dispatchDate || "",
+          orderNo: orderData.orderNo || "",
+          poDo: orderData.poDo || "",
+          quantity: normalizeWholeQuantity(orderData.quantity),
+          packageType: String(orderData.packageType || ""),
+          description: orderData.description || "",
+          transportation: orderData.transportation || false,
+          typeOfVehicle: String(orderData.typeOfVehicle || ""),
+          fromLocation: String(orderData.fromLocation || ""),
+          pickUpFrom: orderData.pickUpFrom || "",
+          toLocation: String(orderData.toLocation || ""),
+          driverName: String(orderData.driverName || ""),
+          slotNo: orderData.slotNo || "",
+          reason: orderData.reason || "",
+          dispatchDate: orderData.dispatchDate || "",
         }];
 
     setConvertFormData({
       date: editDate,
       time: editTime || (editDate ? "00:00" : ""),
-      warehouse: String(order.warehouse_id || order.warehouse || ""),
+      warehouse: String(orderData.warehouse_id || orderData.warehouse || ""),
       receivedFrom: "",
       location: "",
       documents: [],
@@ -990,11 +987,26 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     });
 
     const expandedState = {};
-    orderItems.forEach((item) => {
-      expandedState[item.id] = true;
-    });
+    orderItems.forEach((item) => { expandedState[item.id] = true; });
     setExpandedConvertOrders(expandedState);
+  };
+
+  const handleConvertToLanding = (order) => {
+    handleCloseDropdown();
+    setConvertingOrder(order);
+    applyConvertFormFromOrder(order);
     setShowConvertModal(true);
+
+    const inboundId = order.inbound_id ?? order.id;
+    if (inboundId != null && inboundId !== "") {
+      inboundOrderService
+        .getInboundById(inboundId)
+        .then(({ data }) => {
+          const detail = data?.data;
+          if (detail) applyConvertFormFromOrder(detail);
+        })
+        .catch(() => {});
+    }
   };
 
   const handleCloseConvertModal = () => {
