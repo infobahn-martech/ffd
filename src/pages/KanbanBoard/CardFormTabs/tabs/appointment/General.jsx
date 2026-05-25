@@ -1291,7 +1291,6 @@ const htmlToPlainText = (html = "") =>
     .replace(/&nbsp;/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
-
 const firstNonEmptyString = (...values) => {
   for (const value of values) {
     if (value === undefined || value === null) continue;
@@ -1463,7 +1462,7 @@ const EmailPreviewPanel = ({
   const fromValue = touchedFields?.from_email
     ? (editableFields?.from_email ?? "")
     : resolveEditablePreviewFieldValue(false, editableFields?.from_email, previewFromApi.from, fallbackFromValue) ||
-      "operations@shipping.com";
+    "operations@shipping.com";
   const fallbackToValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
   const toValue = resolveEditablePreviewFieldValue(
     touchedFields?.to_email,
@@ -1492,7 +1491,7 @@ const EmailPreviewPanel = ({
   const subjectValue = touchedFields?.subject
     ? (editableFields?.subject ?? "")
     : resolveEditablePreviewFieldValue(false, editableFields?.subject, previewFromApi.subject, subjectFallback) ||
-      "Appointment Update";
+    "Appointment Update";
   return (
     <div className="general-add-preview-panel general-add-preview-panel--split-scroll">
       <div className="email-preview-topbar">

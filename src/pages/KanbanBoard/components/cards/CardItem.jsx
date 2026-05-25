@@ -15,6 +15,7 @@ import {
   isValidProgress,
   isValidImage,
   getApiCardDisplayTitle,
+  getApiCardTaskName,
   getUsernameInitial,
 } from "../../utils/cardDisplayHelpers";
 
@@ -196,6 +197,16 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
+function ApiCardTaskLine({ card }) {
+  const taskName = getApiCardTaskName(card);
+  if (!hasText(taskName)) return null;
+  return (
+    <p className="card-api-task-name" title={taskName}>
+      {taskName}
+    </p>
+  );
+}
+
 /** API-driven board cards: only fields from backend, no mock footer / extra icon rows. */
 function ApiKanbanCardShrunk({ card, setSelectedCard }) {
   const displayTitle = getApiCardDisplayTitle(card);
@@ -220,6 +231,7 @@ function ApiKanbanCardShrunk({ card, setSelectedCard }) {
           </span>
         ) : null}
       </div>
+      <ApiCardTaskLine card={card} />
       {showSummaryRow ? (
         <div className="card-api-summary-row card-api-summary-row--compact">
           <div className="card-api-summary-left">
@@ -314,6 +326,7 @@ function ApiKanbanCardFull({
             </span>
           ) : null}
         </div>
+        <ApiCardTaskLine card={card} />
         {hasText(secondary) ? (
           <p className="card-api-secondary" title={secondary}>
             {secondary}
@@ -810,6 +823,8 @@ CardItem.propTypes = {
     progress: PropTypes.number,
     priority: PropTypes.bool,
     vesselName: PropTypes.string,
+    taskName: PropTypes.string,
+    taskId: PropTypes.string,
     transport: PropTypes.string,
     transportCount: PropTypes.number,
     hotel: PropTypes.string,

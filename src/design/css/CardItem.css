@@ -716,6 +716,17 @@
   border: 1px solid #bae6fd;
 }
 
+.card-api-task-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1d4ed8;
+  margin: 0 0 2px 0;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .card-api-secondary {
   font-size: 11px;
   font-weight: 500;
@@ -794,6 +805,10 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
+}
+
+.kanban-card-dark.kanban-card--api .card-api-task-name {
+  color: #93c5fd;
 }
 
 .kanban-card-dark.kanban-card--api .card-api-secondary {
