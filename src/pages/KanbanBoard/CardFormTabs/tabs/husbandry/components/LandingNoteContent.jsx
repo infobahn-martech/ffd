@@ -141,12 +141,14 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     getAllLandingNotes,
-    addLandingNote,
+    getLandingNoteById,
     updateLandingNote,
     landingNotes,
     landingNoteTotal,
+    landingNoteDetail,
+    clearLandingNoteDetail,
     isLoadingList,
-    isBeingAdded,
+    isLoadingView,
     isBeingUpdated,
   } = useLandingNoteReducer((state) => state);
 
@@ -174,11 +176,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     landingNoteNo: "",
     date: "",
     time: "",
-    poDo: "",
+    receivedFrom: "",
+    location: "",
+    signature: "",
     landingProof: [],
-    quantity: "",
-    packageType: "",
-    description: "",
+    remarks: "",
   });
 
   useEffect(() => {
@@ -187,34 +189,51 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
   }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, landingPage]);
 
+  useEffect(() => {
+    if (!showModal || !editingNote || !landingNoteDetail) return;
+    const detailId = landingNoteDetail.landing_note_id ?? landingNoteDetail.id;
+    const editingId = editingNote.landing_note_id ?? editingNote.id;
+    if (detailId !== editingId) return;
+    const { date, time } = splitApiDateTimeParts(landingNoteDetail.landing_date || "", "");
+    setFormData((prev) => ({
+      ...prev,
+      date: date || prev.date,
+      time: time || prev.time,
+      receivedFrom: landingNoteDetail.received_from || prev.receivedFrom,
+      location: landingNoteDetail.location || prev.location,
+      signature: landingNoteDetail.signature || prev.signature,
+      remarks: landingNoteDetail.remarks || prev.remarks,
+    }));
+  }, [landingNoteDetail]);
+
   const handleOpenModal = (note = null) => {
     setFormErrors({});
     if (note) {
-      const { date, time } = splitApiDateTimeParts(note.landing_date || "", note.landing_time || "");
+      const { date, time } = splitApiDateTimeParts(note.landing_date || "", "");
       setEditingNote(note);
-      const firstItem = note.items?.[0] ?? {};
       setFormData({
         landingNoteNo: note.landing_note_no || "",
         date,
         time,
-        poDo: firstItem.po_no || "",
-        landingProof: note.document ? [note.document] : [],
-        quantity: firstItem.quantity || "",
-        packageType: firstItem.package_type || "",
-        description: firstItem.description || "",
+        receivedFrom: note.received_from || "",
+        location: note.location || "",
+        signature: note.signature || "",
+        landingProof: [],
+        remarks: note.remarks || "",
       });
-      setSelectedFiles(note.document ? [note.document] : []);
+      setSelectedFiles([]);
+      getLandingNoteById({ landingNoteId: note.landing_note_id ?? note.id });
     } else {
       setEditingNote(null);
       setFormData({
         landingNoteNo: "",
         date: "",
         time: "",
-        poDo: "",
+        receivedFrom: "",
+        location: "",
+        signature: "",
         landingProof: [],
-        quantity: "",
-        packageType: "",
-        description: "",
+        remarks: "",
       });
       setSelectedFiles([]);
     }
@@ -229,13 +248,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       landingNoteNo: "",
       date: "",
       time: "",
-      poDo: "",
+      receivedFrom: "",
+      location: "",
+      signature: "",
       landingProof: [],
-      quantity: "",
-      packageType: "",
-      description: "",
+      remarks: "",
     });
     setSelectedFiles([]);
+    clearLandingNoteDetail();
   };
 
   const handleFormChange = (field, value) => {
@@ -253,15 +273,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const validateForm = () => {
     const errors = {};
-
     if (!formData.date) errors.date = "Date is required";
     else if (!formData.time) errors.date = "Time is required";
-    if (!String(formData.poDo || "").trim()) errors.poDo = "PO/DO is required";
-    if (!selectedFiles.length) errors.landingProof = "Landing proof is required";
-    if (!String(formData.quantity || "").trim()) errors.quantity = "Quantity is required";
-    else if (Number(formData.quantity) <= 0) errors.quantity = "Quantity must be greater than 0";
-    if (!String(formData.packageType || "").trim()) errors.packageType = "Package Type is required";
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -272,29 +285,47 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
     const landingDateTime = buildApiDateTime(formData.date, formData.time);
-    const payload = {
-      call_id: callId,
-      landing_date: landingDateTime,
-      landing_time: (formData.time || "").slice(0, 5),
-      po_do: formData.poDo,
-      quantity: Number(formData.quantity),
-      package_type: formData.packageType,
-      description: formData.description || "",
-    };
+
+    const noteItems = landingNoteDetail?.items || editingNote?.items || [];
+    const items = noteItems.map((item) => {
+      const entry = {
+        quantity: Number(item.quantity) || 0,
+        slot_no_id: Number(item.slot_no_id) || 0,
+        reason_id: Number(item.reason_id) || 0,
+        dispatch_date: item.dispatch_date || "",
+        transportation_required: Number(item.transportation_required) || 0,
+      };
+      if (item.landing_note_item_id) entry.landing_note_item_id = item.landing_note_item_id;
+      if (Number(item.transportation_required) === 1 && item.transportation) {
+        entry.transportation = {
+          vehicle_type_id: item.transportation.vehicle_type_id || null,
+          from_location_id: item.transportation.from_location_id || null,
+          pickup_location: item.transportation.pickup_location || "",
+          to_location_id: item.transportation.to_location_id || null,
+          driver_id: item.transportation.driver_id || null,
+        };
+      }
+      return entry;
+    });
+
+    const fd = new FormData();
+    fd.append("landing_date", landingDateTime);
+    fd.append("inbound_id", String(editingNote?.inbound_id || landingNoteDetail?.inbound_id || ""));
+    fd.append("warehouse_id", String(editingNote?.warehouse_id || landingNoteDetail?.warehouse_id || ""));
+    fd.append("received_from", formData.receivedFrom || "");
+    fd.append("location", formData.location || "");
+    fd.append("signature", formData.signature || "");
+    fd.append("remarks", formData.remarks || "");
+    fd.append("items", JSON.stringify(items));
+    if (selectedFiles.length > 0 && selectedFiles[0] instanceof File) {
+      fd.append("file", selectedFiles[0]);
+    }
 
     if (editingNote) {
       const landingNoteId = editingNote.landing_note_id ?? editingNote.id;
       updateLandingNote({
         landingNoteId,
-        data: payload,
-        cb: () => {
-          handleCloseModal();
-          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-        },
-      });
-    } else {
-      addLandingNote({
-        data: payload,
+        data: fd,
         cb: () => {
           handleCloseModal();
           getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
@@ -361,14 +392,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const formatDate = (dateString) => {
     return formatDisplayDateTime(dateString);
   };
-
-  const packageTypeOptions = [
-    { value: "Box", label: "Box" },
-    { value: "Pallet", label: "Pallet" },
-    { value: "Crate", label: "Crate" },
-    { value: "Bag", label: "Bag" },
-    { value: "Container", label: "Container" },
-  ];
 
   const handleDelete = (_noteId) => {
     // Delete API wiring handled in T12
@@ -821,7 +844,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{editingNote ? "Edit Landing Note" : "Add Landing Note"}</h1>
+      <h1 className="modal-title">Edit Landing Note</h1>
     </>
   );
 
@@ -832,12 +855,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="permInputs row mb-lg-3">
             <div className="col-12 mb-3">
               <FormField label="Landing Note No">
-                <FormInput
-                  type="text"
-                  value={formData.landingNoteNo}
-                  onChange={(e) => handleFormChange("landingNoteNo", e.target.value)}
-                  placeholder="Enter landing note number..."
-                />
+                <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                  <input
+                    type="text"
+                    value={formData.landingNoteNo}
+                    readOnly
+                    style={{ backgroundColor: "transparent", cursor: "not-allowed", color: "#666" }}
+                  />
+                </div>
               </FormField>
             </div>
 
@@ -868,21 +893,41 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.date}</span>}
             </div>
 
-            <div className="col-12 mb-3">
-              <FormField label="PO/DO *">
+            <div className="col-md-6 mb-3">
+              <FormField label="Received From">
                 <FormInput
                   type="text"
-                  value={formData.poDo}
-                  onChange={(e) => handleFormChange("poDo", e.target.value)}
-                  placeholder="Enter PO/DO number..."
-                  className={formErrors.poDo ? "is-invalid" : ""}
+                  value={formData.receivedFrom}
+                  onChange={(e) => handleFormChange("receivedFrom", e.target.value)}
+                  placeholder="Enter received from..."
                 />
               </FormField>
-              {formErrors.poDo && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.poDo}</span>}
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <FormField label="Location">
+                <FormInput
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => handleFormChange("location", e.target.value)}
+                  placeholder="Enter location..."
+                />
+              </FormField>
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Landing Proof *">
+              <FormField label="Signature">
+                <FormInput
+                  type="text"
+                  value={formData.signature}
+                  onChange={(e) => handleFormChange("signature", e.target.value)}
+                  placeholder="Enter signature..."
+                />
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Landing Proof">
                 <div className="document-upload-wrapper">
                   <div
                     className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
@@ -893,7 +938,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     onClick={handleBrowseClick}
                     style={{
                       "--card-color": cardColor || "#00368c",
-                      borderColor: formErrors.landingProof ? "#dc3545" : undefined,
+                      minHeight: "56px",
+                      padding: "10px 16px",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                      gap: "12px",
                     }}
                   >
                     <input
@@ -906,10 +955,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     />
                     <div className="upload-zone-content">
-                      <div className="upload-icon-wrapper"></div>
                       <div className="upload-text-content">
                         <p className="upload-main-text">
-                          Drag and drop your files here, or{" "}
+                          Drag and drop or{" "}
                           <span className="upload-link">click to browse</span>
                         </p>
                       </div>
@@ -927,11 +975,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
                           <div className="document-file-preview-info">
                             <span className="document-file-preview-name">{file.name}</span>
-                            <span className="document-file-preview-size">
-                              {file.size < 1024 * 1024
-                                ? `${(file.size / 1024).toFixed(1)} KB`
-                                : `${(file.size / 1024 / 1024).toFixed(2)} MB`}
-                            </span>
+                            {file.size != null && (
+                              <span className="document-file-preview-size">
+                                {file.size < 1024 * 1024
+                                  ? `${(file.size / 1024).toFixed(1)} KB`
+                                  : `${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                              </span>
+                            )}
                           </div>
                           <button
                             className="document-file-preview-remove"
@@ -949,44 +999,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   )}
                 </div>
               </FormField>
-              {formErrors.landingProof && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px", marginBottom: "4px" }}>{formErrors.landingProof}</span>}
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Quantity *">
-                <FormInput
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) => handleFormChange("quantity", e.target.value)}
-                  placeholder="Enter quantity..."
-                  className={formErrors.quantity ? "is-invalid" : ""}
-                />
-              </FormField>
-              {formErrors.quantity && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.quantity}</span>}
-            </div>
-
-            <div className="col-12 mb-3">
-              <FormField label="Package Type *">
-                <FormSelect
-                  value={formData.packageType}
-                  onChange={(e) => handleFormChange("packageType", e.target.value)}
-                  options={packageTypeOptions}
-                  placeholder="Select package type..."
-                  className={formErrors.packageType ? "is-invalid" : ""}
-                />
-              </FormField>
-              {formErrors.packageType && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.packageType}</span>}
-            </div>
-
-            <div className="col-12 mb-3">
-              <FormField label="Description">
-                <FormInput
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => handleFormChange("description", e.target.value)}
-                  placeholder="Enter description..."
-                />
-              </FormField>
+              <div className="card-description-wrapper">
+                <FormField label="Remarks">
+                  <ReactQuillEditor
+                    value={formData.remarks || ""}
+                    onChange={(e) => handleFormChange("remarks", e.target.value)}
+                    placeholder="Enter remarks..."
+                    name="remarks"
+                  />
+                </FormField>
+              </div>
             </div>
           </div>
         </form>
@@ -1006,13 +1031,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="landingNoteForm"
-        disabled={isBeingAdded || isBeingUpdated}
         className="btn btn-primary"
-        style={{ backgroundColor: "#00368c", opacity: (isBeingAdded || isBeingUpdated) ? 0.7 : 1, cursor: (isBeingAdded || isBeingUpdated) ? "not-allowed" : "pointer" }}
+        style={{ backgroundColor: "#00368c" }}
+        disabled={isBeingUpdated || isLoadingView}
       >
-        {editingNote
-          ? (isBeingUpdated ? "Updating..." : "Update Note")
-          : (isBeingAdded ? "Adding..." : "Add Note")}
+        {isBeingUpdated ? "Updating..." : isLoadingView ? "Loading..." : "Update Note"}
       </button>
     </div>
   );
@@ -1642,14 +1665,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <span className="material-list-title-bar"></span>
           Landing Note
         </h3>
-        <button
-          type="button"
-          className="material-add-btn"
-          onClick={() => handleOpenModal()}
-          style={{ backgroundColor: "#00368c" }}
-        >
-          + Add
-        </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
