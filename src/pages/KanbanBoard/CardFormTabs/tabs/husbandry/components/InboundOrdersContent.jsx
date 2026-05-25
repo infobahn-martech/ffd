@@ -273,6 +273,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     warehouse: "",
     receivedFrom: "",
     location: "",
+    signature: "",
     documents: [],
     remarks: "",
     orders: [{
@@ -986,6 +987,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       warehouse: String(orderData.warehouse_id || orderData.warehouse || ""),
       receivedFrom: "",
       location: "",
+      signature: "",
       documents: [],
       remarks: "",
       orders: orderItems,
@@ -1024,6 +1026,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       warehouse: "",
       receivedFrom: "",
       location: "",
+      signature: "",
       documents: [],
       remarks: "",
       orders: [{
@@ -1292,7 +1295,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         quantity: Number(order.quantity) || 0,
         package_type_id: toPositiveId(order.packageType),
         description: order.description || "",
-        slot_no: order.slotNo || "",
+        slot_no_id: toPositiveId(order.slotNo),
         reason: order.reason || "",
         transportation_required: order.transportation ? 1 : 0,
         ...(order.transportation ? {
@@ -1313,6 +1316,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("landing_time", (convertFormData.time || "").slice(0, 5));
     fd.append("received_from", convertFormData.receivedFrom || "");
     fd.append("location", convertFormData.location || "");
+    fd.append("signature", convertFormData.signature || "");
     fd.append("remarks", convertFormData.remarks || "");
     fd.append("items", JSON.stringify(items));
     if (convertFormData.documents && convertFormData.documents.length > 0) {
@@ -1919,6 +1923,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     />
                   </FormField>
                   {convertFormErrors.location && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.location}</span>}
+                </div>
+
+                <div className="col-md-6 mb-2">
+                  <FormField label="Signature">
+                    <FormInput
+                      type="text"
+                      value={convertFormData.signature}
+                      onChange={(e) => handleConvertFormChange("signature", e.target.value)}
+                      placeholder="Enter signature..."
+                    />
+                  </FormField>
                 </div>
               </div>
             </div>
