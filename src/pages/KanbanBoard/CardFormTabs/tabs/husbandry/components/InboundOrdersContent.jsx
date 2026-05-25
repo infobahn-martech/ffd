@@ -14,12 +14,21 @@ import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
 import vehicleService from "../../../../../../services/vehicleService";
+import driverService from "../../../../../../services/driverService";
+import inboundOrderService from "../../../../../../services/inboundOrderService";
+import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
+import useAlertReducer from "../../../../../../store/AlertReducer";
 
 const extractListFromApi = (body) => {
   if (body == null) return [];
   if (Array.isArray(body)) return body;
   if (Array.isArray(body.data)) return body.data;
   return [];
+};
+
+const toPositiveId = (value) => {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
 };
 
 const mergeOptionForValue = (options, value) => {
@@ -29,123 +38,77 @@ const mergeOptionForValue = (options, value) => {
   return [...options, { value: s, label: s }];
 };
 
-// Generate dummy inbound orders data
-const generateDummyInboundOrders = () => {
-  const packageTypes = ["Box", "Pallet", "Crate", "Bag", "Container"];
-  const descriptions = [
-    "Spare parts for vessel maintenance",
-    "Safety equipment and supplies",
-    "Food and beverage items",
-    "Technical equipment",
-    "Cleaning supplies",
-    "Medical supplies",
-    "Office supplies",
-    "Tools and hardware"
-  ];
-
-  const dummyOrders = [];
-  for (let i = 1; i <= 10; i++) {
-    const orderDate = new Date();
-    orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
-
-    dummyOrders.push({
-      id: i,
-      orderNo: `ORD-${String(i).padStart(5, '0')}`,
-      date: orderDate.toISOString().split('T')[0],
-      poDo: `PO-${String(i).padStart(4, '0')}`,
-      quantity: Math.floor(Math.random() * 100) + 1,
-      packageType: packageTypes[Math.floor(Math.random() * packageTypes.length)],
-      description: descriptions[Math.floor(Math.random() * descriptions.length)],
-    });
-  }
-  return dummyOrders;
-};
-
-// AttachmentsList Component (from Operation.jsx)
-const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
+const AttachmentsList = ({ attachments = [], onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
   return (
-    <div className="attachment-list-wrapper">
-      <div className="attachment-upload-section">
-        <div
-          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-          onDragEnter={onDragEnter}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          style={{ "--card-color": cardColor || "#00368c" }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="file-input-hidden"
-            accept="*/*"
-            multiple
-            onChange={onFileInputChange}
-          />
-          <div className="upload-zone-content">
-            <div className="upload-icon-wrapper">
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ color: cardColor || "#00368c" }}
-              >
-                <path
-                  d="M12 15V3M12 3L8 7M12 3L16 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7 11L12 6L17 11"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="upload-text-content">
-              <p className="upload-main-text">
-                Drag and drop your files here, or{" "}
-                <span className="upload-link">click to browse</span>
-              </p>
-              <p className="upload-sub-text">Supports all file formats</p>
-            </div>
-            {attachments.length > 0 && (
-              <div className="upload-zone-files-list">
-                {attachments.map((item, index) => (
-                  <div key={index} className="upload-zone-file-item">
-                    <span className="upload-zone-file-name">{item.name || item}</span>
-                    <button
-                      className="upload-zone-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(index);
-                      }}
-                      type="button"
-                      title="Remove file"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+    <div className="document-upload-wrapper">
+      <div
+        className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onClick={() => fileInputRef.current?.click()}
+        style={{
+          "--card-color": cardColor || "#00368c",
+          minHeight: "56px",
+          padding: "10px 16px",
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          gap: "12px",
+        }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="file-input-hidden"
+          accept="*/*"
+          multiple
+          onChange={onFileInputChange}
+        />
+        <div className="upload-zone-content">
+          <div className="upload-icon-wrapper"></div>
+          <div className="upload-text-content">
+            <p className="upload-main-text">
+              Drag and drop or{" "}
+              <span className="upload-link">click to browse</span>
+            </p>
           </div>
         </div>
       </div>
+      {attachments.length > 0 && (
+        <div className="document-file-preview-list">
+          {attachments.map((item, index) => (
+            <div key={index} className="document-file-preview-item">
+              <div className="document-file-preview-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="document-file-preview-info">
+                <span className="document-file-preview-name">{item.name || item}</span>
+                {item.size != null && (
+                  <span className="document-file-preview-size">
+                    {item.size < 1024 * 1024
+                      ? `${(item.size / 1024).toFixed(1)} KB`
+                      : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
+                  </span>
+                )}
+              </div>
+              <button
+                className="document-file-preview-remove"
+                onClick={(e) => { e.stopPropagation(); onRemove(index); }}
+                type="button"
+                title="Remove file"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -216,6 +179,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const dropdownButtonRefs = useRef({});
   const [inboundPage, setInboundPage] = useState(1);
   const INBOUND_LIMIT = 10;
+  const [isConverting, setIsConverting] = useState(false);
+  const [convertErrors, setConvertErrors] = useState({});
 
   // Form state - Basic Details
   const [formData, setFormData] = useState({
@@ -248,6 +213,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     warehouse: "",
     receivedFrom: "",
     location: "",
+    signature: "",
     documents: [],
     remarks: "",
     orders: [{
@@ -281,8 +247,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         const [whRes, pkgRes, vehRes, drvRes] = await Promise.all([
           logisticsWarehouseService.getWarehouseLocations(),
           packingTypeService.getPackingTypes(),
-          vehicleService.getMaterialVehicles(),
-          vehicleService.getMaterialDrivers(),
+          vehicleService.getAllTransportVehicles(),
+          driverService.getAllDrivers(),
         ]);
         if (cancelled) return;
         const whRows = extractListFromApi(whRes?.data);
@@ -312,11 +278,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             }))
             .filter((o) => o.value && o.label)
         );
-        const drvRows = extractListFromApi(drvRes?.data);
+        const drvPayload = drvRes?.data?.data ?? drvRes?.data ?? [];
+        const drvRows = Array.isArray(drvPayload) ? drvPayload : (Array.isArray(drvPayload?.data) ? drvPayload.data : []);
         setMaterialDriverOptions(
           drvRows
             .map((r) => ({
-              value: String(r.driver_id ?? ""),
+              value: String(r.driver_id ?? r.transport_driver_id ?? ""),
               label: String(r.driver_name ?? ""),
             }))
             .filter((o) => o.value && o.label)
@@ -331,25 +298,34 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     };
   }, []);
 
-  // Initialize with dummy data on mount if empty
+  // Load inbound orders from API
   useEffect(() => {
-    const orders = formValues.inboundOrdersList || [];
-    if (orders.length === 0) {
-      const dummyData = generateDummyInboundOrders();
-      const syntheticEvent = { target: { value: dummyData } };
-      handleChange("inboundOrdersList")(syntheticEvent);
-      setOrdersList(dummyData);
-    } else {
-      setOrdersList(orders);
-    }
-  }, [formValues.inboundOrdersList, handleChange]);
-
-  // Update local list when formValues change
-  useEffect(() => {
-    if (formValues.inboundOrdersList) {
-      setOrdersList(formValues.inboundOrdersList);
-    }
-  }, [formValues.inboundOrdersList]);
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!callId) return;
+    let cancelled = false;
+    inboundOrderService.getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const raw = data?.data ?? [];
+        const normalized = raw.map((o) => ({
+          id: o.inbound_id,
+          inbound_id: o.inbound_id,
+          orderNo: o.inbound_no || "",
+          date: o.inbound_date || "",
+          warehouse: String(o.warehouse_id || ""),
+          warehouse_id: o.warehouse_id,
+          poDo: o.items?.[0]?.po_no || "",
+          quantity: o.items?.[0]?.quantity || "",
+          packageType: o.items?.[0]?.package_type || "",
+          description: o.items?.[0]?.description || "",
+          remarks: o.remarks || "",
+          items: o.items || [],
+        }));
+        setOrdersList(normalized);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, inboundPage]);
 
   const handleOpenModal = (order = null) => {
     if (order) {
@@ -803,45 +779,77 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToLanding = (order) => {
     handleCloseDropdown();
     setConvertingOrder(order);
-    // Pre-fill form with order data
+    setConvertErrors({});
+
+    const apiItems = Array.isArray(order.items) ? order.items : [];
+    const convertOrders = apiItems.length > 0
+      ? apiItems.map((item, idx) => ({
+          id: idx + 1,
+          inboundItemId: item.inbound_item_id || null,
+          orderNo: item.order_no || "",
+          poDo: item.po_no || "",
+          quantity: String(item.quantity || ""),
+          packageType: String(item.package_type_id || ""),
+          description: item.description || "",
+          transportation: Number(item.transportation_required) === 1,
+          typeOfVehicle: String(item.transportation?.vehicle_type_id || ""),
+          fromLocation: String(item.transportation?.from_location_id || ""),
+          pickUpFrom: item.transportation?.pickup_location || "",
+          toLocation: String(item.transportation?.to_location_id || ""),
+          driverName: String(item.transportation?.driver_id || ""),
+          slotNo: "",
+          reason: "",
+          dispatchDate: "",
+        }))
+      : [{
+          id: 1,
+          inboundItemId: null,
+          orderNo: "",
+          poDo: "",
+          quantity: "",
+          packageType: "",
+          description: "",
+          transportation: false,
+          typeOfVehicle: "",
+          fromLocation: "",
+          pickUpFrom: "",
+          toLocation: "",
+          driverName: "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: "",
+        }];
+
+    const exp = {};
+    convertOrders.forEach((o) => { exp[o.id] = true; });
+
     setConvertFormData({
       date: order.date || "",
+      time: "",
       warehouse: order.warehouse || "",
       receivedFrom: "",
       location: "",
+      signature: "",
       documents: [],
       remarks: "",
-      orders: [{
-        id: 1,
-        orderNo: order.orderNo || "",
-        poDo: order.poDo || "",
-        quantity: order.quantity || "",
-        packageType: order.packageType || "",
-        description: order.description || "",
-        transportation: order.transportation || false,
-        typeOfVehicle: order.typeOfVehicle || "",
-        fromLocation: order.fromLocation || "",
-        pickUpFrom: order.pickUpFrom || "",
-        toLocation: order.toLocation || "",
-        driverName: order.driverName || "",
-        slotNo: order.slotNo || "",
-        reason: order.reason || "",
-        dispatchDate: order.dispatchDate || ""
-      }],
+      orders: convertOrders,
     });
-    setExpandedConvertOrders({ 1: true });
+    setExpandedConvertOrders(exp);
     setShowConvertModal(true);
   };
 
   const handleCloseConvertModal = () => {
     setShowConvertModal(false);
     setConvertingOrder(null);
+    setConvertErrors({});
+    setIsConverting(false);
     setConvertFormData({
       date: "",
       time: "",
       warehouse: "",
       receivedFrom: "",
       location: "",
+      signature: "",
       documents: [],
       remarks: "",
       orders: [{
@@ -1006,9 +1014,72 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleConvertSubmit = (e) => {
     e.preventDefault();
-    console.log("Convert to Landing form submitted:", convertFormData);
-    // Here you can implement the logic to save/convert the order to landing note
-    handleCloseConvertModal();
+
+    const errs = {};
+    if (!convertFormData.documents || convertFormData.documents.length === 0) {
+      errs.file = "Document upload is required";
+    }
+    setConvertErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    const inboundId = convertingOrder?.inbound_id ?? convertingOrder?.id;
+
+    const items = convertFormData.orders.map((order) => {
+      const inboundItemId = toPositiveId(order.inboundItemId);
+      const item = {
+        ...(inboundItemId ? { inbound_item_id: inboundItemId } : {}),
+        quantity: Number(order.quantity) || 0,
+        slot_no_id: toPositiveId(order.slotNo) ?? 0,
+        reason_id: toPositiveId(order.reason) ?? 0,
+        dispatch_date: order.dispatchDate || "",
+        transportation_required: order.transportation ? 1 : 0,
+      };
+      if (order.transportation) {
+        item.transportation = {
+          vehicle_type_id: toPositiveId(order.typeOfVehicle),
+          from_location_id: toPositiveId(order.fromLocation),
+          pickup_location: order.pickUpFrom || "",
+          to_location_id: toPositiveId(order.toLocation),
+          driver_id: toPositiveId(order.driverName),
+        };
+      }
+      return item;
+    });
+
+    const landingDate = convertFormData.date
+      ? (convertFormData.time ? `${convertFormData.date} ${convertFormData.time}` : convertFormData.date)
+      : "";
+
+    const fd = new FormData();
+    fd.append("inbound_id", String(inboundId));
+    fd.append("call_id", String(callId));
+    fd.append("warehouse_id", String(toPositiveId(convertFormData.warehouse) || ""));
+    fd.append("landing_date", landingDate);
+    fd.append("received_from", convertFormData.receivedFrom || "");
+    fd.append("location", convertFormData.location || "");
+    fd.append("signature", convertFormData.signature || "");
+    fd.append("remarks", convertFormData.remarks || "");
+    fd.append("items", JSON.stringify(items));
+    if (convertFormData.documents.length > 0) {
+      fd.append("file", convertFormData.documents[0].file);
+    }
+
+    setIsConverting(true);
+    inboundOrderService.convertInboundToLandingNote(fd)
+      .then((res) => {
+        setIsConverting(false);
+        handleCloseConvertModal();
+        const { success } = useAlertReducer.getState();
+        success(res?.data?.message ?? "Inbound converted to landing note successfully");
+        const { getAllLandingNotes } = useLandingNoteReducer.getState();
+        getAllLandingNotes({ call_id: callId, page: 1, limit: 10 });
+      })
+      .catch((err) => {
+        setIsConverting(false);
+        const { error } = useAlertReducer.getState();
+        error(err?.response?.data?.message ?? "Failed to convert inbound to landing note");
+      });
   };
 
 
@@ -1481,6 +1552,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     />
                   </FormField>
                 </div>
+
+                <div className="col-12 mb-2">
+                  <FormField label="Signature">
+                    <FormInput
+                      type="text"
+                      value={convertFormData.signature}
+                      onChange={(e) => handleConvertFormChange("signature", e.target.value)}
+                      placeholder="Enter signature..."
+                    />
+                  </FormField>
+                </div>
               </div>
             </div>
           </div>
@@ -1804,7 +1886,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
             {/* Document Upload - Full Width */}
             <div className="mb-lg-3 mb-sm-0" style={{ marginBottom: "24px" }}>
-              <FormField label="Document Upload">
+              <FormField label="Document Upload *">
                 <div style={{ marginTop: "8px" }}>
                   <AttachmentsList
                     attachments={convertFormData.documents || []}
@@ -1821,6 +1903,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   />
                 </div>
               </FormField>
+              {convertErrors.file && (
+                <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px" }}>
+                  {convertErrors.file}
+                </span>
+              )}
             </div>
 
             {/* Remarks - Full Width, Below Document Upload */}
@@ -1863,18 +1950,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="convertToLandingForm"
+        disabled={isConverting}
         style={{
           padding: "10px 20px",
           backgroundColor: "#00368c",
           color: "white",
           border: "none",
           borderRadius: "6px",
-          cursor: "pointer",
+          cursor: isConverting ? "not-allowed" : "pointer",
           fontSize: "14px",
           fontWeight: "500",
+          opacity: isConverting ? 0.7 : 1,
         }}
       >
-        Convert
+        {isConverting ? "Converting..." : "Convert"}
       </button>
     </div>
   );
