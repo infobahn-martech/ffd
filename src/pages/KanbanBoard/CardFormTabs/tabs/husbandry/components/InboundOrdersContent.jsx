@@ -943,6 +943,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const orderItems = apiItems.length > 0
       ? apiItems.map((item, idx) => ({
           id: item.inbound_item_id || idx + 1,
+          inboundItemId: item.inbound_item_id || null,
           orderNo: item.order_no || "",
           poDo: item.po_no || "",
           quantity: normalizeWholeQuantity(item.quantity),
@@ -960,6 +961,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         }))
       : [{
           id: 1,
+          inboundItemId: null,
           orderNo: order.orderNo || "",
           poDo: order.poDo || "",
           quantity: normalizeWholeQuantity(order.quantity),
@@ -1239,6 +1241,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       location: convertFormData.location || "",
       remarks: convertFormData.remarks || "",
       items: convertFormData.orders.map((order) => ({
+        inbound_item_id: order.inboundItemId,
         order_no: order.orderNo || "",
         po_no: order.poDo || "",
         quantity: Number(order.quantity) || 0,
