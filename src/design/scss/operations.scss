@@ -2388,22 +2388,27 @@ $send-report-optional: #80868b;
   }
 
   .compact-file-upload-label {
-    flex: 1 1 200px;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 3px;
     min-width: 0;
+    width: 100%;
   }
 
   .compact-file-upload-label-top {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
+    width: 100%;
     min-width: 0;
   }
 
   .compact-file-upload-title {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 13px;
     font-weight: 600;
     color: #1f2937;
@@ -2434,6 +2439,7 @@ $send-report-optional: #80868b;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    margin-left: auto;
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 10px;
