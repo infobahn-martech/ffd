@@ -91,24 +91,24 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               />
             </div>
 
-            <div className="business-rule-form-field">
-              <label htmlFor="br-form-tags" className="business-rule-form-label">
-                Tags
-              </label>
-              <input
-                id="br-form-tags"
-                type="text"
-                className="business-rule-form-input"
-                placeholder="Add tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-              />
-            </div>
+            <div className="business-rule-form-secondary-grid">
+              <div className="business-rule-form-field">
+                <label htmlFor="br-form-tags" className="business-rule-form-label">
+                  Tags
+                </label>
+                <input
+                  id="br-form-tags"
+                  type="text"
+                  className="business-rule-form-input business-rule-form-control"
+                  placeholder="Add tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                />
+              </div>
 
-            <div className="business-rule-form-row business-rule-form-row--split">
-              <div className="business-rule-form-field business-rule-form-field--owner">
+              <div className="business-rule-form-field">
                 <span className="business-rule-form-label">Owner</span>
-                <div className="business-rule-form-owner">
+                <div className="business-rule-form-owner business-rule-form-control">
                   <span className="business-rule-form-owner-avatar" aria-hidden>
                     {DEFAULT_OWNER.initials}
                   </span>
@@ -120,7 +120,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                 <label htmlFor="br-form-share" className="business-rule-form-label">
                   Share with
                 </label>
-                <div className="business-rule-form-select-wrap">
+                <div className="business-rule-form-select-wrap business-rule-form-control">
                   <select
                     id="br-form-share"
                     className="business-rule-form-select"
@@ -136,19 +136,26 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
                 </div>
               </div>
-            </div>
 
-            <label className="business-rule-form-toggle">
-              <input
-                type="checkbox"
-                checked={disallowTriggerChain}
-                onChange={(e) => setDisallowTriggerChain(e.target.checked)}
-              />
-              <span className="business-rule-form-toggle-track" aria-hidden />
-              <span className="business-rule-form-toggle-label">
-                Disallow business rule actions to trigger this rule
-              </span>
-            </label>
+              <div className="business-rule-form-field business-rule-form-field--toggle">
+                <span className="business-rule-form-label business-rule-form-label--spacer" aria-hidden="true">
+                  Tags
+                </span>
+                <div className="business-rule-form-toggle-box business-rule-form-control">
+                  <label className="business-rule-form-toggle">
+                    <input
+                      type="checkbox"
+                      checked={disallowTriggerChain}
+                      onChange={(e) => setDisallowTriggerChain(e.target.checked)}
+                    />
+                    <span className="business-rule-form-toggle-track" aria-hidden />
+                    <span className="business-rule-form-toggle-label">
+                      Disallow business rule actions to trigger this rule
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section className="business-rule-form-flow" aria-label="Rule builder">
