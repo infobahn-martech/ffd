@@ -142,10 +142,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     getAllLandingNotes,
     addLandingNote,
+    updateLandingNote,
     landingNotes,
     landingNoteTotal,
     isLoadingList,
     isBeingAdded,
+    isBeingUpdated,
   } = useLandingNoteReducer((state) => state);
 
   const [showModal, setShowModal] = useState(false);
@@ -280,13 +282,25 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       description: formData.description || "",
     };
 
-    addLandingNote({
-      data: payload,
-      cb: () => {
-        handleCloseModal();
-        getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-      },
-    });
+    if (editingNote) {
+      const landingNoteId = editingNote.landing_note_id ?? editingNote.id;
+      updateLandingNote({
+        landingNoteId,
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+        },
+      });
+    } else {
+      addLandingNote({
+        data: payload,
+        cb: () => {
+          handleCloseModal();
+          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+        },
+      });
+    }
   };
 
   // File upload handlers
@@ -992,11 +1006,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="landingNoteForm"
+        disabled={isBeingAdded || isBeingUpdated}
         className="btn btn-primary"
-        style={{ backgroundColor: "#00368c" }}
-        disabled={isBeingAdded}
+        style={{ backgroundColor: "#00368c", opacity: (isBeingAdded || isBeingUpdated) ? 0.7 : 1, cursor: (isBeingAdded || isBeingUpdated) ? "not-allowed" : "pointer" }}
       >
-        {isBeingAdded ? "Adding..." : editingNote ? "Update Note" : "Add Note"}
+        {editingNote
+          ? (isBeingUpdated ? "Updating..." : "Update Note")
+          : (isBeingAdded ? "Adding..." : "Add Note")}
       </button>
     </div>
   );
