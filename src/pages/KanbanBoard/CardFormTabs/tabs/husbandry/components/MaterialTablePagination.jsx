@@ -1,38 +1,74 @@
 import PropTypes from "prop-types";
 
 const MaterialTablePagination = ({ page, total, limit, onPageChange }) => {
-  if (!total || total <= 0) return null;
+  const safePage = Number(page) || 1;
+  const safeLimit = Math.max(Number(limit) || 1, 1);
+  const safeTotal = Math.max(Number(total) || 0, 0);
+  const totalPages = Math.max(Math.ceil(safeTotal / safeLimit), 1);
+  const currentPage = Math.min(Math.max(safePage, 1), totalPages);
+  const startItem = safeTotal === 0 ? 0 : (currentPage - 1) * safeLimit + 1;
+  const endItem = Math.min(currentPage * safeLimit, safeTotal);
 
-  const totalPages = Math.ceil(total / limit);
-  const start = (page - 1) * limit + 1;
-  const end = Math.min(page * limit, total);
+  const handlePageChange = (nextPage) => {
+    const clampedPage = Math.min(Math.max(nextPage, 1), totalPages);
+
+    if (clampedPage !== currentPage) {
+      onPageChange(clampedPage);
+    }
+  };
+
+  if (safeTotal <= safeLimit) {
+    return null;
+  }
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
-      <span>Showing {start} to {end} of {total} entries</span>
-      <div style={{ display: "flex", gap: "4px" }}>
+    <div
+      className="material-table-pagination"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "12px",
+        padding: "12px 0",
+        fontSize: "14px",
+      }}
+    >
+      <span style={{ color: "#666" }}>
+        Showing {startItem}-{endItem} of {safeTotal}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <button
-          onClick={() => onPageChange(Math.max(1, page - 1))}
-          disabled={page === 1}
-          style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: page === 1 ? "#f8f9fa" : "#fff", color: page === 1 ? "#aaa" : "#00368c", cursor: page === 1 ? "default" : "pointer" }}
+          type="button"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+          style={{
+            border: "1px solid #d0d5dd",
+            borderRadius: "4px",
+            background: currentPage <= 1 ? "#f5f5f5" : "#fff",
+            color: currentPage <= 1 ? "#98a2b3" : "#344054",
+            cursor: currentPage <= 1 ? "not-allowed" : "pointer",
+            padding: "6px 10px",
+          }}
         >
-          &lt;
+          Previous
         </button>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: page === p ? "#00368c" : "#fff", color: page === p ? "#fff" : "#00368c", cursor: "pointer", fontWeight: page === p ? 600 : 400 }}
-          >
-            {p}
-          </button>
-        ))}
+        <span style={{ color: "#344054", minWidth: "84px", textAlign: "center" }}>
+          Page {currentPage} of {totalPages}
+        </span>
         <button
-          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          disabled={page === totalPages}
-          style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: page === totalPages ? "#f8f9fa" : "#fff", color: page === totalPages ? "#aaa" : "#00368c", cursor: page === totalPages ? "default" : "pointer" }}
+          type="button"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+          style={{
+            border: "1px solid #d0d5dd",
+            borderRadius: "4px",
+            background: currentPage >= totalPages ? "#f5f5f5" : "#fff",
+            color: currentPage >= totalPages ? "#98a2b3" : "#344054",
+            cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
+            padding: "6px 10px",
+          }}
         >
-          &gt;
+          Next
         </button>
       </div>
     </div>
@@ -40,10 +76,16 @@ const MaterialTablePagination = ({ page, total, limit, onPageChange }) => {
 };
 
 MaterialTablePagination.propTypes = {
-  page: PropTypes.number.isRequired,
-  total: PropTypes.number.isRequired,
-  limit: PropTypes.number.isRequired,
+  page: PropTypes.number,
+  total: PropTypes.number,
+  limit: PropTypes.number,
   onPageChange: PropTypes.func.isRequired,
+};
+
+MaterialTablePagination.defaultProps = {
+  page: 1,
+  total: 0,
+  limit: 10,
 };
 
 export default MaterialTablePagination;
