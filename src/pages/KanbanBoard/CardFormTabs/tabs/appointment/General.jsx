@@ -15,7 +15,9 @@ import vesselTypeService from "../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../services/bargeTypeService";
 import vesselService from "../../../../../services/vesselService";
 import kpiTasksService from "../../../../../services/kpiTasksService";
+import useCallTaskReducer from "../../../../../store/CallTaskReducer";
 import OperationTasksPanel from "../operation/TaskTab";
+import { mapCallTasksToSections } from "../operation/operationTasksMapper";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import {
@@ -1760,6 +1762,11 @@ function General({
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
   const [operatorKpiError, setOperatorKpiError] = useState("");
+  const callTasks = useCallTaskReducer((state) => state.callTasks);
+  const isLoadingCallTasks = useCallTaskReducer((state) => state.isLoadingTasks);
+  const callTasksError = useCallTaskReducer((state) => state.tasksErrorMessage);
+  const getTasksByCall = useCallTaskReducer((state) => state.getTasksByCall);
+  const clearCallTasks = useCallTaskReducer((state) => state.clearCallTasks);
 
   const currentCallId = useMemo(
     () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
@@ -1898,6 +1905,20 @@ function General({
       delayText: row?.delay_text ? String(row.delay_text) : "",
     }));
   }, [operatorKpiTasks]);
+
+  const mappedOperationTaskSections = useMemo(
+    () => mapCallTasksToSections(callTasks),
+    [callTasks]
+  );
+
+  useEffect(() => {
+    if (isAddMode) {
+      clearCallTasks();
+      return;
+    }
+
+    void getTasksByCall({ callId: currentCallId });
+  }, [isAddMode, currentCallId, getTasksByCall, clearCallTasks]);
 
   useEffect(() => {
     if (isAddMode) {
@@ -4884,6 +4905,9 @@ ${body}
                             cardColor={accentColor}
                             isViewOnly={isViewMode}
                             embedded
+                            taskSections={mappedOperationTaskSections}
+                            isLoading={isLoadingCallTasks}
+                            error={callTasksError}
                           />
                         </div>
                       </div>
