@@ -5,7 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
-import MaterialTablePagination from "./MaterialTablePagination";
+import DateTimePickerField from "../../../components/DateTimePickerField";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -62,6 +62,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [formData, setFormData] = useState({
     orderNo: "",
     date: "",
+    time: "",
     poDo: "",
     deliveryProof: [],
     quantity: "",
@@ -107,6 +108,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         orderNo: "",
         date: "",
+        time: "",
         poDo: "",
         deliveryProof: [],
         quantity: "",
@@ -124,6 +126,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       orderNo: "",
       date: "",
+      time: "",
       poDo: "",
       deliveryProof: [],
       quantity: "",
@@ -461,14 +464,15 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="col-12 mb-3">
               <FormField label="Date">
-                <div className="cf-input">
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleFormChange("date", e.target.value)}
-                    placeholder="Select date"
-                  />
-                </div>
+                <DateTimePickerField
+                  dateValue={formData.date}
+                  timeValue={formData.time}
+                  onDateChange={(e) => handleFormChange("date", e.target.value)}
+                  onTimeChange={(e) => handleFormChange("time", e.target.value)}
+                  dateFieldName="date"
+                  timeFieldName="time"
+                  placeholder="YYYY-MM-DD hh:mm"
+                />
               </FormField>
             </div>
 
@@ -534,7 +538,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
                           <button
                             className="document-file-preview-remove"
-                            onClick={(e) => { e.stopPropagation(); handleRemoveFile(index); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFile(index);
+                            }}
                             type="button"
                             title="Remove file"
                           >
@@ -960,12 +967,23 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           </tbody>
         </table>
         </div>
-        <MaterialTablePagination
-          page={dispatchPage}
-          total={notesList.length}
-          limit={DISPATCH_LIMIT}
-          onPageChange={setDispatchPage}
-        />
+        {notesList.length > 0 && (() => {
+          const totalPages = Math.ceil(notesList.length / DISPATCH_LIMIT);
+          const start = (dispatchPage - 1) * DISPATCH_LIMIT + 1;
+          const end = Math.min(dispatchPage * DISPATCH_LIMIT, notesList.length);
+          return (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
+              <span>Showing {start} to {end} of {notesList.length} entries</span>
+              <div style={{ display: "flex", gap: "4px" }}>
+                <button onClick={() => setDispatchPage(p => Math.max(1, p - 1))} disabled={dispatchPage === 1} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: dispatchPage === 1 ? "#f8f9fa" : "#fff", color: dispatchPage === 1 ? "#aaa" : "#00368c", cursor: dispatchPage === 1 ? "default" : "pointer" }}>&lt;</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} onClick={() => setDispatchPage(p)} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: dispatchPage === p ? "#00368c" : "#fff", color: dispatchPage === p ? "#fff" : "#00368c", cursor: "pointer", fontWeight: dispatchPage === p ? 600 : 400 }}>{p}</button>
+                ))}
+                <button onClick={() => setDispatchPage(p => Math.min(totalPages, p + 1))} disabled={dispatchPage === totalPages} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: dispatchPage === totalPages ? "#f8f9fa" : "#fff", color: dispatchPage === totalPages ? "#aaa" : "#00368c", cursor: dispatchPage === totalPages ? "default" : "pointer" }}>&gt;</button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       <CustomModal

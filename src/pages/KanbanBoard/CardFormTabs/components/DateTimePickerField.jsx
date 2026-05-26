@@ -1,42 +1,46 @@
 import PropTypes from "prop-types";
-import { useMemo, useCallback, useState, useRef, useEffect } from "react";
+import { useMemo, useCallback } from "react";
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { splitApiDateTimeParts } from "../../../../helpers/dateTimeFieldUtils";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import "../../../../design/scss/general.scss";
 
-dayjs.extend(customParseFormat);
+const padDateTimePart = (value) => String(value).padStart(2, "0");
 
-const parseDateTimeParts = (dateValue, timeValue) =>
-  splitApiDateTimeParts(dateValue, timeValue);
+const combineDateTime = (dateValue, timeValue) => {
+  if (!dateValue) return null;
+  const [year, month, day] = String(dateValue)
+    .split("-")
+    .map((part) => Number(part));
 
-const toDayjsValue = (dateValue, timeValue) => {
-  const { date, time } = parseDateTimeParts(dateValue, timeValue);
-  if (!date) return null;
+  if (!year || !month || !day) return null;
 
-  const effectiveTime = time || "00:00";
-  const parsed = dayjs(`${date} ${effectiveTime}`, "YYYY-MM-DD HH:mm", true);
-  return parsed.isValid() ? parsed : null;
+  const [hours = 0, minutes = 0] = String(timeValue || "00:00")
+    .split(":")
+    .map((part) => Number(part));
+
+  const localDate = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  return Number.isNaN(localDate.getTime()) ? null : localDate;
 };
 
-const toPickerParts = (newValue) => {
-  if (newValue == null || !dayjs(newValue).isValid()) {
-    return { date: "", time: "" };
-  }
-  const parsed = dayjs(newValue);
+const splitDateTimeValue = (dateTimeValue) => {
+  if (!dateTimeValue) return { date: "", time: "" };
+
+  const parsedValue = dateTimeValue instanceof Date ? dateTimeValue : new Date(dateTimeValue);
+  if (Number.isNaN(parsedValue.getTime())) return { date: "", time: "" };
+
   return {
-    date: parsed.format("YYYY-MM-DD"),
-    time: parsed.format("HH:mm"),
+    date: `${parsedValue.getFullYear()}-${padDateTimePart(parsedValue.getMonth() + 1)}-${padDateTimePart(parsedValue.getDate())}`,
+    time: `${padDateTimePart(parsedValue.getHours())}:${padDateTimePart(parsedValue.getMinutes())}`,
   };
 };
 
 const formatDisplayDateTime = (dateValue, timeValue) => {
-  const parsed = toDayjsValue(dateValue, timeValue);
-  if (!parsed) return "";
-  return parsed.toDate().toLocaleString("en-GB", {
+  const combinedDate = combineDateTime(dateValue, timeValue);
+  if (!combinedDate) return "";
+  return combinedDate.toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -60,23 +64,18 @@ const DateTimePickerField = ({
   minDate,
   maxDate,
   popperClassName = "",
+  dateOnly = false,
 }) => {
-  const externalValue = useMemo(() => toDayjsValue(dateValue, timeValue), [dateValue, timeValue]);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [draftValue, setDraftValue] = useState(null);
-  const draftRef = useRef(null);
-
-  useEffect(() => {
-    draftRef.current = draftValue;
-  }, [draftValue]);
-
+  const selectedValue = useMemo(() => {
+    const combinedDate = combineDateTime(dateValue, timeValue);
+    return combinedDate ? dayjs(combinedDate) : null;
+  }, [dateValue, timeValue]);
   const minDateValue = useMemo(() => (minDate ? dayjs(minDate) : undefined), [minDate]);
   const maxDateValue = useMemo(() => (maxDate ? dayjs(maxDate) : undefined), [maxDate]);
 
-  const pickerValue = pickerOpen ? (draftValue ?? externalValue) : externalValue;
-
-  const emitDateTimeChange = useCallback(
-    (nextValues) => {
+  const handlePickerChange = useCallback(
+    (newValue) => {
+      const nextValues = splitDateTimeValue(newValue ? newValue.toDate() : null);
       const dateEvent = { target: { name: dateFieldName || "", value: nextValues.date } };
       const timeEvent = { target: { name: timeFieldName || "", value: nextValues.time } };
 
@@ -87,99 +86,50 @@ const DateTimePickerField = ({
     [dateFieldName, onDateChange, onDateTimeChange, onTimeChange, timeFieldName]
   );
 
-  const commitDraft = useCallback(
-    (value) => {
-      const next = value != null && dayjs(value).isValid() ? dayjs(value) : null;
-      if (!next) {
-        emitDateTimeChange({ date: "", time: "" });
-        return;
-      }
-      emitDateTimeChange(toPickerParts(next));
+  const slotProps = {
+    textField: {
+      placeholder,
+      fullWidth: true,
+      error: hasError,
+      className: "cf-datetime-input-field",
+      sx: {
+        "& .MuiInputBase-input.Mui-disabled": {
+          WebkitTextFillColor: "rgb(26, 26, 26)",
+          color: "rgb(26, 26, 26)",
+          opacity: 1,
+        },
+      },
     },
-    [emitDateTimeChange]
-  );
-
-  const handleOpen = useCallback(() => {
-    setDraftValue(externalValue);
-    draftRef.current = externalValue;
-    setPickerOpen(true);
-  }, [externalValue]);
-
-  const handleClose = useCallback(() => {
-    const draft = draftRef.current;
-    if (pickerOpen && draft != null && dayjs(draft).isValid()) {
-      const next = toPickerParts(draft);
-      const current = parseDateTimeParts(dateValue, timeValue);
-      if (next.date !== current.date || next.time !== current.time) {
-        emitDateTimeChange(next);
-      }
-    }
-    setPickerOpen(false);
-    setDraftValue(null);
-    draftRef.current = null;
-  }, [pickerOpen, dateValue, timeValue, emitDateTimeChange]);
-
-  const handleChange = useCallback(
-    (newValue, context) => {
-      const next = newValue != null && dayjs(newValue).isValid() ? dayjs(newValue) : null;
-      setDraftValue(next);
-      draftRef.current = next;
-
-      if (context?.source === "field") {
-        commitDraft(next);
-      }
+    popper: {
+      className: ["cf-datetime-popper", popperClassName].filter(Boolean).join(" "),
     },
-    [commitDraft]
-  );
-
-  const handleAccept = useCallback(
-    (newValue) => {
-      const next = newValue != null && dayjs(newValue).isValid() ? dayjs(newValue) : null;
-      setDraftValue(next);
-      draftRef.current = next;
-      commitDraft(next);
-      setPickerOpen(false);
-    },
-    [commitDraft]
-  );
+  };
 
   return (
     <div className={`cf-input date-time-row cf-datetime-picker ${hasError ? "is-invalid" : ""}`} title={formatDisplayDateTime(dateValue, timeValue)}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DateTimePicker
-          value={pickerValue}
-          referenceDate={pickerValue || externalValue || undefined}
-          onOpen={handleOpen}
-          onClose={handleClose}
-          onChange={handleChange}
-          onAccept={handleAccept}
-          disabled={disabled}
-          minDate={minDateValue}
-          maxDate={maxDateValue}
-          minutesStep={5}
-          format="YYYY-MM-DD HH:mm"
-          slotProps={{
-            textField: {
-              placeholder,
-              fullWidth: true,
-              error: hasError,
-              className: "cf-datetime-input-field",
-              sx: {
-                "& .MuiInputBase-input.Mui-disabled": {
-                  WebkitTextFillColor: "rgb(26, 26, 26)",
-                  color: "rgb(26, 26, 26)",
-                  opacity: 1,
-                },
-              },
-            },
-            popper: {
-              className: ["cf-datetime-popper", popperClassName].filter(Boolean).join(" "),
-            },
-            actionBar: {
-              actions: ["accept", "cancel"],
-            },
-          }}
-        />
+        {dateOnly ? (
+          <DatePicker
+            value={selectedValue}
+            onChange={handlePickerChange}
+            disabled={disabled}
+            minDate={minDateValue}
+            maxDate={maxDateValue}
+            format="YYYY-MM-DD"
+            slotProps={slotProps}
+          />
+        ) : (
+          <DateTimePicker
+            value={selectedValue}
+            onChange={handlePickerChange}
+            disabled={disabled}
+            minDate={minDateValue}
+            maxDate={maxDateValue}
+            minutesStep={5}
+            format="YYYY-MM-DD HH:mm"
+            slotProps={slotProps}
+          />
+        )}
       </LocalizationProvider>
     </div>
   );
@@ -199,6 +149,7 @@ DateTimePickerField.propTypes = {
   minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   popperClassName: PropTypes.string,
+  dateOnly: PropTypes.bool,
 };
 
 export default DateTimePickerField;

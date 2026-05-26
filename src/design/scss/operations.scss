@@ -8867,6 +8867,38 @@ body .material-management-modal .modal-footer {
   gap: 12px;
 }
 
+/* Material Management modal — compact upload zone */
+body .material-management-modal .document-upload-zone {
+  height: auto;
+  min-height: 80px;
+  max-width: 100%;
+  padding: 16px 20px;
+}
+
+body .material-management-modal .document-upload-zone:hover {
+  transform: none;
+}
+
+body .material-management-modal .document-upload-zone.dragging {
+  transform: none;
+}
+
+body .material-management-modal .upload-zone-content {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+}
+
+body .material-management-modal .upload-icon-wrapper {
+  margin-bottom: 0;
+}
+
+body .material-management-modal .upload-main-text {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 /* Inbound Orders — wider dialog, shorter scroll area, tighter body */
 body .inbound-orders-modal .modal-dialog {
   max-width: 1180px !important;
