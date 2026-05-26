@@ -18,12 +18,12 @@ const useInboundOrderReducer = create((set) => ({
             const { data: resData } = await inboundOrderService.saveInboundOrder(data);
             set({ isLoadingSave: false });
             const { success } = useAlertReducer.getState();
-            success(resData?.message ?? 'Inbound order saved successfully');
+            success(resData?.message ?? 'Inbound saved successfully');
             cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isLoadingSave: false });
-            error(err?.response?.data?.message ?? err.message);
+            error(err?.response?.data?.message ?? 'Failed to save inbound');
         }
     },
 

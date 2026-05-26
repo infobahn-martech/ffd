@@ -653,6 +653,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             to_location_id: Number(order.toLocation) || 0,
             driver_id: Number(order.driverName) || 0,
           };
+        } else {
+          item.transportation = null;
         }
         return item;
       });
@@ -660,8 +662,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       const createPayload = {
         call_id: callId,
         warehouse_id: Number(formData.warehouse) || 0,
-        inbound_date: buildApiDateTime(formData.date, formData.time),
-        inbound_time: (formData.time || "").slice(0, 5),
         remarks: formData.remarks || "",
         items: createItems,
       };
