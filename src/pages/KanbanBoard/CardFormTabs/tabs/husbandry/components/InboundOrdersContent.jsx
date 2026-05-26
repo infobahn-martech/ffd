@@ -614,8 +614,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         return item;
       });
 
+      const inboundId = Number(editingOrder.inbound_id);
       const updatePayload = {
-        inbound_id: editingOrder.inbound_id,
+        inbound_id: inboundId,
         call_id: callId,
         warehouse_id: Number(formData.warehouse) || 0,
         inbound_date: formData.date || "",
@@ -623,7 +624,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         items: updateItems,
       };
       updateInboundOrder({
-        inboundId: editingOrder.inbound_id,
+        inboundId: inboundId,
         data: updatePayload,
         cb: () => {
           handleCloseModal();
