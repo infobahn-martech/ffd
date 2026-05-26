@@ -61,12 +61,12 @@ const useInboundOrderReducer = create((set) => ({
             const { data: resData } = await inboundOrderService.updateInboundOrder(inboundId, data);
             set({ isBeingUpdated: false });
             const { success } = useAlertReducer.getState();
-            success(resData?.message ?? 'Inbound order updated successfully');
+            success(resData?.message ?? 'Inbound updated successfully');
             cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isBeingUpdated: false });
-            error(err?.response?.data?.message ?? err.message);
+            error(err?.response?.data?.message ?? 'Failed to update inbound');
         }
     },
 

@@ -617,9 +617,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     };
 
     if (editingOrder?.inbound_id) {
+      const updatePayload = { ...payload, inbound_id: editingOrder.inbound_id };
       updateInboundOrder({
         inboundId: editingOrder.inbound_id,
-        data: payload,
+        data: updatePayload,
         cb: () => {
           handleCloseModal();
           getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
