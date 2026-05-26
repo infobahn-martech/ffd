@@ -15,6 +15,7 @@ import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
 import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
+import useAlertReducer from "../../../../../../store/AlertReducer";
 import inboundOrderService from "../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../services/vehicleService";
 import driverService from "../../../../../../services/driverService";
@@ -955,33 +956,43 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToLanding = (order) => {
     handleCloseDropdown();
     setConvertingOrder(order);
-    // Pre-fill form with order data
+    const apiItems = Array.isArray(order.items) ? order.items : [];
+    const convertOrders = apiItems.length > 0
+      ? apiItems.map((item, idx) => ({
+          id: idx + 1,
+          inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
+          orderNo: item.order_no || "",
+          poDo: item.po_no || "",
+          quantity: item.quantity || "",
+          packageType: String(item.package_type_id || ""),
+          description: item.description || "",
+          transportation: Number(item.transportation_required) === 1,
+          transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
+          typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
+          fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+          pickUpFrom: item.transportation?.pickup_location || "",
+          toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
+          driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: "",
+        }))
+      : [{ id: 1, inbound_item_id: null, orderNo: "", poDo: "", quantity: "", packageType: "", description: "", transportation: false, typeOfVehicle: "", fromLocation: "", pickUpFrom: "", toLocation: "", driverName: "", slotNo: "", reason: "", dispatchDate: "" }];
+
+    const exp = {};
+    convertOrders.forEach((o) => { exp[o.id] = true; });
+
     setConvertFormData({
-      date: order.date || "",
-      warehouse: order.warehouse || "",
+      date: "",
+      warehouse: String(order.warehouse_id || order.warehouse || ""),
       receivedFrom: "",
       location: "",
+      signature: "",
       documents: [],
       remarks: "",
-      orders: [{
-        id: 1,
-        orderNo: order.orderNo || "",
-        poDo: order.poDo || "",
-        quantity: order.quantity || "",
-        packageType: order.packageType || "",
-        description: order.description || "",
-        transportation: order.transportation || false,
-        typeOfVehicle: order.typeOfVehicle || "",
-        fromLocation: order.fromLocation || "",
-        pickUpFrom: order.pickUpFrom || "",
-        toLocation: order.toLocation || "",
-        driverName: order.driverName || "",
-        slotNo: order.slotNo || "",
-        reason: order.reason || "",
-        dispatchDate: order.dispatchDate || ""
-      }],
+      orders: convertOrders,
     });
-    setExpandedConvertOrders({ 1: true });
+    setExpandedConvertOrders(exp);
     setShowConvertModal(true);
   };
 
@@ -1157,9 +1168,58 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleConvertSubmit = (e) => {
     e.preventDefault();
-    console.log("Convert to Landing form submitted:", convertFormData);
-    // Here you can implement the logic to save/convert the order to landing note
-    handleCloseConvertModal();
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    const inboundId = Number(convertingOrder?.inbound_id ?? convertingOrder?.id);
+
+    const items = convertFormData.orders.map((order) => {
+      const item = {
+        quantity: Number(order.quantity) || 0,
+        transportation_required: order.transportation ? 1 : 0,
+        slot_no_id: Number(order.slotNo) || null,
+        reason_id: Number(order.reason) || null,
+        dispatch_date: order.dispatchDate || "",
+      };
+      if (order.inbound_item_id) item.inbound_item_id = order.inbound_item_id;
+      if (order.transportation) {
+        item.transportation = {
+          vehicle_type_id: Number(order.typeOfVehicle) || 0,
+          from_location_id: Number(order.fromLocation) || 0,
+          pickup_location: order.pickUpFrom || "",
+          to_location_id: Number(order.toLocation) || 0,
+          driver_id: Number(order.driverName) || 0,
+        };
+        if (order.transportation_id) item.transportation.transportation_id = order.transportation_id;
+      } else {
+        item.transportation = null;
+      }
+      return item;
+    });
+
+    const fd = new FormData();
+    fd.append("inbound_id", String(inboundId));
+    fd.append("call_id", String(callId));
+    fd.append("warehouse_id", String(Number(convertFormData.warehouse) || 0));
+    fd.append("landing_date", convertFormData.date || "");
+    fd.append("received_from", convertFormData.receivedFrom || "");
+    fd.append("location", convertFormData.location || "");
+    fd.append("signature", convertFormData.signature || "");
+    fd.append("remarks", convertFormData.remarks || "");
+    fd.append("items", JSON.stringify(items));
+    if (convertFormData.documents?.length > 0) {
+      fd.append("file", convertFormData.documents[0].file);
+    }
+
+    inboundOrderService.convertInboundToLandingNote(fd)
+      .then((res) => {
+        const { success } = useAlertReducer.getState();
+        success(res?.data?.message ?? "Inbound converted to landing note successfully");
+        handleCloseConvertModal();
+        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+      })
+      .catch((err) => {
+        const { error } = useAlertReducer.getState();
+        error(err?.response?.data?.message ?? "Failed to convert inbound to landing note");
+      });
   };
 
 
