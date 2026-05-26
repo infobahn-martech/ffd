@@ -349,13 +349,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const apiItems = Array.isArray(order.items) ? order.items : [];
     const orderItems = apiItems.length > 0
       ? apiItems.map((item, idx) => ({
-          id: item.inbound_item_id || idx + 1,
+          id: idx + 1,
+          inbound_item_id: item.inbound_item_id || null,
           orderNo: item.order_no || "",
           poDo: item.po_no || "",
           quantity: item.quantity || "",
           packageType: String(item.package_type_id || ""),
           description: item.description || "",
           transportation: item.transportation_required === 1,
+          transportation_id: item.transportation?.transportation_id || null,
           typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
           fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
           pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
@@ -587,37 +589,39 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!validateForm()) return;
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
 
-    const items = formData.orders.map((order) => {
-      const item = {
-        po_no: order.poDo,
-        quantity: Number(order.quantity) || 0,
-        package_type_id: Number(order.packageType) || 0,
-        description: order.description || "",
-        transportation_required: order.transportation ? 1 : 0,
-      };
-      if (order.transportation) {
-        item.transportation = {
-          vehicle_type_id: Number(order.typeOfVehicle) || 0,
-          from_location_id: Number(order.fromLocation) || 0,
-          pickup_location: order.pickUpFrom || "",
-          to_location_id: Number(order.toLocation) || 0,
-          driver_id: Number(order.driverName) || 0,
-        };
-      }
-      return item;
-    });
-
-    const payload = {
-      call_id: callId,
-      warehouse_id: Number(formData.warehouse) || 0,
-      inbound_date: buildApiDateTime(formData.date, formData.time),
-      inbound_time: (formData.time || "").slice(0, 5),
-      remarks: formData.remarks || "",
-      items,
-    };
-
     if (editingOrder?.inbound_id) {
-      const updatePayload = { ...payload, inbound_id: editingOrder.inbound_id };
+      const updateItems = formData.orders.map((order) => {
+        const item = {
+          po_no: order.poDo || "",
+          quantity: Number(order.quantity) || 0,
+          package_type_id: Number(order.packageType) || 0,
+          description: order.description || "",
+          transportation_required: order.transportation ? 1 : 0,
+        };
+        if (order.inbound_item_id) item.inbound_item_id = Number(order.inbound_item_id);
+        if (order.orderNo) item.order_no = order.orderNo;
+        if (order.transportation) {
+          const t = {
+            vehicle_type_id: Number(order.typeOfVehicle) || 0,
+            from_location_id: Number(order.fromLocation) || 0,
+            pickup_location: order.pickUpFrom || "",
+            to_location_id: Number(order.toLocation) || 0,
+            driver_id: Number(order.driverName) || 0,
+          };
+          if (order.transportation_id) t.transportation_id = Number(order.transportation_id);
+          item.transportation = t;
+        }
+        return item;
+      });
+
+      const updatePayload = {
+        inbound_id: editingOrder.inbound_id,
+        call_id: callId,
+        warehouse_id: Number(formData.warehouse) || 0,
+        inbound_date: formData.date || "",
+        remarks: formData.remarks || "",
+        items: updateItems,
+      };
       updateInboundOrder({
         inboundId: editingOrder.inbound_id,
         data: updatePayload,
@@ -627,8 +631,37 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         },
       });
     } else {
+      const createItems = formData.orders.map((order) => {
+        const item = {
+          po_no: order.poDo || "",
+          quantity: Number(order.quantity) || 0,
+          package_type_id: Number(order.packageType) || 0,
+          description: order.description || "",
+          transportation_required: order.transportation ? 1 : 0,
+        };
+        if (order.transportation) {
+          item.transportation = {
+            vehicle_type_id: Number(order.typeOfVehicle) || 0,
+            from_location_id: Number(order.fromLocation) || 0,
+            pickup_location: order.pickUpFrom || "",
+            to_location_id: Number(order.toLocation) || 0,
+            driver_id: Number(order.driverName) || 0,
+          };
+        }
+        return item;
+      });
+
+      const createPayload = {
+        call_id: callId,
+        warehouse_id: Number(formData.warehouse) || 0,
+        inbound_date: buildApiDateTime(formData.date, formData.time),
+        inbound_time: (formData.time || "").slice(0, 5),
+        remarks: formData.remarks || "",
+        items: createItems,
+      };
+
       saveInboundOrder({
-        data: payload,
+        data: createPayload,
         cb: () => {
           handleCloseModal();
           getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
