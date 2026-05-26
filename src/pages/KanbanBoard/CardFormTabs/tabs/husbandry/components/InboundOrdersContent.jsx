@@ -613,6 +613,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           };
           if (order.transportation_id) t.transportation_id = Number(order.transportation_id);
           item.transportation = t;
+        } else {
+          item.transportation = null;
         }
         return item;
       });
