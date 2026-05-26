@@ -6,19 +6,12 @@ import "react-tooltip/dist/react-tooltip.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
-import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import MaterialTablePagination from "./MaterialTablePagination";
-import DateTimePickerField from "../../../components/DateTimePickerField";
-import {
-  buildApiDateTime,
-  formatDisplayDateTime,
-  splitApiDateTimeParts,
-} from "../../../../../../helpers/dateTimeFieldUtils";
-import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
+import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 
 
 // AttachmentsList Component (from Operation.jsx)
@@ -142,34 +135,24 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     getAllLandingNotes,
-    getLandingNoteById,
-    updateLandingNote,
-    deleteLandingNote,
     landingNotes,
-    landingNoteTotal,
-    landingNoteDetail,
-    clearLandingNoteDetail,
+    landingTotal,
     isLoadingList,
-    isLoadingView,
-    isBeingUpdated,
-    isLoadingDelete,
   } = useLandingNoteReducer((state) => state);
 
   const [showModal, setShowModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [notesList, setNotesList] = useState([]);
   const [editingNote, setEditingNote] = useState(null);
   const [convertingNote, setConvertingNote] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [formErrors, setFormErrors] = useState({});
   const fileInputRef = useRef(null);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingNote, setDeletingNote] = useState(null);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [landingPage, setLandingPage] = useState(1);
@@ -180,12 +163,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [formData, setFormData] = useState({
     landingNoteNo: "",
     date: "",
-    time: "",
-    receivedFrom: "",
-    location: "",
-    signature: "",
+    poDo: "",
     landingProof: [],
-    remarks: "",
+    quantity: "",
+    packageType: "",
+    description: "",
   });
 
   useEffect(() => {
@@ -194,51 +176,29 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
   }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, landingPage]);
 
-  useEffect(() => {
-    if (!showModal || !editingNote || !landingNoteDetail) return;
-    const detailId = landingNoteDetail.landing_note_id ?? landingNoteDetail.id;
-    const editingId = editingNote.landing_note_id ?? editingNote.id;
-    if (detailId !== editingId) return;
-    const { date, time } = splitApiDateTimeParts(landingNoteDetail.landing_date || "", "");
-    setFormData((prev) => ({
-      ...prev,
-      date: date || prev.date,
-      time: time || prev.time,
-      receivedFrom: landingNoteDetail.received_from || prev.receivedFrom,
-      location: landingNoteDetail.location || prev.location,
-      signature: landingNoteDetail.signature || prev.signature,
-      remarks: landingNoteDetail.remarks || prev.remarks,
-    }));
-  }, [landingNoteDetail]);
-
   const handleOpenModal = (note = null) => {
-    setFormErrors({});
     if (note) {
-      const { date, time } = splitApiDateTimeParts(note.landing_date || "", "");
       setEditingNote(note);
       setFormData({
-        landingNoteNo: note.landing_note_no || "",
-        date,
-        time,
-        receivedFrom: note.received_from || "",
-        location: note.location || "",
-        signature: note.signature || "",
-        landingProof: [],
-        remarks: note.remarks || "",
+        landingNoteNo: note.landingNoteNo || "",
+        date: note.date || "",
+        poDo: note.poDo || "",
+        landingProof: note.landingProof || [],
+        quantity: note.quantity || "",
+        packageType: note.packageType || "",
+        description: note.description || "",
       });
-      setSelectedFiles([]);
-      getLandingNoteById({ landingNoteId: note.landing_note_id ?? note.id });
+      setSelectedFiles(note.landingProof || []);
     } else {
       setEditingNote(null);
       setFormData({
         landingNoteNo: "",
         date: "",
-        time: "",
-        receivedFrom: "",
-        location: "",
-        signature: "",
+        poDo: "",
         landingProof: [],
-        remarks: "",
+        quantity: "",
+        packageType: "",
+        description: "",
       });
       setSelectedFiles([]);
     }
@@ -248,19 +208,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingNote(null);
-    setFormErrors({});
     setFormData({
       landingNoteNo: "",
       date: "",
-      time: "",
-      receivedFrom: "",
-      location: "",
-      signature: "",
+      poDo: "",
       landingProof: [],
-      remarks: "",
+      quantity: "",
+      packageType: "",
+      description: "",
     });
     setSelectedFiles([]);
-    clearLandingNoteDetail();
   };
 
   const handleFormChange = (field, value) => {
@@ -268,77 +225,54 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       ...prev,
       [field]: value,
     }));
-    setFormErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    if (!formData.date) errors.date = "Date is required";
-    else if (!formData.time) errors.date = "Time is required";
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
-    const landingDateTime = buildApiDateTime(formData.date, formData.time);
-
-    const noteItems = landingNoteDetail?.items || editingNote?.items || [];
-    const items = noteItems.map((item) => {
-      const slotNoId = item.slot_no_id != null && item.slot_no_id !== "" ? Number(item.slot_no_id) : null;
-      const reasonId = item.reason_id != null && item.reason_id !== "" ? Number(item.reason_id) : null;
-      const entry = {
-        quantity: Number(item.quantity) || 0,
-        slot_no_id: slotNoId,
-        reason_id: reasonId,
-        dispatch_date: item.dispatch_date || null,
-        transportation_required: Number(item.transportation_required) || 0,
-      };
-      if (item.inbound_item_id) entry.inbound_item_id = Number(item.inbound_item_id);
-      if (Number(item.transportation_required) === 1 && item.transportation) {
-        entry.transportation = {
-          vehicle_type_id: item.transportation.vehicle_type_id || null,
-          from_location_id: item.transportation.from_location_id || null,
-          pickup_location: item.transportation.pickup_location || "",
-          to_location_id: item.transportation.to_location_id || null,
-          driver_id: item.transportation.driver_id || null,
-        };
-      }
-      return entry;
-    });
-
-    const fd = new FormData();
-    fd.append("landing_date", landingDateTime);
-    fd.append("inbound_id", String(editingNote?.inbound_id || landingNoteDetail?.inbound_id || ""));
-    fd.append("warehouse_id", String(editingNote?.warehouse_id || landingNoteDetail?.warehouse_id || ""));
-    fd.append("received_from", formData.receivedFrom || "");
-    fd.append("location", formData.location || "");
-    fd.append("signature", formData.signature || "");
-    fd.append("remarks", formData.remarks || "");
-    fd.append("items", JSON.stringify(items));
-    if (selectedFiles.length > 0 && selectedFiles[0] instanceof File) {
-      fd.append("file", selectedFiles[0]);
-    }
 
     if (editingNote) {
-      const landingNoteId = editingNote.landing_note_id ?? editingNote.id;
-      updateLandingNote({
-        landingNoteId,
-        data: fd,
-        cb: () => {
-          handleCloseModal();
-          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-        },
-      });
+      // Update existing note
+      const updatedList = notesList.map(note =>
+        note.id === editingNote.id
+          ? {
+            ...note,
+            landingNoteNo: formData.landingNoteNo || note.landingNoteNo,
+            date: formData.date,
+            poDo: formData.poDo,
+            landingProof: selectedFiles,
+            quantity: formData.quantity,
+            packageType: formData.packageType,
+            description: formData.description,
+          }
+          : note
+      );
+      setNotesList(updatedList);
+
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("landingNoteList")(syntheticEvent);
+    } else {
+      // Create new note
+      const newNote = {
+        id: notesList.length > 0 ? Math.max(...notesList.map(m => m.id)) + 1 : 1,
+        landingNoteNo: formData.landingNoteNo || `LN-${String(notesList.length + 1).padStart(5, '0')}`,
+        date: formData.date,
+        poDo: formData.poDo,
+        landingProof: selectedFiles,
+        quantity: formData.quantity,
+        packageType: formData.packageType,
+        description: formData.description,
+      };
+
+      const updatedList = [...notesList, newNote];
+      setNotesList(updatedList);
+
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("landingNoteList")(syntheticEvent);
     }
+
+    handleCloseModal();
   };
 
   // File upload handlers
@@ -382,14 +316,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     });
 
     setSelectedFiles((prev) => [...prev, ...validFiles]);
-    if (validFiles.length > 0) {
-      setFormErrors((prev) => {
-        if (!prev.landingProof) return prev;
-        const next = { ...prev };
-        delete next.landingProof;
-        return next;
-      });
-    }
   };
 
   const handleRemoveFile = (index) => {
@@ -397,32 +323,32 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const formatDate = (dateString) => {
-    return formatDisplayDateTime(dateString);
-  };
-
-  const handleDelete = (note) => {
-    handleCloseDropdown();
-    setDeletingNote(note);
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!deletingNote) return;
-    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
-    const landingNoteId = deletingNote.landing_note_id ?? deletingNote.id;
-    deleteLandingNote({
-      landingNoteId,
-      cb: () => {
-        setShowDeleteModal(false);
-        setDeletingNote(null);
-        getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-      },
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-    setDeletingNote(null);
+  const packageTypeOptions = [
+    { value: "Box", label: "Box" },
+    { value: "Pallet", label: "Pallet" },
+    { value: "Crate", label: "Crate" },
+    { value: "Bag", label: "Bag" },
+    { value: "Container", label: "Container" },
+  ];
+
+  const handleDelete = (noteId) => {
+    if (window.confirm("Are you sure you want to delete this landing note?")) {
+      const updatedList = notesList.filter(note => note.id !== noteId);
+      setNotesList(updatedList);
+
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("landingNoteList")(syntheticEvent);
+    }
   };
 
   // Form state for Convert to Dispatch modal
@@ -490,7 +416,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setConvertingNote(note);
     // Pre-fill form with note data
     setConvertFormData({
-      date: note.landing_date || "",
+      date: note.date || "",
       warehouse: "",
       signature: "",
       deliveryLocation: "",
@@ -499,11 +425,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
-        orderNo: note.landing_note_no || "",
-        poDo: note.items?.[0]?.po_no || "",
-        quantity: note.items?.[0]?.quantity || "",
-        packageType: note.items?.[0]?.package_type || "",
-        description: note.items?.[0]?.description || "",
+        orderNo: note.landingNoteNo || "",
+        poDo: note.poDo || "",
+        quantity: note.quantity || "",
+        packageType: note.packageType || "",
+        description: note.description || "",
         transportation: false,
         typeOfVehicle: "",
         fromLocation: "",
@@ -761,7 +687,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Print - Landing Note ${note.landing_note_no || ''}</title>
+          <title>Print - Landing Note ${note.landingNoteNo || ''}</title>
           <style>
             body {
               font-family: "Open Sans", sans-serif;
@@ -826,31 +752,31 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             <div class="print-section-title">Note Information</div>
             <div class="print-row">
               <div class="print-label">Landing Note No:</div>
-              <div class="print-value">${note.landing_note_no || "-"}</div>
+              <div class="print-value">${note.landingNoteNo || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Date:</div>
-              <div class="print-value">${formatDate(note.landing_date) || "-"}</div>
+              <div class="print-value">${formatDate(note.date) || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">PO/DO:</div>
-              <div class="print-value">${note.items?.[0]?.po_no || "-"}</div>
+              <div class="print-value">${note.poDo || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Quantity:</div>
-              <div class="print-value">${note.items?.[0]?.quantity || "-"}</div>
+              <div class="print-value">${note.quantity || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Package Type:</div>
-              <div class="print-value">${note.items?.[0]?.package_type || "-"}</div>
+              <div class="print-value">${note.packageType || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Description:</div>
-              <div class="print-value">${note.items?.[0]?.description || "-"}</div>
+              <div class="print-value">${note.description || "-"}</div>
             </div>
             <div class="print-row">
               <div class="print-label">Landing Proof:</div>
-              <div class="print-value">${note.document ? note.document.file_name || "1 file" : "No files"}</div>
+              <div class="print-value">${note.landingProof && note.landingProof.length > 0 ? `${note.landingProof.length} file(s)` : "No files"}</div>
             </div>
           </div>
 
@@ -872,7 +798,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">Edit Landing Note</h1>
+      <h1 className="modal-title">{editingNote ? "Edit Landing Note" : "Add Landing Note"}</h1>
     </>
   );
 
@@ -883,73 +809,35 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="permInputs row mb-lg-3">
             <div className="col-12 mb-3">
               <FormField label="Landing Note No">
-                <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                <FormInput
+                  type="text"
+                  value={formData.landingNoteNo}
+                  onChange={(e) => handleFormChange("landingNoteNo", e.target.value)}
+                  placeholder="Enter landing note number..."
+                />
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Date">
+                <div className="cf-input">
                   <input
-                    type="text"
-                    value={formData.landingNoteNo}
-                    readOnly
-                    style={{ backgroundColor: "transparent", cursor: "not-allowed", color: "#666" }}
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => handleFormChange("date", e.target.value)}
+                    placeholder="Select date"
                   />
                 </div>
               </FormField>
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Date and Time *">
-                <DateTimePickerField
-                  dateValue={formData.date}
-                  timeValue={formData.time}
-                  onDateTimeChange={(nextValues) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      date: nextValues.date,
-                      time: nextValues.time,
-                    }));
-                    setFormErrors((prev) => {
-                      if (!prev.date) return prev;
-                      const next = { ...prev };
-                      delete next.date;
-                      return next;
-                    });
-                  }}
-                  dateFieldName="date"
-                  timeFieldName="time"
-                  placeholder="YYYY-MM-DD HH:mm"
-                  hasError={!!formErrors.date}
-                />
-              </FormField>
-              {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.date}</span>}
-            </div>
-
-            <div className="col-md-6 mb-3">
-              <FormField label="Received From">
+              <FormField label="PO/DO">
                 <FormInput
                   type="text"
-                  value={formData.receivedFrom}
-                  onChange={(e) => handleFormChange("receivedFrom", e.target.value)}
-                  placeholder="Enter received from..."
-                />
-              </FormField>
-            </div>
-
-            <div className="col-md-6 mb-3">
-              <FormField label="Location">
-                <FormInput
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => handleFormChange("location", e.target.value)}
-                  placeholder="Enter location..."
-                />
-              </FormField>
-            </div>
-
-            <div className="col-12 mb-3">
-              <FormField label="Signature">
-                <FormInput
-                  type="text"
-                  value={formData.signature}
-                  onChange={(e) => handleFormChange("signature", e.target.value)}
-                  placeholder="Enter signature..."
+                  value={formData.poDo}
+                  onChange={(e) => handleFormChange("poDo", e.target.value)}
+                  placeholder="Enter PO/DO number..."
                 />
               </FormField>
             </div>
@@ -964,14 +852,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={handleBrowseClick}
-                    style={{
-                      "--card-color": cardColor || "#00368c",
-                      minHeight: "56px",
-                      padding: "10px 16px",
-                      flexDirection: "row",
-                      justifyContent: "flex-start",
-                      gap: "12px",
-                    }}
+                    style={{ "--card-color": cardColor || "#00368c" }}
                   >
                     <input
                       ref={fileInputRef}
@@ -983,9 +864,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     />
                     <div className="upload-zone-content">
+                      <div className="upload-icon-wrapper"></div>
                       <div className="upload-text-content">
                         <p className="upload-main-text">
-                          Drag and drop or{" "}
+                          Drag and drop your files here, or{" "}
                           <span className="upload-link">click to browse</span>
                         </p>
                       </div>
@@ -1003,13 +885,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
                           <div className="document-file-preview-info">
                             <span className="document-file-preview-name">{file.name}</span>
-                            {file.size != null && (
-                              <span className="document-file-preview-size">
-                                {file.size < 1024 * 1024
-                                  ? `${(file.size / 1024).toFixed(1)} KB`
-                                  : `${(file.size / 1024 / 1024).toFixed(2)} MB`}
-                              </span>
-                            )}
+                            <span className="document-file-preview-size">
+                              {file.size < 1024 * 1024
+                                ? `${(file.size / 1024).toFixed(1)} KB`
+                                : `${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                            </span>
                           </div>
                           <button
                             className="document-file-preview-remove"
@@ -1030,16 +910,36 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="col-12 mb-3">
-              <div className="card-description-wrapper">
-                <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formData.remarks || ""}
-                    onChange={(e) => handleFormChange("remarks", e.target.value)}
-                    placeholder="Enter remarks..."
-                    name="remarks"
-                  />
-                </FormField>
-              </div>
+              <FormField label="Quantity">
+                <FormInput
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => handleFormChange("quantity", e.target.value)}
+                  placeholder="Enter quantity..."
+                />
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Package Type">
+                <FormSelect
+                  value={formData.packageType}
+                  onChange={(e) => handleFormChange("packageType", e.target.value)}
+                  options={packageTypeOptions}
+                  placeholder="Select package type..."
+                />
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Description">
+                <FormInput
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => handleFormChange("description", e.target.value)}
+                  placeholder="Enter description..."
+                />
+              </FormField>
             </div>
           </div>
         </form>
@@ -1061,9 +961,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         form="landingNoteForm"
         className="btn btn-primary"
         style={{ backgroundColor: "#00368c" }}
-        disabled={isBeingUpdated || isLoadingView}
       >
-        {isBeingUpdated ? "Updating..." : isLoadingView ? "Loading..." : "Update Note"}
+        {editingNote ? "Update Note" : "Add Note"}
       </button>
     </div>
   );
@@ -1607,31 +1506,31 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Note No</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.landing_note_no || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.landingNoteNo || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.landing_date) || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.date) || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.po_no || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.poDo || "-"}</div>
             </div>
           </div>
 
           <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.quantity || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.quantity || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.package_type || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.packageType || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Proof</div>
               <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>
-                {viewingNote.document ? viewingNote.document.file_name || "1 file" : "No files"}
+                {viewingNote.landingProof && viewingNote.landingProof.length > 0 ? `${viewingNote.landingProof.length} file(s)` : "No files"}
               </div>
             </div>
           </div>
@@ -1639,7 +1538,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="view-row" style={{ marginBottom: "20px" }}>
             <div className="view-item" style={{ width: "100%" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.items?.[0]?.description || "-"}</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.description || "-"}</div>
             </div>
           </div>
         </div>
@@ -1711,10 +1610,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           </thead>
           <tbody>
             {isLoadingList ? (
-              <tr><td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>Loading...</td></tr>
+              <tr>
+                <td colSpan="8" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</td>
+              </tr>
             ) : landingNotes.length > 0 ? (
-              landingNotes.map((note) => (
-                <tr key={note.landing_note_id}>
+              landingNotes.map((note) => {
+                const firstItem = Array.isArray(note.items) ? note.items[0] : null;
+                const rowKey = note.landing_note_id ?? note.id;
+                const description = firstItem?.description || "";
+                return (
+                <tr key={rowKey}>
                   <td>
                     <div className="material-table-cell">{note.landing_note_no || ""}</div>
                   </td>
@@ -1724,57 +1629,52 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.items?.[0]?.po_no || ""}</div>
+                    <div className="material-table-cell">{firstItem?.po_no || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
                       {note.document ? (
-                        <span style={{ color: "#00368c", cursor: "pointer" }}>
-                          {note.document.file_name || "1 file"}
-                        </span>
+                        <span style={{ color: "#00368c" }}>{note.document.file_name}</span>
                       ) : (
                         <span style={{ color: "#999" }}>No files</span>
                       )}
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.items?.[0]?.quantity || ""}</div>
+                    <div className="material-table-cell">{firstItem?.quantity || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.items?.[0]?.package_type || ""}</div>
+                    <div className="material-table-cell">{firstItem?.package_type || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {(() => {
-                        const desc = note.items?.[0]?.description || "";
-                        return desc.length > 13 ? (
-                          <>
-                            <Tooltip
-                              id={`description-tooltip-${note.landing_note_id}`}
-                              place="right"
-                              content={desc}
-                              className="material-table-tooltip"
-                            />
-                            <span
-                              data-tooltip-id={`description-tooltip-${note.landing_note_id}`}
-                              style={{ cursor: "help" }}
-                            >
-                              {desc.substring(0, 13)}...
-                            </span>
-                          </>
-                        ) : (
-                          <span>{desc}</span>
-                        );
-                      })()}
+                      {description.length > 13 ? (
+                        <>
+                          <Tooltip
+                            id={`description-tooltip-${rowKey}`}
+                            place="right"
+                            content={description}
+                            className="material-table-tooltip"
+                          />
+                          <span
+                            data-tooltip-id={`description-tooltip-${rowKey}`}
+                            style={{ cursor: "help" }}
+                          >
+                            {description.substring(0, 13)}...
+                          </span>
+                        </>
+                      ) : (
+                        <span>{description}</span>
+                      )}
                     </div>
                   </td>
                   <td style={{ position: "relative", whiteSpace: "nowrap", overflow: "visible" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start", flexWrap: "nowrap" }}>
-                      <Tooltip id={`view-note-${note.landing_note_id}`} place="left" content="View" />
+                      <Tooltip id={`view-note-${rowKey}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewNote(note)}
-                        data-tooltip-id={`view-note-${note.landing_note_id}`}
+                        data-tooltip-id={`view-note-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -1797,11 +1697,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
-                      <Tooltip id={`print-note-${note.landing_note_id}`} place="left" content="Print" />
+                      <Tooltip id={`print-note-${rowKey}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintNote(note)}
-                        data-tooltip-id={`print-note-${note.landing_note_id}`}
+                        data-tooltip-id={`print-note-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -1829,11 +1729,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <Tooltip id={`convert-note-${note.landing_note_id}`} place="left" content=" Convert" />
+                      <Tooltip id={`convert-note-${rowKey}`} place="left" content=" Convert" />
                       <button
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
-                        data-tooltip-id={`convert-note-${note.landing_note_id}`}
+                        data-tooltip-id={`convert-note-${rowKey}`}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
@@ -1862,12 +1762,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </button>
-                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.landing_note_id ? 9999 : "auto", flexShrink: 0 }}>
-                        <Tooltip id={`more-actions-${note.landing_note_id}`} place="left" content="More actions" />
+                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === rowKey ? 9999 : "auto", flexShrink: 0 }}>
+                        <Tooltip id={`more-actions-${rowKey}`} place="left" content="More actions" />
                         <button
                           type="button"
-                          onClick={(e) => handleToggleDropdown(note.landing_note_id, e)}
-                          data-tooltip-id={`more-actions-${note.landing_note_id}`}
+                          onClick={(e) => handleToggleDropdown(rowKey, e)}
+                          data-tooltip-id={`more-actions-${rowKey}`}
                           style={{
                             padding: "6px 8px",
                             backgroundColor: "transparent",
@@ -1892,7 +1792,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             <circle cx="12" cy="18" r="1.5" fill="currentColor" />
                           </svg>
                         </button>
-                        {openDropdownId === note.landing_note_id && createPortal(
+                        {openDropdownId === rowKey && createPortal(
                           <div
                             data-dropdown-menu
                             style={{
@@ -1940,7 +1840,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDelete(note)}
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleDelete(note.id);
+                              }}
                               style={{
                                 width: "100%",
                                 padding: "10px 16px",
@@ -1972,7 +1875,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                 </tr>
-              ))
+              );
+            })
             ) : (
               <tr>
                 <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
@@ -1985,7 +1889,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         </div>
         <MaterialTablePagination
           page={landingPage}
-          total={landingNoteTotal}
+          total={landingTotal}
           limit={LANDING_LIMIT}
           onPageChange={setLandingPage}
         />
@@ -2018,14 +1922,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         body={renderViewBody()}
         footer={renderViewFooter()}
         dialgName="modal-dialog modal-dialog-centered"
-      />
-
-      <DeleteConfirmationModal
-        show={showDeleteModal}
-        onCancel={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        isLoading={isLoadingDelete}
-        deleteText={`Are you sure you want to delete landing note${deletingNote?.landing_note_no ? ` ${deletingNote.landing_note_no}` : ""}?`}
       />
     </div>
   );

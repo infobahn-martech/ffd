@@ -1,10 +1,5 @@
 import Gateway from '../gateway/gateway';
 
 const getAllLandingNotes = (params) => Gateway.get('/material_management/get_all_landing_notes', { params });
-const getLandingNoteById = (id) => Gateway.get(`/material_management/get_landing_note_by_id/${id}`);
-const updateLandingNote = (id, data) => Gateway.post(`/material_management/update_landing_note/${id}`, data, {
-  headers: { 'Content-Type': 'multipart/form-data' },
-});
-const deleteLandingNote = (id) => Gateway.post(`/material_management/delete_landing_note/${id}`);
 
-export default { getAllLandingNotes, getLandingNoteById, updateLandingNote, deleteLandingNote };
+export default { getAllLandingNotes };
