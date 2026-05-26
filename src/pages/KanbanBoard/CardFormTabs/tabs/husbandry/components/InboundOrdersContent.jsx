@@ -350,14 +350,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const orderItems = apiItems.length > 0
       ? apiItems.map((item, idx) => ({
           id: idx + 1,
-          inbound_item_id: item.inbound_item_id || null,
+          inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
           orderNo: item.order_no || "",
           poDo: item.po_no || "",
           quantity: item.quantity || "",
           packageType: String(item.package_type_id || ""),
           description: item.description || "",
-          transportation: item.transportation_required === 1,
-          transportation_id: item.transportation?.transportation_id || null,
+          transportation: Number(item.transportation_required) === 1,
+          transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
           typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
           fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
           pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
@@ -417,7 +417,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           .getInboundById(inboundId)
           .then(({ data }) => {
             const detail = data?.data;
-            if (detail) populateFormFromOrder(detail);
+            if (detail) {
+              setEditingOrder(detail);
+              populateFormFromOrder(detail);
+            }
           })
           .catch(() => {});
       }
