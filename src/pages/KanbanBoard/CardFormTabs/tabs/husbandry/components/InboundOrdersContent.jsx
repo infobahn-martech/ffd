@@ -40,6 +40,11 @@ const mergeOptionForValue = (options, value) => {
   return [...options, { value: s, label: s }];
 };
 
+const toPositiveId = (value) => {
+  const numericValue = Number(value);
+  return Number.isInteger(numericValue) && numericValue > 0 ? numericValue : null;
+};
+
 // Generate dummy inbound orders data
 const generateDummyInboundOrders = () => {
   const packageTypes = ["Box", "Pallet", "Crate", "Bag", "Container"];
@@ -195,6 +200,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     saveInboundOrder,
     updateInboundOrder,
     deleteInboundOrder,
+    convertInboundToLandingNote,
     getAllInbound,
     getInboundById,
     clearInboundDetail,
@@ -205,6 +211,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     isLoadingSave: isSubmitting,
     isBeingUpdated,
     isLoadingDelete,
+    isBeingConverted,
     inboundDetail: viewingOrder,
   } = useInboundOrderReducer((state) => state);
 
@@ -213,6 +220,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [convertingOrder, setConvertingOrder] = useState(null);
+  const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
@@ -254,9 +262,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   // Form state for Convert to Landing modal
   const [convertFormData, setConvertFormData] = useState({
     date: "",
+    time: "",
     warehouse: "",
     receivedFrom: "",
     location: "",
+    signature: "",
     documents: [],
     remarks: "",
     orders: [{
@@ -984,6 +994,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
     setConvertFormData({
       date: "",
+      time: "",
       warehouse: String(order.warehouse_id || order.warehouse || ""),
       receivedFrom: "",
       location: "",
@@ -999,11 +1010,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseConvertModal = () => {
     setShowConvertModal(false);
     setConvertingOrder(null);
+    setConvertFormErrors({});
     setConvertFormData({
       date: "",
+      time: "",
       warehouse: "",
       receivedFrom: "",
       location: "",
+      signature: "",
       documents: [],
       remarks: "",
       orders: [{
@@ -1166,29 +1180,42 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
-  const handleConvertSubmit = (e) => {
+  const validateConvertForm = () => {
+    const errors = {};
+    if (!convertFormData.date) errors.date = "Date is required";
+    else if (!convertFormData.time) errors.date = "Time is required";
+    if (!convertFormData.receivedFrom) errors.receivedFrom = "Received From is required";
+    if (!convertFormData.location) errors.location = "Location is required";
+    if (!convertFormData.documents || convertFormData.documents.length === 0) errors.file = "File upload is required";
+    setConvertFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleConvertSubmit = async (e) => {
     e.preventDefault();
+    if (!validateConvertForm()) return;
+
+    const inboundId = toPositiveId(convertingOrder?.inbound_id ?? convertingOrder?.id);
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
-    const inboundId = Number(convertingOrder?.inbound_id ?? convertingOrder?.id);
+    if (!inboundId || !callId) return;
 
     const items = convertFormData.orders.map((order) => {
       const item = {
         quantity: Number(order.quantity) || 0,
-        transportation_required: order.transportation ? 1 : 0,
-        slot_no_id: Number(order.slotNo) || null,
-        reason_id: Number(order.reason) || null,
+        slot_no_id: toPositiveId(order.slotNo) ?? 0,
+        reason_id: toPositiveId(order.reason) ?? 0,
         dispatch_date: order.dispatchDate || "",
+        transportation_required: order.transportation ? 1 : 0,
       };
       if (order.inbound_item_id) item.inbound_item_id = order.inbound_item_id;
       if (order.transportation) {
         item.transportation = {
-          vehicle_type_id: Number(order.typeOfVehicle) || 0,
-          from_location_id: Number(order.fromLocation) || 0,
+          vehicle_type_id: toPositiveId(order.typeOfVehicle),
+          from_location_id: toPositiveId(order.fromLocation),
           pickup_location: order.pickUpFrom || "",
-          to_location_id: Number(order.toLocation) || 0,
-          driver_id: Number(order.driverName) || 0,
+          to_location_id: toPositiveId(order.toLocation),
+          driver_id: toPositiveId(order.driverName),
         };
-        if (order.transportation_id) item.transportation.transportation_id = order.transportation_id;
       } else {
         item.transportation = null;
       }
@@ -1196,10 +1223,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     });
 
     const fd = new FormData();
-    fd.append("inbound_id", String(inboundId));
-    fd.append("call_id", String(callId));
-    fd.append("warehouse_id", String(Number(convertFormData.warehouse) || 0));
-    fd.append("landing_date", convertFormData.date || "");
+    fd.append("inbound_id", inboundId);
+    fd.append("call_id", callId);
+    fd.append("warehouse_id", toPositiveId(convertFormData.warehouse));
+    fd.append("landing_date", convertFormData.date + (convertFormData.time ? ` ${convertFormData.time}` : ""));
     fd.append("received_from", convertFormData.receivedFrom || "");
     fd.append("location", convertFormData.location || "");
     fd.append("signature", convertFormData.signature || "");
@@ -1209,17 +1236,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       fd.append("file", convertFormData.documents[0].file);
     }
 
-    inboundOrderService.convertInboundToLandingNote(fd)
-      .then((res) => {
-        const { success } = useAlertReducer.getState();
-        success(res?.data?.message ?? "Inbound converted to landing note successfully");
+    convertInboundToLandingNote({
+      data: fd,
+      cb: () => {
         handleCloseConvertModal();
         getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
-      })
-      .catch((err) => {
-        const { error } = useAlertReducer.getState();
-        error(err?.response?.data?.message ?? "Failed to convert inbound to landing note");
-      });
+      },
+    });
   };
 
 
@@ -1740,58 +1763,33 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </h3>
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Date">
-                  <div className="cf-select cf-date-input">
-                    <input
-                      type="date"
-                      value={convertFormData.date}
-                      onChange={(e) => handleConvertFormChange("date", e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        fontSize: "14px",
-                        color: "#1a1a1a",
-                        fontFamily: "inherit",
-                        padding: 0,
-                        flex: 1,
-                        cursor: "pointer",
-                      }}
-                    />
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        flexShrink: 0,
-                        marginLeft: "8px",
-                        color: "#666",
-                        pointerEvents: "none",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
+                <FormField label="Date *">
+                  <DateTimePickerField
+                    dateValue={convertFormData.date}
+                    timeValue={convertFormData.time}
+                    onDateTimeChange={(nextValues) => {
+                      setConvertFormData((prev) => ({ ...prev, date: nextValues.date, time: nextValues.time }));
+                      if (convertFormErrors.date) setConvertFormErrors((prev) => { const n = { ...prev }; delete n.date; return n; });
+                    }}
+                    dateFieldName="date"
+                    timeFieldName="time"
+                    placeholder="YYYY-MM-DD hh:mm"
+                    hasError={!!convertFormErrors.date}
+                  />
                 </FormField>
+                {convertFormErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.date}</span>}
               </div>
 
               <div className="col-md-6 mb-2">
                 <FormField label="Warehouse">
-                  <FormSelect
-                    value={convertFormData.warehouse}
-                    onChange={(e) => handleConvertFormChange("warehouse", e.target.value)}
-                    options={mergeOptionForValue(warehouseLocationOptions, convertFormData.warehouse)}
-                    placeholder="Select warehouse"
-                  />
+                  <div className="cf-input" style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}>
+                    <input
+                      type="text"
+                      value={warehouseLocationOptions.find(o => o.value === convertFormData.warehouse)?.label || convertFormData.warehouse || ""}
+                      readOnly
+                      style={{ background: "transparent", cursor: "not-allowed", color: "#555" }}
+                    />
+                  </div>
                 </FormField>
               </div>
             </div>
@@ -1803,23 +1801,44 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               </h3>
               <div className="row g-2 mb-2">
                 <div className="col-md-6 mb-2">
-                  <FormField label="Received From">
+                  <FormField label="Received From *">
                     <FormInput
                       type="text"
                       value={convertFormData.receivedFrom}
-                      onChange={(e) => handleConvertFormChange("receivedFrom", e.target.value)}
+                      onChange={(e) => {
+                        handleConvertFormChange("receivedFrom", e.target.value);
+                        if (convertFormErrors.receivedFrom) setConvertFormErrors((prev) => { const n = { ...prev }; delete n.receivedFrom; return n; });
+                      }}
                       placeholder="Enter received from..."
+                      className={convertFormErrors.receivedFrom ? "is-invalid" : ""}
                     />
                   </FormField>
+                  {convertFormErrors.receivedFrom && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.receivedFrom}</span>}
                 </div>
 
                 <div className="col-md-6 mb-2">
-                  <FormField label="Location">
+                  <FormField label="Location *">
                     <FormInput
                       type="text"
                       value={convertFormData.location}
-                      onChange={(e) => handleConvertFormChange("location", e.target.value)}
+                      onChange={(e) => {
+                        handleConvertFormChange("location", e.target.value);
+                        if (convertFormErrors.location) setConvertFormErrors((prev) => { const n = { ...prev }; delete n.location; return n; });
+                      }}
                       placeholder="Enter location..."
+                      className={convertFormErrors.location ? "is-invalid" : ""}
+                    />
+                  </FormField>
+                  {convertFormErrors.location && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.location}</span>}
+                </div>
+
+                <div className="col-md-6 mb-2">
+                  <FormField label="Signature">
+                    <FormInput
+                      type="text"
+                      value={convertFormData.signature}
+                      onChange={(e) => handleConvertFormChange("signature", e.target.value)}
+                      placeholder="Enter signature..."
                     />
                   </FormField>
                 </div>
@@ -1963,204 +1982,103 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                 {expandedConvertOrders[order.id] && (
                   <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "0 0 8px 8px" }}>
-                    <div className="row g-2 mb-1">
-                      <div className="col-lg-4 col-md-6">
-                        <FormField label="Order No">
-                          <FormInput
-                            type="text"
-                            value={order.orderNo}
-                            onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)}
-                            placeholder="Enter order number..."
-                          />
-                        </FormField>
-                      </div>
 
-                      <div className="col-lg-4 col-md-6">
-                        <FormField label="PO/DO">
-                          <FormInput
-                            type="text"
-                            value={order.poDo}
-                            onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)}
-                            placeholder="Enter PO/DO number..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-lg-4 col-md-6">
-                        <FormField label="Quantity">
-                          <FormInput
-                            type="number"
-                            value={order.quantity}
-                            onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
-                            placeholder="Enter quantity..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-lg-6 col-md-12">
-                        <FormField label="Description">
-                          <FormInput
-                            type="text"
-                            value={order.description}
-                            onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)}
-                            placeholder="Enter description..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-lg-6 col-md-12">
-                        <FormField label="Package Type">
-                          <FormSelect
-                            value={order.packageType}
-                            onChange={(e) => handleConvertOrderChange(order.id, "packageType", e.target.value)}
-                            options={mergeOptionForValue(packageTypeOptions, order.packageType)}
-                            placeholder="Select package type..."
-                          />
-                        </FormField>
-                      </div>
-                    </div>
-
-                    {/* Transportation Section */}
-                    <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #e2e2ea" }}>
-                      <div style={{ marginBottom: "10px" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                          <input
-                            type="checkbox"
-                            checked={order.transportation || false}
-                            onChange={(e) => handleConvertOrderChange(order.id, "transportation", e.target.checked)}
-                            style={{ cursor: "pointer", width: "18px", height: "18px" }}
-                          />
-                          <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
-                        </label>
-                      </div>
-
-                      {order.transportation && (
-                        <div className="row g-2 mb-1">
+                    {/* Read-only inbound order details */}
+                    <div style={{ backgroundColor: "#f8f9fa", borderRadius: "6px", padding: "12px", marginBottom: "14px" }}>
+                      <p style={{ fontSize: "12px", color: "#888", margin: "0 0 8px 0", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>Inbound Order Details (Read-only)</p>
+                      <div className="row g-2">
+                        {order.orderNo && (
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Type of Vehicle">
-                              <FormSelect
-                                value={order.typeOfVehicle}
-                                onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)}
-                                options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
-                                placeholder="Select type of vehicle..."
-                              />
+                            <FormField label="Order No">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={order.orderNo} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
                             </FormField>
                           </div>
-
+                        )}
+                        {order.poDo && (
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="From Location">
-                              <FormSelect
-                                value={order.fromLocation}
-                                onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
-                                placeholder="Select from location..."
-                              />
+                            <FormField label="PO/DO">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={order.poDo} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
                             </FormField>
                           </div>
-
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="Pick-Up From">
-                              <FormInput
-                                type="text"
-                                value={order.pickUpFrom}
-                                onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
-                                placeholder="Enter pick-up location..."
-                              />
-                            </FormField>
-                          </div>
-
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="To Location">
-                              <FormSelect
-                                value={order.toLocation}
-                                onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
-                                placeholder="Select to location..."
-                              />
-                            </FormField>
-                          </div>
-
-                          <div className="col-lg-4 col-md-6">
-                            <FormField label="Driver Name">
-                              <FormSelect
-                                value={order.driverName}
-                                onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)}
-                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
-                                placeholder="Select driver name..."
-                              />
-                            </FormField>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Slot No, Reason, Dispatch Date - After Transportation */}
-                      <div className="row g-2 mb-1" style={{ marginTop: "12px" }}>
+                        )}
                         <div className="col-lg-4 col-md-6">
-                          <FormField label="Slot No">
-                            <FormSelect
-                              value={order.slotNo}
-                              onChange={(e) => handleConvertOrderChange(order.id, "slotNo", e.target.value)}
-                              options={slotNoOptions}
-                              placeholder="Select slot no..."
-                            />
-                          </FormField>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <FormField label="Reason">
-                            <FormSelect
-                              value={order.reason}
-                              onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)}
-                              options={reasonOptions}
-                              placeholder="Select reason..."
-                            />
-                          </FormField>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <FormField label="Dispatch Date">
-                            <div className="cf-select cf-date-input">
-                              <input
-                                type="date"
-                                value={order.dispatchDate}
-                                onChange={(e) => handleConvertOrderChange(order.id, "dispatchDate", e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  background: "transparent",
-                                  fontSize: "14px",
-                                  color: "#1a1a1a",
-                                  fontFamily: "inherit",
-                                  padding: 0,
-                                  flex: 1,
-                                  cursor: "pointer",
-                                }}
-                              />
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                style={{
-                                  flexShrink: 0,
-                                  marginLeft: "8px",
-                                  color: "#666",
-                                  pointerEvents: "none",
-                                  position: "relative",
-                                  zIndex: 1,
-                                }}
-                              >
-                                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                              </svg>
+                          <FormField label="Quantity">
+                            <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                              <input type="text" value={order.quantity} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
                             </div>
                           </FormField>
                         </div>
+                        {order.description && (
+                          <div className="col-lg-6 col-md-12">
+                            <FormField label="Description">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={order.description} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
+                            </FormField>
+                          </div>
+                        )}
+                        {order.packageType && (
+                          <div className="col-lg-6 col-md-12">
+                            <FormField label="Package Type">
+                              <div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}>
+                                <input type="text" value={packageTypeOptions.find(o => o.value === order.packageType)?.label || order.packageType} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} />
+                              </div>
+                            </FormField>
+                          </div>
+                        )}
+                        {order.transportation && (
+                          <>
+                            {order.typeOfVehicle && <div className="col-lg-4 col-md-6"><FormField label="Vehicle Type"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={materialVehicleOptions.find(o => o.value === order.typeOfVehicle)?.label || order.typeOfVehicle} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.fromLocation && <div className="col-lg-4 col-md-6"><FormField label="From Location"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={warehouseLocationOptions.find(o => o.value === order.fromLocation)?.label || order.fromLocation} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.pickUpFrom && <div className="col-lg-4 col-md-6"><FormField label="Pick-Up From"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={order.pickUpFrom} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.toLocation && <div className="col-lg-4 col-md-6"><FormField label="To Location"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={warehouseLocationOptions.find(o => o.value === order.toLocation)?.label || order.toLocation} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                            {order.driverName && <div className="col-lg-4 col-md-6"><FormField label="Driver"><div className="cf-input" style={{ backgroundColor: "#ececec", cursor: "not-allowed" }}><input type="text" value={materialDriverOptions.find(o => o.value === order.driverName)?.label || order.driverName} readOnly style={{ background: "transparent", cursor: "not-allowed", color: "#555" }} /></div></FormField></div>}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Editable landing note fields */}
+                    <div className="row g-2 mb-1">
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Slot No">
+                          <FormSelect
+                            value={order.slotNo}
+                            onChange={(e) => handleConvertOrderChange(order.id, "slotNo", e.target.value)}
+                            options={slotNoOptions}
+                            placeholder="Select slot no..."
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Reason">
+                          <FormSelect
+                            value={order.reason}
+                            onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)}
+                            options={reasonOptions}
+                            placeholder="Select reason..."
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Dispatch Date">
+                          <DateTimePickerField
+                            dateValue={order.dispatchDate || ""}
+                            timeValue=""
+                            onDateTimeChange={(nextValues) => {
+                              handleConvertOrderChange(order.id, "dispatchDate", nextValues.date || "");
+                            }}
+                            dateFieldName={`co_${order.id}_dispatchDate`}
+                            timeFieldName=""
+                            placeholder="YYYY-MM-DD"
+                          />
+                        </FormField>
                       </div>
                     </div>
 
@@ -2178,7 +2096,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
             {/* Document Upload - Full Width */}
             <div className="mb-lg-3 mb-sm-0" style={{ marginBottom: "24px" }}>
-              <FormField label="Document Upload">
+              <FormField label="Document Upload *">
                 <div style={{ marginTop: "8px" }}>
                   <AttachmentsList
                     attachments={convertFormData.documents || []}
@@ -2193,6 +2111,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     fileInputRef={documentsFileInputRef}
                     onFileInputChange={handleDocumentsFileInputChange}
                   />
+                  {convertFormErrors.file && (
+                    <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px" }}>
+                      {convertFormErrors.file}
+                    </span>
+                  )}
                 </div>
               </FormField>
             </div>
@@ -2221,34 +2144,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="button"
         onClick={handleCloseConvertModal}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#f5f5f5",
-          color: "#333",
-          border: "1px solid #e2e2ea",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-        }}
+        style={{ padding: "10px 20px", backgroundColor: "#f5f5f5", color: "#333", border: "1px solid #e2e2ea", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" }}
       >
         Cancel
       </button>
       <button
         type="submit"
         form="convertToLandingForm"
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#00368c",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-        }}
+        disabled={isBeingConverted}
+        style={{ padding: "10px 20px", backgroundColor: "#00368c", color: "white", border: "none", borderRadius: "6px", cursor: isBeingConverted ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: isBeingConverted ? 0.7 : 1 }}
       >
-        Convert
+        {isBeingConverted ? "Converting..." : "Convert"}
       </button>
     </div>
   );
