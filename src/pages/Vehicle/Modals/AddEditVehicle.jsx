@@ -125,6 +125,8 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Select Vehicle Purpose"
                                         searchPlaceholder="Search vehicle purpose..."
                                         hasError={Boolean(errors.vehicle_purpose)}
+                                        menuPortalTarget={document.body}
+                                        menuPosition="fixed"
                                     />
                                 )}
                             />

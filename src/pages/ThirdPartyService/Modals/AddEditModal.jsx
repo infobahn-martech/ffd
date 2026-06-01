@@ -78,43 +78,35 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
         <div className="modal-body">
             <div className="lead-form">
                 <form id="thirdPartyServiceForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                className={`form-control ${errors.third_party_service ? "is-invalid" : ""}`}
-                                placeholder="Third Party Service"
-                                {...register("third_party_service", {
-                                    required: "Third party service is required",
-                                })}
-                            />
-                            <label>
-                                Third Party Service <span className="text-danger">*</span>
-                            </label>
-                            {errors.third_party_service && (
-                                <span className="error text-danger">
-                                    {errors.third_party_service.message}
-                                </span>
-                            )}
-                        </div>
+                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
+                        <label className="phone-label">
+                            Third Party Service <span className="text-danger">*</span>
+                        </label>
+                        <input
+                            className={`form-control ${errors.third_party_service ? "is-invalid" : ""}`}
+                            placeholder="Enter third party service..."
+                            {...register("third_party_service", {
+                                required: "Third party service is required",
+                            })}
+                        />
+                        {errors.third_party_service && (
+                            <span className="error text-danger">
+                                {errors.third_party_service.message}
+                            </span>
+                        )}
                     </div>
 
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <textarea
-                                        className={`form-control ${errors.description ? "is-invalid" : ""}`}
-                                        placeholder="Description"
-                                        style={{ minHeight: "80px" }}
-                                        {...register("description")}
-                                    />
-                                    <label>Description</label>
-                                    {errors.description && (
-                                        <span className="error text-danger">{errors.description.message}</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
+                        <label className="phone-label">Description</label>
+                        <textarea
+                            className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                            placeholder="Enter description..."
+                            style={{ minHeight: "80px" }}
+                            {...register("description")}
+                        />
+                        {errors.description && (
+                            <span className="error text-danger">{errors.description.message}</span>
+                        )}
                     </div>
                 </form>
             </div>

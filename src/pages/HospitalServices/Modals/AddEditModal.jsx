@@ -8,8 +8,6 @@ import hospitalService from "../../../services/hospitalService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import "../../../design/scss/operations.scss";
-import "./hospital-service-modal.scss";
 
 const selectStyles = {
     control: (base) => ({
@@ -199,8 +197,8 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="hospitalServiceForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="hospital-service-modal__field">
-                        <label className="form-label" htmlFor="hospital-service-hospital">
+                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
+                        <label className="phone-label" htmlFor="hospital-service-hospital">
                             Hospital <span className="text-danger">*</span>
                         </label>
                         <Controller
@@ -232,8 +230,8 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                         )} */}
                     </div>
 
-                    <div className="hospital-service-modal__field">
-                        <label className="form-label" htmlFor="hospital-service-services">
+                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
+                        <label className="phone-label" htmlFor="hospital-service-services">
                             <span>Services</span>
                             <span className="text-danger">*</span>
                             {selectedCount > 0 && (
@@ -288,14 +286,14 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                         )} */}
                     </div>
 
-                    <div className="hospital-service-modal__field">
-                        <label className="form-label" htmlFor="hospital-service-remarks">
+                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
+                        <label className="phone-label" htmlFor="hospital-service-remarks">
                             Remarks
                         </label>
                         <textarea
                             id="hospital-service-remarks"
-                            className={`form-control hospital-service-modal__textarea ${errors.remarks ? "is-invalid" : ""
-                                }`}
+                            className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
+                            style={{ minHeight: "80px" }}
                             {...register("remarks")}
                         />
                     </div>
