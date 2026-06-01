@@ -919,34 +919,58 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToLanding = (order) => {
     handleCloseDropdown();
     setConvertingOrder(order);
-    // Pre-fill form with order data
+    const apiItems = Array.isArray(order.items) ? order.items : [];
+    const convertOrders = apiItems.length > 0
+      ? apiItems.map((item, idx) => ({
+          id: idx + 1,
+          inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
+          orderNo: item.order_no || "",
+          poDo: item.po_no || "",
+          quantity: item.quantity ? String(item.quantity) : "",
+          packageType: String(item.package_type_id || ""),
+          description: item.description || "",
+          transportation: Number(item.transportation_required) === 1,
+          transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
+          typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
+          fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+          pickUpFrom: item.transportation?.pickup_location || "",
+          toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
+          driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: "",
+        }))
+      : [{
+          id: 1,
+          inbound_item_id: null,
+          orderNo: "",
+          poDo: order.poDo || "",
+          quantity: order.quantity ? String(order.quantity) : "",
+          packageType: String(order.packageType || ""),
+          description: order.description || "",
+          transportation: false,
+          typeOfVehicle: "",
+          fromLocation: "",
+          pickUpFrom: "",
+          toLocation: "",
+          driverName: "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: "",
+        }];
+    const exp = {};
+    convertOrders.forEach((o) => { exp[o.id] = true; });
     setConvertFormData({
-      date: order.date || "",
+      date: "",
       time: "",
-      warehouse: order.warehouse || "",
+      warehouse: String(order.warehouse_id || ""),
       receivedFrom: "",
       location: "",
       documents: [],
       remarks: "",
-      orders: [{
-        id: 1,
-        orderNo: order.orderNo || "",
-        poDo: order.poDo || "",
-        quantity: order.quantity || "",
-        packageType: order.packageType || "",
-        description: order.description || "",
-        transportation: order.transportation || false,
-        typeOfVehicle: order.typeOfVehicle || "",
-        fromLocation: order.fromLocation || "",
-        pickUpFrom: order.pickUpFrom || "",
-        toLocation: order.toLocation || "",
-        driverName: order.driverName || "",
-        slotNo: order.slotNo || "",
-        reason: order.reason || "",
-        dispatchDate: order.dispatchDate || ""
-      }],
+      orders: convertOrders,
     });
-    setExpandedConvertOrders({ 1: true });
+    setExpandedConvertOrders(exp);
     setShowConvertModal(true);
   };
 
