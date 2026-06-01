@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
-import Select from "react-select";
+import CommonSelect from "../../../components/CommonSelect";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import useHospitalReducer from "../../../store/HospitalReducer";
@@ -8,46 +8,6 @@ import hospitalService from "../../../services/hospitalService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-
-const selectStyles = {
-    control: (base) => ({
-        ...base,
-        minHeight: 48,
-        borderRadius: 8,
-        boxShadow: "none",
-    }),
-    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-    placeholder: (base) => ({
-        ...base,
-        color: "#9ca3af",
-        fontSize: "0.9rem",
-    }),
-    option: (base, state) => ({
-        ...base,
-        backgroundColor:
-            state.isFocused || state.isSelected ? "#00368c" : base.backgroundColor,
-        color: state.isFocused || state.isSelected ? "#fff" : base.color,
-        fontWeight: state.isSelected ? 500 : base.fontWeight,
-    }),
-    multiValue: (base) => ({
-        ...base,
-        backgroundColor: "#00368c",
-    }),
-    multiValueLabel: (base) => ({
-        ...base,
-        color: "#fff",
-        fontWeight: 500,
-    }),
-    multiValueRemove: (base) => ({
-        ...base,
-        color: "#fff",
-        cursor: "pointer",
-        ":hover": {
-            backgroundColor: "rgba(255, 255, 255, 0.18)",
-            color: "#fff",
-        },
-    }),
-};
 
 export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
     const { addUpdateHospitalService, getServicesByHospital, isBeingUpdated } = useHospitalReducer(
@@ -220,6 +180,10 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     searchPlaceholder="Search hospital..."
                                     disabled={loadingOptions || isBeingUpdated}
                                     hasError={Boolean(errors.hospital_id)}
+                                    menuPortalTarget={
+                                        typeof document !== "undefined" ? document.body : null
+                                    }
+                                    menuPosition="fixed"
                                 />
                             )}
                         />
@@ -248,36 +212,38 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     (Array.isArray(v) && v.length > 0) ||
                                     "Select at least one service",
                             }}
-                            render={({ field }) => (
-                                <Select
-                                    inputId="hospital-service-services"
-                                    isMulti
-                                    classNamePrefix="react-select"
-                                    className={`crew-multi-select react-select-container ${errors.service_ids ? "is-invalid" : ""
-                                        }`}
-                                    placeholder={
-                                        loadingOptions
-                                            ? "Loading…"
-                                            : ""
-                                    }
-                                    isDisabled={loadingOptions || isBeingUpdated}
-                                    options={serviceOptions}
-                                    value={serviceOptions.filter((o) =>
-                                        (field.value || []).includes(o.value),
-                                    )}
-                                    onChange={(opts) => {
-                                        field.onChange(opts?.map((o) => o.value) ?? []);
-                                    }}
-                                    styles={selectStyles}
-                                    menuPortalTarget={
-                                        typeof document !== "undefined" ? document.body : null
-                                    }
-                                    menuPosition="fixed"
-                                    closeMenuOnSelect={false}
-                                    hideSelectedOptions={false}
-                                    aria-label="Services"
-                                />
-                            )}
+                            render={({ field }) => {
+                                const selectedOptions = serviceOptions.filter((o) =>
+                                    (field.value || []).includes(o.value),
+                                );
+
+                                return (
+                                    <CommonSelect
+                                        inputId="hospital-service-services"
+                                        isMulti
+                                        classNamePrefix="react-select"
+                                        className={`hospital-service-multi-select react-select-container ${errors.service_ids ? "is-invalid" : ""
+                                            }`}
+                                        placeholder={
+                                            loadingOptions ? "Loading…" : "Select services"
+                                        }
+                                        isDisabled={loadingOptions || isBeingUpdated}
+                                        options={serviceOptions}
+                                        value={selectedOptions}
+                                        onChange={(opts) => {
+                                            field.onChange(
+                                                Array.isArray(opts)
+                                                    ? opts.map((o) => o.value)
+                                                    : [],
+                                            );
+                                        }}
+                                        closeMenuOnSelect={false}
+                                        hideSelectedOptions={false}
+                                        maxheight={220}
+                                        aria-label="Services"
+                                    />
+                                );
+                            }}
                         />
                         {/* {errors.service_ids && (
                             <span className="error text-danger d-block mt-1 small">
@@ -293,7 +259,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                         <textarea
                             id="hospital-service-remarks"
                             className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
-                            style={{ minHeight: "80px" }}
+                            rows={3}
                             {...register("remarks")}
                         />
                     </div>

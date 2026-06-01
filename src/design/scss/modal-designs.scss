@@ -280,6 +280,111 @@ body .role-modal-sm.transport-company-modal .modal-dialog.transport-company-moda
   padding: 20px;
 }
 
+/* Master modals (Vehicle, Third Party, etc.): match form-floating rhythm with PremiumSelect */
+.role-modal-sm .lead-form {
+  .premium-select.cf-searchable-select .cf-multi-select-email-input {
+    min-height: 50px;
+    height: 50px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .premium-select.cf-searchable-select .cf-multi-select-placeholder,
+  .premium-select.cf-searchable-select .cf-multi-select-selected-value {
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 400;
+  }
+
+  .phone-wrapper > .form-control:not(textarea) {
+    min-height: 50px;
+    height: 50px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .phone-wrapper > textarea.form-control {
+    min-height: 50px;
+    height: 50px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.25;
+    resize: none;
+    padding: 10px 12px;
+  }
+
+  .react-select-container .react-select__control {
+    min-height: 50px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .react-select-container .react-select__placeholder,
+  .react-select-container .react-select__single-value,
+  .react-select-container .react-select__input-container {
+    font-size: 13px;
+  }
+
+  .form-floating.desig-inp > textarea.form-control {
+    min-height: 50px;
+    height: 50px;
+    resize: none;
+    box-sizing: border-box;
+  }
+}
+
+/* Hospital Services: align PremiumSelect + multi-select control heights in user-modal-sm */
+.user-modal-sm.hospital-service-modal .lead-form {
+  .premium-select.cf-searchable-select .cf-multi-select-email-input {
+    min-height: 52px;
+    height: 52px;
+    box-sizing: border-box;
+    font-size: 13px;
+  }
+
+  .hospital-service-multi-select.react-select-container .react-select__control {
+    min-height: 52px;
+    box-sizing: border-box;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  .premium-select.cf-searchable-select .cf-multi-select-placeholder,
+  .premium-select.cf-searchable-select .cf-multi-select-selected-value,
+  .hospital-service-multi-select.react-select-container .react-select__placeholder,
+  .hospital-service-multi-select.react-select-container .react-select__input-container {
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .hospital-service-multi-select .react-select__multi-value {
+    background-color: #00368c;
+    border-radius: 6px;
+  }
+
+  .hospital-service-multi-select .react-select__multi-value__label {
+    color: #fff;
+    font-weight: 500;
+    font-size: 13px;
+  }
+
+  .hospital-service-multi-select .react-select__multi-value__remove {
+    color: #fff;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+  }
+}
+
 /* Stage Time Mapping — wide layout for dropdowns + time-object list */
 body .stage-time-mapping-modal {
   z-index: 1300 !important;
