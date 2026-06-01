@@ -194,6 +194,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     saveInboundOrder,
     updateInboundOrder,
     deleteInboundOrder,
+    convertInboundToLandingNote,
     getAllInbound,
     getInboundById,
     clearInboundDetail,
@@ -204,6 +205,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     isLoadingSave: isSubmitting,
     isBeingUpdated,
     isLoadingDelete,
+    isBeingConverted,
     inboundDetail: viewingOrder,
   } = useInboundOrderReducer((state) => state);
 
@@ -1135,7 +1137,42 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertSubmit = (e) => {
     e.preventDefault();
     if (!validateConvertForm()) return;
-    handleCloseConvertModal();
+    const inboundId = convertingOrder?.inbound_id ?? convertingOrder?.id;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    const landingDate = convertFormData.date + (convertFormData.time ? ` ${convertFormData.time}` : "");
+    const fd = new FormData();
+    fd.append("inbound_id", inboundId);
+    fd.append("call_id", callId);
+    fd.append("warehouse_id", convertFormData.warehouse || "");
+    fd.append("landing_date", landingDate);
+    fd.append("received_from", convertFormData.receivedFrom || "");
+    fd.append("location", convertFormData.location || "");
+    fd.append("signature", convertFormData.signature || "");
+    fd.append("remarks", convertFormData.remarks || "");
+    if (convertFormData.documents?.length > 0) fd.append("file", convertFormData.documents[0].file ?? convertFormData.documents[0]);
+    const items = convertFormData.orders.map((order) => ({
+      inbound_item_id: order.inbound_item_id || null,
+      quantity: Number(order.quantity) || 0,
+      slot_no_id: Number(order.slotNo) || 0,
+      reason_id: Number(order.reason) || 0,
+      dispatch_date: order.dispatchDate || "",
+      transportation_required: order.transportation ? 1 : 0,
+      transportation: order.transportation ? {
+        vehicle_type_id: Number(order.typeOfVehicle) || 0,
+        from_location_id: Number(order.fromLocation) || 0,
+        pickup_location: order.pickUpFrom || "",
+        to_location_id: Number(order.toLocation) || 0,
+        driver_id: Number(order.driverName) || 0,
+      } : null,
+    }));
+    fd.append("items", JSON.stringify(items));
+    convertInboundToLandingNote({
+      data: fd,
+      cb: () => {
+        handleCloseConvertModal();
+        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+      },
+    });
   };
 
 
@@ -2132,18 +2169,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="convertToLandingForm"
+        disabled={isBeingConverted}
         style={{
           padding: "10px 20px",
           backgroundColor: "#00368c",
           color: "white",
           border: "none",
           borderRadius: "6px",
-          cursor: "pointer",
+          cursor: isBeingConverted ? "not-allowed" : "pointer",
           fontSize: "14px",
           fontWeight: "500",
+          opacity: isBeingConverted ? 0.7 : 1,
         }}
       >
-        Convert
+        {isBeingConverted ? "Converting..." : "Convert"}
       </button>
     </div>
   );
