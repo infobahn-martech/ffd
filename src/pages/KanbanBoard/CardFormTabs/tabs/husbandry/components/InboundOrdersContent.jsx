@@ -209,6 +209,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const [showModal, setShowModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
+  const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [convertingOrder, setConvertingOrder] = useState(null);
@@ -948,6 +949,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseConvertModal = () => {
     setShowConvertModal(false);
     setConvertingOrder(null);
+    setConvertFormErrors({});
     setConvertFormData({
       date: "",
       warehouse: "",
@@ -1115,10 +1117,21 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
+  const validateConvertForm = () => {
+    const errors = {};
+    if (!convertFormData.date) errors.date = "Date is required";
+    if (!convertFormData.receivedFrom) errors.receivedFrom = "Received From is required";
+    if (!convertFormData.location) errors.location = "Location is required";
+    convertFormData.orders.forEach((order, idx) => {
+      if (!order.quantity) errors[`co${idx}_quantity`] = "Quantity is required";
+    });
+    setConvertFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleConvertSubmit = (e) => {
     e.preventDefault();
-    console.log("Convert to Landing form submitted:", convertFormData);
-    // Here you can implement the logic to save/convert the order to landing note
+    if (!validateConvertForm()) return;
     handleCloseConvertModal();
   };
 
@@ -1640,12 +1653,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </h3>
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Date">
-                  <div className="cf-select cf-date-input">
+                <FormField label="Date *">
+                  <div className="cf-select cf-date-input" style={convertFormErrors.date ? { borderColor: "#dc3545" } : {}}>
                     <input
                       type="date"
                       value={convertFormData.date}
-                      onChange={(e) => handleConvertFormChange("date", e.target.value)}
+                      onChange={(e) => { handleConvertFormChange("date", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.date; return n; }); }}
                       onClick={(e) => e.stopPropagation()}
                       style={{
                         width: "100%",
@@ -1682,6 +1695,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </svg>
                   </div>
                 </FormField>
+                {convertFormErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.date}</span>}
               </div>
 
               <div className="col-md-6 mb-2">
@@ -1703,25 +1717,29 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               </h3>
               <div className="row g-2 mb-2">
                 <div className="col-md-6 mb-2">
-                  <FormField label="Received From">
+                  <FormField label="Received From *">
                     <FormInput
                       type="text"
                       value={convertFormData.receivedFrom}
-                      onChange={(e) => handleConvertFormChange("receivedFrom", e.target.value)}
+                      onChange={(e) => { handleConvertFormChange("receivedFrom", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.receivedFrom; return n; }); }}
                       placeholder="Enter received from..."
+                      className={convertFormErrors.receivedFrom ? "is-invalid" : ""}
                     />
                   </FormField>
+                  {convertFormErrors.receivedFrom && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.receivedFrom}</span>}
                 </div>
 
                 <div className="col-md-6 mb-2">
-                  <FormField label="Location">
+                  <FormField label="Location *">
                     <FormInput
                       type="text"
                       value={convertFormData.location}
-                      onChange={(e) => handleConvertFormChange("location", e.target.value)}
+                      onChange={(e) => { handleConvertFormChange("location", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.location; return n; }); }}
                       placeholder="Enter location..."
+                      className={convertFormErrors.location ? "is-invalid" : ""}
                     />
                   </FormField>
+                  {convertFormErrors.location && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.location}</span>}
                 </div>
               </div>
             </div>
@@ -1887,14 +1905,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="Quantity">
+                        <FormField label="Quantity *">
                           <FormInput
                             type="number"
                             value={order.quantity}
-                            onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
+                            onChange={(e) => { handleConvertOrderChange(order.id, "quantity", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n[`co${index}_quantity`]; return n; }); }}
                             placeholder="Enter quantity..."
+                            className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""}
                           />
                         </FormField>
+                        {convertFormErrors[`co${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors[`co${index}_quantity`]}</span>}
                       </div>
 
                       <div className="col-lg-6 col-md-12">
