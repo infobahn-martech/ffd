@@ -8,7 +8,7 @@ function PublicRoutes() {
   return (
     <Suspense fallback={<div />}>
       {isLoggedIn ? (
-        <Navigate to="/dashboard" />
+        <Navigate to="/workspaces" />
       ) : (
         <div className="outer">
           <Outlet />

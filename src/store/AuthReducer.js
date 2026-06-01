@@ -76,20 +76,21 @@ const useAuthReducer = create((set) => ({
       }
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({
-        errorMessage:
-          err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err?.message ||
-          "Login failed. Please try again.",
-        isLoginLoading: false,
-      });
-      error(
+      const status = err?.response?.status;
+      const apiMessage =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
-        err?.message ||
-        "Login failed. Please try again."
-      );
+        err?.message;
+      const loginErrorMessage =
+        status === 404
+          ? "Login API not found. Check VITE_API_ENDPOINT in your .env file."
+          : apiMessage || "Login failed. Please try again.";
+
+      set({
+        errorMessage: loginErrorMessage,
+        isLoginLoading: false,
+      });
+      error(loginErrorMessage);
     }
   },
   googleLogin: async ({ token, tokenType }) => {
