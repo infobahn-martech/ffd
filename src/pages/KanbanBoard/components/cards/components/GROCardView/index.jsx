@@ -13,11 +13,12 @@ import PassRequestsView from "./PassRequestsView";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import {
   GRO_MAIN_VIEWS,
-  buildGroFallbackDocuments,
   enrichGroDocWithRowKey,
-  parseGroDocumentsResponse,
+  normalizeGroApiDocuments,
+  parseDocumentsByTaskResponse,
   groApiErrorMessage,
   resolveGroCallId,
+  resolveGroTaskId,
   resolveGroPortId,
   splitInwardDateTimeString,
   parseGroPassRequestsResponse,
@@ -55,7 +56,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
-  const [documents, setDocuments] = useState(() => buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+  const [documents, setDocuments] = useState([]);
   const [isGroLoading, setIsGroLoading] = useState(false);
   const [isSavingInward, setIsSavingInward] = useState(false);
   const [groMainView, setGroMainView] = useState(GRO_MAIN_VIEWS.inward);
@@ -86,7 +87,13 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const bulkPassFileInputRef = useRef(null);
 
   const callId = resolveGroCallId(card);
+  const taskId = useMemo(() => resolveGroTaskId(card), [card]);
   const groPortId = useMemo(() => resolveGroPortId(callDetail, card), [callDetail, card]);
+
+  const applyTaskDocuments = useCallback((rawList) => {
+    const normalized = normalizeGroApiDocuments(rawList);
+    setDocuments(normalized.map((d, i) => enrichGroDocWithRowKey(d, i)));
+  }, []);
 
   const callTypeSummary = firstNonEmptyGroDisplay(
     callDetail?.call_type,
@@ -431,51 +438,51 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     };
   }, [showPassBulkPopover, syncBulkPassPopoverRect]);
 
-  const refreshGroDocuments = useCallback(async (cid) => {
-    if (cid == null || cid === "") return;
+  const refreshGroDocuments = useCallback(async () => {
+    if (!taskId) return;
     try {
-      const docsRes = await groService.getGroCustomDocs(cid);
-      const rawList = parseGroDocumentsResponse(docsRes);
-      if (rawList.length > 0) {
-        setDocuments(rawList.map((d, i) => enrichGroDocWithRowKey(d, i)));
-      } else {
-        setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
-      }
+      const docsRes = await groService.getDocumentsByTask(taskId);
+      applyTaskDocuments(parseDocumentsByTaskResponse(docsRes));
     } catch {
-      setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+      setDocuments([]);
     }
-  }, []);
+  }, [taskId, applyTaskDocuments]);
 
   useEffect(() => {
     if (callId == null || callId === "") {
       notify("Unable to load GRO data: missing call id.", "error");
       setCallDetail(null);
-      setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+      setDocuments([]);
       return undefined;
+    }
+
+    if (!taskId) {
+      notify("Unable to load documents: missing task id.", "error");
+      setDocuments([]);
     }
 
     let cancelled = false;
     const load = async () => {
       setIsGroLoading(true);
       try {
-        const [detailRes, docsRes] = await Promise.all([
-          groService.getCallDetailById(callId),
-          groService.getGroCustomDocs(callId),
-        ]);
+        const detailRes = await groService.getCallDetailById(callId);
         if (cancelled) return;
         const detail = detailRes?.data?.data ?? detailRes?.data ?? {};
         setCallDetail(detail);
-        const rawList = parseGroDocumentsResponse(docsRes);
-        if (rawList.length > 0) {
-          setDocuments(rawList.map((d, i) => enrichGroDocWithRowKey(d, i)));
-        } else {
-          setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+
+        if (!taskId) {
+          setDocuments([]);
+          return;
         }
+
+        const docsRes = await groService.getDocumentsByTask(taskId);
+        if (cancelled) return;
+        applyTaskDocuments(parseDocumentsByTaskResponse(docsRes));
       } catch (err) {
         if (cancelled) return;
         notify(groApiErrorMessage(err, "Failed to load GRO card data."), "error");
         setCallDetail(null);
-        setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+        setDocuments([]);
       } finally {
         if (!cancelled) setIsGroLoading(false);
       }
@@ -485,7 +492,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     return () => {
       cancelled = true;
     };
-  }, [callId]);
+  }, [callId, taskId, applyTaskDocuments]);
 
   const handleInwardDateTimePickerChange = useCallback(({ date, time }) => {
     if (!date) {
@@ -524,7 +531,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
       notify("Inward clearance saved successfully.", "success");
       setShowInwardClearance(false);
       resetInwardClearanceFields();
-      await refreshGroDocuments(callId);
+      await refreshGroDocuments();
       try {
         const detailRes = await groService.getCallDetailById(callId);
         setCallDetail(detailRes?.data?.data ?? detailRes?.data ?? {});
@@ -605,7 +612,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
         status,
         remarks,
       });
-      await refreshGroDocuments(callId);
+      await refreshGroDocuments();
       notify(confirmAction === "approve" ? "Document verified." : "Document rejected.", "success");
       setIsConfirmModalOpen(false);
       setSelectedDocument(null);
