@@ -257,7 +257,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
+                        <div className="form-floating desig-inp master-modal-form__textarea-tall">
                             <textarea
                                 id="hospital-service-remarks"
                                 className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
@@ -296,7 +296,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm hospital-service-modal"
+            className="role-modal-sm master-modal-form hospital-service-modal"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}

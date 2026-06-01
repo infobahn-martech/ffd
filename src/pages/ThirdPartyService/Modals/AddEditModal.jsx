@@ -5,6 +5,7 @@ import useThirdPartyServiceReducer from "../../../store/ThirdPartyReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/master-modal-form.scss";
 
 export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess }) {
     const { addThirdPartyService, updateThirdPartyService, isBeingUpdated } = useThirdPartyServiceReducer(
@@ -129,7 +130,7 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
 
     return (
         <CustomModal
-            className="role-modal-sm"
+            className="role-modal-sm master-modal-form"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
