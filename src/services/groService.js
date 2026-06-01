@@ -1,4 +1,5 @@
 import Gateway from "../gateway/gateway";
+import taskCardService from "./groService/taskCardService";
 
 export const getCallDetailById = (callId) =>
   Gateway.get(`call_file/get_call_detail_by_id/${encodeURIComponent(String(callId))}`);
@@ -30,6 +31,7 @@ const groService = {
   getPassRequests,
   uploadZawilPass,
   uploadCgPass,
+  assignTask: taskCardService.assignTask,
 };
 
 export default groService;
