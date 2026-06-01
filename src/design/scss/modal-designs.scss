@@ -340,29 +340,6 @@ body .role-modal-sm.transport-company-modal .modal-dialog.transport-company-moda
   }
 }
 
-/* Hospital / task checklist modals: PremiumSelect matches role-modal-sm field height */
-.role-modal-sm.document-checklist-modal .lead-form {
-  .phone-wrapper .premium-select.cf-searchable-select .cf-multi-select-email-input {
-    min-height: 50px;
-    height: 50px;
-    box-sizing: border-box;
-    font-size: 13px;
-    border-radius: 12px;
-  }
-
-  .phone-wrapper .premium-select.cf-searchable-select .cf-multi-select-placeholder,
-  .phone-wrapper .premium-select.cf-searchable-select .cf-multi-select-selected-value {
-    font-size: 13px;
-    line-height: 1.25;
-  }
-
-  .form-floating.desig-inp > textarea.form-control {
-    min-height: 80px;
-    height: auto;
-    resize: vertical;
-  }
-}
-
 /* Stage Time Mapping — wide layout for dropdowns + time-object list */
 body .stage-time-mapping-modal {
   z-index: 1300 !important;

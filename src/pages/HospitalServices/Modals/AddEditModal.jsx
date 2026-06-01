@@ -8,7 +8,7 @@ import hospitalService from "../../../services/hospitalService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import "../../../design/scss/document-checklist-modal.scss";
+import "./hospital-service-modal.scss";
 
 export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
     const { addUpdateHospitalService, getServicesByHospital, isBeingUpdated } = useHospitalReducer(
@@ -200,8 +200,8 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="desig-inp document-checklist-select-wrap">
-                            <label className="mb-2 d-block" htmlFor="hospital-service-services">
+                        <div className="phone-wrapper">
+                            <label className="phone-label" htmlFor="hospital-service-services">
                                 Services <span className="text-danger">*</span>
                                 {selectedCount > 0 && (
                                     <span className="text-muted ms-1">({selectedCount} selected)</span>
@@ -236,7 +236,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                             placeholder={
                                                 loadingOptions ? "Loading…" : "Select Service(s)"
                                             }
-                                            className={`document-checklist-select ${errors.service_ids ? "is-invalid" : ""
+                                            className={`hospital-service-multi-select ${errors.service_ids ? "is-invalid" : ""
                                                 }`}
                                             classNamePrefix="react-select"
                                             isDisabled={loadingOptions || isBeingUpdated}
@@ -257,19 +257,14 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <textarea
-                                        id="hospital-service-remarks"
-                                        className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
-                                        placeholder="Remarks"
-                                        style={{ minHeight: "80px" }}
-                                        {...register("remarks")}
-                                    />
-                                    <label htmlFor="hospital-service-remarks">Remarks</label>
-                                </div>
-                            </div>
+                        <div className="form-floating desig-inp">
+                            <textarea
+                                id="hospital-service-remarks"
+                                className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
+                                placeholder="Remarks"
+                                {...register("remarks")}
+                            />
+                            <label htmlFor="hospital-service-remarks">Remarks</label>
                         </div>
                     </div>
                 </form>
@@ -301,7 +296,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm document-checklist-modal"
+            className="role-modal-sm hospital-service-modal"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
