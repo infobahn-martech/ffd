@@ -6,6 +6,9 @@ export const getCallDetailById = (callId) =>
 export const getGroCustomDocs = (callId) =>
   Gateway.get(`task_card/get_gro_custom_docs/${encodeURIComponent(String(callId))}`);
 
+export const getDocumentsByTask = (taskId) =>
+  Gateway.get(`task_card/get_documents_by_task/${encodeURIComponent(String(taskId))}`);
+
 export const verifyGroDocs = (payload) => Gateway.post("task_card/verify_docs", payload);
 
 export const saveArrivalDocument = (formData) =>
@@ -21,6 +24,7 @@ export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass
 const groService = {
   getCallDetailById,
   getGroCustomDocs,
+  getDocumentsByTask,
   verifyGroDocs,
   saveArrivalDocument,
   getPassRequests,
