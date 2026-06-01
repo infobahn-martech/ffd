@@ -80,6 +80,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const [assignedUserError, setAssignedUserError] = useState("");
   const [groUserOptions, setGroUserOptions] = useState([]);
   const [groUsersLoading, setGroUsersLoading] = useState(false);
+  const [isAssigningUser, setIsAssigningUser] = useState(false);
   const bulkPassUploadBtnRef = useRef(null);
   const bulkPassPopoverPortalRef = useRef(null);
   const bulkPassFileInputRef = useRef(null);
@@ -631,10 +632,37 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
 
   const documentsSectionTitle = "Documents";
 
-  const handleAssignedUserChange = useCallback((e) => {
-    setAssignedUserId(e?.target?.value ?? "");
-    setAssignedUserError("");
-  }, []);
+  const handleAssignedUserChange = useCallback(
+    async (e) => {
+      const nextUserId = e?.target?.value ?? "";
+      const previousUserId = assignedUserId;
+
+      if (!nextUserId) {
+        setAssignedUserId("");
+        setAssignedUserError("Assigned User is required.");
+        return;
+      }
+
+      setAssignedUserId(nextUserId);
+      setAssignedUserError("");
+      setIsAssigningUser(true);
+
+      try {
+        await groService.assignTask({
+          card_id: card?.card_id || card?.id,
+          user_id: nextUserId,
+        });
+
+        notify("Assigned user updated successfully.", "success");
+      } catch (err) {
+        setAssignedUserId(previousUserId);
+        notify(groApiErrorMessage(err, "Failed to assign user."), "error");
+      } finally {
+        setIsAssigningUser(false);
+      }
+    },
+    [assignedUserId, card]
+  );
 
   const bulkPassPopoverStyle =
     showPassBulkPopover && bulkPassPopoverRect != null
@@ -702,7 +730,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
               options={assignedUserSelectOptions}
               placeholder={groUsersLoading ? "Loading…" : "Select user"}
               searchPlaceholder={deriveSearchPlaceholder("Select user")}
-              disabled={groUsersLoading || isGroLoading}
+              disabled={groUsersLoading || isGroLoading || isAssigningUser}
               hasError={Boolean(assignedUserError)}
               className="gro-summary-searchable-select"
               menuPortalTarget={typeof document !== "undefined" ? document.body : null}
