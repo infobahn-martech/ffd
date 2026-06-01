@@ -1727,12 +1727,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <div className="lead-form">
         <form id="convertToLandingForm" onSubmit={handleConvertSubmit}>
           {/* Basic Details Section */}
-          <div style={{ marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid #e2e2ea" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>
+          <div style={{ marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #e2e2ea" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
               Basic Details
             </h3>
-            <div className="row g-2 mb-2">
-              <div className="col-md-6 mb-2">
+            <div className="row mb-lg-3">
+              <div className="col-md-6 mb-3">
                 <FormField label="Date *">
                   <DateTimePickerField
                     dateValue={convertFormData.date}
@@ -1750,7 +1750,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 {convertFormErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.date}</span>}
               </div>
 
-              <div className="col-md-6 mb-2">
+              <div className="col-md-6 mb-3">
                 <FormField label="Warehouse">
                   <FormSelect
                     value={convertFormData.warehouse}
@@ -1763,12 +1763,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             {/* Receipt Details Section */}
-            <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e2e2ea" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>
+            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
                 Receipt Details
               </h3>
-              <div className="row g-2 mb-2">
-                <div className="col-md-6 mb-2">
+              <div className="row mb-lg-3">
+                <div className="col-md-6 mb-3">
                   <FormField label="Received From *">
                     <FormInput
                       type="text"
@@ -1781,7 +1781,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   {convertFormErrors.receivedFrom && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.receivedFrom}</span>}
                 </div>
 
-                <div className="col-md-6 mb-2">
+                <div className="col-md-6 mb-3">
                   <FormField label="Location *">
                     <FormInput
                       type="text"
@@ -1799,8 +1799,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Order Details Section */}
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
                 Order Details
               </h3>
               <button
