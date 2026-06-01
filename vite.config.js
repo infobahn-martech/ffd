@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   plugins: [react()],
-  // Dev: root URL (http://localhost:5173/). Production: GitHub Pages subpath.
-  base: command === 'serve' ? '/' : '/sedres-fe/',
+  base: '/sedres-fe/',
   build: {
     outDir: 'dist',
   },
-}));
+});

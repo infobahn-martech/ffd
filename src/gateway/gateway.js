@@ -1,31 +1,21 @@
 import axios from "axios";
 
-const DEV_API_FALLBACK = "https://onlinebareed.com/sedres/";
-// Example .env: VITE_API_ENDPOINT=https://onlinebareed.com/sedres/
+const BASE = import.meta.env.VITE_API_ENDPOINT;
+// Example: https://infobahn.asia/sedres/   OR  https://infobahn.asia/sedres/api/
 
 const normalizeBaseUrl = (base) => {
   if (!base) return "";
+  // ensure ends with /
   return base.endsWith("/") ? base : `${base}/`;
 };
 
-const resolveApiBaseUrl = () => {
-  const raw = (import.meta.env.VITE_API_ENDPOINT || "").trim();
-  const base = raw || (import.meta.env.DEV ? DEV_API_FALLBACK : "");
-
-  if (!base) {
-    console.error(
-      "VITE_API_ENDPOINT is not set. Add it to .env (see .env.example). Login API calls will fail.",
-    );
-    return "api/";
-  }
-
-  const b = normalizeBaseUrl(base);
+const baseURL = (() => {
+  const b = normalizeBaseUrl(BASE);
+  // If env already contains /api, don’t add again
   if (b.endsWith("/api/")) return b;
   if (b.endsWith("/api")) return `${b}/`;
   return `${b}api/`;
-};
-
-const baseURL = resolveApiBaseUrl();
+})();
 
 const Gateway = axios.create({
   baseURL,
