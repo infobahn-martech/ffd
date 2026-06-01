@@ -254,6 +254,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   // Form state for Convert to Landing modal
   const [convertFormData, setConvertFormData] = useState({
     date: "",
+    time: "",
     warehouse: "",
     receivedFrom: "",
     location: "",
@@ -919,6 +920,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     // Pre-fill form with order data
     setConvertFormData({
       date: order.date || "",
+      time: "",
       warehouse: order.warehouse || "",
       receivedFrom: "",
       location: "",
@@ -952,6 +954,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setConvertFormErrors({});
     setConvertFormData({
       date: "",
+      time: "",
       warehouse: "",
       receivedFrom: "",
       location: "",
@@ -1654,46 +1657,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Date *">
-                  <div className="cf-select cf-date-input" style={convertFormErrors.date ? { borderColor: "#dc3545" } : {}}>
-                    <input
-                      type="date"
-                      value={convertFormData.date}
-                      onChange={(e) => { handleConvertFormChange("date", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.date; return n; }); }}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        fontSize: "14px",
-                        color: "#1a1a1a",
-                        fontFamily: "inherit",
-                        padding: 0,
-                        flex: 1,
-                        cursor: "pointer",
-                      }}
-                    />
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        flexShrink: 0,
-                        marginLeft: "8px",
-                        color: "#666",
-                        pointerEvents: "none",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
+                  <DateTimePickerField
+                    dateValue={convertFormData.date}
+                    timeValue={convertFormData.time}
+                    onDateTimeChange={(nextValues) => {
+                      setConvertFormData((prev) => ({ ...prev, date: nextValues.date, time: nextValues.time }));
+                      if (convertFormErrors.date) setConvertFormErrors((p) => { const n = { ...p }; delete n.date; return n; });
+                    }}
+                    dateFieldName="date"
+                    timeFieldName="time"
+                    placeholder="YYYY-MM-DD hh:mm"
+                    hasError={!!convertFormErrors.date}
+                  />
                 </FormField>
                 {convertFormErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{convertFormErrors.date}</span>}
               </div>
