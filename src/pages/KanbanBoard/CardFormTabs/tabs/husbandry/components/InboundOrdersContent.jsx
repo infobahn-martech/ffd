@@ -916,50 +916,32 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }, 250);
   };
 
+  const buildConvertOrders = (items) => {
+    if (!Array.isArray(items) || items.length === 0) return null;
+    return items.map((item, idx) => ({
+      id: idx + 1,
+      inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
+      orderNo: item.order_no || "",
+      poDo: item.po_no || "",
+      quantity: item.quantity ? String(item.quantity) : "",
+      packageType: String(item.package_type_id || ""),
+      description: item.description || "",
+      transportation: Number(item.transportation_required) === 1,
+      transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
+      typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
+      fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+      pickUpFrom: item.transportation?.pickup_location || "",
+      toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
+      driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+      slotNo: "",
+      reason: "",
+      dispatchDate: "",
+    }));
+  };
+
   const handleConvertToLanding = (order) => {
     handleCloseDropdown();
     setConvertingOrder(order);
-    const apiItems = Array.isArray(order.items) ? order.items : [];
-    const convertOrders = apiItems.length > 0
-      ? apiItems.map((item, idx) => ({
-          id: idx + 1,
-          inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
-          orderNo: item.order_no || "",
-          poDo: item.po_no || "",
-          quantity: item.quantity ? String(item.quantity) : "",
-          packageType: String(item.package_type_id || ""),
-          description: item.description || "",
-          transportation: Number(item.transportation_required) === 1,
-          transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
-          typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
-          fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
-          pickUpFrom: item.transportation?.pickup_location || "",
-          toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
-          driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
-          slotNo: "",
-          reason: "",
-          dispatchDate: "",
-        }))
-      : [{
-          id: 1,
-          inbound_item_id: null,
-          orderNo: "",
-          poDo: order.poDo || "",
-          quantity: order.quantity ? String(order.quantity) : "",
-          packageType: String(order.packageType || ""),
-          description: order.description || "",
-          transportation: false,
-          typeOfVehicle: "",
-          fromLocation: "",
-          pickUpFrom: "",
-          toLocation: "",
-          driverName: "",
-          slotNo: "",
-          reason: "",
-          dispatchDate: "",
-        }];
-    const exp = {};
-    convertOrders.forEach((o) => { exp[o.id] = true; });
     setConvertFormData({
       date: "",
       time: "",
@@ -968,10 +950,32 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       location: "",
       documents: [],
       remarks: "",
-      orders: convertOrders,
+      orders: [{ id: 1, inbound_item_id: null, orderNo: "", poDo: "", quantity: "", packageType: "", description: "", transportation: false, typeOfVehicle: "", fromLocation: "", pickUpFrom: "", toLocation: "", driverName: "", slotNo: "", reason: "", dispatchDate: "" }],
     });
-    setExpandedConvertOrders(exp);
+    setExpandedConvertOrders({ 1: true });
     setShowConvertModal(true);
+
+    const inboundId = order.inbound_id ?? order.id;
+    if (inboundId != null) {
+      inboundOrderService.getInboundById(inboundId)
+        .then(({ data }) => {
+          const detail = data?.data;
+          if (!detail) return;
+          const orders = buildConvertOrders(detail.items);
+          if (orders) {
+            const exp = {};
+            orders.forEach((o) => { exp[o.id] = true; });
+            setConvertingOrder(detail);
+            setConvertFormData((prev) => ({
+              ...prev,
+              warehouse: String(detail.warehouse_id || prev.warehouse),
+              orders,
+            }));
+            setExpandedConvertOrders(exp);
+          }
+        })
+        .catch(() => {});
+    }
   };
 
   const handleCloseConvertModal = () => {
