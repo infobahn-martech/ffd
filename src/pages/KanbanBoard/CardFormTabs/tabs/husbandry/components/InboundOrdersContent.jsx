@@ -249,7 +249,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       driverName: "",
       slotNo: "",
       reason: "",
-      dispatchDate: ""
+      dispatchDate: "",
+          dispatchTime: ""
     }], // Order Details array
   });
 
@@ -277,7 +278,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       driverName: "",
       slotNo: "",
       reason: "",
-      dispatchDate: ""
+      dispatchDate: "",
+          dispatchTime: ""
     }],
   });
 
@@ -368,6 +370,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           slotNo: "",
           reason: "",
           dispatchDate: "",
+          dispatchTime: "",
         }))
       : [{
           id: 1,
@@ -385,6 +388,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           slotNo: "",
           reason: "",
           dispatchDate: "",
+          dispatchTime: "",
         }];
 
     const { date: editDate, time: editTime } = splitApiDateTimeParts(
@@ -448,6 +452,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         slotNo: "",
         reason: "",
         dispatchDate: "",
+          dispatchTime: "",
       }],
     });
     setExpandedOrders({ 1: true });
@@ -478,7 +483,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         driverName: "",
         slotNo: "",
         reason: "",
-        dispatchDate: ""
+        dispatchDate: "",
+          dispatchTime: ""
       }],
     });
   };
@@ -553,7 +559,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           driverName: "",
           slotNo: "",
           reason: "",
-          dispatchDate: ""
+          dispatchDate: "",
+          dispatchTime: ""
         },
       ],
     }));
@@ -661,7 +668,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         driverName: "",
         slotNo: "",
         reason: "",
-        dispatchDate: ""
+        dispatchDate: "",
+          dispatchTime: ""
       }],
     });
     setExpandedOrders({ 1: true });
@@ -936,6 +944,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       slotNo: "",
       reason: "",
       dispatchDate: "",
+          dispatchTime: "",
     }));
   };
 
@@ -950,7 +959,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       location: "",
       documents: [],
       remarks: "",
-      orders: [{ id: 1, inbound_item_id: null, orderNo: "", poDo: "", quantity: "", packageType: "", description: "", transportation: false, typeOfVehicle: "", fromLocation: "", pickUpFrom: "", toLocation: "", driverName: "", slotNo: "", reason: "", dispatchDate: "" }],
+      orders: [{ id: 1, inbound_item_id: null, orderNo: "", poDo: "", quantity: "", packageType: "", description: "", transportation: false, typeOfVehicle: "", fromLocation: "", pickUpFrom: "", toLocation: "", driverName: "", slotNo: "", reason: "", dispatchDate: "",
+          dispatchTime: "" }],
     });
     setExpandedConvertOrders({ 1: true });
     setShowConvertModal(true);
@@ -1005,7 +1015,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         driverName: "",
         slotNo: "",
         reason: "",
-        dispatchDate: ""
+        dispatchDate: "",
+          dispatchTime: ""
       }],
     });
   };
@@ -1049,7 +1060,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           driverName: "",
           slotNo: "",
           reason: "",
-          dispatchDate: ""
+          dispatchDate: "",
+          dispatchTime: ""
         },
       ],
     }));
@@ -1183,7 +1195,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       quantity: Number(order.quantity) || 0,
       slot_no_id: Number(order.slotNo) || 0,
       reason_id: Number(order.reason) || 0,
-      dispatch_date: order.dispatchDate || "",
+      dispatch_date: order.dispatchDate ? (order.dispatchDate + (order.dispatchTime ? ` ${order.dispatchTime}` : "")) : "",
       transportation_required: order.transportation ? 1 : 0,
       transportation: order.transportation ? {
         vehicle_type_id: Number(order.typeOfVehicle) || 0,
@@ -2079,46 +2091,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                         <div className="col-lg-4 col-md-6">
                           <FormField label="Dispatch Date">
-                            <div className="cf-select cf-date-input">
-                              <input
-                                type="date"
-                                value={order.dispatchDate}
-                                onChange={(e) => handleConvertOrderChange(order.id, "dispatchDate", e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  background: "transparent",
-                                  fontSize: "14px",
-                                  color: "#1a1a1a",
-                                  fontFamily: "inherit",
-                                  padding: 0,
-                                  flex: 1,
-                                  cursor: "pointer",
-                                }}
-                              />
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                style={{
-                                  flexShrink: 0,
-                                  marginLeft: "8px",
-                                  color: "#666",
-                                  pointerEvents: "none",
-                                  position: "relative",
-                                  zIndex: 1,
-                                }}
-                              >
-                                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                              </svg>
-                            </div>
+                            <DateTimePickerField
+                              dateValue={order.dispatchDate}
+                              timeValue={order.dispatchTime}
+                              onDateTimeChange={(v) => {
+                                handleConvertOrderChange(order.id, "dispatchDate", v.date);
+                                handleConvertOrderChange(order.id, "dispatchTime", v.time);
+                              }}
+                              dateFieldName="dispatchDate"
+                              timeFieldName="dispatchTime"
+                              placeholder="YYYY-MM-DD hh:mm"
+                            />
                           </FormField>
                         </div>
                       </div>
