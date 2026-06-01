@@ -78,8 +78,8 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
         <div className="modal-body">
             <div className="lead-form">
                 <form id="thirdPartyServiceForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
-                        <label className="phone-label">
+                    <div className="mb-lg-3 mb-sm-0">
+                        <label style={{ display: "block", fontSize: "13px", color: "#35475e", marginBottom: "6px", fontWeight: 500 }}>
                             Third Party Service <span className="text-danger">*</span>
                         </label>
                         <input
@@ -96,8 +96,10 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
                         )}
                     </div>
 
-                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
-                        <label className="phone-label">Description</label>
+                    <div className="mb-lg-3 mb-sm-0">
+                        <label style={{ display: "block", fontSize: "13px", color: "#35475e", marginBottom: "6px", fontWeight: 500 }}>
+                            Description
+                        </label>
                         <textarea
                             className={`form-control ${errors.description ? "is-invalid" : ""}`}
                             placeholder="Enter description..."
