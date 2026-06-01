@@ -8,6 +8,7 @@ import hospitalService from "../../../services/hospitalService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/document-checklist-modal.scss";
 
 export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
     const { addUpdateHospitalService, getServicesByHospital, isBeingUpdated } = useHospitalReducer(
@@ -157,111 +158,119 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="hospitalServiceForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
-                        <label className="phone-label" htmlFor="hospital-service-hospital">
-                            Hospital <span className="text-danger">*</span>
-                        </label>
-                        <Controller
-                            name="hospital_id"
-                            control={control}
-                            rules={{ required: "Hospital is required" }}
-                            render={({ field }) => (
-                                <PremiumSelect
-                                    value={field.value != null ? String(field.value) : ""}
-                                    onChange={(e) => {
-                                        const raw = e.target.value;
-                                        field.onChange(raw === "" ? null : Number(raw));
-                                    }}
-                                    options={hospitalOptions.map((o) => ({
-                                        value: String(o.value),
-                                        label: o.label,
-                                    }))}
-                                    placeholder={loadingOptions ? "Loading…" : "Select a hospital"}
-                                    searchPlaceholder="Search hospital..."
-                                    disabled={loadingOptions || isBeingUpdated}
-                                    hasError={Boolean(errors.hospital_id)}
-                                    menuPortalTarget={
-                                        typeof document !== "undefined" ? document.body : null
-                                    }
-                                    menuPosition="fixed"
-                                />
-                            )}
-                        />
-                        {/* {errors.hospital_id && (
-                            <span className="error text-danger d-block mt-1 small">
-                                {errors.hospital_id.message}
-                            </span>
-                        )} */}
-                    </div>
-
-                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
-                        <label className="phone-label" htmlFor="hospital-service-services">
-                            <span>Services</span>
-                            <span className="text-danger">*</span>
-                            {selectedCount > 0 && (
-                                <span className="hospital-service-modal__count">
-                                    {selectedCount} selected
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="phone-wrapper">
+                            <label className="phone-label" htmlFor="hospital-service-hospital">
+                                Hospital <span className="text-danger">*</span>
+                            </label>
+                            <Controller
+                                name="hospital_id"
+                                control={control}
+                                rules={{ required: "Hospital is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => {
+                                            const raw = e.target.value;
+                                            field.onChange(raw === "" ? null : Number(raw));
+                                        }}
+                                        options={hospitalOptions.map((o) => ({
+                                            value: String(o.value),
+                                            label: o.label,
+                                        }))}
+                                        placeholder={
+                                            loadingOptions ? "Loading…" : "Select Hospital"
+                                        }
+                                        searchPlaceholder="Search hospital..."
+                                        disabled={loadingOptions || isBeingUpdated}
+                                        hasError={Boolean(errors.hospital_id)}
+                                        menuPortalTarget={
+                                            typeof document !== "undefined" ? document.body : null
+                                        }
+                                        menuPosition="fixed"
+                                    />
+                                )}
+                            />
+                            {errors.hospital_id && (
+                                <span className="error text-danger">
+                                    {errors.hospital_id.message}
                                 </span>
                             )}
-                        </label>
-                        <Controller
-                            name="service_ids"
-                            control={control}
-                            rules={{
-                                validate: (v) =>
-                                    (Array.isArray(v) && v.length > 0) ||
-                                    "Select at least one service",
-                            }}
-                            render={({ field }) => {
-                                const selectedOptions = serviceOptions.filter((o) =>
-                                    (field.value || []).includes(o.value),
-                                );
-
-                                return (
-                                    <CommonSelect
-                                        inputId="hospital-service-services"
-                                        isMulti
-                                        classNamePrefix="react-select"
-                                        className={`hospital-service-multi-select react-select-container ${errors.service_ids ? "is-invalid" : ""
-                                            }`}
-                                        placeholder={
-                                            loadingOptions ? "Loading…" : "Select services"
-                                        }
-                                        isDisabled={loadingOptions || isBeingUpdated}
-                                        options={serviceOptions}
-                                        value={selectedOptions}
-                                        onChange={(opts) => {
-                                            field.onChange(
-                                                Array.isArray(opts)
-                                                    ? opts.map((o) => o.value)
-                                                    : [],
-                                            );
-                                        }}
-                                        closeMenuOnSelect={false}
-                                        hideSelectedOptions={false}
-                                        maxheight={220}
-                                        aria-label="Services"
-                                    />
-                                );
-                            }}
-                        />
-                        {/* {errors.service_ids && (
-                            <span className="error text-danger d-block mt-1 small">
-                                {errors.service_ids.message}
-                            </span>
-                        )} */}
+                        </div>
                     </div>
 
-                    <div className="phone-wrapper mb-lg-3 mb-sm-0">
-                        <label className="phone-label" htmlFor="hospital-service-remarks">
-                            Remarks
-                        </label>
-                        <textarea
-                            id="hospital-service-remarks"
-                            className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
-                            rows={3}
-                            {...register("remarks")}
-                        />
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="desig-inp document-checklist-select-wrap">
+                            <label className="mb-2 d-block" htmlFor="hospital-service-services">
+                                Services <span className="text-danger">*</span>
+                                {selectedCount > 0 && (
+                                    <span className="text-muted ms-1">({selectedCount} selected)</span>
+                                )}
+                            </label>
+                            <Controller
+                                name="service_ids"
+                                control={control}
+                                rules={{
+                                    validate: (v) =>
+                                        (Array.isArray(v) && v.length > 0) ||
+                                        "Select at least one service",
+                                }}
+                                render={({ field }) => {
+                                    const selectedOptions = serviceOptions.filter((o) =>
+                                        (field.value || []).includes(o.value),
+                                    );
+
+                                    return (
+                                        <CommonSelect
+                                            inputId="hospital-service-services"
+                                            isMulti
+                                            options={serviceOptions}
+                                            value={selectedOptions}
+                                            onChange={(opts) => {
+                                                field.onChange(
+                                                    Array.isArray(opts)
+                                                        ? opts.map((o) => o.value)
+                                                        : [],
+                                                );
+                                            }}
+                                            placeholder={
+                                                loadingOptions ? "Loading…" : "Select Service(s)"
+                                            }
+                                            className={`document-checklist-select ${errors.service_ids ? "is-invalid" : ""
+                                                }`}
+                                            classNamePrefix="react-select"
+                                            isDisabled={loadingOptions || isBeingUpdated}
+                                            menuPosition="fixed"
+                                            closeMenuOnSelect={false}
+                                            hideSelectedOptions={false}
+                                            maxheight={220}
+                                        />
+                                    );
+                                }}
+                            />
+                            {errors.service_ids && (
+                                <span className="error text-danger">
+                                    {errors.service_ids.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-12">
+                                <div className="form-floating desig-inp">
+                                    <textarea
+                                        id="hospital-service-remarks"
+                                        className={`form-control ${errors.remarks ? "is-invalid" : ""}`}
+                                        placeholder="Remarks"
+                                        style={{ minHeight: "80px" }}
+                                        {...register("remarks")}
+                                    />
+                                    <label htmlFor="hospital-service-remarks">Remarks</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -276,7 +285,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                 onClick={closeModal}
                 disabled={isBeingUpdated}
             >
-                Cancel
+                Close
             </button>
 
             <button
@@ -292,7 +301,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="user-modal-sm hospital-service-modal"
+            className="role-modal-sm document-checklist-modal"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
