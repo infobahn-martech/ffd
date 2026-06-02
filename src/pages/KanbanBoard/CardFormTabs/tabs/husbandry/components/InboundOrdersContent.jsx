@@ -355,7 +355,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           quantity: item.quantity || "",
           packageType: String(item.package_type_id || ""),
           description: item.description || "",
-          transportation: item.transportation_required === 1,
+          transportation: Number(item.transportation_required) === 1,
           typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
           fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
           pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
@@ -1141,7 +1141,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
+      <h1 className="modal-title">{"Add Inbound Order"}</h1>
     </>
   );
 
@@ -2229,7 +2229,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.description}</div>
                     </div>
                   )}
-                  {item.transportation_required === 1 && item.transportation && (
+                  {Number(item.transportation_required) === 1 && item.transportation && (
                     <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
                       <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Transportation</div>
                       <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
