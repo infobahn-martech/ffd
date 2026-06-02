@@ -289,7 +289,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         const [whRes, pkgRes, vehRes, drvRes] = await Promise.all([
           logisticsWarehouseService.getWarehouseLocations(),
           packingTypeService.getPackingTypes(),
-          vehicleService.getAllTransportVehicles(),
+          vehicleService.getMaterialVehicles(),
           driverService.getAllDrivers(),
         ]);
         if (cancelled) return;
