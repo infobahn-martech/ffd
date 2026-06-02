@@ -1418,6 +1418,21 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
             <div className="checklist-top-fields-grid">
               <div className="checklist-top-field-item">
+                <div className="form-floating desig-inp">
+                  <input
+                    className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
+                    placeholder="Checklist Name"
+                    {...register("checklistName", { required: "Checklist Name is required" })}
+                  />
+                  <label>
+                    Checklist Name <span className="text-danger">*</span>
+                  </label>
+                  {errors.checklistName && (
+                    <span className="error text-danger">{errors.checklistName.message}</span>
+                  )}
+                </div>
+              </div>
+              <div className="checklist-top-field-item">
                 <div className="phone-wrapper">
                   <label className="phone-label">
                     Call Type <span className="text-danger">*</span>
@@ -1443,16 +1458,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   {errors.callType && (
                     <span className="error text-danger">{errors.callType.message}</span>
                   )}
-                </div>
-              </div>
-              <div className="checklist-top-field-item">
-                <div className="form-floating desig-inp">
-                  <input
-                    className="form-control"
-                    placeholder="Checklist Name"
-                    {...register("checklistName")}
-                  />
-                  <label>Checklist Name</label>
                 </div>
               </div>
               <div className="checklist-top-field-item">
