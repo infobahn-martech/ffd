@@ -1481,6 +1481,40 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
               <div className="checklist-top-field-item">
                 <div className="phone-wrapper">
+                  <label className="phone-label">
+                    Port <span className="text-danger">*</span>
+                  </label>
+                  <Controller
+                    name="port"
+                    control={control}
+                    rules={{ required: "Port is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(ports ?? []).map((portOption) => {
+                          const value =
+                            portOption.port_id != null && portOption.port_id !== ""
+                              ? String(portOption.port_id)
+                              : String(portOption._id ?? portOption.id ?? "");
+                          const label = portOption.port ?? portOption.name ?? value;
+                          return { value, label: String(label ?? "") };
+                        })}
+                        placeholder="Select Port"
+                        searchPlaceholder="Search port..."
+                        disabled={isLoadingPorts}
+                        hasError={Boolean(errors.port)}
+                      />
+                    )}
+                  />
+                  {errors.port && (
+                    <span className="error text-danger">{errors.port.message}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="checklist-top-field-item">
+                <div className="phone-wrapper">
                   <label className="phone-label">Vessel Type</label>
                   <Controller
                     name="vesselType"
@@ -1551,39 +1585,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 </div>
               </div>
 
-              <div className="checklist-top-field-item">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Port <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="port"
-                    control={control}
-                    rules={{ required: "Port is required" }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={(ports ?? []).map((portOption) => {
-                          const value =
-                            portOption.port_id != null && portOption.port_id !== ""
-                              ? String(portOption.port_id)
-                              : String(portOption._id ?? portOption.id ?? "");
-                          const label = portOption.port ?? portOption.name ?? value;
-                          return { value, label: String(label ?? "") };
-                        })}
-                        placeholder="Select Port"
-                        searchPlaceholder="Search port..."
-                        disabled={isLoadingPorts}
-                        hasError={Boolean(errors.port)}
-                      />
-                    )}
-                  />
-                  {errors.port && (
-                    <span className="error text-danger">{errors.port.message}</span>
-                  )}
-                </div>
-              </div>
+
             </div>
 
 
