@@ -1371,17 +1371,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "0 0 8px 8px" }}>
                     <div className="row g-2 mb-1">
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="Order No">
-                          <FormInput
-                            type="text"
-                            value={order.orderNo}
-                            onChange={(e) => handleOrderChange(order.id, "orderNo", e.target.value)}
-                            placeholder="Enter order number..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-lg-4 col-md-6">
                         <FormField label="PO/DO *">
                           <FormInput
                             type="text"
