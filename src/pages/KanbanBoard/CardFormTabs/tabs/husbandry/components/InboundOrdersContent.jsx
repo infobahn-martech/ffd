@@ -1191,16 +1191,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 {formErrors.warehouse && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "-12px", marginBottom: "4px" }}>{formErrors.warehouse}</span>}
               </div>
 
-              <div className="col-md-12 mb-2">
-                <FormField label="Remarks">
-                  <FormTextarea
-                    value={formData.remarks}
-                    onChange={(e) => handleFormChange("remarks", e.target.value)}
-                    placeholder="Enter remarks..."
-                    rows={3}
-                  />
-                </FormField>
-              </div>
             </div>
           </div>
 
@@ -1547,6 +1537,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Remarks - after order details */}
+          <div className="row g-2 mt-2">
+            <div className="col-md-12">
+              <FormField label="Remarks">
+                <FormTextarea
+                  value={formData.remarks}
+                  onChange={(e) => handleFormChange("remarks", e.target.value)}
+                  placeholder="Enter remarks..."
+                  rows={3}
+                />
+              </FormField>
+            </div>
           </div>
         </form>
       </div>
