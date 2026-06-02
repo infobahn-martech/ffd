@@ -1463,11 +1463,12 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               <div className="checklist-top-field-item">
                 <div className="phone-wrapper">
                   <label className="phone-label">
-                    Port
+                    Port <span className="text-danger">*</span>
                   </label>
                   <Controller
                     name="port"
                     control={control}
+                    rules={{ required: "Port is required" }}
                     render={({ field }) => (
                       <PremiumSelect
                         value={field.value != null ? String(field.value) : ""}
@@ -1483,9 +1484,13 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                         placeholder="Select Port"
                         searchPlaceholder="Search port..."
                         disabled={isLoadingPorts}
+                        hasError={Boolean(errors.port)}
                       />
                     )}
                   />
+                  {errors.port && (
+                    <span className="error text-danger">{errors.port.message}</span>
+                  )}
                 </div>
               </div>
 
