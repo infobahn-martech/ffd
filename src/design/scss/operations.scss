@@ -2328,6 +2328,22 @@ $send-report-optional: #80868b;
     padding: 4px 0;
   }
 
+  .document-task-group {
+    & + .document-task-group {
+      border-top: 1px solid #e8eaed;
+    }
+  }
+
+  .document-task-group__title {
+    margin: 0;
+    padding: 10px 14px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+    background: #fafbfc;
+    text-transform: none;
+  }
+
   .document-row {
     display: flex;
     flex-wrap: wrap;
