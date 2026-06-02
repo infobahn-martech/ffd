@@ -278,6 +278,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   });
 
   const [warehouseLocationOptions, setWarehouseLocationOptions] = useState([]);
+  const [transportLocationOptions, setTransportLocationOptions] = useState([]);
   const [packageTypeOptions, setPackageTypeOptions] = useState([]);
   const [materialVehicleOptions, setMaterialVehicleOptions] = useState([]);
   const [materialDriverOptions, setMaterialDriverOptions] = useState([]);
@@ -286,16 +287,26 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     let cancelled = false;
     const loadReferenceData = async () => {
       try {
-        const [whRes, pkgRes, vehRes, drvRes] = await Promise.all([
+        const [whRes, pkgRes, vehRes, drvRes, trLocRes] = await Promise.all([
           logisticsWarehouseService.getWarehouseLocations(),
           packingTypeService.getPackingTypes(),
           vehicleService.getMaterialVehicles(),
           driverService.getAllDrivers(),
+          inboundOrderService.getMaterialTransportLocations(),
         ]);
         if (cancelled) return;
         const whRows = extractListFromApi(whRes?.data);
         setWarehouseLocationOptions(
           whRows
+            .map((r) => ({
+              value: String(r.location_id ?? ""),
+              label: String(r.location ?? ""),
+            }))
+            .filter((o) => o.value && o.label)
+        );
+        const trLocRows = extractListFromApi(trLocRes?.data);
+        setTransportLocationOptions(
+          trLocRows
             .map((r) => ({
               value: String(r.location_id ?? ""),
               label: String(r.location ?? ""),
@@ -1456,7 +1467,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                   handleOrderChange(order.id, "fromLocation", e.target.value);
                                   if (formErrors[`o${index}_fromLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_fromLocation`]; return e; });
                                 }}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
+                                options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
                             </FormField>
@@ -1482,7 +1493,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                   handleOrderChange(order.id, "toLocation", e.target.value);
                                   if (formErrors[`o${index}_toLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_toLocation`]; return e; });
                                 }}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
+                                options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
                               />
                             </FormField>
@@ -1944,7 +1955,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               <FormSelect
                                 value={order.fromLocation}
                                 onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
+                                options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
                             </FormField>
@@ -1966,7 +1977,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               <FormSelect
                                 value={order.toLocation}
                                 onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
-                                options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
+                                options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
                               />
                             </FormField>

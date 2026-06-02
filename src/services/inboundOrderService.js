@@ -6,4 +6,5 @@ const getInboundById = (inboundId) => Gateway.get(`/material_management/get_inbo
 const updateInboundOrder = (inboundId, data) => Gateway.post(`/material_management/update_inbound/${inboundId}`, data);
 const deleteInboundOrder = (inboundId) =>
   Gateway.delete(`/material_management/delete_inbound/${inboundId}`);
-export default { saveInboundOrder, getAllInbound, getInboundById, updateInboundOrder, deleteInboundOrder };
+const getMaterialTransportLocations = () => Gateway.get('/material/get_materialtransport_locations');
+export default { saveInboundOrder, getAllInbound, getInboundById, updateInboundOrder, deleteInboundOrder, getMaterialTransportLocations };
