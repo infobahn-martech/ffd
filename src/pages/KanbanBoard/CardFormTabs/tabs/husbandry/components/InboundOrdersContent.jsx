@@ -17,7 +17,6 @@ import packingTypeService from "../../../../../../services/packingTypeService";
 import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
 import inboundOrderService from "../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../services/vehicleService";
-import driverService from "../../../../../../services/driverService";
 import {
   splitApiDateTimeParts,
   buildApiDateTime,
@@ -291,7 +290,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           logisticsWarehouseService.getWarehouseLocations(),
           packingTypeService.getPackingTypes(),
           vehicleService.getMaterialVehicles(),
-          driverService.getAllDrivers(),
+          vehicleService.getMaterialDrivers(),
           inboundOrderService.getMaterialTransportLocations(),
         ]);
         if (cancelled) return;
