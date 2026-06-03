@@ -111,6 +111,13 @@ const normalizeSlotValue = (value) => {
 
 const getTransportation = (item) => item?.transportation || item?.transport || null;
 
+const mergeOptionForValue = (options, value) => {
+  if (value == null || value === "") return options;
+  const s = String(value);
+  if (options.some((o) => o.value === s)) return options;
+  return [...options, { value: s, label: s }];
+};
+
 const emptyConvertItem = () => ({
   id: 1,
   landing_note_item_id: null,
@@ -1288,12 +1295,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="row g-2">
                             <div className="col-md-4">
                               <FormField label="Vehicle Type">
-                                <FormSelect value={order.typeOfVehicle} onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)} options={vehicleOptions} placeholder="Select vehicle..." />
+                                <FormSelect value={order.typeOfVehicle} onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)} options={mergeOptionForValue(vehicleOptions, order.typeOfVehicle)} placeholder="Select vehicle..." />
                               </FormField>
                             </div>
                             <div className="col-md-4">
                               <FormField label="From Location">
-                                <FormSelect value={order.fromLocation} onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)} options={locationOptions} placeholder="From location..." />
+                                <FormSelect value={order.fromLocation} onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)} options={mergeOptionForValue(locationOptions, order.fromLocation)} placeholder="From location..." />
                               </FormField>
                             </div>
                             <div className="col-md-4">
@@ -1303,12 +1310,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </div>
                             <div className="col-md-4">
                               <FormField label="To Location">
-                                <FormSelect value={order.toLocation} onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)} options={locationOptions} placeholder="To location..." />
+                                <FormSelect value={order.toLocation} onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)} options={mergeOptionForValue(locationOptions, order.toLocation)} placeholder="To location..." />
                               </FormField>
                             </div>
                             <div className="col-md-4">
                               <FormField label="Driver">
-                                <FormSelect value={order.driverName} onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)} options={driverOptions} placeholder="Select driver..." />
+                                <FormSelect value={order.driverName} onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)} options={mergeOptionForValue(driverOptions, order.driverName)} placeholder="Select driver..." />
                               </FormField>
                             </div>
                             <div className="col-md-4">
