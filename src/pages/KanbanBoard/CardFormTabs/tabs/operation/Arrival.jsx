@@ -299,11 +299,20 @@ function Arrival({
       fd.append("created_by", createdBy);
     }
 
-    const arrivalReport = resolveReportBodyHtml(
+    const arrivalReportBody = resolveReportBodyHtml(
       reportDraft.message,
       reportDraft.reportType === "daily" ? buildArrivalDailyReportBody(formValues) : buildArrivalReportBody(formValues)
     );
-    fd.append("arrival_report", arrivalReport);
+    fd.append(
+      "arrival_report",
+      JSON.stringify({
+        subject: reportDraft.subject ?? "",
+        body: arrivalReportBody ?? "",
+        to_email: reportDraft.to ?? "",
+        from_email: reportDraft.from ?? "",
+        cc_email: reportDraft.cc ?? "",
+      })
+    );
 
     try {
       await saveArrivalDetailAction({ formData: fd });
