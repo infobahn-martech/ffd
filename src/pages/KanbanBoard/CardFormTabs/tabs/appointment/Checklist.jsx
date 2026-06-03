@@ -630,12 +630,11 @@ function Checklist({
     setOpenTypeGroups((prev) => ({ ...prev, [typeId]: !prev[typeId] }));
   };
 
-  const buildChecklistSaveFormData = useCallback(
-    (block) => {
-      const formData = new FormData();
-      formData.append("call_id", String(currentCallId));
-      formData.append("checklist_type_id", String(block.typeId));
+  const buildChecklistSaveFormData = useCallback(() => {
+    const formData = new FormData();
+    formData.append("call_id", String(currentCallId));
 
+    const checklists = checklistBlocks.map((block) => {
       const items = [];
       block.tree.forEach((section) => {
         const sectionItems = flattenTreeItems([section]);
@@ -661,12 +660,15 @@ function Checklist({
           });
         });
       });
+      return {
+        checklist_type_id: String(block.typeId),
+        items,
+      };
+    });
 
-      formData.append("items", JSON.stringify(items));
-      return formData;
-    },
-    [currentCallId, itemsData]
-  );
+    formData.append("checklists", JSON.stringify(checklists));
+    return formData;
+  }, [currentCallId, checklistBlocks, itemsData]);
 
   const handleSaveConfirm = useCallback(async () => {
     if (!currentCallId) {
@@ -680,9 +682,7 @@ function Checklist({
 
     setSaveLoading(true);
     try {
-      await Promise.all(
-        checklistBlocks.map((block) => checklistService.saveCallChecklist(buildChecklistSaveFormData(block)))
-      );
+      await checklistService.saveCallChecklist(buildChecklistSaveFormData());
       notify("Checklist saved successfully.", "success");
       try {
         const rows = await fetchSavedCallChecklist(currentCallId);
