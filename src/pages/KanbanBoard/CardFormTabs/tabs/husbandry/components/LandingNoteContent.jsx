@@ -165,6 +165,13 @@ const buildDispatchConvertOrders = (note, vehicleOpts = [], locationOpts = [], d
     const repackingPallets = toNonNegativeIntegerString(item.repacking_pallets ?? item.repacking?.pallets);
     const repackingRolls = toNonNegativeIntegerString(item.repacking_rolls ?? item.repacking?.rolls);
     const transportation = getTransportation(item);
+    const hasTransportData = Boolean(transportation) && Boolean(
+      transportation.vehicle_type_id || transportation.vehicle_type_name ||
+      transportation.from_location_id || transportation.from_location_name ||
+      transportation.to_location_id || transportation.to_location_name ||
+      transportation.driver_id || transportation.driver_name ||
+      transportation.pickup_location
+    );
     return {
       id: idx + 1,
       landing_note_item_id: getLandingNoteItemId(item),
@@ -178,7 +185,7 @@ const buildDispatchConvertOrders = (note, vehicleOpts = [], locationOpts = [], d
       packing_required: isTruthyFlag(item.packing_required) || repackingPallets !== "" || repackingRolls !== "",
       repacking_pallets: repackingPallets,
       repacking_rolls: repackingRolls,
-      transportation_required: isTruthyFlag(item.transportation_required) || Boolean(transportation),
+      transportation_required: isTruthyFlag(item.transportation_required ?? item.transport_required) || hasTransportData,
       typeOfVehicle: transportation
         ? String(transportation.vehicle_type_id || "") ||
           (vehicleOpts.find((o) => o.label.toLowerCase() === (transportation.vehicle_type_name || "").toLowerCase())?.value || "") ||
