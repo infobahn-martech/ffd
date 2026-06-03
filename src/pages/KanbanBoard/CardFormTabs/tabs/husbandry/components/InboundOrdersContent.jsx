@@ -952,15 +952,31 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       description: item.description || "",
       transportation: Number(item.transportation_required) === 1,
       transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
-      typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
-      fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
-      pickUpFrom: item.transportation?.pickup_location || "",
-      toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
-      driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+      typeOfVehicle: item.transportation
+        ? String(item.transportation.vehicle_type_id || "") ||
+          (materialVehicleOptions.find((o) => o.label.toLowerCase() === (item.transportation.vehicle_type_name || "").toLowerCase())?.value || "") ||
+          (item.transportation.vehicle_type_name ? String(item.transportation.vehicle_type_name) : "")
+        : "",
+      fromLocation: item.transportation
+        ? String(item.transportation.from_location_id || "") ||
+          (transportLocationOptions.find((o) => o.label.toLowerCase() === (item.transportation.from_location_name || "").toLowerCase())?.value || "") ||
+          (item.transportation.from_location_name ? String(item.transportation.from_location_name) : "")
+        : "",
+      pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
+      toLocation: item.transportation
+        ? String(item.transportation.to_location_id || "") ||
+          (transportLocationOptions.find((o) => o.label.toLowerCase() === (item.transportation.to_location_name || "").toLowerCase())?.value || "") ||
+          (item.transportation.to_location_name ? String(item.transportation.to_location_name) : "")
+        : "",
+      driverName: item.transportation
+        ? String(item.transportation.driver_id || "") ||
+          (materialDriverOptions.find((o) => o.label.toLowerCase() === (item.transportation.driver_name || "").toLowerCase())?.value || "") ||
+          (item.transportation.driver_name ? String(item.transportation.driver_name) : "")
+        : "",
       slotNo: "",
       reason: "",
       dispatchDate: "",
-          dispatchTime: "",
+      dispatchTime: "",
     }));
   };
 
