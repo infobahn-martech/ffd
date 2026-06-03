@@ -470,12 +470,12 @@ function Checklist({
         const options = normalizeChecklistTypeOptions(rowsBySource);
         setChecklistTypeOptions(options);
         setSelectedChecklistTypeIds((prev) => {
-          const optionIds = new Set(options.map((o) => o.value));
-          const savedPreferred = savedChecklistTypeIds.filter((id) => optionIds.has(id));
-          const retained = prev.filter((id) => optionIds.has(id));
-          if (userChangedSelectionRef.current && retained.length > 0) return retained;
-          if (savedPreferred.length > 0) return savedPreferred;
-          return options.map((o) => o.value);
+          const optionIds = options.map((o) => String(o.value));
+          const optionIdSet = new Set(optionIds);
+          if (userChangedSelectionRef.current) {
+            return prev.filter((id) => optionIdSet.has(String(id))).map(String);
+          }
+          return optionIds;
         });
         if (!cancelled) {
           if (!rowsBySource.hasUsableData && rowsBySource.hasFailures) {
@@ -498,7 +498,7 @@ function Checklist({
     return () => {
       cancelled = true;
     };
-  }, [dataContext, prerequisiteState.canLoadChecklists, savedChecklistTypeIds]);
+  }, [dataContext, prerequisiteState.canLoadChecklists]);
 
   useEffect(() => {
     let cancelled = false;
@@ -689,6 +689,9 @@ function Checklist({
         const normalized = normalizeSavedChecklistLookup(rows);
         setSavedChecklistLookup(normalized.lookup);
         setSavedChecklistTypeIds(normalized.typeIds);
+        if (!userChangedSelectionRef.current) {
+          setSelectedChecklistTypeIds(checklistTypeOptions.map((o) => String(o.value)));
+        }
       } catch {
         /* save succeeded; refresh is best-effort */
       }
@@ -702,7 +705,7 @@ function Checklist({
     } finally {
       setSaveLoading(false);
     }
-  }, [buildChecklistSaveFormData, checklistBlocks, currentCallId]);
+  }, [buildChecklistSaveFormData, checklistBlocks, checklistTypeOptions, currentCallId]);
 
   const handleOpenChecklistReport = useCallback(() => {
     if (!onOpenReportPreview) return;
