@@ -18,6 +18,7 @@ import {
   parseDocumentsByTaskPayload,
   groApiErrorMessage,
   resolveGroCallId,
+  resolveGroCardId,
   resolveGroTaskId,
   resolveGroPortId,
   splitInwardDateTimeString,
@@ -88,6 +89,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const bulkPassFileInputRef = useRef(null);
 
   const callId = resolveGroCallId(card);
+  const cardId = resolveGroCardId(card);
   const taskId = useMemo(() => resolveGroTaskId(card), [card]);
   const groPortId = useMemo(() => resolveGroPortId(callDetail, card), [callDetail, card]);
 
@@ -467,6 +469,13 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
       return undefined;
     }
 
+    if (cardId == null || cardId === "") {
+      notify("Unable to load GRO data: missing card id.", "error");
+      setCallDetail(null);
+      setDocuments([]);
+      return undefined;
+    }
+
     if (!taskId) {
       notify("Unable to load documents: missing task id.", "error");
       setDocuments([]);
@@ -476,7 +485,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     const load = async () => {
       setIsGroLoading(true);
       try {
-        const detailRes = await groService.getCallDetailById(callId);
+        const detailRes = await groService.getCallDetailById(callId, cardId);
         if (cancelled) return;
         const detail = detailRes?.data?.data ?? detailRes?.data ?? {};
         setCallDetail(detail);
@@ -503,7 +512,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     return () => {
       cancelled = true;
     };
-  }, [callId, taskId, applyDocumentsByTaskResponse]);
+  }, [callId, cardId, taskId, applyDocumentsByTaskResponse]);
 
   const handleInwardDateTimePickerChange = useCallback(({ date, time }) => {
     if (!date) {
@@ -544,8 +553,10 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
       resetInwardClearanceFields();
       await refreshGroDocuments();
       try {
-        const detailRes = await groService.getCallDetailById(callId);
-        setCallDetail(detailRes?.data?.data ?? detailRes?.data ?? {});
+        if (cardId != null && cardId !== "") {
+          const detailRes = await groService.getCallDetailById(callId, cardId);
+          setCallDetail(detailRes?.data?.data ?? detailRes?.data ?? {});
+        }
       } catch {
         /* optional refresh */
       }
@@ -557,19 +568,15 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   };
 
   const canVerifyDocument = useCallback(
-    (doc) => {
-      const cardId = card?.card_id ?? card?.id;
-      return (
-        doc.document_id != null &&
-        callId != null &&
-        callId !== "" &&
-        taskId != null &&
-        taskId !== "" &&
-        cardId != null &&
-        String(cardId).trim() !== ""
-      );
-    },
-    [callId, taskId, card]
+    (doc) =>
+      doc.document_id != null &&
+      callId != null &&
+      callId !== "" &&
+      taskId != null &&
+      taskId !== "" &&
+      cardId != null &&
+      cardId !== "",
+    [callId, taskId, cardId]
   );
 
   const closeConfirmModal = useCallback(() => {
@@ -624,7 +631,6 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     const remarks = confirmAction === "approve" ? "" : String(confirmRemarks).trim();
     setIsSubmittingAction(true);
     try {
-      const cardId = card?.card_id ?? card?.id;
       await groService.verifyGroDocs({
         call_id: Number(callId),
         task_id: Number(taskId),
@@ -681,7 +687,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
 
       try {
         await groService.assignTask({
-          card_id: card?.card_id || card?.id,
+          card_id: cardId,
           user_id: nextUserId,
         });
 
@@ -693,7 +699,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
         setIsAssigningUser(false);
       }
     },
-    [assignedUserId, card]
+    [assignedUserId, cardId]
   );
 
   const bulkPassPopoverStyle =

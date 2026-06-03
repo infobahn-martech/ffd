@@ -1,8 +1,11 @@
 import Gateway from "../gateway/gateway";
 import taskCardService from "./groService/taskCardService";
 
-export const getCallDetailById = (callId) =>
-  Gateway.get(`call_file/get_call_detail_by_id/${encodeURIComponent(String(callId))}`);
+export const getCallDetailById = (callId, cardId) => {
+  const callSegment = encodeURIComponent(String(callId));
+  const cardSegment = encodeURIComponent(String(cardId));
+  return Gateway.get(`call_file/get_call_detail_by_id/${callSegment}/${cardSegment}`);
+};
 
 export const getDocumentsByTask = (taskId, callId) => {
   const taskSegment = encodeURIComponent(String(taskId));

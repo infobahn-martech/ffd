@@ -47,6 +47,12 @@ export const resolveGroCallId = (card) => {
   return raw;
 };
 
+export const resolveGroCardId = (card) => {
+  const raw = card?.card_id ?? card?.cardId ?? card?.id;
+  if (raw == null || String(raw).trim() === "") return null;
+  return raw;
+};
+
 /** Numeric port id for `users/get_users_by_role` (from call detail or kanban card). */
 export const resolveGroPortId = (detail, card) => {
   const portObj = detail?.port && typeof detail.port === "object" ? detail.port : null;
