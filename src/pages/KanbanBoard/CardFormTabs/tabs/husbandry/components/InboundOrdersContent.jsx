@@ -291,62 +291,53 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   useEffect(() => {
     let cancelled = false;
     const loadReferenceData = async () => {
-      try {
-        const [whRes, pkgRes, vehRes, drvRes, trLocRes] = await Promise.all([
-          logisticsWarehouseService.getWarehouseLocations(),
-          packingTypeService.getPackingTypes(),
-          vehicleService.getMaterialVehicles(),
-          vehicleService.getMaterialDrivers(),
-          inboundOrderService.getMaterialTransportLocations(),
-        ]);
-        if (cancelled) return;
-        const whRows = extractListFromApi(whRes?.data);
+      const [whRes, pkgRes, vehRes, drvRes, trLocRes] = await Promise.allSettled([
+        logisticsWarehouseService.getWarehouseLocations(),
+        packingTypeService.getPackingTypes(),
+        vehicleService.getMaterialVehicles(),
+        vehicleService.getMaterialDrivers(),
+        inboundOrderService.getMaterialTransportLocations(),
+      ]);
+      if (cancelled) return;
+      if (whRes.status === "fulfilled") {
+        const whRows = extractListFromApi(whRes.value?.data);
         setWarehouseLocationOptions(
           whRows
-            .map((r) => ({
-              value: String(r.location_id ?? ""),
-              label: String(r.location ?? ""),
-            }))
+            .map((r) => ({ value: String(r.location_id ?? ""), label: String(r.location ?? "") }))
             .filter((o) => o.value && o.label)
         );
-        const trLocRows = extractListFromApi(trLocRes?.data);
-        setTransportLocationOptions(
-          trLocRows
-            .map((r) => ({
-              value: String(r.location_id ?? ""),
-              label: String(r.location ?? ""),
-            }))
-            .filter((o) => o.value && o.label)
-        );
-        const pkgRows = extractListFromApi(pkgRes?.data);
+      }
+      if (pkgRes.status === "fulfilled") {
+        const pkgRows = extractListFromApi(pkgRes.value?.data);
         setPackageTypeOptions(
           pkgRows
-            .map((r) => ({
-              value: String(r.package_type_id ?? ""),
-              label: String(r.package_type ?? ""),
-            }))
+            .map((r) => ({ value: String(r.package_type_id ?? ""), label: String(r.package_type ?? "") }))
             .filter((o) => o.value && o.label)
         );
-        const vehRows = extractListFromApi(vehRes?.data);
+      }
+      if (vehRes.status === "fulfilled") {
+        const vehRows = extractListFromApi(vehRes.value?.data);
         setMaterialVehicleOptions(
           vehRows
-            .map((r) => ({
-              value: String(r.vehicle_type_id ?? ""),
-              label: String(r.vehicle_name ?? ""),
-            }))
+            .map((r) => ({ value: String(r.vehicle_type_id ?? ""), label: String(r.vehicle_name ?? "") }))
             .filter((o) => o.value && o.label)
         );
-        const drvRows = extractListFromApi(drvRes?.data);
+      }
+      if (drvRes.status === "fulfilled") {
+        const drvRows = extractListFromApi(drvRes.value?.data);
         setMaterialDriverOptions(
           drvRows
-            .map((r) => ({
-              value: String(r.driver_id ?? ""),
-              label: String(r.driver_name ?? ""),
-            }))
+            .map((r) => ({ value: String(r.driver_id ?? ""), label: String(r.driver_name ?? "") }))
             .filter((o) => o.value && o.label)
         );
-      } catch (err) {
-        console.error("Inbound orders reference data failed to load", err);
+      }
+      if (trLocRes.status === "fulfilled") {
+        const trLocRows = extractListFromApi(trLocRes.value?.data);
+        setTransportLocationOptions(
+          trLocRows
+            .map((r) => ({ value: String(r.location_id ?? ""), label: String(r.location ?? "") }))
+            .filter((o) => o.value && o.label)
+        );
       }
     };
     loadReferenceData();
@@ -372,11 +363,27 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           packageType: String(item.package_type_id || ""),
           description: item.description || "",
           transportation: Number(item.transportation_required) === 1,
-          typeOfVehicle: item.transportation ? String(item.transportation.vehicle_type_id || "") : "",
-          fromLocation: item.transportation ? String(item.transportation.from_location_id || "") : "",
+          typeOfVehicle: item.transportation
+            ? String(item.transportation.vehicle_type_id || "") ||
+              (materialVehicleOptions.find((o) => o.label.toLowerCase() === (item.transportation.vehicle_type_name || "").toLowerCase())?.value || "") ||
+              (item.transportation.vehicle_type_name ? String(item.transportation.vehicle_type_name) : "")
+            : "",
+          fromLocation: item.transportation
+            ? String(item.transportation.from_location_id || "") ||
+              (transportLocationOptions.find((o) => o.label.toLowerCase() === (item.transportation.from_location_name || "").toLowerCase())?.value || "") ||
+              (item.transportation.from_location_name ? String(item.transportation.from_location_name) : "")
+            : "",
           pickUpFrom: item.transportation ? item.transportation.pickup_location || "" : "",
-          toLocation: item.transportation ? String(item.transportation.to_location_id || "") : "",
-          driverName: item.transportation ? String(item.transportation.driver_id || "") : "",
+          toLocation: item.transportation
+            ? String(item.transportation.to_location_id || "") ||
+              (transportLocationOptions.find((o) => o.label.toLowerCase() === (item.transportation.to_location_name || "").toLowerCase())?.value || "") ||
+              (item.transportation.to_location_name ? String(item.transportation.to_location_name) : "")
+            : "",
+          driverName: item.transportation
+            ? String(item.transportation.driver_id || "") ||
+              (materialDriverOptions.find((o) => o.label.toLowerCase() === (item.transportation.driver_name || "").toLowerCase())?.value || "") ||
+              (item.transportation.driver_name ? String(item.transportation.driver_name) : "")
+            : "",
           slotNo: "",
           reason: "",
           dispatchDate: "",
@@ -1244,7 +1251,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{"Add Inbound Order"}</h1>
+      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
     </>
   );
 
