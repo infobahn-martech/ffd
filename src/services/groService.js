@@ -38,6 +38,7 @@ const groService = {
   uploadZawilPass,
   uploadCgPass,
   assignTask: taskCardService.assignTask,
+  startTask: taskCardService.startTask,
 };
 
 export default groService;

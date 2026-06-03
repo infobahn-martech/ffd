@@ -1,9 +1,37 @@
 import { useCallback } from "react";
+import { notify } from "../../../components/Toaster";
+import { userHasDeskSupervisorRole } from "../../../helpers/groUserRoles";
+import taskCardService from "../../../services/groService/taskCardService";
 import {
   findColumnByCardId,
   findLaneColumnLocationForCard,
 } from "../utils/columnHelpers";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
+
+const normalizeColumnTitle = (title) =>
+  String(title ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+const isTodoColumn = (column) => {
+  const t = normalizeColumnTitle(column?.title);
+  return t === "to do" || t === "todo";
+};
+
+const isInProgressColumn = (column) => normalizeColumnTitle(column?.title) === "in progress";
+
+const isTodoToInProgressMove = (workflow, startColumnKey, finishColumnKey) => {
+  if (!workflow?.columns || startColumnKey === finishColumnKey) return false;
+  const startCol = workflow.columns[startColumnKey];
+  const finishCol = workflow.columns[finishColumnKey];
+  return isTodoColumn(startCol) && isInProgressColumn(finishCol);
+};
+
+const dragApiErrorMessage = (err, fallback) => {
+  const msg = err?.response?.data?.message ?? err?.message;
+  return typeof msg === "string" && msg.trim() ? msg.trim() : fallback;
+};
 
 /** Matches WorkflowColumns / SwimlaneColumnCell droppable ids: `${laneId}::${columnStableId}` */
 export const parseSwimlaneDroppableId = (droppableId) => {
@@ -18,7 +46,7 @@ export const parseSwimlaneDroppableId = (droppableId) => {
 
 export const buildSwimlaneDroppableId = (laneId, columnStableId) => `${laneId}::${columnStableId}`;
 
-export default function useKanbanDnD(workflows, setWorkflows) {
+export default function useKanbanDnD(workflows, setWorkflows, { userProfile, refetchBoard } = {}) {
   const findCardColumn = useCallback(
     (cardId) => findColumnByCardId(workflows, cardId),
     [workflows]
@@ -82,7 +110,7 @@ export default function useKanbanDnD(workflows, setWorkflows) {
   );
 
   const createDragEndHandler = useCallback(
-    (workflowId) => (result) => {
+    (workflowId) => async (result) => {
       const { destination, source, draggableId } = result;
       if (!destination) return;
 
@@ -114,6 +142,23 @@ export default function useKanbanDnD(workflows, setWorkflows) {
 
       const sameLane = src.laneId === dest.laneId;
       const sameColumn = startColumnKey === finishColumnKey;
+
+      const shouldStartTask =
+        userHasDeskSupervisorRole(userProfile) &&
+        !sameColumn &&
+        isTodoToInProgressMove(workflow, startColumnKey, finishColumnKey);
+
+      if (shouldStartTask) {
+        try {
+          await taskCardService.startTask(draggableId);
+          if (refetchBoard) {
+            await refetchBoard();
+          }
+        } catch (err) {
+          notify(dragApiErrorMessage(err, "Failed to start task."), "error");
+        }
+        return;
+      }
 
       if (sameLane && sameColumn) {
         const list = Array.from(startLane.cardMap[startColumnKey] || []);
@@ -207,7 +252,7 @@ export default function useKanbanDnD(workflows, setWorkflows) {
         })
       );
     },
-    [workflows, setWorkflows]
+    [workflows, setWorkflows, userProfile, refetchBoard]
   );
 
   return {

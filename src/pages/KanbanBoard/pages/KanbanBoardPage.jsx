@@ -75,7 +75,8 @@ export default function KanbanBoardPage() {
   const { maxColumnHeights, handleColumnHeightChange } = useColumnHeights(workflows);
   const { findCardColumn, moveCardToColumn, createDragEndHandler } = useKanbanDnD(
     workflows,
-    setWorkflows
+    setWorkflows,
+    { userProfile, refetchBoard }
   );
 
   useKanbanRoleAccess();
