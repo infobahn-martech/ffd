@@ -11,6 +11,7 @@ import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
+import useAlertReducer from "../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../services/vehicleService";
 import driverService from "../../../../../../services/driverService";
@@ -277,6 +278,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const [showModal, setShowModal] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
@@ -828,120 +830,23 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setViewingNote(null);
   };
 
-  const handlePrintNote = (note) => {
+  const handlePrintNote = async (note) => {
     handleCloseDropdown();
-    const printWindow = window.open('', '_blank');
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print - Landing Note ${note.landingNoteNo || ''}</title>
-          <style>
-            body {
-              font-family: "Open Sans", sans-serif;
-              padding: 20px;
-              color: #333;
-            }
-            .print-header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #00368c;
-              padding-bottom: 15px;
-            }
-            .print-header h1 {
-              color: #00368c;
-              margin: 0;
-              font-size: 24px;
-            }
-            .print-section {
-              margin-bottom: 25px;
-            }
-            .print-section-title {
-              font-size: 18px;
-              font-weight: bold;
-              color: #00368c;
-              margin-bottom: 15px;
-              border-bottom: 1px solid #e2e2ea;
-              padding-bottom: 8px;
-            }
-            .print-row {
-              display: flex;
-              margin-bottom: 12px;
-            }
-            .print-label {
-              font-weight: 600;
-              width: 200px;
-              color: #666;
-            }
-            .print-value {
-              flex: 1;
-              color: #1a1a1a;
-            }
-            .print-footer {
-              margin-top: 40px;
-              padding-top: 20px;
-              border-top: 1px solid #e2e2ea;
-              text-align: center;
-              color: #666;
-              font-size: 12px;
-            }
-            @media print {
-              body { margin: 0; padding: 15px; }
-              .print-footer { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-header">
-            <h1>Landing Note Details</h1>
-          </div>
-          
-          <div class="print-section">
-            <div class="print-section-title">Note Information</div>
-            <div class="print-row">
-              <div class="print-label">Landing Note No:</div>
-              <div class="print-value">${note.landingNoteNo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Date:</div>
-              <div class="print-value">${formatDate(note.date) || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">PO/DO:</div>
-              <div class="print-value">${note.poDo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Quantity:</div>
-              <div class="print-value">${note.quantity || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Package Type:</div>
-              <div class="print-value">${note.packageType || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Description:</div>
-              <div class="print-value">${note.description || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Landing Proof:</div>
-              <div class="print-value">${note.landingProof && note.landingProof.length > 0 ? `${note.landingProof.length} file(s)` : "No files"}</div>
-            </div>
-          </div>
-
-          <div class="print-footer">
-            <p>Printed on ${new Date().toLocaleString()}</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    const landingNoteId = note?.landing_note_id ?? note?.id;
+    if (!landingNoteId || isPrinting) return;
+    setIsPrinting(true);
+    try {
+      const response = await landingNoteService.printLandingNote(landingNoteId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(err?.response?.data?.message ?? 'Failed to generate print');
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   const renderHeader = () => (
@@ -1581,18 +1486,31 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         <button
           type="button"
           onClick={() => handlePrintNote(viewingNote)}
+          disabled={isPrinting}
           style={{
             padding: "10px 20px",
             backgroundColor: "#00368c",
             color: "white",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer",
+            cursor: isPrinting ? "not-allowed" : "pointer",
             fontSize: "14px",
             fontWeight: "500",
+            opacity: isPrinting ? 0.7 : 1,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          Print
+          {isPrinting ? (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: "spin 1s linear infinite" }}>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+                <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+              </svg>
+              Printing...
+            </>
+          ) : "Print"}
         </button>
       )}
     </div>
@@ -1713,32 +1631,36 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handlePrintNote(note)}
                         data-tooltip-id={`print-note-${note.id}`}
+                        disabled={isPrinting}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
                           border: "none",
                           borderRadius: "4px",
-                          cursor: "pointer",
+                          cursor: isPrinting ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#00368c",
+                          opacity: isPrinting ? 0.5 : 1,
                           transition: "background-color 0.2s",
                           flexShrink: 0
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f0f0f0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                        }}
+                        onMouseEnter={(e) => { if (!isPrinting) e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        {isPrinting ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: "spin 1s linear infinite" }}>
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
                       </button>
                       <Tooltip id={`convert-note-${note.id}`} place="left" content=" Convert" />
                       <button
