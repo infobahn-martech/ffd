@@ -15,7 +15,7 @@ import {
   GRO_MAIN_VIEWS,
   enrichGroDocWithRowKey,
   normalizeGroApiDocuments,
-  parseDocumentsByTaskResponse,
+  parseDocumentsByTaskPayload,
   groApiErrorMessage,
   resolveGroCallId,
   resolveGroTaskId,
@@ -57,6 +57,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [isFirstColumn, setIsFirstColumn] = useState(false);
   const [isGroLoading, setIsGroLoading] = useState(false);
   const [isSavingInward, setIsSavingInward] = useState(false);
   const [groMainView, setGroMainView] = useState(GRO_MAIN_VIEWS.inward);
@@ -94,6 +95,15 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     const normalized = normalizeGroApiDocuments(rawList);
     setDocuments(normalized.map((d, i) => enrichGroDocWithRowKey(d, i)));
   }, []);
+
+  const applyDocumentsByTaskResponse = useCallback(
+    (res) => {
+      const { documents: rawList, isFirstColumn: firstColumn } = parseDocumentsByTaskPayload(res);
+      setIsFirstColumn(firstColumn);
+      applyTaskDocuments(rawList);
+    },
+    [applyTaskDocuments]
+  );
 
   const callTypeSummary = firstNonEmptyGroDisplay(
     callDetail?.call_type,
@@ -442,11 +452,12 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     if (!taskId) return;
     try {
       const docsRes = await groService.getDocumentsByTask(taskId, callId);
-      applyTaskDocuments(parseDocumentsByTaskResponse(docsRes));
+      applyDocumentsByTaskResponse(docsRes);
     } catch {
+      setIsFirstColumn(false);
       setDocuments([]);
     }
-  }, [taskId, callId, applyTaskDocuments]);
+  }, [taskId, callId, applyDocumentsByTaskResponse]);
 
   useEffect(() => {
     if (callId == null || callId === "") {
@@ -477,7 +488,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
 
         const docsRes = await groService.getDocumentsByTask(taskId, callId);
         if (cancelled) return;
-        applyTaskDocuments(parseDocumentsByTaskResponse(docsRes));
+        applyDocumentsByTaskResponse(docsRes);
       } catch (err) {
         if (cancelled) return;
         notify(groApiErrorMessage(err, "Failed to load GRO card data."), "error");
@@ -492,7 +503,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     return () => {
       cancelled = true;
     };
-  }, [callId, taskId, applyTaskDocuments]);
+  }, [callId, taskId, applyDocumentsByTaskResponse]);
 
   const handleInwardDateTimePickerChange = useCallback(({ date, time }) => {
     if (!date) {
@@ -564,12 +575,13 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
 
   const openConfirmModal = useCallback((doc, action) => {
     if (isSubmittingAction) return;
+    if (isFirstColumn) return;
     if (getGroDocumentVerifyStatus(doc) !== 1) return;
     setSelectedDocument(doc);
     setConfirmAction(action);
     setConfirmRemarks(action === "reject" ? (doc?.remarks ?? "") : "");
     setIsConfirmModalOpen(true);
-  }, [isSubmittingAction]);
+  }, [isSubmittingAction, isFirstColumn]);
 
   const handleApproveClick = useCallback(
     (doc) => openConfirmModal(doc, "approve"),
@@ -841,6 +853,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
             documents={documents}
             isGroLoading={isGroLoading}
             isSubmittingAction={isSubmittingAction}
+            showDocumentVerifyActions={!isFirstColumn}
             onApproveClick={handleApproveClick}
             onRejectClick={handleRejectClick}
             onDocumentDownload={handleDocumentDownload}

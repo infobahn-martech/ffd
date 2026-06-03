@@ -113,12 +113,30 @@ export const resolveGroTaskId = (card, selectedTask = null) => {
   return null;
 };
 
-/** GET task_card/get_documents_by_task — payload: response.data.data.documents */
-export const parseDocumentsByTaskResponse = (res) => {
+/** Coerce API is_first_column to boolean (missing → false, i.e. show verify actions). */
+export const parseIsFirstColumnFromPayload = (payload = {}) => {
+  const raw = payload?.is_first_column;
+  if (raw == null) return false;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "number") return raw !== 0;
+  const normalized = String(raw).trim().toLowerCase();
+  if (normalized === "true" || normalized === "1") return true;
+  if (normalized === "false" || normalized === "0") return false;
+  return false;
+};
+
+/** GET task_card/get_documents_by_task — documents + column flags from response.data.data */
+export const parseDocumentsByTaskPayload = (res) => {
   const payload = res?.data?.data ?? res?.data ?? {};
   const docs = payload?.documents;
-  return Array.isArray(docs) ? docs : [];
+  return {
+    documents: Array.isArray(docs) ? docs : [],
+    isFirstColumn: parseIsFirstColumnFromPayload(payload),
+  };
 };
+
+/** GET task_card/get_documents_by_task — payload: response.data.data.documents */
+export const parseDocumentsByTaskResponse = (res) => parseDocumentsByTaskPayload(res).documents;
 
 export const parseDocumentsByTaskMeta = (res) => {
   const payload = res?.data?.data ?? res?.data ?? {};

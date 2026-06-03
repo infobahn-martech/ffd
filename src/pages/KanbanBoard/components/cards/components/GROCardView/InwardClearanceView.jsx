@@ -341,6 +341,7 @@ function InwardClearanceView({
   documents,
   isGroLoading,
   isSubmittingAction,
+  showDocumentVerifyActions = false,
   onApproveClick,
   onRejectClick,
   onDocumentDownload,
@@ -384,7 +385,7 @@ function InwardClearanceView({
                 </div>
               </div>
               <div className="gro-document-actions">
-                {isPendingVerification ? (
+                {showDocumentVerifyActions && isPendingVerification ? (
                   <button
                     type="button"
                     className="gro-doc-action-btn gro-doc-action-btn--approved"
@@ -395,7 +396,7 @@ function InwardClearanceView({
                     <span>Approve</span>
                   </button>
                 ) : null}
-                {isPendingVerification ? (
+                {showDocumentVerifyActions && isPendingVerification ? (
                   <button
                     type="button"
                     className="gro-doc-action-btn gro-doc-action-btn--reject"
@@ -419,7 +420,7 @@ function InwardClearanceView({
                     <span>Rejected</span>
                   </button>
                 ) : null}
-                {showDownload ? (
+                {showDocumentVerifyActions && showDownload ? (
                   <button
                     type="button"
                     className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"
@@ -448,6 +449,7 @@ InwardClearanceView.propTypes = {
   documents: PropTypes.array.isRequired,
   isGroLoading: PropTypes.bool.isRequired,
   isSubmittingAction: PropTypes.bool,
+  showDocumentVerifyActions: PropTypes.bool,
   onApproveClick: PropTypes.func.isRequired,
   onRejectClick: PropTypes.func.isRequired,
   onDocumentDownload: PropTypes.func.isRequired,
