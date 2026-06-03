@@ -14,7 +14,11 @@ import SedresColorPicker from "../../../../components/SedresColorPicker/SedresCo
 import { normalizeHexColor } from "../../../../components/SedresColorPicker/sedresColorPickerConstants";
 import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
-import { isGROSupervisorRole, getFirstUserRoleId } from "../../../../helpers/groUserRoles";
+import {
+  isGROSupervisorRole,
+  isCustomClearanceSupervisorRole,
+  getFirstUserRoleId,
+} from "../../../../helpers/groUserRoles";
 import useAuthReducer from "../../../../store/AuthReducer";
 
 // Import Tab Components
@@ -1613,10 +1617,18 @@ function CardForm({
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
-  const effectiveVariant =
-    isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))
-      ? "gro"
-      : variant;
+  const effectiveVariant = (() => {
+    if (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) {
+      return "gro";
+    }
+    if (
+      isCustomClearanceSupervisorRole(userRoleId) ||
+      isCustomClearanceSupervisorRole(Number(userRoleId))
+    ) {
+      return "custom";
+    }
+    return variant;
+  })();
 
   const location = useLocation();
   const isDriverVariant = effectiveVariant === "driver";

@@ -1,4 +1,4 @@
-/** Sedres GRO User (API role_id 4) and GRO Supervisor (role_id 6) — shared UI permissions. */
+/** Sedres GRO User (4), GRO Supervisor (6), Custom Clearance Supervisor (5) — shared UI permissions. */
 
 export function normalizeRoleId(roleId) {
   if (roleId === undefined || roleId === null) return null;
@@ -17,6 +17,20 @@ export function isGROUserRole(roleId) {
 
 export function isGROSupervisorRole(roleId) {
   return roleId === "6" || roleId === 6;
+}
+
+export function isCustomClearanceSupervisorRole(roleId) {
+  return roleId === "5" || roleId === 5;
+}
+
+/** GRO Supervisor or Custom Clearance Supervisor — assign-user + verify actions when not first column. */
+export function isDeskSupervisorRole(roleId) {
+  return (
+    isGROSupervisorRole(roleId) ||
+    isGROSupervisorRole(Number(roleId)) ||
+    isCustomClearanceSupervisorRole(roleId) ||
+    isCustomClearanceSupervisorRole(Number(roleId))
+  );
 }
 
 export function collectUserRoleIdCandidates(user) {
@@ -48,6 +62,20 @@ export function userHasGROUserRole(user) {
 export function userHasGROSupervisorRole(user) {
   for (const id of collectUserRoleIdCandidates(user)) {
     if (isGROSupervisorRole(id) || isGROSupervisorRole(Number(id))) return true;
+  }
+  return false;
+}
+
+export function userHasCustomClearanceSupervisorRole(user) {
+  for (const id of collectUserRoleIdCandidates(user)) {
+    if (isCustomClearanceSupervisorRole(id) || isCustomClearanceSupervisorRole(Number(id))) return true;
+  }
+  return false;
+}
+
+export function userHasDeskSupervisorRole(user) {
+  for (const id of collectUserRoleIdCandidates(user)) {
+    if (isDeskSupervisorRole(id)) return true;
   }
   return false;
 }

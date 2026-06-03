@@ -4,8 +4,14 @@ import PropTypes from "prop-types";
 import { notify } from "../../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 import userService from "../../../../../../services/userService";
-import { isGROSupervisorRole } from "../../../../../../helpers/groUserRoles";
-import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../CardFormTabs/tabs/operation/operationConstants";
+import {
+  isGROSupervisorRole,
+  isCustomClearanceSupervisorRole,
+} from "../../../../../../helpers/groUserRoles";
+import {
+  PRE_ARRIVAL_GRO_ROLE_ID,
+  PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+} from "../../../../CardFormTabs/tabs/operation/operationConstants";
 import groService from "../../../../../../services/groService";
 import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
 import InwardClearanceView, { DocumentActionConfirmModal, InwardClearanceToolbar } from "./InwardClearanceView";
@@ -44,7 +50,15 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const hidePassTabs = mode === "gro" || isCustomClearance;
   const isGroSupervisorViewer =
     isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
-  const showAssignedUserSelect = mode === "gro" && isGroSupervisorViewer;
+  const isCustomClearanceSupervisorViewer =
+    isCustomClearanceSupervisorRole(userRoleId) ||
+    isCustomClearanceSupervisorRole(Number(userRoleId));
+  const showAssignedUserSelect =
+    (mode === "gro" && isGroSupervisorViewer) ||
+    (isCustomClearance && isCustomClearanceSupervisorViewer);
+  const assigneeRoleId = isCustomClearance
+    ? PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID
+    : PRE_ARRIVAL_GRO_ROLE_ID;
 
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -174,7 +188,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     let cancelled = false;
     setGroUsersLoading(true);
     userService
-      .getUsersByRole({ role_id: PRE_ARRIVAL_GRO_ROLE_ID, port_id: portId })
+      .getUsersByRole({ role_id: assigneeRoleId, port_id: portId })
       .then((res) => {
         if (!cancelled) setGroUserOptions(parseGroUsersByRoleResponse(res));
       })
@@ -187,7 +201,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     return () => {
       cancelled = true;
     };
-  }, [showAssignedUserSelect, groPortId]);
+  }, [showAssignedUserSelect, groPortId, assigneeRoleId]);
 
   useImperativeHandle(
     ref,
