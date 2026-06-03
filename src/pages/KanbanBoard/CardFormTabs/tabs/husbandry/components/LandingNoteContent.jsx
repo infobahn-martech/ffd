@@ -150,7 +150,7 @@ const mapLandingNoteForDisplay = (note) => {
   };
 };
 
-const buildDispatchConvertOrders = (note) => {
+const buildDispatchConvertOrders = (note, vehicleOpts = [], locationOpts = [], driverOpts = []) => {
   const apiItems = Array.isArray(note?.items) ? note.items : [];
   if (!apiItems.length) {
     return [{
@@ -179,11 +179,27 @@ const buildDispatchConvertOrders = (note) => {
       repacking_pallets: repackingPallets,
       repacking_rolls: repackingRolls,
       transportation_required: isTruthyFlag(item.transportation_required) || Boolean(transportation),
-      typeOfVehicle: transportation ? String(transportation.vehicle_type_id || "") : "",
-      fromLocation: transportation ? String(transportation.from_location_id || "") : "",
+      typeOfVehicle: transportation
+        ? String(transportation.vehicle_type_id || "") ||
+          (vehicleOpts.find((o) => o.label.toLowerCase() === (transportation.vehicle_type_name || "").toLowerCase())?.value || "") ||
+          (transportation.vehicle_type_name ? String(transportation.vehicle_type_name) : "")
+        : "",
+      fromLocation: transportation
+        ? String(transportation.from_location_id || "") ||
+          (locationOpts.find((o) => o.label.toLowerCase() === (transportation.from_location_name || "").toLowerCase())?.value || "") ||
+          (transportation.from_location_name ? String(transportation.from_location_name) : "")
+        : "",
       pickUpFrom: transportation?.pickup_location || "",
-      toLocation: transportation ? String(transportation.to_location_id || "") : "",
-      driverName: transportation ? String(transportation.driver_id || "") : "",
+      toLocation: transportation
+        ? String(transportation.to_location_id || "") ||
+          (locationOpts.find((o) => o.label.toLowerCase() === (transportation.to_location_name || "").toLowerCase())?.value || "") ||
+          (transportation.to_location_name ? String(transportation.to_location_name) : "")
+        : "",
+      driverName: transportation
+        ? String(transportation.driver_id || "") ||
+          (driverOpts.find((o) => o.label.toLowerCase() === (transportation.driver_name || "").toLowerCase())?.value || "") ||
+          (transportation.driver_name ? String(transportation.driver_name) : "")
+        : "",
       transportRemarks: transportation?.remarks || "",
     };
   });
@@ -483,7 +499,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToDispatch = (note) => {
     handleCloseDropdown();
     setConvertingNote(note);
-    const orders = buildDispatchConvertOrders(note);
+    const orders = buildDispatchConvertOrders(note, vehicleOptions, locationOptions, driverOptions);
     const warehouseId = note?.warehouse_id ?? note?.warehouse ?? "";
     const exp = {};
     orders.forEach((o) => { exp[o.id] = true; });
@@ -508,7 +524,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         cb: (detail) => {
           if (!detail) return;
           const normalizedDetail = mapLandingNoteForDisplay(detail);
-          const detailOrders = buildDispatchConvertOrders(normalizedDetail);
+          const detailOrders = buildDispatchConvertOrders(normalizedDetail, vehicleOptions, locationOptions, driverOptions);
           const detailExp = {};
           detailOrders.forEach((o) => { detailExp[o.id] = true; });
           setConvertingNote(normalizedDetail);
@@ -781,6 +797,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     handleCloseDropdown();
     setViewingNote(note);
     setShowViewModal(true);
+    const noteId = note?.landing_note_id ?? note?.id;
+    if (noteId != null && getLandingNoteById) {
+      getLandingNoteById({
+        id: noteId,
+        cb: (detail) => {
+          if (!detail) return;
+          setViewingNote(mapLandingNoteForDisplay(detail));
+        },
+      });
+    }
   };
 
   const handleCloseViewModal = () => {
@@ -1374,10 +1400,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const renderViewBody = () => {
     if (!viewingNote) return null;
 
+    const viewItems = Array.isArray(viewingNote.items) ? viewingNote.items : [];
+
     return (
       <div className="modal-body">
         <div className="view-vessel-container" style={{ padding: "20px" }}>
-          {/* Note Information */}
+          {/* Note Header */}
           <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Note No</div>
@@ -1388,21 +1416,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.date) || "-"}</div>
             </div>
             <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.poDo || "-"}</div>
-            </div>
-          </div>
-
-          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.quantity || "-"}</div>
-            </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.packageType || "-"}</div>
-            </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Proof</div>
               <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>
                 {viewingNote.landingProof && viewingNote.landingProof.length > 0 ? `${viewingNote.landingProof.length} file(s)` : "No files"}
@@ -1410,12 +1423,123 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
           </div>
 
-          <div className="view-row" style={{ marginBottom: "20px" }}>
-            <div className="view-item" style={{ width: "100%" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.description || "-"}</div>
+          {/* Items */}
+          {viewItems.length > 0 && (
+            <div style={{ borderTop: "1px solid #e2e2ea", paddingTop: "20px", marginTop: "4px" }}>
+              <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>Order Items</h4>
+              {viewItems.map((item, idx) => {
+                const transport = getTransportation(item);
+                const hasTransport = isTruthyFlag(item.transportation_required) || Boolean(transport);
+                const hasPacking = isTruthyFlag(item.packing_required);
+                const vehicleName = transport?.vehicle_type_name ||
+                  vehicleOptions.find((o) => o.value === String(transport?.vehicle_type_id))?.label || "-";
+                const fromLocName = transport?.from_location_name ||
+                  locationOptions.find((o) => o.value === String(transport?.from_location_id))?.label || "-";
+                const toLocName = transport?.to_location_name ||
+                  locationOptions.find((o) => o.value === String(transport?.to_location_id))?.label || "-";
+                const driverName = transport?.driver_name ||
+                  driverOptions.find((o) => o.value === String(transport?.driver_id))?.label || "-";
+                return (
+                  <div key={item.landing_note_item_id || idx} style={{ marginBottom: "24px", padding: "16px", backgroundColor: "#f9f9f9", borderRadius: "8px", border: "1px solid #e2e2ea" }}>
+                    <div style={{ fontWeight: "600", color: "#00368c", marginBottom: "12px", fontSize: "14px" }}>
+                      Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
+                    </div>
+
+                    {/* Order Info */}
+                    <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "12px" }}>
+                      <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                        <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>PO/DO</div>
+                        <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.po_no || "-"}</div>
+                      </div>
+                      <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                        <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Quantity</div>
+                        <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.quantity ?? "-"}</div>
+                      </div>
+                      <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                        <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Package Type</div>
+                        <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.package_type || item.package_type_id || "-"}</div>
+                      </div>
+                      {item.description && (
+                        <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                          <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Description</div>
+                          <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.description}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Dispatch Details */}
+                    {(item.slot || item.slot_no || item.reason) && (
+                      <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
+                        <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Dispatch Details</div>
+                        <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Slot</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id) || "-"}</div>
+                          </div>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Reason</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.reason || item.reason_name || "-"}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Packing */}
+                    {hasPacking && (
+                      <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
+                        <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Packing</div>
+                        <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Repacking Pallets</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.repacking_pallets ?? "-"}</div>
+                          </div>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Repacking Rolls</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.repacking_rolls ?? "-"}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Transportation */}
+                    {hasTransport && transport && (
+                      <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
+                        <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Transportation</div>
+                        <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Type of Vehicle</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{vehicleName}</div>
+                          </div>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>From Location</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{fromLocName}</div>
+                          </div>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Pick-Up From</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{transport.pickup_location || "-"}</div>
+                          </div>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>To Location</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{toLocName}</div>
+                          </div>
+                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Driver</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{driverName}</div>
+                          </div>
+                          {transport.remarks && (
+                            <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Remarks</div>
+                              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{transport.remarks}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          )}
         </div>
       </div>
     );
