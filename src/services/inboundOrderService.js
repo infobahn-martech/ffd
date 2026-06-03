@@ -8,5 +8,6 @@ const deleteInboundOrder = (inboundId) =>
   Gateway.delete(`/material_management/delete_inbound/${inboundId}`);
 const getMaterialTransportLocations = () => Gateway.get('/material/get_materialtransport_locations');
 const convertInboundToLandingNote = (data) => Gateway.post('/material_management/convert_inbound_to_landing_note', data);
+const printInboundOrder = (inboundId) => Gateway.get(`/material_management/print_inbound/${inboundId}`, { responseType: 'blob' });
 
-export default { saveInboundOrder, getAllInbound, getInboundById, updateInboundOrder, deleteInboundOrder, getMaterialTransportLocations, convertInboundToLandingNote };
+export default { saveInboundOrder, getAllInbound, getInboundById, updateInboundOrder, deleteInboundOrder, getMaterialTransportLocations, convertInboundToLandingNote, printInboundOrder };

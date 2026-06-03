@@ -11,6 +11,7 @@ import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
+import useAlertReducer from "../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../services/vehicleService";
 import driverService from "../../../../../../services/driverService";
@@ -828,120 +829,20 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setViewingNote(null);
   };
 
-  const handlePrintNote = (note) => {
+  const handlePrintNote = async (note) => {
     handleCloseDropdown();
-    const printWindow = window.open('', '_blank');
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print - Landing Note ${note.landingNoteNo || ''}</title>
-          <style>
-            body {
-              font-family: "Open Sans", sans-serif;
-              padding: 20px;
-              color: #333;
-            }
-            .print-header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #00368c;
-              padding-bottom: 15px;
-            }
-            .print-header h1 {
-              color: #00368c;
-              margin: 0;
-              font-size: 24px;
-            }
-            .print-section {
-              margin-bottom: 25px;
-            }
-            .print-section-title {
-              font-size: 18px;
-              font-weight: bold;
-              color: #00368c;
-              margin-bottom: 15px;
-              border-bottom: 1px solid #e2e2ea;
-              padding-bottom: 8px;
-            }
-            .print-row {
-              display: flex;
-              margin-bottom: 12px;
-            }
-            .print-label {
-              font-weight: 600;
-              width: 200px;
-              color: #666;
-            }
-            .print-value {
-              flex: 1;
-              color: #1a1a1a;
-            }
-            .print-footer {
-              margin-top: 40px;
-              padding-top: 20px;
-              border-top: 1px solid #e2e2ea;
-              text-align: center;
-              color: #666;
-              font-size: 12px;
-            }
-            @media print {
-              body { margin: 0; padding: 15px; }
-              .print-footer { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-header">
-            <h1>Landing Note Details</h1>
-          </div>
-          
-          <div class="print-section">
-            <div class="print-section-title">Note Information</div>
-            <div class="print-row">
-              <div class="print-label">Landing Note No:</div>
-              <div class="print-value">${note.landingNoteNo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Date:</div>
-              <div class="print-value">${formatDate(note.date) || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">PO/DO:</div>
-              <div class="print-value">${note.poDo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Quantity:</div>
-              <div class="print-value">${note.quantity || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Package Type:</div>
-              <div class="print-value">${note.packageType || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Description:</div>
-              <div class="print-value">${note.description || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Landing Proof:</div>
-              <div class="print-value">${note.landingProof && note.landingProof.length > 0 ? `${note.landingProof.length} file(s)` : "No files"}</div>
-            </div>
-          </div>
-
-          <div class="print-footer">
-            <p>Printed on ${new Date().toLocaleString()}</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    const landingNoteId = note?.landing_note_id ?? note?.id;
+    if (!landingNoteId) return;
+    try {
+      const response = await landingNoteService.printLandingNote(landingNoteId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(err?.response?.data?.message ?? 'Failed to generate print');
+    }
   };
 
   const renderHeader = () => (

@@ -15,6 +15,7 @@ import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
 import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
+import useAlertReducer from "../../../../../../store/AlertReducer";
 import inboundOrderService from "../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../services/vehicleService";
 import {
@@ -790,154 +791,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }
   }, [openDropdownId]);
 
-  const handlePrintOrder = (order) => {
+  const handlePrintOrder = async (order) => {
     handleCloseDropdown();
-    const printWindow = window.open('', '_blank');
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print - Inbound Order ${order.orderNo || ''}</title>
-          <style>
-            body {
-              font-family: "Open Sans", sans-serif;
-              padding: 20px;
-              color: #333;
-            }
-            .print-header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #00368c;
-              padding-bottom: 15px;
-            }
-            .print-header h1 {
-              color: #00368c;
-              margin: 0;
-              font-size: 24px;
-            }
-            .print-section {
-              margin-bottom: 25px;
-            }
-            .print-section-title {
-              font-size: 18px;
-              font-weight: bold;
-              color: #00368c;
-              margin-bottom: 15px;
-              border-bottom: 1px solid #e2e2ea;
-              padding-bottom: 8px;
-            }
-            .print-row {
-              display: flex;
-              margin-bottom: 12px;
-            }
-            .print-label {
-              font-weight: 600;
-              width: 200px;
-              color: #666;
-            }
-            .print-value {
-              flex: 1;
-              color: #1a1a1a;
-            }
-            .print-footer {
-              margin-top: 40px;
-              padding-top: 20px;
-              border-top: 1px solid #e2e2ea;
-              text-align: center;
-              color: #666;
-              font-size: 12px;
-            }
-            @media print {
-              body { margin: 0; padding: 15px; }
-              .print-footer { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-header">
-            <h1>Inbound Order Details</h1>
-          </div>
-          
-          <div class="print-section">
-            <div class="print-section-title">Order Information</div>
-            <div class="print-row">
-              <div class="print-label">Order No:</div>
-              <div class="print-value">${order.orderNo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Date:</div>
-              <div class="print-value">${formatDate(order.date) || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">PO/DO:</div>
-              <div class="print-value">${order.poDo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Quantity:</div>
-              <div class="print-value">${order.quantity || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Package Type:</div>
-              <div class="print-value">${order.packageType || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Description:</div>
-              <div class="print-value">${order.description || "-"}</div>
-            </div>
-          </div>
-
-          ${order.transportation ? `
-          <div class="print-section">
-            <div class="print-section-title">Transportation Details</div>
-            <div class="print-row">
-              <div class="print-label">Type of Vehicle:</div>
-              <div class="print-value">${order.typeOfVehicle || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">From Location:</div>
-              <div class="print-value">${order.fromLocation || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Pick-Up From:</div>
-              <div class="print-value">${order.pickUpFrom || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">To Location:</div>
-              <div class="print-value">${order.toLocation || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Driver Name:</div>
-              <div class="print-value">${order.driverName || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Slot No:</div>
-              <div class="print-value">${order.slotNo || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Reason:</div>
-              <div class="print-value">${order.reason || "-"}</div>
-            </div>
-            <div class="print-row">
-              <div class="print-label">Dispatch Date:</div>
-              <div class="print-value">${order.dispatchDate ? formatDate(order.dispatchDate) : "-"}</div>
-            </div>
-          </div>
-          ` : ''}
-
-          <div class="print-footer">
-            <p>Printed on ${new Date().toLocaleString()}</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    const inboundId = resolveInboundId(order);
+    if (!inboundId) return;
+    try {
+      const response = await inboundOrderService.printInboundOrder(inboundId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(err?.response?.data?.message ?? 'Failed to generate print');
+    }
   };
 
   const buildConvertOrders = (items) => {
