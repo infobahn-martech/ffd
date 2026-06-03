@@ -210,6 +210,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   } = useInboundOrderReducer((state) => state);
 
   const [showModal, setShowModal] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
@@ -794,7 +795,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handlePrintOrder = async (order) => {
     handleCloseDropdown();
     const inboundId = resolveInboundId(order);
-    if (!inboundId) return;
+    if (!inboundId || isPrinting) return;
+    setIsPrinting(true);
     try {
       const response = await inboundOrderService.printInboundOrder(inboundId);
       const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -804,6 +806,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     } catch (err) {
       const { error: showError } = useAlertReducer.getState();
       showError(err?.response?.data?.message ?? 'Failed to generate print');
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -2241,18 +2245,31 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <button
           type="button"
           onClick={() => handlePrintOrder(viewingOrder)}
+          disabled={isPrinting}
           style={{
             padding: "10px 20px",
             backgroundColor: "#00368c",
             color: "white",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer",
+            cursor: isPrinting ? "not-allowed" : "pointer",
             fontSize: "14px",
             fontWeight: "500",
+            opacity: isPrinting ? 0.7 : 1,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          Print
+          {isPrinting ? (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: "spin 1s linear infinite" }}>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+                <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+              </svg>
+              Printing...
+            </>
+          ) : "Print"}
         </button>
       )}
     </div>
@@ -2376,31 +2393,35 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handlePrintOrder(order)}
                         data-tooltip-id={`print-order-${rowKey}`}
+                        disabled={isPrinting}
                         style={{
                           padding: "6px 8px",
                           backgroundColor: "transparent",
                           border: "none",
                           borderRadius: "4px",
-                          cursor: "pointer",
+                          cursor: isPrinting ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#00368c",
+                          opacity: isPrinting ? 0.5 : 1,
                           transition: "background-color 0.2s"
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f0f0f0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                        }}
+                        onMouseEnter={(e) => { if (!isPrinting) e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        {isPrinting ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: "spin 1s linear infinite" }}>
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
                       </button>
                       <Tooltip id={`convert-order-${rowKey}`} place="left" content=" Convert" />
                       <button
