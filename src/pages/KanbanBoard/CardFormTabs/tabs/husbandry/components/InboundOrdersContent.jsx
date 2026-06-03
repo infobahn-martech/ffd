@@ -1251,7 +1251,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{"Add Inbound Order"}</h1>
+      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
     </>
   );
 
