@@ -20,8 +20,6 @@ import { findWorkflowByCardId } from "../utils/boardHelpers";
 import { resolveCardFormVariant } from "../../../helpers/cardFormVariant";
 import { getFirstUserRoleId } from "../../../helpers/groUserRoles";
 import useAuthReducer from "../../../store/AuthReducer";
-import { KANBAN_DND_DISABLED } from "../../../modules/kanban/constants/kanbanConfig";
-
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
   const location = useLocation();
@@ -257,9 +255,7 @@ export default function KanbanBoardPage() {
           expandedWorkflows={expandedWorkflows}
           expandedColumns={expandedColumns}
           maxColumnHeights={maxColumnHeights}
-          createDragEndHandler={
-            KANBAN_DND_DISABLED ? () => () => {} : createDragEndHandler
-          }
+          createDragEndHandler={createDragEndHandler}
           onSelectCard={handleSelectCard}
           onColumnHeaderClick={handleColumnHeaderClick}
           onContextMenu={handleColumnContextMenu}
