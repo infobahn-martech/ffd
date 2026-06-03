@@ -557,12 +557,19 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   };
 
   const canVerifyDocument = useCallback(
-    (doc) =>
-      doc.document_id != null &&
-      doc.call_task_document_id != null &&
-      callId != null &&
-      callId !== "",
-    [callId]
+    (doc) => {
+      const cardId = card?.card_id ?? card?.id;
+      return (
+        doc.document_id != null &&
+        callId != null &&
+        callId !== "" &&
+        taskId != null &&
+        taskId !== "" &&
+        cardId != null &&
+        String(cardId).trim() !== ""
+      );
+    },
+    [callId, taskId, card]
   );
 
   const closeConfirmModal = useCallback(() => {
@@ -617,12 +624,18 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     const remarks = confirmAction === "approve" ? "" : String(confirmRemarks).trim();
     setIsSubmittingAction(true);
     try {
+      const cardId = card?.card_id ?? card?.id;
       await groService.verifyGroDocs({
         call_id: Number(callId),
-        document_id: Number(doc.document_id),
-        call_task_document_id: Number(doc.call_task_document_id),
-        status,
-        remarks,
+        task_id: Number(taskId),
+        card_id: Number(cardId),
+        documents: [
+          {
+            document_id: Number(doc.document_id),
+            status,
+            remarks,
+          },
+        ],
       });
       await refreshGroDocuments();
       notify(confirmAction === "approve" ? "Document verified." : "Document rejected.", "success");

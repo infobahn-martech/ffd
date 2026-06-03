@@ -13,6 +13,7 @@ export const getDocumentsByTask = (taskId, callId) => {
   return Gateway.get(`task_card/get_documents_by_task/${taskSegment}/${callSegment}`);
 };
 
+/** POST task_card/verify_docs — { call_id, task_id, card_id, documents: [{ document_id, status, remarks }] } */
 export const verifyGroDocs = (payload) => Gateway.post("task_card/verify_docs", payload);
 
 export const saveArrivalDocument = (formData) =>
