@@ -17,11 +17,14 @@ import {
   buildChecklistReportLines,
   collectItemIdsUnderSectionInBlocks,
   collectTreeSectionIds,
+  extractCallChecklistRows,
   filterFilesExcludingRemovedBackend,
   flattenTreeItems,
   mapApiSectionsToTree,
   mapGetChecklistByIdResponse,
   mergeChecklistTypeOptions,
+  mergeSavedChecklistsIntoTypeOptions,
+  normalizeSavedChecklistLookup,
 } from "./checklistTab/checklistMappers";
 
 const FormField = ({ label, children, className = "" }) => (
@@ -272,10 +275,7 @@ const fetchChecklistById = async (checklistTypeId) => {
 const fetchSavedCallChecklist = async (callId) => {
   if (!callId) return [];
   const { data } = await checklistService.getCallChecklist(callId);
-  const payload = data?.data ?? data ?? null;
-  if (Array.isArray(payload)) return payload;
-  if (payload && typeof payload === "object") return [payload];
-  return [];
+  return extractCallChecklistRows(data);
 };
 
 const normalizeChecklistTypeOptions = (rowsBySource) =>
@@ -287,42 +287,6 @@ const normalizeChecklistDetailResponse = (checklistTypeId, payload) => {
   const typeName = checklistDetails?.checklist_name || `Checklist ${typeId}`;
   const tree = mapApiSectionsToTree(sections, typeId, typeName);
   return { typeId, typeName, tree, checklistDetails };
-};
-
-const normalizeSavedChecklistLookup = (rows) => {
-  const lookup = {};
-  const typeIds = [];
-
-  (rows || []).forEach((typeRow) => {
-    const typeId = toIdString(typeRow?.checklist_type_id);
-    if (!typeId) return;
-    if (!lookup[typeId]) {
-      lookup[typeId] = {};
-      typeIds.push(typeId);
-    }
-
-    (typeRow?.sections || []).forEach((section, sectionIndex) => {
-      (section?.items || []).forEach((item, itemIndex) => {
-        const itemId = toIdString(item?.checklist_item_id);
-        if (!itemId) return;
-        const files = (item?.files || []).map((f, fileIndex) =>
-          normalizeBackendFile(
-            f,
-            `${typeId}_${section?.checklist_section_id ?? sectionIndex}_${itemId}_${itemIndex}_${fileIndex}`
-          )
-        );
-        lookup[typeId][itemId] = {
-          checked: item?.is_checked === 1 || item?.is_checked === true || String(item?.is_checked) === "1",
-          remarks: item?.remarks ?? "",
-          expiryDate: normalizeExpiryDateForUi(item?.expiry_date ?? ""),
-          apiUploadedFiles: files,
-          uploadedFiles: files,
-        };
-      });
-    });
-  });
-
-  return { lookup, typeIds };
 };
 
 const getChecklistItemIdFromUiItem = (item) => {
@@ -430,6 +394,7 @@ function Checklist({
         const normalized = normalizeSavedChecklistLookup(rows);
         setSavedChecklistLookup(normalized.lookup);
         setSavedChecklistTypeIds(normalized.typeIds);
+        setChecklistTypeOptions((prev) => mergeSavedChecklistsIntoTypeOptions(prev, rows));
       } catch {
         if (!cancelled) {
           setSavedChecklistLookup({});
@@ -475,6 +440,12 @@ function Checklist({
           if (userChangedSelectionRef.current) {
             return prev.filter((id) => optionIdSet.has(String(id))).map(String);
           }
+          if (savedChecklistTypeIds.length > 0) {
+            const fromSaved = savedChecklistTypeIds
+              .filter((id) => optionIdSet.has(String(id)))
+              .map(String);
+            if (fromSaved.length) return fromSaved;
+          }
           return optionIds;
         });
         if (!cancelled) {
@@ -498,7 +469,22 @@ function Checklist({
     return () => {
       cancelled = true;
     };
-  }, [dataContext, prerequisiteState.canLoadChecklists]);
+  }, [dataContext, prerequisiteState.canLoadChecklists, savedChecklistTypeIds]);
+
+  useEffect(() => {
+    if (userChangedSelectionRef.current) return;
+    if (!savedChecklistTypeIds.length || !checklistTypeOptions.length) return;
+    const optionIdSet = new Set(checklistTypeOptions.map((o) => String(o.value)));
+    const fromSaved = savedChecklistTypeIds
+      .filter((id) => optionIdSet.has(String(id)))
+      .map(String);
+    if (!fromSaved.length) return;
+    setSelectedChecklistTypeIds((prev) => {
+      const prevKey = [...prev].map(String).sort().join(",");
+      const nextKey = [...fromSaved].sort().join(",");
+      return prevKey === nextKey ? prev : fromSaved;
+    });
+  }, [savedChecklistTypeIds, checklistTypeOptions]);
 
   useEffect(() => {
     let cancelled = false;
@@ -689,8 +675,13 @@ function Checklist({
         const normalized = normalizeSavedChecklistLookup(rows);
         setSavedChecklistLookup(normalized.lookup);
         setSavedChecklistTypeIds(normalized.typeIds);
-        if (!userChangedSelectionRef.current) {
-          setSelectedChecklistTypeIds(checklistTypeOptions.map((o) => String(o.value)));
+        setChecklistTypeOptions((prev) => mergeSavedChecklistsIntoTypeOptions(prev, rows));
+        if (!userChangedSelectionRef.current && normalized.typeIds.length > 0) {
+          const optionIdSet = new Set(checklistTypeOptions.map((o) => String(o.value)));
+          const fromSaved = normalized.typeIds
+            .filter((id) => optionIdSet.has(String(id)))
+            .map(String);
+          if (fromSaved.length) setSelectedChecklistTypeIds(fromSaved);
         }
       } catch {
         /* save succeeded; refresh is best-effort */

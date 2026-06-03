@@ -66,6 +66,99 @@ export const extractChecklistTypeRows = (payload) => {
   return [];
 };
 
+const normalizeExpiryDateForUi = (value) => {
+  const s = String(value ?? "").trim();
+  if (!s || s === "0000-00-00" || s.startsWith("0000-00-00")) return "";
+  return s;
+};
+
+const normalizeCallChecklistFile = (file, fallbackKey) => {
+  const fileName = file?.file_name ?? file?.name ?? file?.filename ?? "File";
+  const fileUrl = file?.file_url ?? file?.url ?? file?.link ?? null;
+  return {
+    id: file?.file_id ?? file?.id ?? `api_${fallbackKey}`,
+    file_id: file?.file_id ?? file?.id ?? null,
+    name: fileName,
+    fileName,
+    size: file?.size ?? null,
+    url: fileUrl,
+    link: fileUrl,
+    file_url: fileUrl,
+    fromApi: true,
+    isNew: false,
+    file: undefined,
+  };
+};
+
+/**
+ * Normalize GET call_checklist/get_call_checklist/{call_id}.
+ * Each row: call_checklist_id, call_id, checklist_type_id, checklist_name, sections[].
+ */
+export const extractCallChecklistRows = (payload) => {
+  if (payload == null) return [];
+  return extractChecklistTypeRows(payload);
+};
+
+/** Add saved checklist types (and labels) into the multi-select options. */
+export const mergeSavedChecklistsIntoTypeOptions = (options, savedRows) => {
+  const map = new Map((options || []).map((o) => [String(o.value), o]));
+  (savedRows || []).forEach((row) => {
+    const id = row?.checklist_type_id;
+    if (id == null || String(id).trim() === "") return;
+    const key = String(id);
+    const label = String(row.checklist_name ?? "").trim() || `Checklist ${key}`;
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { value: key, label });
+    } else if (!String(existing.label ?? "").trim() || /^Checklist \d+$/i.test(existing.label)) {
+      map.set(key, { ...existing, label });
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+};
+
+/**
+ * Map saved call checklist rows into lookup[typeId][itemId] for UI merge on load.
+ */
+export const normalizeSavedChecklistLookup = (rows) => {
+  const lookup = {};
+  const typeIds = [];
+
+  (rows || []).forEach((row) => {
+    const typeId = row?.checklist_type_id != null ? String(row.checklist_type_id).trim() : "";
+    if (!typeId) return;
+    if (!lookup[typeId]) {
+      lookup[typeId] = {};
+      typeIds.push(typeId);
+    }
+
+    (row?.sections || []).forEach((section, sectionIndex) => {
+      (section?.items || []).forEach((item, itemIndex) => {
+        const itemId = item?.checklist_item_id != null ? String(item.checklist_item_id).trim() : "";
+        if (!itemId) return;
+        const files = (item?.files || []).map((f, fileIndex) =>
+          normalizeCallChecklistFile(
+            f,
+            `${typeId}_${section?.checklist_section_id ?? sectionIndex}_${itemId}_${itemIndex}_${fileIndex}`
+          )
+        );
+        lookup[typeId][itemId] = {
+          checked:
+            item?.is_checked === 1 ||
+            item?.is_checked === true ||
+            String(item?.is_checked) === "1",
+          remarks: item?.remarks ?? "",
+          expiryDate: normalizeExpiryDateForUi(item?.expiry_date ?? ""),
+          apiUploadedFiles: files,
+          uploadedFiles: files,
+        };
+      });
+    });
+  });
+
+  return { lookup, typeIds };
+};
+
 export const mergeChecklistTypeOptions = (lists) => {
   const map = new Map();
   lists.flat().forEach((row) => {
