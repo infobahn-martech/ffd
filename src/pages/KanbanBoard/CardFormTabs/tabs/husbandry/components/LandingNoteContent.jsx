@@ -1337,93 +1337,82 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     return (
       <div className="modal-body">
-        <div className="view-vessel-container" style={{ padding: "20px" }}>
+        <div className="view-vessel-container">
           {/* Note Header */}
-          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Note No</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.landingNoteNo || "-"}</div>
+          <div className="landing-view-header">
+            <div className="landing-view-field">
+              <div className="landing-view-label">Landing Note No</div>
+              <div className="landing-view-value">{viewingNote.landingNoteNo || "-"}</div>
             </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.date) || "-"}</div>
+            <div className="landing-view-field">
+              <div className="landing-view-label">Date</div>
+              <div className="landing-view-value">{formatDate(viewingNote.date) || "-"}</div>
             </div>
             {warehouseName && (
-              <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Warehouse</div>
-                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{warehouseName}</div>
+              <div className="landing-view-field">
+                <div className="landing-view-label">Warehouse</div>
+                <div className="landing-view-value">{warehouseName}</div>
               </div>
             )}
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Received From</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.received_from || "-"}</div>
+            <div className="landing-view-field">
+              <div className="landing-view-label">Received From</div>
+              <div className="landing-view-value">{viewingNote.received_from || "-"}</div>
             </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Location</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.location || "-"}</div>
+            <div className="landing-view-field">
+              <div className="landing-view-label">Location</div>
+              <div className="landing-view-value">{viewingNote.location || "-"}</div>
             </div>
             {viewingNote.signature && (
-              <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Signature</div>
-                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.signature}</div>
+              <div className="landing-view-field">
+                <div className="landing-view-label">Signature</div>
+                <div className="landing-view-value">{viewingNote.signature}</div>
               </div>
             )}
-            <div className="view-item" style={{ flex: "1 1 100%", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Documents</div>
+            <div className="landing-view-field--full">
+              <div className="landing-view-label">Documents</div>
               {documents.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div className="landing-doc-list">
                   {documents.map((doc, i) => {
                     const fileName = doc.file_name || doc.name || `File ${i + 1}`;
                     const fileUrl = getFileUrl(doc.file_path || doc.file_url || "");
                     const isImage = isImageFile(fileName);
                     return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", border: "1px solid #e2e2ea", borderRadius: "6px", backgroundColor: "#f9f9f9" }}>
+                      <div key={i} className="landing-doc-card">
                         {isImage ? (
-                          <img
-                            src={fileUrl}
-                            alt={fileName}
-                            style={{ width: "44px", height: "44px", objectFit: "cover", borderRadius: "4px", border: "1px solid #e2e2ea", flexShrink: 0 }}
-                          />
+                          <img src={fileUrl} alt={fileName} className="landing-doc-thumbnail" />
                         ) : (
-                          <div style={{ width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e8edff", borderRadius: "4px", flexShrink: 0 }}>
+                          <div className="landing-doc-icon">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               <path d="M14 2V8H20" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           </div>
                         )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: "13px", fontWeight: "500", color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileName}</div>
-                          {doc.remarks && <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>{doc.remarks}</div>}
+                        <div className="landing-doc-info">
+                          <div className="landing-doc-name">{fileName}</div>
+                          {doc.remarks && <div className="landing-doc-remarks">{doc.remarks}</div>}
                         </div>
-                        <a
-                          href={fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ padding: "5px 14px", backgroundColor: "#00368c", color: "white", borderRadius: "4px", fontSize: "12px", fontWeight: "500", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
-                        >
-                          View
-                        </a>
+                        <a href={fileUrl} target="_blank" rel="noreferrer" className="landing-doc-view-btn">View</a>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <div style={{ color: "#999", fontSize: "14px" }}>No files</div>
+                <div className="landing-view-value">No files</div>
               )}
             </div>
             {viewingNote.remarks && (
-              <div className="view-item" style={{ flex: "1 1 100%", minWidth: "200px" }}>
-                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Remarks</div>
-                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }} dangerouslySetInnerHTML={{ __html: viewingNote.remarks }} />
+              <div className="landing-view-field--full">
+                <div className="landing-view-label">Remarks</div>
+                <div className="landing-view-value" dangerouslySetInnerHTML={{ __html: viewingNote.remarks }} />
               </div>
             )}
           </div>
 
           {/* Items */}
           {viewItems.length > 0 && (
-            <div style={{ borderTop: "1px solid #e2e2ea", paddingTop: "20px", marginTop: "4px" }}>
-              <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>Order Items</h4>
+            <div className="landing-view-items-section">
+              <h4 className="fw-semibold mb-3">Order Items</h4>
               {viewItems.map((item, idx) => {
                 const transport = getTransportation(item);
                 const hasTransport = isTruthyFlag(item.transportation_required) || Boolean(transport);
@@ -1438,102 +1427,98 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 const driverName = transport?.driver_name ||
                   driverOptions.find((o) => o.value === String(transport?.driver_id))?.label || "-";
                 return (
-                  <div key={item.landing_note_item_id || idx} style={{ marginBottom: "24px", padding: "16px", backgroundColor: "#f9f9f9", borderRadius: "8px", border: "1px solid #e2e2ea" }}>
-                    <div style={{ fontWeight: "600", color: "#00368c", marginBottom: "12px", fontSize: "14px" }}>
+                  <div key={item.landing_note_item_id || idx} className="landing-view-item-card">
+                    <div className="landing-view-item-title">
                       Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </div>
 
-                    {/* Order Info */}
-                    <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "12px" }}>
-                      <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                        <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>PO/DO</div>
-                        <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.po_no || "-"}</div>
+                    <div className="landing-view-item-fields">
+                      <div className="landing-view-item-field">
+                        <div className="landing-view-item-label">PO/DO</div>
+                        <div className="landing-view-item-value">{item.po_no || "-"}</div>
                       </div>
-                      <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                        <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Quantity</div>
-                        <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.quantity ?? "-"}</div>
+                      <div className="landing-view-item-field">
+                        <div className="landing-view-item-label">Quantity</div>
+                        <div className="landing-view-item-value">{item.quantity ?? "-"}</div>
                       </div>
-                      <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                        <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Package Type</div>
-                        <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.package_type || item.package_type_id || "-"}</div>
+                      <div className="landing-view-item-field">
+                        <div className="landing-view-item-label">Package Type</div>
+                        <div className="landing-view-item-value">{item.package_type || item.package_type_id || "-"}</div>
                       </div>
                       {item.description && (
-                        <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                          <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Description</div>
-                          <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.description}</div>
+                        <div className="landing-view-item-field">
+                          <div className="landing-view-item-label">Description</div>
+                          <div className="landing-view-item-value">{item.description}</div>
                         </div>
                       )}
                     </div>
 
-                    {/* Dispatch Details */}
                     {hasDispatch && (
-                      <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
-                        <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Dispatch Details</div>
-                        <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Slot</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id) || "-"}</div>
+                      <div className="landing-view-sub-section">
+                        <div className="landing-view-sub-title">Dispatch Details</div>
+                        <div className="landing-view-item-fields">
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Slot</div>
+                            <div className="landing-view-item-value">{normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id) || "-"}</div>
                           </div>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Reason</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.reason || item.reason_name || item.reason_id || "-"}</div>
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Reason</div>
+                            <div className="landing-view-item-value">{item.reason || item.reason_name || item.reason_id || "-"}</div>
                           </div>
                           {item.dispatch_date && (
-                            <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Dispatch Date</div>
-                              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{formatDate(item.dispatch_date)}</div>
+                            <div className="landing-view-item-field">
+                              <div className="landing-view-item-label">Dispatch Date</div>
+                              <div className="landing-view-item-value">{formatDate(item.dispatch_date)}</div>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Packing */}
                     {hasPacking && (
-                      <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
-                        <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Packing</div>
-                        <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Repacking Pallets</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.repacking_pallets ?? "-"}</div>
+                      <div className="landing-view-sub-section">
+                        <div className="landing-view-sub-title">Packing</div>
+                        <div className="landing-view-item-fields">
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Repacking Pallets</div>
+                            <div className="landing-view-item-value">{item.repacking_pallets ?? "-"}</div>
                           </div>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Repacking Rolls</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.repacking_rolls ?? "-"}</div>
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Repacking Rolls</div>
+                            <div className="landing-view-item-value">{item.repacking_rolls ?? "-"}</div>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Transportation */}
                     {hasTransport && transport && (
-                      <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
-                        <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Transportation</div>
-                        <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Type of Vehicle</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{vehicleName}</div>
+                      <div className="landing-view-sub-section">
+                        <div className="landing-view-sub-title">Transportation</div>
+                        <div className="landing-view-item-fields">
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Type of Vehicle</div>
+                            <div className="landing-view-item-value">{vehicleName}</div>
                           </div>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>From Location</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{fromLocName}</div>
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">From Location</div>
+                            <div className="landing-view-item-value">{fromLocName}</div>
                           </div>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Pick-Up From</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{transport.pickup_location || "-"}</div>
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Pick-Up From</div>
+                            <div className="landing-view-item-value">{transport.pickup_location || "-"}</div>
                           </div>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>To Location</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{toLocName}</div>
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">To Location</div>
+                            <div className="landing-view-item-value">{toLocName}</div>
                           </div>
-                          <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                            <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Driver</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{driverName}</div>
+                          <div className="landing-view-item-field">
+                            <div className="landing-view-item-label">Driver</div>
+                            <div className="landing-view-item-value">{driverName}</div>
                           </div>
                           {transport.remarks && (
-                            <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
-                              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Remarks</div>
-                              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{transport.remarks}</div>
+                            <div className="landing-view-item-field">
+                              <div className="landing-view-item-label">Remarks</div>
+                              <div className="landing-view-item-value">{transport.remarks}</div>
                             </div>
                           )}
                         </div>
