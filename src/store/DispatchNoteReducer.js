@@ -10,10 +10,10 @@ const useDispatchNoteReducer = create((set) => ({
     dispatchNotes: [],
     dispatchTotal: 0,
 
-    getAllDispatchNotes: async (params) => {
+    getAllDispatchNotes: async ({ call_id, ...params }) => {
         try {
             set({ isLoadingList: true });
-            const { data } = await dispatchNoteService.getAllDispatchNotes(params);
+            const { data } = await dispatchNoteService.getAllDispatchNotes(call_id, params);
             set({ dispatchNotes: data?.data ?? [], dispatchTotal: data?.pagination?.total ?? 0, isLoadingList: false });
         } catch (err) {
             const { error } = useAlertReducer.getState();
