@@ -5,13 +5,15 @@ import * as LuIcons from 'react-icons/lu';
 /** Used when `iconKey` is missing or does not resolve to a component. */
 export const FALLBACK_ICON_KEY = 'FiLayers';
 
-export function resolveIconComponent(iconKey) {
-    if (!iconKey || typeof iconKey !== 'string') {
-        return FiIcons[FALLBACK_ICON_KEY];
-    }
+/** Resolves `Fi*` / `Lu*` export names; returns null when unknown (no fallback). */
+export function resolveIconComponentStrict(iconKey) {
+    if (!iconKey || typeof iconKey !== 'string') return null;
     const trimmed = iconKey.trim();
-    const Icon = FiIcons[trimmed] || LuIcons[trimmed];
-    return Icon || FiIcons[FALLBACK_ICON_KEY];
+    return FiIcons[trimmed] || LuIcons[trimmed] || null;
+}
+
+export function resolveIconComponent(iconKey) {
+    return resolveIconComponentStrict(iconKey) || FiIcons[FALLBACK_ICON_KEY];
 }
 
 /**

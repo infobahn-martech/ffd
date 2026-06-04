@@ -10,7 +10,7 @@ import saipemLogo from "../../../../assets/images/saipem.png";
 import lamprellLogo from "../../../../assets/images/lamprell.png";
 import gulfmarineLogo from "../../../../assets/images/gulfmarine.png";
 import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal, FiTrendingUp } from "react-icons/fi";
-import * as FiIcons from "react-icons/fi";
+import { resolveIconComponentStrict } from "../../../../structure/SideNav/components/DynamicIcon";
 import {
   hasText,
   isValidProgress,
@@ -20,9 +20,9 @@ import {
   getUsernameInitial,
 } from "../../utils/cardDisplayHelpers";
 
-/** Top-left badge: dynamic Feather icon from API `cardTypeIcon`. */
+/** Top-left badge: dynamic Fi/Lu icon from API `cardTypeIcon` (e.g. LuRocket). */
 function ApiCardTypeIcon({ card }) {
-  const IconComponent = FiIcons[card.cardTypeIcon];
+  const IconComponent = resolveIconComponentStrict(card.cardTypeIcon);
 
   if (!IconComponent) return null;
 
