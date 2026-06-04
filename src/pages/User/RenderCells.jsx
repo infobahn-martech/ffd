@@ -5,7 +5,7 @@ import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import permissionIcon from '../../assets/images/icon-lock.svg';
 import unarchiveIcon from '../../assets/images/CircleTick.svg';
-import { getInitials } from '../../utils/utils';
+import { getInitials } from '../../shared/utils/utils';
 
 export const RenderAction = ({
   onEditClick,

@@ -4,7 +4,7 @@ import 'react-phone-input-2/lib/bootstrap.css';
 import { FiCamera } from 'react-icons/fi';
 import CustomModal from '../../components/CustomModal';
 import authService from '../../services/authService';
-import { getItem } from '../../helpers/localStorage';
+import { getItem } from '../../shared/helpers/localStorage';
 import '../../design/scss/profile.scss';
 import '../../design/scss/prospect-modal.scss';
 import '../../design/scss/form-designs.scss';

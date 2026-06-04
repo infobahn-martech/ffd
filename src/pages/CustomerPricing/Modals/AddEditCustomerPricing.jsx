@@ -4,7 +4,7 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { PORT_OPTIONS } from "../../../constants/ports";
+import { PORT_OPTIONS } from "../../../shared/constants/ports";
 
 // TODO: Replace with actual billing entities from API or constants
 const BILLING_ENTITY_OPTIONS = [

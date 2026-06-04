@@ -22,7 +22,7 @@ import {
   splitApiDateTimeParts,
   buildApiDateTime,
   formatDisplayDateTime,
-} from "../../../../../../helpers/dateTimeFieldUtils";
+} from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import MaterialTablePagination from "./MaterialTablePagination";
 
 const extractListFromApi = (body) => {

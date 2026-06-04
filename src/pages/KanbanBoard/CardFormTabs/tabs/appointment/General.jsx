@@ -29,8 +29,8 @@ import {
   mapVesselTypesToOptions,
   mapBargeTypesToOptions,
   mergeOptionIfMissing,
-} from "../../../../../helpers/callFileFormOptions";
-import { buildCreateCallFileFormData } from "../../../../../helpers/createCallFilePayload";
+} from "../../../../../shared/helpers/callFileFormOptions";
+import { buildCreateCallFileFormData } from "../../../../../shared/helpers/createCallFilePayload";
 import { notify } from "../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../components/DateTimePickerField";
@@ -39,7 +39,7 @@ import {
   extractAppointmentDetailsWithGemini,
   formatToApiDateTime,
   normalizeAppointmentDateTime,
-} from "../../../../../helpers/appointmentAiExtractor";
+} from "../../../../../shared/helpers/appointmentAiExtractor";
 import * as MsgReaderModule from "msgreader";
 
 const splitDateTime = (value) => {

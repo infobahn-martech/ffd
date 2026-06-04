@@ -1,4 +1,4 @@
-import useAlertReducer from '../store/AlertReducer';
+import useAlertReducer from '../../store/AlertReducer';
 import * as XLSX from 'xlsx';
 
 export const getInitials = (fullName) => {

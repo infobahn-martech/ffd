@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanbanConfig";
+import { KANBAN_DND_DISABLED } from "../../../../shared/constants/kanbanConfig";
 import ColumnHeader from "./ColumnHeader";
 import SwimlaneColumnCell from "./SwimlaneColumnCell";
 import {

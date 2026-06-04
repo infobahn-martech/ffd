@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import authService from '../services/authService';
-import { getAuthData, removeItem, setItem, getItem } from '../helpers/localStorage';
+import { getAuthData, removeItem, setItem, getItem } from '../shared/helpers/localStorage';
 import useAlertReducer from './AlertReducer';
 
 const { isLoggedIn } = getAuthData();

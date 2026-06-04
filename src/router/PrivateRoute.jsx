@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 import useAuthReducer from '../store/AuthReducer';
-import { getItem } from '../helpers/localStorage';
+import { getItem } from '../shared/helpers/localStorage';
 
 function PrivateRoutes() {
   const isLoggedIn = useAuthReducer((state) => state.isLoggedIn);

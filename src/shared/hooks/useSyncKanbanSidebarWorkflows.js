@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useKanbanSidebarBridge } from '../store/kanbanSidebarBridge';
+import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 
 /** Mirrors normalized workflow fields so SideNav can apply the same add-card rules as on /operator. */
 export default function useSyncKanbanSidebarWorkflows(workflows) {

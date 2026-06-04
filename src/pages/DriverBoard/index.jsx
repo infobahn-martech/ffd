@@ -1,17 +1,17 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { KANBAN_DND_DISABLED } from "../../modules/kanban/constants/kanbanConfig";
+import { KANBAN_DND_DISABLED } from "../../shared/constants/kanbanConfig";
 import { FiLayers } from "react-icons/fi";
-import { initialData } from "../../helpers/Driverdata";
+import { initialData } from "../../shared/helpers/Driverdata";
 import Column from "./Column";
 import CardForm from "../KanbanBoard/components/cards/CardForm";
 import ContextMenu from "../KanbanBoard/components/menus/ContextMenu";
 import AccordionMenu from "../KanbanBoard/components/menus/AccordionMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
-import useSyncKanbanSidebarWorkflows from "../../hooks/useSyncKanbanSidebarWorkflows";
-import useKanbanAddCardFromSidebar from "../../hooks/useKanbanAddCardFromSidebar";
-import { getAddModeCardFormWorkflow } from "../../helpers/kanbanSidebarWorkflow";
+import useSyncKanbanSidebarWorkflows from "../../shared/hooks/useSyncKanbanSidebarWorkflows";
+import useKanbanAddCardFromSidebar from "../../shared/hooks/useKanbanAddCardFromSidebar";
+import { getAddModeCardFormWorkflow } from "../../shared/helpers/kanbanSidebarWorkflow";
 
 export default function DriverBoard() {
   const [workflows, setWorkflows] = useState(initialData);

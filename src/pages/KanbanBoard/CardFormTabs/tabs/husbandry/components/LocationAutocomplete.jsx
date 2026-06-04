@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { useGoogleMaps } from "../../../../../../hooks/useGoogleMaps";
+import { useGoogleMaps } from "../../../../../../shared/hooks/useGoogleMaps";
 
 const LocationAutocomplete = ({ value, onChange, placeholder, className = "", onLocationSelect }) => {
   const inputRef = useRef(null);

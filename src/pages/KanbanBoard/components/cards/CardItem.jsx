@@ -1,5 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanbanConfig";
+import { KANBAN_DND_DISABLED } from "../../../../shared/constants/kanbanConfig";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "../../../../design/css/components/CardItem.css";

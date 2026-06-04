@@ -4,7 +4,7 @@ import CustomTable from "../../components/customTable";
 import { CustomFieldModal } from "./Modals/AddEditCustomFeild";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { CUSTOM_FIELDS, getCustomFieldDescription, CUSTOM_FIELD_TYPES } from "../../constants/customFields";
+import { CUSTOM_FIELDS, getCustomFieldDescription, CUSTOM_FIELD_TYPES } from "../../shared/constants/customFields";
 
 
 const dummyCustomFields = CUSTOM_FIELDS.map((customField, index) => ({

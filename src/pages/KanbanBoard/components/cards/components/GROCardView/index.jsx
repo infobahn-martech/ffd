@@ -8,7 +8,7 @@ import {
   isGROSupervisorRole,
   isMWPSupervisorRole,
   isCustomClearanceSupervisorRole,
-} from "../../../../../../helpers/groUserRoles";
+} from "../../../../../../shared/helpers/groUserRoles";
 import {
   PRE_ARRIVAL_GRO_ROLE_ID,
   PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,

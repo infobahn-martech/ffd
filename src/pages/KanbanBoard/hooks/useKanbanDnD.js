@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { notify } from "../../../components/Toaster";
-import { userHasDeskSupervisorRole } from "../../../helpers/groUserRoles";
+import { userHasDeskSupervisorRole } from "../../../shared/helpers/groUserRoles";
 import taskCardService from "../../../services/groService/taskCardService";
 import {
   findColumnByCardId,

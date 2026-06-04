@@ -5,7 +5,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { splitApiDateTimeParts } from "../../../../helpers/dateTimeFieldUtils";
+import { splitApiDateTimeParts } from "../../../../shared/helpers/dateTimeFieldUtils";
 import "../../../../design/scss/general.scss";
 
 dayjs.extend(customParseFormat);

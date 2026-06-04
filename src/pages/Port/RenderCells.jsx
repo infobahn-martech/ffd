@@ -4,7 +4,7 @@ import moment from 'moment';
 // import eye from '../../assets/images/eye.svg';
 // import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
-import { getInitials } from '../../utils/utils';
+import { getInitials } from '../../shared/utils/utils';
 
 export const RenderAction = ({  row, onDeleteClick }) => {
   return (

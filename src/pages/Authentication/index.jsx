@@ -5,7 +5,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
 import useAuthReducer from "../../store/AuthReducer";
-import { setItem } from "../../helpers/localStorage";
+import { setItem } from "../../shared/helpers/localStorage";
 
 function Index() {
   const navigate = useNavigate();

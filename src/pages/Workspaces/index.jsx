@@ -16,9 +16,9 @@ import DashboardAddItemsModal from './DashboardAddItemsModal';
 import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
 import RenameWorkspaceModal from './RenameWorkspaceModal';
-import { getDashboardCanvasStyle } from '../../utils/dashboardBackground';
+import { getDashboardCanvasStyle } from '../../shared/utils/dashboardBackground';
 import useAuthReducer from '../../store/AuthReducer';
-import { isRestrictedBoardUser, RESTRICTED_BOARD_HOME_PATH } from '../../helpers/restrictedBoardUser';
+import { isRestrictedBoardUser, RESTRICTED_BOARD_HOME_PATH } from '../../shared/helpers/restrictedBoardUser';
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (

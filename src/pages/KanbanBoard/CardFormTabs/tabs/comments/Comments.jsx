@@ -4,7 +4,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../design/scss/invoice.scss";
 import callFileService from "../../../../../services/callFileService";
-import { unwrapListResponse } from "../../../../../helpers/callFileFormOptions";
+import { unwrapListResponse } from "../../../../../shared/helpers/callFileFormOptions";
 
 const QUILL_MODULES = {
     toolbar: [

@@ -1,7 +1,7 @@
 // ============================================
 // Kanban board normalization (API → FE workflow shape)
 // ============================================
-import defaultEntityLogo from "../assets/images/CreatedLogo.svg";
+import defaultEntityLogo from "../../assets/images/CreatedLogo.svg";
 
 // Normalized workflow:
 // { id, title, columnOrder, columns, swimlaneOrder, swimlanes, cards, boardId? }

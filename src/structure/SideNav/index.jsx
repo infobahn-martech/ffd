@@ -34,18 +34,18 @@ import billingIcon from '../../assets/images/icon-billing.svg';
 import usersIcon from '../../assets/images/icon-users.svg';
 import configIcon from '../../assets/images/icon-config.svg';
 
-import useWindowSize from '../../hooks/useWindowSize';
+import useWindowSize from '../../shared/hooks/useWindowSize';
 import {
   buildKanbanAddCardEventDetail,
   getSwimlaneOptionsFromWorkflow,
   resolveSidebarAddCardAction,
-} from '../../helpers/kanbanAddWorkflowSelection';
+} from '../../shared/helpers/kanbanAddWorkflowSelection';
 
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin } from 'react-icons/fi';
-import { useLayoutView } from '../../context/LayoutViewContext';
+import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
@@ -54,7 +54,7 @@ import {
   hasKanbanFullSidebar,
   isRestrictedBoardUser,
   RESTRICTED_BOARD_HOME_PATH,
-} from '../../helpers/restrictedBoardUser';
+} from '../../shared/helpers/restrictedBoardUser';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();

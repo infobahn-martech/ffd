@@ -9,7 +9,7 @@ import useOperatorReducer from "../../../store/OperatorReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { PORT_OPTIONS_WITH_ID } from "../../../constants/ports";
+import { PORT_OPTIONS_WITH_ID } from "../../../shared/constants/ports";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 
 const OPERATOR_PORT_OPTIONS = PORT_OPTIONS_WITH_ID.map((p) => ({

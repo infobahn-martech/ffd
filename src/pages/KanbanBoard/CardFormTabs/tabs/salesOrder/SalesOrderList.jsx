@@ -5,7 +5,7 @@ import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../design/scss/salesOrder.scss";
-import { PORT_OPTIONS } from "../../../../../constants/ports";
+import { PORT_OPTIONS } from "../../../../../shared/constants/ports";
 
 const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
 const USD_TO_SAR_RATE = 3.75;

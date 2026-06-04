@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import { notify } from '../components/Toaster';
+import { notify } from '../../components/Toaster';
 
 export function encryptAccessToken(accessToken, secretKey) {
   try {

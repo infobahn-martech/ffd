@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { initialData } from "../../../helpers/data";
-import { operatorKanbanStaticWorkflows } from "../../../helpers/kanbanOperatorStaticData";
-import { mapFullBoardApiResponse } from "../../../helpers/kanbanBoardApiMapper";
+import { initialData } from "../../../shared/helpers/data";
+import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
+import { mapFullBoardApiResponse } from "../../../shared/helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
 

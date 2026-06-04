@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import CheckListService from '../services/checklistService';
-import { downloadFile } from '../utils/utils';
+import { downloadFile } from '../shared/utils/utils';
 
 const useCheckListReducer = create((set) => ({
     isLoading: false,

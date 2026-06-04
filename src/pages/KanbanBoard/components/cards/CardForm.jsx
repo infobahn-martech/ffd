@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } fr
 import { createPortal } from "react-dom";
 import salesOrderService from "../../../../services/salesOrderService";
 import kanbanBoardService from "../../../../services/kanbanBoardService";
-import { mapSalesOrderResponse } from "../../../../helpers/mapSalesOrderResponse";
+import { mapSalesOrderResponse } from "../../../../shared/helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Tag, Layers3, AlertTriangle, Sticker } from "lucide-react";
@@ -13,12 +13,12 @@ import ColorPickerIcon from "../../../../assets/images/ColorPicker.png";
 import SedresColorPicker from "../../../../components/SedresColorPicker/SedresColorPicker";
 import { normalizeHexColor } from "../../../../components/SedresColorPicker/sedresColorPickerConstants";
 import PriorityIcon from "../../../../assets/images/Priority.png";
-import { getItem } from "../../../../helpers/localStorage";
+import { getItem } from "../../../../shared/helpers/localStorage";
 import {
   isGROSupervisorRole,
   isCustomClearanceSupervisorRole,
   getFirstUserRoleId,
-} from "../../../../helpers/groUserRoles";
+} from "../../../../shared/helpers/groUserRoles";
 import useAuthReducer from "../../../../store/AuthReducer";
 
 // Import Tab Components

@@ -18,16 +18,16 @@ import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 
 import logo from '../../assets/images/SedresLogo.png';
-import useWindowSize from '../../hooks/useWindowSize';
+import useWindowSize from '../../shared/hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
-import { useLayoutView } from '../../context/LayoutViewContext';
+import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import NavTabButton from '../../components/NavTabButton';
-import { isRestrictedBoardUser, isPortOperatorUser } from '../../helpers/restrictedBoardUser';
+import { isRestrictedBoardUser, isPortOperatorUser } from '../../shared/helpers/restrictedBoardUser';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendorPortal = false }) {
   const { pathname } = useLocation();
