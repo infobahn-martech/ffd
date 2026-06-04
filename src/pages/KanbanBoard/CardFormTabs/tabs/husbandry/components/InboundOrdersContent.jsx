@@ -854,9 +854,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToLanding = (order) => {
     handleCloseDropdown();
     setConvertingOrder(order);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
     setConvertFormData({
-      date: "",
-      time: "",
+      date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
       warehouse: String(order.warehouse_id || ""),
       receivedFrom: "",
       location: "",
