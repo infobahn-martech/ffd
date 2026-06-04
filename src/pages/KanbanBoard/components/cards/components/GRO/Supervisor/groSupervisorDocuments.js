@@ -3,7 +3,7 @@ import {
   parseDocumentsByTaskPayload,
   parseDocumentsByTaskResponse,
   resolveGroTaskId,
-} from "../GROCardView/groCardUtils";
+} from "../User/groCardUtils";
 
 export const resolveGroSupervisorTaskId = resolveGroTaskId;
 

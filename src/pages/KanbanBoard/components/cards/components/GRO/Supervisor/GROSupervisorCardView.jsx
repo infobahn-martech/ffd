@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import userService from "../../../../../../services/userService";
-import groService from "../../../../../../services/groService";
-import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../CardFormTabs/tabs/operation/operationConstants";
+import userService from "../../../../../../../services/userService";
+import groService from "../../../../../../../services/groService";
+import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../../CardFormTabs/tabs/operation/operationConstants";
 import {
   getGroSupervisorTasksForCard,
   createEmptyTaskAssignment,
@@ -10,7 +10,7 @@ import {
 import {
   buildSelectedTaskFromCard,
   resolveTaskDocumentsTitle,
-} from "../GROCardView/groCardUtils";
+} from "../User/groCardUtils";
 import {
   mapGroSupervisorDocuments,
   parseDocumentsByTaskPayload,
@@ -18,7 +18,7 @@ import {
 } from "./groSupervisorDocuments";
 import GROSupervisorTabs from "./GROSupervisorTabs";
 import GROSupervisorAssignTask from "./GROSupervisorAssignTask";
-import GROSupervisorDocumentLibrary from "./GROSupervisorDocumentLibrary";
+import GROSupervisorDocuments from "./GROSupervisorDocuments";
 
 const SUPERVISOR_TABS = {
   assign: "assign",
@@ -165,7 +165,7 @@ function GROSupervisorCardView({ card, selectedTask: selectedTaskProp = null }) 
               usersLoading={usersLoading}
             />
           ) : (
-            <GROSupervisorDocumentLibrary
+            <GROSupervisorDocuments
               documents={documents}
               sectionTitle={taskPanelTitle}
               isLoading={documentsLoading}

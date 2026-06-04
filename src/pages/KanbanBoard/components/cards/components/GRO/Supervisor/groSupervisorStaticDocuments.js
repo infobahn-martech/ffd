@@ -1,4 +1,4 @@
-import { enrichGroDocWithRowKey } from "../GROCardView/groCardUtils";
+import { enrichGroDocWithRowKey } from "../User/groCardUtils";
 
 /** Static document rows for GRO Supervisor read-only library (until API is wired). */
 const GRO_SUPERVISOR_STATIC_DOCUMENTS_RAW = [
