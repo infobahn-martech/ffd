@@ -14,7 +14,8 @@ import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../services/vehicleService";
-import driverService from "../../../../../../services/driverService";
+import inboundOrderService from "../../../../../../services/inboundOrderService";
+import landingNoteService from "../../../../../../services/landingNoteService";
 
 // AttachmentsList Component (from Operation.jsx)
 const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
@@ -111,6 +112,14 @@ const normalizeSlotValue = (value) => {
 };
 
 const getTransportation = (item) => item?.transportation || item?.transport || null;
+
+const getFileUrl = (filePath) => {
+  const base = (import.meta.env.VITE_API_ENDPOINT || "").replace(/\/+$/, "");
+  const path = (filePath || "").replace(/^\/+/, "");
+  return `${base}/${path}`;
+};
+
+const isImageFile = (fileName) => /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName || "");
 
 const mergeOptionForValue = (options, value) => {
   if (value == null || value === "") return options;
@@ -240,19 +249,21 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     let cancelled = false;
     (async () => {
       try {
-        const [whRes, vehRes, drvRes] = await Promise.all([
+        const [whRes, vehRes, drvRes, trLocRes] = await Promise.all([
           logisticsWarehouseService.getWarehouseLocations(),
-          vehicleService.getAllTransportVehicles(),
-          driverService.getAllDrivers(),
+          vehicleService.getMaterialVehicles(),
+          vehicleService.getMaterialDrivers(),
+          inboundOrderService.getMaterialTransportLocations(),
         ]);
         if (cancelled) return;
         const whRows = Array.isArray(whRes?.data) ? whRes.data : whRes?.data?.data ?? [];
         setWarehouseOptions(whRows.map((r) => ({ value: String(r.location_id ?? ""), label: String(r.location ?? "") })).filter((o) => o.value));
-        setLocationOptions(whRows.map((r) => ({ value: String(r.location_id ?? ""), label: String(r.location ?? "") })).filter((o) => o.value));
         const vehRows = Array.isArray(vehRes?.data) ? vehRes.data : vehRes?.data?.data ?? [];
         setVehicleOptions(vehRows.map((r) => ({ value: String(r.vehicle_type_id ?? ""), label: String(r.vehicle_name ?? "") })).filter((o) => o.value));
         const drvRows = Array.isArray(drvRes?.data) ? drvRes.data : drvRes?.data?.data ?? [];
         setDriverOptions(drvRows.map((r) => ({ value: String(r.driver_id ?? ""), label: String(r.driver_name ?? "") })).filter((o) => o.value));
+        const trLocRows = Array.isArray(trLocRes?.data) ? trLocRes.data : trLocRes?.data?.data ?? [];
+        setLocationOptions(trLocRows.map((r) => ({ value: String(r.location_id ?? ""), label: String(r.location ?? "") })).filter((o) => o.value));
       } catch (err) {
         console.error("Failed to load reference data", err);
       }
@@ -1320,6 +1331,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!viewingNote) return null;
 
     const viewItems = Array.isArray(viewingNote.items) ? viewingNote.items : [];
+    const warehouseName = warehouseOptions.find((o) => o.value === String(viewingNote.warehouse_id || ""))?.label || null;
+    const documents = Array.isArray(viewingNote.documents) ? viewingNote.documents
+      : Array.isArray(viewingNote.landingProof) ? viewingNote.landingProof : [];
 
     return (
       <div className="modal-body">
@@ -1334,12 +1348,76 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
               <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.date) || "-"}</div>
             </div>
-            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
-              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Proof</div>
-              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>
-                {viewingNote.landingProof && viewingNote.landingProof.length > 0 ? `${viewingNote.landingProof.length} file(s)` : "No files"}
+            {warehouseName && (
+              <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Warehouse</div>
+                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{warehouseName}</div>
               </div>
+            )}
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Received From</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.received_from || "-"}</div>
             </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Location</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.location || "-"}</div>
+            </div>
+            {viewingNote.signature && (
+              <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Signature</div>
+                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.signature}</div>
+              </div>
+            )}
+            <div className="view-item" style={{ flex: "1 1 100%", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Documents</div>
+              {documents.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {documents.map((doc, i) => {
+                    const fileName = doc.file_name || doc.name || `File ${i + 1}`;
+                    const fileUrl = getFileUrl(doc.file_path || doc.file_url || "");
+                    const isImage = isImageFile(fileName);
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", border: "1px solid #e2e2ea", borderRadius: "6px", backgroundColor: "#f9f9f9" }}>
+                        {isImage ? (
+                          <img
+                            src={fileUrl}
+                            alt={fileName}
+                            style={{ width: "44px", height: "44px", objectFit: "cover", borderRadius: "4px", border: "1px solid #e2e2ea", flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div style={{ width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e8edff", borderRadius: "4px", flexShrink: 0 }}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M14 2V8H20" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "13px", fontWeight: "500", color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileName}</div>
+                          {doc.remarks && <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>{doc.remarks}</div>}
+                        </div>
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ padding: "5px 14px", backgroundColor: "#00368c", color: "white", borderRadius: "4px", fontSize: "12px", fontWeight: "500", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
+                        >
+                          View
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ color: "#999", fontSize: "14px" }}>No files</div>
+              )}
+            </div>
+            {viewingNote.remarks && (
+              <div className="view-item" style={{ flex: "1 1 100%", minWidth: "200px" }}>
+                <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Remarks</div>
+                <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }} dangerouslySetInnerHTML={{ __html: viewingNote.remarks }} />
+              </div>
+            )}
           </div>
 
           {/* Items */}
@@ -1350,6 +1428,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 const transport = getTransportation(item);
                 const hasTransport = isTruthyFlag(item.transportation_required) || Boolean(transport);
                 const hasPacking = isTruthyFlag(item.packing_required);
+                const hasDispatch = item.slot_no_id || item.reason_id || item.dispatch_date || item.slot || item.slot_no || item.reason;
                 const vehicleName = transport?.vehicle_type_name ||
                   vehicleOptions.find((o) => o.value === String(transport?.vehicle_type_id))?.label || "-";
                 const fromLocName = transport?.from_location_name ||
@@ -1387,7 +1466,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
 
                     {/* Dispatch Details */}
-                    {(item.slot || item.slot_no || item.reason) && (
+                    {hasDispatch && (
                       <div style={{ borderTop: "1px dashed #ccc", paddingTop: "12px", marginTop: "8px" }}>
                         <div style={{ fontWeight: "600", color: "#555", marginBottom: "10px", fontSize: "13px" }}>Dispatch Details</div>
                         <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
@@ -1397,8 +1476,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
                           <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
                             <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Reason</div>
-                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.reason || item.reason_name || "-"}</div>
+                            <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.reason || item.reason_name || item.reason_id || "-"}</div>
                           </div>
+                          {item.dispatch_date && (
+                            <div className="view-item" style={{ flex: "1", minWidth: "140px" }}>
+                              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Dispatch Date</div>
+                              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{formatDate(item.dispatch_date)}</div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
