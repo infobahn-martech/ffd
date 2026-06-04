@@ -2,7 +2,7 @@ import { Draggable } from "@hello-pangea/dnd";
 import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanbanConfig";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
-import "../../../../design/css/CardItem.css";
+import "../../../../design/css/components/CardItem.css";
 // Company logos
 import saudimarcapLogo from "../../../../assets/images/saudimarcap.png";
 import saipemLogo from "../../../../assets/images/saipem.png";

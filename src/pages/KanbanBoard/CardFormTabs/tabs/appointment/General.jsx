@@ -3,7 +3,7 @@ import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../design/scss/general.scss";
-import "../../../../../design/css/CardForm.css";
+import "../../../../../design/css/common/CardForm.css";
 import AttachmentIcon from "../../../../../assets/images/Attachment.svg";
 import callFileService from "../../../../../services/callFileService";
 import mailService from "../../../../../services/mailService";
