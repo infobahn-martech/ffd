@@ -11,10 +11,10 @@ const useLandingNoteReducer = create((set) => ({
     landingNotes: [],
     landingTotal: 0,
 
-    getAllLandingNotes: async (params) => {
+    getAllLandingNotes: async ({ call_id, ...params }) => {
         try {
             set({ isLoadingList: true });
-            const { data } = await landingNoteService.getAllLandingNotes(params);
+            const { data } = await landingNoteService.getAllLandingNotes(call_id, params);
             set({ landingNotes: data?.data ?? [], landingTotal: data?.pagination?.total ?? 0, isLoadingList: false });
         } catch (err) {
             const { error } = useAlertReducer.getState();
