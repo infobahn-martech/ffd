@@ -9789,6 +9789,63 @@ body .modal-backdrop.show {
 }
 
 /* ==========================================================
+   LANDING NOTE — EDIT MODAL
+   ========================================================== */
+
+.landing-edit-item-card {
+  margin-bottom: 16px;
+  border: 1px solid #e2e2ea;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.landing-edit-item-header {
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+
+  &--expanded {
+    border-radius: 8px 8px 0 0;
+  }
+
+  &:hover {
+    background-color: #f0f1f5;
+  }
+}
+
+.landing-edit-item-body {
+  padding: 16px;
+  background-color: #fff;
+  border-top: 1px solid #e2e2ea;
+  border-radius: 0 0 8px 8px;
+}
+
+.landing-edit-item-info-label {
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.landing-edit-item-info-value {
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.landing-edit-chevron {
+  transition: transform 0.3s ease;
+  color: #666;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+/* ==========================================================
    LANDING NOTE — VIEW MODAL
    ========================================================== */
 

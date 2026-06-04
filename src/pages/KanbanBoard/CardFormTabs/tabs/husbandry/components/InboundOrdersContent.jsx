@@ -1098,8 +1098,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const items = convertFormData.orders.map((order) => ({
       inbound_item_id: order.inbound_item_id || null,
       quantity: Number(order.quantity) || 0,
-      slot_no_id: Number(order.slotNo) || 0,
-      reason_id: Number(order.reason) || 0,
+      slot_no_id: order.slotNo ? Number(order.slotNo) : 0,
+      reason_id: order.reason || 0,
       dispatch_date: order.dispatchDate ? (order.dispatchDate + (order.dispatchTime ? ` ${order.dispatchTime}` : "")) : "",
       transportation_required: order.transportation ? 1 : 0,
       transportation: order.transportation ? {
@@ -1124,11 +1124,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const formatDate = (dateString, separateTime) => formatDisplayDateTime(dateString, separateTime);
 
   const slotNoOptions = [
-    { value: "Slot 1", label: "Slot 1" },
-    { value: "Slot 2", label: "Slot 2" },
-    { value: "Slot 3", label: "Slot 3" },
-    { value: "Slot 4", label: "Slot 4" },
-    { value: "Slot 5", label: "Slot 5" },
+    { value: "1", label: "Slot 1" },
+    { value: "2", label: "Slot 2" },
+    { value: "3", label: "Slot 3" },
+    { value: "4", label: "Slot 4" },
+    { value: "5", label: "Slot 5" },
+    { value: "6", label: "Slot 6" },
   ];
 
   const reasonOptions = [
