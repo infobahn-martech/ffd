@@ -3,7 +3,6 @@ import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanban
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "../../../../design/css/CardItem.css";
-import { DownloadIcon, InprogressIcon } from "../../../../assets/svgs";
 // Company logos
 import saudimarcapLogo from "../../../../assets/images/saudimarcap.png";
 import saipemLogo from "../../../../assets/images/saipem.png";
