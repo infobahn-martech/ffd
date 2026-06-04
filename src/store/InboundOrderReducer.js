@@ -28,10 +28,10 @@ const useInboundOrderReducer = create((set) => ({
         }
     },
 
-    getAllInbound: async (params) => {
+    getAllInbound: async ({ call_id, ...params }) => {
         try {
             set({ isLoadingList: true });
-            const { data } = await inboundOrderService.getAllInbound(params);
+            const { data } = await inboundOrderService.getAllInbound(call_id, params);
             set({
                 inboundOrders: data?.data ?? [],
                 inboundTotal: data?.pagination?.total ?? 0,
