@@ -618,6 +618,26 @@
 }
 
 /* ========== API-driven Kanban cards (get_full_board) ========== */
+.card-type-icon-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.card-type-icon-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
 .kanban-card--api {
   display: flex;
   flex-direction: column;

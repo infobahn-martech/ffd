@@ -10,6 +10,7 @@ import saipemLogo from "../../../../assets/images/saipem.png";
 import lamprellLogo from "../../../../assets/images/lamprell.png";
 import gulfmarineLogo from "../../../../assets/images/gulfmarine.png";
 import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal, FiTrendingUp } from "react-icons/fi";
+import * as FiIcons from "react-icons/fi";
 import {
   hasText,
   isValidProgress,
@@ -18,6 +19,33 @@ import {
   getApiCardTaskName,
   getUsernameInitial,
 } from "../../utils/cardDisplayHelpers";
+
+/** Top-left badge: dynamic Feather icon from API `cardTypeIcon`. */
+function ApiCardTypeIcon({ card }) {
+  const IconComponent = FiIcons[card.cardTypeIcon];
+
+  if (!IconComponent) return null;
+
+  return (
+    <div
+      className="card-type-icon-badge"
+      title={card.cardTypeName}
+      style={{
+        backgroundColor: card.cardTypeColor || "#2563eb",
+      }}
+    >
+      <IconComponent size={12} />
+    </div>
+  );
+}
+
+ApiCardTypeIcon.propTypes = {
+  card: PropTypes.shape({
+    cardTypeIcon: PropTypes.string,
+    cardTypeColor: PropTypes.string,
+    cardTypeName: PropTypes.string,
+  }).isRequired,
+};
 
 /** Circular KPI used in API card summary row (classic + compact). */
 function ApiCardCircularKpi({ progress }) {
@@ -430,6 +458,9 @@ function CardItem({
             "--card-color": cardColor,
           }}
         >
+          {isApiCard && card.cardTypeIcon && (
+            <ApiCardTypeIcon card={card} />
+          )}
           {isApiCard ? (
             isShrunk ? (
               <ApiKanbanCardShrunk card={card} setSelectedCard={setSelectedCard} />
@@ -812,6 +843,9 @@ CardItem.propTypes = {
   card: PropTypes.shape({
     id: PropTypes.string.isRequired,
     cardSource: PropTypes.oneOf(["api", "static"]),
+    cardTypeIcon: PropTypes.string,
+    cardTypeColor: PropTypes.string,
+    cardTypeName: PropTypes.string,
     title: PropTypes.string,
     cardName: PropTypes.string,
     name: PropTypes.string,
