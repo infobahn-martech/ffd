@@ -1337,39 +1337,37 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     return (
       <div className="modal-body">
-        <div className="view-vessel-container">
+        <div className="lead-form">
           {/* Note Header */}
-          <div className="landing-view-header">
-            <div className="landing-view-field">
-              <div className="landing-view-label">Landing Note No</div>
-              <div className="landing-view-value">{viewingNote.landingNoteNo || "-"}</div>
+          <div className="row g-3 mb-3">
+            <div className="col-md-4">
+              <label className="landing-view-label">Landing Note No</label>
+              <div className="landing-view-box">{viewingNote.landingNoteNo || "-"}</div>
             </div>
-            <div className="landing-view-field">
-              <div className="landing-view-label">Date</div>
-              <div className="landing-view-value">{formatDate(viewingNote.date) || "-"}</div>
+            <div className="col-md-4">
+              <label className="landing-view-label">Date</label>
+              <div className="landing-view-box">{formatDate(viewingNote.date) || "-"}</div>
             </div>
-            {warehouseName && (
-              <div className="landing-view-field">
-                <div className="landing-view-label">Warehouse</div>
-                <div className="landing-view-value">{warehouseName}</div>
-              </div>
-            )}
-            <div className="landing-view-field">
-              <div className="landing-view-label">Received From</div>
-              <div className="landing-view-value">{viewingNote.received_from || "-"}</div>
+            <div className="col-md-4">
+              <label className="landing-view-label">Warehouse</label>
+              <div className="landing-view-box">{warehouseName || "-"}</div>
             </div>
-            <div className="landing-view-field">
-              <div className="landing-view-label">Location</div>
-              <div className="landing-view-value">{viewingNote.location || "-"}</div>
+            <div className="col-md-6">
+              <label className="landing-view-label">Received From</label>
+              <div className="landing-view-box">{viewingNote.received_from || "-"}</div>
+            </div>
+            <div className="col-md-6">
+              <label className="landing-view-label">Location</label>
+              <div className="landing-view-box">{viewingNote.location || "-"}</div>
             </div>
             {viewingNote.signature && (
-              <div className="landing-view-field">
-                <div className="landing-view-label">Signature</div>
-                <div className="landing-view-value">{viewingNote.signature}</div>
+              <div className="col-md-6">
+                <label className="landing-view-label">Signature</label>
+                <div className="landing-view-box">{viewingNote.signature}</div>
               </div>
             )}
-            <div className="landing-view-field--full">
-              <div className="landing-view-label">Documents</div>
+            <div className="col-12">
+              <label className="landing-view-label">Documents</label>
               {documents.length > 0 ? (
                 <div className="landing-doc-list">
                   {documents.map((doc, i) => {
@@ -1398,18 +1396,18 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   })}
                 </div>
               ) : (
-                <div className="landing-view-value">No files</div>
+                <div className="landing-view-box">No files</div>
               )}
             </div>
             {viewingNote.remarks && (
-              <div className="landing-view-field--full">
-                <div className="landing-view-label">Remarks</div>
-                <div className="landing-view-value" dangerouslySetInnerHTML={{ __html: viewingNote.remarks }} />
+              <div className="col-12">
+                <label className="landing-view-label">Remarks</label>
+                <div className="landing-view-box landing-view-box--textarea" dangerouslySetInnerHTML={{ __html: viewingNote.remarks }} />
               </div>
             )}
           </div>
 
-          {/* Items */}
+          {/* Order Items */}
           {viewItems.length > 0 && (
             <div className="landing-view-items-section">
               <h4 className="fw-semibold mb-3">Order Items</h4>
@@ -1432,45 +1430,41 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </div>
 
-                    <div className="landing-view-item-fields">
-                      <div className="landing-view-item-field">
-                        <div className="landing-view-item-label">PO/DO</div>
-                        <div className="landing-view-item-value">{item.po_no || "-"}</div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3 col-6">
+                        <label className="landing-view-label">PO/DO</label>
+                        <div className="landing-view-box">{item.po_no || "-"}</div>
                       </div>
-                      <div className="landing-view-item-field">
-                        <div className="landing-view-item-label">Quantity</div>
-                        <div className="landing-view-item-value">{item.quantity ?? "-"}</div>
+                      <div className="col-md-3 col-6">
+                        <label className="landing-view-label">Quantity</label>
+                        <div className="landing-view-box">{item.quantity ?? "-"}</div>
                       </div>
-                      <div className="landing-view-item-field">
-                        <div className="landing-view-item-label">Package Type</div>
-                        <div className="landing-view-item-value">{item.package_type || item.package_type_id || "-"}</div>
+                      <div className="col-md-3 col-6">
+                        <label className="landing-view-label">Package Type</label>
+                        <div className="landing-view-box">{item.package_type || item.package_type_id || "-"}</div>
                       </div>
-                      {item.description && (
-                        <div className="landing-view-item-field">
-                          <div className="landing-view-item-label">Description</div>
-                          <div className="landing-view-item-value">{item.description}</div>
-                        </div>
-                      )}
+                      <div className="col-md-3 col-6">
+                        <label className="landing-view-label">Description</label>
+                        <div className="landing-view-box">{item.description || "-"}</div>
+                      </div>
                     </div>
 
                     {hasDispatch && (
                       <div className="landing-view-sub-section">
                         <div className="landing-view-sub-title">Dispatch Details</div>
-                        <div className="landing-view-item-fields">
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Slot</div>
-                            <div className="landing-view-item-value">{normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id) || "-"}</div>
+                        <div className="row g-2">
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Slot</label>
+                            <div className="landing-view-box">{normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id) || "-"}</div>
                           </div>
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Reason</div>
-                            <div className="landing-view-item-value">{item.reason || item.reason_name || item.reason_id || "-"}</div>
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Reason</label>
+                            <div className="landing-view-box">{item.reason || item.reason_name || item.reason_id || "-"}</div>
                           </div>
-                          {item.dispatch_date && (
-                            <div className="landing-view-item-field">
-                              <div className="landing-view-item-label">Dispatch Date</div>
-                              <div className="landing-view-item-value">{formatDate(item.dispatch_date)}</div>
-                            </div>
-                          )}
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Dispatch Date</label>
+                            <div className="landing-view-box">{item.dispatch_date ? formatDate(item.dispatch_date) : "-"}</div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1478,14 +1472,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     {hasPacking && (
                       <div className="landing-view-sub-section">
                         <div className="landing-view-sub-title">Packing</div>
-                        <div className="landing-view-item-fields">
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Repacking Pallets</div>
-                            <div className="landing-view-item-value">{item.repacking_pallets ?? "-"}</div>
+                        <div className="row g-2">
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Repacking Pallets</label>
+                            <div className="landing-view-box">{item.repacking_pallets ?? "-"}</div>
                           </div>
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Repacking Rolls</div>
-                            <div className="landing-view-item-value">{item.repacking_rolls ?? "-"}</div>
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Repacking Rolls</label>
+                            <div className="landing-view-box">{item.repacking_rolls ?? "-"}</div>
                           </div>
                         </div>
                       </div>
@@ -1494,31 +1488,31 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     {hasTransport && transport && (
                       <div className="landing-view-sub-section">
                         <div className="landing-view-sub-title">Transportation</div>
-                        <div className="landing-view-item-fields">
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Type of Vehicle</div>
-                            <div className="landing-view-item-value">{vehicleName}</div>
+                        <div className="row g-2">
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Type of Vehicle</label>
+                            <div className="landing-view-box">{vehicleName}</div>
                           </div>
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">From Location</div>
-                            <div className="landing-view-item-value">{fromLocName}</div>
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">From Location</label>
+                            <div className="landing-view-box">{fromLocName}</div>
                           </div>
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Pick-Up From</div>
-                            <div className="landing-view-item-value">{transport.pickup_location || "-"}</div>
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Pick-Up From</label>
+                            <div className="landing-view-box">{transport.pickup_location || "-"}</div>
                           </div>
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">To Location</div>
-                            <div className="landing-view-item-value">{toLocName}</div>
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">To Location</label>
+                            <div className="landing-view-box">{toLocName}</div>
                           </div>
-                          <div className="landing-view-item-field">
-                            <div className="landing-view-item-label">Driver</div>
-                            <div className="landing-view-item-value">{driverName}</div>
+                          <div className="col-md-4 col-6">
+                            <label className="landing-view-label">Driver</label>
+                            <div className="landing-view-box">{driverName}</div>
                           </div>
                           {transport.remarks && (
-                            <div className="landing-view-item-field">
-                              <div className="landing-view-item-label">Remarks</div>
-                              <div className="landing-view-item-value">{transport.remarks}</div>
+                            <div className="col-md-4 col-6">
+                              <label className="landing-view-label">Remarks</label>
+                              <div className="landing-view-box">{transport.remarks}</div>
                             </div>
                           )}
                         </div>
@@ -1535,52 +1529,21 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const renderViewFooter = () => (
-    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
-      <button
-        type="button"
-        onClick={handleCloseViewModal}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#f5f5f5",
-          color: "#333",
-          border: "1px solid #e2e2ea",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-        }}
-      >
+    <div className="modal-footer">
+      <button type="button" className="btn btn-secondary" onClick={handleCloseViewModal}>
         Close
       </button>
       {viewingNote && (
         <button
           type="button"
+          className="btn btn-primary d-flex align-items-center gap-2"
           onClick={() => handlePrintNote(viewingNote)}
           disabled={isPrinting}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#00368c",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: isPrinting ? "not-allowed" : "pointer",
-            fontSize: "14px",
-            fontWeight: "500",
-            opacity: isPrinting ? 0.7 : 1,
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
         >
-          {isPrinting ? (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: "spin 1s linear infinite" }}>
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
-                <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-              </svg>
-              Printing...
-            </>
-          ) : "Print"}
+          {isPrinting
+            ? <><span className="spinner-border spinner-border-sm" role="status" />Printing...</>
+            : "Print"
+          }
         </button>
       )}
     </div>
