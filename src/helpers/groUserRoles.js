@@ -1,4 +1,4 @@
-/** Sedres GRO User (4), GRO Supervisor (6), Custom Clearance Supervisor (5) — shared UI permissions. */
+/** Sedres GRO User (4), Custom Clearance User (9), GRO Supervisor (6), Custom Clearance Supervisor (5). */
 
 export function normalizeRoleId(roleId) {
   if (roleId === undefined || roleId === null) return null;
@@ -10,6 +10,8 @@ export function isGROUserRole(roleId) {
   return (
     roleId === "4" ||
     roleId === 4 ||
+    roleId === "9" ||
+    roleId === 9 ||
     roleId === "6" ||
     roleId === 6
   );

@@ -18,17 +18,21 @@ export const GRO_MAIN_VIEWS = {
   zawil: "zawil",
 };
 
-/** Custom Clearance desk (e.g. role_id 5) uses Documents + Bayan only — no CG/Zawil pass tabs. */
+/** Custom Clearance Supervisor desk (role_id 5) uses Documents + Bayan only — no CG/Zawil pass tabs. Role 9 (Custom Clearance User) uses GRO-style UI. */
 export const isGroCustomClearanceRole = (userProfile) => {
   const role = userProfile?.role;
   if (!role || typeof role !== "object") return false;
   const rid = Number(role.role_id);
-  if (!Number.isNaN(rid) && rid === 5) return true;
+  if (!Number.isNaN(rid)) {
+    if (rid === 9) return false;
+    if (rid === 5) return true;
+  }
   const label = String(role.role ?? role.role_name ?? role.name ?? "")
     .trim()
     .toLowerCase();
   if (!label) return false;
-  return label === "custom clearance" || label.includes("custom clearance");
+  if (label.includes("custom clearance user")) return false;
+  return label === "custom clearance supervisor" || label.includes("custom clearance supervisor");
 };
 
 export const splitInwardDateTimeString = (value) => {

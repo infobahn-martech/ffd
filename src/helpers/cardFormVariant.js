@@ -7,14 +7,14 @@ export function getCardVariantByWorkflowRole(roleId) {
   if (roleId == null || roleId === "") return "default";
   const n = Number(roleId);
   if (Number.isNaN(n)) return "default";
-  if (n === 4 || n === 6) return "gro";
+  if (n === 4 || n === 6 || n === 9) return "gro";
   if (n === 5) return "custom";
   if (n === 2) return "default";
   return "default";
 }
 
 /**
- * Resolves CardForm variant from card workflow role (GRO User and GRO Supervisor share the same mapping).
+ * Resolves CardForm variant from card workflow role (GRO User, Custom Clearance User, and GRO Supervisor share the gro mapping).
  * @param {unknown} workflowRoleId
  * @param {unknown} _userRoleId - reserved for callers; variant is workflow-driven only
  * @returns {"gro"|"custom"|"default"}
