@@ -218,23 +218,26 @@ export const buildLabelFromApiItem = (item) => {
   return suffix ? `${name} ${suffix}` : name;
 };
 
-/** Display-only role names from get_checklist_by_id item.roles (tasks ignored). */
-export const mapItemRoleNamesFromApi = (item) => {
-  const raw = item?.roles;
-  if (!Array.isArray(raw)) return [];
+/** Flatten item.roles[].tasks[] and return unique task_name values (display order preserved). */
+export const getUniqueTaskNamesFromRoles = (roles) => {
+  if (!Array.isArray(roles)) return [];
   const seen = new Set();
   const names = [];
-  raw.forEach((role) => {
-    const name =
-      typeof role === "string"
-        ? String(role).trim()
-        : String(role?.role_name ?? role?.name ?? role?.role ?? "").trim();
-    if (!name || seen.has(name)) return;
-    seen.add(name);
-    names.push(name);
+  roles.forEach((role) => {
+    if (!role || typeof role !== "object") return;
+    const tasks = role.tasks;
+    if (!Array.isArray(tasks)) return;
+    tasks.forEach((task) => {
+      const name = String(task?.task_name ?? task?.name ?? task?.task ?? "").trim();
+      if (!name || seen.has(name)) return;
+      seen.add(name);
+      names.push(name);
+    });
   });
   return names;
 };
+
+export const mapItemTaskNamesFromApi = (item) => getUniqueTaskNamesFromRoles(item?.roles);
 
 const mapItemToRow = (it, i, sectionId) => {
   const iid = it.checklist_item_id ?? i;
@@ -294,7 +297,7 @@ const mapItemToRow = (it, i, sectionId) => {
     requirement,
     requireCopyOnlyFromApi,
     expiryDateRequired: String(it.expiry_date_reqd) === "1" || it.expiry_date_reqd === 1,
-    roleNames: mapItemRoleNamesFromApi(it),
+    taskNames: mapItemTaskNamesFromApi(it),
     uploadedFromApi,
     file_url: it.file_url ?? dd.file_url ?? null,
     sample_file_url: it.sample_file_url ?? dd.sample_file_url ?? null,

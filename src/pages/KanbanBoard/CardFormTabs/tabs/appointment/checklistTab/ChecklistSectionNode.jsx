@@ -17,7 +17,7 @@ const ChecklistItemsTable = ({ items, itemsData, onItemChange, cardColor, isView
         <tr>
           <th className="checklist-table-checkbox-header">Done</th>
           <th className="checklist-table-label-header">Item</th>
-          <th className="checklist-table-role-header">Role</th>
+          <th className="checklist-table-role-header">Task</th>
           <th className="checklist-table-upload-header">Document upload</th>
           <th className="checklist-table-remarks-header">Remarks</th>
         </tr>
