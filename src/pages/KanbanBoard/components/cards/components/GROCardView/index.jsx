@@ -6,11 +6,13 @@ import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../com
 import userService from "../../../../../../services/userService";
 import {
   isGROSupervisorRole,
+  isMWPSupervisorRole,
   isCustomClearanceSupervisorRole,
 } from "../../../../../../helpers/groUserRoles";
 import {
   PRE_ARRIVAL_GRO_ROLE_ID,
   PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+  PRE_ARRIVAL_MWP_USER_ROLE_ID,
 } from "../../../../CardFormTabs/tabs/operation/operationConstants";
 import groService from "../../../../../../services/groService";
 import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
@@ -50,15 +52,19 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const hidePassTabs = mode === "gro" || isCustomClearance;
   const isGroSupervisorViewer =
     isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
+  const isMwpSupervisorViewer =
+    isMWPSupervisorRole(userRoleId) || isMWPSupervisorRole(Number(userRoleId));
   const isCustomClearanceSupervisorViewer =
     isCustomClearanceSupervisorRole(userRoleId) ||
     isCustomClearanceSupervisorRole(Number(userRoleId));
   const showAssignedUserSelect =
-    (mode === "gro" && isGroSupervisorViewer) ||
+    (mode === "gro" && (isGroSupervisorViewer || isMwpSupervisorViewer)) ||
     (isCustomClearance && isCustomClearanceSupervisorViewer);
   const assigneeRoleId = isCustomClearance
     ? PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID
-    : PRE_ARRIVAL_GRO_ROLE_ID;
+    : isMwpSupervisorViewer
+      ? PRE_ARRIVAL_MWP_USER_ROLE_ID
+      : PRE_ARRIVAL_GRO_ROLE_ID;
 
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);

@@ -5,8 +5,8 @@ import {
   normalizeRoleId,
 } from './groUserRoles';
 
-/** Sedres GRO (4), Custom Clearance User (9), GRO Supervisor (6), Custom Clearance Supervisor (5) — limited board/workspace access */
-export const SEDRES_RESTRICTED_ROLE_IDS = new Set(['4', '5', '6', '9']);
+/** Sedres desk roles — limited board/workspace access */
+export const SEDRES_RESTRICTED_ROLE_IDS = new Set(['4', '5', '6', '8', '9', '10']);
 
 function isSedresRestrictedBoardRoleId(roleId) {
   const normalized = normalizeRoleId(roleId);

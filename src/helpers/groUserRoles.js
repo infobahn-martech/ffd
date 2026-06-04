@@ -1,4 +1,4 @@
-/** Sedres GRO User (4), Custom Clearance User (9), GRO Supervisor (6), Custom Clearance Supervisor (5). */
+/** Sedres desk roles: GRO User (4), CC User (9), MWP User (10), GRO Supervisor (6), MWP Supervisor (8), CC Supervisor (5). */
 
 export function normalizeRoleId(roleId) {
   if (roleId === undefined || roleId === null) return null;
@@ -12,20 +12,30 @@ export function isGROUserRole(roleId) {
     roleId === 4 ||
     roleId === "9" ||
     roleId === 9 ||
+    roleId === "10" ||
+    roleId === 10 ||
     roleId === "6" ||
     roleId === 6
   );
 }
 
+export function isMWPUserRole(roleId) {
+  return roleId === "10" || roleId === 10;
+}
+
 export function isGROSupervisorRole(roleId) {
-  return roleId === "6" || roleId === 6;
+  return roleId === "6" || roleId === 6 || roleId === "8" || roleId === 8;
+}
+
+export function isMWPSupervisorRole(roleId) {
+  return roleId === "8" || roleId === 8;
 }
 
 export function isCustomClearanceSupervisorRole(roleId) {
   return roleId === "5" || roleId === 5;
 }
 
-/** GRO Supervisor or Custom Clearance Supervisor — assign-user + verify actions when not first column. */
+/** GRO/MWP Supervisor or Custom Clearance Supervisor — assign-user + verify actions when not first column. */
 export function isDeskSupervisorRole(roleId) {
   return (
     isGROSupervisorRole(roleId) ||
