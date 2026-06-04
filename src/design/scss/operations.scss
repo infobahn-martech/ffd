@@ -2448,6 +2448,33 @@ $send-report-optional: #80868b;
     }
   }
 
+  .compact-file-upload-status-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .document-row-remarks-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #b91c1c;
+    cursor: help;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #991b1b;
+    }
+
+    svg {
+      display: block;
+    }
+  }
+
   .compact-file-upload-row>.document-row-actions {
     display: none;
   }

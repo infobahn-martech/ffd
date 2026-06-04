@@ -46,6 +46,14 @@ const IconEye = () => (
   </svg>
 );
 
+const IconRemarks = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="12" cy="16" r="1" fill="currentColor" />
+  </svg>
+);
+
 function openAttachmentPreview(attachment) {
   const raw = attachment?.file;
   if (raw instanceof Blob) {
@@ -96,6 +104,10 @@ const CompactFileUploadRow = ({
   const isVerified = rowStatus === DOC_STATUS_VERIFIED;
   const isReupload = rowStatus === DOC_STATUS_REUPLOAD;
   const isRejected = rowStatus === DOC_STATUS_REJECTED;
+  const remarksText =
+    remarks != null && String(remarks).trim() !== "" ? String(remarks).trim() : "";
+  const showRejectedRemarksIcon = isRejected && Boolean(remarksText);
+  const showRemarksBelow = Boolean(remarksText) && !isRejected;
   const canPreview = hasFiles;
   const showPreviewButton = !isNotUploaded && canPreview;
   const statusLabel = isNotUploaded
@@ -130,10 +142,23 @@ const CompactFileUploadRow = ({
           </span>
 
           <div className="compact-file-upload-right">
-            {statusLabel ? (
-              <span className={`document-row-status-chip ${statusClass}`}>
-                {statusLabel}
-              </span>
+            {statusLabel || showRejectedRemarksIcon ? (
+              <div className="compact-file-upload-status-group">
+                {statusLabel ? (
+                  <span className={`document-row-status-chip ${statusClass}`}>
+                    {statusLabel}
+                  </span>
+                ) : null}
+                {showRejectedRemarksIcon ? (
+                  <span
+                    className="document-row-remarks-icon"
+                    title={remarksText}
+                    aria-label={`Remarks: ${remarksText}`}
+                  >
+                    <IconRemarks />
+                  </span>
+                ) : null}
+              </div>
             ) : null}
 
             {showPreviewButton ? (
@@ -153,9 +178,9 @@ const CompactFileUploadRow = ({
             {secondaryFileName}
           </div>
         ) : null} */}
-        {remarks && String(remarks).trim() ? (
-          <div className="compact-file-upload-remarks" title={String(remarks)}>
-            {String(remarks)}
+        {showRemarksBelow ? (
+          <div className="compact-file-upload-remarks" title={remarksText}>
+            {remarksText}
           </div>
         ) : null}
       </div>
