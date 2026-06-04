@@ -1,12 +1,13 @@
 import {
   normalizeGroApiDocuments,
+  parseDocumentsByTaskPayload,
   parseDocumentsByTaskResponse,
   resolveGroTaskId,
 } from "../GROCardView/groCardUtils";
 
 export const resolveGroSupervisorTaskId = resolveGroTaskId;
 
-export { parseDocumentsByTaskResponse };
+export { parseDocumentsByTaskPayload, parseDocumentsByTaskResponse };
 
 /** Map API documents to GROSupervisorDocumentLibrary row shape. */
 export const mapGroSupervisorDocuments = (apiDocuments) =>

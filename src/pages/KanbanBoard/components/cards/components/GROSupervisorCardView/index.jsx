@@ -8,8 +8,12 @@ import {
   createEmptyTaskAssignment,
 } from "./groSupervisorStaticTasks";
 import {
+  buildSelectedTaskFromCard,
+  resolveTaskDocumentsTitle,
+} from "../GROCardView/groCardUtils";
+import {
   mapGroSupervisorDocuments,
-  parseDocumentsByTaskResponse,
+  parseDocumentsByTaskPayload,
   resolveGroSupervisorTaskId,
 } from "./groSupervisorDocuments";
 import GROSupervisorTabs from "./GROSupervisorTabs";
@@ -39,12 +43,13 @@ const parseUsersByRoleResponse = (res) => {
     .filter(Boolean);
 };
 
-function GROSupervisorCardView({ card }) {
+function GROSupervisorCardView({ card, selectedTask: selectedTaskProp = null }) {
   const tasks = useMemo(() => getGroSupervisorTasksForCard(card), [card]);
-  const taskId = useMemo(() => resolveGroSupervisorTaskId(card), [card]);
+  const taskId = useMemo(() => resolveGroSupervisorTaskId(card, selectedTaskProp), [card, selectedTaskProp]);
 
   const [activeTab, setActiveTab] = useState(SUPERVISOR_TABS.assign);
   const [documents, setDocuments] = useState([]);
+  const [taskDocumentsData, setTaskDocumentsData] = useState(null);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [documentsLoadError, setDocumentsLoadError] = useState(null);
   const [assignments, setAssignments] = useState(() => {
@@ -94,11 +99,26 @@ function GROSupervisorCardView({ card }) {
     }));
   }, []);
 
+  const selectedTask = useMemo(
+    () => selectedTaskProp ?? buildSelectedTaskFromCard(card),
+    [selectedTaskProp, card]
+  );
+
+  const taskPanelTitle = useMemo(
+    () => resolveTaskDocumentsTitle(taskDocumentsData, selectedTask, "Task Documents"),
+    [taskDocumentsData, selectedTask]
+  );
+
+  useEffect(() => {
+    setTaskDocumentsData(null);
+  }, [taskId]);
+
   useEffect(() => {
     if (activeTab !== SUPERVISOR_TABS.documents) return undefined;
 
     if (!taskId) {
       setDocuments([]);
+      setTaskDocumentsData(null);
       setDocumentsLoadError("Unable to load documents: missing task id.");
       setDocumentsLoading(false);
       return undefined;
@@ -112,12 +132,14 @@ function GROSupervisorCardView({ card }) {
       .getDocumentsByTask(taskId)
       .then((res) => {
         if (cancelled) return;
-        const apiDocuments = parseDocumentsByTaskResponse(res);
+        const { documents: apiDocuments, taskName } = parseDocumentsByTaskPayload(res);
+        setTaskDocumentsData(taskName ? { task_name: taskName } : null);
         setDocuments(mapGroSupervisorDocuments(apiDocuments));
       })
       .catch(() => {
         if (cancelled) return;
         setDocuments([]);
+        setTaskDocumentsData(null);
         setDocumentsLoadError("Failed to load documents.");
       })
       .finally(() => {
@@ -145,7 +167,7 @@ function GROSupervisorCardView({ card }) {
           ) : (
             <GROSupervisorDocumentLibrary
               documents={documents}
-              hideHeading
+              sectionTitle={taskPanelTitle}
               isLoading={documentsLoading}
               emptyMessage={documentsLoadError}
             />
@@ -158,6 +180,12 @@ function GROSupervisorCardView({ card }) {
 
 GROSupervisorCardView.propTypes = {
   card: PropTypes.object,
+  selectedTask: PropTypes.shape({
+    task_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    taskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    task_name: PropTypes.string,
+    taskName: PropTypes.string,
+  }),
 };
 
 export default GROSupervisorCardView;

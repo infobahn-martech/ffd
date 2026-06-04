@@ -24,6 +24,8 @@ import {
   enrichGroDocWithRowKey,
   normalizeGroApiDocuments,
   parseDocumentsByTaskPayload,
+  buildSelectedTaskFromCard,
+  resolveTaskDocumentsTitle,
   groApiErrorMessage,
   resolveGroCallId,
   resolveGroCardId,
@@ -47,7 +49,10 @@ import {
 
 const EMPTY_WORK_ORDERS = [];
 
-const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRoleId = null }, ref) {
+const GROCardView = forwardRef(function GROCardView(
+  { card, mode = "gro", userRoleId = null, selectedTask: selectedTaskProp = null },
+  ref
+) {
   const isCustomClearance = mode === "custom";
   const hidePassTabs = mode === "gro" || isCustomClearance;
   const isGroSupervisorViewer =
@@ -78,6 +83,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [taskDocumentsData, setTaskDocumentsData] = useState(null);
   const [isFirstColumn, setIsFirstColumn] = useState(false);
   const [isGroLoading, setIsGroLoading] = useState(false);
   const [isSavingInward, setIsSavingInward] = useState(false);
@@ -120,12 +126,30 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
 
   const applyDocumentsByTaskResponse = useCallback(
     (res) => {
-      const { documents: rawList, isFirstColumn: firstColumn } = parseDocumentsByTaskPayload(res);
+      const { documents: rawList, isFirstColumn: firstColumn, taskName } = parseDocumentsByTaskPayload(res);
       setIsFirstColumn(firstColumn);
+      setTaskDocumentsData(taskName ? { task_name: taskName } : null);
       applyTaskDocuments(rawList);
     },
     [applyTaskDocuments]
   );
+
+  const selectedTask = useMemo(
+    () => selectedTaskProp ?? buildSelectedTaskFromCard(card),
+    [selectedTaskProp, card]
+  );
+
+  const taskPanelTitle = useMemo(
+    () =>
+      resolveTaskDocumentsTitle(
+        taskDocumentsData,
+        selectedTask,
+        isCustomClearance ? "Bayan" : "Task Documents"
+      ),
+    [taskDocumentsData, selectedTask, isCustomClearance]
+  );
+
+  const inwardPanelLabel = isCustomClearance ? "Bayan" : taskPanelTitle;
 
   const callTypeSummary = firstNonEmptyGroDisplay(
     callDetail?.call_type,
@@ -477,14 +501,20 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
       applyDocumentsByTaskResponse(docsRes);
     } catch {
       setIsFirstColumn(false);
+      setTaskDocumentsData(null);
       setDocuments([]);
     }
   }, [taskId, callId, applyDocumentsByTaskResponse]);
 
   useEffect(() => {
+    setTaskDocumentsData(null);
+  }, [taskId, callId]);
+
+  useEffect(() => {
     if (callId == null || callId === "") {
       notify("Unable to load GRO data: missing call id.", "error");
       setCallDetail(null);
+      setTaskDocumentsData(null);
       setDocuments([]);
       return undefined;
     }
@@ -492,12 +522,14 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
     if (cardId == null || cardId === "") {
       notify("Unable to load GRO data: missing card id.", "error");
       setCallDetail(null);
+      setTaskDocumentsData(null);
       setDocuments([]);
       return undefined;
     }
 
     if (!taskId) {
       notify("Unable to load documents: missing task id.", "error");
+      setTaskDocumentsData(null);
       setDocuments([]);
     }
 
@@ -511,6 +543,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
         setCallDetail(detail);
 
         if (!taskId) {
+          setTaskDocumentsData(null);
           setDocuments([]);
           return;
         }
@@ -522,6 +555,7 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
         if (cancelled) return;
         notify(groApiErrorMessage(err, "Failed to load GRO card data."), "error");
         setCallDetail(null);
+        setTaskDocumentsData(null);
         setDocuments([]);
       } finally {
         if (!cancelled) setIsGroLoading(false);
@@ -808,7 +842,11 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
               <div
                 className="gro-pass-segments"
                 role="tablist"
-                aria-label={isCustomClearance ? "Documents and Bayan" : "Documents and inward clearance"}
+                aria-label={
+                  isCustomClearance
+                    ? "Documents and Bayan"
+                    : `Documents and ${taskPanelTitle}`
+                }
               >
                 {!hidePassTabs ? (
                   <>
@@ -848,8 +886,8 @@ const GROCardView = forwardRef(function GROCardView({ card, mode = "gro", userRo
                   inwardFileInputRef={inwardFileInputRef}
                   showInwardClearance={showInwardClearance}
                   onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
-                  inwardActionLabel={isCustomClearance ? "Bayan" : "Inward clearance"}
-                  inwardPopoverTitle={isCustomClearance ? "Bayan" : "Inward Clearance"}
+                  inwardActionLabel={inwardPanelLabel}
+                  inwardPopoverTitle={inwardPanelLabel}
                   inwardFile={inwardFile}
                   onInwardFileChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
                   inwardPickerParts={inwardPickerParts}
@@ -950,6 +988,12 @@ GROCardView.propTypes = {
   card: PropTypes.object,
   mode: PropTypes.oneOf(["gro", "custom"]),
   userRoleId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  selectedTask: PropTypes.shape({
+    task_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    taskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    task_name: PropTypes.string,
+    taskName: PropTypes.string,
+  }),
 };
 
 GROCardView.displayName = "GROCardView";

@@ -25,16 +25,22 @@ const IconView = () => (
 function GROSupervisorDocumentLibrary({
   documents,
   hideHeading = false,
+  sectionTitle = "Task Documents",
   isLoading = false,
   emptyMessage = null,
 }) {
   const showEmptyState = !isLoading && documents.length === 0;
+  const heading = String(sectionTitle || "").trim() || "Task Documents";
 
   return (
-    <div className="gro-document-section gro-supervisor-doc-section" role="tabpanel" aria-label="Document Library">
+    <div
+      className="gro-document-section gro-supervisor-doc-section"
+      role="tabpanel"
+      aria-label={heading}
+    >
       {!hideHeading ? (
         <div className="gro-document-header">
-          <h3 className="gro-documents-heading">Document Library</h3>
+          <h3 className="gro-documents-heading">{heading}</h3>
         </div>
       ) : null}
       <div className="gro-document-list gro-supervisor-document-list">
@@ -119,6 +125,7 @@ function GROSupervisorDocumentLibrary({
 GROSupervisorDocumentLibrary.propTypes = {
   documents: PropTypes.array.isRequired,
   hideHeading: PropTypes.bool,
+  sectionTitle: PropTypes.string,
   isLoading: PropTypes.bool,
   emptyMessage: PropTypes.string,
 };

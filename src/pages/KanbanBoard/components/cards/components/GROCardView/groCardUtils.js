@@ -135,6 +135,13 @@ export const parseIsFirstColumnFromPayload = (payload = {}) => {
   return false;
 };
 
+const parseTaskNameFromPayload = (payload = {}) => {
+  const raw = payload?.task_name ?? payload?.taskName;
+  if (raw == null) return "";
+  const trimmed = String(raw).trim();
+  return trimmed || "";
+};
+
 /** GET task_card/get_documents_by_task — documents + column flags from response.data.data */
 export const parseDocumentsByTaskPayload = (res) => {
   const payload = res?.data?.data ?? res?.data ?? {};
@@ -142,6 +149,7 @@ export const parseDocumentsByTaskPayload = (res) => {
   return {
     documents: Array.isArray(docs) ? docs : [],
     isFirstColumn: parseIsFirstColumnFromPayload(payload),
+    taskName: parseTaskNameFromPayload(payload),
   };
 };
 
@@ -150,10 +158,33 @@ export const parseDocumentsByTaskResponse = (res) => parseDocumentsByTaskPayload
 
 export const parseDocumentsByTaskMeta = (res) => {
   const payload = res?.data?.data ?? res?.data ?? {};
+  const { taskName } = parseDocumentsByTaskPayload(res);
   return {
     taskId: payload?.task_id != null ? String(payload.task_id) : null,
-    taskName: payload?.task_name != null ? String(payload.task_name).trim() : "",
+    taskName,
   };
+};
+
+/** Card-level task label before documents API resolves. */
+export const buildSelectedTaskFromCard = (card) => {
+  if (!card) return null;
+  const task_name = [card?.task_name, card?.taskName, card?.raw?.task_name]
+    .map((value) => (value != null ? String(value).trim() : ""))
+    .find(Boolean);
+  return task_name ? { task_name } : null;
+};
+
+/** Panel title for task document upload sections (API → selected task → fallback). */
+export const resolveTaskDocumentsTitle = (
+  taskDocumentsData,
+  selectedTask,
+  fallback = "Task Documents"
+) => {
+  const fromApi = String(taskDocumentsData?.task_name ?? "").trim();
+  if (fromApi) return fromApi;
+  const fromSelected = String(selectedTask?.task_name ?? selectedTask?.taskName ?? "").trim();
+  if (fromSelected) return fromSelected;
+  return fallback;
 };
 
 /** Normalize task document rows from get_documents_by_task for GRO document lists. */
