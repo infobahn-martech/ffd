@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { FiTrendingUp, FiUsers, FiCheckCircle, FiActivity, FiDollarSign } from "react-icons/fi";
 import "../../design/scss/dashboard.scss";
-import "./dashboard-content.scss";
+import "../../design/scss/pages/dashboard/dashboard-content.scss";
 
 const Dashboard = () => {
   // Static data for stat cards

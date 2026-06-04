@@ -18,7 +18,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import { FiArrowLeft, FiTrendingUp, FiTrendingDown, FiBarChart2 } from 'react-icons/fi';
-import '../styles/analytics.scss';
+import '../../../design/scss/pages/kanban-board/analytics.scss';
 
 const COLORS = ['#0075FF', '#00C853', '#FF6B00', '#E91E63', '#9C27B0', '#FFC107'];
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import './SatisfactionRateCard.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/SatisfactionRateCard.scss';
 
 const SmileIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">

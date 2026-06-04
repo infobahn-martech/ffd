@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiMoreVertical, FiChevronLeft, FiPlus } from 'react-icons/fi';
-import './Compact.scss';
+import '../../design/scss/pages/compact/Compact.scss';
 
 const ITEMS = [
   'Marine Port calls',

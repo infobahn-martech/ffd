@@ -3,7 +3,7 @@ import moment from "moment";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewCrewModal } from "./Modals/ViewCrew";
-import "./Crew.scss";
+import "../../design/scss/pages/crew/Crew.scss";
 
 import useCrewReducer from "../../store/CrewReducer";
 

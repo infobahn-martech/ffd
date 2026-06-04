@@ -1,5 +1,5 @@
 import React from 'react';
-import './CounterCards.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/CounterCards.scss';
 
 const CounterIcon1 = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" fill="none">

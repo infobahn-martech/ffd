@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import SearchableSelect, { deriveSearchPlaceholder } from "./SearchableSelect";
-import "./PremiumSelect.scss";
+import "../../design/scss/components/form/PremiumSelect.scss";
 
 /** Keep dropdown above modal + sticky footer/header layers. */
 export const PREMIUM_SELECT_MODAL_Z_INDEX = 999999;

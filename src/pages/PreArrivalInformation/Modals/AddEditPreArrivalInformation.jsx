@@ -4,7 +4,7 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import "../AddEditPreArrivalInformation.scss";
+import "../../../design/scss/pages/pre-arrival-information/AddEditPreArrivalInformation.scss";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import usePreArrivalInfoReducer from "../../../store/PreArrivalInfoReducer";

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileIconKPI from '../../../assets/images/ProfileIconKPI.png';
-import './HeaderBar.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/HeaderBar.scss';
 
 const StarIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="33" viewBox="0 0 36 33" fill="none">

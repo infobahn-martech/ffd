@@ -5,7 +5,7 @@ import BlueColorIcon from '../../../assets/images/BlueColorIcon.png';
 import VoilentColorIcon from '../../../assets/images/VoilentColorIcon.png';
 import GreenColorIcon from '../../../assets/images/GreenColorIcon.png';
 import PurpleColorIcon from '../../../assets/images/PurpleColorIcon.png';
-import './TeamLeaderboard.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/TeamLeaderboard.scss';
 import PremiumSelect from '../../../components/form/PremiumSelect';
 
 const TeamLeaderboard = () => {

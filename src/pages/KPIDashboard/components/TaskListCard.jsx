@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiCheckCircle, FiCircle, FiClock } from 'react-icons/fi';
-import './TaskListCard.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/TaskListCard.scss';
 
 const TaskListCard = () => {
   // Sample task list data

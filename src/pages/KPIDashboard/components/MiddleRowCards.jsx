@@ -2,7 +2,7 @@ import React from 'react';
 import WelcomeBackCard from './WelcomeBackCard';
 import SatisfactionRateCard from './SatisfactionRateCard';
 import TaskCompletionSpeedCard from './TaskCompletionSpeedCard';
-import './MiddleRowCards.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/MiddleRowCards.scss';
 
 const MiddleRowCards = () => {
   return (

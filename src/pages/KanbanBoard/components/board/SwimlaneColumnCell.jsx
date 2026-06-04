@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
 import { CARD_GAP, CELL_PADDING_X, getCardsPerRow, getCardWidth } from "../../utils/boardGridHelpers";
-import "../../styles/column.scss";
+import "../../../../design/scss/pages/kanban-board/column.scss";
 
 /**
  * One column cell inside a swimlane row: droppable area + CSS grid for cards (cardsPerRow).

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import KIPSideNavBg from '../../../assets/images/KIP-SideNav-Bg.png';
 import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
-import './SideNav.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/SideNav.scss';
 
 const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, isMobileMenuOpen, onMobileMenuClose }) => {
   const navigate = useNavigate();

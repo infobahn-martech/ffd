@@ -4,7 +4,7 @@ import PendingBalanceCard from './PendingBalanceCard';
 import PaymentMethod from './PaymentMethod';
 import BillingInformation from './BillingInformation';
 import EarningTransactions from './EarningTransactions';
-import './Earnings.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/Earnings.scss';
 
 const Earnings = () => {
     return (

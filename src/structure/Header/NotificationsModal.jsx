@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import CustomModal from '../../components/CustomModal';
 import { FiAnchor, FiDollarSign, FiClock, FiCheck, FiX, FiAlertCircle, FiCheckCircle, FiTruck, FiUsers, FiFileText, FiMapPin } from 'react-icons/fi';
 import '../../design/scss/common.scss';
-import './NotificationsModal.scss';
+import '../../design/scss/structure/header/NotificationsModal.scss';
 
 function NotificationsModal({ show, onClose }) {
   const [showAll, setShowAll] = useState(false);

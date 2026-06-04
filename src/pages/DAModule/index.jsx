@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { KANBAN_DND_DISABLED } from "../../modules/kanban/constants/kanbanConfig";
-import "./DAModule.scss";
+import "../../design/scss/pages/da-module/DAModule.scss";
 
 // Dummy content templates
 const dummyContent = [

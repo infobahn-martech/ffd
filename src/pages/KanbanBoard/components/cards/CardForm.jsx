@@ -7,7 +7,7 @@ import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Tag, Layers3, AlertTriangle, Sticker } from "lucide-react";
 import { notify } from "../../../../components/Toaster";
-import "../../styles/cardForm.scss";
+import "../../../../design/scss/pages/kanban-board/cardForm.scss";
 import "../../../../design/scss/general.scss";
 import ColorPickerIcon from "../../../../assets/images/ColorPicker.png";
 import SedresColorPicker from "../../../../components/SedresColorPicker/SedresColorPicker";

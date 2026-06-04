@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { useMemo, useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import "./SearchableSelect.scss";
+import "../../design/scss/components/form/SearchableSelect.scss";
 
 const defaultGetOptionLabel = (opt) => (opt && opt.label != null ? String(opt.label) : "");
 const defaultGetOptionValue = (opt) => (opt && opt.value != null ? String(opt.value) : "");

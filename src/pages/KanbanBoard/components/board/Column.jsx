@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "../cards/CardItem";
-import "../../styles/column.scss";
+import "../../../../design/scss/pages/kanban-board/column.scss";
 
 function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false, isModernLayout = false, isDarkMode = false }) {
   const columnRef = useRef(null);

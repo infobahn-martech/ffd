@@ -11,7 +11,7 @@ import TeamLeaderboard from './components/TeamLeaderboard';
 import ProfileModal from './components/ProfileModal';
 import SignOutModal from './components/SignOutModal';
 import useAuthReducer from '../../store/AuthReducer';
-import './KPIDashboard.scss';
+import '../../design/scss/pages/kpi-dashboard/KPIDashboard.scss';
 
 const KPIDashboard = () => {
     const location = useLocation();

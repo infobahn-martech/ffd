@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import './AddDashboardModal.scss';
+import '../../../design/scss/structure/side-nav/AddDashboardModal.scss';
 
 const AddDashboardModal = ({ show, onClose, onSave }) => {
   const [name, setName] = useState('');

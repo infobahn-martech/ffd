@@ -4,7 +4,7 @@ import MonthlyTasksChart from './MonthlyTasksChart';
 import OurTeam from './OurTeam';
 import EarningTransactions from './EarningTransactions';
 import TaskListCard from './TaskListCard';
-import './ChartsRow.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/ChartsRow.scss';
 
 const ChartsRow = () => {
   return (

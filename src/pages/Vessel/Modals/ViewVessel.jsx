@@ -3,7 +3,7 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import moment from "moment";
-import "./ViewVessel.scss";
+import "../../../design/scss/pages/vessel/modals/ViewVessel.scss";
 
 function pick(row, ...keys) {
   for (const k of keys) {

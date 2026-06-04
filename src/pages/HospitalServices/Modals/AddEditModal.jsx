@@ -8,7 +8,7 @@ import hospitalService from "../../../services/hospitalService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import "./hospital-service-modal.scss";
+import "../../../design/scss/modals/hospital-services/hospital-service-modal.scss";
 
 export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
     const { addUpdateHospitalService, getServicesByHospital, isBeingUpdated } = useHospitalReducer(

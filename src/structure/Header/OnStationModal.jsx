@@ -4,7 +4,7 @@ import CustomTable from '../../components/customTable';
 import { Tooltip } from 'react-tooltip';
 import { FiX, FiChevronLeft, FiChevronRight, FiSearch, FiFileText, FiDollarSign, FiList } from 'react-icons/fi';
 import '../../design/scss/common.scss';
-import './DocumentsModal.scss';
+import '../../design/scss/structure/header/DocumentsModal.scss';
 
 // ✅ Updated Dummy data for On Station (as per image)
 const initialOnStation = [

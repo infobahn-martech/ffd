@@ -8,7 +8,7 @@ import {
   getSwimlaneColumnCards,
 } from "../../utils/columnHelpers";
 import { BOARD_COLUMN_GAP_PX, getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
-import "../../styles/swimlaneBoard.scss";
+import "../../../../design/scss/pages/kanban-board/swimlaneBoard.scss";
 
 export default function WorkflowColumns({
   workflow,

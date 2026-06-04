@@ -19,7 +19,7 @@ import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import { RESTRICTED_BOARD_HOME_PATH } from '../../../helpers/restrictedBoardUser';
-import './AddDashboardModal.scss';
+import '../../../design/scss/structure/side-nav/AddDashboardModal.scss';
 
 const DASHBOARD_MENU_WIDTH = 200;
 

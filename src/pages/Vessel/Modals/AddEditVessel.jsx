@@ -9,7 +9,7 @@ import vesselService from "../../../services/vesselService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import "./AddEditVessel.scss";
+import "../../../design/scss/pages/vessel/modals/AddEditVessel.scss";
 
 const VESSEL_TYPES = ["Bulk", "Container", "Carrier", "Tanker"];
 

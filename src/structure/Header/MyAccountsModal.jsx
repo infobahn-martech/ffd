@@ -8,7 +8,7 @@ import { getItem } from '../../helpers/localStorage';
 import '../../design/scss/profile.scss';
 import '../../design/scss/prospect-modal.scss';
 import '../../design/scss/form-designs.scss';
-import './MyAccountsModal.scss';
+import '../../design/scss/structure/header/MyAccountsModal.scss';
 
 function resolveUserImageUrl(image) {
   if (!image || typeof image !== 'string') return null;

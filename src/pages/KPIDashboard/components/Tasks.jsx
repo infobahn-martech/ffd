@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FiSearch, FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import './Tasks.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/Tasks.scss';
 import PremiumSelect from '../../../components/form/PremiumSelect';
 
 const Tasks = () => {

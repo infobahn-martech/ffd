@@ -1,6 +1,6 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import './ImportExportCallChart.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/ImportExportCallChart.scss';
 
 const ImportExportCallChart = () => {
   const data = [

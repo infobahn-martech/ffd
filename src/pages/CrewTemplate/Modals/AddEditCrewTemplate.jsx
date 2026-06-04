@@ -5,7 +5,7 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import "../AddEditCrewTemplate.scss";
+import "../../../design/scss/pages/crew-template/AddEditCrewTemplate.scss";
 import useCrewTemplateReducer from "../../../store/CrewTemplateReducer";
 import usePortReducer from "../../../store/PortReducer";
 import useCommonReducer from "../../../store/CommonReducer";

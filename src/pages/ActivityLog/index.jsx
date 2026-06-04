@@ -3,7 +3,7 @@ import { DateFormat, RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewActivityLogModal } from "./Modals/ViewActivityLog";
-import "./ActivityLog.scss";
+import "../../design/scss/pages/activity-log/ActivityLog.scss";
 
 const initialActivityLogs = [
   {

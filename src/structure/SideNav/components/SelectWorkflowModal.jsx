@@ -1,7 +1,7 @@
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import './SelectWorkflowModal.scss';
+import '../../../design/scss/structure/side-nav/SelectWorkflowModal.scss';
 
 function WorkflowCardIllustrationKanban({ uid = 'k' }) {
   const a = `swm-k1-${uid}`;
