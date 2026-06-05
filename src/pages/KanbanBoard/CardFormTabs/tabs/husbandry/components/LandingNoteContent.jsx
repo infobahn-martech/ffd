@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../components/CustomModal";
+import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
 import { splitApiDateTimeParts } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import DateTimePickerField from "../../../components/DateTimePickerField";
@@ -237,11 +238,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     getAllLandingNotes,
     getLandingNoteById,
     updateLandingNote,
+    deleteLandingNote,
     landingNotes,
     landingTotal,
     isLoadingList,
     isLoadingUpdate,
     isLoadingConvert,
+    isLoadingDelete,
   } = useLandingNoteReducer((state) => state);
 
   const [warehouseOptions, setWarehouseOptions] = useState([]);
@@ -303,6 +306,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const [showModal, setShowModal] = useState(false);
   const [printingId, setPrintingId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDeleteNote, setSelectedDeleteNote] = useState(null);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
@@ -512,15 +517,23 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const handleDelete = (noteId) => {
-    if (window.confirm("Are you sure you want to delete this landing note?")) {
-      const updatedList = notesList.filter(note => note.id !== noteId);
-      setNotesList(updatedList);
+  const handleDeleteClick = (note) => {
+    handleCloseDropdown();
+    setSelectedDeleteNote(note);
+    setShowDeleteModal(true);
+  };
 
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("landingNoteList")(syntheticEvent);
-    }
+  const handleDeleteConfirm = () => {
+    const noteId = selectedDeleteNote?.landing_note_id ?? selectedDeleteNote?.id;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    deleteLandingNote({
+      landingNoteId: noteId,
+      cb: () => {
+        setShowDeleteModal(false);
+        setSelectedDeleteNote(null);
+        if (callId) getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+      },
+    });
   };
 
   // Form state for Convert to Dispatch modal
@@ -1941,10 +1954,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handleDelete(note.id);
-                              }}
+                              onClick={() => handleDeleteClick(note)}
                               style={{
                                 width: "100%",
                                 padding: "10px 16px",
@@ -2024,6 +2034,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         body={renderViewBody()}
         footer={renderViewFooter()}
         dialgName="modal-dialog modal-dialog-centered"
+      />
+
+      <DeleteConfirmationModal
+        show={showDeleteModal}
+        onCancel={() => { setShowDeleteModal(false); setSelectedDeleteNote(null); }}
+        onConfirm={handleDeleteConfirm}
+        deleteText={`Are you sure you want to delete landing note ${selectedDeleteNote?.landingNoteNo || selectedDeleteNote?.landing_note_no || ""}?`}
+        isLoading={isLoadingDelete}
       />
     </div>
   );
