@@ -11,6 +11,7 @@ import MaterialTablePagination from "./MaterialTablePagination";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
+import printIcon from "../../../../../../assets/images/print.svg";
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
@@ -1826,12 +1827,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
                           </svg>
                         ) : (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                          <img src={printIcon} alt="print" className="material-action-icon" />
                         )}
                       </button>
                       <Tooltip id={`convert-note-${note.id}`} place="left" content=" Convert" />

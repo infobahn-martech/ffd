@@ -10092,23 +10092,21 @@ body .modal-backdrop.show {
   padding: 6px 8px;
   background-color: transparent;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00368c;
-  transition: background-color 0.2s;
   flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background-color: #f0f0f0;
-  }
 
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
   }
+}
+
+.material-action-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .dispatch-section-header {
