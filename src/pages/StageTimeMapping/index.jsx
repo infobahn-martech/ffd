@@ -11,7 +11,7 @@ const StageTimeMappings = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "stage_name",
+        // sortBy: "stage_name",
         sortOrder: 1,
     });
 
