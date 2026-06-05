@@ -124,11 +124,13 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     getAllDispatchNotes,
     getDispatchNoteById,
     updateDispatchNote,
+    deleteDispatchNote,
     dispatchNotes,
     dispatchTotal,
     isLoadingList,
     isLoadingDetail,
     isLoadingUpdate,
+    isLoadingDelete,
   } = useDispatchNoteReducer((state) => state);
 
   const [warehouseOptions, setWarehouseOptions] = useState([]);
@@ -154,6 +156,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const documentsFileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
+    landing_note_id: "",
     warehouse_id: "",
     dispatch_date: "",
     dispatch_time: "",
@@ -235,7 +238,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   }, []);
 
   const resetForm = () => {
-    setFormData({ warehouse_id: "", dispatch_date: "", dispatch_time: "", signature: "", delivery_location: "", delivered_to: "", remarks: "", documents: [] });
+    setFormData({ landing_note_id: "", warehouse_id: "", dispatch_date: "", dispatch_time: "", signature: "", delivery_location: "", delivered_to: "", remarks: "", documents: [] });
     setEditItems([emptyEditItem(1)]);
     setExpandedEditItems({ 1: true });
     setEditFormErrors({});
@@ -251,6 +254,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         if (!detail) return;
         const [datePart, timePart] = (detail.dispatch_date || "").split(" ");
         setFormData({
+          landing_note_id: String(detail.landing_note_id || ""),
           warehouse_id: String(detail.warehouse_id || ""),
           dispatch_date: datePart || "",
           dispatch_time: timePart || "",
@@ -351,12 +355,13 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     const fd = new FormData();
     const dispatchNoteId = editingNote.id || editingNote.dispatch_note_id;
     const dispatchDate = formData.dispatch_date + (formData.dispatch_time ? ` ${formData.dispatch_time}` : "");
+    if (formData.landing_note_id) fd.append("landing_note_id", formData.landing_note_id);
     fd.append("warehouse_id", formData.warehouse_id || "");
     fd.append("dispatch_date", dispatchDate);
     fd.append("signature", formData.signature || "");
     fd.append("delivery_location", formData.delivery_location || "");
     fd.append("delivered_to", formData.delivered_to || "");
-    fd.append("remarks", formData.remarks || "");
+    fd.append("remarks", (formData.remarks || "").replace(/<[^>]*>/g, "").trim());
     const newFiles = (formData.documents || []).filter((d) => d.file instanceof File);
     if (newFiles.length > 0) fd.append("file", newFiles[0].file);
 
@@ -398,10 +403,13 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleDelete = (noteId) => {
     if (window.confirm("Are you sure you want to delete this dispatch note?")) {
-      const updatedList = notesList.filter(note => note.id !== noteId);
-      setNotesList(updatedList);
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("dispatchNoteList")(syntheticEvent);
+      const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+      deleteDispatchNote({
+        dispatchNoteId: noteId,
+        cb: () => {
+          if (callId) getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
+        },
+      });
     }
   };
 
@@ -733,7 +741,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         type="submit"
         form="dispatchNoteForm"
         className="btn btn-primary"
-        disabled={isLoadingUpdate || isLoadingDetail}
+        disabled={isLoadingUpdate || isLoadingDetail || isLoadingDelete}
       >
         {isLoadingUpdate
           ? <span className="btn-spinner-content"><span className="spinner-border spinner-border-sm" role="status" />Saving...</span>
