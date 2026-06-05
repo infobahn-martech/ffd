@@ -10330,9 +10330,9 @@ body .modal-backdrop.show {
   display: flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; padding: 0;
   border: none; border-radius: 6px;
-  background: transparent !important; color: inherit !important; cursor: pointer;
-  transition: background 0.15s; flex-shrink: 0;
-  &:hover:not(:disabled) { background: #f0f0f0 !important; }
+  background: none !important; color: inherit !important; cursor: pointer;
+  outline: none; box-shadow: none; flex-shrink: 0;
+  &:hover, &:focus, &:active, &:focus-visible { background: none !important; outline: none; box-shadow: none; }
   &:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 .landing-more-actions-wrapper {
