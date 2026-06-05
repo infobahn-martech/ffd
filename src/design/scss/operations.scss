@@ -10090,13 +10090,23 @@ body .modal-backdrop.show {
 
 .material-print-btn {
   padding: 6px 8px;
-  background-color: transparent;
+  background: none;
   border: none;
+  outline: none;
+  box-shadow: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  &:focus,
+  &:active,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+    background: none;
+  }
 
   &:disabled {
     cursor: not-allowed;
