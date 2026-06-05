@@ -150,6 +150,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const DISPATCH_LIMIT = 10;
 
   const [editFormErrors, setEditFormErrors] = useState({});
+  const [editorKey, setEditorKey] = useState(0);
   const [expandedEditItems, setExpandedEditItems] = useState({ 1: true });
   const [editItems, setEditItems] = useState([emptyEditItem(1)]);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
@@ -296,6 +297,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         const expanded = {};
         mapped.forEach((item) => { expanded[item.id] = true; });
         setExpandedEditItems(expanded);
+        setEditorKey((k) => k + 1);
       },
     });
   };
@@ -718,6 +720,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             <div className="mb-2">
               <FormField label="Remarks">
                 <ReactQuillEditor
+                  key={editorKey}
                   value={formData.remarks || ""}
                   onChange={(e) => handleFormChange("remarks", e.target.value)}
                   placeholder="Enter remarks..."
