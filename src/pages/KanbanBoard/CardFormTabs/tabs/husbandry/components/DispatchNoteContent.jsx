@@ -152,6 +152,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [editItems, setEditItems] = useState([emptyEditItem(1)]);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   const [formData, setFormData] = useState({
     warehouse_id: "",
@@ -250,6 +251,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       cb: (detail) => {
         if (!detail) return;
         const [datePart, timePart] = (detail.dispatch_date || "").split(" ");
+        setEditorKey((k) => k + 1);
         setFormData({
           warehouse_id: String(detail.warehouse_id || ""),
           dispatch_date: datePart || "",
@@ -356,7 +358,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("signature", formData.signature || "");
     fd.append("delivery_location", formData.delivery_location || "");
     fd.append("delivered_to", formData.delivered_to || "");
-    fd.append("remarks", formData.remarks || "");
+    fd.append("remarks", (formData.remarks || "").replace(/<[^>]*>/g, "").trim());
     const newFiles = (formData.documents || []).filter((d) => d.file instanceof File);
     if (newFiles.length > 0) fd.append("file", newFiles[0].file);
 
@@ -710,6 +712,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             <div className="mb-2">
               <FormField label="Remarks">
                 <ReactQuillEditor
+                  key={editorKey}
                   value={formData.remarks || ""}
                   onChange={(e) => handleFormChange("remarks", e.target.value)}
                   placeholder="Enter remarks..."
