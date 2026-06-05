@@ -906,7 +906,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Basic Details */}
           <div className="mb-lg-3 mb-sm-0 pb-2 border-bottom">
-            <h3 className="fw-semibold mb-2" style={{ fontSize: "16px" }}>Basic Details</h3>
+            <h3 className="fw-semibold mb-2 landing-edit-section-title">Basic Details</h3>
             <div className="row g-2 mb-lg-3">
               <div className="col-md-6">
                 <FormField label="Date *">
@@ -1033,7 +1033,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     className={`landing-edit-item-header${expandedEditItems[item.id] ? " landing-edit-item-header--expanded" : ""}`}
                     onClick={() => toggleEditItemExpand(item.id)}
                   >
-                    <span className="fw-semibold" style={{ fontSize: "14px" }}>
+                    <span className="landing-edit-item-title-text">
                       Item {index + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </span>
                     <svg
@@ -1077,7 +1077,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Enter quantity..."
                               />
                             </FormField>
-                            {formErrors[`item_${index}_qty`] && <span className="text-danger" style={{ fontSize: "12px" }}>{formErrors[`item_${index}_qty`]}</span>}
+                            {formErrors[`item_${index}_qty`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
                           </div>
                           <div className="col-md-3">
                             <FormField label="Slot No">
@@ -1125,7 +1125,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               checked={item.transportation_required}
                               onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)}
                             />
-                            <span className="fw-semibold" style={{ fontSize: "14px" }}>Transportation Required</span>
+                            <span className="landing-edit-transport-label-text">Transportation Required</span>
                           </label>
                           {item.transportation_required && (
                             <div className="row g-2">
@@ -1138,7 +1138,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="Select vehicle..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_veh`] && <span className="text-danger" style={{ fontSize: "12px" }}>{formErrors[`item_${index}_veh`]}</span>}
+                                {formErrors[`item_${index}_veh`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
                               </div>
                               <div className="col-md-4">
                                 <FormField label="From Location *">
@@ -1149,7 +1149,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="From location..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_from`] && <span className="text-danger" style={{ fontSize: "12px" }}>{formErrors[`item_${index}_from`]}</span>}
+                                {formErrors[`item_${index}_from`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                               </div>
                               <div className="col-md-4">
                                 <FormField label="Pick-Up From">
@@ -1165,7 +1165,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="To location..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_to`] && <span className="text-danger" style={{ fontSize: "12px" }}>{formErrors[`item_${index}_to`]}</span>}
+                                {formErrors[`item_${index}_to`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
                               </div>
                               <div className="col-md-6">
                                 <FormField label="Driver *">
@@ -1176,7 +1176,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="Select driver..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_drv`] && <span className="text-danger" style={{ fontSize: "12px" }}>{formErrors[`item_${index}_drv`]}</span>}
+                                {formErrors[`item_${index}_drv`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
                               </div>
                             </div>
                           )}
@@ -1221,7 +1221,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Info: Landing Note No */}
           {convertingNote && (
-            <div style={{ marginBottom: "16px", padding: "10px 14px", background: "#f0f4ff", borderRadius: "8px", fontSize: "13px", color: "#00368c" }}>
+            <div className="landing-convert-info-bar">
               <strong>Landing Note:</strong> {convertingNote.landingNoteNo || convertingNote.landing_note_no || "-"}
               &nbsp;&nbsp;|&nbsp;&nbsp;
               <strong>Dispatch Note No:</strong> Auto-generated by system
@@ -1229,8 +1229,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           )}
 
           {/* Basic Details */}
-          <div style={{ marginBottom: "24px", paddingBottom: "20px", borderBottom: "1px solid #e2e2ea" }}>
-            <h3 style={{ fontSize: "15px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>Basic Details</h3>
+          <div className="landing-convert-section">
+            <h3 className="landing-convert-section-title">Basic Details</h3>
             <div className="row g-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Dispatch Date *">
@@ -1242,7 +1242,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     timeFieldName="dispatch_time"
                     placeholder="YYYY-MM-DD hh:mm"
                   />
-                  {convertFormErrors.dispatch_date && <span style={{ color: "#dc3545", fontSize: "12px" }}>{convertFormErrors.dispatch_date}</span>}
+                  {convertFormErrors.dispatch_date && <span className="landing-convert-error">{convertFormErrors.dispatch_date}</span>}
                 </FormField>
               </div>
               <div className="col-md-6 mb-2">
@@ -1254,7 +1254,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     placeholder="Select warehouse"
                     className={convertFormErrors.warehouse_id ? "is-invalid" : ""}
                   />
-                  {convertFormErrors.warehouse_id && <span style={{ color: "#dc3545", fontSize: "12px" }}>{convertFormErrors.warehouse_id}</span>}
+                  {convertFormErrors.warehouse_id && <span className="landing-convert-error">{convertFormErrors.warehouse_id}</span>}
                 </FormField>
               </div>
               <div className="col-md-4 mb-2">
@@ -1265,41 +1265,41 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <div className="col-md-4 mb-2">
                 <FormField label="Delivery Location *">
                   <FormInput type="text" value={convertFormData.delivery_location} onChange={(e) => { handleConvertFormChange("delivery_location", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.delivery_location; return n; }); }} placeholder="Enter delivery location..." className={convertFormErrors.delivery_location ? "is-invalid" : ""} />
-                  {convertFormErrors.delivery_location && <span style={{ color: "#dc3545", fontSize: "12px" }}>{convertFormErrors.delivery_location}</span>}
+                  {convertFormErrors.delivery_location && <span className="landing-convert-error">{convertFormErrors.delivery_location}</span>}
                 </FormField>
               </div>
               <div className="col-md-4 mb-2">
                 <FormField label="Delivered To *">
                   <FormInput type="text" value={convertFormData.delivered_to} onChange={(e) => { handleConvertFormChange("delivered_to", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.delivered_to; return n; }); }} placeholder="Enter person name..." className={convertFormErrors.delivered_to ? "is-invalid" : ""} />
-                  {convertFormErrors.delivered_to && <span style={{ color: "#dc3545", fontSize: "12px" }}>{convertFormErrors.delivered_to}</span>}
+                  {convertFormErrors.delivered_to && <span className="landing-convert-error">{convertFormErrors.delivered_to}</span>}
                 </FormField>
               </div>
             </div>
           </div>
 
           {/* Order Details */}
-          <div style={{ marginBottom: "24px", paddingBottom: "20px", borderBottom: "1px solid #e2e2ea" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h3 style={{ fontSize: "15px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>Order Details</h3>
-              <button type="button" onClick={handleAddNewConvertOrder} style={{ padding: "8px 16px", backgroundColor: "#00368c", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px" }}>+ Add Order</button>
+          <div className="landing-convert-section">
+            <div className="landing-convert-section-header">
+              <h3 className="landing-convert-section-title">Order Details</h3>
+              <button type="button" onClick={handleAddNewConvertOrder} className="landing-convert-add-btn">+ Add Order</button>
             </div>
 
             {convertFormData.orders.map((order, index) => (
-              <div key={order.id} style={{ marginBottom: "12px", border: "1px solid #e2e2ea", borderRadius: "8px", overflow: "hidden" }}>
-                <div onClick={() => toggleConvertOrderExpand(order.id)} style={{ padding: "10px 16px", backgroundColor: "#f8f9fa", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>Order {index + 1}</span>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <div key={order.id} className="landing-convert-order-card">
+                <div onClick={() => toggleConvertOrderExpand(order.id)} className="landing-convert-order-header">
+                  <span className="landing-convert-order-title">Order {index + 1}</span>
+                  <div className="landing-convert-order-actions">
                     {convertFormData.orders.length > 1 && (
-                      <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveConvertOrder(order.id); }} style={{ padding: "4px 10px", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>Remove</button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveConvertOrder(order.id); }} className="landing-convert-remove-btn">Remove</button>
                     )}
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ transform: expandedConvertOrders[order.id] ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={`landing-convert-chevron${expandedConvertOrders[order.id] ? " landing-convert-chevron--open" : ""}`}>
                       <path d="M6 9L12 15L18 9" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
 
                 {expandedConvertOrders[order.id] && (
-                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                  <div className="landing-convert-order-body">
                     {/* Order Info */}
                     <div className="row g-2 mb-2">
                       <div className="col-md-4">
@@ -1315,7 +1315,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="col-md-4">
                         <FormField label="Quantity *">
                           <FormInput type="text" inputMode="numeric" value={order.quantity} onChange={(e) => { const val = e.target.value; if (val === "" || /^\d+$/.test(val)) { handleConvertOrderChange(order.id, "quantity", val); setConvertFormErrors((p) => { const n = { ...p }; delete n[`co${index}_quantity`]; return n; }); } }} placeholder="Quantity..." className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""} />
-                          {convertFormErrors[`co${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px" }}>{convertFormErrors[`co${index}_quantity`]}</span>}
+                          {convertFormErrors[`co${index}_quantity`] && <span className="landing-convert-error">{convertFormErrors[`co${index}_quantity`]}</span>}
                         </FormField>
                       </div>
                       <div className="col-md-6">
@@ -1326,8 +1326,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
 
                     {/* Dispatch Details */}
-                    <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e2e2ea" }}>
-                      <p style={{ fontSize: "13px", fontWeight: "600", color: "#555", marginBottom: "10px" }}>Dispatch Details</p>
+                    <div className="landing-convert-dispatch-section">
+                      <p className="landing-convert-dispatch-title">Dispatch Details</p>
                       <div className="row g-2">
                         <div className="col-md-4">
                           <FormField label="Slot">
@@ -1342,10 +1342,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Packing Required */}
-                      <div style={{ marginTop: "10px" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", marginBottom: "8px" }}>
-                          <input type="checkbox" checked={order.packing_required || false} onChange={(e) => handleConvertOrderChange(order.id, "packing_required", e.target.checked)} style={{ cursor: "pointer", width: "16px", height: "16px" }} />
-                          <span style={{ fontSize: "13px", fontWeight: "600", color: "#1a1a1a" }}>Packing Required</span>
+                      <div>
+                        <label className="landing-convert-checkbox-label">
+                          <input type="checkbox" checked={order.packing_required || false} onChange={(e) => handleConvertOrderChange(order.id, "packing_required", e.target.checked)} className="landing-convert-checkbox" />
+                          <span className="landing-convert-checkbox-text">Packing Required</span>
                         </label>
                         {order.packing_required && (
                           <div className="row g-2">
@@ -1378,10 +1378,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Transportation Required */}
-                      <div style={{ marginTop: "10px" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", marginBottom: "8px" }}>
-                          <input type="checkbox" checked={order.transportation_required || false} onChange={(e) => handleConvertOrderChange(order.id, "transportation_required", e.target.checked)} style={{ cursor: "pointer", width: "16px", height: "16px" }} />
-                          <span style={{ fontSize: "13px", fontWeight: "600", color: "#1a1a1a" }}>Transportation Required</span>
+                      <div>
+                        <label className="landing-convert-checkbox-label">
+                          <input type="checkbox" checked={order.transportation_required || false} onChange={(e) => handleConvertOrderChange(order.id, "transportation_required", e.target.checked)} className="landing-convert-checkbox" />
+                          <span className="landing-convert-checkbox-text">Transportation Required</span>
                         </label>
                         {order.transportation_required && (
                           <div className="row g-2">
@@ -1427,7 +1427,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Documents & Remarks */}
           <div>
-            <h3 style={{ fontSize: "15px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>Documents & Remarks</h3>
+            <h3 className="landing-convert-section-title">Documents & Remarks</h3>
             <div className="mb-2">
               <FormField label="File">
                 <AttachmentsList
@@ -1458,38 +1458,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderConvertFooter = () => (
-    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
-      <button
-        type="button"
-        onClick={handleCloseConvertModal}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#f5f5f5",
-          color: "#333",
-          border: "1px solid #e2e2ea",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-        }}
-      >
+    <div className="modal-footer landing-convert-footer">
+      <button type="button" onClick={handleCloseConvertModal} className="landing-convert-cancel-btn">
         Cancel
       </button>
       <button
         type="submit"
         form="convertToDispatchForm"
         disabled={isLoadingConvert || isLoadingConvertDetail}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#00368c",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: (isLoadingConvert || isLoadingConvertDetail) ? "not-allowed" : "pointer",
-          fontSize: "14px",
-          fontWeight: "500",
-          opacity: (isLoadingConvert || isLoadingConvertDetail) ? 0.7 : 1,
-        }}
+        className="landing-convert-submit-btn"
       >
         {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
       </button>
@@ -1733,10 +1710,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           Landing Note
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
-        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
-          <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
+      <div className="table-wrapper table-responsive material-table-container landing-table-wrapper">
+        <div className="landing-table-scroll">
+        <table className="table table-striped material-table sub-note-table landing-table">
+          <thead>
             <tr>
               <th>Order No</th>
               <th>Date</th>
@@ -1745,13 +1722,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th style={{ paddingLeft: "28px" }}>Actions</th>
+              <th className="landing-table-actions-th">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoadingList ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</td>
+                <td colSpan="8" className="landing-table-loading">Loading...</td>
               </tr>
             ) : notesList.length > 0 ? (
               notesList.map((note) => (
@@ -1770,11 +1747,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   <td>
                     <div className="material-table-cell">
                       {note.landingProof && note.landingProof.length > 0 ? (
-                        <span style={{ color: "#00368c", cursor: "pointer" }}>
+                        <span className="landing-table-proof-link">
                           {note.landingProof.length} file(s)
                         </span>
                       ) : (
-                        <span style={{ color: "#999" }}>No files</span>
+                        <span className="landing-table-proof-none">No files</span>
                       )}
                     </div>
                   </td>
@@ -1796,7 +1773,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           />
                           <span
                             data-tooltip-id={`description-tooltip-${note.id}`}
-                            style={{ cursor: "help" }}
+                            className="landing-table-description"
                           >
                             {note.description.substring(0, 13)}...
                           </span>
@@ -1806,34 +1783,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative", whiteSpace: "nowrap", overflow: "visible" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start", flexWrap: "nowrap" }}>
+                  <td className="landing-table-actions-td">
+                    <div className="material-table-cell landing-table-actions-cell">
                       <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewNote(note)}
                         data-tooltip-id={`view-note-${note.id}`}
-                        style={{
-                          padding: "6px 8px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#00368c",
-                          transition: "background-color 0.2s",
-                          flexShrink: 0
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f0f0f0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                        }}
+                        className="landing-action-btn"
                       >
-                        <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
+                        <img src={eyeIcon} alt="view" className="material-action-icon" />
                       </button>
                       <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
@@ -1856,25 +1815,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
-                        style={{
-                          padding: "6px 8px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#00368c",
-                          transition: "background-color 0.2s",
-                          flexShrink: 0
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f0f0f0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                        }}
+                        className="landing-action-btn"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1 4H10V12H1V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -1884,29 +1825,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </button>
-                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto", flexShrink: 0 }}>
+                      <div className={`landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                         <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
                           data-tooltip-id={`more-actions-${note.id}`}
-                          style={{
-                            padding: "6px 8px",
-                            backgroundColor: "transparent",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "#00368c"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#f0f0f0";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                          }}
+                          className="landing-action-btn"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="6" r="1.5" fill="currentColor" />
@@ -1917,74 +1842,23 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         {openDropdownId === note.id && createPortal(
                           <div
                             data-dropdown-menu
-                            style={{
-                              position: "fixed",
-                              top: `${dropdownPosition.top}px`,
-                              right: `${dropdownPosition.right}px`,
-                              backgroundColor: "white",
-                              border: "1px solid #e2e2ea",
-                              borderRadius: "6px",
-                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                              zIndex: 99999,
-                              minWidth: "180px",
-                              padding: "4px 0"
-                            }}
+                            className="landing-dropdown-menu"
+                            style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
                           >
                             <button
                               type="button"
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handleOpenModal(note);
-                              }}
-                              style={{
-                                width: "100%",
-                                padding: "10px 16px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                fontSize: "14px",
-                                color: "#1a1a1a",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
+                              onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
+                              className="landing-dropdown-item"
                             >
-                              <img src={editIcon} alt="edit" style={{ width: "16px", height: "16px" }} />
+                              <img src={editIcon} alt="edit" />
                               <span>Edit</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteClick(note)}
-                              style={{
-                                width: "100%",
-                                padding: "10px 16px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                fontSize: "14px",
-                                color: "#dc3545",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
+                              className="landing-dropdown-item landing-dropdown-item--danger"
                             >
-                              <img src={deleteIcon} alt="delete" style={{ width: "16px", height: "16px" }} />
+                              <img src={deleteIcon} alt="delete" />
                               <span>Delete</span>
                             </button>
                           </div>,
@@ -1997,7 +1871,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
+                <td colSpan="8" className="landing-table-empty">
                   No landing notes added yet.
                 </td>
               </tr>
