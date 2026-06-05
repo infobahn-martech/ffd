@@ -621,26 +621,42 @@ export const parseGroStageTimeObjectsResponse = (res) => {
   return [...rows].sort((a, b) => Number(a?.sort_order ?? 0) - Number(b?.sort_order ?? 0));
 };
 
-export const buildGroTimeObjectsSubmitPayload = (timeObjects, timeObjectValues) => {
-  const payload = {};
-  (Array.isArray(timeObjects) ? timeObjects : []).forEach((item) => {
-    const key = resolveGroTimeObjectFieldKey(item);
-    if (!key) return;
-    const parts = timeObjectValues?.[key];
-    const date = parts?.date != null ? String(parts.date).trim() : "";
-    const time = parts?.time != null ? String(parts.time).trim() : "";
-    if (!date) return;
-    const formattedTime = time ? String(time).slice(0, 5) : "00:00";
-    payload[key] = `${date} ${formattedTime}:00`;
-  });
-  return payload;
+export const resolveGroTimeObjectValueKey = (item) => {
+  const id = item?.time_object_id;
+  return id != null && String(id).trim() !== "" ? String(id).trim() : resolveGroTimeObjectFieldKey(item);
 };
+
+const formatGroTimeObjectValue = (parts) => {
+  const date = parts?.date != null ? String(parts.date).trim() : "";
+  const time = parts?.time != null ? String(parts.time).trim() : "";
+  if (!date) return "";
+  const formattedTime = time ? String(time).slice(0, 5) : "00:00";
+  return `${date} ${formattedTime}:00`;
+};
+
+/** arrival/save_arrival_document — [{ time_object_id, time_object_value }] */
+export const buildGroArrivalTimeObjectsPayload = (timeObjects, timeObjectValues) =>
+  (Array.isArray(timeObjects) ? timeObjects : [])
+    .map((item) => {
+      const timeObjectId = item?.time_object_id;
+      if (timeObjectId == null || String(timeObjectId).trim() === "") return null;
+      const valueKey = resolveGroTimeObjectValueKey(item);
+      const parts = timeObjectValues?.[valueKey] ?? { date: "", time: "" };
+      return {
+        time_object_id: Number(timeObjectId),
+        time_object_value: formatGroTimeObjectValue(parts),
+      };
+    })
+    .filter(Boolean);
+
+/** @deprecated Use buildGroArrivalTimeObjectsPayload */
+export const buildGroTimeObjectsSubmitPayload = buildGroArrivalTimeObjectsPayload;
 
 export const validateGroRequiredTimeObjects = (timeObjects, timeObjectValues) => {
   const errors = {};
   (Array.isArray(timeObjects) ? timeObjects : []).forEach((item) => {
     if (String(item?.is_required ?? "0") !== "1") return;
-    const key = resolveGroTimeObjectFieldKey(item);
+    const key = resolveGroTimeObjectValueKey(item);
     if (!key) return;
     const parts = timeObjectValues?.[key] ?? { date: "", time: "" };
     const date = String(parts.date ?? "").trim();

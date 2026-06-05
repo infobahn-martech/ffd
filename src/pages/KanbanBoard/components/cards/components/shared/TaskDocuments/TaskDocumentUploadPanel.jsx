@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import PropTypes from "prop-types";
 import DateTimePickerField from "../../../../../CardFormTabs/components/DateTimePickerField";
 
@@ -9,6 +10,7 @@ function TaskDocumentUploadPanel({
   onToggle,
   actionLabel = "Task Documents",
   panelTitle = "Task Documents",
+  showMainFileUpload = true,
   file,
   onFileChange,
   pickerParts,
@@ -21,6 +23,8 @@ function TaskDocumentUploadPanel({
   isSaving,
   isDisabled,
 }) {
+  const fallbackFileInputRef = useRef(null);
+  const effectiveFileInputRef = fileInputRef ?? fallbackFileInputRef;
   const hasLegacyDateTime = pickerParts != null && typeof onDateTimeChange === "function";
   const hasDynamicTimeFields = Array.isArray(timeObjectFields) && timeObjectFields.length > 0;
   return (
@@ -38,31 +42,33 @@ function TaskDocumentUploadPanel({
         <div className="gro-inward-popover" role="dialog" aria-label={panelTitle}>
           <div className="gro-inward-popover-header">{panelTitle}</div>
           <div className="gro-inward-popover-body">
-            <div className="gro-inward-popover-field">
-              <span className="gro-inward-popover-label">File upload</span>
-              <div className="gro-premium-upload">
-                <input
-                  ref={fileInputRef}
-                  id="gro-inward-file-input"
-                  type="file"
-                  className="gro-premium-upload-input-hidden"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  disabled={isSaving}
-                  onChange={onFileChange}
-                />
-                <button
-                  type="button"
-                  className="gro-premium-upload-btn"
-                  disabled={isSaving}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Choose file
-                </button>
-                <span className="gro-premium-upload-filename" title={file?.name || ""}>
-                  {file?.name || "No file chosen"}
-                </span>
+            {showMainFileUpload ? (
+              <div className="gro-inward-popover-field">
+                <span className="gro-inward-popover-label">File upload</span>
+                <div className="gro-premium-upload">
+                  <input
+                    ref={effectiveFileInputRef}
+                    id="gro-inward-file-input"
+                    type="file"
+                    className="gro-premium-upload-input-hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    disabled={isSaving}
+                    onChange={onFileChange}
+                  />
+                  <button
+                    type="button"
+                    className="gro-premium-upload-btn"
+                    disabled={isSaving}
+                    onClick={() => effectiveFileInputRef.current?.click()}
+                  >
+                    Choose file
+                  </button>
+                  <span className="gro-premium-upload-filename" title={file?.name || ""}>
+                    {file?.name || "No file chosen"}
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : null}
             {timeObjectsLoading ? (
               <div className="gro-inward-popover-field">
                 <span className="gro-inward-popover-label gro-inward-popover-loading">Loading time fields…</span>
@@ -119,13 +125,14 @@ function TaskDocumentUploadPanel({
 
 TaskDocumentUploadPanel.propTypes = {
   anchorRef: PropTypes.shape({ current: PropTypes.any }).isRequired,
-  fileInputRef: PropTypes.shape({ current: PropTypes.any }).isRequired,
+  fileInputRef: PropTypes.shape({ current: PropTypes.any }),
   isOpen: PropTypes.bool.isRequired,
   onToggle: PropTypes.func.isRequired,
   actionLabel: PropTypes.string,
   panelTitle: PropTypes.string,
+  showMainFileUpload: PropTypes.bool,
   file: PropTypes.any,
-  onFileChange: PropTypes.func.isRequired,
+  onFileChange: PropTypes.func,
   pickerParts: PropTypes.shape({
     date: PropTypes.string,
     time: PropTypes.string,

@@ -1,5 +1,6 @@
 import Gateway from "../gateway/gateway";
 import taskCardService from "./groService/taskCardService";
+import groArrivalService from "./groService/arrivalService";
 
 export const getCallDetailById = (callId, cardId) => {
   const callSegment = encodeURIComponent(String(callId));
@@ -19,8 +20,7 @@ export const getDocumentsByTask = (taskId, callId) => {
 /** POST task_card/verify_docs — { call_id, task_id, card_id, documents: [{ document_id, status, remarks }] } */
 export const verifyGroDocs = (payload) => Gateway.post("task_card/verify_docs", payload);
 
-export const saveArrivalDocument = (formData) =>
-  Gateway.post("arrival/save_arrival_document", formData);
+export const saveArrivalDocument = groArrivalService.saveArrivalDocument;
 
 export const getPassRequests = (callId) =>
   Gateway.get(`crew_pass/get_pass_requests/${encodeURIComponent(String(callId))}`);

@@ -1,3 +1,5 @@
+import { buildGroArrivalTimeObjectsPayload } from "./groCardUtils";
+
 export const GRO_CREW_IMMIGRATION_STATUS = {
   ON_HOLD: "On Hold",
   COMPLETED: "Completed",
@@ -64,7 +66,7 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
       errors.custom_inspection_status = "Custom Inspection Status is required.";
     }
     if (data.custom_inspection_status === GRO_CUSTOM_INSPECTION_STATUS.FAILED && !trimText(data.failed_reason)) {
-      errors.failed_reason = "Failed Reason is required.";
+      errors.failed_reason = "Customs remarks are required.";
     }
     if (!hasFile(data.initial_bayan_doc)) {
       errors.initial_bayan_doc = "Initial Bayan Doc is required.";
@@ -95,55 +97,70 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
   return errors;
 };
 
-export const buildGroExtraStageFieldsScalarPayload = (stageId, fields = {}) => {
+const appendTextField = (formData, key, value) => {
+  const normalized = trimText(value);
+  if (normalized) formData.append(key, normalized);
+};
+
+const appendFileField = (formData, key, file) => {
+  if (hasFile(file)) formData.append(key, file);
+};
+
+/** arrival/save_arrival_document — stage-specific scalar + file fields */
+export const appendGroArrivalStageFieldsToFormData = (formData, stageId, fields = {}) => {
   const data = fields ?? {};
-  const payload = {};
 
   if (stageId === 7) {
-    payload.crew_immigration_status = trimText(data.crew_immigration_status);
+    appendTextField(formData, "immigration_status", data.crew_immigration_status);
     if (data.crew_immigration_status === GRO_CREW_IMMIGRATION_STATUS.ON_HOLD) {
-      payload.on_hold_reason = trimText(data.on_hold_reason);
+      appendTextField(formData, "immigration_remarks", data.on_hold_reason);
     }
+  }
+
+  if (stageId === 8) {
+    appendFileField(formData, "inward_clearance_doc", data.inward_clearance_copy);
   }
 
   if (stageId === 9) {
-    payload.custom_inspection_status = trimText(data.custom_inspection_status);
+    appendTextField(formData, "customs_status", data.custom_inspection_status);
     if (data.custom_inspection_status === GRO_CUSTOM_INSPECTION_STATUS.FAILED) {
-      payload.failed_reason = trimText(data.failed_reason);
+      appendTextField(formData, "immigration_remarks", data.failed_reason);
     }
+    appendFileField(formData, "initial_bayan_doc", data.initial_bayan_doc);
+    appendFileField(formData, "final_bayan_doc", data.final_bayan_doc);
   }
 
   if (stageId === 10) {
-    payload.mwp_application_no = trimText(data.mwp_application_no);
-    payload.sadad_no = trimText(data.sadad_no);
+    appendFileField(formData, "inward_clearance_doc", data.inward_clearance_copy);
+    appendTextField(formData, "mwp_ticket_no", data.mwp_application_no);
+    appendTextField(formData, "sadad_no", data.sadad_no);
+    appendFileField(formData, "sadad_doc", data.sadad_doc);
+    appendFileField(formData, "mwp_doc", data.mwp_copy);
   }
-
-  return payload;
 };
 
-const GRO_EXTRA_STAGE_FILE_KEYS_BY_STAGE = {
-  8: [GRO_EXTRA_STAGE_FIELD_KEYS.INWARD_CLEARANCE_COPY],
-  9: [GRO_EXTRA_STAGE_FIELD_KEYS.INITIAL_BAYAN_DOC, GRO_EXTRA_STAGE_FIELD_KEYS.FINAL_BAYAN_DOC],
-  10: [
-    GRO_EXTRA_STAGE_FIELD_KEYS.INWARD_CLEARANCE_COPY,
-    GRO_EXTRA_STAGE_FIELD_KEYS.SADAD_DOC,
-    GRO_EXTRA_STAGE_FIELD_KEYS.MWP_COPY,
-  ],
-};
-
-export const appendGroExtraStageFieldsToFormData = (formData, stageId, fields = {}) => {
-  const scalarPayload = buildGroExtraStageFieldsScalarPayload(stageId, fields);
-  if (Object.keys(scalarPayload).length > 0) {
-    formData.append("extra_stage_fields", JSON.stringify(scalarPayload));
-  }
-
-  const fileKeys = GRO_EXTRA_STAGE_FILE_KEYS_BY_STAGE[stageId] ?? [];
-  fileKeys.forEach((key) => {
-    const file = fields?.[key];
-    if (hasFile(file)) {
-      formData.append(key, file);
-    }
-  });
-};
+/** @deprecated Use appendGroArrivalStageFieldsToFormData */
+export const appendGroExtraStageFieldsToFormData = appendGroArrivalStageFieldsToFormData;
 
 export const groStageHasExtraFields = (stageId) => [7, 8, 9, 10].includes(Number(stageId));
+
+export const buildGroArrivalSaveFormData = ({
+  callId,
+  taskId,
+  timeObjects,
+  timeObjectValues,
+  stageId,
+  extraStageFields,
+}) => {
+  const formData = new FormData();
+  formData.append("call_id", String(callId));
+  formData.append("task_id", String(taskId));
+  formData.append(
+    "time_objects",
+    JSON.stringify(buildGroArrivalTimeObjectsPayload(timeObjects, timeObjectValues))
+  );
+  if (groStageHasExtraFields(stageId)) {
+    appendGroArrivalStageFieldsToFormData(formData, stageId, extraStageFields);
+  }
+  return formData;
+};
