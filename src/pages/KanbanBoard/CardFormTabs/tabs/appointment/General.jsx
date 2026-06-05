@@ -32,6 +32,7 @@ import {
 } from "../../../../../shared/helpers/callFileFormOptions";
 import { buildCreateCallFileFormData } from "../../../../../shared/helpers/createCallFilePayload";
 import { notify } from "../../../../../components/Toaster";
+import Gateway from "../../../../../gateway/gateway";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../components/DateTimePickerField";
 import {
@@ -926,12 +927,58 @@ MultiSelectEmail.propTypes = {
   hasError: PropTypes.bool,
 };
 
+const createQuillImageUploadHandler = (quillRef) => () => {
+  const input = document.createElement("input");
+  input.setAttribute("type", "file");
+  input.setAttribute("accept", "image/*");
+  input.click();
+
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image_file", file);
+
+    try {
+      const response = await Gateway.post("/report_template/upload_image", formData);
+      const fileUrl = response?.data?.file_url ?? response?.data?.data?.file_url;
+
+      if (fileUrl) {
+        const quill = quillRef.current?.getEditor();
+        const range = quill?.getSelection(true);
+        quill.insertEmbed(range?.index ?? 0, "image", fileUrl, "user");
+        quill.setSelection((range?.index ?? 0) + 1);
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      notify("Image upload failed.", "error");
+    }
+  };
+};
+
+const buildQuillModules = (toolbar, quillRef) => {
+  const flatToolbar = toolbar.flat(Infinity);
+  if (!flatToolbar.includes("image")) {
+    return { toolbar };
+  }
+
+  return {
+    toolbar: {
+      container: toolbar,
+      handlers: {
+        image: createQuillImageUploadHandler(quillRef),
+      },
+    },
+  };
+};
+
 // React Quill Editor Component
 const ReactQuillEditor = ({ value, onChange, placeholder }) => {
   const quillRef = useRef(null);
 
-  const modules = {
-    toolbar: [
+  const toolbar = useMemo(
+    () => [
       [{ header: [1, 2, 3, false] }],
       ["bold", "italic", "underline", "strike"],
       [{ list: "ordered" }, { list: "bullet" }],
@@ -939,7 +986,10 @@ const ReactQuillEditor = ({ value, onChange, placeholder }) => {
       ["link", "image"],
       ["clean"],
     ],
-  };
+    []
+  );
+
+  const modules = useMemo(() => buildQuillModules(toolbar, quillRef), [toolbar]);
 
   const formats = [
     "header",
@@ -1439,12 +1489,12 @@ const formatPreviewDate = (date = new Date()) =>
     minute: "2-digit",
   }).format(date);
 
-const EMAIL_PREVIEW_MESSAGE_QUILL_MODULES = {
-  toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]],
-  clipboard: {
-    matchVisual: false,
-  },
-};
+const EMAIL_PREVIEW_MESSAGE_QUILL_TOOLBAR = [
+  ["bold", "italic", "underline"],
+  [{ list: "ordered" }, { list: "bullet" }],
+  ["link", "image"],
+  ["clean"],
+];
 
 const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = [
   "header",
@@ -1485,6 +1535,17 @@ const EmailPreviewPanel = ({
   messageEditorKey,
   onMessageChange,
 }) => {
+  const messageQuillRef = useRef(null);
+  const messageQuillModules = useMemo(
+    () => ({
+      ...buildQuillModules(EMAIL_PREVIEW_MESSAGE_QUILL_TOOLBAR, messageQuillRef),
+      clipboard: {
+        matchVisual: false,
+      },
+    }),
+    []
+  );
+
   const previewFromApi = previewData && typeof previewData === "object" ? previewData : {};
   const ownerLabel = getOptionLabel(ownerOptions, getFieldValue("owner"));
   const fallbackFromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
@@ -1586,6 +1647,7 @@ const EmailPreviewPanel = ({
               <div className="email-preview-message-title">Message</div>
               <div className="react-quill-wrapper email-preview-message-quill-react">
                 <ReactQuill
+                  ref={messageQuillRef}
                   key={messageEditorKey}
                   theme="snow"
                   value={messageValue ?? ""}
@@ -1594,7 +1656,7 @@ const EmailPreviewPanel = ({
                       onMessageChange(html ?? "", source);
                     }
                   }}
-                  modules={EMAIL_PREVIEW_MESSAGE_QUILL_MODULES}
+                  modules={messageQuillModules}
                   formats={EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS}
                   placeholder="Type email content here..."
                 />
