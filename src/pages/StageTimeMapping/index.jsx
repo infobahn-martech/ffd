@@ -11,7 +11,7 @@ const StageTimeMappings = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        // sortBy: "stage_name",
+        sortBy: "stage_name",
         sortOrder: 1,
     });
 
@@ -53,7 +53,7 @@ const StageTimeMappings = () => {
         },
         {
             name: "Port",
-            selector: "port_id",
+            selector: "port",
             sort: true,
             width: "120",
             thclass: "tb-head",
@@ -116,9 +116,12 @@ const StageTimeMappings = () => {
                         isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={totalCount ?? 0}
+                        count={Number(totalCount) || 0}
                         columns={cols}
                         data={Array.isArray(stageTimeMappings) ? stageTimeMappings : []}
+                        getRowKey={(row) =>
+                            `${row?.stage_id ?? ""}-${row?.port_id ?? ""}-${row?.call_type_id ?? ""}`
+                        }
                         Sl={true}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
