@@ -10,7 +10,9 @@ import MaterialTablePagination from "./MaterialTablePagination";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
+import printIcon from "../../../../../../assets/images/print.svg";
 import useDispatchNoteReducer from "../../../../../../store/DispatchNoteReducer";
+import CardTabListLoading from "../../../../../../components/CardTabListLoading";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../services/vehicleService";
 import inboundOrderService from "../../../../../../services/inboundOrderService";
@@ -571,10 +573,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="dispatch-edit-section">
             <h3 className="dispatch-edit-section-title">Items</h3>
             {isLoadingDetail ? (
-              <div className="d-flex align-items-center gap-2 py-3">
-                <span className="spinner-border spinner-border-sm" role="status" />
-                <span>Loading items...</span>
-              </div>
+              <CardTabListLoading message="Loading items..." cardColor={cardColor} />
             ) : (
               editItems.map((item, index) => (
                 <div key={item.id} className="dispatch-edit-item-card">
@@ -733,11 +732,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="dispatchNoteForm"
-        className="btn btn-primary d-flex align-items-center gap-2"
+        className="btn btn-primary"
         disabled={isLoadingUpdate || isLoadingDetail}
       >
         {isLoadingUpdate
-          ? <><span className="spinner-border spinner-border-sm" role="status" />Saving...</>
+          ? <span className="btn-spinner-content"><span className="spinner-border spinner-border-sm" role="status" />Saving...</span>
           : "Update Note"
         }
       </button>
@@ -754,10 +753,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (isLoadingDetail) {
       return (
         <div className="modal-body">
-          <div className="d-flex justify-content-center align-items-center py-5">
-            <span className="spinner-border spinner-border-sm me-2" role="status" />
-            Loading...
-          </div>
+          <CardTabListLoading message="Loading..." cardColor={cardColor} />
         </div>
       );
     }
@@ -1045,16 +1041,9 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           onClick={() => handlePrintNote(note)}
                           data-tooltip-id={`print-note-${note.id}`}
-                          style={{ padding: "6px 8px", backgroundColor: "transparent", border: "none", borderRadius: "4px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#00368c", transition: "background-color 0.2s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                          className="print-action-icon-wrap"
                         >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                          <img src={printIcon} alt="print" className="material-action-icon" />
                         </button>
                         <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
                           <Tooltip id={`more-actions-${note.id}`} place="right" content="More actions" />

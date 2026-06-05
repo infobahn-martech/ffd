@@ -11,6 +11,7 @@ import MaterialTablePagination from "./MaterialTablePagination";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
+import printIcon from "../../../../../../assets/images/print.svg";
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
@@ -301,7 +302,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const [showModal, setShowModal] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [printingId, setPrintingId] = useState(null);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
@@ -857,8 +858,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handlePrintNote = async (note) => {
     handleCloseDropdown();
     const landingNoteId = note?.landing_note_id ?? note?.id;
-    if (!landingNoteId || isPrinting) return;
-    setIsPrinting(true);
+    if (!landingNoteId || printingId) return;
+    setPrintingId(landingNoteId);
     try {
       const response = await landingNoteService.printLandingNote(landingNoteId);
       const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -869,7 +870,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       const { error: showError } = useAlertReducer.getState();
       showError(err?.response?.data?.message ?? 'Failed to generate print');
     } finally {
-      setIsPrinting(false);
+      setPrintingId(null);
     }
   };
 
@@ -1690,12 +1691,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       {viewingNote && (
         <button
           type="button"
-          className="btn btn-primary d-flex align-items-center gap-2"
+          className="btn btn-primary"
           onClick={() => handlePrintNote(viewingNote)}
-          disabled={isPrinting}
+          disabled={Boolean(printingId)}
         >
-          {isPrinting
-            ? <><span className="spinner-border spinner-border-sm" role="status" />Printing...</>
+          {printingId
+            ? <span className="btn-spinner-content"><span className="spinner-border spinner-border-sm" role="status" />Printing...</span>
             : "Print"
           }
         </button>
@@ -1818,35 +1819,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handlePrintNote(note)}
                         data-tooltip-id={`print-note-${note.id}`}
-                        disabled={isPrinting}
-                        style={{
-                          padding: "6px 8px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: isPrinting ? "not-allowed" : "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#00368c",
-                          opacity: isPrinting ? 0.5 : 1,
-                          transition: "background-color 0.2s",
-                          flexShrink: 0
-                        }}
-                        onMouseEnter={(e) => { if (!isPrinting) e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                        disabled={printingId === (note?.landing_note_id ?? note?.id)}
+                        className="print-action-icon-wrap"
                       >
-                        {isPrinting ? (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: "spin 1s linear infinite" }}>
+                        {printingId === (note?.landing_note_id ?? note?.id) ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-spinning">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
                           </svg>
                         ) : (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                          <img src={printIcon} alt="print" className="material-action-icon" />
                         )}
                       </button>
                       <Tooltip id={`convert-note-${note.id}`} place="left" content=" Convert" />
