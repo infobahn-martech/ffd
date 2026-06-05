@@ -287,14 +287,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Slot 6", label: "Slot 6" },
   ];
 
-  const editSlotOptions = [
-    { value: "1", label: "Slot 1" },
-    { value: "2", label: "Slot 2" },
-    { value: "3", label: "Slot 3" },
-    { value: "4", label: "Slot 4" },
-    { value: "5", label: "Slot 5" },
-    { value: "6", label: "Slot 6" },
-  ];
 
   const reasonOptions = [
     { value: "Scrap", label: "Scrap" },
@@ -378,8 +370,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: transport?.pickup_location || "",
         toLocation: transport ? String(transport.to_location_id || "") : "",
         driverName: transport ? String(transport.driver_id || "") : "",
-        slot_no_id: (item.slot_no_id != null && item.slot_no_id !== 0 && item.slot_no_id !== "0") ? String(item.slot_no_id) : ((item.slot_no != null && item.slot_no !== 0 && item.slot_no !== "0") ? String(item.slot_no) : ""),
-        reason_id: item.reason_name ?? item.reason ?? ((item.reason_id != null && item.reason_id !== 0 && item.reason_id !== "0") ? String(item.reason_id) : ""),
+        slot_no_id: normalizeSlotValue(item.slot_no || item.slot_no_id || ""),
+        reason_id: item.reason || item.reason_name || "",
         dispatch_date: item.dispatch_date || "",
         dispatch_time: "",
       };
@@ -480,7 +472,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         inbound_item_id: item.inbound_item_id || null,
         quantity: Number(item.quantity) || 0,
         transportation_required: item.transportation_required ? 1 : 0,
-        slot_no_id: item.slot_no_id ? Number(item.slot_no_id) : null,
+        slot_no_id: item.slot_no_id || null,
         reason_id: item.reason_id || null,
         dispatch_date: item.dispatch_date ? item.dispatch_date + (item.dispatch_time ? ` ${item.dispatch_time}` : "") : null,
       };
@@ -1088,7 +1080,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               <FormSelect
                                 value={item.slot_no_id}
                                 onChange={(e) => handleEditItemChange(item.id, "slot_no_id", e.target.value)}
-                                options={editSlotOptions}
+                                options={slotOptions}
                                 placeholder="Select slot..."
                               />
                             </FormField>
