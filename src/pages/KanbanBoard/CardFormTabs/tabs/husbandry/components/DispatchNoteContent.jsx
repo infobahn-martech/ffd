@@ -279,7 +279,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 dispatch_note_item_id: item.dispatch_note_item_id || null,
                 quantity: String(item.quantity ?? ""),
                 slot: item.slot || "",
-                reason: item.reason || "",
+                reason: (item.reason || "").trim(),
                 packing_required: isTruthyFlag(item.packing_required),
                 repacking_pallets: String(item.repacking_pallets ?? ""),
                 repacking_rolls: String(item.repacking_rolls ?? ""),
@@ -621,12 +621,12 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </div>
                         <div className="col-md-4">
                           <FormField label="Slot">
-                            <FormSelect value={item.slot} onChange={(e) => handleEditItemChange(item.id, "slot", e.target.value)} options={slotOptions} placeholder="Select slot..." />
+                            <FormSelect value={item.slot} onChange={(e) => handleEditItemChange(item.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, item.slot)} placeholder="Select slot..." />
                           </FormField>
                         </div>
                         <div className="col-md-4">
                           <FormField label="Reason">
-                            <FormSelect value={item.reason} onChange={(e) => handleEditItemChange(item.id, "reason", e.target.value)} options={reasonOptions} placeholder="Select reason..." />
+                            <FormSelect value={item.reason} onChange={(e) => handleEditItemChange(item.id, "reason", e.target.value)} options={mergeOptionForValue(reasonOptions, item.reason)} placeholder="Select reason..." />
                           </FormField>
                         </div>
                       </div>
