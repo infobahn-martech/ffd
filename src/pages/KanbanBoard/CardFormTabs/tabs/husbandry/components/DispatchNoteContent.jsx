@@ -1041,7 +1041,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           onClick={() => handlePrintNote(note)}
                           data-tooltip-id={`print-note-${note.id}`}
-                          className="material-print-btn"
+                          className="print-action-icon-wrap"
                         >
                           <img src={printIcon} alt="print" className="material-action-icon" />
                         </button>

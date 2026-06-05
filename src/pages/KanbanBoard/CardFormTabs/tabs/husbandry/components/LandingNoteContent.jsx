@@ -1820,7 +1820,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         onClick={() => handlePrintNote(note)}
                         data-tooltip-id={`print-note-${note.id}`}
                         disabled={printingId === (note?.landing_note_id ?? note?.id)}
-                        className="material-print-btn"
+                        className="print-action-icon-wrap"
                       >
                         {printingId === (note?.landing_note_id ?? note?.id) ? (
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-spinning">

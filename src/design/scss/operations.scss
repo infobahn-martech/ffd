@@ -10088,9 +10088,9 @@ body .modal-backdrop.show {
   animation: material-spin 1s linear infinite;
 }
 
-.material-print-btn {
+.print-action-icon-wrap {
   padding: 6px 8px;
-  background: none;
+  background: none !important;
   border: none;
   outline: none;
   box-shadow: none;
@@ -10105,7 +10105,7 @@ body .modal-backdrop.show {
   &:focus-visible {
     outline: none;
     box-shadow: none;
-    background: none;
+    background: none !important;
   }
 
   &:disabled {

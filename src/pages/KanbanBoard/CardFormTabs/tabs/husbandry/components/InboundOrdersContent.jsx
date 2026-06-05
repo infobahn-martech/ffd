@@ -2061,7 +2061,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         onClick={() => handlePrintOrder(order)}
                         data-tooltip-id={`print-order-${rowKey}`}
                         disabled={printingId === resolveInboundId(order)}
-                        className="material-print-btn"
+                        className="print-action-icon-wrap"
                       >
                         {printingId === resolveInboundId(order) ? (
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-spinning">
