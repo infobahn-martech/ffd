@@ -1085,6 +1085,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!convertFormData.location) errors.location = "Location is required";
     convertFormData.orders.forEach((order, idx) => {
       if (!order.quantity) errors[`co${idx}_quantity`] = "Quantity is required";
+      if (!order.slotNo) errors[`co${idx}_slotNo`] = "Slot is required";
     });
     setConvertFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1716,14 +1717,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       {/* Slot No, Reason, Dispatch Date - After Transportation */}
                       <div className="row g-2 mb-1" style={{ marginTop: "12px" }}>
                         <div className="col-lg-4 col-md-6">
-                          <FormField label="Slot No">
+                          <FormField label="Slot No *">
                             <FormSelect
                               value={order.slotNo}
                               onChange={(e) => handleConvertOrderChange(order.id, "slotNo", e.target.value)}
                               options={slotNoOptions}
                               placeholder="Select slot no..."
+                              className={convertFormErrors[`co${index}_slotNo`] ? "is-invalid" : ""}
                             />
                           </FormField>
+                          {convertFormErrors[`co${index}_slotNo`] && <span className="dispatch-edit-error">{convertFormErrors[`co${index}_slotNo`]}</span>}
                         </div>
 
                         <div className="col-lg-4 col-md-6">
