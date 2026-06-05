@@ -31,7 +31,11 @@ import {
   resolveGroCardId,
   resolveGroTaskId,
   resolveGroPortId,
-  splitInwardDateTimeString,
+  resolveGroStageIdFromTaskName,
+  resolveGroTimeObjectFieldKey,
+  parseGroStageTimeObjectsResponse,
+  buildGroTimeObjectsSubmitPayload,
+  validateGroRequiredTimeObjects,
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
   parseGroUsersByRoleResponse,
@@ -75,7 +79,10 @@ const GROCardView = forwardRef(function GROCardView(
   const inwardFileInputRef = useRef(null);
   const [showInwardClearance, setShowInwardClearance] = useState(false);
   const [inwardFile, setInwardFile] = useState(null);
-  const [inwardDateTime, setInwardDateTime] = useState("");
+  const [timeObjects, setTimeObjects] = useState([]);
+  const [timeObjectsLoading, setTimeObjectsLoading] = useState(false);
+  const [timeObjectValues, setTimeObjectValues] = useState({});
+  const [timeObjectErrors, setTimeObjectErrors] = useState({});
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmRemarks, setConfirmRemarks] = useState("");
@@ -151,6 +158,18 @@ const GROCardView = forwardRef(function GROCardView(
 
   const inwardPanelLabel = isCustomClearance ? "Bayan" : taskPanelTitle;
 
+  const groStageId = useMemo(
+    () => resolveGroStageIdFromTaskName(taskPanelTitle),
+    [taskPanelTitle]
+  );
+
+  const groCallTypeId = useMemo(() => {
+    const raw = callDetail?.call_type_id;
+    if (raw == null || String(raw).trim() === "") return null;
+    const num = Number(raw);
+    return Number.isFinite(num) && num > 0 ? num : null;
+  }, [callDetail?.call_type_id]);
+
   const callTypeSummary = firstNonEmptyGroDisplay(
     callDetail?.call_type,
     callDetail?.call_type_name,
@@ -183,13 +202,90 @@ const GROCardView = forwardRef(function GROCardView(
 
   const resetInwardClearanceFields = () => {
     setInwardFile(null);
-    setInwardDateTime("");
+    setTimeObjectValues({});
+    setTimeObjectErrors({});
     if (inwardFileInputRef.current) {
       inwardFileInputRef.current.value = "";
     }
   };
 
-  const inwardPickerParts = splitInwardDateTimeString(inwardDateTime);
+  const handleTimeObjectChange = useCallback(
+    (fieldKey) =>
+      ({ date, time }) => {
+        const normalizedDate = date || "";
+        const normalizedTime = time != null && time !== "" ? String(time).slice(0, 5) : "";
+        setTimeObjectValues((prev) => ({
+          ...prev,
+          [fieldKey]: { date: normalizedDate, time: normalizedTime },
+        }));
+        setTimeObjectErrors((prev) => {
+          if (!prev?.[fieldKey]) return prev;
+          if (!normalizedDate || !normalizedTime) return prev;
+          const next = { ...prev };
+          delete next[fieldKey];
+          return next;
+        });
+      },
+    []
+  );
+
+  const inwardTimeObjectFields = useMemo(
+    () =>
+      (Array.isArray(timeObjects) ? timeObjects : [])
+        .map((item) => {
+          const fieldKey = resolveGroTimeObjectFieldKey(item);
+          if (!fieldKey) return null;
+          const label = String(item?.time_object ?? "").trim() || "Date & Time";
+          const isRequired = String(item?.is_required ?? "0") === "1";
+          const fieldValue = timeObjectValues?.[fieldKey] ?? { date: "", time: "" };
+          return {
+            fieldKey,
+            label,
+            isRequired,
+            pickerParts: fieldValue,
+            onDateTimeChange: handleTimeObjectChange(fieldKey),
+            error: timeObjectErrors?.[fieldKey] ?? "",
+          };
+        })
+        .filter(Boolean),
+    [timeObjects, timeObjectValues, timeObjectErrors, handleTimeObjectChange]
+  );
+
+  useEffect(() => {
+    setTimeObjects([]);
+    setTimeObjectValues({});
+    setTimeObjectErrors({});
+
+    const portId = Number(groPortId);
+    if (groStageId == null || !Number.isFinite(portId) || portId <= 0 || groCallTypeId == null) {
+      setTimeObjectsLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setTimeObjectsLoading(true);
+
+    groService
+      .getStageTimeObjects({
+        stage_id: groStageId,
+        port_id: portId,
+        call_type_id: groCallTypeId,
+      })
+      .then((res) => {
+        if (cancelled) return;
+        setTimeObjects(parseGroStageTimeObjectsResponse(res));
+      })
+      .catch(() => {
+        if (!cancelled) setTimeObjects([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTimeObjectsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [groStageId, groPortId, groCallTypeId]);
 
   useEffect(() => {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
@@ -568,15 +664,6 @@ const GROCardView = forwardRef(function GROCardView(
     };
   }, [callId, cardId, taskId, applyDocumentsByTaskResponse]);
 
-  const handleInwardDateTimePickerChange = useCallback(({ date, time }) => {
-    if (!date) {
-      setInwardDateTime("");
-      return;
-    }
-    const formattedTime = time ? String(time).slice(0, 5) : "00:00";
-    setInwardDateTime(`${date} ${formattedTime}:00`);
-  }, []);
-
   const handleInwardCancel = () => {
     setShowInwardClearance(false);
     resetInwardClearanceFields();
@@ -591,14 +678,29 @@ const GROCardView = forwardRef(function GROCardView(
       notify("Please select a document.", "warn");
       return;
     }
-    if (!String(inwardDateTime ?? "").trim()) {
-      notify("Please select document date and time.", "warn");
-      return;
+
+    const hasTimeObjects = Array.isArray(timeObjects) && timeObjects.length > 0;
+    if (hasTimeObjects) {
+      const validationErrors = validateGroRequiredTimeObjects(timeObjects, timeObjectValues);
+      if (Object.keys(validationErrors).length > 0) {
+        setTimeObjectErrors(validationErrors);
+        notify("Please fill in all required time fields.", "warn");
+        return;
+      }
+      setTimeObjectErrors({});
     }
+
     const formData = new FormData();
     formData.append("call_id", callId);
     formData.append("document", inwardFile);
-    formData.append("document_date", inwardDateTime);
+    if (taskId) formData.append("task_id", taskId);
+    if (groStageId != null) formData.append("stage_id", String(groStageId));
+    if (hasTimeObjects) {
+      formData.append(
+        "time_objects",
+        JSON.stringify(buildGroTimeObjectsSubmitPayload(timeObjects, timeObjectValues))
+      );
+    }
     setIsSavingInward(true);
     try {
       await groService.saveArrivalDocument(formData);
@@ -887,11 +989,11 @@ const GROCardView = forwardRef(function GROCardView(
                   showInwardClearance={showInwardClearance}
                   onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
                   inwardActionLabel={inwardPanelLabel}
-                  inwardPopoverTitle={inwardPanelLabel}
+                  inwardPopoverTitle={taskPanelTitle}
                   inwardFile={inwardFile}
                   onInwardFileChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
-                  inwardPickerParts={inwardPickerParts}
-                  onInwardDateTimeChange={handleInwardDateTimePickerChange}
+                  timeObjectFields={inwardTimeObjectFields}
+                  timeObjectsLoading={timeObjectsLoading}
                   onInwardCancel={handleInwardCancel}
                   onInwardSubmit={handleInwardSubmit}
                   isSavingInward={isSavingInward}

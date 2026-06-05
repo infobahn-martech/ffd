@@ -28,6 +28,8 @@ export function InwardClearanceToolbar(props) {
       onFileChange={props.onInwardFileChange}
       pickerParts={props.inwardPickerParts}
       onDateTimeChange={props.onInwardDateTimeChange}
+      timeObjectFields={props.timeObjectFields}
+      timeObjectsLoading={props.timeObjectsLoading}
       onCancel={props.onInwardCancel}
       onSubmit={props.onInwardSubmit}
       isSaving={props.isSavingInward}
@@ -48,8 +50,10 @@ InwardClearanceToolbar.propTypes = {
   inwardPickerParts: PropTypes.shape({
     date: PropTypes.string,
     time: PropTypes.string,
-  }).isRequired,
-  onInwardDateTimeChange: PropTypes.func.isRequired,
+  }),
+  onInwardDateTimeChange: PropTypes.func,
+  timeObjectFields: PropTypes.array,
+  timeObjectsLoading: PropTypes.bool,
   onInwardCancel: PropTypes.func.isRequired,
   onInwardSubmit: PropTypes.func.isRequired,
   isSavingInward: PropTypes.bool.isRequired,

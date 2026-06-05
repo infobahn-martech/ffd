@@ -13,11 +13,15 @@ function TaskDocumentUploadPanel({
   onFileChange,
   pickerParts,
   onDateTimeChange,
+  timeObjectFields,
+  timeObjectsLoading = false,
   onCancel,
   onSubmit,
   isSaving,
   isDisabled,
 }) {
+  const hasLegacyDateTime = pickerParts != null && typeof onDateTimeChange === "function";
+  const hasDynamicTimeFields = Array.isArray(timeObjectFields) && timeObjectFields.length > 0;
   return (
     <div className="gro-inward-anchor" ref={anchorRef}>
       <button
@@ -58,16 +62,44 @@ function TaskDocumentUploadPanel({
                 </span>
               </div>
             </div>
-            <div className="gro-inward-popover-field gro-inward-popover-datetime-full">
-              <span className="gro-inward-popover-label">Date & Time</span>
-              <DateTimePickerField
-                dateValue={pickerParts.date}
-                timeValue={pickerParts.time}
-                onDateTimeChange={onDateTimeChange}
-                placeholder="YYYY-MM-DD hh:mm"
-                popperClassName="gro-inward-datetime-popper"
-              />
-            </div>
+            {timeObjectsLoading ? (
+              <div className="gro-inward-popover-field">
+                <span className="gro-inward-popover-label gro-inward-popover-loading">Loading time fields…</span>
+              </div>
+            ) : hasDynamicTimeFields ? (
+              timeObjectFields.map((field) => (
+                  <div
+                    key={field.fieldKey}
+                    className={`gro-inward-popover-field gro-inward-popover-datetime-full${field.error ? " gro-inward-popover-field--error" : ""}`}
+                  >
+                    <span className="gro-inward-popover-label">
+                      {field.label}
+                      {field.isRequired ? " *" : ""}
+                    </span>
+                    <DateTimePickerField
+                      dateValue={field.pickerParts?.date ?? ""}
+                      timeValue={field.pickerParts?.time ?? ""}
+                      onDateTimeChange={field.onDateTimeChange}
+                      placeholder="YYYY-MM-DD hh:mm"
+                      popperClassName="gro-inward-datetime-popper"
+                      disabled={isSaving}
+                      hasError={Boolean(field.error)}
+                    />
+                    {field.error ? <span className="gro-inward-popover-field-error">{field.error}</span> : null}
+                  </div>
+              ))
+            ) : hasLegacyDateTime ? (
+                  <div className="gro-inward-popover-field gro-inward-popover-datetime-full">
+                    <span className="gro-inward-popover-label">Date & Time</span>
+                    <DateTimePickerField
+                      dateValue={pickerParts.date}
+                      timeValue={pickerParts.time}
+                      onDateTimeChange={onDateTimeChange}
+                      placeholder="YYYY-MM-DD hh:mm"
+                      popperClassName="gro-inward-datetime-popper"
+                    />
+                  </div>
+                ) : null}
           </div>
           <div className="gro-inward-popover-footer">
             <button type="button" className="gro-inward-popover-btn-cancel" disabled={isSaving} onClick={onCancel}>
@@ -95,8 +127,22 @@ TaskDocumentUploadPanel.propTypes = {
   pickerParts: PropTypes.shape({
     date: PropTypes.string,
     time: PropTypes.string,
-  }).isRequired,
-  onDateTimeChange: PropTypes.func.isRequired,
+  }),
+  onDateTimeChange: PropTypes.func,
+  timeObjectsLoading: PropTypes.bool,
+  timeObjectFields: PropTypes.arrayOf(
+    PropTypes.shape({
+      fieldKey: PropTypes.string.isRequired,
+      label: PropTypes.string,
+      isRequired: PropTypes.bool,
+      pickerParts: PropTypes.shape({
+        date: PropTypes.string,
+        time: PropTypes.string,
+      }),
+      onDateTimeChange: PropTypes.func.isRequired,
+      error: PropTypes.string,
+    })
+  ),
   onCancel: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   isSaving: PropTypes.bool.isRequired,

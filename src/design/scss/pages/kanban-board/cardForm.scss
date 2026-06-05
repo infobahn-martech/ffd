@@ -717,6 +717,17 @@
   z-index: 1;
 }
 
+.gro-card-view .gro-inward-popover-field-error,
+.gro-card-view .gro-inward-popover-loading {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.gro-card-view .gro-inward-popover-field-error {
+  color: #dc2626;
+}
+
 .gro-card-view .gro-document-list {
   background: #ffffff !important;
   background-image: none !important;
