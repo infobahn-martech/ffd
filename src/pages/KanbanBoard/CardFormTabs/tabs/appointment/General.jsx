@@ -42,6 +42,22 @@ import {
   normalizeAppointmentDateTime,
 } from "../../../../../shared/helpers/appointmentAiExtractor";
 import * as MsgReaderModule from "msgreader";
+import { FiDownload, FiEye } from "react-icons/fi";
+
+const openAppointmentEmail = (url) => {
+  if (!url) return;
+  window.open(url, "_blank", "noopener,noreferrer");
+};
+
+const downloadAppointmentEmail = (url, fileName) => {
+  if (!url) return;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName || "appointment-email";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const splitDateTime = (value) => {
   if (!value) return { date: "", time: "" };
@@ -221,6 +237,8 @@ const mapCallDetailToFormFields = (detail) => {
     billingInstructionEmails,
     billingInstructions: detail?.billing_instruction ? String(detail.billing_instruction) : "",
     cardDescription: detail?.card_description ? String(detail.card_description) : "",
+    appointmentEmailName: detail?.appointment_email ? String(detail.appointment_email).trim() : "",
+    appointmentEmailUrl: detail?.appointment_email_url ? String(detail.appointment_email_url).trim() : "",
   };
 };
 
@@ -252,6 +270,47 @@ const hasRenderableEntityFieldValue = (field, callDetailData, entityFieldValues,
   if (hasMeaningfulDynamicValue(fallbackMap[fieldKey])) return true;
 
   return false;
+};
+
+const AppointmentEmailFileActions = ({ fileUrl, fileName }) => {
+  const urlMissing = !fileUrl || !String(fileUrl).trim();
+  const unavailableTitle = "File URL not available";
+
+  return (
+    <div className="appointment-email-file-actions">
+      <button
+        type="button"
+        className="appointment-email-file-action-btn"
+        title={urlMissing ? unavailableTitle : "View appointment email"}
+        disabled={urlMissing}
+        onClick={(e) => {
+          e.stopPropagation();
+          openAppointmentEmail(fileUrl);
+        }}
+        aria-label="View appointment email"
+      >
+        <FiEye size={16} strokeWidth={2.2} aria-hidden />
+      </button>
+      {/* <button
+        type="button"
+        className="appointment-email-file-action-btn appointment-email-file-action-btn--download"
+        title={urlMissing ? unavailableTitle : "Download appointment email"}
+        disabled={urlMissing}
+        onClick={(e) => {
+          e.stopPropagation();
+          downloadAppointmentEmail(fileUrl, fileName);
+        }}
+        aria-label="Download appointment email"
+      >
+        <FiDownload size={16} strokeWidth={2.2} aria-hidden />
+      </button> */}
+    </div>
+  );
+};
+
+AppointmentEmailFileActions.propTypes = {
+  fileUrl: PropTypes.string,
+  fileName: PropTypes.string,
 };
 
 // Form Components
@@ -429,6 +488,8 @@ const DocumentUpload = ({
   onMultipleFiles,
   isLoading = false,
   loadingText = "Uploading...",
+  fileUrl = "",
+  showFileActions = false,
 }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -496,57 +557,58 @@ const DocumentUpload = ({
     return (
       <div className="document-upload-wrapper">
         <div className="document-file-display-list">
-          {attachments.map((file, index) => (
-            <div key={index} className="document-file-display-item">
-              <div className="document-file-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M14 2V8H20"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16 13H8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16 17H8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M10 9H9H8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+          {attachments.map((file, index) => {
+            const displayName = file.name || file;
+            return (
+              <div key={index} className="appointment-email-file-row document-file-display-item">
+                <div className="appointment-email-file-left">
+                  <div className="document-file-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14 2V8H20"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M16 13H8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M16 17H8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M10 9H9H8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <span className="appointment-email-file-name document-file-name">{displayName}</span>
+                </div>
+                {showFileActions && (
+                  <AppointmentEmailFileActions fileUrl={fileUrl} fileName={displayName} />
+                )}
               </div>
-              <div className="document-file-info">
-                <span className="document-file-name">{file.name || file}</span>
-                {/* {file.size && (
-                  <span className="document-file-size">
-                    {(file.size / 1024).toFixed(1)} KB
-                  </span>
-                )} */}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -627,32 +689,52 @@ const DocumentUpload = ({
       {/* File Preview List - Shows below upload zone */}
       {attachments.length > 0 && (
         <div className="document-file-preview-list">
-          {attachments.map((file, index) => (
-            <div key={index} className="document-file-preview-item">
-              <div className="document-file-preview-icon">
-                {getFileIcon(file.name || file)}
+          {attachments.map((file, index) => {
+            const displayName = file.name || file;
+            return (
+              <div
+                key={index}
+                className={`document-file-preview-item ${showFileActions ? "appointment-email-file-row appointment-email-file-row--preview" : ""}`}
+              >
+                {showFileActions ? (
+                  <div className="appointment-email-file-left">
+                    <div className="document-file-preview-icon">
+                      {getFileIcon(displayName)}
+                    </div>
+                    <span className="appointment-email-file-name document-file-preview-name">{displayName}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="document-file-preview-icon">
+                      {getFileIcon(displayName)}
+                    </div>
+                    <div className="document-file-preview-info">
+                      <span className="document-file-preview-name">{displayName}</span>
+                      <span className="document-file-preview-size">{formatFileSize(file.size)}</span>
+                    </div>
+                  </>
+                )}
+                {showFileActions && (
+                  <AppointmentEmailFileActions fileUrl={fileUrl} fileName={displayName} />
+                )}
+                {!disabled && (
+                  <button
+                    className="document-file-preview-remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(index);
+                    }}
+                    type="button"
+                    title="Remove file"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                )}
               </div>
-              <div className="document-file-preview-info">
-                <span className="document-file-preview-name">{file.name || file}</span>
-                <span className="document-file-preview-size">{formatFileSize(file.size)}</span>
-              </div>
-              {!disabled && (
-                <button
-                  className="document-file-preview-remove"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemove(index);
-                  }}
-                  type="button"
-                  title="Remove file"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -671,6 +753,8 @@ DocumentUpload.propTypes = {
   onMultipleFiles: PropTypes.func,
   isLoading: PropTypes.bool,
   loadingText: PropTypes.string,
+  fileUrl: PropTypes.string,
+  showFileActions: PropTypes.bool,
 };
 
 // Multi-Select Email Component
@@ -1897,6 +1981,11 @@ function General({
     return mapCallDetailToFormFields(callDetailData);
   }, [callDetailData]);
 
+  const appointmentEmailUrl = useMemo(() => {
+    const url = callDetailData?.appointment_email_url ?? mappedCallDetail?.appointmentEmailUrl;
+    return url ? String(url).trim() : "";
+  }, [callDetailData?.appointment_email_url, mappedCallDetail?.appointmentEmailUrl]);
+
   const viewModeTimeObjects = useMemo(() => {
     if (isAddMode) return [];
     const source = callDetailData?.time_objects;
@@ -2372,11 +2461,11 @@ function General({
     const resolvedFromEmail = touchedPreviewFields.from_email
       ? (editablePreviewFields.from_email ?? "")
       : firstNonEmptyString(
-          editablePreviewFields.from_email,
-          emailPreviewData?.from,
-          fallbackFromValue,
-          "operations@shipping.com"
-        );
+        editablePreviewFields.from_email,
+        emailPreviewData?.from,
+        fallbackFromValue,
+        "operations@shipping.com"
+      );
     const resolvedToEmailRaw = resolveEditablePreviewFieldValue(
       touchedPreviewFields.to_email,
       editablePreviewFields.to_email,
@@ -2396,11 +2485,11 @@ function General({
     const resolvedSubject = touchedPreviewFields.subject
       ? (editablePreviewFields.subject ?? "")
       : firstNonEmptyString(
-          editablePreviewFields.subject,
-          emailPreviewData?.subject,
-          subjectFallback,
-          "Appointment Update"
-        );
+        editablePreviewFields.subject,
+        emailPreviewData?.subject,
+        subjectFallback,
+        "Appointment Update"
+      );
     const dailyValues = getFieldValue("dailyReportEmail");
     const billingValues = getFieldValue("billingInstructionEmails");
     const finalCcEmails = resolveAppointmentAcceptanceCcEmails({
@@ -4581,6 +4670,8 @@ ${body}
                                       hasError={false}
                                       isLoading={isServerEmailReading}
                                       loadingText="Reading email from server..."
+                                      fileUrl={appointmentEmailUrl}
+                                      showFileActions
                                     />
                                     {/* {isAiExtractingAppointment && (
                                       <div className="cf-field-hint">Extracting appointment details...</div>
