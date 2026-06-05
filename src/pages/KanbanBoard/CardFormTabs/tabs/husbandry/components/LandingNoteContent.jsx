@@ -395,7 +395,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       received_from: detail.received_from || "",
       location: detail.location || "",
       signature: detail.signature || "",
-      remarks: detail.remarks || "",
+      remarks: (detail.remarks || "").replace(/<[^>]*>/g, "").trim(),
       file: null,
       items,
     });
@@ -874,7 +874,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!landingNoteId || printingId) return;
     setPrintingId(landingNoteId);
     try {
-      const response = await landingNoteService.printLandingNote(landingNoteId);
+      let inboundId = note?.inbound_id;
+      if (!inboundId) {
+        await new Promise((resolve) => {
+          getLandingNoteById({
+            id: landingNoteId,
+            cb: (detail) => {
+              inboundId = detail?.inbound_id;
+              resolve();
+            },
+          });
+        });
+      }
+      const response = await landingNoteService.printLandingNote(landingNoteId, inboundId);
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
