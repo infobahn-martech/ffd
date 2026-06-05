@@ -23,6 +23,7 @@ import {
   applyArrivalGetDetailToForm,
   extractArrivalReportDraftFromDetail,
 } from "./arrivalDetailApply";
+import { isEventFieldRequired } from "./operationConstants";
 
 function Arrival({
   formValues,
@@ -155,7 +156,7 @@ function Arrival({
 
     const allFields = [...arrivalStageFields, ...postArrivalStageFields];
     for (const field of allFields) {
-      if (!field?.is_required) continue;
+      if (!isEventFieldRequired(field)) continue;
       const keyPrefix = field?.keyPrefix;
       if (!keyPrefix) continue;
       const dateValue = String(formValues?.[`${keyPrefix}Date`] || "").trim();
