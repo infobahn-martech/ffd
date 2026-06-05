@@ -142,6 +142,11 @@ export function applyArrivalGetDetailToForm({
     handleChange("mwpTicketNo")({ target: { value: mwpTicketNo } });
   }
 
+  const sadadNo = String(root.sadad_no ?? root.sadadNo ?? "").trim();
+  if (sadadNo) {
+    handleChange("sadadNo")({ target: { value: sadadNo } });
+  }
+
   const mwpExpiryRaw = root.mwp_expiry ?? root.mwpExpiry;
   if (isUsableDateTime(mwpExpiryRaw)) {
     const { date, time } = parseApiDateTimeParts(mwpExpiryRaw);
@@ -161,6 +166,11 @@ export function applyArrivalGetDetailToForm({
   const mwpEntry = buildAttachmentEntry(root.mwp_doc, root.mwp_doc_url);
   if (mwpEntry) {
     handleChange("arrivalMwpDoc")({ target: { value: [mwpEntry] } });
+  }
+
+  const sadadEntry = buildAttachmentEntry(root.sadad_doc, root.sadad_doc_url);
+  if (sadadEntry) {
+    handleChange("arrivalSadadDoc")({ target: { value: [sadadEntry] } });
   }
 
   const initialBayanEntry = buildAttachmentEntry(

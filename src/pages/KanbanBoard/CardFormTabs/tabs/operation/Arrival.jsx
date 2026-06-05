@@ -5,7 +5,6 @@ import { notify } from "../../../../../components/Toaster";
 import { buildArrivalReportBody, buildArrivalDailyReportBody } from "../../services/sendReportBodyBuilder";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
 import useArrivalReducer from "../../../../../store/ArrivalReducer";
-import DateTimePickerField from "../../components/DateTimePickerField";
 import {
   DynamicDateTimeFields,
   FormField,
@@ -326,10 +325,9 @@ function Arrival({
     const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
     const allFields = [...arrivalStageFields, ...postArrivalStageFields];
     const saveTimeObjects = buildSaveTimeObjectsPayload(allFields, formValues);
-    const mwpExpiry = toDateTimeValue(formValues?.marineWorkPermitExpiresDate, formValues?.marineWorkPermitExpiresTime);
-
     const inwardDoc = normalizeAttachmentFile(formValues?.arrivalInwardClearanceDoc?.[0]);
     const mwpDoc = normalizeAttachmentFile(formValues?.arrivalMwpDoc?.[0]);
+    const sadadDoc = normalizeAttachmentFile(formValues?.arrivalSadadDoc?.[0]);
     const initialBayanDoc = normalizeAttachmentFile(formValues?.arrivalInitialBayanDoc?.[0]);
     const finalBayanDoc = normalizeAttachmentFile(formValues?.arrivalFinalBayanDoc?.[0]);
 
@@ -342,9 +340,10 @@ function Arrival({
     fd.append("inward_clearance_status", String(formValues?.inwardClearanceStatus || ""));
     fd.append("mwp_ticket_no", String(formValues?.mwpTicketNo || ""));
     fd.append("mwp_status", String(formValues?.mwpStatus || ""));
-    fd.append("mwp_expiry", mwpExpiry);
+    fd.append("sadad_no", String(formValues?.sadadNo || ""));
     if (inwardDoc) fd.append("inward_clearance_doc", inwardDoc);
     if (mwpDoc) fd.append("mwp_doc", mwpDoc);
+    if (sadadDoc) fd.append("sadad_doc", sadadDoc);
     if (initialBayanDoc) fd.append("initial_bayan_doc", initialBayanDoc);
     if (finalBayanDoc) fd.append("final_bayan_doc", finalBayanDoc);
 
@@ -444,6 +443,7 @@ function Arrival({
   const arrivalPreviewAttachments = [
     ...(formValues.arrivalInwardClearanceDoc || []),
     ...(formValues.arrivalMwpDoc || []),
+    ...(formValues.arrivalSadadDoc || []),
     ...(formValues.arrivalInitialBayanDoc || []),
     ...(formValues.arrivalFinalBayanDoc || []),
   ];
@@ -520,6 +520,15 @@ function Arrival({
                     />
                   </FormField>
 
+                  <FormField label="MWP Ticket No">
+                    <FormInput
+                      value={formValues.mwpTicketNo || ""}
+                      onChange={handleChange("mwpTicketNo")}
+                      placeholder="Enter MWP ticket number"
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
+
                   <FormField label="MWP Status">
                     <FormSelect
                       value={formValues.mwpStatus || ""}
@@ -530,23 +539,11 @@ function Arrival({
                     />
                   </FormField>
 
-                  <FormField label="MWP Ticket No">
+                  <FormField label="SADAD No">
                     <FormInput
-                      value={formValues.mwpTicketNo || ""}
-                      onChange={handleChange("mwpTicketNo")}
-                      placeholder="Enter MWP ticket number"
-                      disabled={isViewOnly}
-                    />
-                  </FormField>
-
-                  <FormField label="MWP Expiry">
-                    <DateTimePickerField
-                      dateValue={formValues.marineWorkPermitExpiresDate || ""}
-                      timeValue={formValues.marineWorkPermitExpiresTime || ""}
-                      onDateChange={handleChange("marineWorkPermitExpiresDate")}
-                      onTimeChange={handleChange("marineWorkPermitExpiresTime")}
-                      dateFieldName="marineWorkPermitExpiresDate"
-                      timeFieldName="marineWorkPermitExpiresTime"
+                      value={formValues.sadadNo || ""}
+                      onChange={handleChange("sadadNo")}
+                      placeholder="Enter SADAD no"
                       disabled={isViewOnly}
                     />
                   </FormField>
@@ -573,6 +570,14 @@ function Arrival({
                     onAddFiles={handleSingleArrivalFileAdd("arrivalMwpDoc")}
                     isViewOnly={isViewOnly}
                     ariaLabel="Upload MWP document"
+                  />
+                </FormField>
+                <FormField label="SADAD Document">
+                  <OperationFileUpload
+                    files={formValues.arrivalSadadDoc || []}
+                    onAddFiles={handleSingleArrivalFileAdd("arrivalSadadDoc")}
+                    isViewOnly={isViewOnly}
+                    ariaLabel="Upload SADAD document"
                   />
                 </FormField>
                 <FormField label="Initial Bayan Document">
