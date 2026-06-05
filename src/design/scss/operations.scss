@@ -6759,7 +6759,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   -webkit-overflow-scrolling: touch;
   padding: 0 22px 22px 22px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .material-table-container::-webkit-scrollbar {
@@ -10080,8 +10080,13 @@ body .modal-backdrop.show {
 }
 
 @keyframes material-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .icon-spinning {
