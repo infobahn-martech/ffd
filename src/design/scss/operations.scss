@@ -10317,6 +10317,25 @@ body .modal-backdrop.show {
   }
 }
 
+.dispatch-add-order-btn--sm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background-color: #00368c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #002d6b;
+  }
+}
+
 @keyframes landing-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
