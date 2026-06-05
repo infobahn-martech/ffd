@@ -465,7 +465,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("received_from", formData.received_from || "");
     fd.append("location", formData.location || "");
     fd.append("signature", formData.signature || "");
-    fd.append("remarks", formData.remarks || "");
+    fd.append("remarks", (formData.remarks || "").replace(/<[^>]*>/g, "").trim());
     if (formData.file) fd.append("file", formData.file);
 
     const items = formData.items.map((item) => {
