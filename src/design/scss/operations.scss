@@ -10326,15 +10326,6 @@ body .modal-backdrop.show {
   display: flex; align-items: center; gap: 8px;
   justify-content: flex-start; flex-wrap: nowrap;
 }
-.landing-action-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; padding: 0;
-  border: none; border-radius: 6px;
-  background: none !important; color: inherit !important; cursor: pointer;
-  outline: none; box-shadow: none; flex-shrink: 0;
-  &:hover, &:focus, &:active, &:focus-visible { background: none !important; outline: none; box-shadow: none; }
-  &:disabled { cursor: not-allowed; opacity: 0.6; }
-}
 .landing-more-actions-wrapper {
   position: relative; display: inline-block; flex-shrink: 0;
   &--open { z-index: 9999; }

@@ -1790,7 +1790,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleViewNote(note)}
                         data-tooltip-id={`view-note-${note.id}`}
-                        className="landing-action-btn"
+                        className="print-action-icon-wrap"
                       >
                         <img src={eyeIcon} alt="view" className="material-action-icon" />
                       </button>
@@ -1815,7 +1815,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
-                        className="landing-action-btn"
+                        className="print-action-icon-wrap"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1 4H10V12H1V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -1831,7 +1831,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
                           data-tooltip-id={`more-actions-${note.id}`}
-                          className="landing-action-btn"
+                          className="print-action-icon-wrap"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="6" r="1.5" fill="currentColor" />
