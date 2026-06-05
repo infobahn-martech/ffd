@@ -1112,7 +1112,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       inbound_item_id: order.inbound_item_id || null,
       quantity: Number(order.quantity) || 0,
       slot_no: order.slotNo || "",
-      reason_id: order.reason || 0,
+      reason: order.reason || "",
       dispatch_date: order.dispatchDate ? (order.dispatchDate + (order.dispatchTime ? ` ${order.dispatchTime}` : "")) : "",
       transportation_required: order.transportation ? 1 : 0,
       transportation: order.transportation ? {
