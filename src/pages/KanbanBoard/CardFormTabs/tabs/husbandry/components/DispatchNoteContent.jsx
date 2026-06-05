@@ -11,6 +11,7 @@ import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 import useDispatchNoteReducer from "../../../../../../store/DispatchNoteReducer";
+import CardTabListLoading from "../../../../../../components/CardTabListLoading";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../services/vehicleService";
 import inboundOrderService from "../../../../../../services/inboundOrderService";
@@ -571,10 +572,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           <div className="dispatch-edit-section">
             <h3 className="dispatch-edit-section-title">Items</h3>
             {isLoadingDetail ? (
-              <div className="d-flex align-items-center gap-2 py-3">
-                <span className="spinner-border spinner-border-sm" role="status" />
-                <span>Loading items...</span>
-              </div>
+              <CardTabListLoading message="Loading items..." cardColor={cardColor} />
             ) : (
               editItems.map((item, index) => (
                 <div key={item.id} className="dispatch-edit-item-card">
@@ -733,11 +731,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="dispatchNoteForm"
-        className="btn btn-primary d-flex align-items-center gap-2"
+        className="btn btn-primary"
         disabled={isLoadingUpdate || isLoadingDetail}
       >
         {isLoadingUpdate
-          ? <><span className="spinner-border spinner-border-sm" role="status" />Saving...</>
+          ? <span className="btn-spinner-content"><span className="spinner-border spinner-border-sm" role="status" />Saving...</span>
           : "Update Note"
         }
       </button>
@@ -754,10 +752,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (isLoadingDetail) {
       return (
         <div className="modal-body">
-          <div className="d-flex justify-content-center align-items-center py-5">
-            <span className="spinner-border spinner-border-sm me-2" role="status" />
-            Loading...
-          </div>
+          <CardTabListLoading message="Loading..." cardColor={cardColor} />
         </div>
       );
     }
