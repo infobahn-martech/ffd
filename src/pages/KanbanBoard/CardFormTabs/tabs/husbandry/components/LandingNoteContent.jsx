@@ -1815,7 +1815,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
-                        className="print-action-icon-wrap"
+                        className="print-action-icon-wrap landing-icon-brand"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1 4H10V12H1V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
