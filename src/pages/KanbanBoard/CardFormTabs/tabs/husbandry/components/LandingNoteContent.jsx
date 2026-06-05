@@ -311,6 +311,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const documentsFileInputRef = useRef(null);
   const editDocInputRef = useRef(null);
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
+  const [isLoadingConvertDetail, setIsLoadingConvertDetail] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [landingPage, setLandingPage] = useState(1);
@@ -565,9 +566,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const landingNoteId = note?.landing_note_id ?? note?.id;
     if (landingNoteId != null && getLandingNoteById) {
+      setIsLoadingConvertDetail(true);
       getLandingNoteById({
         id: landingNoteId,
         cb: (detail) => {
+          setIsLoadingConvertDetail(false);
           if (!detail) return;
           const normalizedDetail = mapLandingNoteForDisplay(detail);
           const detailOrders = buildDispatchConvertOrders(normalizedDetail, vehicleOptions, locationOptions, driverOptions);
@@ -589,6 +592,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setShowConvertModal(false);
     setConvertingNote(null);
     setConvertFormErrors({});
+    setIsLoadingConvertDetail(false);
     setConvertFormData({
       dispatch_date: "",
       dispatch_time: "",
@@ -1327,7 +1331,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="row g-2">
                         <div className="col-md-4">
                           <FormField label="Slot">
-                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={slotOptions} placeholder="Select slot..." />
+                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, order.slot)} placeholder="Select slot..." />
                           </FormField>
                         </div>
                         <div className="col-md-4">
@@ -1474,20 +1478,20 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="convertToDispatchForm"
-        disabled={isLoadingConvert}
+        disabled={isLoadingConvert || isLoadingConvertDetail}
         style={{
           padding: "10px 20px",
           backgroundColor: "#00368c",
           color: "white",
           border: "none",
           borderRadius: "6px",
-          cursor: isLoadingConvert ? "not-allowed" : "pointer",
+          cursor: (isLoadingConvert || isLoadingConvertDetail) ? "not-allowed" : "pointer",
           fontSize: "14px",
           fontWeight: "500",
-          opacity: isLoadingConvert ? 0.7 : 1,
+          opacity: (isLoadingConvert || isLoadingConvertDetail) ? 0.7 : 1,
         }}
       >
-        {isLoadingConvert ? "Converting..." : "Convert"}
+        {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
       </button>
     </div>
   );
