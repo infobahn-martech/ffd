@@ -19,6 +19,15 @@ import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
 import InwardClearanceView, { DocumentActionConfirmModal, InwardClearanceToolbar } from "./InwardClearanceView";
 import PassRequestsView from "./PassRequestsView";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
+import GroPopoverStageExtraFields from "./GroPopoverStageExtraFields";
+import {
+  createEmptyExtraStageFields,
+  validateGroExtraStageFields,
+  appendGroExtraStageFieldsToFormData,
+  groStageHasExtraFields,
+  GRO_CREW_IMMIGRATION_STATUS,
+  GRO_CUSTOM_INSPECTION_STATUS,
+} from "./groStageExtraFields";
 import {
   GRO_MAIN_VIEWS,
   enrichGroDocWithRowKey,
@@ -77,12 +86,15 @@ const GROCardView = forwardRef(function GROCardView(
 
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
+  const extraStageFileInputRefs = useRef({});
   const [showInwardClearance, setShowInwardClearance] = useState(false);
   const [inwardFile, setInwardFile] = useState(null);
   const [timeObjects, setTimeObjects] = useState([]);
   const [timeObjectsLoading, setTimeObjectsLoading] = useState(false);
   const [timeObjectValues, setTimeObjectValues] = useState({});
   const [timeObjectErrors, setTimeObjectErrors] = useState({});
+  const [extraStageFields, setExtraStageFields] = useState(() => createEmptyExtraStageFields());
+  const [extraStageFieldErrors, setExtraStageFieldErrors] = useState({});
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmRemarks, setConfirmRemarks] = useState("");
@@ -200,13 +212,22 @@ const GROCardView = forwardRef(function GROCardView(
   );
   const assignedUserSelectOptions = groUserOptions;
 
+  const resetExtraStageFileInputs = useCallback(() => {
+    Object.values(extraStageFileInputRefs.current).forEach((el) => {
+      if (el) el.value = "";
+    });
+  }, []);
+
   const resetInwardClearanceFields = () => {
     setInwardFile(null);
     setTimeObjectValues({});
     setTimeObjectErrors({});
+    setExtraStageFields(createEmptyExtraStageFields());
+    setExtraStageFieldErrors({});
     if (inwardFileInputRef.current) {
       inwardFileInputRef.current.value = "";
     }
+    resetExtraStageFileInputs();
   };
 
   const handleTimeObjectChange = useCallback(
@@ -251,10 +272,67 @@ const GROCardView = forwardRef(function GROCardView(
     [timeObjects, timeObjectValues, timeObjectErrors, handleTimeObjectChange]
   );
 
+  const handleExtraStageFieldChange = useCallback((field, value) => {
+    setExtraStageFields((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "crew_immigration_status" && value !== GRO_CREW_IMMIGRATION_STATUS.ON_HOLD) {
+        next.on_hold_reason = "";
+      }
+      if (field === "custom_inspection_status" && value !== GRO_CUSTOM_INSPECTION_STATUS.FAILED) {
+        next.failed_reason = "";
+      }
+      return next;
+    });
+    setExtraStageFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      if (field === "crew_immigration_status") delete next.on_hold_reason;
+      if (field === "custom_inspection_status") delete next.failed_reason;
+      return next;
+    });
+  }, []);
+
+  const handleExtraStageFileChange = useCallback((field, file) => {
+    setExtraStageFields((prev) => ({ ...prev, [field]: file }));
+    setExtraStageFieldErrors((prev) => {
+      if (!prev?.[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
+
+  const extraStageFieldsContent = useMemo(
+    () =>
+      groStageHasExtraFields(groStageId) ? (
+        <GroPopoverStageExtraFields
+          stageId={groStageId}
+          values={extraStageFields}
+          errors={extraStageFieldErrors}
+          onFieldChange={handleExtraStageFieldChange}
+          onFileChange={handleExtraStageFileChange}
+          fileInputRefs={extraStageFileInputRefs}
+          disabled={isGroLoading || isSavingInward}
+        />
+      ) : null,
+    [
+      groStageId,
+      extraStageFields,
+      extraStageFieldErrors,
+      handleExtraStageFieldChange,
+      handleExtraStageFileChange,
+      isGroLoading,
+      isSavingInward,
+    ]
+  );
+
   useEffect(() => {
     setTimeObjects([]);
     setTimeObjectValues({});
     setTimeObjectErrors({});
+    setExtraStageFields(createEmptyExtraStageFields());
+    setExtraStageFieldErrors({});
+    resetExtraStageFileInputs();
 
     const portId = Number(groPortId);
     if (groStageId == null || !Number.isFinite(portId) || portId <= 0 || groCallTypeId == null) {
@@ -285,7 +363,7 @@ const GROCardView = forwardRef(function GROCardView(
     return () => {
       cancelled = true;
     };
-  }, [groStageId, groPortId, groCallTypeId]);
+  }, [groStageId, groPortId, groCallTypeId, resetExtraStageFileInputs]);
 
   useEffect(() => {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
@@ -690,6 +768,16 @@ const GROCardView = forwardRef(function GROCardView(
       setTimeObjectErrors({});
     }
 
+    if (groStageHasExtraFields(groStageId)) {
+      const extraErrors = validateGroExtraStageFields(groStageId, extraStageFields);
+      if (Object.keys(extraErrors).length > 0) {
+        setExtraStageFieldErrors(extraErrors);
+        notify("Please fill in all required fields.", "warn");
+        return;
+      }
+      setExtraStageFieldErrors({});
+    }
+
     const formData = new FormData();
     formData.append("call_id", callId);
     formData.append("document", inwardFile);
@@ -700,6 +788,9 @@ const GROCardView = forwardRef(function GROCardView(
         "time_objects",
         JSON.stringify(buildGroTimeObjectsSubmitPayload(timeObjects, timeObjectValues))
       );
+    }
+    if (groStageHasExtraFields(groStageId)) {
+      appendGroExtraStageFieldsToFormData(formData, groStageId, extraStageFields);
     }
     setIsSavingInward(true);
     try {
@@ -994,6 +1085,7 @@ const GROCardView = forwardRef(function GROCardView(
                   onInwardFileChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
                   timeObjectFields={inwardTimeObjectFields}
                   timeObjectsLoading={timeObjectsLoading}
+                  extraStageFieldsContent={extraStageFieldsContent}
                   onInwardCancel={handleInwardCancel}
                   onInwardSubmit={handleInwardSubmit}
                   isSavingInward={isSavingInward}

@@ -30,6 +30,7 @@ export function InwardClearanceToolbar(props) {
       onDateTimeChange={props.onInwardDateTimeChange}
       timeObjectFields={props.timeObjectFields}
       timeObjectsLoading={props.timeObjectsLoading}
+      extraStageFieldsContent={props.extraStageFieldsContent}
       onCancel={props.onInwardCancel}
       onSubmit={props.onInwardSubmit}
       isSaving={props.isSavingInward}
@@ -54,6 +55,7 @@ InwardClearanceToolbar.propTypes = {
   onInwardDateTimeChange: PropTypes.func,
   timeObjectFields: PropTypes.array,
   timeObjectsLoading: PropTypes.bool,
+  extraStageFieldsContent: PropTypes.node,
   onInwardCancel: PropTypes.func.isRequired,
   onInwardSubmit: PropTypes.func.isRequired,
   isSavingInward: PropTypes.bool.isRequired,

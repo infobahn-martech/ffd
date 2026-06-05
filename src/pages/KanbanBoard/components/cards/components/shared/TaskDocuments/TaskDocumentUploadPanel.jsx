@@ -15,6 +15,7 @@ function TaskDocumentUploadPanel({
   onDateTimeChange,
   timeObjectFields,
   timeObjectsLoading = false,
+  extraStageFieldsContent = null,
   onCancel,
   onSubmit,
   isSaving,
@@ -100,6 +101,7 @@ function TaskDocumentUploadPanel({
                     />
                   </div>
                 ) : null}
+            {extraStageFieldsContent}
           </div>
           <div className="gro-inward-popover-footer">
             <button type="button" className="gro-inward-popover-btn-cancel" disabled={isSaving} onClick={onCancel}>
@@ -130,6 +132,7 @@ TaskDocumentUploadPanel.propTypes = {
   }),
   onDateTimeChange: PropTypes.func,
   timeObjectsLoading: PropTypes.bool,
+  extraStageFieldsContent: PropTypes.node,
   timeObjectFields: PropTypes.arrayOf(
     PropTypes.shape({
       fieldKey: PropTypes.string.isRequired,
