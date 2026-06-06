@@ -241,6 +241,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     remarks: "",
     orders: [{
       id: 1,
+      inbound_item_id: null,
+      transportation_id: null,
       orderNo: "",
       poDo: "",
       quantity: "",
@@ -334,8 +336,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         const drvRows = extractListFromApi(drvRes.value?.data);
         setMaterialDriverOptions(
           drvRows
-            .map((r) => ({ value: String(r.driver_id ?? ""), label: String(r.driver_name ?? "") }))
-            .filter((o) => o.value && o.label)
+            .map((r) => ({ value: String(r.driver_id ?? ""), label: String(r.driver_name ?? r.name ?? "") }))
+            .filter((o) => o.value)
         );
       }
       if (trLocRes.status === "fulfilled") {
@@ -364,6 +366,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const orderItems = apiItems.length > 0
       ? apiItems.map((item, idx) => ({
         id: item.inbound_item_id || idx + 1,
+        inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
+        transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
         orderNo: item.order_no || "",
         poDo: item.po_no || "",
         quantity: item.quantity || "",
@@ -398,6 +402,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       }))
       : [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -462,6 +468,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -494,6 +502,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -569,6 +579,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev.orders,
         {
           id: newOrderId,
+          inbound_item_id: null,
+          transportation_id: null,
           orderNo: "",
           poDo: "",
           quantity: "",
@@ -623,6 +635,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
     const items = formData.orders.map((order) => {
       const item = {
+        ...(order.inbound_item_id ? { inbound_item_id: order.inbound_item_id } : {}),
         po_no: order.poDo,
         quantity: Number(order.quantity) || 0,
         package_type_id: Number(order.packageType) || 0,
@@ -631,6 +644,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       };
       if (order.transportation) {
         item.transportation = {
+          ...(order.transportation_id ? { transportation_id: order.transportation_id } : {}),
           vehicle_type_id: Number(order.typeOfVehicle) || 0,
           from_location_id: Number(order.fromLocation) || 0,
           pickup_location: order.pickUpFrom || "",
@@ -678,6 +692,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -918,6 +934,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -963,6 +981,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev.orders,
         {
           id: newOrderId,
+          inbound_item_id: null,
+          transportation_id: null,
           orderNo: "",
           poDo: "",
           quantity: "",
@@ -1223,17 +1243,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <div className="dispatch-edit-item-header" onClick={() => toggleOrderExpand(order.id)}>
                   <span className="dispatch-edit-item-label">Order {index + 1}</span>
                   <div className="dispatch-item-actions">
-                    <button
-                      type="button"
-                      title="Add new order"
-                      onClick={(e) => { e.stopPropagation(); handleAddNewOrder(); }}
-                      className="dispatch-order-icon-btn"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                        <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
                     {formData.orders.length > 1 && (
                       <button
                         type="button"
@@ -1402,16 +1411,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
 
-                    {/* Plus button to add next order item without scrolling up */}
-                    <div className="dispatch-item-footer">
-                      <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn--sm">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                        Add Order
-                      </button>
-                    </div>
+                    {!editingOrder && (
+                      <div className="dispatch-item-footer">
+                        <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn--sm">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                          Add Order
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1902,6 +1912,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.vehicle_type_name ||
                               materialVehicleOptions.find((o) => o.value === String(item.transportation.vehicle_type_id))?.label ||
+                              item.transportation.vehicle_type_id ||
                               "-"}
                           </div>
                         </div>
@@ -1910,6 +1921,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.from_location_name ||
                               transportLocationOptions.find((o) => o.value === String(item.transportation.from_location_id))?.label ||
+                              item.transportation.from_location_id ||
                               "-"}
                           </div>
                         </div>
@@ -1922,6 +1934,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.to_location_name ||
                               transportLocationOptions.find((o) => o.value === String(item.transportation.to_location_id))?.label ||
+                              item.transportation.to_location_id ||
                               "-"}
                           </div>
                         </div>
@@ -1930,6 +1943,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.driver_name ||
                               materialDriverOptions.find((o) => o.value === String(item.transportation.driver_id))?.label ||
+                              item.transportation.driver_id ||
                               "-"}
                           </div>
                         </div>
