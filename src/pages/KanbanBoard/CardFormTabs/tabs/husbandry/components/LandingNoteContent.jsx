@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../components/CustomModal";
-import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
 import { splitApiDateTimeParts } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import DateTimePickerField from "../../../components/DateTimePickerField";
@@ -12,7 +11,6 @@ import MaterialTablePagination from "./MaterialTablePagination";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
-import printIcon from "../../../../../../assets/images/print.svg";
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
@@ -238,13 +236,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     getAllLandingNotes,
     getLandingNoteById,
     updateLandingNote,
-    deleteLandingNote,
     landingNotes,
     landingTotal,
     isLoadingList,
     isLoadingUpdate,
     isLoadingConvert,
-    isLoadingDelete,
   } = useLandingNoteReducer((state) => state);
 
   const [warehouseOptions, setWarehouseOptions] = useState([]);
@@ -297,9 +293,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const [showModal, setShowModal] = useState(false);
-  const [printingId, setPrintingId] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedDeleteNote, setSelectedDeleteNote] = useState(null);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
@@ -349,7 +343,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const emptyEditFormData = () => ({
     landing_date: "", landing_time: "", warehouse_id: "",
     inbound_id: "", received_from: "", location: "", signature: "",
-    remarks: "", file: null, items: [],
+    remarks: "", file: null, existingDocuments: [], items: [],
   });
 
   const populateFormFromDetail = (detail) => {
@@ -373,6 +367,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         driverName: transport ? String(transport.driver_id || "") : "",
         slot_no_id: normalizeSlotValue(item.slot_no || item.slot_no_id || ""),
         reason_id: item.reason || item.reason_name || "",
+        slot_no_id: (item.slot_no_id != null && item.slot_no_id !== 0 && item.slot_no_id !== "0") ? String(item.slot_no_id) : ((item.slot_no != null && item.slot_no !== 0 && item.slot_no !== "0") ? String(item.slot_no) : ""),
+        reason_id: item.reason_name || item.reason || "",
         dispatch_date: item.dispatch_date || "",
         dispatch_time: "",
       };
@@ -390,6 +386,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       signature: detail.signature || "",
       remarks: (detail.remarks || "").replace(/<[^>]*>/g, "").trim(),
       file: null,
+      existingDocuments: Array.isArray(detail.documents) ? detail.documents : [],
       items,
     });
     setExpandedEditItems(exp);
@@ -510,23 +507,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const handleDeleteClick = (note) => {
-    handleCloseDropdown();
-    setSelectedDeleteNote(note);
-    setShowDeleteModal(true);
-  };
+  const handleDelete = (noteId) => {
+    if (window.confirm("Are you sure you want to delete this landing note?")) {
+      const updatedList = notesList.filter(note => note.id !== noteId);
+      setNotesList(updatedList);
 
-  const handleDeleteConfirm = () => {
-    const noteId = selectedDeleteNote?.landing_note_id ?? selectedDeleteNote?.id;
-    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
-    deleteLandingNote({
-      landingNoteId: noteId,
-      cb: () => {
-        setShowDeleteModal(false);
-        setSelectedDeleteNote(null);
-        if (callId) getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-      },
-    });
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("landingNoteList")(syntheticEvent);
+    }
   };
 
   // Form state for Convert to Dispatch modal
@@ -867,8 +856,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handlePrintNote = async (note) => {
     handleCloseDropdown();
     const landingNoteId = note?.landing_note_id ?? note?.id;
-    if (!landingNoteId || printingId) return;
-    setPrintingId(landingNoteId);
+    if (!landingNoteId || isPrinting) return;
+    setIsPrinting(true);
     try {
       let inboundId = note?.inbound_id;
       if (!inboundId) {
@@ -891,7 +880,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       const { error: showError } = useAlertReducer.getState();
       showError(err?.response?.data?.message ?? 'Failed to generate print');
     } finally {
-      setPrintingId(null);
+      setIsPrinting(false);
     }
   };
 
@@ -988,6 +977,33 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </div>
                       </div>
                     </div>
+                    {formData.existingDocuments?.length > 0 && (
+                      <div className="landing-doc-list mt-2">
+                        {formData.existingDocuments.map((doc, i) => {
+                          const fileName = doc.file_name || doc.name || `File ${i + 1}`;
+                          const fileUrl = getFileUrl(doc.file_path || "");
+                          const isImg = isImageFile(fileName);
+                          return (
+                            <div key={i} className="landing-doc-card">
+                              {isImg ? (
+                                <img src={fileUrl} alt={fileName} className="landing-doc-thumbnail" />
+                              ) : (
+                                <div className="landing-doc-icon">
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M14 2V8H20" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </div>
+                              )}
+                              <div className="landing-doc-info">
+                                <div className="landing-doc-name">{fileName}</div>
+                              </div>
+                              <a href={fileUrl} target="_blank" rel="noreferrer" className="landing-doc-view-btn">View</a>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                     {formData.file && (
                       <div className="document-file-preview-list">
                         <div className="document-file-preview-item">
@@ -1034,6 +1050,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     onClick={() => toggleEditItemExpand(item.id)}
                   >
                     <span className="landing-edit-item-title-text">
+                    <span className="fw-semibold landing-edit-item-title-text">
                       Item {index + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </span>
                     <svg
@@ -1078,6 +1095,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               />
                             </FormField>
                             {formErrors[`item_${index}_qty`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
+                            {formErrors[`item_${index}_qty`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
                           </div>
                           <div className="col-md-3">
                             <FormField label="Slot No">
@@ -1126,6 +1144,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)}
                             />
                             <span className="landing-edit-transport-label-text">Transportation Required</span>
+                            <span className="fw-semibold landing-edit-transport-label-text">Transportation Required</span>
                           </label>
                           {item.transportation_required && (
                             <div className="row g-2">
@@ -1139,6 +1158,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_veh`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
+                                {formErrors[`item_${index}_veh`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
                               </div>
                               <div className="col-md-4">
                                 <FormField label="From Location *">
@@ -1150,6 +1170,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_from`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
+                                {formErrors[`item_${index}_from`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                               </div>
                               <div className="col-md-4">
                                 <FormField label="Pick-Up From">
@@ -1166,6 +1187,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_to`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
+                                {formErrors[`item_${index}_to`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
                               </div>
                               <div className="col-md-6">
                                 <FormField label="Driver *">
@@ -1177,6 +1199,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_drv`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
+                                {formErrors[`item_${index}_drv`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
                               </div>
                             </div>
                           )}
@@ -1343,6 +1366,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                       {/* Packing Required */}
                       <div>
+                      <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.packing_required || false} onChange={(e) => handleConvertOrderChange(order.id, "packing_required", e.target.checked)} className="landing-convert-checkbox" />
                           <span className="landing-convert-checkbox-text">Packing Required</span>
@@ -1379,6 +1403,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                       {/* Transportation Required */}
                       <div>
+                      <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.transportation_required || false} onChange={(e) => handleConvertOrderChange(order.id, "transportation_required", e.target.checked)} className="landing-convert-checkbox" />
                           <span className="landing-convert-checkbox-text">Transportation Required</span>
@@ -1469,6 +1494,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         className="landing-convert-submit-btn"
       >
         {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
+      <button type="submit" form="convertToDispatchForm" disabled={isLoadingConvert} className="landing-convert-submit-btn">
+        {isLoadingConvert ? "Converting..." : "Convert"}
       </button>
     </div>
   );
@@ -1689,12 +1716,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       {viewingNote && (
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn btn-primary d-flex align-items-center gap-2"
           onClick={() => handlePrintNote(viewingNote)}
-          disabled={Boolean(printingId)}
+          disabled={isPrinting}
         >
-          {printingId
-            ? <span className="btn-spinner-content"><span className="spinner-border spinner-border-sm" role="status" />Printing...</span>
+          {isPrinting
+            ? <><span className="spinner-border spinner-border-sm" role="status" />Printing...</>
             : "Print"
           }
         </button>
@@ -1793,21 +1820,29 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         className="print-action-icon-wrap"
                       >
                         <img src={eyeIcon} alt="view" className="material-action-icon" />
+                        className="landing-action-btn"
+                      >
+                        <img src={eyeIcon} alt="view" />
                       </button>
                       <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintNote(note)}
                         data-tooltip-id={`print-note-${note.id}`}
-                        disabled={printingId === (note?.landing_note_id ?? note?.id)}
-                        className="print-action-icon-wrap"
+                        disabled={isPrinting}
+                        className="landing-action-btn"
                       >
-                        {printingId === (note?.landing_note_id ?? note?.id) ? (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-spinning">
+                        {isPrinting ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="landing-spin">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
                           </svg>
                         ) : (
-                          <img src={printIcon} alt="print" className="material-action-icon" />
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
                         )}
                       </button>
                       <Tooltip id={`convert-note-${note.id}`} place="left" content=" Convert" />
@@ -1816,6 +1851,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
                         className="print-action-icon-wrap landing-icon-brand"
+                        className="landing-action-btn"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1 4H10V12H1V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -1826,12 +1862,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </svg>
                       </button>
                       <div className={`landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
+                      <div className={`action-dropdown-wrapper landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                         <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
                           data-tooltip-id={`more-actions-${note.id}`}
                           className="print-action-icon-wrap"
+                          className="landing-action-btn"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="6" r="1.5" fill="currentColor" />
@@ -1849,6 +1887,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               type="button"
                               onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
                               className="landing-dropdown-item"
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleOpenModal(note);
+                              }}
+                              className="landing-dropdown-item landing-dropdown-item--default"
                             >
                               <img src={editIcon} alt="edit" />
                               <span>Edit</span>
@@ -1856,6 +1899,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             <button
                               type="button"
                               onClick={() => handleDeleteClick(note)}
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleDelete(note.id);
+                              }}
                               className="landing-dropdown-item landing-dropdown-item--danger"
                             >
                               <img src={deleteIcon} alt="delete" />
@@ -1916,14 +1963,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         body={renderViewBody()}
         footer={renderViewFooter()}
         dialgName="modal-dialog modal-dialog-centered"
-      />
-
-      <DeleteConfirmationModal
-        show={showDeleteModal}
-        onCancel={() => { setShowDeleteModal(false); setSelectedDeleteNote(null); }}
-        onConfirm={handleDeleteConfirm}
-        deleteText={`Are you sure you want to delete landing note ${selectedDeleteNote?.landingNoteNo || selectedDeleteNote?.landing_note_no || ""}?`}
-        isLoading={isLoadingDelete}
       />
     </div>
   );
