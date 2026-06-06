@@ -10515,13 +10515,14 @@ body .modal-backdrop.show {
 }
 
 .landing-table {
+  --card-color: #e2e6ff;
   table-layout: fixed;
 
   thead {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: var(--card-color, #e2e6ff);
+    background: #e2e6ff;
   }
 }
 
