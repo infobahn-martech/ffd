@@ -50,6 +50,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     dropOffTime: "",
     dropOffLocation: "",
     status: "",
+    reason: "",
     documents: [],
   });
 
@@ -84,6 +85,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       dropOffTime: "",
       dropOffLocation: "",
       status: "",
+      reason: "",
       documents: [],
     });
     setSelectedFiles([]);
@@ -102,6 +104,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       dropOffTime: "",
       dropOffLocation: "",
       status: "",
+      reason: "",
       documents: [],
     });
     setSelectedFiles([]);
@@ -134,6 +137,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       dropOff: dropOff,
       dropOffLocation: formData.dropOffLocation,
       status: formData.status,
+      reason: formData.reason,
       documents: selectedFiles,
     };
 
@@ -236,6 +240,14 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
   const collectOrDeliverOptions = [
     { value: "Collect", label: "Collect" },
     { value: "Deliver", label: "Deliver" },
+  ];
+
+  const reasonOptions = [
+    { value: "Scrap", label: "Scrap" },
+    { value: "Wrong Supply", label: "Wrong Supply" },
+    { value: "Safe Storage", label: "Safe Storage" },
+    { value: "Service", label: "Service" },
+    { value: "Transit", label: "Transit" },
   ];
 
   const renderHeader = () => (
@@ -341,6 +353,17 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                   onChange={(e) => handleFormChange("status", e.target.value)}
                   options={statusOptions}
                   placeholder="Select status..."
+                />
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Reason">
+                <FormSelect
+                  value={formData.reason}
+                  onChange={(e) => handleFormChange("reason", e.target.value)}
+                  options={reasonOptions}
+                  placeholder="Select reason..."
                 />
               </FormField>
             </div>

@@ -1166,10 +1166,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const reasonOptions = [
-    { value: "Urgent", label: "Urgent" },
-    { value: "Standard", label: "Standard" },
-    { value: "Scheduled", label: "Scheduled" },
-    { value: "Emergency", label: "Emergency" },
+    { value: "Scrap", label: "Scrap" },
+    { value: "Wrong supply", label: "Wrong supply" },
+    { value: "Safe storage", label: "Safe storage" },
+    { value: "Service", label: "Service" },
+    { value: "Transit", label: "Transit" },
   ];
 
   const renderHeader = () => (
