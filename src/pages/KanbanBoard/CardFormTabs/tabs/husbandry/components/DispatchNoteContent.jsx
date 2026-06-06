@@ -152,6 +152,8 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [dispatchPage, setDispatchPage] = useState(1);
   const DISPATCH_LIMIT = 10;
 
+  const [printingNoteId, setPrintingNoteId] = useState(null);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingNote, setDeletingNote] = useState(null);
 
@@ -483,11 +485,14 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handlePrintNote = (note) => {
     handleCloseDropdown();
     const noteId = note.dispatch_note_id || note.id;
+    if (printingNoteId) return;
+    setPrintingNoteId(noteId);
     const doPrint = (landingNoteId) => {
       printDispatchNote({
         dispatchNoteId: noteId,
         landingNoteId,
         cb: (pdfUrl) => {
+          setPrintingNoteId(null);
           if (pdfUrl) window.open(pdfUrl, '_blank');
         },
       });
@@ -959,8 +964,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         Close
       </button>
       {viewingNote && (
-        <button type="button" className="btn btn-primary" onClick={() => handlePrintNote(viewingNote)} disabled={isLoadingPrint}>
-          {isLoadingPrint ? "Printing..." : "Print"}
+        <button
+          type="button"
+          className="btn btn-primary d-flex align-items-center gap-2"
+          onClick={() => handlePrintNote(viewingNote)}
+          disabled={!!printingNoteId}
+        >
+          {printingNoteId === (viewingNote?.dispatch_note_id || viewingNote?.id)
+            ? <><span className="spinner-border spinner-border-sm" role="status" />Printing...</>
+            : "Print"
+          }
         </button>
       )}
     </div>
@@ -1036,26 +1049,19 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         >
                           <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                         </button>
-                        <Tooltip id={`edit-note-${note.id}`} place="left" content="Edit" />
-                        <button
-                          type="button"
-                          onClick={() => handleOpenModal(note)}
-                          data-tooltip-id={`edit-note-${note.id}`}
-                          style={{ padding: "6px 8px", backgroundColor: "transparent", border: "none", borderRadius: "4px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#00368c", transition: "background-color 0.2s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
-                        >
-                          <img src={editIcon} alt="edit" style={{ width: "18px", height: "18px" }} />
-                        </button>
                         <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                         <button
                           type="button"
                           onClick={() => handlePrintNote(note)}
                           data-tooltip-id={`print-note-${note.id}`}
                           className="print-action-icon-wrap"
-                          disabled={isLoadingPrint}
+                          disabled={printingNoteId === (note.dispatch_note_id || note.id)}
                         >
-                          <img src={printIcon} alt="print" className="material-action-icon" />
+                          {printingNoteId === (note.dispatch_note_id || note.id) ? (
+                            <span className="spinner-border spinner-border-sm" role="status" />
+                          ) : (
+                            <img src={printIcon} alt="print" className="material-action-icon" />
+                          )}
                         </button>
                         <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
                           <Tooltip id={`more-actions-${note.id}`} place="right" content="More actions" />
@@ -1078,6 +1084,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               data-dropdown-menu
                               style={{ position: "fixed", top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px`, backgroundColor: "white", border: "1px solid #e2e2ea", borderRadius: "6px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", zIndex: 99999, minWidth: "180px", padding: "4px 0" }}
                             >
+                              <button
+                                type="button"
+                                onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
+                                style={{ width: "100%", padding: "10px 16px", backgroundColor: "transparent", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "#44444f", transition: "background-color 0.2s" }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f5f5f5"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                              >
+                                <img src={editIcon} alt="edit" style={{ width: "16px", height: "16px" }} />
+                                <span>Edit</span>
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => { handleCloseDropdown(); handleDelete(note); }}
