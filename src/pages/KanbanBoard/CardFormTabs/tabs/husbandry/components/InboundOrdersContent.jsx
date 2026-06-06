@@ -1229,7 +1229,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           {/* Order Details Section */}
           <div>
             <div className="dispatch-section-header">
-              <h3 className="dispatch-edit-section-title" style={{ margin: 0 }}>Order Details</h3>
+              <h3 className="dispatch-edit-section-title">Order Details</h3>
               <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -1726,7 +1726,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
 
                       {/* Slot No, Reason, Dispatch Date - After Transportation */}
-                      <div className="row g-2 mb-1" style={{ marginTop: "12px" }}>
+                      <div className="row g-2 mb-1 slot-reason-row">
                         <div className="col-lg-4 col-md-6">
                           <FormField label="Slot No *">
                             <FormSelect
@@ -1992,15 +1992,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           type="button"
           className="material-add-btn"
           onClick={() => handleOpenModal()}
-          style={{ backgroundColor: "#00368c" }}
         >
           + Add
         </button>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
-          <table className="table table-striped material-table inbound-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
-            <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
+      <div className="table-wrapper table-responsive material-table-container note-table-container">
+        <div className="note-table-scroll">
+          <table className="table table-striped material-table inbound-table note-table">
+            <thead className="note-thead">
               <tr>
                 <th>Order No</th>
                 <th>Date</th>
@@ -2008,13 +2007,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <th>Quantity</th>
                 <th>Package Type</th>
                 <th>Description</th>
-                <th style={{ paddingLeft: "28px" }}>Actions</th>
+                <th className="note-actions-th">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoadingOrders ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</td>
+                  <td colSpan="7" className="note-empty-td">Loading...</td>
                 </tr>
               ) : inboundOrders.length > 0 ? (
                 inboundOrders.map((order) => {
@@ -2056,7 +2055,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               />
                               <span
                                 data-tooltip-id={`description-tooltip-${rowKey}`}
-                                style={{ cursor: "help" }}
+                                className="note-desc-tip"
                               >
                                 {description.substring(0, 25)}...
                               </span>
@@ -2066,33 +2065,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           )}
                         </div>
                       </td>
-                      <td style={{ position: "relative", overflow: "visible" }}>
-                        <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start" }}>
+                      <td className="note-actions-td">
+                        <div className="material-table-cell note-actions-cell">
                           <Tooltip id={`view-order-${rowKey}`} place="left" content="View" />
                           <button
                             type="button"
                             onClick={() => handleViewOrder(order)}
                             data-tooltip-id={`view-order-${rowKey}`}
-                            style={{
-                              padding: "6px 8px",
-                              backgroundColor: "transparent",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#00368c",
-                              transition: "background-color 0.2s"
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#f0f0f0";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "transparent";
-                            }}
+                            className="note-action-btn"
                           >
-                            <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
+                            <img src={eyeIcon} alt="view" className="note-action-icon" />
                           </button>
                           <Tooltip id={`print-order-${rowKey}`} place="left" content="Print" />
                           <button
@@ -2115,24 +2097,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             type="button"
                             onClick={() => handleConvertToLanding(order)}
                             data-tooltip-id={`convert-order-${rowKey}`}
-                            style={{
-                              padding: "6px 8px",
-                              backgroundColor: "transparent",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#00368c",
-                              transition: "background-color 0.2s"
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#f0f0f0";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "transparent";
-                            }}
+                            className="note-action-btn"
                           >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M2 18L4 16L6 18L8 16L10 18L12 16L14 18L16 16L18 18L20 16L22 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -2140,29 +2105,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               <path d="M12 4V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           </button>
-                          <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === rowKey ? 9999 : "auto" }}>
+                          <div className={`action-dropdown-wrapper${openDropdownId === rowKey ? " action-dropdown-wrapper--open" : ""}`}>
                             <Tooltip id={`more-actions-${rowKey}`} place="left" content="More actions" />
                             <button
                               type="button"
                               onClick={(e) => handleToggleDropdown(rowKey, e)}
                               data-tooltip-id={`more-actions-${rowKey}`}
-                              style={{
-                                padding: "6px 8px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#00368c"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f0f0f0";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
+                              className="note-action-btn"
                             >
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="6" r="1.5" fill="currentColor" />
@@ -2173,76 +2122,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             {openDropdownId === rowKey && createPortal(
                               <div
                                 data-dropdown-menu
-                                style={{
-                                  position: "fixed",
-                                  top: `${dropdownPosition.top}px`,
-                                  right: `${dropdownPosition.right}px`,
-                                  backgroundColor: "white",
-                                  border: "1px solid #e2e2ea",
-                                  borderRadius: "6px",
-                                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                                  zIndex: 99999,
-                                  minWidth: "180px",
-                                  padding: "4px 0"
-                                }}
+                                className="note-dropdown-menu"
+                                style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
                               >
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    handleCloseDropdown();
-                                    handleOpenModal(order);
-                                  }}
-                                  style={{
-                                    width: "100%",
-                                    padding: "10px 16px",
-                                    backgroundColor: "transparent",
-                                    border: "none",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    fontSize: "14px",
-                                    color: "#1a1a1a",
-                                    transition: "background-color 0.2s"
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = "#f5f5f5";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = "transparent";
-                                  }}
+                                  onClick={() => { handleCloseDropdown(); handleOpenModal(order); }}
+                                  className="note-dropdown-btn"
                                 >
-                                  <img src={editIcon} alt="edit" style={{ width: "16px", height: "16px" }} />
+                                  <img src={editIcon} alt="edit" className="note-dropdown-icon" />
                                   <span>Edit</span>
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    handleDelete(order);
-                                  }}
-                                  style={{
-                                    width: "100%",
-                                    padding: "10px 16px",
-                                    backgroundColor: "transparent",
-                                    border: "none",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    fontSize: "14px",
-                                    color: "#dc3545",
-                                    transition: "background-color 0.2s"
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = "#f5f5f5";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = "transparent";
-                                  }}
+                                  onClick={() => { handleDelete(order); }}
+                                  className="note-dropdown-btn note-dropdown-btn--danger"
                                 >
-                                  <img src={deleteIcon} alt="delete" style={{ width: "16px", height: "16px" }} />
+                                  <img src={deleteIcon} alt="delete" className="note-dropdown-icon" />
                                   <span>Delete</span>
                                 </button>
                               </div>,
@@ -2256,7 +2152,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+                  <td colSpan="7" className="note-empty-td">
                     No inbound orders found.
                   </td>
                 </tr>

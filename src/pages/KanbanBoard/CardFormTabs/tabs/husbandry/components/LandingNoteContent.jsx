@@ -294,7 +294,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const [showModal, setShowModal] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [printingNoteId, setPrintingNoteId] = useState(null);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
@@ -856,8 +856,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handlePrintNote = async (note) => {
     handleCloseDropdown();
     const landingNoteId = note?.landing_note_id ?? note?.id;
-    if (!landingNoteId || isPrinting) return;
-    setIsPrinting(true);
+    if (!landingNoteId || printingNoteId) return;
+    setPrintingNoteId(landingNoteId);
     try {
       let inboundId = note?.inbound_id;
       if (!inboundId) {
@@ -886,7 +886,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         showError(err?.response?.data?.message ?? 'Failed to generate print');
       }
     } finally {
-      setIsPrinting(false);
+      setPrintingNoteId(null);
     }
   };
 
@@ -1705,9 +1705,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           type="button"
           className="btn btn-primary d-flex align-items-center gap-2"
           onClick={() => handlePrintNote(viewingNote)}
-          disabled={isPrinting}
+          disabled={!!printingNoteId}
         >
-          {isPrinting
+          {printingNoteId === (viewingNote?.landing_note_id ?? viewingNote?.id)
             ? <><span className="spinner-border spinner-border-sm" role="status" />Printing...</>
             : "Print"
           }
@@ -1813,10 +1813,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handlePrintNote(note)}
                         data-tooltip-id={`print-note-${note.id}`}
-                        disabled={isPrinting}
+                        disabled={printingNoteId === (note.landing_note_id ?? note.id)}
                         className="landing-action-btn"
                       >
-                        {isPrinting ? (
+                        {printingNoteId === (note.landing_note_id ?? note.id) ? (
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="landing-spin">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
                           </svg>

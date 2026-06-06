@@ -152,6 +152,8 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [dispatchPage, setDispatchPage] = useState(1);
   const DISPATCH_LIMIT = 10;
 
+  const [printingNoteId, setPrintingNoteId] = useState(null);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingNote, setDeletingNote] = useState(null);
 
@@ -483,11 +485,14 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handlePrintNote = (note) => {
     handleCloseDropdown();
     const noteId = note.dispatch_note_id || note.id;
+    if (printingNoteId) return;
+    setPrintingNoteId(noteId);
     const doPrint = (landingNoteId) => {
       printDispatchNote({
         dispatchNoteId: noteId,
         landingNoteId,
         cb: (pdfUrl) => {
+          setPrintingNoteId(null);
           if (pdfUrl) window.open(pdfUrl, '_blank');
         },
       });
@@ -959,8 +964,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         Close
       </button>
       {viewingNote && (
-        <button type="button" className="btn btn-primary" onClick={() => handlePrintNote(viewingNote)} disabled={isLoadingPrint}>
-          {isLoadingPrint ? "Printing..." : "Print"}
+        <button
+          type="button"
+          className="btn btn-primary d-flex align-items-center gap-2"
+          onClick={() => handlePrintNote(viewingNote)}
+          disabled={!!printingNoteId}
+        >
+          {printingNoteId === (viewingNote?.dispatch_note_id || viewingNote?.id)
+            ? <><span className="spinner-border spinner-border-sm" role="status" />Printing...</>
+            : "Print"
+          }
         </button>
       )}
     </div>
@@ -974,10 +987,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           Dispatch Note
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
-          <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
-            <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
+      <div className="table-wrapper table-responsive material-table-container note-table-container">
+        <div className="note-table-scroll">
+          <table className="table table-striped material-table sub-note-table note-table">
+            <thead className="note-thead">
               <tr>
                 <th>Order No</th>
                 <th>Date</th>
@@ -986,12 +999,12 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 <th>Quantity</th>
                 <th>Package Type</th>
                 <th>Description</th>
-                <th style={{ paddingLeft: "28px" }}>Actions</th>
+                <th className="note-actions-th">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoadingList ? (
-                <tr><td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>Loading...</td></tr>
+                <tr><td colSpan="8" className="note-empty-td">Loading...</td></tr>
               ) : notesList.length > 0 ? (
                 notesList.map((note) => (
                   <tr key={note.id}>
@@ -1001,9 +1014,9 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <td>
                       <div className="material-table-cell">
                         {note.deliveryProof && note.deliveryProof.length > 0 ? (
-                          <span style={{ color: "#00368c", cursor: "pointer" }}>{note.deliveryProof.length} file(s)</span>
+                          <span className="note-file-link">{note.deliveryProof.length} file(s)</span>
                         ) : (
-                          <span style={{ color: "#999" }}>No files</span>
+                          <span className="note-no-files">No files</span>
                         )}
                       </div>
                     </td>
@@ -1014,7 +1027,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         {note.description && note.description.length > 13 ? (
                           <>
                             <Tooltip id={`description-tooltip-${note.id}`} place="right" content={note.description} className="material-table-tooltip" />
-                            <span data-tooltip-id={`description-tooltip-${note.id}`} style={{ cursor: "help" }}>
+                            <span data-tooltip-id={`description-tooltip-${note.id}`} className="note-desc-tip">
                               {note.description.substring(0, 13)}...
                             </span>
                           </>
@@ -1023,29 +1036,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         )}
                       </div>
                     </td>
-                    <td style={{ position: "relative", overflow: "visible" }}>
-                      <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start" }}>
+                    <td className="note-actions-td">
+                      <div className="material-table-cell note-actions-cell">
                         <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                         <button
                           type="button"
                           onClick={() => handleViewNote(note)}
                           data-tooltip-id={`view-note-${note.id}`}
-                          style={{ padding: "6px 8px", backgroundColor: "transparent", border: "none", borderRadius: "4px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#00368c", transition: "background-color 0.2s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                          className="note-action-btn"
                         >
-                          <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
-                        </button>
-                        <Tooltip id={`edit-note-${note.id}`} place="left" content="Edit" />
-                        <button
-                          type="button"
-                          onClick={() => handleOpenModal(note)}
-                          data-tooltip-id={`edit-note-${note.id}`}
-                          style={{ padding: "6px 8px", backgroundColor: "transparent", border: "none", borderRadius: "4px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#00368c", transition: "background-color 0.2s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
-                        >
-                          <img src={editIcon} alt="edit" style={{ width: "18px", height: "18px" }} />
+                          <img src={eyeIcon} alt="view" className="note-action-icon" />
                         </button>
                         <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                         <button
@@ -1053,19 +1053,21 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           onClick={() => handlePrintNote(note)}
                           data-tooltip-id={`print-note-${note.id}`}
                           className="print-action-icon-wrap"
-                          disabled={isLoadingPrint}
+                          disabled={printingNoteId === (note.dispatch_note_id || note.id)}
                         >
-                          <img src={printIcon} alt="print" className="material-action-icon" />
+                          {printingNoteId === (note.dispatch_note_id || note.id) ? (
+                            <span className="spinner-border spinner-border-sm" role="status" />
+                          ) : (
+                            <img src={printIcon} alt="print" className="material-action-icon" />
+                          )}
                         </button>
-                        <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
+                        <div className={`action-dropdown-wrapper${openDropdownId === note.id ? " action-dropdown-wrapper--open" : ""}`}>
                           <Tooltip id={`more-actions-${note.id}`} place="right" content="More actions" />
                           <button
                             type="button"
                             onClick={(e) => handleToggleDropdown(note.id, e)}
                             data-tooltip-id={`more-actions-${note.id}`}
-                            style={{ padding: "6px 8px", backgroundColor: "transparent", border: "none", borderRadius: "4px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#00368c" }}
-                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f0f0f0"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                            className="note-action-btn"
                           >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <circle cx="12" cy="6" r="1.5" fill="currentColor" />
@@ -1076,16 +1078,23 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           {openDropdownId === note.id && createPortal(
                             <div
                               data-dropdown-menu
-                              style={{ position: "fixed", top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px`, backgroundColor: "white", border: "1px solid #e2e2ea", borderRadius: "6px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", zIndex: 99999, minWidth: "180px", padding: "4px 0" }}
+                              className="note-dropdown-menu"
+                              style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
                             >
                               <button
                                 type="button"
-                                onClick={() => { handleCloseDropdown(); handleDelete(note); }}
-                                style={{ width: "100%", padding: "10px 16px", backgroundColor: "transparent", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "#dc3545", transition: "background-color 0.2s" }}
-                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f5f5f5"; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                                onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
+                                className="note-dropdown-btn"
                               >
-                                <img src={deleteIcon} alt="delete" style={{ width: "16px", height: "16px" }} />
+                                <img src={editIcon} alt="edit" className="note-dropdown-icon" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { handleCloseDropdown(); handleDelete(note); }}
+                                className="note-dropdown-btn note-dropdown-btn--danger"
+                              >
+                                <img src={deleteIcon} alt="delete" className="note-dropdown-icon" />
                                 <span>Delete</span>
                               </button>
                             </div>,
@@ -1098,7 +1107,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>No dispatch notes added yet.</td>
+                  <td colSpan="8" className="note-empty-td">No dispatch notes added yet.</td>
                 </tr>
               )}
             </tbody>

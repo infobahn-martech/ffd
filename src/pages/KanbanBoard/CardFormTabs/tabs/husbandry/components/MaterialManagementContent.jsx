@@ -515,8 +515,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       <button
         type="submit"
         form="materialForm"
-        className="btn btn-primary"
-        style={{ backgroundColor: "#00368c" }}
+        className="btn btn-primary btn-modal-submit"
       >
         Add Material
       </button>
@@ -539,7 +538,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
         </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container">
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff" }}>
+        <table className="table table-striped material-table note-table">
           <thead>
             <tr>
               <th>Material Type</th>
@@ -603,7 +602,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+                <td colSpan="6" className="note-empty-td">
                   No materials added yet. Click &quot;Add&quot; to add a new material.
                 </td>
               </tr>
