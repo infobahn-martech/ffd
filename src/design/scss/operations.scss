@@ -754,7 +754,7 @@ $send-report-optional: #80868b;
   /* Override all buttons to use #00368c */
   .checklist-btn-primary,
   .btn-primary,
-  button[class*="btn"]:not(.landing-action-btn):not(.print-action-icon-wrap):not(.note-action-btn):not(.note-dropdown-btn) {
+  button[class*="btn"]:not(.landing-action-btn):not(.print-action-icon-wrap):not(.note-action-btn):not(.note-dropdown-btn):not(.dispatch-note-action-btn):not(.dispatch-note-dropdown-btn) {
     background: #e2e6ff !important;
     border-color: #e2e6ff !important;
     color: #1a1a1a !important;
@@ -11121,6 +11121,27 @@ body .modal-backdrop.show {
 }
 
 .note-action-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 6px 8px;
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00368c;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0 !important;
+  }
+}
+
+.dispatch-note-action-btn {
   -webkit-appearance: none;
   appearance: none;
   padding: 6px 8px;
