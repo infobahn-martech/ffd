@@ -1813,9 +1813,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleViewNote(note)}
                         data-tooltip-id={`view-note-${note.id}`}
-                        className="print-action-icon-wrap"
+                        className="landing-action-btn"
                       >
-                        <img src={eyeIcon} alt="view" className="material-action-icon" />
+                        <img src={eyeIcon} alt="view" />
                       </button>
                       <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
@@ -1875,7 +1875,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           >
                             <button
                               type="button"
-                              onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleOpenModal(note);
+                              }}
                               className="landing-dropdown-item landing-dropdown-item--default"
                             >
                               <img src={editIcon} alt="edit" />
@@ -1883,7 +1886,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => { handleCloseDropdown(); handleDelete(note.id); }}
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleDelete(note.id);
+                              }}
                               className="landing-dropdown-item landing-dropdown-item--danger"
                             >
                               <img src={deleteIcon} alt="delete" />
