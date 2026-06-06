@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../components/CustomModal";
+import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 import DateTimePickerField from "../../../components/DateTimePickerField";
 import MaterialTablePagination from "./MaterialTablePagination";
@@ -150,6 +151,9 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const dropdownButtonRefs = useRef({});
   const [dispatchPage, setDispatchPage] = useState(1);
   const DISPATCH_LIMIT = 10;
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingNote, setDeletingNote] = useState(null);
 
   const [editFormErrors, setEditFormErrors] = useState({});
   const [editorKey, setEditorKey] = useState(0);
@@ -406,16 +410,27 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const handleDelete = (noteId) => {
-    if (window.confirm("Are you sure you want to delete this dispatch note?")) {
-      const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
-      deleteDispatchNote({
-        dispatchNoteId: noteId,
-        cb: () => {
-          if (callId) getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
-        },
-      });
-    }
+  const handleDelete = (note) => {
+    setDeletingNote(note);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingNote) return;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    deleteDispatchNote({
+      dispatchNoteId: deletingNote.id,
+      cb: () => {
+        setShowDeleteModal(false);
+        setDeletingNote(null);
+        if (callId) getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
+      },
+    });
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingNote(null);
   };
 
   const handleToggleDropdown = (noteId, e) => {
@@ -1065,7 +1080,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                             >
                               <button
                                 type="button"
-                                onClick={() => { handleCloseDropdown(); handleDelete(note.id); }}
+                                onClick={() => { handleCloseDropdown(); handleDelete(note); }}
                                 style={{ width: "100%", padding: "10px 16px", backgroundColor: "transparent", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "#dc3545", transition: "background-color 0.2s" }}
                                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f5f5f5"; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
@@ -1114,6 +1129,14 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         body={renderViewBody()}
         footer={renderViewFooter()}
         dialgName="modal-dialog modal-dialog-centered"
+      />
+
+      <DeleteConfirmationModal
+        show={showDeleteModal}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        isLoading={isLoadingDelete}
+        deleteText={`Are you sure you want to delete Order No: ${deletingNote?.dispatch_note_no || deletingNote?.id || ""}?`}
       />
     </div>
   );
