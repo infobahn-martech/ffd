@@ -336,8 +336,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         const drvRows = extractListFromApi(drvRes.value?.data);
         setMaterialDriverOptions(
           drvRows
-            .map((r) => ({ value: String(r.driver_id ?? ""), label: String(r.driver_name ?? "") }))
-            .filter((o) => o.value && o.label)
+            .map((r) => ({ value: String(r.driver_id ?? ""), label: String(r.driver_name ?? r.name ?? "") }))
+            .filter((o) => o.value)
         );
       }
       if (trLocRes.status === "fulfilled") {
@@ -1922,6 +1922,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.vehicle_type_name ||
                               materialVehicleOptions.find((o) => o.value === String(item.transportation.vehicle_type_id))?.label ||
+                              item.transportation.vehicle_type_id ||
                               "-"}
                           </div>
                         </div>
@@ -1930,6 +1931,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.from_location_name ||
                               transportLocationOptions.find((o) => o.value === String(item.transportation.from_location_id))?.label ||
+                              item.transportation.from_location_id ||
                               "-"}
                           </div>
                         </div>
@@ -1942,6 +1944,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.to_location_name ||
                               transportLocationOptions.find((o) => o.value === String(item.transportation.to_location_id))?.label ||
+                              item.transportation.to_location_id ||
                               "-"}
                           </div>
                         </div>
@@ -1950,6 +1953,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="landing-view-box">
                             {item.transportation.driver_name ||
                               materialDriverOptions.find((o) => o.value === String(item.transportation.driver_id))?.label ||
+                              item.transportation.driver_id ||
                               "-"}
                           </div>
                         </div>
