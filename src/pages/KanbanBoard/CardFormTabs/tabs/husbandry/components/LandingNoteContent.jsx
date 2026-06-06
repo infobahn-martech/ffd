@@ -293,6 +293,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const [showModal, setShowModal] = useState(false);
+  const [printingId, setPrintingId] = useState(null);
+  const [editorKey, setEditorKey] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDeleteNote, setSelectedDeleteNote] = useState(null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
@@ -376,6 +380,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const exp = {};
     items.forEach((item) => { exp[item.id] = true; });
+    setEditorKey((k) => k + 1);
     setFormData({
       landing_date: date,
       landing_time: time,
@@ -878,7 +883,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err) {
       const { error: showError } = useAlertReducer.getState();
-      showError(err?.response?.data?.message ?? 'Failed to generate print');
+      if (err?.response?.data instanceof Blob) {
+        const text = await err.response.data.text();
+        try { showError(JSON.parse(text)?.message ?? 'Failed to generate print'); }
+        catch { showError('Failed to generate print'); }
+      } else {
+        showError(err?.response?.data?.message ?? 'Failed to generate print');
+      }
     } finally {
       setIsPrinting(false);
     }
@@ -944,6 +955,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <div className="col-md-12">
                 <FormField label="Remarks">
                   <ReactQuillEditor
+                    key={editorKey}
                     value={formData.remarks}
                     onChange={(e) => setFormData((p) => ({ ...p, remarks: e.target.value }))}
                     placeholder="Enter remarks..."
