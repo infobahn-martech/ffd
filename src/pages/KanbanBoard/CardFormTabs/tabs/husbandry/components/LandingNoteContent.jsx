@@ -1100,7 +1100,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Enter quantity..."
                               />
                             </FormField>
-                            {formErrors[`item_${index}_qty`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
                             {formErrors[`item_${index}_qty`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
                           </div>
                           <div className="col-md-3">
@@ -1149,7 +1148,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               checked={item.transportation_required}
                               onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)}
                             />
-                            <span className="landing-edit-transport-label-text">Transportation Required</span>
                             <span className="fw-semibold landing-edit-transport-label-text">Transportation Required</span>
                           </label>
                           {item.transportation_required && (
@@ -1163,7 +1161,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="Select vehicle..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_veh`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
                                 {formErrors[`item_${index}_veh`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
                               </div>
                               <div className="col-md-4">
@@ -1175,7 +1172,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="From location..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_from`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                                 {formErrors[`item_${index}_from`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                               </div>
                               <div className="col-md-4">
@@ -1192,7 +1188,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="To location..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_to`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
                                 {formErrors[`item_${index}_to`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
                               </div>
                               <div className="col-md-6">
@@ -1204,7 +1199,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="Select driver..."
                                   />
                                 </FormField>
-                                {formErrors[`item_${index}_drv`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
                                 {formErrors[`item_${index}_drv`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
                               </div>
                             </div>
