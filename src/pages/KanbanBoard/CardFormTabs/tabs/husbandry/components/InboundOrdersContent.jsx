@@ -866,7 +866,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         (item.transportation.driver_name ? String(item.transportation.driver_name) : "")
         : "",
       slotNo: item.slot_no || (item.slot_no_id != null ? `Slot ${item.slot_no_id}` : (item.slotNo != null ? String(item.slotNo) : "")),
-      reason: item.reason != null ? String(item.reason) : "",
+      reason: item.reason ? String(item.reason) : "",
       ...splitApiDateTimeParts(item.dispatch_date || item.dispatchDate || ""),
     }));
   };
