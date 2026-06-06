@@ -754,7 +754,7 @@ $send-report-optional: #80868b;
   /* Override all buttons to use #00368c */
   .checklist-btn-primary,
   .btn-primary,
-  button[class*="btn"] {
+  button[class*="btn"]:not(.landing-action-btn):not(.print-action-icon-wrap) {
     background: #e2e6ff !important;
     border-color: #e2e6ff !important;
     color: #1a1a1a !important;
@@ -10237,6 +10237,92 @@ body .modal-backdrop.show {
     background-color: #002d6b;
   }
 }
+// Landing Note — edit modal
+.landing-edit-section-title { font-size: 16px; }
+.landing-edit-item-title-text { font-size: 14px; font-weight: 600; }
+.landing-edit-error-msg { font-size: 12px; color: #dc3545; display: block; }
+.landing-edit-transport-label-text { font-size: 14px; font-weight: 600; }
+
+// Landing Note — convert modal
+.landing-convert-info-bar {
+  margin-bottom: 16px; padding: 10px 14px;
+  background: #f0f4ff; border-radius: 8px;
+  font-size: 13px; color: #00368c;
+}
+.landing-convert-section {
+  margin-bottom: 24px; padding-bottom: 20px;
+  border-bottom: 1px solid #e2e2ea;
+}
+.landing-convert-section-title {
+  font-size: 15px; font-weight: 600;
+  margin-bottom: 14px; color: #1a1a1a;
+}
+.landing-convert-section-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 14px;
+  .landing-convert-section-title { margin: 0; }
+}
+.landing-convert-add-btn {
+  padding: 8px 16px; background-color: #00368c;
+  color: white; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 13px;
+  &:hover { background-color: darken(#00368c, 8%); }
+}
+.landing-convert-order-card {
+  margin-bottom: 12px; border: 1px solid #e2e2ea;
+  border-radius: 8px; overflow: hidden;
+}
+.landing-convert-order-header {
+  padding: 10px 16px; background-color: #f8f9fa;
+  cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center;
+}
+.landing-convert-order-title { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+.landing-convert-order-actions { display: flex; gap: 8px; align-items: center; }
+.landing-convert-remove-btn {
+  padding: 4px 10px; background-color: #dc3545;
+  color: white; border: none; border-radius: 4px;
+  cursor: pointer; font-size: 12px;
+}
+.landing-convert-chevron {
+  transition: transform 0.2s;
+  &--open { transform: rotate(180deg); }
+}
+.landing-convert-order-body { padding: 16px; background-color: white; }
+.landing-convert-dispatch-section {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid #e2e2ea;
+}
+.landing-convert-dispatch-title {
+  font-size: 13px; font-weight: 600; color: #555; margin-bottom: 10px;
+}
+.landing-convert-checkbox-label {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; margin-bottom: 8px; margin-top: 10px;
+}
+.landing-convert-checkbox { cursor: pointer; width: 16px; height: 16px; }
+.landing-convert-checkbox-text { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+.landing-convert-error { color: #dc3545; font-size: 12px; }
+.landing-convert-footer {
+  display: flex; justify-content: flex-end;
+  gap: 12px; padding: 16px 24px;
+}
+.landing-convert-cancel-btn {
+  padding: 10px 20px; background-color: #f5f5f5; color: #333;
+  border: 1px solid #e2e2ea; border-radius: 6px;
+  cursor: pointer; font-size: 14px; font-weight: 500;
+}
+.landing-convert-submit-btn {
+  padding: 10px 20px; background-color: #00368c;
+  color: white; border: none; border-radius: 6px;
+  font-size: 14px; font-weight: 500;
+  &:not(:disabled) { cursor: pointer; }
+  &:disabled { cursor: not-allowed; opacity: 0.7; }
+}
+
+/* ===========================================================
+   LANDING NOTE — EDIT MODAL
+   =========================================================== */
 
 // Landing Note — edit modal
 .landing-edit-section-title {
@@ -10454,9 +10540,11 @@ body .modal-backdrop.show {
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: #fff;
+    background: #e2e6ff;
   }
 }
+
+.landing-icon-brand { color: #00368c !important; }
 
 .landing-table-actions-th {
   padding-left: 28px;
@@ -10504,6 +10592,40 @@ body .modal-backdrop.show {
   gap: 8px;
   justify-content: flex-start;
   flex-wrap: nowrap;
+}
+
+.landing-action-btn {
+  padding: 6px 8px;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00368c !important;
+  flex-shrink: 0;
+
+  &:hover,
+  &:active,
+  &:focus {
+    background: transparent !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  img {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .landing-more-actions-wrapper {
