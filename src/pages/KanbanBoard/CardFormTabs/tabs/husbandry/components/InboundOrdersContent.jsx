@@ -1229,15 +1229,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           <div>
             <div className="dispatch-section-header">
               <h3 className="dispatch-edit-section-title" style={{ margin: 0 }}>Order Details</h3>
-              {!editingOrder && (
-                <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  Add New Order
-                </button>
-              )}
+              <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                Add New Order
+              </button>
             </div>
 
             {formData.orders.map((order, index) => (
