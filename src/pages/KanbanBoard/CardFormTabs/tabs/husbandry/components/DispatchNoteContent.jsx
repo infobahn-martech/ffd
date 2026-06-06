@@ -124,11 +124,13 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     getAllDispatchNotes,
     getDispatchNoteById,
     updateDispatchNote,
+    printDispatchNote,
     dispatchNotes,
     dispatchTotal,
     isLoadingList,
     isLoadingDetail,
     isLoadingUpdate,
+    isLoadingPrint,
   } = useDispatchNoteReducer((state) => state);
 
   const [warehouseOptions, setWarehouseOptions] = useState([]);
@@ -454,42 +456,24 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const handlePrintNote = (note) => {
     handleCloseDropdown();
-    const printWindow = window.open('', '_blank');
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print - Dispatch Note ${note.dispatch_note_no || note.orderNo || ''}</title>
-          <style>
-            body { font-family: "Open Sans", sans-serif; padding: 20px; color: #333; }
-            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #00368c; padding-bottom: 15px; }
-            .print-header h1 { color: #00368c; margin: 0; font-size: 24px; }
-            .print-section { margin-bottom: 25px; }
-            .print-section-title { font-size: 18px; font-weight: bold; color: #00368c; margin-bottom: 15px; border-bottom: 1px solid #e2e2ea; padding-bottom: 8px; }
-            .print-row { display: flex; margin-bottom: 12px; }
-            .print-label { font-weight: 600; width: 200px; color: #666; }
-            .print-value { flex: 1; color: #1a1a1a; }
-            .print-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e2ea; text-align: center; color: #666; font-size: 12px; }
-            @media print { body { margin: 0; padding: 15px; } .print-footer { page-break-inside: avoid; } }
-          </style>
-        </head>
-        <body>
-          <div class="print-header"><h1>Dispatch Note Details</h1></div>
-          <div class="print-section">
-            <div class="print-section-title">Note Information</div>
-            <div class="print-row"><div class="print-label">Dispatch Note No:</div><div class="print-value">${note.dispatch_note_no || note.orderNo || "-"}</div></div>
-            <div class="print-row"><div class="print-label">Date:</div><div class="print-value">${note.dispatch_date || note.date || "-"}</div></div>
-            <div class="print-row"><div class="print-label">Delivery Location:</div><div class="print-value">${note.delivery_location || "-"}</div></div>
-            <div class="print-row"><div class="print-label">Delivered To:</div><div class="print-value">${note.delivered_to || "-"}</div></div>
-          </div>
-          <div class="print-footer"><p>Printed on ${new Date().toLocaleString()}</p></div>
-        </body>
-      </html>
-    `;
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+    const noteId = note.dispatch_note_id || note.id;
+    const doPrint = (landingNoteId) => {
+      printDispatchNote({
+        dispatchNoteId: noteId,
+        landingNoteId,
+        cb: (pdfUrl) => {
+          if (pdfUrl) window.open(pdfUrl, '_blank');
+        },
+      });
+    };
+    if (note.landing_note_id) {
+      doPrint(note.landing_note_id);
+    } else {
+      getDispatchNoteById({
+        id: noteId,
+        cb: (detail) => doPrint(detail?.landing_note_id || null),
+      });
+    }
   };
 
   const formatDate = (dateString) => {
@@ -948,8 +932,8 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         Close
       </button>
       {viewingNote && (
-        <button type="button" className="btn btn-primary" onClick={() => handlePrintNote(viewingNote)}>
-          Print
+        <button type="button" className="btn btn-primary" onClick={() => handlePrintNote(viewingNote)} disabled={isLoadingPrint}>
+          {isLoadingPrint ? "Printing..." : "Print"}
         </button>
       )}
     </div>
@@ -1042,6 +1026,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           onClick={() => handlePrintNote(note)}
                           data-tooltip-id={`print-note-${note.id}`}
                           className="print-action-icon-wrap"
+                          disabled={isLoadingPrint}
                         >
                           <img src={printIcon} alt="print" className="material-action-icon" />
                         </button>

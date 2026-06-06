@@ -306,6 +306,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const [showModal, setShowModal] = useState(false);
   const [printingId, setPrintingId] = useState(null);
+  const [editorKey, setEditorKey] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDeleteNote, setSelectedDeleteNote] = useState(null);
   const [showConvertModal, setShowConvertModal] = useState(false);
@@ -387,6 +388,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const exp = {};
     items.forEach((item) => { exp[item.id] = true; });
+    setEditorKey((k) => k + 1);
     setFormData({
       landing_date: date,
       landing_time: time,
@@ -472,7 +474,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("received_from", formData.received_from || "");
     fd.append("location", formData.location || "");
     fd.append("signature", formData.signature || "");
-    fd.append("remarks", formData.remarks || "");
+    fd.append("remarks", (formData.remarks || "").replace(/<[^>]*>/g, "").trim());
     if (formData.file) fd.append("file", formData.file);
 
     const items = formData.items.map((item) => {
@@ -764,7 +766,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("signature", convertFormData.signature || "");
     fd.append("delivery_location", convertFormData.delivery_location || "");
     fd.append("delivered_to", convertFormData.delivered_to || "");
-    fd.append("remarks", convertFormData.remarks || "");
+    fd.append("remarks", (convertFormData.remarks || "").replace(/<[^>]*>/g, "").trim());
     if (convertFormData.documents?.length > 0) fd.append("file", convertFormData.documents[0].file ?? convertFormData.documents[0]);
     const items = convertFormData.orders.map((order) => {
       const landingNoteItemId = order.landing_note_item_id || null;
@@ -881,7 +883,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err) {
       const { error: showError } = useAlertReducer.getState();
-      showError(err?.response?.data?.message ?? 'Failed to generate print');
+      if (err?.response?.data instanceof Blob) {
+        const text = await err.response.data.text();
+        try { showError(JSON.parse(text)?.message ?? 'Failed to generate print'); }
+        catch { showError('Failed to generate print'); }
+      } else {
+        showError(err?.response?.data?.message ?? 'Failed to generate print');
+      }
     } finally {
       setPrintingId(null);
     }
@@ -947,6 +955,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <div className="col-md-12">
                 <FormField label="Remarks">
                   <ReactQuillEditor
+                    key={editorKey}
                     value={formData.remarks}
                     onChange={(e) => setFormData((p) => ({ ...p, remarks: e.target.value }))}
                     placeholder="Enter remarks..."
