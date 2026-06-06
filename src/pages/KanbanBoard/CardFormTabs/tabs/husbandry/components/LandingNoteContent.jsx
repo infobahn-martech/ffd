@@ -366,8 +366,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: transport?.pickup_location || "",
         toLocation: transport ? String(transport.to_location_id || "") : "",
         driverName: transport ? String(transport.driver_id || "") : "",
-        slot_no_id: (item.slot_no_id != null && item.slot_no_id !== 0 && item.slot_no_id !== "0") ? String(item.slot_no_id) : ((item.slot_no != null && item.slot_no !== 0 && item.slot_no !== "0") ? String(item.slot_no) : ""),
-        reason_id: item.reason_name || item.reason || "",
+        slot_no: item.slot_no || "",
+        reason: item.reason || item.reason_name || "",
         dispatch_date: item.dispatch_date || "",
         dispatch_time: "",
       };
@@ -470,8 +470,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         inbound_item_id: item.inbound_item_id || null,
         quantity: Number(item.quantity) || 0,
         transportation_required: item.transportation_required ? 1 : 0,
-        slot_no_id: item.slot_no_id || null,
-        reason_id: item.reason_id || null,
+        slot_no: item.slot_no || "",
+        reason: item.reason || "",
         dispatch_date: item.dispatch_date ? item.dispatch_date + (item.dispatch_time ? ` ${item.dispatch_time}` : "") : null,
       };
       if (item.transportation_required) {
@@ -1105,8 +1105,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="col-md-3">
                             <FormField label="Slot No">
                               <FormSelect
-                                value={item.slot_no_id}
-                                onChange={(e) => handleEditItemChange(item.id, "slot_no_id", e.target.value)}
+                                value={item.slot_no}
+                                onChange={(e) => handleEditItemChange(item.id, "slot_no", e.target.value)}
                                 options={slotOptions}
                                 placeholder="Select slot..."
                               />
@@ -1115,9 +1115,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <div className="col-md-3">
                             <FormField label="Reason">
                               <FormSelect
-                                value={item.reason_id}
-                                onChange={(e) => handleEditItemChange(item.id, "reason_id", e.target.value)}
-                                options={mergeOptionForValue(reasonOptions, item.reason_id)}
+                                value={item.reason}
+                                onChange={(e) => handleEditItemChange(item.id, "reason", e.target.value)}
+                                options={mergeOptionForValue(reasonOptions, item.reason)}
                                 placeholder="Select reason..."
                               />
                             </FormField>
