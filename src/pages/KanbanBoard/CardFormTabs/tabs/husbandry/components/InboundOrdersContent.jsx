@@ -241,6 +241,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     remarks: "",
     orders: [{
       id: 1,
+      inbound_item_id: null,
+      transportation_id: null,
       orderNo: "",
       poDo: "",
       quantity: "",
@@ -364,6 +366,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const orderItems = apiItems.length > 0
       ? apiItems.map((item, idx) => ({
         id: item.inbound_item_id || idx + 1,
+        inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
+        transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
         orderNo: item.order_no || "",
         poDo: item.po_no || "",
         quantity: item.quantity || "",
@@ -398,6 +402,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       }))
       : [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -462,6 +468,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -494,6 +502,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -569,6 +579,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev.orders,
         {
           id: newOrderId,
+          inbound_item_id: null,
+          transportation_id: null,
           orderNo: "",
           poDo: "",
           quantity: "",
@@ -623,6 +635,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
     const items = formData.orders.map((order) => {
       const item = {
+        ...(order.inbound_item_id ? { inbound_item_id: order.inbound_item_id } : {}),
         po_no: order.poDo,
         quantity: Number(order.quantity) || 0,
         package_type_id: Number(order.packageType) || 0,
@@ -631,6 +644,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       };
       if (order.transportation) {
         item.transportation = {
+          ...(order.transportation_id ? { transportation_id: order.transportation_id } : {}),
           vehicle_type_id: Number(order.typeOfVehicle) || 0,
           from_location_id: Number(order.fromLocation) || 0,
           pickup_location: order.pickUpFrom || "",
@@ -678,6 +692,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -918,6 +934,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: "",
       orders: [{
         id: 1,
+        inbound_item_id: null,
+        transportation_id: null,
         orderNo: "",
         poDo: "",
         quantity: "",
@@ -963,6 +981,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev.orders,
         {
           id: newOrderId,
+          inbound_item_id: null,
+          transportation_id: null,
           orderNo: "",
           poDo: "",
           quantity: "",
