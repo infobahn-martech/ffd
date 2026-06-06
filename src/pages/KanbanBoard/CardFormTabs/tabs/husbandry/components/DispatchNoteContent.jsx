@@ -791,7 +791,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
             <div className="col-md-4">
               <label className="landing-view-label">Warehouse</label>
-              <div className="landing-view-box">{viewingNote.warehouse_id || "-"}</div>
+              <div className="landing-view-box">{warehouseOptions.find((o) => o.value === String(viewingNote.warehouse_id))?.label || viewingNote.warehouse_id || "-"}</div>
             </div>
             <div className="col-md-4">
               <label className="landing-view-label">Delivery Location</label>
