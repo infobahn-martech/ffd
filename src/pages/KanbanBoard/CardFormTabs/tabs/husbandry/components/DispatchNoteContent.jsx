@@ -155,7 +155,6 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [editItems, setEditItems] = useState([emptyEditItem(1)]);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
-  const [editorKey, setEditorKey] = useState(0);
 
   const [formData, setFormData] = useState({
     landing_note_id: "",
