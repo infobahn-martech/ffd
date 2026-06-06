@@ -1849,18 +1849,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <label className="landing-view-label">Date</label>
               <div className="landing-view-box">{formatDate(viewingOrder.inbound_date, viewingOrder.inbound_time || viewingOrder.time) || "-"}</div>
             </div>
-            <div className="col-12">
+            <div className="col-md-6">
               <label className="landing-view-label">Warehouse</label>
               <div className="landing-view-box">
                 {warehouseLocationOptions.find((o) => o.value === String(viewingOrder.warehouse_id))?.label || "-"}
               </div>
             </div>
-            {viewingOrder.remarks && (
-              <div className="col-12">
-                <label className="landing-view-label">Remarks</label>
-                <div className="landing-view-box">{viewingOrder.remarks}</div>
-              </div>
-            )}
+            <div className="col-md-6">
+              <label className="landing-view-label">Remarks</label>
+              <div className="landing-view-box">{viewingOrder.remarks || "-"}</div>
+            </div>
           </div>
 
           {items.length > 0 && (
