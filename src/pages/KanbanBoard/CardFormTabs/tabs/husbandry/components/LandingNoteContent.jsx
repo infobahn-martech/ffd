@@ -1061,7 +1061,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     className={`landing-edit-item-header${expandedEditItems[item.id] ? " landing-edit-item-header--expanded" : ""}`}
                     onClick={() => toggleEditItemExpand(item.id)}
                   >
-                    <span className="landing-edit-item-title-text">
                     <span className="fw-semibold landing-edit-item-title-text">
                       Item {index + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </span>
@@ -1377,7 +1376,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Packing Required */}
-                      <div>
                       <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.packing_required || false} onChange={(e) => handleConvertOrderChange(order.id, "packing_required", e.target.checked)} className="landing-convert-checkbox" />
@@ -1414,7 +1412,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Transportation Required */}
-                      <div>
                       <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.transportation_required || false} onChange={(e) => handleConvertOrderChange(order.id, "transportation_required", e.target.checked)} className="landing-convert-checkbox" />
@@ -1506,8 +1503,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         className="landing-convert-submit-btn"
       >
         {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
-      <button type="submit" form="convertToDispatchForm" disabled={isLoadingConvert} className="landing-convert-submit-btn">
-        {isLoadingConvert ? "Converting..." : "Convert"}
       </button>
     </div>
   );
@@ -1829,9 +1824,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleViewNote(note)}
                         data-tooltip-id={`view-note-${note.id}`}
-                        className="print-action-icon-wrap"
-                      >
-                        <img src={eyeIcon} alt="view" className="material-action-icon" />
                         className="landing-action-btn"
                       >
                         <img src={eyeIcon} alt="view" />
@@ -1862,8 +1854,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
-                        className="print-action-icon-wrap landing-icon-brand"
-                        className="landing-action-btn"
+                        className="landing-action-btn landing-icon-brand"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1 4H10V12H1V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -1873,14 +1864,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </button>
-                      <div className={`landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                       <div className={`action-dropdown-wrapper landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                         <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
                           data-tooltip-id={`more-actions-${note.id}`}
-                          className="print-action-icon-wrap"
                           className="landing-action-btn"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1897,8 +1886,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           >
                             <button
                               type="button"
-                              onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
-                              className="landing-dropdown-item"
                               onClick={() => {
                                 handleCloseDropdown();
                                 handleOpenModal(note);
@@ -1910,7 +1897,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDeleteClick(note)}
                               onClick={() => {
                                 handleCloseDropdown();
                                 handleDelete(note.id);
