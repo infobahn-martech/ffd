@@ -283,14 +283,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Slot 6", label: "Slot 6" },
   ];
 
-  const editSlotOptions = [
-    { value: "1", label: "Slot 1" },
-    { value: "2", label: "Slot 2" },
-    { value: "3", label: "Slot 3" },
-    { value: "4", label: "Slot 4" },
-    { value: "5", label: "Slot 5" },
-    { value: "6", label: "Slot 6" },
-  ];
 
   const reasonOptions = [
     { value: "Scrap", label: "Scrap" },
@@ -313,6 +305,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const documentsFileInputRef = useRef(null);
   const editDocInputRef = useRef(null);
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
+  const [isLoadingConvertDetail, setIsLoadingConvertDetail] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [landingPage, setLandingPage] = useState(1);
@@ -372,6 +365,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: transport?.pickup_location || "",
         toLocation: transport ? String(transport.to_location_id || "") : "",
         driverName: transport ? String(transport.driver_id || "") : "",
+        slot_no_id: normalizeSlotValue(item.slot_no || item.slot_no_id || ""),
+        reason_id: item.reason || item.reason_name || "",
         slot_no_id: (item.slot_no_id != null && item.slot_no_id !== 0 && item.slot_no_id !== "0") ? String(item.slot_no_id) : ((item.slot_no != null && item.slot_no !== 0 && item.slot_no !== "0") ? String(item.slot_no) : ""),
         reason_id: item.reason_name || item.reason || "",
         dispatch_date: item.dispatch_date || "",
@@ -389,7 +384,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       received_from: detail.received_from || "",
       location: detail.location || "",
       signature: detail.signature || "",
-      remarks: detail.remarks || "",
+      remarks: (detail.remarks || "").replace(/<[^>]*>/g, "").trim(),
       file: null,
       existingDocuments: Array.isArray(detail.documents) ? detail.documents : [],
       items,
@@ -467,7 +462,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("received_from", formData.received_from || "");
     fd.append("location", formData.location || "");
     fd.append("signature", formData.signature || "");
-    fd.append("remarks", formData.remarks || "");
+    fd.append("remarks", (formData.remarks || "").replace(/<[^>]*>/g, "").trim());
     if (formData.file) fd.append("file", formData.file);
 
     const items = formData.items.map((item) => {
@@ -475,7 +470,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         inbound_item_id: item.inbound_item_id || null,
         quantity: Number(item.quantity) || 0,
         transportation_required: item.transportation_required ? 1 : 0,
-        slot_no_id: item.slot_no_id ? Number(item.slot_no_id) : null,
+        slot_no_id: item.slot_no_id || null,
         reason_id: item.reason_id || null,
         dispatch_date: item.dispatch_date ? item.dispatch_date + (item.dispatch_time ? ` ${item.dispatch_time}` : "") : null,
       };
@@ -560,9 +555,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const landingNoteId = note?.landing_note_id ?? note?.id;
     if (landingNoteId != null && getLandingNoteById) {
+      setIsLoadingConvertDetail(true);
       getLandingNoteById({
         id: landingNoteId,
         cb: (detail) => {
+          setIsLoadingConvertDetail(false);
           if (!detail) return;
           const normalizedDetail = mapLandingNoteForDisplay(detail);
           const detailOrders = buildDispatchConvertOrders(normalizedDetail, vehicleOptions, locationOptions, driverOptions);
@@ -584,6 +581,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setShowConvertModal(false);
     setConvertingNote(null);
     setConvertFormErrors({});
+    setIsLoadingConvertDetail(false);
     setConvertFormData({
       dispatch_date: "",
       dispatch_time: "",
@@ -751,7 +749,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("signature", convertFormData.signature || "");
     fd.append("delivery_location", convertFormData.delivery_location || "");
     fd.append("delivered_to", convertFormData.delivered_to || "");
-    fd.append("remarks", convertFormData.remarks || "");
+    fd.append("remarks", (convertFormData.remarks || "").replace(/<[^>]*>/g, "").trim());
     if (convertFormData.documents?.length > 0) fd.append("file", convertFormData.documents[0].file ?? convertFormData.documents[0]);
     const items = convertFormData.orders.map((order) => {
       const landingNoteItemId = order.landing_note_item_id || null;
@@ -861,7 +859,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!landingNoteId || isPrinting) return;
     setIsPrinting(true);
     try {
-      const response = await landingNoteService.printLandingNote(landingNoteId);
+      let inboundId = note?.inbound_id;
+      if (!inboundId) {
+        await new Promise((resolve) => {
+          getLandingNoteById({
+            id: landingNoteId,
+            cb: (detail) => {
+              inboundId = detail?.inbound_id;
+              resolve();
+            },
+          });
+        });
+      }
+      const response = await landingNoteService.printLandingNote(landingNoteId, inboundId);
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -1039,6 +1049,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     className={`landing-edit-item-header${expandedEditItems[item.id] ? " landing-edit-item-header--expanded" : ""}`}
                     onClick={() => toggleEditItemExpand(item.id)}
                   >
+                    <span className="landing-edit-item-title-text">
                     <span className="fw-semibold landing-edit-item-title-text">
                       Item {index + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </span>
@@ -1083,6 +1094,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                 placeholder="Enter quantity..."
                               />
                             </FormField>
+                            {formErrors[`item_${index}_qty`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
                             {formErrors[`item_${index}_qty`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
                           </div>
                           <div className="col-md-3">
@@ -1090,7 +1102,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               <FormSelect
                                 value={item.slot_no_id}
                                 onChange={(e) => handleEditItemChange(item.id, "slot_no_id", e.target.value)}
-                                options={editSlotOptions}
+                                options={slotOptions}
                                 placeholder="Select slot..."
                               />
                             </FormField>
@@ -1131,6 +1143,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               checked={item.transportation_required}
                               onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)}
                             />
+                            <span className="landing-edit-transport-label-text">Transportation Required</span>
                             <span className="fw-semibold landing-edit-transport-label-text">Transportation Required</span>
                           </label>
                           {item.transportation_required && (
@@ -1144,6 +1157,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="Select vehicle..."
                                   />
                                 </FormField>
+                                {formErrors[`item_${index}_veh`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
                                 {formErrors[`item_${index}_veh`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
                               </div>
                               <div className="col-md-4">
@@ -1155,6 +1169,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="From location..."
                                   />
                                 </FormField>
+                                {formErrors[`item_${index}_from`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                                 {formErrors[`item_${index}_from`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                               </div>
                               <div className="col-md-4">
@@ -1171,6 +1186,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="To location..."
                                   />
                                 </FormField>
+                                {formErrors[`item_${index}_to`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
                                 {formErrors[`item_${index}_to`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
                               </div>
                               <div className="col-md-6">
@@ -1182,6 +1198,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     placeholder="Select driver..."
                                   />
                                 </FormField>
+                                {formErrors[`item_${index}_drv`] && <span className="landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
                                 {formErrors[`item_${index}_drv`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
                               </div>
                             </div>
@@ -1337,7 +1354,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="row g-2">
                         <div className="col-md-4">
                           <FormField label="Slot">
-                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={slotOptions} placeholder="Select slot..." />
+                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, order.slot)} placeholder="Select slot..." />
                           </FormField>
                         </div>
                         <div className="col-md-4">
@@ -1348,6 +1365,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Packing Required */}
+                      <div>
                       <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.packing_required || false} onChange={(e) => handleConvertOrderChange(order.id, "packing_required", e.target.checked)} className="landing-convert-checkbox" />
@@ -1384,6 +1402,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Transportation Required */}
+                      <div>
                       <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.transportation_required || false} onChange={(e) => handleConvertOrderChange(order.id, "transportation_required", e.target.checked)} className="landing-convert-checkbox" />
@@ -1468,6 +1487,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <button type="button" onClick={handleCloseConvertModal} className="landing-convert-cancel-btn">
         Cancel
       </button>
+      <button
+        type="submit"
+        form="convertToDispatchForm"
+        disabled={isLoadingConvert || isLoadingConvertDetail}
+        className="landing-convert-submit-btn"
+      >
+        {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
       <button type="submit" form="convertToDispatchForm" disabled={isLoadingConvert} className="landing-convert-submit-btn">
         {isLoadingConvert ? "Converting..." : "Convert"}
       </button>
@@ -1791,6 +1817,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleViewNote(note)}
                         data-tooltip-id={`view-note-${note.id}`}
+                        className="print-action-icon-wrap"
+                      >
+                        <img src={eyeIcon} alt="view" className="material-action-icon" />
                         className="landing-action-btn"
                       >
                         <img src={eyeIcon} alt="view" />
@@ -1821,6 +1850,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
+                        className="print-action-icon-wrap landing-icon-brand"
                         className="landing-action-btn"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1831,12 +1861,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </button>
+                      <div className={`landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                       <div className={`action-dropdown-wrapper landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                         <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
                           data-tooltip-id={`more-actions-${note.id}`}
+                          className="print-action-icon-wrap"
                           className="landing-action-btn"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1853,6 +1885,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           >
                             <button
                               type="button"
+                              onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
+                              className="landing-dropdown-item"
                               onClick={() => {
                                 handleCloseDropdown();
                                 handleOpenModal(note);
@@ -1864,6 +1898,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
+                              onClick={() => handleDeleteClick(note)}
                               onClick={() => {
                                 handleCloseDropdown();
                                 handleDelete(note.id);

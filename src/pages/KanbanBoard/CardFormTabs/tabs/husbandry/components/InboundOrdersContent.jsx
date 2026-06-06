@@ -849,7 +849,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         (materialDriverOptions.find((o) => o.label.toLowerCase() === (item.transportation.driver_name || "").toLowerCase())?.value || "") ||
         (item.transportation.driver_name ? String(item.transportation.driver_name) : "")
         : "",
-      slotNo: item.slot_no_id != null ? String(item.slot_no_id) : (item.slotNo != null ? String(item.slotNo) : ""),
+      slotNo: item.slot_no || (item.slot_no_id != null ? `Slot ${item.slot_no_id}` : (item.slotNo != null ? String(item.slotNo) : "")),
       reason: item.reason_id != null ? String(item.reason_id) : (item.reason != null ? String(item.reason) : ""),
       ...splitApiDateTimeParts(item.dispatch_date || item.dispatchDate || ""),
     }));
@@ -1085,6 +1085,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!convertFormData.location) errors.location = "Location is required";
     convertFormData.orders.forEach((order, idx) => {
       if (!order.quantity) errors[`co${idx}_quantity`] = "Quantity is required";
+      if (!order.slotNo) errors[`co${idx}_slotNo`] = "Slot is required";
     });
     setConvertFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1105,13 +1106,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("received_from", convertFormData.receivedFrom || "");
     fd.append("location", convertFormData.location || "");
     fd.append("signature", convertFormData.signature || "");
-    fd.append("remarks", convertFormData.remarks || "");
+    fd.append("remarks", (convertFormData.remarks || "").replace(/<[^>]*>/g, "").trim());
     if (convertFormData.documents?.length > 0) fd.append("file", convertFormData.documents[0].file ?? convertFormData.documents[0]);
     const items = convertFormData.orders.map((order) => ({
       inbound_item_id: order.inbound_item_id || null,
       quantity: Number(order.quantity) || 0,
-      slot_no_id: order.slotNo ? Number(order.slotNo) : 0,
-      reason_id: order.reason || 0,
+      slot_no: order.slotNo || "",
+      reason: order.reason || "",
       dispatch_date: order.dispatchDate ? (order.dispatchDate + (order.dispatchTime ? ` ${order.dispatchTime}` : "")) : "",
       transportation_required: order.transportation ? 1 : 0,
       transportation: order.transportation ? {
@@ -1136,12 +1137,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const formatDate = (dateString, separateTime) => formatDisplayDateTime(dateString, separateTime);
 
   const slotNoOptions = [
-    { value: "1", label: "Slot 1" },
-    { value: "2", label: "Slot 2" },
-    { value: "3", label: "Slot 3" },
-    { value: "4", label: "Slot 4" },
-    { value: "5", label: "Slot 5" },
-    { value: "6", label: "Slot 6" },
+    { value: "Slot 1", label: "Slot 1" },
+    { value: "Slot 2", label: "Slot 2" },
+    { value: "Slot 3", label: "Slot 3" },
+    { value: "Slot 4", label: "Slot 4" },
+    { value: "Slot 5", label: "Slot 5" },
+    { value: "Slot 6", label: "Slot 6" },
   ];
 
   const reasonOptions = [
@@ -1716,14 +1717,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       {/* Slot No, Reason, Dispatch Date - After Transportation */}
                       <div className="row g-2 mb-1" style={{ marginTop: "12px" }}>
                         <div className="col-lg-4 col-md-6">
-                          <FormField label="Slot No">
+                          <FormField label="Slot No *">
                             <FormSelect
                               value={order.slotNo}
                               onChange={(e) => handleConvertOrderChange(order.id, "slotNo", e.target.value)}
                               options={slotNoOptions}
                               placeholder="Select slot no..."
+                              className={convertFormErrors[`co${index}_slotNo`] ? "is-invalid" : ""}
                             />
                           </FormField>
+                          {convertFormErrors[`co${index}_slotNo`] && <span className="dispatch-edit-error">{convertFormErrors[`co${index}_slotNo`]}</span>}
                         </div>
 
                         <div className="col-lg-4 col-md-6">
