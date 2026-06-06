@@ -88,6 +88,7 @@ import DocumentManagement from "../pages/DocumentManagement";
 import DocumentChecklist from "../pages/DocumentChecklist";
 import TaskManagement from "../pages/TaskManagement";
 import TaskRoles from "../pages/TaskChecklist";
+import LevelManagement from "../pages/LevelManagement";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -106,6 +107,7 @@ const router = createHashRouter([
       { path: "/earning-history", element: <KPIDashboard /> },
       { path: "/tasks", element: <KPIDashboard /> },
       { path: "/team-leaderboard", element: <KPIDashboard /> },
+      { path: "/level-management", element: <LevelManagement /> },
 
       // If TEST MODE, bypass all auth guards
       ...(TEST_MODE
