@@ -11089,6 +11089,37 @@ body .modal-backdrop.show {
   justify-content: flex-start;
 }
 
+.note-table-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.note-table-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 330px);
+  min-height: 0;
+}
+
+.note-thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #e2e6ff;
+}
+
+.material-table-container .table.material-table .note-thead th {
+  background-color: #e2e6ff;
+}
+
+.note-actions-th {
+  padding-left: 28px;
+}
+
+.note-empty-td {
+  text-align: center;
+  padding: 20px;
+}
+
 .note-action-btn {
   -webkit-appearance: none;
   appearance: none;
