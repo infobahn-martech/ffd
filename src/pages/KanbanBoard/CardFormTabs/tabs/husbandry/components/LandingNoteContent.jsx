@@ -19,7 +19,7 @@ import inboundOrderService from "../../../../../../services/inboundOrderService"
 import landingNoteService from "../../../../../../services/landingNoteService";
 
 // AttachmentsList Component (from Operation.jsx)
-const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
+const AttachmentsList = ({ attachments = [], onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
   return (
     <div className="document-upload-wrapper">
       <div
@@ -293,10 +293,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const [showModal, setShowModal] = useState(false);
-  const [printingId, setPrintingId] = useState(null);
   const [editorKey, setEditorKey] = useState(0);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedDeleteNote, setSelectedDeleteNote] = useState(null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [convertFormErrors, setConvertFormErrors] = useState({});
@@ -334,7 +331,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
     if (!callId) return;
     getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
-  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, landingPage]);
+  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, landingPage, getAllLandingNotes]);
 
   useEffect(() => {
     if (Array.isArray(landingNotes) && landingNotes.length > 0) {
@@ -369,8 +366,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: transport?.pickup_location || "",
         toLocation: transport ? String(transport.to_location_id || "") : "",
         driverName: transport ? String(transport.driver_id || "") : "",
-        slot_no_id: normalizeSlotValue(item.slot_no || item.slot_no_id || ""),
-        reason_id: item.reason || item.reason_name || "",
         slot_no_id: (item.slot_no_id != null && item.slot_no_id !== 0 && item.slot_no_id !== "0") ? String(item.slot_no_id) : ((item.slot_no != null && item.slot_no !== 0 && item.slot_no !== "0") ? String(item.slot_no) : ""),
         reason_id: item.reason_name || item.reason || "",
         dispatch_date: item.dispatch_date || "",
@@ -1376,7 +1371,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Packing Required */}
-                      <div>
                       <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.packing_required || false} onChange={(e) => handleConvertOrderChange(order.id, "packing_required", e.target.checked)} className="landing-convert-checkbox" />
@@ -1413,7 +1407,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {/* Transportation Required */}
-                      <div>
                       <div className="mt-2">
                         <label className="landing-convert-checkbox-label">
                           <input type="checkbox" checked={order.transportation_required || false} onChange={(e) => handleConvertOrderChange(order.id, "transportation_required", e.target.checked)} className="landing-convert-checkbox" />
@@ -1505,8 +1498,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         className="landing-convert-submit-btn"
       >
         {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
-      <button type="submit" form="convertToDispatchForm" disabled={isLoadingConvert} className="landing-convert-submit-btn">
-        {isLoadingConvert ? "Converting..." : "Convert"}
       </button>
     </div>
   );
@@ -1831,9 +1822,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         className="print-action-icon-wrap"
                       >
                         <img src={eyeIcon} alt="view" className="material-action-icon" />
-                        className="landing-action-btn"
-                      >
-                        <img src={eyeIcon} alt="view" />
                       </button>
                       <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
@@ -1861,7 +1849,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
                         data-tooltip-id={`convert-note-${note.id}`}
-                        className="print-action-icon-wrap landing-icon-brand"
                         className="landing-action-btn"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1872,14 +1859,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </button>
-                      <div className={`landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                       <div className={`action-dropdown-wrapper landing-more-actions-wrapper${openDropdownId === note.id ? " landing-more-actions-wrapper--open" : ""}`}>
                         <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
                           data-tooltip-id={`more-actions-${note.id}`}
-                          className="print-action-icon-wrap"
                           className="landing-action-btn"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1897,11 +1882,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             <button
                               type="button"
                               onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
-                              className="landing-dropdown-item"
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handleOpenModal(note);
-                              }}
                               className="landing-dropdown-item landing-dropdown-item--default"
                             >
                               <img src={editIcon} alt="edit" />
@@ -1909,11 +1889,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDeleteClick(note)}
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handleDelete(note.id);
-                              }}
+                              onClick={() => { handleCloseDropdown(); handleDelete(note.id); }}
                               className="landing-dropdown-item landing-dropdown-item--danger"
                             >
                               <img src={deleteIcon} alt="delete" />
