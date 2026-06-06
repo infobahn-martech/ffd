@@ -38,6 +38,8 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
       navigate('/tasks');
     } else if (menuId === 'Team Leaderboard') {
       navigate('/team-leaderboard');
+    } else if (menuId === 'Level Management') {
+      navigate('/level-management');
     } else if (menuId === 'Dashboard') {
       navigate('/kpi-dashboard');
     } else if (menuId === 'Master Module') {
@@ -127,6 +129,7 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
     { id: 'Tasks', label: 'Tasks', icon: TasksIcon },
     { id: 'Earning History', label: 'Earning History', icon: EarningHistoryIcon },
     { id: 'Team Leaderboard', label: 'Team Leaderboard', icon: TeamLeaderboardIcon },
+    { id: 'Level Management', label: 'Level Management', icon: TeamLeaderboardIcon },
   ];
 
   const accountItems = [

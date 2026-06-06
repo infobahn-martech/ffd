@@ -12,6 +12,7 @@ import ProfileModal from './components/ProfileModal';
 import SignOutModal from './components/SignOutModal';
 import useAuthReducer from '../../store/AuthReducer';
 import '../../design/scss/pages/kpi-dashboard/KPIDashboard.scss';
+import LevelManagement from '../LevelManagement';
 
 const KPIDashboard = () => {
     const location = useLocation();
@@ -29,6 +30,9 @@ const KPIDashboard = () => {
         }
         if (path === '/team-leaderboard') {
             return 'Team Leaderboard';
+        }
+        if (path === '/level-management') {
+            return 'Level Management';
         }
         return 'Dashboard';
     };
@@ -50,6 +54,8 @@ const KPIDashboard = () => {
             setActiveMenu('Team Leaderboard');
         } else if (path === '/kpi-dashboard') {
             setActiveMenu('Dashboard');
+        } else if (path === '/level-management') {
+            setActiveMenu('Level Management');
         }
     }, [location]);
 
@@ -61,6 +67,8 @@ const KPIDashboard = () => {
                 return <Tasks />;
             case 'Team Leaderboard':
                 return <TeamLeaderboard />;
+            case 'Level Management':
+                return <LevelManagement />;
             case 'Dashboard':
             default:
                 return (
@@ -89,6 +97,11 @@ const KPIDashboard = () => {
                 return [
                     { label: 'Dashboard', path: '/kpi-dashboard' },
                     { label: 'Team Leaderboard', path: null },
+                ];
+            case 'Level Management':
+                return [
+                    { label: 'Dashboard', path: '/kpi-dashboard' },
+                    { label: 'Level Management', path: null },
                 ];
             case 'Dashboard':
             default:

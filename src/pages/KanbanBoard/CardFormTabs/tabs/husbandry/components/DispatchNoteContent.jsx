@@ -987,10 +987,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           Dispatch Note
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container note-table-container">
-        <div className="note-table-scroll">
-          <table className="table table-striped material-table sub-note-table note-table">
-            <thead className="note-thead">
+      <div className="table-wrapper table-responsive material-table-container dispatch-note-table-container">
+        <div className="dispatch-note-table-scroll">
+          <table className="table table-striped material-table sub-note-table dispatch-note-table">
+            <thead className="dispatch-note-thead">
               <tr>
                 <th>Order No</th>
                 <th>Date</th>
@@ -999,12 +999,12 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 <th>Quantity</th>
                 <th>Package Type</th>
                 <th>Description</th>
-                <th className="note-actions-th">Actions</th>
+                <th className="dispatch-note-actions-th">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoadingList ? (
-                <tr><td colSpan="8" className="note-empty-td">Loading...</td></tr>
+                <tr><td colSpan="8" className="dispatch-note-empty-td">Loading...</td></tr>
               ) : notesList.length > 0 ? (
                 notesList.map((note) => (
                   <tr key={note.id}>
@@ -1014,9 +1014,9 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <td>
                       <div className="material-table-cell">
                         {note.deliveryProof && note.deliveryProof.length > 0 ? (
-                          <span className="note-file-link">{note.deliveryProof.length} file(s)</span>
+                          <span className="dispatch-note-file-link">{note.deliveryProof.length} file(s)</span>
                         ) : (
-                          <span className="note-no-files">No files</span>
+                          <span className="dispatch-note-no-files">No files</span>
                         )}
                       </div>
                     </td>
@@ -1027,7 +1027,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         {note.description && note.description.length > 13 ? (
                           <>
                             <Tooltip id={`description-tooltip-${note.id}`} place="right" content={note.description} className="material-table-tooltip" />
-                            <span data-tooltip-id={`description-tooltip-${note.id}`} className="note-desc-tip">
+                            <span data-tooltip-id={`description-tooltip-${note.id}`} className="dispatch-note-desc-tip">
                               {note.description.substring(0, 13)}...
                             </span>
                           </>
@@ -1036,16 +1036,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         )}
                       </div>
                     </td>
-                    <td className="note-actions-td">
-                      <div className="material-table-cell note-actions-cell">
+                    <td className="dispatch-note-actions-td">
+                      <div className="material-table-cell dispatch-note-actions-cell">
                         <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                         <button
                           type="button"
                           onClick={() => handleViewNote(note)}
                           data-tooltip-id={`view-note-${note.id}`}
-                          className="note-action-btn"
+                          className="dispatch-note-action-btn"
                         >
-                          <img src={eyeIcon} alt="view" className="note-action-icon" />
+                          <img src={eyeIcon} alt="view" className="dispatch-note-action-icon" />
                         </button>
                         <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                         <button
@@ -1067,7 +1067,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                             type="button"
                             onClick={(e) => handleToggleDropdown(note.id, e)}
                             data-tooltip-id={`more-actions-${note.id}`}
-                            className="note-action-btn"
+                            className="dispatch-note-action-btn"
                           >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <circle cx="12" cy="6" r="1.5" fill="currentColor" />
@@ -1078,23 +1078,23 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           {openDropdownId === note.id && createPortal(
                             <div
                               data-dropdown-menu
-                              className="note-dropdown-menu"
+                              className="dispatch-note-dropdown-menu"
                               style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
                             >
                               <button
                                 type="button"
                                 onClick={() => { handleCloseDropdown(); handleOpenModal(note); }}
-                                className="note-dropdown-btn"
+                                className="dispatch-note-dropdown-btn"
                               >
-                                <img src={editIcon} alt="edit" className="note-dropdown-icon" />
+                                <img src={editIcon} alt="edit" className="dispatch-note-dropdown-icon" />
                                 <span>Edit</span>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => { handleCloseDropdown(); handleDelete(note); }}
-                                className="note-dropdown-btn note-dropdown-btn--danger"
+                                className="dispatch-note-dropdown-btn dispatch-note-dropdown-btn--danger"
                               >
-                                <img src={deleteIcon} alt="delete" className="note-dropdown-icon" />
+                                <img src={deleteIcon} alt="delete" className="dispatch-note-dropdown-icon" />
                                 <span>Delete</span>
                               </button>
                             </div>,
@@ -1107,7 +1107,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="note-empty-td">No dispatch notes added yet.</td>
+                  <td colSpan="8" className="dispatch-note-empty-td">No dispatch notes added yet.</td>
                 </tr>
               )}
             </tbody>

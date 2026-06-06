@@ -11028,45 +11028,58 @@ body .modal-backdrop.show {
   }
 }
 
-/* ── Shared sub-tab table layout (Dispatch, Inbound, Material) ── */
-.note-table-container {
+/* ── Dispatch Note table ────────────────────────────────── */
+.dispatch-note-table-container {
   display: flex;
   flex-direction: column;
 }
 
-.note-table-scroll {
+.dispatch-note-table-scroll {
   overflow-y: auto;
   max-height: calc(100vh - 330px);
   min-height: 0;
 }
 
-.note-table {
+.dispatch-note-table {
   --card-color: #e2e6ff;
   table-layout: fixed;
 }
 
-.note-thead {
+.dispatch-note-thead {
   position: sticky;
   top: 0;
   z-index: 1;
   background-color: #fff;
 }
 
-.note-actions-th {
+.dispatch-note-actions-th {
   padding-left: 28px;
 }
 
-.note-empty-td {
+.dispatch-note-empty-td {
   text-align: center;
   padding: 20px;
 }
 
-.note-actions-td {
+.dispatch-note-file-link {
+  color: #00368c;
+  cursor: pointer;
+}
+
+.dispatch-note-no-files {
+  color: #999;
+}
+
+.dispatch-note-desc-tip {
+  cursor: help;
+}
+
+.dispatch-note-actions-td {
   position: relative;
   overflow: visible;
 }
 
-.note-actions-cell {
+.dispatch-note-actions-cell {
   position: relative;
   overflow: visible;
   display: flex;
@@ -11096,7 +11109,7 @@ body .modal-backdrop.show {
   }
 }
 
-.note-action-icon {
+.dispatch-note-action-icon {
   width: 18px;
   height: 18px;
 }
@@ -11110,7 +11123,7 @@ body .modal-backdrop.show {
   }
 }
 
-.note-dropdown-menu {
+.dispatch-note-dropdown-menu {
   position: fixed;
   background-color: #fff;
   border: 1px solid #e2e2ea;
@@ -11121,7 +11134,7 @@ body .modal-backdrop.show {
   padding: 4px 0;
 }
 
-.note-dropdown-btn {
+.dispatch-note-dropdown-btn {
   width: 100%;
   padding: 10px 16px;
   background-color: transparent;
@@ -11144,35 +11157,7 @@ body .modal-backdrop.show {
   }
 }
 
-.note-dropdown-icon {
+.dispatch-note-dropdown-icon {
   width: 16px;
   height: 16px;
-}
-
-.note-desc-tip {
-  cursor: help;
-}
-
-.note-file-link {
-  color: #00368c;
-  cursor: pointer;
-}
-
-.note-no-files {
-  color: #999;
-}
-
-.btn-modal-submit {
-  background-color: #00368c;
-  border-color: #00368c;
-
-  &:hover,
-  &:focus {
-    background-color: #002a6e;
-    border-color: #002a6e;
-  }
-}
-
-.slot-reason-row {
-  margin-top: 12px;
 }
