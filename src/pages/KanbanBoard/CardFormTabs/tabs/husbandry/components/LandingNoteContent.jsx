@@ -1061,7 +1061,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     className={`landing-edit-item-header${expandedEditItems[item.id] ? " landing-edit-item-header--expanded" : ""}`}
                     onClick={() => toggleEditItemExpand(item.id)}
                   >
-                    <span className="landing-edit-item-title-text">
                     <span className="fw-semibold landing-edit-item-title-text">
                       Item {index + 1}{item.order_no ? ` — ${item.order_no}` : ""}
                     </span>
