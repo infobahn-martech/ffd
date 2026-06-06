@@ -980,8 +980,8 @@ function PreArrival({
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="operation-tab-layout">
-          <div className="pre-arrival-form operation-tab-scroll">
-            <div className="operation-prearrival-grid">
+          <div className="pre-arrival-form">
+            <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
               <OperationFormCard className="operation-form-column">
                 <div
                   className={`prearrival-timeobject-highlight ${formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
@@ -1081,17 +1081,6 @@ function PreArrival({
                     </FormField>
                   )
                 )}
-              </OperationFormCard>
-              <OperationFormCard className="operation-document-column">
-                <PreArrivalDocumentHandlingSection
-                  formValues={formValues}
-                  handleChange={handleChange}
-                  isViewOnly={isViewOnly}
-                  portId={portId}
-                  callId={callId}
-                  assigneeHints={preArrivalDetailAssigneeHints}
-                  detailDocSkip={preArrivalDetailDocSkip}
-                />
               </OperationFormCard>
               <OperationFormCard className="operation-email-column">
                 <OperationEmailPreviewPanel

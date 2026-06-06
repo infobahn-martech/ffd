@@ -1739,13 +1739,26 @@ $send-report-optional: #80868b;
 
 .operation-prearrival-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 4px 0 0;
+}
+
+.operation-prearrival-grid--split-scroll {
+  height: 100%;
+  overflow: hidden;
+  padding-right: 0;
+}
+
+.operation-prearrival-grid--split-scroll .operation-form-column,
+.operation-prearrival-grid--split-scroll .operation-email-column {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .prearrival-timeobject-highlight.is-warning {
@@ -2115,6 +2128,7 @@ $send-report-optional: #80868b;
   overflow-x: hidden;
 }
 
+.pre-arrival-form,
 .arrival-form,
 .departure-form {
   overflow: hidden;
@@ -10310,26 +10324,28 @@ body .modal-backdrop.show {
    LANDING NOTE — EDIT MODAL
    =========================================================== */
 
+// Landing Note — edit modal
 .landing-edit-section-title {
   font-size: 16px;
 }
 
 .landing-edit-item-title-text {
   font-size: 14px;
+  font-weight: 600;
 }
 
 .landing-edit-error-msg {
   font-size: 12px;
+  color: #dc3545;
+  display: block;
 }
 
 .landing-edit-transport-label-text {
   font-size: 14px;
+  font-weight: 600;
 }
 
-/* ===========================================================
-   LANDING NOTE — CONVERT MODAL
-   =========================================================== */
-
+// Landing Note — convert modal
 .landing-convert-info-bar {
   margin-bottom: 16px;
   padding: 10px 14px;
@@ -10349,7 +10365,6 @@ body .modal-backdrop.show {
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 14px;
-  margin-top: 0;
   color: #1a1a1a;
 }
 
@@ -10360,7 +10375,7 @@ body .modal-backdrop.show {
   margin-bottom: 14px;
 
   .landing-convert-section-title {
-    margin-bottom: 0;
+    margin: 0;
   }
 }
 
@@ -10372,6 +10387,10 @@ body .modal-backdrop.show {
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
+
+  &:hover {
+    background-color: darken(#00368c, 8%);
+  }
 }
 
 .landing-convert-order-card {
@@ -10443,8 +10462,8 @@ body .modal-backdrop.show {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  margin-top: 10px;
   margin-bottom: 8px;
+  margin-top: 10px;
 }
 
 .landing-convert-checkbox {
@@ -10462,7 +10481,6 @@ body .modal-backdrop.show {
 .landing-convert-error {
   color: #dc3545;
   font-size: 12px;
-  display: block;
 }
 
 .landing-convert-footer {
@@ -10489,9 +10507,12 @@ body .modal-backdrop.show {
   color: white;
   border: none;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: 500;
+
+  &:not(:disabled) {
+    cursor: pointer;
+  }
 
   &:disabled {
     cursor: not-allowed;
@@ -10499,10 +10520,7 @@ body .modal-backdrop.show {
   }
 }
 
-/* ===========================================================
-   LANDING NOTE — TABLE
-   =========================================================== */
-
+// Landing Note — table
 .landing-table-wrapper {
   display: flex;
   flex-direction: column;
@@ -10532,11 +10550,19 @@ body .modal-backdrop.show {
   padding-left: 28px;
 }
 
-.landing-table-loading,
-.landing-table-empty {
+.landing-table-loading {
   text-align: center;
   padding: 20px;
   color: #666;
+}
+
+.landing-table-empty {
+  text-align: center;
+  padding: 20px;
+}
+
+.landing-icon-brand {
+  color: #00368c !important;
 }
 
 .landing-table-proof-link {
@@ -10649,13 +10675,355 @@ body .modal-backdrop.show {
     width: 16px;
     height: 16px;
   }
-}
 
-@keyframes landing-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+  /* ===========================================================
+   LANDING NOTE — EDIT MODAL
+   =========================================================== */
 
-.landing-spin {
-  animation: landing-spin 1s linear infinite;
+  .landing-edit-section-title {
+    font-size: 16px;
+  }
+
+  .landing-edit-item-title-text {
+    font-size: 14px;
+  }
+
+  .landing-edit-error-msg {
+    font-size: 12px;
+  }
+
+  .landing-edit-transport-label-text {
+    font-size: 14px;
+  }
+
+  /* ===========================================================
+   LANDING NOTE — CONVERT MODAL
+   =========================================================== */
+
+  .landing-convert-info-bar {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: #f0f4ff;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #00368c;
+  }
+
+  .landing-convert-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e2ea;
+  }
+
+  .landing-convert-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    margin-top: 0;
+    color: #1a1a1a;
+  }
+
+  .landing-convert-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+
+    .landing-convert-section-title {
+      margin-bottom: 0;
+    }
+  }
+
+  .landing-convert-add-btn {
+    padding: 8px 16px;
+    background-color: #00368c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .landing-convert-order-card {
+    margin-bottom: 12px;
+    border: 1px solid #e2e2ea;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .landing-convert-order-header {
+    padding: 10px 16px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .landing-convert-order-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .landing-convert-order-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .landing-convert-remove-btn {
+    padding: 4px 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .landing-convert-chevron {
+    transition: transform 0.2s;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  .landing-convert-order-body {
+    padding: 16px;
+    background-color: white;
+  }
+
+  .landing-convert-dispatch-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e2ea;
+  }
+
+  .landing-convert-dispatch-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 10px;
+  }
+
+  .landing-convert-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 8px;
+  }
+
+  .landing-convert-checkbox {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+  }
+
+  .landing-convert-checkbox-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .landing-convert-error {
+    color: #dc3545;
+    font-size: 12px;
+    display: block;
+  }
+
+  .landing-convert-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+  }
+
+  .landing-convert-cancel-btn {
+    padding: 10px 20px;
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #e2e2ea;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .landing-convert-submit-btn {
+    padding: 10px 20px;
+    background-color: #00368c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+
+  /* ===========================================================
+   LANDING NOTE — TABLE
+   =========================================================== */
+
+  .landing-table-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .landing-table-scroll {
+    overflow-y: auto;
+    max-height: calc(100vh - 330px);
+    min-height: 0;
+  }
+
+  .landing-table {
+    --card-color: #e2e6ff;
+    table-layout: fixed;
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background-color: #fff;
+    }
+  }
+
+  .landing-table-actions-th {
+    padding-left: 28px;
+  }
+
+  .landing-table-loading,
+  .landing-table-empty {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+  }
+
+  .landing-table-proof-link {
+    color: #00368c;
+    cursor: pointer;
+  }
+
+  .landing-table-proof-none {
+    color: #999;
+  }
+
+  .landing-table-description {
+    cursor: help;
+  }
+
+  .landing-table-actions-td {
+    position: relative;
+    white-space: nowrap;
+    overflow: visible;
+  }
+
+  .landing-table-actions-cell {
+    position: relative;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .landing-action-btn {
+    padding: 6px 8px;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00368c;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background-color: #f0f0f0;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    img {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .landing-more-actions-wrapper {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+
+    &--open {
+      z-index: 9999;
+    }
+  }
+
+  .landing-dropdown-menu {
+    position: fixed;
+    background-color: white;
+    border: 1px solid #e2e2ea;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 99999;
+    min-width: 180px;
+    padding: 4px 0;
+  }
+
+  .landing-dropdown-item {
+    width: 100%;
+    padding: 10px 16px;
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1a1a1a;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+
+    &--danger {
+      color: #dc3545;
+    }
+
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  @keyframes landing-spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .landing-spin {
+    animation: landing-spin 1s linear infinite;
+  }
 }
