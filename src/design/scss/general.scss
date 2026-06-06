@@ -2457,17 +2457,17 @@
 
 .cf-multi-select-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  max-height: 320px;
+  z-index: 9999;
+  max-height: 260px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 0;
   min-width: 100%;
   width: 100%;
   box-sizing: border-box;
@@ -2475,11 +2475,27 @@
 
 .cf-multi-select-dropdown--filterable {
   z-index: 10000;
-  max-height: 320px;
+  max-height: 260px;
   display: flex;
   flex-direction: column;
   padding: 0;
   overflow: hidden;
+}
+
+.cf-multi-select-dropdown--portal,
+.cf-multi-select-dropdown.cf-searchable-select__menu-portal {
+  position: fixed !important;
+  z-index: 13000 !important;
+  margin-top: 0 !important;
+  min-width: 0;
+
+  .cf-multi-select-results {
+    max-height: none;
+  }
+
+  .cf-multi-select-options-scroll {
+    max-height: none;
+  }
 }
 
 .cf-multi-select-filter {
@@ -2493,7 +2509,7 @@
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 210px;
+  max-height: none;
 }
 
 .cf-multi-select-filter-input {
@@ -2515,7 +2531,7 @@
   overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 210px;
+  max-height: 180px;
   padding: 2px 0;
 }
 

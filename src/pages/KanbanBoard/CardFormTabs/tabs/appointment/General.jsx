@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
-import { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../design/scss/general.scss";
@@ -765,26 +766,72 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
   const [isAddingNewEmail, setIsAddingNewEmail] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
+  const menuPortalRef = useRef(null);
+  const [portalMenuBox, setPortalMenuBox] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    maxHeight: 320,
+  });
+
+  const updatePortalMenuPosition = useCallback(() => {
+    if (!isOpen) return;
+    const el = triggerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const gap = 8;
+    const viewportPad = 8;
+    const maxMenu = 320;
+    const spaceAbove = rect.top - gap - viewportPad;
+    const spaceBelow = window.innerHeight - rect.bottom - gap - viewportPad;
+    const placeTop = spaceBelow < 180 && spaceAbove > spaceBelow;
+    const availableSpace = placeTop ? spaceAbove : spaceBelow;
+    const maxHeight = Math.min(maxMenu, Math.max(120, availableSpace));
+    const top = placeTop ? Math.max(viewportPad, rect.top - gap - maxHeight) : rect.bottom + gap;
+
+    setPortalMenuBox({
+      top,
+      left: rect.left,
+      width: rect.width,
+      maxHeight,
+    });
+  }, [isOpen]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+    updatePortalMenuPosition();
+    const rafId = requestAnimationFrame(updatePortalMenuPosition);
+    const onScrollOrResize = () => updatePortalMenuPosition();
+    window.addEventListener("resize", onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, true);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize, true);
+    };
+  }, [isOpen, updatePortalMenuPosition]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isAddingNewEmail) return;
+      const target = event.target;
+      if (dropdownRef.current?.contains(target)) return;
+      if (menuPortalRef.current?.contains(target)) return;
+      setIsOpen(false);
+      setShowAddInput(false);
+      setFilterQuery("");
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isAddingNewEmail]);
 
   const valuesEqual = (a, b) => String(a) === String(b);
   const valueToLabel = (val) => {
     const opt = options.find((o) => valuesEqual(o.value, val));
     return opt?.label ?? String(val);
   };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isAddingNewEmail) return;
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-        setShowAddInput(false);
-        setFilterQuery("");
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isAddingNewEmail]);
 
   useEffect(() => {
     if (!isOpen) setFilterQuery("");
@@ -877,9 +924,113 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
     }
   };
 
+  const dropdownPanel = (
+    <div
+      ref={menuPortalRef}
+      className="cf-multi-select-dropdown cf-multi-select-dropdown--filterable cf-multi-select-dropdown--portal cf-searchable-select__menu-portal"
+      style={{
+        position: "fixed",
+        top: portalMenuBox.top,
+        left: portalMenuBox.left,
+        width: portalMenuBox.width,
+        maxWidth: portalMenuBox.width,
+        minWidth: 0,
+        right: "auto",
+        margin: 0,
+        maxHeight: portalMenuBox.maxHeight,
+        zIndex: 13000,
+        overflow: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
+      <div className="cf-multi-select-filter" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="text"
+          className="cf-multi-select-filter-input"
+          value={filterQuery}
+          onChange={(e) => setFilterQuery(e.target.value)}
+          placeholder={filterPlaceholder}
+          autoComplete="off"
+        />
+      </div>
+      <div className="cf-multi-select-results">
+        <div className="cf-multi-select-options-scroll">
+          {filteredOptions.length === 0 ? (
+            <div className="cf-multi-select-no-results">No results found</div>
+          ) : (
+            filteredOptions.map((option) => {
+              const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
+              return (
+                <div
+                  key={String(option.value)}
+                  className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleToggle(option.value);
+                  }}
+                >
+                  <span className="cf-multi-select-checkbox">
+                    {isSelected && "✓"}
+                  </span>
+                  <span>{option.label}</span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+      <div className="cf-multi-select-footer" onMouseDown={(e) => e.stopPropagation()}>
+        {!showAddInput ? (
+          <div
+            className="cf-multi-select-option add-new"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setShowAddInput(true);
+              setNewEmail("");
+            }}
+          >
+            <span>+ Add New Email</span>
+          </div>
+        ) : (
+          <div className="cf-multi-select-add-input" onMouseDown={(e) => e.stopPropagation()}>
+            <input
+              type="email"
+              placeholder="Enter email address..."
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              onKeyDown={handleKeyPress}
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              type="button"
+              className="cf-add-email-btn"
+              onClick={handleAddNewEmail}
+              disabled={isAddingNewEmail || !newEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())}
+            >
+              {isAddingNewEmail ? "..." : "✓"}
+            </button>
+            <button
+              type="button"
+              className="cf-cancel-email-btn"
+              disabled={isAddingNewEmail}
+              onClick={() => {
+                setNewEmail("");
+                setShowAddInput(false);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""}`} ref={dropdownRef}>
       <div
+        ref={triggerRef}
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
         style={{ pointerEvents: disabled ? "none" : "auto" }}
@@ -906,91 +1057,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
         </div>
         <span className="cf-multi-select-arrow">▼</span>
       </div>
-      {isOpen && (
-        <div className="cf-multi-select-dropdown cf-multi-select-dropdown--filterable">
-          <div className="cf-multi-select-filter" onClick={(e) => e.stopPropagation()}>
-            <input
-              type="text"
-              className="cf-multi-select-filter-input"
-              value={filterQuery}
-              onChange={(e) => setFilterQuery(e.target.value)}
-              placeholder={filterPlaceholder}
-              autoComplete="off"
-            />
-          </div>
-          <div className="cf-multi-select-results">
-            <div className="cf-multi-select-options-scroll">
-              {filteredOptions.length === 0 ? (
-                <div className="cf-multi-select-no-results">No results found</div>
-              ) : (
-                filteredOptions.map((option) => {
-                  const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
-                  return (
-                    <div
-                      key={String(option.value)}
-                      className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleToggle(option.value);
-                      }}
-                    >
-                      <span className="cf-multi-select-checkbox">
-                        {isSelected && "✓"}
-                      </span>
-                      <span>{option.label}</span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-          <div className="cf-multi-select-footer" onMouseDown={(e) => e.stopPropagation()}>
-            {!showAddInput ? (
-              <div
-                className="cf-multi-select-option add-new"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setShowAddInput(true);
-                  setNewEmail("");
-                }}
-              >
-                <span>+ Add New Email</span>
-              </div>
-            ) : (
-              <div className="cf-multi-select-add-input" onMouseDown={(e) => e.stopPropagation()}>
-                <input
-                  type="email"
-                  placeholder="Enter email address..."
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  autoFocus
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <button
-                  type="button"
-                  className="cf-add-email-btn"
-                  onClick={handleAddNewEmail}
-                  disabled={isAddingNewEmail || !newEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())}
-                >
-                  {isAddingNewEmail ? "..." : "✓"}
-                </button>
-                <button
-                  type="button"
-                  className="cf-cancel-email-btn"
-                  disabled={isAddingNewEmail}
-                  onClick={() => {
-                    setNewEmail("");
-                    setShowAddInput(false);
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {isOpen && typeof document !== "undefined" && createPortal(dropdownPanel, document.body)}
     </div>
   );
 };
