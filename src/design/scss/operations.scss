@@ -6742,7 +6742,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 .material-add-btn {
-  background: #e2e6ff !important;
+  background: #00368c !important;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -10009,7 +10009,7 @@ body .modal-backdrop.show {
 .dispatch-edit-section-title {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 14px;
+  margin: 0;
   color: #1a1a1a;
 }
 
@@ -11026,4 +11026,149 @@ body .modal-backdrop.show {
   .landing-spin {
     animation: landing-spin 1s linear infinite;
   }
+}
+
+/* ── Shared sub-tab table layout (Dispatch, Inbound, Material) ── */
+.note-table-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.note-table-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 330px);
+  min-height: 0;
+}
+
+.note-table {
+  --card-color: #e2e6ff;
+  table-layout: fixed;
+}
+
+.note-thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #fff;
+}
+
+.note-actions-th {
+  padding-left: 28px;
+}
+
+.note-empty-td {
+  text-align: center;
+  padding: 20px;
+}
+
+.note-actions-td {
+  position: relative;
+  overflow: visible;
+}
+
+.note-actions-cell {
+  position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.note-action-btn {
+  padding: 6px 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00368c;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.note-action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.action-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+
+  &--open {
+    z-index: 9999;
+  }
+}
+
+.note-dropdown-menu {
+  position: fixed;
+  background-color: #fff;
+  border: 1px solid #e2e2ea;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 99999;
+  min-width: 180px;
+  padding: 4px 0;
+}
+
+.note-dropdown-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #44444f;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &--danger {
+    color: #dc3545;
+  }
+}
+
+.note-dropdown-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.note-desc-tip {
+  cursor: help;
+}
+
+.note-file-link {
+  color: #00368c;
+  cursor: pointer;
+}
+
+.note-no-files {
+  color: #999;
+}
+
+.btn-modal-submit {
+  background-color: #00368c;
+  border-color: #00368c;
+
+  &:hover,
+  &:focus {
+    background-color: #002a6e;
+    border-color: #002a6e;
+  }
+}
+
+.slot-reason-row {
+  margin-top: 12px;
 }
