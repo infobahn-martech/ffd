@@ -1117,7 +1117,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               <FormSelect
                                 value={item.reason}
                                 onChange={(e) => handleEditItemChange(item.id, "reason", e.target.value)}
-                                options={mergeOptionForValue(reasonOptions, item.reason)}
+                                options={reasonOptions}
                                 placeholder="Select reason..."
                               />
                             </FormField>
