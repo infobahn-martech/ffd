@@ -155,6 +155,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [editItems, setEditItems] = useState([emptyEditItem(1)]);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   const [formData, setFormData] = useState({
     landing_note_id: "",
@@ -254,6 +255,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       cb: (detail) => {
         if (!detail) return;
         const [datePart, timePart] = (detail.dispatch_date || "").split(" ");
+        setEditorKey((k) => k + 1);
         setFormData({
           landing_note_id: String(detail.landing_note_id || ""),
           warehouse_id: String(detail.warehouse_id || ""),
