@@ -101,7 +101,7 @@ const KPIDashboard = () => {
             case 'Level Management':
                 return [
                     { label: 'Dashboard', path: '/kpi-dashboard' },
-                    { label: 'Level Management', path: null },
+                    { label: 'KPI Level Management', path: null },
                 ];
             case 'Dashboard':
             default:

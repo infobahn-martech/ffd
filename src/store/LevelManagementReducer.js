@@ -1,79 +1,53 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
-import vehicleService from '../services/vehicleService';
+import levelManagementService from '../services/levelManagementService';
 
-const useVehicleReducer = create((set) => ({
+const useLevelManagementReducer = create((set) => ({
   isLoading: false,
-  errorMessage: '',
-  successMessage: '',
-  vehicles: [],
   isBeingUpdated: false,
-  isDeleteLoading: false,
-  totalCount: 0,
-  addVehicle: async ({ formData, cb }) => {
-    try {
-      set({ isBeingUpdated: true });
-      const { data } = await vehicleService.addVehicle(formData);
-      set({ successMessage: data.message, isBeingUpdated: false });
-      const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
-    } catch (err) {
-      const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong with adding a vehicle',
-        isBeingUpdated: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
-    }
-  },
-  getVehicles: async ({ params }) => {
+  levels: [],
+  getLevels: async () => {
     try {
       set({ isLoading: true });
-      const { data } = await vehicleService.fetchVehicles({ params });
+      const { data } = await levelManagementService.getAllKpiLevels();
       set({
-        vehicles: data?.data ?? [],
-        totalCount: data?.pagination?.total ?? 0,
+        levels: data?.data ?? data ?? [],
         isLoading: false,
       });
-    } catch (error) {
-      set({ errorMessage: error.message, isLoading: false, vehicles: [], totalCount: 0 });
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ levels: [], isLoading: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to load KPI levels');
     }
   },
-  updateVehicle: async ({ formData, cb }) => {
+  addLevel: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await vehicleService.updateVehicle(formData);
-      set({ successMessage: data.message, isBeingUpdated: false });
+      const { data } = await levelManagementService.addKpiLevel(formData);
+      set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
+      success(data?.message ?? 'KPI level added successfully');
+      cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong updating the vehicle',
-        isBeingUpdated: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
+      set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to add KPI level');
     }
   },
-  deleteVehicle: async ({ id, cb }) => {
+  updateLevel: async ({ formData, cb }) => {
     try {
-      set({ isDeleteLoading: true });
-      const { data } = await vehicleService.deleteVehicle(id);
+      set({ isBeingUpdated: true });
+      const { data } = await levelManagementService.updateKpiLevel(formData);
+      set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data?.message ?? 'Vehicle type deleted successfully');
-      set({ isDeleteLoading: false });
-      cb && cb();
+      success(data?.message ?? 'KPI level updated successfully');
+      cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: err?.response?.data?.message ?? err.message,
-        isDeleteLoading: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
+      set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to update KPI level');
     }
   },
 }));
 
-export default useVehicleReducer;
+export default useLevelManagementReducer;

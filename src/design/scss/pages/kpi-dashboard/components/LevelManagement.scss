@@ -1,0 +1,535 @@
+.level-management {
+  padding: 24px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  &__toolbar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  &__search {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+
+    @media (max-width: 768px) {
+      max-width: 100%;
+    }
+
+    &-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.6);
+      width: 18px;
+      height: 18px;
+    }
+
+    &-input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: rgba(15, 23, 55, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 14px;
+      font-family: 'Open Sans', sans-serif;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #0075ff;
+        background: rgba(15, 23, 55, 0.9);
+        box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.1);
+      }
+    }
+  }
+
+  &__add-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #0075ff;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 117, 255, 0.3);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background: #0066dd;
+      box-shadow: 0 6px 16px rgba(0, 117, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      justify-content: center;
+    }
+  }
+
+  &__table-wrapper {
+    background: rgba(15, 23, 55, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    overflow-x: auto;
+  }
+
+  &__loading {
+    padding: 48px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  &__summary {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 0;
+
+    &-text {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Open Sans', sans-serif;
+    }
+  }
+}
+
+.level-mgmt-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  background: transparent;
+
+  &__header {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    font-family: 'Open Sans', sans-serif;
+    background: rgba(5, 11, 39, 0.5);
+  }
+
+  &__row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background 0.2s ease;
+    background: transparent;
+
+    &:hover {
+      background: rgba(15, 23, 55, 0.4);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__cell {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #ffffff;
+    font-family: 'Open Sans', sans-serif;
+    vertical-align: middle;
+
+    &--name {
+      font-weight: 500;
+    }
+
+    &--actions {
+      width: 80px;
+      text-align: center;
+    }
+  }
+
+  &__badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(0, 117, 255, 0.1);
+    border: 1px solid rgba(0, 117, 255, 0.2);
+    padding: 4px;
+  }
+
+  &__badge-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+
+  &__badge-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+  }
+
+  &__points {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__points-value {
+    font-weight: 500;
+    color: #ffffff;
+  }
+
+  &__range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+  }
+
+  &__progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0075ff 0%, #00b4ff 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: absolute;
+    top: 0;
+  }
+
+  &__range-text {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  &__edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(0, 117, 255, 0.15);
+    border: 1px solid rgba(0, 117, 255, 0.3);
+    color: #0075ff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      background: rgba(0, 117, 255, 0.3);
+      border-color: #0075ff;
+      transform: scale(1.05);
+    }
+  }
+
+  &__empty {
+    padding: 48px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    font-family: 'Open Sans', sans-serif;
+  }
+}
+
+.level-mgmt-modal {
+  .modal-content {
+    background: linear-gradient(135deg, #1a1f37 0%, #0f1422 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px 32px;
+    background: rgba(26, 31, 55, 0.6);
+  }
+
+  .modal-title {
+    color: #fff;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .modal-body {
+    padding: 24px 32px;
+    background: transparent;
+  }
+
+  .modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 32px;
+    background: rgba(26, 31, 55, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  &__field {
+    margin-bottom: 20px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+    font-family: 'Open Sans', sans-serif;
+
+    .required {
+      color: #ff6b6b;
+    }
+  }
+
+  &__input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(15, 23, 55, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: 'Open Sans', sans-serif;
+    transition: all 0.3s ease;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #0075ff;
+      box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.15);
+    }
+
+    &.is-invalid {
+      border-color: #ff6b6b;
+    }
+  }
+
+  &__error {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #ff6b6b;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  &__file-upload {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(15, 23, 55, 0.5);
+
+    &:hover,
+    &--dragging {
+      border-color: #0075ff;
+      background: rgba(0, 117, 255, 0.08);
+    }
+
+    input[type='file'] {
+      display: none;
+    }
+  }
+
+  &__file-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__file-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  &__file-text {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  &__file-name {
+    font-size: 13px;
+    color: #0075ff;
+    font-weight: 500;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  &__file-clear {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &--cancel {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    &--save {
+      background: #0075ff;
+      border: none;
+      color: #ffffff;
+
+      &:hover:not(:disabled) {
+        background: #0066dd;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .level-mgmt-table {
+    &__header,
+    &__cell {
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .level-management {
+    padding: 16px;
+
+    &__title {
+      font-size: 24px;
+    }
+  }
+
+  .level-mgmt-table {
+    &__header,
+    &__cell {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+
+    &__badge {
+      width: 40px;
+      height: 40px;
+    }
+
+    &__badge-icon {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .level-mgmt-modal {
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      padding: 16px 20px;
+    }
+  }
+}
