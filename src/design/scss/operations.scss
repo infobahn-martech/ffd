@@ -11079,7 +11079,8 @@ body .modal-backdrop.show {
   overflow: visible;
 }
 
-.dispatch-note-actions-cell {
+.dispatch-note-actions-cell,
+.note-actions-cell {
   position: relative;
   overflow: visible;
   display: flex;
