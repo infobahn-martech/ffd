@@ -754,7 +754,7 @@ $send-report-optional: #80868b;
   /* Override all buttons to use #00368c */
   .checklist-btn-primary,
   .btn-primary,
-  button[class*="btn"] {
+  button[class*="btn"]:not(.landing-action-btn):not(.print-action-icon-wrap) {
     background: #e2e6ff !important;
     border-color: #e2e6ff !important;
     color: #1a1a1a !important;
@@ -10570,15 +10570,26 @@ body .modal-backdrop.show {
 
 .landing-action-btn {
   padding: 6px 8px;
-  background-color: transparent;
-  border: none;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00368c;
+  color: #00368c !important;
   flex-shrink: 0;
+
+  &:hover,
+  &:active,
+  &:focus {
+    background: transparent !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
 
   &:disabled {
     cursor: not-allowed;
