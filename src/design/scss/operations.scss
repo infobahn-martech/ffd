@@ -10578,12 +10578,7 @@ body .modal-backdrop.show {
   align-items: center;
   justify-content: center;
   color: #00368c;
-  transition: background-color 0.2s;
   flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background-color: #f0f0f0;
-  }
 
   &:disabled {
     cursor: not-allowed;
