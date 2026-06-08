@@ -236,7 +236,11 @@ const mapCallDetailToFormFields = (detail) => {
     project: detail?.project_name ? String(detail.project_name) : "",
     dailyReportEmail,
     billingInstructionEmails,
-    billingInstructions: detail?.billing_instruction ? String(detail.billing_instruction) : "",
+    billingInstructions: detail?.billing_instruction_det
+      ? String(detail.billing_instruction_det)
+      : detail?.billing_instruction
+        ? String(detail.billing_instruction)
+        : "",
     cardDescription: detail?.card_description ? String(detail.card_description) : "",
     appointmentEmailName: detail?.appointment_email ? String(detail.appointment_email).trim() : "",
     appointmentEmailUrl: detail?.appointment_email_url ? String(detail.appointment_email_url).trim() : "",
@@ -1622,7 +1626,7 @@ const ALL_DETAIL_SCALAR_FIELD_MAP = [
   ["po_number", "poNumber"],
   ["srt_number", "srtNo"],
   ["project_name", "project"],
-  ["billing_instruction", "billingInstructions"],
+  ["billing_instruction_det", "billingInstructions"],
 ];
 
 const formatPreviewDate = (date = new Date()) =>
@@ -2609,6 +2613,8 @@ function General({
         })
         .filter(Boolean),
       appointment_acceptance: appointmentAcceptanceForSubmit,
+      instruction_type: billingInstructionType,
+      billing_instruction_det: getFieldValue("billingInstructions") ?? "",
     };
 
     setIsSavingGeneral(true);

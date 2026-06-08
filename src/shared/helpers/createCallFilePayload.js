@@ -142,6 +142,9 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
   fd.append("daily_report_emails", toJsonArrayString(daily));
 
+  appendStringField("instruction_type", fv.instruction_type);
+  appendStringField("billing_instruction_det", fv.billing_instruction_det);
+
   const billingInst = resolveSelectionsToNumericReferenceIds(
     fv.billingInstructionEmails,
     billingInstructionEmailOptions,
