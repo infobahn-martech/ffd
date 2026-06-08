@@ -25,30 +25,32 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-        customerId: showModal?.customerId || "",
-        billingEntityName: showModal?.billingEntityName,
-        vatNumber: showModal?.vatNumber || "",
-        email: showModal?.email,
-        phone: showModal?.phone || "",
-        addressLine1: showModal?.addressLine1,
+        customerId: showModal?.customer_code || showModal?.customerId || "",
+        billingEntityName: showModal?.billing_entity || showModal?.billingEntityName || "",
+        vatNumber: showModal?.vatNo || showModal?.vatNumber || "",
+        email: showModal?.email || "",
+        phone: showModal?.phoneNumber || showModal?.phone || "",
+        addressLine1: showModal?.addressLine1 || "",
+        creditLimit: showModal?.credit_limit || showModal?.creditLimit || "",
       }
       : {
         phone: "",
+        creditLimit: "",
       },
   });
 
   useEffect(() => {
-    // Update form when showModal changes
     if (showModal?._id) {
       reset({
-        customerId: showModal?.customerId || "",
-        billingEntityName: showModal?.billingEntityName,
-        vatNumber: showModal?.vatNumber || "",
-        email: showModal?.email,
-        phone: showModal?.phone || "",
-        addressLine1: showModal?.addressLine1,
+        customerId: showModal?.customer_code || showModal?.customerId || "",
+        billingEntityName: showModal?.billing_entity || showModal?.billingEntityName || "",
+        vatNumber: showModal?.vatNo || showModal?.vatNumber || "",
+        email: showModal?.email || "",
+        phone: showModal?.phoneNumber || showModal?.phone || "",
+        addressLine1: showModal?.addressLine1 || "",
+        creditLimit: showModal?.credit_limit || showModal?.creditLimit || "",
       });
-      setLogoImagePreview(showModal?.logo_path || userIcon);
+      setLogoImagePreview(showModal?.entity_logo || showModal?.logo_path || userIcon);
       setLogoImage(null);
     } else {
       reset({
@@ -58,6 +60,7 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
         vatNumber: "",
         email: "",
         addressLine1: "",
+        creditLimit: "",
       });
       setLogoImagePreview(userIcon);
       setLogoImage(null);
@@ -76,19 +79,17 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
     }
   };
 
-  console.log("errors", errors)
-
   const onSubmit = async (data) => {
     try {
       const formData = new FormData();
 
-      // Map form data to API format
       formData.append("customerId", data.customerId || "");
       formData.append("billingEntityName", data.billingEntityName);
       formData.append("vatNumber", data.vatNumber || "");
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("addressLine1", data.addressLine1);
+      formData.append("creditLimit", data.creditLimit || "");
 
       // Append logo image
       if (logoImage) {
@@ -310,12 +311,33 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
                 <textarea
                   className={`form-control ${errors.addressLine1 ? "is-invalid" : ""}`}
                   placeholder="Address Line 1"
-                  style={{ height: "100px" }}
                   {...register("addressLine1", { required: "Address Line 1 is required" })}
                 ></textarea>
                 <label>Address Line 1 <span className="text-danger">*</span></label>
                 {errors.addressLine1 && (
                   <span className="error text-danger">{errors.addressLine1.message}</span>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* ROW 4 — Credit Limit */}
+          <div className="permInputs row mb-lg-3">
+
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={`form-control ${errors.creditLimit ? "is-invalid" : ""}`}
+                  placeholder="Credit Limit"
+                  {...register("creditLimit")}
+                />
+                <label>Credit Limit</label>
+                {errors.creditLimit && (
+                  <span className="error text-danger">{errors.creditLimit.message}</span>
                 )}
               </div>
             </div>
