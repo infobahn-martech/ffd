@@ -1132,7 +1132,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       </div>
 
       {/* My Accounts Modal */}
-      <MyAccountsModal show={showMyAccountsModal} onClose={() => setShowMyAccountsModal(false)} />
+      {!!showMyAccountsModal && (
+        <MyAccountsModal show={showMyAccountsModal} onClose={() => setShowMyAccountsModal(false)} />
+      )}
     </>
   );
 }

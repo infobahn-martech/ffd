@@ -496,7 +496,7 @@ function MyAccountsModal({ show, onClose }) {
 
   return (
     <CustomModal
-      className="modal fade show modal_backdrop custom-mod"
+      className="modal_backdrop custom-mod"
       dialgName="modal-dialog modal-dialog-centered"
       createModal
       show={show}
