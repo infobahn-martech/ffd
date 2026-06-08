@@ -8962,23 +8962,25 @@ body .material-management-modal .modal-body {
   max-height: 70vh;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-color: #00368c #f1f1f1;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f1f1;
+  border-radius: 4px;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-thumb {
-  background: transparent;
+  background: #00368c;
+  border-radius: 4px;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
-  background: transparent;
+  background: #002570;
 }
 
 body .material-management-modal .modal-footer {
