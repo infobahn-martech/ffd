@@ -307,35 +307,48 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       ],
       icon: usersIcon, // User management-specific icon
     },
-    // // ✅ Core Operations
-    // {
-    //   menu: 'Port Management',
-    //   isDefaultMenu: true,
-    //   to: '/port-management',
-    //   icon: portIcon, // Single human figure with document/badge
-    //   hasPermission: true,
-    // },
     {
-      menu: 'Crew Management',
+      menu: 'Entity Management',
       isDefaultMenu: true,
-      to: '/crew-management',
-      icon: crewIcon, // Crew-specific icon
       hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
+        { menu: 'Group Email', to: '/group-email', hasPermission: true },
+        { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
+        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
+        { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
+        { menu: 'Crew Management', to: '/crew-management', hasPermission: true },
+        { menu: 'MWP History', to: "/mwp-history", hasPermission: true },
+        // { menu: 'Job Status', to: '/job-status', hasPermission: true },
+      ],
+      icon: billingIcon, // Billing-specific icon
     },
     {
-      menu: 'MWP History',
+      menu: 'Time Object Management',
       isDefaultMenu: true,
-      to: ROUTE_PATHS.MWP_HISTORY,
-      icon: crewIcon, // Crew-specific icon
+      icon: materialIcon, // Material-specific icon
       hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
+        { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
+      ],
     },
-    // {
-    //   menu: 'Custom Management',
-    //   isDefaultMenu: true,
-    //   to: '/custom-inspection',
-    //   icon: inspectionIcon, // Inspection-specific icon
-    //   hasPermission: true,
-    // },
+    {
+      menu: 'Checklist Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
+        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
+        { menu: 'Task Management', to: '/task-management', hasPermission: true },
+        { menu: 'Task Roles', to: '/task-roles', hasPermission: true },
+        { menu: 'Checklist', to: '/check-list', hasPermission: true },
+      ],
+      icon: workerIcon, // Two stylized human figures
+    },
     {
       menu: 'Launch Hire Management',
       isDefaultMenu: true,
@@ -349,20 +362,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         // { menu: 'Location', to: '/location', hasPermission: true },
       ],
       icon: workerIcon, // Two stylized human figures
-    },
-    {
-      menu: 'Transport Management',
-      isDefaultMenu: true,
-      icon: settingsIcon, // Gear/cogwheel icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
-        { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
-        { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
-        { menu: 'Transport Company', to: '/transport-company', hasPermission: true },
-
-      ],
     },
     {
       menu: 'Hotel Management',
@@ -382,18 +381,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Hospital Services', to: '/hospital-services', hasPermission: true },
       ],
     },
-    // {
-    //   menu: 'Third Party Management',
-    //   isDefaultMenu: true,
-    //   hasPermission: true,
-    //   isOpen: false,
-    //   subMenus: [
-    //     { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
-    //     { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
-    //     { menu: 'Third Party Services', to: '/third-party-service', hasPermission: true },
-    //   ],
-    //   icon: workerIcon, // Two stylized human figures
-    // },
+    {
+      menu: 'Transport Management',
+      isDefaultMenu: true,
+      icon: settingsIcon, // Gear/cogwheel icon
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
+        { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
+        { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
+        { menu: 'Transport Company', to: '/transport-company', hasPermission: true },
+
+      ],
+    },
     {
       menu: 'Third Party Management',
       isDefaultMenu: true,
@@ -402,15 +403,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
     },
     {
-      menu: 'Waste Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [{ menu: 'Waste Types', to: '/waste-types', hasPermission: true }],
-      icon: wasteIcon, // Waste-specific icon
-    },
-    // ✅ Materials & Logistics
-    {
       menu: 'Material Management',
       isDefaultMenu: true,
       icon: materialIcon, // Material-specific icon
@@ -418,58 +410,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       isOpen: false,
       subMenus: [
         // { menu: 'Material Types', to: '/material-type', hasPermission: true },
+        { menu: 'Waste Types', to: '/waste-types', hasPermission: true },
         { menu: 'Packing Types', to: '/packing-type', hasPermission: true },
         { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
       ],
     },
     {
-      menu: 'Time Object Management',
-      isDefaultMenu: true,
-      icon: materialIcon, // Material-specific icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
-        { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
-      ],
-    },
-    // {
-    //   menu: 'Document Management',
-    //   isDefaultMenu: true,
-    //   icon: materialIcon, // Material-specific icon
-    //   hasPermission: true,
-    //   isOpen: false,
-    //   subMenus: [
-    //     { menu: 'Document Management', to: '/document-management', hasPermission: true },
-    //     { menu: 'Document Checklist', to: '/document-checklist', hasPermission: true },
-    //   ],
-    // },
-    // {
-    //   menu: 'Task Management',
-    //   isDefaultMenu: true,
-    //   icon: materialIcon, // Material-specific icon
-    //   hasPermission: true,
-    //   isOpen: false,
-    //   subMenus: [
-    //     { menu: 'Task Management', to: '/task-management', hasPermission: true },
-    //     { menu: 'Task Checklist', to: '/task-checklist', hasPermission: true },
-    //   ],
-    // },
-    // ✅ Finance
-    {
-      menu: 'Entity Management',
+      menu: 'KPI Dashboard',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
-        { menu: 'Group Email', to: '/group-email', hasPermission: true },
-        { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
-        { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
-        // { menu: 'Job Status', to: '/job-status', hasPermission: true },
-        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
+        { menu: 'Tasks', to: '/kpi-tasks', hasPermission: true },
+        { menu: 'Dashboard', to: '/kpi-dashboard', hasPermission: true },
       ],
-      icon: billingIcon, // Billing-specific icon
+      icon: dashboardIcon, // Two stylized human figures
     },
     {
       menu: 'Operations Configuration',
@@ -484,31 +439,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
       icon: configIcon, // Configuration-specific icon
-    },
-    {
-      menu: 'Checklist Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
-        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
-        { menu: 'Task Management', to: '/task-management', hasPermission: true },
-        { menu: 'Task Roles', to: '/task-roles', hasPermission: true },
-        { menu: 'Checklist', to: '/check-list', hasPermission: true },
-      ],
-      icon: workerIcon, // Two stylized human figures
-    },
-    {
-      menu: 'KPI Dashboard',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Tasks', to: '/kpi-tasks', hasPermission: true },
-        { menu: 'Dashboard', to: '/kpi-dashboard', hasPermission: true },
-      ],
-      icon: dashboardIcon, // Two stylized human figures
     },
     // ✅ Settings (last)
     {
