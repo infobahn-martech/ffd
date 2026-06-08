@@ -10,6 +10,7 @@ import CommonFilter from './CommonFilter';
 import "../design/scss/filters.scss"
 
 function CommonHeader({
+
   onFilterChange,
   tableTitle,
   showFilter,

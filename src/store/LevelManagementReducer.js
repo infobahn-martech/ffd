@@ -20,6 +20,16 @@ const useLevelManagementReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message ?? 'Failed to load KPI levels');
     }
   },
+  getLevel: async ({ levelId, cb }) => {
+    try {
+      const { data } = await levelManagementService.getKpiLevel(levelId);
+      cb?.(data?.data ?? null);
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to load KPI level');
+      cb?.(null);
+    }
+  },
   addLevel: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });

@@ -5,6 +5,16 @@ import CustomModal from '../../../components/CustomModal';
 import useLevelManagementReducer from '../../../store/LevelManagementReducer';
 import '../../../design/scss/pages/kpi-dashboard/components/LevelManagement.scss';
 
+const resolveBadgeIconUrl = (level) => {
+  if (level?.badge_icon_url) return level.badge_icon_url;
+  if (level?.badge_icon) {
+    const base = (import.meta.env.VITE_API_ENDPOINT || '').replace(/\/+$/, '');
+    const path = String(level.badge_icon).replace(/^\/+/, '');
+    return `${base}/${path}`;
+  }
+  return null;
+};
+
 export function LevelManagementModal({ showModal, closeModal, onSuccess }) {
   const isEdit = showModal && typeof showModal === 'object' && showModal.level_id;
   const levelId = isEdit ? showModal.level_id : null;
@@ -42,7 +52,7 @@ export function LevelManagementModal({ showModal, closeModal, onSuccess }) {
         max_points: showModal?.max_points ?? '',
         badge_icon: null,
       });
-      setPreviewUrl(showModal?.badge_icon_url ?? null);
+      setPreviewUrl(resolveBadgeIconUrl(showModal));
     } else {
       reset({
         level_name: '',
@@ -89,7 +99,7 @@ export function LevelManagementModal({ showModal, closeModal, onSuccess }) {
     if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl(isEdit ? showModal?.badge_icon_url ?? null : null);
+    setPreviewUrl(isEdit ? resolveBadgeIconUrl(showModal) : null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 

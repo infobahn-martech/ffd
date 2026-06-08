@@ -6,7 +6,7 @@ import { RenderEditAction } from './RenderCells';
 import '../../design/scss/pages/kpi-dashboard/components/LevelManagement.scss';
 
 const LevelManagement = () => {
-  const { levels, getLevels, isLoading } = useLevelManagementReducer((state) => state);
+  const { levels, getLevels, getLevel, isLoading } = useLevelManagementReducer((state) => state);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -35,6 +35,15 @@ const LevelManagement = () => {
       marginLeft: `${(min / maxScale) * 100}%`,
       width: `${((max - min) / maxScale) * 100}%`,
     };
+  };
+
+  const handleEditClick = (row) => {
+    getLevel({
+      levelId: row.level_id,
+      cb: (levelData) => {
+        if (levelData) setShowModal(levelData);
+      },
+    });
   };
 
   return (
@@ -136,7 +145,7 @@ const LevelManagement = () => {
                     <td className="level-mgmt-table__cell level-mgmt-table__cell--actions">
                       <RenderEditAction
                         row={level}
-                        onEditClick={(row) => setShowModal(row)}
+                        onEditClick={handleEditClick}
                       />
                     </td>
                   </tr>
