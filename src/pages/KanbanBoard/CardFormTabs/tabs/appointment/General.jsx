@@ -2676,6 +2676,49 @@ function General({
     });
   };
 
+  const handleServiceRequestorEmailChange = useCallback(
+    (event) => {
+      const nextVal = event?.target?.value ?? "";
+      if (isAddMode) {
+        handleValidatedChange("serviceRequestorEmail")(event);
+      } else {
+        handleChange("serviceRequestorEmail")(event);
+      }
+      setEditablePreviewFields((prev) =>
+        prev.to_email === nextVal ? prev : { ...prev, to_email: nextVal }
+      );
+    },
+    [handleChange, handleValidatedChange, isAddMode]
+  );
+
+  const handleEditablePreviewFieldChange = useCallback(
+    (fieldName) => (event) => {
+      const nextVal = event?.target?.value ?? "";
+      setTouchedPreviewFields((prev) => ({
+        ...prev,
+        [fieldName]: true,
+      }));
+      setEditablePreviewFields((prev) => ({
+        ...prev,
+        [fieldName]: nextVal,
+      }));
+      if (fieldName === "to_email") {
+        const currentServiceEmail = String(getFieldValue("serviceRequestorEmail") ?? "");
+        if (currentServiceEmail !== nextVal) {
+          const syncEvent = {
+            target: { name: "serviceRequestorEmail", value: nextVal },
+          };
+          if (isAddMode) {
+            handleValidatedChange("serviceRequestorEmail")(syncEvent);
+          } else {
+            handleChange("serviceRequestorEmail")(syncEvent);
+          }
+        }
+      }
+    },
+    [getFieldValue, handleChange, handleValidatedChange, isAddMode]
+  );
+
   const normalizeText = (value = "") =>
     String(value)
       .toLowerCase()
@@ -5075,7 +5118,7 @@ ${body}
                                     type="email"
                                     placeholder="Enter service requestor email..."
                                     value={getFieldValue("serviceRequestorEmail")}
-                                    onChange={isAddMode ? handleValidatedChange("serviceRequestorEmail") : handleChange("serviceRequestorEmail")}
+                                    onChange={handleServiceRequestorEmailChange}
                                     disabled={isDisabled}
                                     hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
                                   />
@@ -5169,17 +5212,7 @@ ${body}
                           previewData={emailPreviewData}
                           editableFields={editablePreviewFields}
                           touchedFields={touchedPreviewFields}
-                          onEditableFieldChange={(fieldName) => (event) => {
-                            const nextVal = event?.target?.value ?? "";
-                            setTouchedPreviewFields((prev) => ({
-                              ...prev,
-                              [fieldName]: true,
-                            }));
-                            setEditablePreviewFields((prev) => ({
-                              ...prev,
-                              [fieldName]: nextVal,
-                            }));
-                          }}
+                          onEditableFieldChange={handleEditablePreviewFieldChange}
                           messageValue={previewMessageText}
                           messageEditorKey={previewMessageEditorKey}
                           onMessageChange={(next, source) => {
