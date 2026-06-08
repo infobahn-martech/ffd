@@ -4,9 +4,8 @@ import CustomTable from "../../components/customTable";
 import { GroupEmailBEModal } from "./Modals/AddEditGroupEmail";
 import { RenderAction } from "./renderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-
-// ✅ Create this reducer like your other modules (getData, deleteData, data, loaders)
 import useGroupEmailBEReducer from "../../store/GroupEmailBEReducer";
+import useBillingEntityReducer from "../../store/BillingEntityReducer";
 
 const GroupEmailBE = () => {
     const {
@@ -18,26 +17,35 @@ const GroupEmailBE = () => {
         totalCount,
     } = useGroupEmailBEReducer((state) => state);
 
+    const { getBillingEntities, billingEntities } =
+        useBillingEntityReducer((state) => state);
+
     const [params, setParams] = useState({
         page: 1,
         search: "",
         limit: 10,
         sortBy: "billing_entity",
-        sortOrder: 1, // 1 ASC, -1 DESC
+        sortOrder: 1,
     });
+
+    const [filterValues, setFilterValues] = useState({ entity_id: "" });
 
     const [showGroupEmailModal, setShowGroupEmailModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
-    // ✅ API params (adjust keys if your backend differs)
+    useEffect(() => {
+        getBillingEntities({ params: { page: 1, limit: 1000 } });
+    }, []);
+
     const apiParams = useMemo(
         () => ({
             search: params.search || "",
             page: params.page,
             limit: params.limit,
             sortBy: params.sortBy,
-            sortOrder: params.sortOrder === 1 ? "ASC" : "DESC", // or params.sortOrder if backend expects 1/-1
+            sortOrder: params.sortOrder === 1 ? "ASC" : "DESC",
+            ...(params.entity_id && { entity_id: params.entity_id }),
         }),
         [params]
     );
@@ -46,12 +54,16 @@ const GroupEmailBE = () => {
         getGroupEmailBEs({ params: apiParams });
     }, [params]);
 
-    // ✅ Normalize list + count (supports different backend response shapes)
     const list = groupEmailBEs || [];
+
+    const billingEntityOptions = (billingEntities ?? []).map((be) => ({
+        value: String(be.entity_id ?? ""),
+        label: String(be.billing_entity ?? ""),
+    }));
 
     const handleOpenAdd = () => {
         setSelectedRow(null);
-        setShowGroupEmailModal({}); // you used {} for add
+        setShowGroupEmailModal({});
     };
 
     const handleOpenEdit = (row) => {
@@ -94,23 +106,6 @@ const GroupEmailBE = () => {
             thclass: "tb-head",
             contentClass: "table-content",
         },
-        // {
-        //     name: "Active",
-        //     selector: "isActive",
-        //     sort: true,
-        //     width: "120",
-        //     thclass: "tb-head",
-        //     contentClass: "table-content",
-        //     cell: (row) => (row?.isActive ? "Yes" : "No"),
-        // },
-        // {
-        //     name: "Description",
-        //     selector: "description",
-        //     sort: true,
-        //     width: "400",
-        //     thclass: "tb-head",
-        //     contentClass: "table-content",
-        // },
         {
             name: "Actions",
             selector: "linksInfo",
@@ -137,6 +132,30 @@ const GroupEmailBE = () => {
                             onAddModalClick={handleOpenAdd}
                             exportTitle="Export"
                             exportLoader={false}
+                            showFilter
+                            filterOptions={[
+                                {
+                                    key: "entity_id",
+                                    label: "Billing Entity",
+                                    placeholder: "All Billing Entities",
+                                    options: billingEntityOptions,
+                                },
+                            ]}
+                            filterValue={filterValues}
+                            onFilterChange={(key, value) =>
+                                setFilterValues((prev) => ({ ...prev, [key]: value }))
+                            }
+                            onApplyFilter={() =>
+                                setParams((prev) => ({
+                                    ...prev,
+                                    page: 1,
+                                    entity_id: filterValues.entity_id,
+                                }))
+                            }
+                            onClearFilter={() => {
+                                setFilterValues({ entity_id: "" });
+                                setParams((prev) => ({ ...prev, page: 1, entity_id: "" }));
+                            }}
                         />
                     </div>
 
