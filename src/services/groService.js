@@ -1,5 +1,5 @@
 import Gateway from "../gateway/gateway";
-import taskCardService from "./groService/taskCardService";
+import taskCardService from "./taskCardService";
 import groArrivalService from "./groService/arrivalService";
 
 export const getCallDetailById = (callId, cardId) => {

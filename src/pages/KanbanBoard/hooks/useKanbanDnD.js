@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { notify } from "../../../components/Toaster";
 import { userHasDeskStartTaskRole } from "../../../shared/helpers/groUserRoles";
-import taskCardService from "../../../services/groService/taskCardService";
+import taskCardService from "../../../services/taskCardService";
 import {
   findColumnByCardId,
   findLaneColumnLocationForCard,
@@ -177,9 +177,9 @@ const ensureCardInColumn = (
       swimlanes: cardMap,
       cards: card
         ? {
-            ...w.cards,
-            [cardId]: { ...card, columnId: finishColumnKey, laneId },
-          }
+          ...w.cards,
+          [cardId]: { ...card, columnId: finishColumnKey, laneId },
+        }
         : w.cards,
     };
   });
