@@ -325,6 +325,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       icon: billingIcon, // Billing-specific icon
     },
     {
+      menu: 'Operations Configuration',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Report Templates', to: '/appointment-acceptance', hasPermission: true },
+        // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
+        { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
+        { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
+        // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
+      ],
+      icon: configIcon, // Configuration-specific icon
+    },
+    {
       menu: 'Time Object Management',
       isDefaultMenu: true,
       icon: materialIcon, // Material-specific icon
@@ -425,20 +439,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Dashboard', to: '/kpi-dashboard', hasPermission: true },
       ],
       icon: dashboardIcon, // Two stylized human figures
-    },
-    {
-      menu: 'Operations Configuration',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Report Templates', to: '/appointment-acceptance', hasPermission: true },
-        // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
-        { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
-        { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
-        // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
-      ],
-      icon: configIcon, // Configuration-specific icon
     },
     // ✅ Settings (last)
     {
