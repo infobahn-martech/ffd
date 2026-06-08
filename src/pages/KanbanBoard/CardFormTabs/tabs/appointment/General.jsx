@@ -1471,11 +1471,9 @@ const mapMultiValuesToLabels = (options = [], values = []) => {
     .filter(Boolean);
 };
 
-const getPreviewRecipients = ({ dailyReportEmailOptions = [], billingInstructionEmailOptions = [], dailyValues = [], billingValues = [] }) => {
+const getPreviewRecipients = ({ dailyReportEmailOptions = [], dailyValues = [] }) => {
   const daily = mapMultiValuesToLabels(dailyReportEmailOptions, dailyValues);
-  const billing = mapMultiValuesToLabels(billingInstructionEmailOptions, billingValues);
-  const merged = [...daily, ...billing];
-  return merged.length ? merged.join(", ") : "—";
+  return daily.length ? daily.join(", ") : "—";
 };
 
 const getPreviewSubject = ({ cardTitle = "", typeOfCall = "", vesselName = "", port = "" }) => {
@@ -1513,16 +1511,12 @@ const resolveAppointmentAcceptanceCcEmails = ({
   editedValue,
   previewFromApiCc,
   dailyReportEmailOptions = [],
-  billingInstructionEmailOptions = [],
   dailyValues = [],
-  billingValues = [],
   forSubmit = false,
 }) => {
   const fallbackCcValue = getPreviewRecipients({
     dailyReportEmailOptions,
-    billingInstructionEmailOptions,
     dailyValues,
-    billingValues,
   });
   const resolved = resolveEditablePreviewFieldValue(
     isTouched,
@@ -1673,7 +1667,6 @@ const EmailPreviewPanel = ({
   ownerOptions,
   formValues,
   dailyReportEmailOptions,
-  billingInstructionEmailOptions,
   callTypeOptions,
   vesselNameOptions,
   portSelectOptions,
@@ -1722,9 +1715,7 @@ const EmailPreviewPanel = ({
     editedValue: editableFields?.cc_emails,
     previewFromApiCc: previewFromApi.cc,
     dailyReportEmailOptions,
-    billingInstructionEmailOptions,
     dailyValues: getFieldValue("dailyReportEmail"),
-    billingValues: getFieldValue("billingInstructionEmails"),
   });
   const subjectValue = touchedFields?.subject
     ? (editableFields?.subject ?? "")
@@ -1829,12 +1820,6 @@ EmailPreviewPanel.propTypes = {
   ),
   formValues: PropTypes.object,
   dailyReportEmailOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      label: PropTypes.string,
-    })
-  ),
-  billingInstructionEmailOptions: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       label: PropTypes.string,
@@ -2558,15 +2543,12 @@ function General({
         "Appointment Update"
       );
     const dailyValues = getFieldValue("dailyReportEmail");
-    const billingValues = getFieldValue("billingInstructionEmails");
     const finalCcEmails = resolveAppointmentAcceptanceCcEmails({
       isTouched: touchedPreviewFields.cc_emails,
       editedValue: editablePreviewFields.cc_emails,
       previewFromApiCc: emailPreviewData?.cc,
       dailyReportEmailOptions,
-      billingInstructionEmailOptions,
       dailyValues: Array.isArray(dailyValues) ? dailyValues : [],
-      billingValues: Array.isArray(billingValues) ? billingValues : [],
       forSubmit: true,
     });
     const apiAppointmentBase =
@@ -5116,11 +5098,27 @@ ${body}
                               )}
 
                               {(shouldShowApiField("billing_instruction") || shouldShowApiField("billing_instruction_emails")) && (
-                                <FormField
-                                  label="Billing instructions"
-                                  className="cf-billing-instruction-field"
-                                  hasError={false}
-                                >
+                                <>
+                                  {billingInstructionType ? (
+                                    <FormField
+                                      label="Instruction Type"
+                                      className="cf-billing-instruction-type-field"
+                                      hasError={false}
+                                    >
+                                      <FormInput
+                                        type="text"
+                                        value={billingInstructionType}
+                                        onChange={() => { }}
+                                        readOnly
+                                        disabled
+                                      />
+                                    </FormField>
+                                  ) : null}
+                                  <FormField
+                                    label="Billing instructions"
+                                    className="cf-billing-instruction-field"
+                                    hasError={false}
+                                  >
                                   {billingInstructionType.toLowerCase() === "email" ? (
                                     <MultiSelectEmail
                                       name="billingInstructionEmails"
@@ -5140,7 +5138,8 @@ ${body}
                                       disabled={isDisabled || billingInstructionLoading}
                                     />
                                   )}
-                                </FormField>
+                                  </FormField>
+                                </>
                               )}
 
                             </div>
@@ -5157,7 +5156,6 @@ ${body}
                           ownerOptions={ownerOptions}
                           formValues={formValues}
                           dailyReportEmailOptions={dailyReportEmailOptions}
-                          billingInstructionEmailOptions={billingInstructionEmailOptions}
                           callTypeOptions={callTypeOptions}
                           vesselNameOptions={vesselNameOptions}
                           portSelectOptions={portSelectOptions}
