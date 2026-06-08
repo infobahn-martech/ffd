@@ -451,17 +451,17 @@ const normalizeCrewListItem = (apiRow, index) => {
 const getCrewSelectionId = (crew) =>
   String(
     crew?.crew_id ??
-      crew?.id ??
-      crew?.crew_change_id ??
-      crew?.crewChangeId ??
-      ""
+    crew?.id ??
+    crew?.crew_change_id ??
+    crew?.crewChangeId ??
+    ""
   );
 
 const getCrewPassSelectionId = (crew) =>
   String(
     crew?.crew_change_id ??
-      crew?.crewChangeId ??
-      ""
+    crew?.crewChangeId ??
+    ""
   );
 
 /**
@@ -840,8 +840,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const crewIdStrings =
       option.field === "cgPassSelectedCrew" || option.field === "zawilPassSelectedCrew"
         ? selectedRows
-            .map((crew) => getCrewPassSelectionId(crew))
-            .filter((id) => id !== "")
+          .map((crew) => getCrewPassSelectionId(crew))
+          .filter((id) => id !== "")
         : selectedCrewIds.map((id) => String(id));
 
     const syntheticEvent = { target: { value: crewIdStrings } };
