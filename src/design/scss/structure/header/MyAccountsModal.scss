@@ -192,6 +192,11 @@ $my-acc-input-radius: 12px;
     &.profile-btn.two-btn {
       margin-top: 2rem;
     }
+
+    button.btn-my-acct-cancel {
+      background-color: #def0f2;
+      color: #00368c;
+    }
   }
 
   @media (max-width: 991px) {

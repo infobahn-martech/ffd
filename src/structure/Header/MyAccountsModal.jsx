@@ -57,7 +57,10 @@ function MyAccountsModal({ show, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (!show) return undefined;
+    if (!show) {
+      setIsEditing(false);
+      return undefined;
+    }
 
     let cancelled = false;
 
@@ -378,7 +381,7 @@ function MyAccountsModal({ show, onClose }) {
                 <>
                   <button
                     type="button"
-                    className="btn-common close"
+                    className="btn-common btn-my-acct-cancel"
                     onClick={() => {
                       setIsEditing(false);
                       onClose();
@@ -428,7 +431,7 @@ function MyAccountsModal({ show, onClose }) {
                 <>
                   <button
                     type="button"
-                    className="btn-common close"
+                    className="btn-common btn-my-acct-cancel"
                     onClick={handleCancel}
                     disabled={profileEditLoader}
                     style={{
