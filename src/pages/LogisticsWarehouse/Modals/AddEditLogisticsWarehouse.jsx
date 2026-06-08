@@ -5,6 +5,7 @@ import useLogisticsWarehouseReducer from "../../../store/LogisticsWarehouseReduc
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/master-modal-form.scss";
 
 const LOCATION_TYPE_OPTIONS = [
     { value: "material_transport", label: "Material Transport" },
@@ -115,6 +116,7 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Select Location Type"
                                         searchPlaceholder="Search location type..."
                                         hasError={Boolean(errors.location_type)}
+                                        menuClassName="user-modal-premium-select-menu"
                                     />
                                 )}
                             />
@@ -148,7 +150,7 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm"
+            className="role-modal-sm master-modal-form"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
