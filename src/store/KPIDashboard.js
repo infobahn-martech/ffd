@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import kpiService from '../services/kpiService';
+import kpiDashboardService from '../services/kpiDashboardService';
 
 const normalizeAssignedTask = (task) => ({
   ...task,
@@ -11,6 +12,27 @@ const normalizeAssignedTask = (task) => ({
   completed_time: task?.completed_time ?? task?.completedTime ?? null,
   delay_text: task?.delay_text ?? task?.delayText ?? '',
 });
+
+const normalizeTaskHistoryItem = (task) => ({
+  ...task,
+  id: task?.user_kpi_id ?? task?.id,
+  name: task?.task_name ?? task?.name ?? '',
+  estimatedTime: task?.estimated_time ?? '',
+  timeSpent: task?.time_spent ?? '',
+  remainingTime: task?.remaining_time ?? '',
+  status: task?.status_label ?? task?.status ?? '',
+  statusColor: task?.status_color ?? '',
+  totalPoints: Number(task?.total_points) || 0,
+  earnedPoints: Number(task?.earned_points) || 0,
+  balancePoints: Number(task?.balance_points) || 0,
+});
+
+const initialTaskHistoryPagination = {
+  total: 0,
+  page: 1,
+  limit: 10,
+  total_pages: 0,
+};
 
 const initialDashboardData = {
   user: null,
@@ -28,17 +50,21 @@ const initialDashboardData = {
 const useKPIDashboardReducer = create((set) => ({
   isLoading: false,
   isLoadingTasks: false,
+  isLoadingTaskHistory: false,
   errorMessage: '',
   tasksErrorMessage: '',
+  taskHistoryErrorMessage: '',
   dashboardData: initialDashboardData,
   assignedTasks: [],
+  taskHistory: [],
+  taskHistoryPagination: initialTaskHistoryPagination,
 
   fetchUserKpiDashboard: async (userId) => {
     if (!userId) return;
 
     try {
       set({ isLoading: true, errorMessage: '' });
-      const { data } = await kpiService.getUserKpiDashboard(userId);
+      const { data } = await kpiDashboardService.getUserKpiDashboard(userId);
       const dashboardData = data?.data ?? initialDashboardData;
 
       set({
@@ -81,14 +107,48 @@ const useKPIDashboardReducer = create((set) => ({
     }
   },
 
+  fetchUserTaskHistory: async (userId, params = {}) => {
+    if (!userId) return;
+
+    try {
+      set({ isLoadingTaskHistory: true, taskHistoryErrorMessage: '' });
+      const { data } = await kpiDashboardService.getUserTaskHistory(userId, params);
+      const taskHistory = Array.isArray(data?.data)
+        ? data.data.map(normalizeTaskHistoryItem)
+        : [];
+
+      set({
+        taskHistory,
+        taskHistoryPagination: {
+          ...initialTaskHistoryPagination,
+          ...(data?.pagination ?? {}),
+        },
+        isLoadingTaskHistory: false,
+      });
+    } catch (err) {
+      set({
+        taskHistory: [],
+        taskHistoryPagination: initialTaskHistoryPagination,
+        taskHistoryErrorMessage: err?.message ?? 'Failed to load task history',
+        isLoadingTaskHistory: false,
+      });
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err?.message ?? 'Failed to load task history');
+    }
+  },
+
   resetDashboard: () => {
     set({
       dashboardData: initialDashboardData,
       assignedTasks: [],
+      taskHistory: [],
+      taskHistoryPagination: initialTaskHistoryPagination,
       errorMessage: '',
       tasksErrorMessage: '',
+      taskHistoryErrorMessage: '',
       isLoading: false,
       isLoadingTasks: false,
+      isLoadingTaskHistory: false,
     });
   },
 }));

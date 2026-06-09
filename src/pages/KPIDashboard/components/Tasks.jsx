@@ -1,146 +1,80 @@
-import React, { useState, useMemo } from 'react';
-import { FiSearch, FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import React, { useState, useMemo, useEffect } from 'react';
+import { FiSearch, FiFilter, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import '../../../design/scss/pages/kpi-dashboard/components/Tasks.scss';
 import PremiumSelect from '../../../components/form/PremiumSelect';
+import useAuthReducer from '../../../store/AuthReducer';
+import useKPIDashboardReducer from '../../../store/KPIDashboard';
+import { getItem } from '../../../shared/helpers/localStorage';
+
+const statusOptions = ['All', 'Pending', 'In Progress', 'Completed'];
+
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const match = String(timeStr).match(/(\d+)h\s*(\d+)m/);
+  if (!match) return 0;
+  return Number.parseInt(match[1], 10) * 60 + Number.parseInt(match[2], 10);
+};
+
+const formatStatusLabel = (statusLabel) => {
+  const normalized = (statusLabel || '').toLowerCase().replace(/_/g, ' ').trim();
+  if (normalized === 'in progress' || normalized === 'inprogress' || normalized === 'started') return 'In Progress';
+  if (normalized === 'completed' || normalized === 'done') return 'Completed';
+  if (normalized === 'pending') return 'Pending';
+  return statusLabel || 'Pending';
+};
+
+const getStatusClass = (statusLabel) => {
+  const formattedStatus = formatStatusLabel(statusLabel);
+  switch (formattedStatus) {
+    case 'Completed':
+      return 'tasks-table__status--completed';
+    case 'In Progress':
+      return 'tasks-table__status--in-progress';
+    case 'Pending':
+      return 'tasks-table__status--pending';
+    default:
+      return 'tasks-table__status--pending';
+  }
+};
 
 const Tasks = () => {
-  // Sample data - replace with API data
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      name: 'Port Clearance Documentation',
-      estimatedTime: '4h 30m',
-      estimatedMinutes: 270,
-      timeSpent: '3h 15m',
-      spentMinutes: 195,
-      remainingTime: '1h 15m',
-      remainingMinutes: 75,
-      status: 'In Progress',
-      totalPoints: 4520,
-      earnedPoints: 3390,
-      balancePoints: 1130,
-    },
-    {
-      id: 2,
-      name: 'Vessel Arrival Report',
-      estimatedTime: '2h 00m',
-      estimatedMinutes: 120,
-      timeSpent: '2h 00m',
-      spentMinutes: 120,
-      remainingTime: '0h 00m',
-      remainingMinutes: 0,
-      status: 'Completed',
-      totalPoints: 3200,
-      earnedPoints: 3200,
-      balancePoints: 0,
-    },
-    {
-      id: 3,
-      name: 'Customs Declaration',
-      estimatedTime: '6h 00m',
-      estimatedMinutes: 360,
-      timeSpent: '4h 45m',
-      spentMinutes: 285,
-      remainingTime: '1h 15m',
-      remainingMinutes: 75,
-      status: 'In Progress',
-      totalPoints: 7850,
-      earnedPoints: 5888,
-      balancePoints: 1962,
-    },
-    {
-      id: 4,
-      name: 'Crew Medical Check',
-      estimatedTime: '3h 30m',
-      estimatedMinutes: 210,
-      timeSpent: '1h 20m',
-      spentMinutes: 80,
-      remainingTime: '2h 10m',
-      remainingMinutes: 130,
-      status: 'Pending',
-      totalPoints: 2150,
-      earnedPoints: 0,
-      balancePoints: 2150,
-    },
-    {
-      id: 5,
-      name: 'Transport Arrangement',
-      estimatedTime: '2h 15m',
-      estimatedMinutes: 135,
-      timeSpent: '2h 15m',
-      spentMinutes: 135,
-      remainingTime: '0h 00m',
-      remainingMinutes: 0,
-      status: 'Completed',
-      totalPoints: 1890,
-      earnedPoints: 1890,
-      balancePoints: 0,
-    },
-    {
-      id: 6,
-      name: 'Hotel Booking',
-      estimatedTime: '1h 30m',
-      estimatedMinutes: 90,
-      timeSpent: '0h 00m',
-      spentMinutes: 0,
-      remainingTime: '1h 30m',
-      remainingMinutes: 90,
-      status: 'Pending',
-      totalPoints: 950,
-      earnedPoints: 0,
-      balancePoints: 950,
-    },
-    {
-      id: 7,
-      name: 'Warehouse Inventory',
-      estimatedTime: '5h 00m',
-      estimatedMinutes: 300,
-      timeSpent: '3h 00m',
-      spentMinutes: 180,
-      remainingTime: '2h 00m',
-      remainingMinutes: 120,
-      status: 'In Progress',
-      totalPoints: 6230,
-      earnedPoints: 3738,
-      balancePoints: 2492,
-    },
-    {
-      id: 8,
-      name: 'Launch Hire Coordination',
-      estimatedTime: '2h 45m',
-      estimatedMinutes: 165,
-      timeSpent: '2h 45m',
-      spentMinutes: 165,
-      remainingTime: '0h 00m',
-      remainingMinutes: 0,
-      status: 'Completed',
-      totalPoints: 3450,
-      earnedPoints: 3450,
-      balancePoints: 0,
-    },
-  ]);
+  const userId = useAuthReducer((state) => state.authData?.userid) || getItem('userid');
+  const taskHistory = useKPIDashboardReducer((state) => state.taskHistory);
+  const taskHistoryPagination = useKPIDashboardReducer((state) => state.taskHistoryPagination);
+  const isLoadingTaskHistory = useKPIDashboardReducer((state) => state.isLoadingTaskHistory);
+  const fetchUserTaskHistory = useKPIDashboardReducer((state) => state.fetchUserTaskHistory);
 
-  // Filter and sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  // Status options
-  const statusOptions = ['All', 'Pending', 'In Progress', 'Completed'];
+  useEffect(() => {
+    if (!userId) return;
 
-  // Filtered and sorted tasks
+    fetchUserTaskHistory(userId, {
+      page,
+      limit,
+      search: searchTerm || undefined,
+      status: statusFilter,
+    });
+  }, [userId, page, limit, searchTerm, statusFilter, fetchUserTaskHistory]);
+
   const filteredAndSortedTasks = useMemo(() => {
-    let filtered = tasks.filter((task) => {
+    let filtered = taskHistory.filter((task) => {
       const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'All' || task.status === statusFilter;
+      const matchesStatus =
+        statusFilter === 'All' || formatStatusLabel(task.status) === statusFilter;
       return matchesSearch && matchesStatus;
     });
 
     if (sortField) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
+      filtered = [...filtered].sort((a, b) => {
+        let aValue;
+        let bValue;
 
         switch (sortField) {
           case 'name':
@@ -148,24 +82,32 @@ const Tasks = () => {
             bValue = b.name.toLowerCase();
             break;
           case 'estimatedTime':
-            aValue = a.estimatedMinutes;
-            bValue = b.estimatedMinutes;
+            aValue = parseTimeToMinutes(a.estimatedTime);
+            bValue = parseTimeToMinutes(b.estimatedTime);
             break;
           case 'timeSpent':
-            aValue = a.spentMinutes;
-            bValue = b.spentMinutes;
+            aValue = parseTimeToMinutes(a.timeSpent);
+            bValue = parseTimeToMinutes(b.timeSpent);
             break;
           case 'remainingTime':
-            aValue = a.remainingMinutes;
-            bValue = b.remainingMinutes;
+            aValue = parseTimeToMinutes(a.remainingTime);
+            bValue = parseTimeToMinutes(b.remainingTime);
             break;
           case 'status':
-            aValue = a.status;
-            bValue = b.status;
+            aValue = formatStatusLabel(a.status);
+            bValue = formatStatusLabel(b.status);
             break;
-          case 'points':
-            aValue = a.points || 0;
-            bValue = b.points || 0;
+          case 'totalPoints':
+            aValue = a.totalPoints;
+            bValue = b.totalPoints;
+            break;
+          case 'earnedPoints':
+            aValue = a.earnedPoints;
+            bValue = b.earnedPoints;
+            break;
+          case 'balancePoints':
+            aValue = a.balancePoints;
+            bValue = b.balancePoints;
             break;
           default:
             return 0;
@@ -178,9 +120,8 @@ const Tasks = () => {
     }
 
     return filtered;
-  }, [tasks, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [taskHistory, searchTerm, statusFilter, sortField, sortDirection]);
 
-  // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -190,30 +131,16 @@ const Tasks = () => {
     }
   };
 
-  // Get status badge class
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'Completed':
-        return 'tasks-table__status--completed';
-      case 'In Progress':
-        return 'tasks-table__status--in-progress';
-      case 'Pending':
-        return 'tasks-table__status--pending';
-      default:
-        return '';
-    }
-  };
-
-  // Get sort icon
   const getSortIcon = (field) => {
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? <FiChevronUp /> : <FiChevronDown />;
   };
 
-  // Format points with commas
-  const formatPoints = (points) => {
-    return (points || 0).toLocaleString('en-US');
-  };
+  const formatPoints = (points) => (points || 0).toLocaleString('en-US');
+
+  const totalTasks = taskHistoryPagination.total || 0;
+  const totalPages = taskHistoryPagination.total_pages || 1;
+  const currentPage = taskHistoryPagination.page || page;
 
   return (
     <div className="tasks">
@@ -222,7 +149,6 @@ const Tasks = () => {
         <p className="tasks__subtitle">View, filter, and manage all your assigned tasks</p>
       </div>
 
-      {/* Filters Section */}
       <div className="tasks__filters">
         <div className="tasks__search">
           <FiSearch className="tasks__search-icon" />
@@ -230,13 +156,17 @@ const Tasks = () => {
             type="text"
             placeholder="Search tasks..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             className="tasks__search-input"
           />
         </div>
 
         <div className="tasks__filter-controls">
           <button
+            type="button"
             className={`tasks__filter-toggle ${showFilters ? 'tasks__filter-toggle--active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
@@ -250,7 +180,10 @@ const Tasks = () => {
                 <label className="tasks__filter-label">Status</label>
                 <PremiumSelect
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setPage(1);
+                  }}
                   options={statusOptions.map((option) => ({ value: option, label: option }))}
                   placeholder="Filter by status"
                   searchPlaceholder="Search status..."
@@ -262,7 +195,6 @@ const Tasks = () => {
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="tasks__table-wrapper">
         <table className="tasks-table">
           <thead>
@@ -342,7 +274,13 @@ const Tasks = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedTasks.length === 0 ? (
+            {isLoadingTaskHistory && filteredAndSortedTasks.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="tasks-table__empty">
+                  Loading tasks...
+                </td>
+              </tr>
+            ) : filteredAndSortedTasks.length === 0 ? (
               <tr>
                 <td colSpan="8" className="tasks-table__empty">
                   No tasks found
@@ -359,7 +297,7 @@ const Tasks = () => {
                   <td className="tasks-table__cell">{task.remainingTime}</td>
                   <td className="tasks-table__cell">
                     <span className={`tasks-table__status ${getStatusClass(task.status)}`}>
-                      {task.status}
+                      {formatStatusLabel(task.status)}
                     </span>
                   </td>
                   <td className="tasks-table__cell">{formatPoints(task.totalPoints)}</td>
@@ -372,11 +310,35 @@ const Tasks = () => {
         </table>
       </div>
 
-      {/* Summary */}
       <div className="tasks__summary">
         <span className="tasks__summary-text">
-          Showing {filteredAndSortedTasks.length} of {tasks.length} tasks
+          Showing {filteredAndSortedTasks.length} of {totalTasks} tasks
         </span>
+        {totalPages > 1 && (
+          <div className="tasks__pagination">
+            <button
+              type="button"
+              className="tasks__pagination-btn"
+              disabled={currentPage <= 1 || isLoadingTaskHistory}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              aria-label="Previous page"
+            >
+              <FiChevronLeft />
+            </button>
+            <span className="tasks__pagination-text">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              className="tasks__pagination-btn"
+              disabled={currentPage >= totalPages || isLoadingTaskHistory}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              aria-label="Next page"
+            >
+              <FiChevronRight />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -174,14 +174,58 @@
 
   &__summary {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     padding: 12px 0;
+    flex-wrap: wrap;
 
     &-text {
       font-size: 14px;
       color: rgba(255, 255, 255, 0.6);
       font-family: 'Open Sans', sans-serif;
     }
+  }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(15, 23, 55, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(15, 23, 55, 0.9);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__pagination-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Open Sans', sans-serif;
   }
 }
 
