@@ -54,14 +54,18 @@ const ThirdPartyService = () => {
         setShowDeleteModal(true);
     };
 
-    const handleConfirmDelete = async () => {
-        const id = selectedRow?.third_party_service_id ?? selectedRow?._id;
-        if (!id) return;
+    const handleConfirmDelete = () => {
+        const third_party_service_id = selectedRow?.third_party_service_id ?? selectedRow?._id;
+        if (!third_party_service_id) return;
 
-        await deleteData(id);
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-        getThirdPartyServices(apiParams);
+        deleteData({
+            third_party_service_id,
+            cb: () => {
+                setShowDeleteModal(false);
+                setSelectedRow(null);
+                getThirdPartyServices(apiParams);
+            },
+        });
     };
 
     const cols = [
@@ -150,7 +154,7 @@ const ThirdPartyService = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            loading={isLoadingDelete}
+                            isLoading={isLoadingDelete}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                                 setSelectedRow(null);
