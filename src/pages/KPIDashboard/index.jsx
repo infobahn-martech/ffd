@@ -22,12 +22,14 @@ const KPIDashboard = () => {
     const doLogout = useAuthReducer((state) => state.doLogout);
     const userId = useAuthReducer((state) => state.authData?.userid) || getItem('userid');
     const fetchUserKpiDashboard = useKPIDashboardReducer((state) => state.fetchUserKpiDashboard);
+    const fetchUserAssignedTasks = useKPIDashboardReducer((state) => state.fetchUserAssignedTasks);
 
     useEffect(() => {
         if (userId) {
             fetchUserKpiDashboard(userId);
+            fetchUserAssignedTasks(userId);
         }
-    }, [userId, fetchUserKpiDashboard]);
+    }, [userId, fetchUserKpiDashboard, fetchUserAssignedTasks]);
 
     // Initialize activeMenu based on URL
     const getInitialMenu = () => {

@@ -3,4 +3,7 @@ import Gateway from '../gateway/gateway';
 const getUserKpiDashboard = (userId) =>
   Gateway.get(`/kpi/user_kpi_dashboard/${userId}`);
 
-export default { getUserKpiDashboard };
+const getUserAssignedTasks = (userId) =>
+  Gateway.get(`/kpi/user_assigned_tasks/${userId}`);
+
+export default { getUserKpiDashboard, getUserAssignedTasks };

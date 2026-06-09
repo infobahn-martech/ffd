@@ -67,6 +67,16 @@
     flex-direction: column;
     gap: 12px;
   }
+
+  &__empty {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 140%;
+    text-align: center;
+    padding: 24px 12px;
+  }
 }
 
 .task-list-item {
