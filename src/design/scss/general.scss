@@ -548,8 +548,7 @@
     flex-direction: column;
   }
 
-  .general-view-form-scroll,
-  .general-add-form-scroll {
+  .general-view-form-scroll {
     flex: 1 1 auto;
     height: 100%;
     max-height: 100%;
@@ -557,6 +556,46 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 6px;
+
+    .pre-arrival-form {
+      height: auto;
+      flex: none;
+      min-height: auto;
+      overflow: visible;
+    }
+  }
+}
+
+/* Add Card mode: left form panel independent scroll + Email Preview scrollbar */
+.cf-section.general-info-section.general-info-section--add-mode {
+  .general-add-mode-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .general-add-3col-layout.general-tab-form-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .general-info-left,
+  .general-info-left.general-add-form-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .general-add-form-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    @include general-email-preview-scrollbar;
 
     .pre-arrival-form {
       height: auto;
