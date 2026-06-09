@@ -34,6 +34,26 @@ const initialTaskHistoryPagination = {
   total_pages: 0,
 };
 
+const normalizeLeaderboardItem = (member) => ({
+  ...member,
+  id: member?.user_id ?? member?.id,
+  name: member?.name ?? '',
+  levelId: member?.level_id ?? null,
+  levelName: member?.level_name ?? null,
+  points: Number(member?.total_points) || 0,
+  rank: member?.rank ?? 0,
+  avatarUrl: member?.avatar_url ?? null,
+  badgeIconUrl: member?.badge_icon_url ?? null,
+  completion: Number(member?.level_completion) || 0,
+});
+
+const initialLeaderboardPagination = {
+  total: 0,
+  page: 1,
+  limit: 20,
+  total_pages: 0,
+};
+
 const initialDashboardData = {
   user: null,
   total_points: 0,
@@ -51,13 +71,17 @@ const useKPIDashboardReducer = create((set) => ({
   isLoading: false,
   isLoadingTasks: false,
   isLoadingTaskHistory: false,
+  isLoadingLeaderboard: false,
   errorMessage: '',
   tasksErrorMessage: '',
   taskHistoryErrorMessage: '',
+  leaderboardErrorMessage: '',
   dashboardData: initialDashboardData,
   assignedTasks: [],
   taskHistory: [],
   taskHistoryPagination: initialTaskHistoryPagination,
+  leaderboard: [],
+  leaderboardPagination: initialLeaderboardPagination,
 
   fetchUserKpiDashboard: async (userId) => {
     if (!userId) return;
@@ -137,18 +161,50 @@ const useKPIDashboardReducer = create((set) => ({
     }
   },
 
+  fetchLeaderboard: async (params = {}) => {
+    try {
+      set({ isLoadingLeaderboard: true, leaderboardErrorMessage: '' });
+      const { data } = await kpiDashboardService.getLeaderboard(params);
+      const leaderboard = Array.isArray(data?.data)
+        ? data.data.map(normalizeLeaderboardItem)
+        : [];
+
+      set({
+        leaderboard,
+        leaderboardPagination: {
+          ...initialLeaderboardPagination,
+          ...(data?.pagination ?? {}),
+        },
+        isLoadingLeaderboard: false,
+      });
+    } catch (err) {
+      set({
+        leaderboard: [],
+        leaderboardPagination: initialLeaderboardPagination,
+        leaderboardErrorMessage: err?.message ?? 'Failed to load leaderboard',
+        isLoadingLeaderboard: false,
+      });
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err?.message ?? 'Failed to load leaderboard');
+    }
+  },
+
   resetDashboard: () => {
     set({
       dashboardData: initialDashboardData,
       assignedTasks: [],
       taskHistory: [],
       taskHistoryPagination: initialTaskHistoryPagination,
+      leaderboard: [],
+      leaderboardPagination: initialLeaderboardPagination,
       errorMessage: '',
       tasksErrorMessage: '',
       taskHistoryErrorMessage: '',
+      leaderboardErrorMessage: '',
       isLoading: false,
       isLoadingTasks: false,
       isLoadingTaskHistory: false,
+      isLoadingLeaderboard: false,
     });
   },
 }));

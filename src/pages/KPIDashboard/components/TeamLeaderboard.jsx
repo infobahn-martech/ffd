@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { FiSearch, FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import React, { useState, useMemo, useEffect } from 'react';
+import { FiSearch, FiFilter, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import YellowColorIcon from '../../../assets/images/YellowColorIcon.png';
 import BlueColorIcon from '../../../assets/images/BlueColorIcon.png';
 import VoilentColorIcon from '../../../assets/images/VoilentColorIcon.png';
@@ -7,97 +7,65 @@ import GreenColorIcon from '../../../assets/images/GreenColorIcon.png';
 import PurpleColorIcon from '../../../assets/images/PurpleColorIcon.png';
 import '../../../design/scss/pages/kpi-dashboard/components/TeamLeaderboard.scss';
 import PremiumSelect from '../../../components/form/PremiumSelect';
+import useKPIDashboardReducer from '../../../store/KPIDashboard';
+
+const fallbackIcons = [BlueColorIcon, GreenColorIcon, YellowColorIcon, PurpleColorIcon, VoilentColorIcon];
+
+const getBadgeIcon = (member) => {
+  if (member.badgeIconUrl) return member.badgeIconUrl;
+  const levelIndex = member.levelId ? Number(member.levelId) : member.rank;
+  return fallbackIcons[((levelIndex - 1) % fallbackIcons.length + fallbackIcons.length) % fallbackIcons.length];
+};
+
+const getLevelLabel = (member) => {
+  if (member.levelName) return member.levelName;
+  if (member.levelId) return `Level ${member.levelId}`;
+  return 'Unranked';
+};
 
 const TeamLeaderboard = () => {
-  // Sample data - replace with API data
-  const [teamMembers, setTeamMembers] = useState([
-    {
-      id: 1,
-      name: 'Tariq Abdulaziz',
-      level: 4,
-      points: 4520,
-      completion: 60,
-      icon: PurpleColorIcon,
-    },
-    {
-      id: 2,
-      name: 'Layla Hassan',
-      level: 2,
-      points: 2100,
-      completion: 10,
-      icon: GreenColorIcon,
-    },
-    {
-      id: 3,
-      name: 'Arjun Mehta',
-      level: 3,
-      points: 3572,
-      completion: 52,
-      icon: YellowColorIcon,
-    },
-    {
-      id: 4,
-      name: 'Priya Nair',
-      level: 1,
-      points: 1680,
-      completion: 65,
-      icon: BlueColorIcon,
-    },
-    {
-      id: 5,
-      name: 'Noor Al-Faisal',
-      level: 5,
-      points: 5867,
-      completion: 25,
-      icon: VoilentColorIcon,
-    },
-    {
-      id: 6,
-      name: 'Yusuf Al-Hassan',
-      level: 3,
-      points: 3286,
-      completion: 40,
-      icon: YellowColorIcon,
-    },
-    {
-      id: 7,
-      name: 'Sarah Johnson',
-      level: 4,
-      points: 4120,
-      completion: 75,
-      icon: PurpleColorIcon,
-    },
-    {
-      id: 8,
-      name: 'Ahmed Al-Mansoori',
-      level: 2,
-      points: 1950,
-      completion: 30,
-      icon: GreenColorIcon,
-    },
-  ]);
+  const leaderboard = useKPIDashboardReducer((state) => state.leaderboard);
+  const leaderboardPagination = useKPIDashboardReducer((state) => state.leaderboardPagination);
+  const isLoadingLeaderboard = useKPIDashboardReducer((state) => state.isLoadingLeaderboard);
+  const fetchLeaderboard = useKPIDashboardReducer((state) => state.fetchLeaderboard);
 
-  // Filter and sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('All');
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  // Level options
-  const levelOptions = ['All', '1', '2', '3', '4', '5'];
+  useEffect(() => {
+    fetchLeaderboard({
+      page,
+      limit,
+      search: searchTerm || undefined,
+      level_id: levelFilter,
+    });
+  }, [page, limit, searchTerm, levelFilter, fetchLeaderboard]);
 
-  // Filtered and sorted team members
+  const levelOptions = useMemo(() => {
+    const levels = new Set();
+    leaderboard.forEach((member) => {
+      if (member.levelId) levels.add(String(member.levelId));
+    });
+    return ['All', ...Array.from(levels).sort((a, b) => Number(a) - Number(b))];
+  }, [leaderboard]);
+
   const filteredAndSortedMembers = useMemo(() => {
-    let filtered = teamMembers.filter((member) => {
+    let filtered = leaderboard.filter((member) => {
       const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesLevel = levelFilter === 'All' || member.level.toString() === levelFilter;
+      const matchesLevel =
+        levelFilter === 'All' || String(member.levelId) === levelFilter;
       return matchesSearch && matchesLevel;
     });
 
     if (sortField) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
+      filtered = [...filtered].sort((a, b) => {
+        let aValue;
+        let bValue;
 
         switch (sortField) {
           case 'name':
@@ -105,8 +73,8 @@ const TeamLeaderboard = () => {
             bValue = b.name.toLowerCase();
             break;
           case 'level':
-            aValue = a.level;
-            bValue = b.level;
+            aValue = a.levelId ? Number(a.levelId) : 0;
+            bValue = b.levelId ? Number(b.levelId) : 0;
             break;
           case 'points':
             aValue = a.points;
@@ -127,9 +95,8 @@ const TeamLeaderboard = () => {
     }
 
     return filtered;
-  }, [teamMembers, searchTerm, levelFilter, sortField, sortDirection]);
+  }, [leaderboard, searchTerm, levelFilter, sortField, sortDirection]);
 
-  // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -139,20 +106,22 @@ const TeamLeaderboard = () => {
     }
   };
 
-  // Get sort icon
   const getSortIcon = (field) => {
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? <FiChevronUp /> : <FiChevronDown />;
   };
 
+  const totalMembers = leaderboardPagination.total || 0;
+  const totalPages = leaderboardPagination.total_pages || 1;
+  const currentPage = leaderboardPagination.page || page;
+
   return (
     <div className="team-leaderboard">
       <div className="team-leaderboard__header">
         <h2 className="team-leaderboard__title">Team Leaderboard</h2>
-        <p className="team-leaderboard__subtitle">View and track your team's performance and achievements</p>
+        <p className="team-leaderboard__subtitle">View and track your team&apos;s performance and achievements</p>
       </div>
 
-      {/* Filters Section */}
       <div className="team-leaderboard__filters">
         <div className="team-leaderboard__search">
           <FiSearch className="team-leaderboard__search-icon" />
@@ -160,13 +129,17 @@ const TeamLeaderboard = () => {
             type="text"
             placeholder="Search team members..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             className="team-leaderboard__search-input"
           />
         </div>
 
         <div className="team-leaderboard__filter-controls">
           <button
+            type="button"
             className={`team-leaderboard__filter-toggle ${showFilters ? 'team-leaderboard__filter-toggle--active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
@@ -180,7 +153,10 @@ const TeamLeaderboard = () => {
                 <label className="team-leaderboard__filter-label">Level</label>
                 <PremiumSelect
                   value={levelFilter}
-                  onChange={(e) => setLevelFilter(e.target.value)}
+                  onChange={(e) => {
+                    setLevelFilter(e.target.value);
+                    setPage(1);
+                  }}
                   options={levelOptions.map((option) => ({
                     value: option,
                     label: option === 'All' ? 'All Levels' : `Level ${option}`,
@@ -195,7 +171,6 @@ const TeamLeaderboard = () => {
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="team-leaderboard__table-wrapper">
         <table className="team-leaderboard-table">
           <thead>
@@ -239,7 +214,13 @@ const TeamLeaderboard = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedMembers.length === 0 ? (
+            {isLoadingLeaderboard && filteredAndSortedMembers.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="team-leaderboard-table__empty">
+                  Loading team members...
+                </td>
+              </tr>
+            ) : filteredAndSortedMembers.length === 0 ? (
               <tr>
                 <td colSpan="4" className="team-leaderboard-table__empty">
                   No team members found
@@ -254,11 +235,11 @@ const TeamLeaderboard = () => {
                   <td className="team-leaderboard-table__cell">
                     <div className="team-leaderboard-table__level-content">
                       <img
-                        src={member.icon}
-                        alt={`Level ${member.level}`}
+                        src={getBadgeIcon(member)}
+                        alt={getLevelLabel(member)}
                         className="team-leaderboard-table__level-icon"
                       />
-                      <span>Level {member.level}</span>
+                      <span>{getLevelLabel(member)}</span>
                     </div>
                   </td>
                   <td className="team-leaderboard-table__cell">
@@ -270,7 +251,7 @@ const TeamLeaderboard = () => {
                         <div
                           className="team-leaderboard-table__progress-fill"
                           style={{ width: `${member.completion}%` }}
-                        ></div>
+                        />
                       </div>
                       <span className="team-leaderboard-table__completion-text">{member.completion}%</span>
                     </div>
@@ -282,11 +263,35 @@ const TeamLeaderboard = () => {
         </table>
       </div>
 
-      {/* Summary */}
       <div className="team-leaderboard__summary">
         <span className="team-leaderboard__summary-text">
-          Showing {filteredAndSortedMembers.length} of {teamMembers.length} team members
+          Showing {filteredAndSortedMembers.length} of {totalMembers} team members
         </span>
+        {totalPages > 1 && (
+          <div className="team-leaderboard__pagination">
+            <button
+              type="button"
+              className="team-leaderboard__pagination-btn"
+              disabled={currentPage <= 1 || isLoadingLeaderboard}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              aria-label="Previous page"
+            >
+              <FiChevronLeft />
+            </button>
+            <span className="team-leaderboard__pagination-text">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              className="team-leaderboard__pagination-btn"
+              disabled={currentPage >= totalPages || isLoadingLeaderboard}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              aria-label="Next page"
+            >
+              <FiChevronRight />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
