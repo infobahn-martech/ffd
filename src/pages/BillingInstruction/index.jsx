@@ -3,6 +3,7 @@ import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { BillingInstructionModal } from "./Modals/AddEditBillingInstruction";
+import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useBillingInstructionReducer from "../../store/BillingInstructionReducer";
 
 const formatEmailsCell = (row) => {
@@ -22,7 +23,7 @@ const formatDescriptionCell = (row) => {
 };
 
 const BillingInstruction = () => {
-    const { getAllBillingInstructions, billingInstructions, isLoading, totalCount } =
+    const { getAllBillingInstructions, deleteBillingInstruction, billingInstructions, isLoading, totalCount, isDeleteLoading } =
         useBillingInstructionReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -34,6 +35,8 @@ const BillingInstruction = () => {
     });
 
     const [showBillingInstructionModal, setShowBillingInstructionModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRowForDelete, setSelectedRowForDelete] = useState(null);
 
     const apiParams = useMemo(
         () => ({
@@ -102,8 +105,10 @@ const BillingInstruction = () => {
             cell: RenderAction,
             thclass: "tb-head",
             onEditClick: (row) => handleOpenEdit(row),
-            onDeleteClick: () => {},
-            hideDelete: true,
+            onDeleteClick: (row) => {
+                setSelectedRowForDelete(row);
+                setShowDeleteModal(true);
+            },
         },
     ];
 
@@ -156,6 +161,33 @@ const BillingInstruction = () => {
                             }}
                         />
                     )}
+
+                    {!!showDeleteModal && (
+                        <DeleteConfirmationModal
+                            show={showDeleteModal}
+                            isLoading={isDeleteLoading}
+                            onCancel={() => {
+                                setShowDeleteModal(false);
+                                setSelectedRowForDelete(null);
+                            }}
+                            onConfirm={() => {
+                                const entity_id =
+                                    selectedRowForDelete?.entity_id ??
+                                    selectedRowForDelete?.billing_instruction_id ??
+                                    selectedRowForDelete?.id;
+                                if (!entity_id) return;
+                                deleteBillingInstruction({
+                                    entity_id,
+                                    cb: () => {
+                                        setShowDeleteModal(false);
+                                        setSelectedRowForDelete(null);
+                                        getAllBillingInstructions({ params: apiParams });
+                                    },
+                                });
+                            }}
+                            deleteText="Are you sure you want to delete this billing instruction?"
+                        />
+                    )}
                 </div>
             </div>
         </>
@@ -163,3 +195,4 @@ const BillingInstruction = () => {
 };
 
 export default BillingInstruction;
+
