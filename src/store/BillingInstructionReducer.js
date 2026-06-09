@@ -9,6 +9,7 @@ const useBillingInstructionReducer = create((set) => ({
   instructionDetail: null,
   isLoadingDetail: false,
   isBeingUpdated: false,
+  isDeleteLoading: false,
 
   getAllBillingInstructions: async ({ params } = {}) => {
     try {
@@ -76,6 +77,21 @@ const useBillingInstructionReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
+  deleteBillingInstruction: async ({ entity_id, cb }) => {
+    try {
+      set({ isDeleteLoading: true });
+      const { data } = await billingInstructionService.deleteBillingInstruction({ entity_id });
+      set({ isDeleteLoading: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Billing instruction deleted successfully');
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isDeleteLoading: false });
       error(err?.response?.data?.message ?? err.message);
     }
   },
