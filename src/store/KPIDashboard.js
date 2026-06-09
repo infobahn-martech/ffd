@@ -2,6 +2,16 @@ import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import kpiService from '../services/kpiService';
 
+const normalizeAssignedTask = (task) => ({
+  ...task,
+  task_name: task?.task_name ?? task?.name ?? '',
+  status_label: task?.status_label ?? task?.status ?? task?.task_status ?? '',
+  status_color: task?.status_color ?? task?.statusColor ?? task?.color ?? '',
+  start_time: task?.start_time ?? task?.startTime ?? null,
+  completed_time: task?.completed_time ?? task?.completedTime ?? null,
+  delay_text: task?.delay_text ?? task?.delayText ?? '',
+});
+
 const initialDashboardData = {
   user: null,
   total_points: 0,
@@ -55,7 +65,9 @@ const useKPIDashboardReducer = create((set) => ({
     try {
       set({ isLoadingTasks: true, tasksErrorMessage: '' });
       const { data } = await kpiService.getUserAssignedTasks(userId);
-      const assignedTasks = Array.isArray(data?.data) ? data.data : [];
+      const assignedTasks = Array.isArray(data?.data)
+        ? data.data.map(normalizeAssignedTask)
+        : [];
 
       set({ assignedTasks, isLoadingTasks: false });
     } catch (err) {

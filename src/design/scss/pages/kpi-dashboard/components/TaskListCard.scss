@@ -95,27 +95,19 @@
 
   &__icon-wrapper {
     flex-shrink: 0;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   &__icon {
+    display: block;
     width: 20px;
     height: 20px;
+    min-width: 20px;
     flex-shrink: 0;
-
-    &--completed {
-      color: #4ADE80;
-    }
-
-    &--in-progress {
-      color: #60A5FA;
-    }
-
-    &--pending {
-      color: rgba(255, 255, 255, 0.5);
-    }
   }
 
   &__content {
