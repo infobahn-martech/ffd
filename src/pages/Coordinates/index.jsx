@@ -18,6 +18,7 @@ const Coordinates = () => {
         isLoading,
         totalCount,
         deleteCoordinates,
+        isDeleteLoading,
     } = useCoordinatesReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -138,19 +139,18 @@ const Coordinates = () => {
         });
     };
 
-    const handleDelete = async () => {
-        const id = selectedRow?.coordinates_id ?? selectedRow?.coordinate_type_id;
-        if (id == null || id === "") return;
+    const handleDelete = () => {
+        const coordinate_type_id = selectedRow?.coordinate_type_id ?? selectedRow?.id;
+        if (!coordinate_type_id) return;
 
-        await deleteCoordinates?.({
-            coordinates_id: selectedRow.coordinates_id,
-            coordinate_type_id: selectedRow.coordinate_type_id,
+        deleteCoordinates({
+            coordinate_type_id,
+            cb: () => {
+                setShowDeleteModal(false);
+                setSelectedRow(null);
+                handleRefresh();
+            },
         });
-
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-
-        handleRefresh();
     };
 
     return (
@@ -211,8 +211,8 @@ const Coordinates = () => {
                             setSelectedRow(null);
                         }}
                         onConfirm={handleDelete}
-                        isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this coordinates?"
+                        isLoading={isDeleteLoading}
+                        deleteText="Are you sure you want to delete this coordinate type?"
                     />
                 )}
             </div>
