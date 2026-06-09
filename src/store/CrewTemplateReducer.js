@@ -59,6 +59,27 @@ const useCrewTemplateReducer = create((set) => ({
       error(err?.response?.data?.message ?? err?.message ?? 'Failed to update template');
     }
   },
+
+  deleteTemplate: async ({ templateId, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await CrewTemplateService.deleteTemplate(templateId);
+      set((state) => ({
+        addEditLoader: false,
+        crewTemplates: (state.crewTemplates || []).filter(
+          (t) => String(t.template_id) !== String(templateId)
+        ),
+        templateCount: Math.max(0, (state.templateCount || 0) - 1),
+      }));
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Template deleted successfully');
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err?.message ?? 'Failed to delete template');
+    }
+  },
 }));
 
 export default useCrewTemplateReducer;
