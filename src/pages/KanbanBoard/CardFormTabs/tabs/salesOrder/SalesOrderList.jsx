@@ -700,6 +700,14 @@ const DUMMY_VENDORS = [
   { code: "VEND-008", name: "Saudi Freight Solutions" },
 ];
 
+const DUMMY_DOCUMENTS = [
+  { id: 1, name: "Port Clearance Document.pdf", type: "PDF" },
+  { id: 2, name: "Vessel Certificate.pdf", type: "PDF" },
+  { id: 3, name: "Agency Agreement.docx", type: "DOCX" },
+  { id: 4, name: "Transport Instruction.pdf", type: "PDF" },
+  { id: 5, name: "Customs Declaration.pdf", type: "PDF" },
+];
+
 // Vendor List Modal
 const VendorListModal = ({ show, onClose, onSelect }) => {
   const [search, setSearch] = useState("");
@@ -758,6 +766,121 @@ VendorListModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+};
+
+// Document List Modal
+const DocumentListModal = ({ show, onClose, onSave, initialSelected = [] }) => {
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(new Set());
+
+  useEffect(() => {
+    if (show) {
+      setSelected(new Set((initialSelected || []).map((d) => d.id)));
+      setSearch("");
+    }
+    // Only reset when modal opens; initialSelected is captured at open time via key on parent
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show]);
+
+  if (!show) return null;
+
+  const filtered = DUMMY_DOCUMENTS.filter((d) =>
+    d.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleDocument = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSave = () => {
+    const documents = DUMMY_DOCUMENTS.filter((d) => selected.has(d.id));
+    onSave(documents);
+    onClose();
+  };
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "16px", boxSizing: "border-box" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: "#fff", borderRadius: "10px", width: "90%", maxWidth: "520px", maxHeight: "70vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+        <div style={{ padding: "18px 22px", borderBottom: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "#1a1a2e" }}>Select Documents</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "22px", cursor: "pointer", color: "#888", lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ padding: "14px 22px", borderBottom: "1px solid #eee", flexShrink: 0 }}>
+          <input
+            type="text"
+            placeholder="Search by document name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+            style={{ width: "100%", padding: "8px 12px", border: "1px solid #dde0ea", borderRadius: "7px", fontSize: "13px", boxSizing: "border-box", fontFamily: "inherit" }}
+          />
+        </div>
+        <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: "24px", textAlign: "center", color: "#888", fontSize: "13px" }}>No documents found.</div>
+          ) : (
+            filtered.map((d) => (
+              <label
+                key={d.id}
+                style={{ padding: "12px 22px", cursor: "pointer", borderBottom: "1px solid #f4f4f8", display: "flex", alignItems: "center", gap: "14px", transition: "background 0.1s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f6ff")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.has(d.id)}
+                  onChange={() => toggleDocument(d.id)}
+                  style={{ width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 }}
+                />
+                <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#5a5f8a", background: "#f0f2ff", padding: "3px 8px", borderRadius: "5px", flexShrink: 0 }}>{d.type}</span>
+                <span style={{ fontSize: "14px", color: "#1a1a2e", fontWeight: "500", minWidth: 0, wordBreak: "break-word" }}>{d.name}</span>
+              </label>
+            ))
+          )}
+        </div>
+        <div style={{ padding: "14px 22px", borderTop: "1px solid #eee", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ padding: "8px 18px", fontSize: "13px", border: "1px solid #ddd", borderRadius: "5px", background: "#f5f5f5", color: "#333", cursor: "pointer", fontFamily: "inherit" }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            style={{ padding: "8px 18px", fontSize: "13px", border: "none", borderRadius: "5px", background: "#00368c", color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: "600" }}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+DocumentListModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  initialSelected: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      type: PropTypes.string.isRequired,
+    })
+  ),
 };
 
 const SalesOrderList = ({
@@ -826,6 +949,7 @@ const SalesOrderList = ({
     typeOfPo: "",
     supplierCode: "",
     supplierName: "",
+    documents: [],
   });
 
   // State for checkbox selection (exclude DA module)
@@ -842,6 +966,9 @@ const SalesOrderList = ({
 
   // State for vendor modal (row-level supplier picker)
   const [vendorModalTarget, setVendorModalTarget] = useState(null); // orderId or "new"
+
+  // State for document modal (row-level document picker)
+  const [documentModalTarget, setDocumentModalTarget] = useState(null); // orderId or "new"
 
   const displayOrderList = Array.isArray(salesOrderList) ? salesOrderList : [];
 
@@ -972,6 +1099,33 @@ const SalesOrderList = ({
     setVendorModalTarget(null);
   };
 
+  const handleDocumentSave = (documents) => {
+    if (documentModalTarget === "new") {
+      setNewItemForm((prev) => ({ ...prev, documents }));
+    } else if (documentModalTarget !== null) {
+      const updatedList = salesOrderList.map((order) =>
+        order.id === documentModalTarget ? { ...order, documents } : order
+      );
+      handleChange("salesOrderList")({ target: { value: updatedList } });
+    }
+    setDocumentModalTarget(null);
+  };
+
+  const getDocumentModalInitialSelected = () => {
+    if (documentModalTarget === "new") return newItemForm.documents || [];
+    if (documentModalTarget !== null) {
+      const order = salesOrderList.find((o) => o.id === documentModalTarget);
+      return order?.documents || [];
+    }
+    return [];
+  };
+
+  const formatDocumentCount = (documents) => {
+    const count = documents?.length || 0;
+    if (!count) return "—";
+    return `${count} Document${count > 1 ? "s" : ""}`;
+  };
+
   const handleAddNewItem = () => {
     setNewItemForm({
       callFile: "",
@@ -984,6 +1138,7 @@ const SalesOrderList = ({
       typeOfPo: "",
       supplierCode: "",
       supplierName: "",
+      documents: [],
     });
     setIsAccordionOpen(true);
   };
@@ -1016,19 +1171,20 @@ const SalesOrderList = ({
       typeOfPo: newItemForm.typeOfPo || "",
       supplierCode: newItemForm.supplierCode || "",
       supplierName: newItemForm.supplierName || "",
+      documents: newItemForm.documents || [],
       poStatus: "Draft",
     };
     newItem.totalAmount = calcRowTotal(newItem);
 
     handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
 
-    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "" };
+    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "", documents: [] };
     setIsAccordionOpen(false);
     setNewItemForm(emptyForm);
   };
 
   const handleCancel = () => {
-    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "" };
+    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "", documents: [] };
     setIsAccordionOpen(false);
     setNewItemForm(emptyForm);
   };
@@ -1288,6 +1444,30 @@ const SalesOrderList = ({
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
+          )}
+        </div>
+      </td>
+
+      {/* Document Picker */}
+      <td>
+        <div className="sales-order-table-cell sales-order-supplier-cell">
+          {readOnly ? (
+            <span>{formatDocumentCount(order.documents)}</span>
+          ) : (
+            <>
+              <span
+                className={`sales-order-supplier-code-text${order.documents?.length ? "" : " is-empty"}`}
+              >
+                {formatDocumentCount(order.documents)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setDocumentModalTarget(order.id)}
+                className="sales-order-supplier-select-btn"
+              >
+                {order.documents?.length ? "Change" : "Select"}
+              </button>
+            </>
           )}
         </div>
       </td>
@@ -1710,6 +1890,26 @@ const SalesOrderList = ({
                 </select>
               </div>
               <div className="sales-order-add-form-field">
+                <label>Document Picker</label>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <input
+                    type="text"
+                    value={newItemForm.documents?.length ? formatDocumentCount(newItemForm.documents) : ""}
+                    readOnly
+                    placeholder="— Select documents —"
+                    className="sales-order-add-form-input"
+                    style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDocumentModalTarget("new")}
+                    style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  >
+                    {newItemForm.documents?.length ? "Change" : "Select"}
+                  </button>
+                </div>
+              </div>
+              <div className="sales-order-add-form-field">
                 <label>Supplier Code</label>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                   <input
@@ -1893,6 +2093,7 @@ const SalesOrderList = ({
               {renderTableHeader("Tax Code", "col-tax")}
               {renderTableHeader("Total Amount", "col-total")}
               {renderTableHeader("Type of PO", "col-type-po")}
+              {renderTableHeader("Document Picker", "col-documents")}
               {renderTableHeader("Supplier Code", "col-supplier")}
             </tr>
           </thead>
@@ -1900,7 +2101,7 @@ const SalesOrderList = ({
             {displayOrderList.length === 0 && !isLoadingSalesOrder && (
               <tr>
                 <td
-                  colSpan={isDAModule ? 9 : 10}
+                  colSpan={isDAModule ? 10 : 11}
                   style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                 >
                   No sales order line items for this call.
@@ -1933,7 +2134,7 @@ const SalesOrderList = ({
                     }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={isDAModule ? 9 : 10} style={{ padding: "12px 16px" }}>
+                    <td colSpan={isDAModule ? 10 : 11} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {!isDAModule && (
@@ -2192,6 +2393,15 @@ const SalesOrderList = ({
         show={vendorModalTarget !== null}
         onClose={() => setVendorModalTarget(null)}
         onSelect={handleVendorSelect}
+      />
+
+      {/* Document List Modal */}
+      <DocumentListModal
+        key={documentModalTarget ?? "closed"}
+        show={documentModalTarget !== null}
+        onClose={() => setDocumentModalTarget(null)}
+        onSave={handleDocumentSave}
+        initialSelected={getDocumentModalInitialSelected()}
       />
     </div>
   );
