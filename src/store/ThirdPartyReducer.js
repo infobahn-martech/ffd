@@ -59,13 +59,16 @@ const useThirdPartyServiceReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
-    deleteData: async (third_party_service_id) => {
+    deleteData: async (payload) => {
+        const { third_party_service_id, cb } = payload || {};
+        if (!third_party_service_id) return;
         try {
             set({ isLoadingDelete: true });
             const { data } = await thirdPartyService.deleteThirdPartyService(third_party_service_id);
             set({ successMessage: data?.message, isLoadingDelete: false });
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Third party service deleted successfully');
+            cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({
