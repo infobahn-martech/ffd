@@ -11,6 +11,8 @@ import TeamLeaderboard from './components/TeamLeaderboard';
 import ProfileModal from './components/ProfileModal';
 import SignOutModal from './components/SignOutModal';
 import useAuthReducer from '../../store/AuthReducer';
+import useKPIDashboardReducer from '../../store/KPIDashboard';
+import { getItem } from '../../shared/helpers/localStorage';
 import '../../design/scss/pages/kpi-dashboard/KPIDashboard.scss';
 import LevelManagement from '../LevelManagement';
 
@@ -18,6 +20,14 @@ const KPIDashboard = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const doLogout = useAuthReducer((state) => state.doLogout);
+    const userId = useAuthReducer((state) => state.authData?.userid) || getItem('userid');
+    const fetchUserKpiDashboard = useKPIDashboardReducer((state) => state.fetchUserKpiDashboard);
+
+    useEffect(() => {
+        if (userId) {
+            fetchUserKpiDashboard(userId);
+        }
+    }, [userId, fetchUserKpiDashboard]);
 
     // Initialize activeMenu based on URL
     const getInitialMenu = () => {
