@@ -1376,50 +1376,21 @@ const SalesOrderList = ({
       {/* Unit Price */}
       <td>
         <div className="sales-order-table-cell">
-          {readOnly ? formatCurrencySAR(order.unitPrice || 0) : (
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={order.unitPrice ?? 0}
-              onChange={(e) => handleFieldChange(order.id, "unitPrice", e.target.value)}
-              style={cellStyle}
-            />
-          )}
+          {formatCurrencySAR(order.unitPrice || 0)}
         </div>
       </td>
 
       {/* Discount % */}
       <td>
         <div className="sales-order-table-cell">
-          {readOnly ? `${order.discount ?? 0}%` : (
-            <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.01"
-              value={order.discount !== undefined && order.discount !== null && order.discount !== "" ? order.discount : 0}
-              onChange={(e) => handleFieldChange(order.id, "discount", e.target.value)}
-              style={cellStyle}
-            />
-          )}
+          {`${order.discount ?? 0}%`}
         </div>
       </td>
 
       {/* Tax Code */}
       <td>
         <div className="sales-order-table-cell">
-          {readOnly ? (order.taxCode || "15%") : (
-            <select
-              value={order.taxCode || "15%"}
-              onChange={(e) => handleFieldChange(order.id, "taxCode", e.target.value)}
-              style={{ ...cellStyle, cursor: "pointer" }}
-            >
-              {TAX_CODE_OPTIONS.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          )}
+          {order.taxCode || "15%"}
         </div>
       </td>
 
