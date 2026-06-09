@@ -9787,6 +9787,143 @@ body .modal-backdrop.show {
   text-align: right;
 }
 
+.operation-task-documents {
+  margin-top: 6px;
+  border: 1px solid #eef0f4;
+  border-radius: 8px;
+  background: #fafbff;
+  overflow: hidden;
+}
+
+.operation-task-documents-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: #f3f6fb;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.35);
+    outline-offset: -2px;
+  }
+}
+
+.operation-task-documents-trigger-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.operation-task-documents-chevron {
+  flex-shrink: 0;
+  color: #8b93a7;
+  transition: transform 0.25s ease;
+}
+
+.operation-task-documents-chevron--open {
+  transform: rotate(180deg);
+}
+
+.operation-task-documents-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.operation-task-documents-panel--open {
+  grid-template-rows: 1fr;
+}
+
+.operation-task-documents-panel-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.operation-task-documents-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 10px 8px;
+  border-top: 1px solid #eef0f4;
+}
+
+.operation-task-document-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f0f2f6;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 2px;
+  }
+}
+
+.operation-task-document-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.operation-task-doc-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.operation-task-doc-status--pending {
+  background: #f1f3f5;
+  color: #6b7280;
+}
+
+.operation-task-doc-status--uploaded {
+  background: rgba(25, 118, 210, 0.12);
+  color: rgb(25, 118, 210);
+}
+
+.operation-task-doc-status--verified {
+  background: rgba(67, 160, 71, 0.12);
+  color: rgb(67, 160, 71);
+}
+
+.operation-task-doc-status--rejected {
+  background: #fdecec;
+  color: #b42318;
+}
+
+.operation-task-documents-empty {
+  margin: 0;
+  padding: 8px 10px 10px;
+  border-top: 1px solid #eef0f4;
+  font-size: 12px;
+  color: #8b93a7;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 .operation-task-view-only-note {
   margin: 18px 0 0;
   font-size: 12px;

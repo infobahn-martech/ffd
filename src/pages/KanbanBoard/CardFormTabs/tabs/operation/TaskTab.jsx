@@ -1,12 +1,7 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
+import { TASK_STATUS } from "./operationTasksMapper";
 import "../../../../../design/scss/operations.scss";
-
-const TASK_STATUS = {
-  PENDING: "Pending",
-  IN_PROGRESS: "In Progress",
-  COMPLETED: "Completed",
-  REJECTED: "Rejected",
-};
 
 const STATUS_CLASS_MAP = {
   [TASK_STATUS.PENDING]: "operation-task-status--pending",
@@ -22,92 +17,76 @@ const STATUS_PROGRESS_MAP = {
   [TASK_STATUS.REJECTED]: 0,
 };
 
+const DOCUMENT_STATUS_CLASS_MAP = {
+  Pending: "operation-task-doc-status--pending",
+  Uploaded: "operation-task-doc-status--uploaded",
+  Verified: "operation-task-doc-status--verified",
+  Rejected: "operation-task-doc-status--rejected",
+};
+
 function getStatusProgress(status) {
   return STATUS_PROGRESS_MAP[status] ?? 0;
 }
 
-export const dummyTaskSections = [
-  {
-    id: 1,
-    title: "GRO",
-    tasks: [
-      {
-        id: 101,
-        title: "Vessel Registration",
-        assignedTo: "Port Operations Team",
-        status: TASK_STATUS.IN_PROGRESS,
-        documentCount: 2,
-      },
-      {
-        id: 102,
-        title: "Inward Clearance",
-        assignedTo: "Port Operations Team",
-        status: TASK_STATUS.PENDING,
-        documentCount: 0,
-      },
-      {
-        id: 103,
-        title: "CG Pass",
-        assignedTo: "Port Security Office",
-        status: TASK_STATUS.COMPLETED,
-        documentCount: 4,
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Custom Clearance",
-    tasks: [
-      {
-        id: 201,
-        title: "Import Declaration",
-        assignedTo: "Customs Liaison Unit",
-        status: TASK_STATUS.PENDING,
-        documentCount: 1,
-      },
-      {
-        id: 202,
-        title: "Bayan Document",
-        assignedTo: "Customs Liaison Unit",
-        status: TASK_STATUS.IN_PROGRESS,
-        documentCount: 3,
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Marine Work Permit",
-    tasks: [
-      {
-        id: 301,
-        title: "Permit Application",
-        assignedTo: "Marine Services Desk",
-        status: TASK_STATUS.COMPLETED,
-        documentCount: 2,
-      },
-    ],
-  },
-];
+function ChevronIcon({ isOpen }) {
+  return (
+    <svg
+      className={`operation-task-documents-chevron${isOpen ? " operation-task-documents-chevron--open" : ""}`}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+ChevronIcon.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+};
 
 function TaskStatusBadge({ status }) {
-  const statusClass = STATUS_CLASS_MAP[status] || STATUS_CLASS_MAP[TASK_STATUS.PENDING];
+  const normalizedStatus = status || TASK_STATUS.PENDING;
+  const statusClass = STATUS_CLASS_MAP[normalizedStatus] || STATUS_CLASS_MAP[TASK_STATUS.PENDING];
 
   return (
     <span className={`operation-task-status ${statusClass}`}>
-      {status}
+      {normalizedStatus}
     </span>
   );
 }
 
 TaskStatusBadge.propTypes = {
-  status: PropTypes.string.isRequired,
+  status: PropTypes.string,
+};
+
+function DocumentStatusBadge({ status }) {
+  const normalizedStatus = status || "Pending";
+  const statusClass =
+    DOCUMENT_STATUS_CLASS_MAP[normalizedStatus] || DOCUMENT_STATUS_CLASS_MAP.Pending;
+
+  return (
+    <span className={`operation-task-doc-status ${statusClass}`}>
+      {normalizedStatus}
+    </span>
+  );
+}
+
+DocumentStatusBadge.propTypes = {
+  status: PropTypes.string,
 };
 
 function TaskProgressIndicator({ status, progress }) {
   const percent =
     typeof progress === "number" && !Number.isNaN(progress)
       ? Math.min(100, Math.max(0, Math.round(progress)))
-      : getStatusProgress(status);
+      : getStatusProgress(status || TASK_STATUS.PENDING);
   const progressClass =
     percent === 100
       ? "operation-task-progress-fill--completed"
@@ -138,15 +117,71 @@ function TaskProgressIndicator({ status, progress }) {
 }
 
 TaskProgressIndicator.propTypes = {
-  status: PropTypes.string.isRequired,
+  status: PropTypes.string,
   progress: PropTypes.number,
+};
+
+function TaskDocumentsAccordion({ documents, taskId }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const docList = Array.isArray(documents) ? documents : [];
+  const count = docList.length;
+  const panelId = `operation-task-documents-${taskId}`;
+
+  return (
+    <div className="operation-task-documents">
+      <button
+        type="button"
+        className="operation-task-documents-trigger"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+      >
+        <span className="operation-task-documents-trigger-label">
+          Documents ({count})
+        </span>
+        <ChevronIcon isOpen={isOpen} />
+      </button>
+
+      <div
+        id={panelId}
+        className={`operation-task-documents-panel${isOpen ? " operation-task-documents-panel--open" : ""}`}
+        aria-hidden={!isOpen}
+      >
+        <div className="operation-task-documents-panel-inner">
+          {count === 0 ? (
+            <p className="operation-task-documents-empty">No documents available</p>
+          ) : (
+            <ul className="operation-task-documents-list" role="list">
+              {docList.map((doc) => (
+                <li key={doc.id} className="operation-task-document-row" role="listitem">
+                  <span className="operation-task-document-name">{doc.name}</span>
+                  <DocumentStatusBadge status={doc.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+TaskDocumentsAccordion.propTypes = {
+  documents: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name: PropTypes.string.isRequired,
+      status: PropTypes.string,
+    })
+  ),
+  taskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 function OperationTasksPanel({
   cardColor,
   isViewOnly = false,
   embedded = false,
-  taskSections = dummyTaskSections,
+  taskSections = [],
   isLoading = false,
   error = "",
   className = "",
@@ -215,6 +250,7 @@ function OperationTasksPanel({
                         </span>
                       </p>
                       <TaskProgressIndicator status={task.status} progress={task.progress} />
+                      <TaskDocumentsAccordion documents={task.documents} taskId={task.id} />
                     </div>
                   </li>
                 ))}
@@ -244,6 +280,13 @@ OperationTasksPanel.propTypes = {
           status: PropTypes.string,
           documentCount: PropTypes.number,
           progress: PropTypes.number,
+          documents: PropTypes.arrayOf(
+            PropTypes.shape({
+              id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+              name: PropTypes.string.isRequired,
+              status: PropTypes.string,
+            })
+          ),
         })
       ).isRequired,
     })
@@ -253,4 +296,5 @@ OperationTasksPanel.propTypes = {
   className: PropTypes.string,
 };
 
+export { mapTasksToSections } from "./operationTasksMapper";
 export default OperationTasksPanel;

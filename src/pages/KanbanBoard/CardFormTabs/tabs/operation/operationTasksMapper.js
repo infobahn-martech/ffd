@@ -5,7 +5,15 @@ export const TASK_STATUS = {
   REJECTED: "Rejected",
 };
 
+export const DOCUMENT_STATUS = {
+  PENDING: "Pending",
+  UPLOADED: "Uploaded",
+  VERIFIED: "Verified",
+  REJECTED: "Rejected",
+};
+
 const TASK_STATUS_VALUES = new Set(Object.values(TASK_STATUS));
+const DOCUMENT_STATUS_VALUES = new Set(Object.values(DOCUMENT_STATUS));
 
 function isDocumentCompleted(doc) {
   return String(doc?.status ?? "") === "1";
@@ -44,13 +52,40 @@ function getTaskStatusFromProgress(progress) {
   return TASK_STATUS.PENDING;
 }
 
-export function mapCallTasksToSections(apiTasks) {
-  if (!Array.isArray(apiTasks) || apiTasks.length === 0) return [];
+export function mapDocumentStatus(status) {
+  const key = String(status ?? "0").trim();
+
+  if (DOCUMENT_STATUS_VALUES.has(key)) return key;
+
+  switch (key) {
+    case "1":
+      return DOCUMENT_STATUS.UPLOADED;
+    case "2":
+      return DOCUMENT_STATUS.VERIFIED;
+    case "3":
+      return DOCUMENT_STATUS.REJECTED;
+    default:
+      return DOCUMENT_STATUS.PENDING;
+  }
+}
+
+function mapDocuments(documents) {
+  if (!Array.isArray(documents)) return [];
+
+  return documents.map((doc, index) => ({
+    id: String(doc?.document_id ?? doc?.id ?? `${doc?.document_name ?? "doc"}-${index}`),
+    name: String(doc?.document_name ?? "Untitled document"),
+    status: mapDocumentStatus(doc?.status),
+  }));
+}
+
+export function mapTasksToSections(apiData) {
+  if (!Array.isArray(apiData) || apiData.length === 0) return [];
 
   const sectionMap = new Map();
   const sectionOrder = [];
 
-  apiTasks.forEach((task) => {
+  apiData.forEach((task) => {
     const roleKey = String(task?.role_id ?? task?.role_name ?? "unknown");
     if (!sectionMap.has(roleKey)) {
       sectionMap.set(roleKey, {
@@ -61,10 +96,10 @@ export function mapCallTasksToSections(apiTasks) {
       sectionOrder.push(roleKey);
     }
 
-    const documents = Array.isArray(task?.documents) ? task.documents : [];
+    const documents = mapDocuments(task?.documents);
     const progress =
       parsePercentage(task?.documents_uploaded_percentage) ??
-      getTaskProgressFromDocuments(documents);
+      getTaskProgressFromDocuments(Array.isArray(task?.documents) ? task.documents : []);
 
     const status = task?.task_status
       ? normalizeTaskStatus(task.task_status)
@@ -81,8 +116,12 @@ export function mapCallTasksToSections(apiTasks) {
       status,
       documentCount,
       progress,
+      documents,
     });
   });
 
   return sectionOrder.map((key) => sectionMap.get(key));
 }
+
+/** @deprecated Use mapTasksToSections */
+export const mapCallTasksToSections = mapTasksToSections;

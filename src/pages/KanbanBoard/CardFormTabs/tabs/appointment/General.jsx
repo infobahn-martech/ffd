@@ -18,7 +18,7 @@ import vesselService from "../../../../../services/vesselService";
 import kpiTasksService from "../../../../../services/kpiTasksService";
 import useCallTaskReducer from "../../../../../store/CallTaskReducer";
 import OperationTasksPanel from "../operation/TaskTab";
-import { mapCallTasksToSections } from "../operation/operationTasksMapper";
+import { mapTasksToSections } from "../operation/operationTasksMapper";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import {
@@ -2139,7 +2139,7 @@ function General({
   }, [operatorKpiTasks]);
 
   const mappedOperationTaskSections = useMemo(
-    () => mapCallTasksToSections(callTasks),
+    () => mapTasksToSections(callTasks),
     [callTasks]
   );
 
