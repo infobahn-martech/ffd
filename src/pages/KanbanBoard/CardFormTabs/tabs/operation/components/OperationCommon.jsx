@@ -92,6 +92,161 @@ DynamicDateTimeFields.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
+export const EMPTY_ADDITIONAL_TIME_OBJECT = { label: "", date: "", time: "" };
+
+const normalizeAdditionalTimeValue = (date, time) => {
+  const dateValue = String(date || "").trim();
+  const timeValue = String(time || "").trim();
+  if (!dateValue || !timeValue) return "";
+  const normalizedTime = /^\d{2}:\d{2}:\d{2}$/.test(timeValue) ? timeValue : `${timeValue}:00`;
+  return `${dateValue} ${normalizedTime}`;
+};
+
+export const buildAdditionalTimeObjectsPayload = (items = []) =>
+  (Array.isArray(items) ? items : [])
+    .map((row) => {
+      const label = String(row?.label || "").trim();
+      const timeObjectValue = normalizeAdditionalTimeValue(row?.date, row?.time);
+      if (!label || !timeObjectValue) return null;
+      return {
+        time_object_name: label,
+        time_object_value: timeObjectValue,
+        is_additional: true,
+      };
+    })
+    .filter(Boolean);
+
+export const validateAdditionalTimeObjects = (items = []) => {
+  const rows = Array.isArray(items) ? items : [];
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index] || {};
+    const label = String(row.label || "").trim();
+    const date = String(row.date || "").trim();
+    const time = String(row.time || "").trim();
+    const hasLabel = Boolean(label);
+    const hasDate = Boolean(date);
+    const hasTime = Boolean(time);
+    const isEmpty = !hasLabel && !hasDate && !hasTime;
+
+    if (isEmpty) continue;
+
+    if (hasLabel && (!hasDate || !hasTime)) {
+      return {
+        valid: false,
+        message: `Additional time object "${label}" requires both date and time.`,
+      };
+    }
+
+    if ((hasDate || hasTime) && !hasLabel) {
+      return {
+        valid: false,
+        message: "Additional time objects with date/time require a label.",
+      };
+    }
+  }
+
+  return { valid: true };
+};
+
+export const AdditionalTimeObjectsFields = ({
+  value = [],
+  onChange,
+  isViewOnly = false,
+  title = "Additional Time Objects",
+}) => {
+  const rows = Array.isArray(value) ? value : [];
+
+  const emitChange = (nextRows) => {
+    onChange?.(nextRows);
+  };
+
+  const handleAddRow = () => {
+    emitChange([...rows, { ...EMPTY_ADDITIONAL_TIME_OBJECT }]);
+  };
+
+  const handleRemoveRow = (index) => {
+    emitChange(rows.filter((_, rowIndex) => rowIndex !== index));
+  };
+
+  const handleRowChange = (index, patch) => {
+    emitChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
+  };
+
+  if (isViewOnly && rows.length === 0) return null;
+
+  return (
+    <div className="operation-additional-time-objects">
+      <div className="operation-additional-time-objects-header">
+        <h4 className="operation-additional-time-objects-title">{title}</h4>
+        {!isViewOnly && (
+          <button
+            type="button"
+            className="operation-additional-time-objects-add-btn"
+            onClick={handleAddRow}
+          >
+            + Add Time Object
+          </button>
+        )}
+      </div>
+
+      {rows.length === 0 && !isViewOnly ? (
+        <p className="operation-additional-time-objects-empty">No additional time objects added yet.</p>
+      ) : null}
+
+      {rows.map((row, index) => (
+        <div key={`additional-time-object-${index}`} className="operation-additional-time-objects-row">
+          <FormField label="Time Object Name">
+            <FormInput
+              type="text"
+              value={row?.label || ""}
+              onChange={(e) => handleRowChange(index, { label: e.target.value })}
+              placeholder="Enter time object name..."
+              disabled={isViewOnly}
+            />
+          </FormField>
+
+          <FormField label="Date & Time">
+            <DateTimePickerField
+              dateValue={row?.date || ""}
+              timeValue={row?.time || ""}
+              onDateChange={(e) => handleRowChange(index, { date: e.target.value })}
+              onTimeChange={(e) => handleRowChange(index, { time: e.target.value })}
+              dateFieldName={`additional-time-object-${index}-date`}
+              timeFieldName={`additional-time-object-${index}-time`}
+              disabled={isViewOnly}
+            />
+          </FormField>
+
+          {!isViewOnly ? (
+            <button
+              type="button"
+              className="operation-additional-time-objects-remove-btn"
+              onClick={() => handleRemoveRow(index)}
+              aria-label={`Remove additional time object ${index + 1}`}
+            >
+              Remove
+            </button>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+AdditionalTimeObjectsFields.propTypes = {
+  value: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string,
+      date: PropTypes.string,
+      time: PropTypes.string,
+    })
+  ),
+  onChange: PropTypes.func,
+  isViewOnly: PropTypes.bool,
+  title: PropTypes.string,
+};
+
 export const FormInput = ({ type = "text", value, onChange, placeholder, className = "", disabled = false }) => {
   return (
     <div className={`cf-input ${className}`}>

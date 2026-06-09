@@ -3,7 +3,10 @@ import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../assets/images/cv.png";
 import { buildDepartureReportBody } from "../../services/sendReportBodyBuilder";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
+import { notify } from "../../../../../components/Toaster";
 import {
+  AdditionalTimeObjectsFields,
+  buildAdditionalTimeObjectsPayload,
   DynamicDateTimeFields,
   FormField,
   FormInput,
@@ -12,6 +15,7 @@ import {
   OperationFileUpload,
   OperationFormCard,
   OperationSaveSection,
+  validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 
 function Departure({
@@ -52,9 +56,48 @@ function Departure({
     setReportDraft((prev) => ({ ...prev, [field]: value }));
   };
 
+  const toDateTimeValue = (datePart, timePart) => {
+    const dateValue = String(datePart || "").trim();
+    const timeValue = String(timePart || "").trim();
+    if (!dateValue || !timeValue) return "";
+    return `${dateValue} ${timeValue}`;
+  };
+
+  const buildDepartureTimeObjectsPayload = () =>
+    (Array.isArray(eventFields) ? eventFields : [])
+      .map((field) => {
+        const keyPrefix = field?.keyPrefix;
+        if (!keyPrefix) return null;
+        const timeObjectValue = toDateTimeValue(
+          formValues?.[`${keyPrefix}Date`],
+          formValues?.[`${keyPrefix}Time`]
+        );
+        if (!timeObjectValue) return null;
+        const timeObjectId = field?.time_object_id ?? field?.event_type_id;
+        if (timeObjectId == null || timeObjectId === "") return null;
+        return {
+          time_object_id: timeObjectId,
+          time_object_value: `${timeObjectValue}:00`,
+        };
+      })
+      .filter(Boolean);
+
   const saveDepartureData = async () => {
-    console.log("Saving Departure data:", formValues);
-    // TODO: replace with Departure save API call
+    const additionalValidation = validateAdditionalTimeObjects(
+      formValues.departureAdditionalTimeObjects
+    );
+    if (!additionalValidation.valid) {
+      notify(additionalValidation.message, "error");
+      return false;
+    }
+
+    const timeObjects = [
+      ...buildDepartureTimeObjectsPayload(),
+      ...buildAdditionalTimeObjectsPayload(formValues.departureAdditionalTimeObjects),
+    ];
+
+    console.log("Saving Departure data:", { ...formValues, time_objects: timeObjects });
+    // TODO: replace with Departure save API call (append time_objects to FormData)
     return true;
   };
 
@@ -103,6 +146,15 @@ function Departure({
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
                 />
+
+                <AdditionalTimeObjectsFields
+                  value={formValues.departureAdditionalTimeObjects || []}
+                  onChange={(next) =>
+                    handleChange("departureAdditionalTimeObjects")({ target: { value: next } })
+                  }
+                  isViewOnly={isViewOnly}
+                />
+
                 <FormField label="Next port">
                   <FormInput
                     type="text"

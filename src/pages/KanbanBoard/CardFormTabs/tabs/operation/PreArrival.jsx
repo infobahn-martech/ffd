@@ -21,6 +21,8 @@ import {
   SABER_APPLIED_BY_SEDRES,
 } from "./operationConstants";
 import {
+  AdditionalTimeObjectsFields,
+  buildAdditionalTimeObjectsPayload,
   DynamicDateTimeFields,
   FormField,
   FormInput,
@@ -30,6 +32,7 @@ import {
   OperationFileUpload,
   OperationFormCard,
   OperationSaveSection,
+  validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
@@ -767,6 +770,14 @@ function PreArrival({
       notify("Call ID is required.", "error");
       return false;
     }
+
+    const additionalValidation = validateAdditionalTimeObjects(
+      formValues.preArrivalAdditionalTimeObjects
+    );
+    if (!additionalValidation.valid) {
+      notify(additionalValidation.message, "error");
+      return false;
+    }
     if (
       formValues.weatherForecast === BAD_WEATHER &&
       formValues.preArrivalTimeObjectsNeedRecheck === true
@@ -804,6 +815,11 @@ function PreArrival({
       })
       .filter(Boolean);
 
+    const additionalTimeObjects = buildAdditionalTimeObjectsPayload(
+      formValues.preArrivalAdditionalTimeObjects
+    );
+    const allTimeObjects = [...timeObjects, ...additionalTimeObjects];
+
     const attachmentFile = (item) => {
       if (item?.file instanceof File) return item.file;
       if (item instanceof File) return item;
@@ -812,7 +828,7 @@ function PreArrival({
 
     const fd = new FormData();
     fd.append("call_id", callId);
-    fd.append("time_objects", JSON.stringify(timeObjects));
+    fd.append("time_objects", JSON.stringify(allTimeObjects));
     const saberStatusNum = PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE[formValues.saberUtStatus];
     fd.append(
       "saber_status",
@@ -996,6 +1012,14 @@ function PreArrival({
                     isViewOnly={isViewOnly}
                   />
                 </div>
+
+                <AdditionalTimeObjectsFields
+                  value={formValues.preArrivalAdditionalTimeObjects || []}
+                  onChange={(next) =>
+                    handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } })
+                  }
+                  isViewOnly={isViewOnly}
+                />
 
                 <FormField label="SABER Status">
                   <FormSelect

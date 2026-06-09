@@ -1618,6 +1618,15 @@ function CardForm({
       // Attachments and Links
       attachments: card?.attachments || [],
       departureAttachments: card?.departureAttachments || [],
+      preArrivalAdditionalTimeObjects: Array.isArray(card?.preArrivalAdditionalTimeObjects)
+        ? card.preArrivalAdditionalTimeObjects
+        : [],
+      arrivalAdditionalTimeObjects: Array.isArray(card?.arrivalAdditionalTimeObjects)
+        ? card.arrivalAdditionalTimeObjects
+        : [],
+      departureAdditionalTimeObjects: Array.isArray(card?.departureAdditionalTimeObjects)
+        ? card.departureAdditionalTimeObjects
+        : [],
       links: card?.links || [],
       // Remarks (for simplified mode)
       remarks: card?.remarks || "",

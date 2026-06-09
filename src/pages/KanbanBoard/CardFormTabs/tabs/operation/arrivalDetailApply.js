@@ -193,6 +193,7 @@ export function applyArrivalGetDetailToForm({
     ...(Array.isArray(arrivalEventFields) ? arrivalEventFields : []),
     ...(Array.isArray(postArrivalEventFields) ? postArrivalEventFields : []),
   ];
+  const additionalTimeObjects = [];
 
   for (const to of Array.isArray(timeObjects) ? timeObjects : []) {
     const rawValue = to?.time_object_value ?? to?.value;
@@ -201,8 +202,17 @@ export function applyArrivalGetDetailToForm({
     if (!date || !time) continue;
 
     const toId = to?.time_object_id ?? to?.timeObjectId;
-    const toName = to?.time_object ?? to?.event_name ?? "";
+    const toName = to?.time_object_name ?? to?.time_object ?? to?.event_name ?? "";
     const fieldKey = String(to?.field_key ?? "").trim();
+    const isAdditional = Boolean(to?.is_additional ?? to?.isAdditional) || toId == null;
+
+    if (isAdditional) {
+      const label = String(toName).trim();
+      if (label) {
+        additionalTimeObjects.push({ label, date, time });
+      }
+      continue;
+    }
 
     let keyPrefix = "";
     const matched = allFields.find((field) => {
@@ -229,6 +239,12 @@ export function applyArrivalGetDetailToForm({
 
     handleChange(`${keyPrefix}Date`)({ target: { value: date } });
     handleChange(`${keyPrefix}Time`)({ target: { value: time } });
+  }
+
+  if (additionalTimeObjects.length) {
+    handleChange("arrivalAdditionalTimeObjects")({
+      target: { value: additionalTimeObjects },
+    });
   }
 }
 

@@ -6,6 +6,8 @@ import { buildArrivalReportBody, buildArrivalDailyReportBody } from "../../servi
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
 import useArrivalReducer from "../../../../../store/ArrivalReducer";
 import {
+  AdditionalTimeObjectsFields,
+  buildAdditionalTimeObjectsPayload,
   DynamicDateTimeFields,
   FormField,
   FormInput,
@@ -16,6 +18,7 @@ import {
   OperationFileUpload,
   OperationFormCard,
   OperationSaveSection,
+  validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
@@ -183,6 +186,12 @@ function Arrival({
       }
     }
 
+    const additionalValidation = validateAdditionalTimeObjects(formValues.arrivalAdditionalTimeObjects);
+    if (!additionalValidation.valid) {
+      notify(additionalValidation.message, "error");
+      return false;
+    }
+
     return true;
   };
 
@@ -325,7 +334,10 @@ function Arrival({
 
     const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
     const allFields = [...arrivalStageFields, ...postArrivalStageFields];
-    const saveTimeObjects = buildSaveTimeObjectsPayload(allFields, formValues);
+    const saveTimeObjects = [
+      ...buildSaveTimeObjectsPayload(allFields, formValues),
+      ...buildAdditionalTimeObjectsPayload(formValues.arrivalAdditionalTimeObjects),
+    ];
     const inwardDoc = normalizeAttachmentFile(formValues?.arrivalInwardClearanceDoc?.[0]);
     const mwpDoc = normalizeAttachmentFile(formValues?.arrivalMwpDoc?.[0]);
     const sadadDoc = normalizeAttachmentFile(formValues?.arrivalSadadDoc?.[0]);
@@ -553,6 +565,14 @@ function Arrival({
                     eventFields={postArrivalFieldsWithoutMwpExpiry}
                     formValues={formValues}
                     handleChange={handleChange}
+                    isViewOnly={isViewOnly}
+                  />
+
+                  <AdditionalTimeObjectsFields
+                    value={formValues.arrivalAdditionalTimeObjects || []}
+                    onChange={(next) =>
+                      handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } })
+                    }
                     isViewOnly={isViewOnly}
                   />
                 </OperationFormCard>
