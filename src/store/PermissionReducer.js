@@ -77,6 +77,26 @@ const usePermissionReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
+  archiveUnarchiveRole: async ({ roleId, isArchiving, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await permissionService.archiveUnarchiveRole(roleId);
+      const newStatus = isArchiving ? '2' : '1';
+      set((state) => ({
+        isBeingUpdated: false,
+        designations: (state.designations || []).map((r) =>
+          String(r.role_id) === String(roleId) ? { ...r, status: newStatus } : r
+        ),
+      }));
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Role updated successfully');
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
   deletePermission: async ({ id, cb }) => {
     try {
       set({ isBeingUpdated: true });
