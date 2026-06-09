@@ -1,5 +1,29 @@
 @import "partials/partials";
 
+/* Email Preview–style scrollbar for General tab column scroll regions */
+@mixin general-email-preview-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #aab4c3 #f1f5f9;
+
+  &::-webkit-scrollbar {
+    width: 6px !important;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #aab4c3 !important;
+    border-radius: 999px;
+
+    &:hover {
+      background: #8b96a8 !important;
+    }
+  }
+}
+
 /* ==========================================================
    GENERAL TAB STYLES
    ========================================================== */
@@ -56,6 +80,10 @@
   width: 100%;
   min-height: 0;
   height: 100%;
+
+  &.general-info-view-with-tasks {
+    align-items: stretch;
+  }
 }
 
 .general-info-left {
@@ -198,6 +226,17 @@
     margin-top: 0;
   }
 
+  .general-info-middle .daily-task-box-wrapper,
+  .general-info-tasks-rail .daily-task-box-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   .general-info-middle .daily-task-todo-wrapper,
   .general-info-right .operation-task-card,
   .general-info-tasks-rail .daily-task-todo-wrapper,
@@ -212,6 +251,7 @@
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   .general-info-middle .daily-task-todo-wrapper .cf-field,
@@ -221,21 +261,49 @@
     display: flex;
     flex-direction: column;
     margin-right: 0;
+    overflow: hidden;
+
+    > label {
+      flex-shrink: 0;
+    }
+  }
+
+  .general-info-middle .daily-task-container,
+  .general-info-tasks-rail .daily-task-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .general-info-middle .daily-task-list-scroll,
   .general-info-tasks-rail .daily-task-list-scroll {
     flex: 1 1 auto;
-    min-height: 80px;
+    min-height: 0;
     max-height: none;
     overflow-y: auto;
+    overflow-x: hidden;
+    @include general-email-preview-scrollbar;
+  }
+
+  .general-info-middle .daily-task-summary,
+  .general-info-tasks-rail .daily-task-summary {
+    flex-shrink: 0;
+  }
+
+  .general-info-right .operation-tasks-panel--embedded {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
   }
 
   .general-info-right .operation-task-list {
     flex: 1 1 auto;
-    min-height: 80px;
+    min-height: 0;
     max-height: none;
     overflow-y: auto;
+    overflow-x: hidden;
+    @include general-email-preview-scrollbar;
   }
 }
 
@@ -246,6 +314,7 @@
   flex-direction: column;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
 
   .operation-task-card {
     display: flex;
@@ -253,6 +322,7 @@
     min-height: 0;
     flex: 1 1 auto;
     height: 100%;
+    overflow: hidden;
     border-radius: 12px;
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.04),
@@ -438,10 +508,13 @@
     margin-top: 22px;
   }
 
-  &.general-info-view-with-tasks .general-info-right,
-  &.general-info-view-with-tasks .general-info-middle {
-    overflow: hidden;
-    margin-top: 0;
+  &.general-info-view-with-tasks {
+    .general-info-left,
+    .general-info-middle,
+    .general-info-right {
+      overflow: hidden;
+      margin-top: 0;
+    }
   }
 }
 
@@ -500,7 +573,8 @@
   grid-template-rows: minmax(0, 1fr);
   gap: 18px;
   align-items: stretch;
-  height: calc(100vh - 180px);
+  height: calc(100vh - 220px);
+  max-height: calc(100vh - 220px);
   min-height: 0;
   overflow: hidden;
 
@@ -510,12 +584,24 @@
     margin-top: 0;
     min-width: 0;
     min-height: 0;
+    height: 100%;
+    max-height: 100%;
     overflow: hidden;
   }
 
   .general-info-left {
     display: flex;
     flex-direction: column;
+  }
+
+  .general-view-form-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    @include general-email-preview-scrollbar;
   }
 
   .general-info-middle,
@@ -529,8 +615,10 @@
     flex: 1 1 auto;
     min-height: 0;
     height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   .general-info-tasks-card--daily .daily-task-box-wrapper,
@@ -538,12 +626,23 @@
     flex: 1 1 auto;
     min-height: 0;
     height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
+}
 
-  @media (min-width: 992px) {
-    min-height: min(520px, calc(100vh - 240px));
+.general-view-mode-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  > .general-info-three-column.general-info-view-with-tasks {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 }
 
@@ -552,7 +651,22 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     gap: 16px;
+    height: auto;
+    max-height: none;
     min-height: 0;
+
+    .general-info-left,
+    .general-info-middle,
+    .general-info-right {
+      height: auto;
+      max-height: calc(100vh - 220px);
+    }
+
+    .general-view-form-scroll,
+    .daily-task-list-scroll,
+    .operation-task-list {
+      max-height: min(360px, calc(100vh - 280px));
+    }
   }
 }
 
@@ -589,6 +703,14 @@
     }
   }
 
+  .general-sections-wrapper .cf-section.general-info-section .cf-section-body {
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .general-info-view-with-tasks.general-info-three-column.general-tab-form-layout {
     .general-view-form-scroll {
       flex: 1 1 auto;
@@ -597,6 +719,12 @@
       padding: 0 2px 8px 0;
       max-height: 100%;
       overflow-y: auto;
+      @include general-email-preview-scrollbar;
+    }
+
+    .daily-task-list-scroll,
+    .operation-task-list {
+      @include general-email-preview-scrollbar;
     }
 
     .general-info-left .pre-arrival-form {
