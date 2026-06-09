@@ -414,7 +414,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                       <PremiumSelect
                         value={field.value != null ? String(field.value) : ""}
                         onChange={(e) => field.onChange(e.target.value)}
-                        options={VESSEL_TYPE_OPTIONS}
+                        options={VESSEL_TYPES.map((type) => ({
+                          value: type,
+                          label: type,
+                        }))}
                         placeholder="Select Vessel Type"
                         searchPlaceholder="Search vessel type..."
                         hasError={Boolean(errors.vesselType)}
