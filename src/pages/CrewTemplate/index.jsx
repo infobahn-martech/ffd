@@ -19,7 +19,7 @@ const CrewTemplate = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const { getTemplates, crewTemplates, templateCount } =
+  const { getTemplates, crewTemplates, templateCount, deleteTemplate, addEditLoader } =
     useCrewTemplateReducer((state) => state);
 
   useEffect(() => {
@@ -264,11 +264,16 @@ const CrewTemplate = () => {
                 setSelectedRow(null);
               }}
               onConfirm={() => {
-                console.log("Delete crew template:", selectedRow);
-                setShowDeleteModal(false);
-                setSelectedRow(null);
+                deleteTemplate({
+                  templateId: selectedRow?.template_id,
+                  cb: () => {
+                    setShowDeleteModal(false);
+                    setSelectedRow(null);
+                  },
+                });
               }}
-              deleteText="Are you sure you want to delete this crew template?"
+              deleteText={`Are you sure you want to delete "${selectedRow?.template_name ?? 'this template'}"?`}
+              isLoading={addEditLoader}
             />
           )}
         </div>

@@ -12,8 +12,13 @@ const addTemplate = (formData) =>
 const updateTemplate = (templateId, formData) =>
   Gateway.post(`crew_template/update_template/${templateId}`, formData);
 
+/** DELETE crew_template/delete_template/{template_id} */
+const deleteTemplate = (templateId) =>
+  Gateway.delete(`crew_template/delete_template/${templateId}`);
+
 export default {
   getAllTemplates,
   addTemplate,
   updateTemplate,
+  deleteTemplate,
 };
