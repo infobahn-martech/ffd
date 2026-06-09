@@ -11,6 +11,22 @@ const useBillingEntityReducer = create((set) => ({
   addEditLoader: false,
   isLogoUploading: false,
   logoUploadEntityId: null,
+  selectedBillingEntity: null,
+  isLoadingEntityDetail: false,
+
+  getEntityDetailById: async ({ entityId, cb }) => {
+    try {
+      set({ isLoadingEntityDetail: true });
+      const { data } = await billingEntityService.getEntityDetailById(entityId);
+      const entity = data?.data ?? null;
+      set({ selectedBillingEntity: entity, isLoadingEntityDetail: false });
+      cb && cb(entity);
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({ isLoadingEntityDetail: false });
+      showError(error?.response?.data?.message ?? error?.message ?? 'Failed to fetch billing entity details');
+    }
+  },
 
   getBillingEntities: async ({ params }) => {
     try {
