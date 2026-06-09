@@ -87,6 +87,25 @@ const useVesselReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
+  archiveVessel: async ({ vesselId, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await vesselService.archiveVessel(vesselId);
+      set((state) => ({
+        isBeingUpdated: false,
+        vessels: (state.vessels || []).map((v) =>
+          String(v.vessel_id) === String(vesselId) ? { ...v, status: '2' } : v
+        ),
+      }));
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Vessel archived successfully');
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
 }));
 
 export default useVesselReducer;

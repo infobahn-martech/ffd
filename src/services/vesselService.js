@@ -25,6 +25,7 @@ const getVesselDetailByVesselId = (vesselId) =>
 
 const updateVessel = (data) => Gateway.post(`/vessel/update`, data);
 const deleteVessel = (id) => Gateway.delete(`/vessel/allvessel/${id}`);
+const archiveVessel = (vesselId) => Gateway.post(`/vessel/archive/${vesselId}`);
 
 export default {
   addVessel,
@@ -34,4 +35,5 @@ export default {
   getVesselDetailByVesselId,
   updateVessel,
   deleteVessel,
+  archiveVessel,
 };
