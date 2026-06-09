@@ -225,11 +225,41 @@ input#selectedFile {
 }
 
 .modal-title {
-
   letter-spacing: 0.1px;
   color: #00368c;
   font-size: 20px;
   font-weight: 600;
+}
+
+body .material-management-modal .modal-content {
+  max-height: calc(100vh - 3.5rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+body .material-management-modal .modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #00368c;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #002570;
+  }
+  scrollbar-width: thin;
+  scrollbar-color: #00368c #f1f1f1;
 }
 
 .logout-modal {

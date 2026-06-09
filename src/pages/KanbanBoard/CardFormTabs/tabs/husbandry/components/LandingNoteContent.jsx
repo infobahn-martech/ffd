@@ -1472,18 +1472,20 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderConvertFooter = () => (
-    <div className="modal-footer landing-convert-footer">
-      <button type="button" onClick={handleCloseConvertModal} className="landing-convert-cancel-btn">
-        Cancel
-      </button>
-      <button
-        type="submit"
-        form="convertToDispatchForm"
-        disabled={isLoadingConvert || isLoadingConvertDetail}
-        className="landing-convert-submit-btn"
-      >
-        {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
-      </button>
+    <div className="modal-footer justify-content-end">
+      <div className="d-flex gap-2">
+        <button type="button" onClick={handleCloseConvertModal} className="btn btn-secondary">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="convertToDispatchForm"
+          disabled={isLoadingConvert || isLoadingConvertDetail}
+          className="btn btn-primary"
+        >
+          {isLoadingConvert ? "Converting..." : isLoadingConvertDetail ? "Loading..." : "Convert"}
+        </button>
+      </div>
     </div>
   );
 
@@ -1929,8 +1931,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         header={renderConvertHeader()}
         body={renderConvertBody()}
         footer={renderConvertFooter()}
-        dialgName="modal-dialog modal-dialog-centered modal-dialog-scrollable"
-        createModal
+        dialgName="modal-dialog modal-dialog-centered"
       />
 
       <CustomModal
