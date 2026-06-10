@@ -118,6 +118,20 @@ const BillingEntity = () => {
       contentClass: "table-content",
     },
     {
+      name: "Credit Limit",
+      selector: "credit_limit",
+      sort: false,
+      width: "150",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: ({ row }) => {
+        const limit = row?.credit_limit ?? row?.creditLimit ?? null;
+        if (limit === null || limit === undefined || limit === "") return "—";
+        const num = Number(limit);
+        return isNaN(num) ? limit : num.toLocaleString("en-US");
+      },
+    },
+    {
       name: "Actions",
       selector: "actions",
       width: "120",
