@@ -12,6 +12,7 @@ import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
 import AddDashboardModal from './components/AddDashboardModal';
 import SelectWorkflowModal from './components/SelectWorkflowModal';
+import CallTypeBuilderModal from '../../pages/CallType/CallTypeBuilderModal';
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import OnStationModal from '../Header/OnStationModal';
@@ -169,6 +170,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
   const [showOnStationModal, setShowOnStationModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
+  const [showCallTypeBuilderModal, setShowCallTypeBuilderModal] = useState(false);
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
   const [selectedSwimlaneId, setSelectedSwimlaneId] = useState(null);
@@ -177,19 +179,28 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   const sidebarWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
   const pendingAddCardFromWorkflowRef = useRef(null);
+  const pendingCallTypeNavigateRef = useRef(false);
 
   const swimlaneOptionsForModal = useMemo(
     () => getSwimlaneOptionsFromWorkflow(swimlanePhaseWorkflow),
     [swimlanePhaseWorkflow]
   );
   const workflowOptionsForModal = useMemo(() => {
-    return (sidebarWorkflows || [])
+    const apiWorkflows = (sidebarWorkflows || [])
       .filter((workflow) => workflow?.role_id === null)
       .map((workflow) => ({
         id: workflow?.workflow_id ?? workflow?.id,
         name: workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? 'Workflow',
         description: workflow?.description,
       }));
+    return [
+      ...apiWorkflows,
+      {
+        id: '__call_type__',
+        name: 'Call Type',
+        description: 'Build and manage custom call type templates with dynamic fields for your cards.',
+      },
+    ];
   }, [sidebarWorkflows]);
 
   const swimlaneContextDisplayName =
@@ -205,6 +216,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   const closeSelectWorkflowModal = useCallback(() => {
     pendingAddCardFromWorkflowRef.current = null;
+    pendingCallTypeNavigateRef.current = false;
     setShowSelectWorkflowModal(false);
     resetAddModalState();
   }, [resetAddModalState]);
@@ -230,6 +242,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   const handleAddModalContinue = useCallback(() => {
     if (addModalStep === 'workflow') {
+      if (String(selectedWorkflowId) === '__call_type__') {
+        pendingCallTypeNavigateRef.current = true;
+        setShowSelectWorkflowModal(false);
+        setSelectedWorkflowId(null);
+        return;
+      }
       const w = addModalWorkflows.find(
         (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
       );
@@ -271,6 +289,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   ]);
 
   const handleSelectWorkflowModalExited = useCallback(() => {
+    if (pendingCallTypeNavigateRef.current) {
+      pendingCallTypeNavigateRef.current = false;
+      resetAddModalState();
+      setShowCallTypeBuilderModal(true);
+      return;
+    }
     const d = pendingAddCardFromWorkflowRef.current;
     if (!d) {
       resetAddModalState();
@@ -281,7 +305,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       window.dispatchEvent(new CustomEvent('kanban:add-card', { detail: d }));
     });
     resetAddModalState();
-  }, [resetAddModalState]);
+  }, [resetAddModalState, navigate]);
 
   const [expand, setExpand] = useState(false);
 
@@ -334,6 +358,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
         { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
         { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
+        { menu: 'Call Types', to: '/call-type', hasPermission: true },
         // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
       icon: configIcon, // Configuration-specific icon
@@ -1073,6 +1098,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           onClose={closeSelectWorkflowModal}
           onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}
+        />
+        <CallTypeBuilderModal
+          show={showCallTypeBuilderModal}
+          onClose={() => setShowCallTypeBuilderModal(false)}
         />
       </>
     );

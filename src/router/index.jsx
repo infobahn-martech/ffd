@@ -88,6 +88,7 @@ import DocumentManagement from "../pages/DocumentManagement";
 import DocumentChecklist from "../pages/DocumentChecklist";
 import TaskManagement from "../pages/TaskManagement";
 import TaskRoles from "../pages/TaskChecklist";
+import CallType from "../pages/CallType";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -324,6 +325,8 @@ const router = createHashRouter([
                   { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
                   { path: "/task-management", element: <RouteGuard><TaskManagement /></RouteGuard> },
                   { path: "/task-roles", element: <RouteGuard><TaskRoles /></RouteGuard> },
+                  // Call Type
+                  { path: "/call-type", element: <RouteGuard><CallType /></RouteGuard> },
                 ],
               },
             ],
