@@ -144,6 +144,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     { label: 'Stickers', modal: 'stickers' },
     { label: 'Tags', modal: 'tags' },
     { label: 'Types', modal: 'types' },
+    { label: 'Templates', modal: 'templates' },
   ];
 
   // Select icons based on route (restricted roles: only Workspaces + fixed board)
@@ -179,28 +180,19 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   const sidebarWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
   const pendingAddCardFromWorkflowRef = useRef(null);
-  const pendingCallTypeNavigateRef = useRef(false);
 
   const swimlaneOptionsForModal = useMemo(
     () => getSwimlaneOptionsFromWorkflow(swimlanePhaseWorkflow),
     [swimlanePhaseWorkflow]
   );
   const workflowOptionsForModal = useMemo(() => {
-    const apiWorkflows = (sidebarWorkflows || [])
+    return (sidebarWorkflows || [])
       .filter((workflow) => workflow?.role_id === null)
       .map((workflow) => ({
         id: workflow?.workflow_id ?? workflow?.id,
         name: workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? 'Workflow',
         description: workflow?.description,
       }));
-    return [
-      ...apiWorkflows,
-      {
-        id: '__call_type__',
-        name: 'Call Type',
-        description: 'Build and manage custom call type templates with dynamic fields for your cards.',
-      },
-    ];
   }, [sidebarWorkflows]);
 
   const swimlaneContextDisplayName =
@@ -216,7 +208,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   const closeSelectWorkflowModal = useCallback(() => {
     pendingAddCardFromWorkflowRef.current = null;
-    pendingCallTypeNavigateRef.current = false;
     setShowSelectWorkflowModal(false);
     resetAddModalState();
   }, [resetAddModalState]);
@@ -242,12 +233,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   const handleAddModalContinue = useCallback(() => {
     if (addModalStep === 'workflow') {
-      if (String(selectedWorkflowId) === '__call_type__') {
-        pendingCallTypeNavigateRef.current = true;
-        setShowSelectWorkflowModal(false);
-        setSelectedWorkflowId(null);
-        return;
-      }
       const w = addModalWorkflows.find(
         (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
       );
@@ -289,12 +274,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   ]);
 
   const handleSelectWorkflowModalExited = useCallback(() => {
-    if (pendingCallTypeNavigateRef.current) {
-      pendingCallTypeNavigateRef.current = false;
-      resetAddModalState();
-      setShowCallTypeBuilderModal(true);
-      return;
-    }
     const d = pendingAddCardFromWorkflowRef.current;
     if (!d) {
       resetAddModalState();
@@ -950,11 +929,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       setShowStickersModal(false);
       setShowTagsModal(false);
       setShowTypesModal(false);
+      setShowCallTypeBuilderModal(false);
 
       if (item.modal === 'blockers') setShowBlockersModal(true);
       if (item.modal === 'stickers') setShowStickersModal(true);
       if (item.modal === 'tags') setShowTagsModal(true);
       if (item.modal === 'types') setShowTypesModal(true);
+      if (item.modal === 'templates') setShowCallTypeBuilderModal(true);
     };
 
     return (

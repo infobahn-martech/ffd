@@ -56,42 +56,6 @@ function WorkflowCardIllustrationFlow({ uid = 'f' }) {
   );
 }
 
-function WorkflowCardIllustrationCallType({ uid = 'ct' }) {
-  const g1 = `swm-ct1-${uid}`;
-  const g2 = `swm-ct2-${uid}`;
-  return (
-    <svg className="select-workflow-card-illustration" viewBox="0 0 160 120" aria-hidden>
-      <defs>
-        <linearGradient id={g1} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7c3aed" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-        <linearGradient id={g2} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#ede9fe" />
-          <stop offset="100%" stopColor="#f5f3ff" />
-        </linearGradient>
-      </defs>
-      {/* Card background */}
-      <rect x="18" y="10" width="124" height="100" rx="10" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
-      {/* Header bar */}
-      <rect x="18" y="10" width="124" height="22" rx="10" fill={`url(#${g1})`} />
-      <rect x="18" y="22" width="124" height="10" rx="0" fill={`url(#${g1})`} />
-      {/* Title dots in header */}
-      <circle cx="30" cy="21" r="3" fill="rgba(255,255,255,0.5)" />
-      <rect x="38" y="18" width="40" height="5" rx="2" fill="rgba(255,255,255,0.75)" />
-      {/* Field rows */}
-      <rect x="28" y="42" width="50" height="6" rx="2" fill={`url(#${g2})`} stroke="#ddd6fe" strokeWidth="0.8" />
-      <rect x="82" y="42" width="48" height="6" rx="2" fill="#f0fdf4" stroke="#bbf7d0" strokeWidth="0.8" />
-      <rect x="28" y="54" width="70" height="6" rx="2" fill={`url(#${g2})`} stroke="#ddd6fe" strokeWidth="0.8" />
-      <rect x="28" y="66" width="40" height="6" rx="2" fill="#fef9c3" stroke="#fde68a" strokeWidth="0.8" />
-      <rect x="72" y="66" width="58" height="6" rx="2" fill={`url(#${g2})`} stroke="#ddd6fe" strokeWidth="0.8" />
-      <rect x="28" y="78" width="60" height="6" rx="2" fill="#f0fdf4" stroke="#bbf7d0" strokeWidth="0.8" />
-      {/* Add field button */}
-      <rect x="28" y="92" width="40" height="10" rx="4" fill={`url(#${g1})`} opacity="0.85" />
-      <text x="32" y="100" fontSize="7" fill="#fff" fontWeight="600">+ Field</text>
-    </svg>
-  );
-}
 
 const DEFAULT_WORKFLOW_DESCRIPTION =
   "New cards open in this workflow's columns so you can track work in the right swimlanes.";
@@ -204,7 +168,7 @@ function SelectWorkflowModal({
                           type="button"
                           role="radio"
                           aria-checked={isSelectedWorkflow(w.id)}
-                          className={`select-workflow-card ${isSelectedWorkflow(w.id) ? 'is-selected' : ''} ${String(w.id) === '__call_type__' ? 'select-workflow-card--call-type' : ''}`}
+                          className={`select-workflow-card ${isSelectedWorkflow(w.id) ? 'is-selected' : ''}`}
                           onClick={() => onSelectWorkflowId(w.id)}
                         >
                           <div className="select-workflow-card-copy">
@@ -212,9 +176,7 @@ function SelectWorkflowModal({
                             <p className="select-workflow-card-desc">{w.description ?? DEFAULT_WORKFLOW_DESCRIPTION}</p>
                           </div>
                           <div className="select-workflow-card-art" aria-hidden>
-                            {String(w.id) === '__call_type__' ? (
-                              <WorkflowCardIllustrationCallType uid={`w-${String(w.id)}`} />
-                            ) : index % 2 === 0 ? (
+                            {index % 2 === 0 ? (
                               <WorkflowCardIllustrationKanban uid={`w-${String(w.id)}`} />
                             ) : (
                               <WorkflowCardIllustrationFlow uid={`w-${String(w.id)}`} />
