@@ -358,7 +358,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
         { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
         { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
-        { menu: 'Call Types', to: '/call-type', hasPermission: true },
         // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
       icon: configIcon, // Configuration-specific icon
@@ -440,6 +439,16 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       to: '/third-party-service',
       icon: workerIcon, // Third Party Services-specific icon
       hasPermission: true,
+    },
+    {
+      menu: 'Card Management',
+      isDefaultMenu: true,
+      icon: configIcon,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Templates', to: '/call-type', hasPermission: true },
+      ],
     },
     {
       menu: 'Material Management',

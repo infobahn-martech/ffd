@@ -4,6 +4,14 @@ import useCallTypeReducer from "../../store/CallTypeReducer";
 import "../../design/css/common/CardForm.css";
 import "../../design/scss/pages/callTypeBuilder.scss";
 
+const CALL_TYPE_OPTIONS = [
+    { value: "", label: "Select Call Type" },
+    { value: "import_call", label: "Import Call" },
+    { value: "export_call", label: "Export Call" },
+    { value: "husbandry_call", label: "Husbandry Call" },
+    { value: "husbandry_monthly_call", label: "Husbandry Monthly Call" },
+];
+
 const FIELD_TYPES = [
     { value: "text", label: "Text" },
     { value: "number", label: "Number" },
@@ -56,8 +64,10 @@ function CallTypeBuilderModal({ show, onClose }) {
 
     const [editingCallType, setEditingCallType] = useState(null);
     const [callTypeName, setCallTypeName] = useState("");
+    const [selectedCallType, setSelectedCallType] = useState("");
     const [fields, setFields] = useState([]);
     const [nameError, setNameError] = useState("");
+    const [callTypeError, setCallTypeError] = useState("");
 
     useEffect(() => {
         if (show) getCallTypes({});
@@ -66,15 +76,19 @@ function CallTypeBuilderModal({ show, onClose }) {
     const handleNew = useCallback(() => {
         setEditingCallType(null);
         setCallTypeName("");
+        setSelectedCallType("");
         setFields([]);
         setNameError("");
+        setCallTypeError("");
     }, []);
 
     const handleSelectCallType = (ct) => {
         setEditingCallType(ct);
         setCallTypeName(ct.call_type_name ?? "");
+        setSelectedCallType(ct.selected_call_type ?? "");
         setFields((ct.fields ?? []).map((f) => ({ ...f, id: Date.now() + Math.random() })));
         setNameError("");
+        setCallTypeError("");
     };
 
     const addField = () =>
@@ -86,10 +100,14 @@ function CallTypeBuilderModal({ show, onClose }) {
         setFields((prev) => prev.map((f) => (f.id === id ? { ...f, [key]: value } : f)));
 
     const handleSave = async () => {
-        if (!callTypeName.trim()) { setNameError("Call type name is required"); return; }
-        setNameError("");
+        let valid = true;
+        if (!callTypeName.trim()) { setNameError("Template name is required"); valid = false; }
+        if (!selectedCallType) { setCallTypeError("Please select a call type"); valid = false; }
+        if (!valid) return;
+        setNameError(""); setCallTypeError("");
         const payload = {
             call_type_name: callTypeName.trim(),
+            selected_call_type: selectedCallType,
             fields: fields.map(({ label, type, required }) => ({ label, type, required })),
         };
         if (editingCallType?.call_type_id) {
@@ -143,7 +161,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                         {/* Saved call types */}
                         <div className="ct-saved-section">
                             <div className="ct-saved-header">
-                                <span className="ct-saved-label">Saved Call Types</span>
+                                <span className="ct-saved-label">Saved Templates</span>
                                 <button type="button" className="ct-new-btn" onClick={handleNew}>
                                     + New
                                 </button>
@@ -151,7 +169,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                             <div className="ct-saved-list">
                                 {isLoadingGet && <div className="ct-saved-empty">Loading...</div>}
                                 {!isLoadingGet && list.length === 0 && (
-                                    <div className="ct-saved-empty">No call types yet</div>
+                                    <div className="ct-saved-empty">No templates yet</div>
                                 )}
                                 {list.map((ct) => (
                                     <div
@@ -181,14 +199,28 @@ function CallTypeBuilderModal({ show, onClose }) {
                         <div className="ct-split-form-area">
                             <div className="form-group">
                                 <h3 className="form-group-title">
-                                    {isEditMode ? "Edit Call Type" : "New Call Type"}
+                                    {isEditMode ? "Edit Template" : "New Template"}
                                 </h3>
                                 <div className="cf-field">
-                                    <label>Call Type Name <span className="text-danger">*</span></label>
+                                    <label>Select Call Type <span className="text-danger">*</span></label>
+                                    <div className={`cf-input ${callTypeError ? "is-invalid" : ""}`}>
+                                        <select
+                                            value={selectedCallType}
+                                            onChange={(e) => { setSelectedCallType(e.target.value); setCallTypeError(""); }}
+                                        >
+                                            {CALL_TYPE_OPTIONS.map((opt) => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {callTypeError && <div className="text-danger ct-field-error">{callTypeError}</div>}
+                                </div>
+                                <div className="cf-field">
+                                    <label>Template Name <span className="text-danger">*</span></label>
                                     <div className={`cf-input ${nameError ? "is-invalid" : ""}`}>
                                         <input
                                             type="text"
-                                            placeholder="e.g. Delivery, Export, Survey..."
+                                            placeholder="e.g. Import Call Template..."
                                             value={callTypeName}
                                             onChange={(e) => { setCallTypeName(e.target.value); setNameError(""); }}
                                         />
@@ -261,11 +293,13 @@ function CallTypeBuilderModal({ show, onClose }) {
                             <h3 className="form-group-title">Card Preview</h3>
                             <div className="ct-preview-card">
                                 <div className="ct-preview-topbar">
-                                    <h4>{callTypeName || "Call Type Name"}</h4>
-                                    <span>{fields.length} {fields.length === 1 ? "field" : "fields"}</span>
+                                    <h4>{callTypeName || "Template Name"}</h4>
+                                    <span>
+                                        {CALL_TYPE_OPTIONS.find((o) => o.value === selectedCallType)?.label || "No Call Type"}
+                                    </span>
                                 </div>
                                 <div className="ct-preview-body">
-                                    <p className="ct-preview-section-title">Call Type Template Fields</p>
+                                    <p className="ct-preview-section-title">Custom Template Fields</p>
                                     {fields.length === 0 ? (
                                         <div className="ct-preview-empty">
                                             <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
