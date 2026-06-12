@@ -342,11 +342,11 @@ function CallTypeBuilderModal({ show, onClose }) {
     const enabledTabCount = Object.values(tabConfig).filter((t) => t.enabled).length;
 
     return (
-        <div className="cardform-overlay" style={{ zIndex: 1350 }}>
+        <div className="cardform-overlay ct-modal-overlay">
             <div className="cardform-panel">
 
                 {/* Top bar */}
-                <div className="cardform-topbar" style={{ backgroundColor: "#7c3aed" }}>
+                <div className="cardform-topbar ct-modal-topbar">
                     <div>
                         <span className="ct-topbar-title">CALL TYPE BUILDER</span>
                     </div>

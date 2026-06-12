@@ -1,5 +1,14 @@
 // Styles for Call Type Builder — uses existing cardform + Bootstrap classes.
 
+// ── Modal overlay & topbar overrides ─────────────────────────────────────────
+.ct-modal-overlay {
+  z-index: 1350;
+}
+
+.ct-modal-topbar {
+  background-color: #7c3aed;
+}
+
 // ── Split-panel body ─────────────────────────────────────────────────────────
 .ct-split-body {
   flex: 1;

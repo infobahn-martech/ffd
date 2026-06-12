@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import CommonHeader from "../../components/CommonHeader";
 import useCallTypeReducer from "../../store/CallTypeReducer";
 import "../../design/css/common/CardForm.css";
 import "../../design/scss/pages/callTypeBuilder.scss";
@@ -136,18 +135,6 @@ const CallType = () => {
 
     return (
         <div className="page-body ct-page-body">
-            <div className="container-fluid">
-                <CommonHeader
-                    tableTitle="Card Templates"
-                    isAddEnabled
-                    addModalLabel="New Template"
-                    setSearch={() => {}}
-                    onAddModalClick={handleNew}
-                    exportTitle=""
-                    exportLoader={false}
-                />
-            </div>
-
             <div className="ct-page-wrap">
                 {/* ── Left panel ── */}
                 <div className="ct-split-left">
