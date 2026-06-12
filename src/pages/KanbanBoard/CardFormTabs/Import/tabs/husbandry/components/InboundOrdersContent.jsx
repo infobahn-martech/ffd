@@ -418,6 +418,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
         launchHireDate: "",
         launchHireTime: "",
         taxiBoat: "",
@@ -487,6 +488,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
         launchHireDate: "",
         launchHireTime: "",
         taxiBoat: "",
@@ -524,6 +526,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
         launchHireDate: "",
         launchHireTime: "",
         taxiBoat: "",
@@ -559,6 +562,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
+      if (order.transportation) {
+        if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
+        if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
+        if (!order.toLocation) errors[`o${idx}_toLocation`] = "To location is required";
+        if (!order.driverName) errors[`o${idx}_driverName`] = "Driver is required";
+      }
     });
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -649,12 +658,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         quantity: Number(order.quantity) || 0,
         package_type_id: Number(order.packageType) || 0,
         description: order.description || "",
-        launch_hire: order.transportation ? 1 : 0,
-        ...(order.transportation ? {
+        transportation_required: order.transportation ? 1 : 0,
+        launch_hire: order.launchHire ? 1 : 0,
+        ...(order.launchHire ? {
           launch_hire_date: buildApiDateTime(order.launchHireDate, order.launchHireTime),
           taxi_boat: order.taxiBoat || "",
         } : {}),
       };
+      if (order.transportation) {
+        item.transportation = {
+          ...(order.transportation_id ? { transportation_id: order.transportation_id } : {}),
+          vehicle_type_id: Number(order.typeOfVehicle) || 0,
+          from_location_id: Number(order.fromLocation) || 0,
+          pickup_location: order.pickUpFrom || "",
+          to_location_id: Number(order.toLocation) || 0,
+          driver_id: Number(order.driverName) || 0,
+        };
+      }
       return item;
     });
 
@@ -708,6 +728,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
         launchHireDate: "",
         launchHireTime: "",
         taxiBoat: "",
@@ -1328,7 +1349,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
                     </div>
 
-                    {/* Launch Hire Section */}
+                    {/* Transportation Section */}
                     <div className="dispatch-transport-section">
                       <div className="dispatch-edit-checkbox-group">
                         <label className="dispatch-edit-checkbox-label">
@@ -1338,11 +1359,101 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             checked={order.transportation || false}
                             onChange={(e) => handleOrderChange(order.id, "transportation", e.target.checked)}
                           />
-                          <span>Launch Hire</span>
+                          <span>Transportation</span>
                         </label>
                       </div>
 
                       {order.transportation && (
+                        <div className="row g-2 mb-1">
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Type of Vehicle *">
+                              <FormSelect
+                                value={order.typeOfVehicle}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "typeOfVehicle", e.target.value);
+                                  if (formErrors[`o${index}_typeOfVehicle`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_typeOfVehicle`]; return e; });
+                                }}
+                                options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
+                                placeholder="Select type of vehicle..."
+                              />
+                            </FormField>
+                            {formErrors[`o${index}_typeOfVehicle`] && <span className="dispatch-edit-error">{formErrors[`o${index}_typeOfVehicle`]}</span>}
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="From Location *">
+                              <FormSelect
+                                value={order.fromLocation}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "fromLocation", e.target.value);
+                                  if (formErrors[`o${index}_fromLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_fromLocation`]; return e; });
+                                }}
+                                options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
+                                placeholder="Select from location..."
+                              />
+                            </FormField>
+                            {formErrors[`o${index}_fromLocation`] && <span className="dispatch-edit-error">{formErrors[`o${index}_fromLocation`]}</span>}
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Pick-Up From">
+                              <FormInput
+                                type="text"
+                                value={order.pickUpFrom}
+                                onChange={(e) => handleOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                placeholder="Enter pick-up location..."
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="To Location *">
+                              <FormSelect
+                                value={order.toLocation}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "toLocation", e.target.value);
+                                  if (formErrors[`o${index}_toLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_toLocation`]; return e; });
+                                }}
+                                options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
+                                placeholder="Select to location..."
+                              />
+                            </FormField>
+                            {formErrors[`o${index}_toLocation`] && <span className="dispatch-edit-error">{formErrors[`o${index}_toLocation`]}</span>}
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Driver Name *">
+                              <FormSelect
+                                value={order.driverName}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "driverName", e.target.value);
+                                  if (formErrors[`o${index}_driverName`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_driverName`]; return e; });
+                                }}
+                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
+                                placeholder="Select driver name..."
+                              />
+                            </FormField>
+                            {formErrors[`o${index}_driverName`] && <span className="dispatch-edit-error">{formErrors[`o${index}_driverName`]}</span>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Launch Hire Section */}
+                    <div className="dispatch-transport-section">
+                      <div className="dispatch-edit-checkbox-group">
+                        <label className="dispatch-edit-checkbox-label">
+                          <input
+                            type="checkbox"
+                            className="dispatch-edit-checkbox"
+                            checked={order.launchHire || false}
+                            onChange={(e) => handleOrderChange(order.id, "launchHire", e.target.checked)}
+                          />
+                          <span>Launch Hire</span>
+                        </label>
+                      </div>
+
+                      {order.launchHire && (
                         <div className="row g-2 mb-1">
                           <div className="col-lg-6 col-md-6">
                             <FormField label="Date &amp; Time">
