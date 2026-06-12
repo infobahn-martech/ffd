@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -63,6 +64,8 @@ const DEFAULT_WORKFLOW_DESCRIPTION =
 const DEFAULT_SWIMLANE_HELPER =
   'New cards in this workflow can be created in the selected swimlane.';
 
+const DEFAULT_PORT_NAME = 'Dammam';
+
 /**
  * Kanban Add (+) selection: workflow list and/or swimlane list (same chrome & card styling).
  * @param {'workflow' | 'swimlane'} props.selectionMode
@@ -91,6 +94,16 @@ function SelectWorkflowModal({
   const handleClose = () => {
     onClose();
   };
+
+  useEffect(() => {
+    if (!show) return;
+    if (selectedPortId != null && selectedPortId !== '') return;
+
+    const dammamPort = (ports || []).find((port) => port.name === DEFAULT_PORT_NAME);
+    if (dammamPort) {
+      onSelectPortId(String(dammamPort.id));
+    }
+  }, [show, ports, selectedPortId, onSelectPortId]);
 
   const isWorkflowMode = selectionMode === 'workflow';
   const list = isWorkflowMode ? workflows || [] : swimlanes || [];
@@ -263,7 +276,7 @@ function SelectWorkflowModal({
                   </label>
                   <select
                     id="select-workflow-port"
-                    className={`select-workflow-field-select ${
+                    className={`select-workflow-field-select select-workflow-field-select--port ${
                       selectedPortId == null || selectedPortId === ''
                         ? 'select-workflow-field-select--placeholder'
                         : ''
