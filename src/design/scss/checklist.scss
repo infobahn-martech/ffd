@@ -2397,7 +2397,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   outline-offset: 2px;
 }
 
-.cl-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable {
+.cl-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable,
+.cl-mui-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable {
   outline: 3px solid rgba(0, 91, 255, 0.22);
   outline-offset: 2px;
 }
@@ -2420,6 +2421,70 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   white-space: nowrap;
   font-weight: 600;
   letter-spacing: 0.01em;
+}
+
+/* MUI DatePicker trigger — chip stays inline in meta row */
+.cl-mui-datepicker-wrapper {
+  display: inline-flex;
+  position: relative;
+  vertical-align: middle;
+  max-width: 100%;
+  min-height: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  align-items: center;
+}
+
+.cl-mui-datepicker-wrapper .cf-datetime-input-field {
+  width: auto;
+  margin: 0;
+}
+
+.cl-mui-datepicker-wrapper .MuiFormControl-root,
+.cl-mui-datepicker-wrapper .MuiPickersTextField-root {
+  width: auto;
+  margin: 0;
+  min-width: 0;
+}
+
+.cl-mui-datepicker-wrapper .MuiPickersInputBase-root,
+.cl-mui-datepicker-wrapper .MuiOutlinedInput-root,
+.cl-mui-datepicker-wrapper .MuiInputBase-root {
+  min-height: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.cl-mui-datepicker-wrapper .MuiOutlinedInput-notchedOutline,
+.cl-mui-datepicker-wrapper fieldset {
+  border: 0 !important;
+}
+
+.cl-mui-datepicker-wrapper .MuiOutlinedInput-input,
+.cl-mui-datepicker-wrapper .MuiPickersSectionList-root,
+.cl-mui-datepicker-wrapper .MuiPickersInputBase-sectionsContainer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cl-mui-datepicker-wrapper .MuiInputAdornment-root {
+  display: none;
+}
+
+.cl-mui-datepicker-popper {
+  z-index: 11060 !important;
 }
 
 /* react-datepicker trigger — chip stays inline in meta row */

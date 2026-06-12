@@ -1,8 +1,6 @@
 import PropTypes from "prop-types";
-import { useState, useEffect, useRef, forwardRef } from "react";
-import DatePicker from "react-datepicker";
-import { format, parse, isValid } from "date-fns";
-import "react-datepicker/dist/react-datepicker.css";
+import { useState, useEffect, useRef } from "react";
+import DatePickerField from "../../../../shared/components/DatePickerField";
 import { FormTextarea } from "./checklistFormPrimitives";
 import { getBackendFileSessionRemovalKey } from "./checklistMappers";
 
@@ -41,26 +39,22 @@ const CalendarMetaIcon = () => (
   </svg>
 );
 
-/** Stored / payload format: YYYY-MM-DD */
-const parseExpiryYmdToDate = (ymd) => {
-  if (!ymd || String(ymd).trim() === "") return null;
-  const parsed = parse(String(ymd).trim().slice(0, 10), "yyyy-MM-dd", new Date());
-  return isValid(parsed) ? parsed : null;
-};
-
-const ExpiryChipCustomInput = forwardRef(({ value, onClick, disabled }, ref) => {
-  const inner = value && String(value).trim() !== "" ? String(value) : "--/--/----";
+const renderExpiryChipTrigger = ({ disabled, onOpen, displayValue }) => {
+  const inner =
+    displayValue && String(displayValue).trim() !== "" ? String(displayValue) : "--/--/----";
   const ariaLabel = inner === "--/--/----" ? "Expiry date, not set" : `Expiry date, ${inner}`;
+
   return (
     <div
-      ref={ref}
       className="cl-item-meta-chip cl-item-meta-chip--expiry cl-item-meta-chip--clickable"
-      onClick={onClick}
+      onClick={() => {
+        if (!disabled) onOpen();
+      }}
       onKeyDown={(e) => {
         if (disabled) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onClick?.(e);
+          onOpen();
         }
       }}
       role="button"
@@ -77,8 +71,7 @@ const ExpiryChipCustomInput = forwardRef(({ value, onClick, disabled }, ref) => 
       </span>
     </div>
   );
-});
-ExpiryChipCustomInput.displayName = "ExpiryChipCustomInput";
+};
 
 const getRequirementMetaLabel = ({ requireCopyOnlyFromApi, requirement }) => {
   if (requireCopyOnlyFromApi) return "Req Copy";
@@ -514,21 +507,20 @@ const ChecklistItemRow = ({
                     <span>Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
                   </span>
                 ) : (
-                  <DatePicker
-                    wrapperClassName="cl-datepicker-wrapper"
-                    selected={parseExpiryYmdToDate(itemData?.expiryDate)}
-                    onChange={(date) => {
-                      pushChange({ expiryDate: date ? format(date, "yyyy-MM-dd") : "" });
-                    }}
-                    dateFormat="dd/MM/yyyy"
-                    customInput={<ExpiryChipCustomInput />}
+                  <DatePickerField
+                    className="cl-mui-datepicker-wrapper"
+                    dateValue={itemData?.expiryDate || ""}
+                    onDateChange={(e) => pushChange({ expiryDate: e.target.value })}
                     disabled={isViewOnly}
-                    popperClassName="cl-datepicker-popper"
-                    calendarClassName="cl-datepicker-calendar"
-                    popperPlacement="bottom-start"
-                    showPopperArrow={false}
-                    shouldCloseOnSelect={true}
-                    strictParsing
+                    placeholder="YYYY-MM-DD"
+                    popperClassName="cl-mui-datepicker-popper"
+                    renderTrigger={({ disabled, onOpen }) =>
+                      renderExpiryChipTrigger({
+                        disabled,
+                        onOpen,
+                        displayValue: formatDisplayDate(itemData?.expiryDate || ""),
+                      })
+                    }
                   />
                 )
               ) : null}
