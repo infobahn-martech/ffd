@@ -1,0 +1,218 @@
+@import "partials/partials";
+
+/* ==========================================================
+   EXPORT APPROVAL TAB (Credit Approval Form)
+   ========================================================== */
+
+.approval-tab-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.approval-form-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #aab4c3 #f1f5f9;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #aab4c3;
+    border-radius: 999px;
+
+    &:hover {
+      background: #8b96a8;
+    }
+  }
+}
+
+.approval-credit-form {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: "Calibri", "Segoe UI", "Open Sans", sans-serif;
+  font-size: 13px;
+  color: #000;
+  background: #fff;
+  border: 1px solid #000;
+
+  td {
+    border: 1px solid #000;
+    vertical-align: middle;
+    padding: 0;
+  }
+}
+
+.approval-form-title-row td {
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+  background: #fff;
+}
+
+.approval-form-label {
+  width: 38%;
+  padding: 7px 10px;
+  font-weight: 400;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.approval-form-colon {
+  width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  text-align: center;
+  padding: 7px 4px;
+}
+
+.approval-form-value {
+  width: auto;
+  padding: 0;
+  min-height: 32px;
+
+  input,
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 32px;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 7px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #000;
+    box-sizing: border-box;
+    resize: vertical;
+
+    &::placeholder {
+      color: #666;
+    }
+
+    &:focus {
+      outline: 2px solid rgba(42, 0, 255, 0.2);
+      outline-offset: -2px;
+    }
+  }
+
+  textarea {
+    min-height: 72px;
+  }
+
+  .cf-input.date-time-row.cf-datetime-picker {
+    margin: 0;
+    min-height: 32px;
+
+    .MuiInputBase-root {
+      min-height: 32px;
+      font-size: 13px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .MuiInputBase-input {
+      padding: 7px 10px;
+      font-size: 13px;
+      color: #000;
+    }
+
+    fieldset {
+      border: none;
+    }
+  }
+}
+
+.approval-section-header td {
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  background: #f2f2f2;
+}
+
+.approval-cell-green {
+  background-color: #e2efda;
+
+  input,
+  textarea {
+    background-color: #e2efda;
+  }
+}
+
+.approval-cell-blue {
+  background-color: #ddebf7;
+
+  input,
+  textarea {
+    background-color: #ddebf7;
+  }
+}
+
+.approval-remarks-row {
+  .approval-remarks-label {
+    padding: 8px 10px;
+    font-weight: 600;
+    text-align: left;
+    background: #fff;
+    border-bottom: none;
+  }
+
+  .approval-remarks-area {
+    padding: 0;
+    border-top: none;
+
+    textarea {
+      min-height: 140px;
+      padding: 10px 12px;
+      background-color: #e2efda;
+      resize: vertical;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .approval-credit-form {
+    min-width: 100%;
+    font-size: 12px;
+  }
+
+  .approval-form-label {
+    width: 42%;
+    padding: 6px 8px;
+  }
+
+  .approval-form-colon {
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+  }
+
+  .approval-form-value {
+    input,
+    textarea {
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+  }
+}
