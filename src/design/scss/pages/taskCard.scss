@@ -24,10 +24,10 @@ $tc-font:         "Open Sans", sans-serif;
   gap: 6px;
 }
 
-.tc-user-avatar {
-  width: 20px !important;
-  height: 20px !important;
-  font-size: 10px !important;
+.tc-user-option .tc-user-avatar {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
   flex-shrink: 0;
 }
 
