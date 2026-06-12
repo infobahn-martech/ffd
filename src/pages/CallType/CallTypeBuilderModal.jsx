@@ -122,8 +122,9 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
     const allChecked = tab.fields.every((f) => fieldMap[f]);
     const anyChecked = tab.fields.some((f) => fieldMap[f]) || customFields.length > 0;
 
-    const handleTabLabelClick = () => {
-        onToggleOpen(tab.id);
+    const handleLabelClick = (e) => {
+        e.stopPropagation();
+        if (!isOpen) onToggleOpen(tab.id);
         onSelectAll(tab.id, !allChecked);
     };
 
@@ -140,9 +141,9 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
                 <button
                     type="button"
                     className="ct-accordion-trigger"
-                    onClick={handleTabLabelClick}
+                    onClick={() => onToggleOpen(tab.id)}
                 >
-                    <span className="ct-accordion-label">{tab.label}</span>
+                    <span className="ct-accordion-label" onClick={handleLabelClick}>{tab.label}</span>
                     {anyChecked && <span className="ct-accordion-badge">{tab.fields.filter((f) => fieldMap[f]).length + customFields.length}</span>}
                     {isOpen ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
                 </button>
