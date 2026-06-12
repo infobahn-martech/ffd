@@ -10,7 +10,7 @@ const toTitleCase = (value = "") =>
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-const AttachmentItem = ({ attachment, onView, cardColor }) => {
+const AttachmentItem = ({ attachment, onView, onDownload }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
 
@@ -144,7 +144,6 @@ const AttachmentItem = ({ attachment, onView, cardColor }) => {
               type="button"
               title={attachment.fileUrl ? "View in new tab" : "No file link"}
               disabled={!attachment.fileUrl}
-              style={{ "--card-color": cardColor }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path
@@ -155,6 +154,32 @@ const AttachmentItem = ({ attachment, onView, cardColor }) => {
                   strokeLinejoin="round"
                 />
                 <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
+          )}
+          {onDownload && (
+            <button
+              className="attachment-action-btn download"
+              onClick={() => onDownload(attachment)}
+              type="button"
+              title={attachment.fileUrl ? "Download file" : "No file link"}
+              disabled={!attachment.fileUrl}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path
+                  d="M9 2.25v9.75M9 12l-3-3M9 12l3-3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M3.75 14.25v1.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5v-1.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           )}
@@ -192,10 +217,10 @@ AttachmentItem.propTypes = {
     category: PropTypes.string,
   }).isRequired,
   onView: PropTypes.func,
-  cardColor: PropTypes.string,
+  onDownload: PropTypes.func,
 };
 
-const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
+const AttachmentCategory = ({ label, attachments, onView, onDownload }) => {
   if (!attachments || attachments.length === 0) {
     return null;
   }
@@ -214,7 +239,7 @@ const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
             key={attachment.id != null ? String(attachment.id) : `att-${idx}`}
             attachment={attachment}
             onView={onView}
-            cardColor={cardColor}
+            onDownload={onDownload}
           />
         ))}
       </div>
@@ -236,10 +261,10 @@ AttachmentCategory.propTypes = {
     })
   ),
   onView: PropTypes.func,
-  cardColor: PropTypes.string,
+  onDownload: PropTypes.func,
 };
 
-const AttachmentList = ({ attachments, onView, cardColor }) => {
+const AttachmentList = ({ attachments, onView, onDownload }) => {
   // Group attachments by category/label
   const groupedAttachments = useMemo(() => {
     if (!attachments || attachments.length === 0) {
@@ -281,7 +306,7 @@ const AttachmentList = ({ attachments, onView, cardColor }) => {
             label={toTitleCase(category.trim())}
             attachments={groupedAttachments[category]}
             onView={onView}
-            cardColor={cardColor}
+            onDownload={onDownload}
           />
         ))}
       </div>
@@ -302,10 +327,10 @@ AttachmentList.propTypes = {
     })
   ),
   onView: PropTypes.func,
-  cardColor: PropTypes.string,
+  onDownload: PropTypes.func,
 };
 
-const ChecklistList = ({ checklistItems, onView, cardColor }) => {
+const ChecklistList = ({ checklistItems, onView, onDownload }) => {
   if (!checklistItems || checklistItems.length === 0) {
     return (
       <div className="attachments-list">
@@ -342,7 +367,7 @@ const ChecklistList = ({ checklistItems, onView, cardColor }) => {
                       key={doc.id != null ? String(doc.id) : `chk-doc-${String(item.id)}-${idx}`}
                       attachment={doc}
                       onView={onView}
-                      cardColor={cardColor}
+                      onDownload={onDownload}
                     />
                   ))
                 )}
@@ -373,7 +398,7 @@ ChecklistList.propTypes = {
     })
   ),
   onView: PropTypes.func,
-  cardColor: PropTypes.string,
+  onDownload: PropTypes.func,
 };
 
 const resolveAttachmentFileUrl = (fileUrl) => {
@@ -589,6 +614,24 @@ function DocumentLibrary({ card, formValues }) {
     window.open(viewerUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handleDownload = (attachment) => {
+    const rawUrl = attachment?.fileUrl;
+
+    if (!rawUrl) {
+      window.alert("No link is available for this attachment.");
+      return;
+    }
+
+    const absUrl = resolveAttachmentFileUrl(rawUrl);
+    const link = document.createElement("a");
+    link.href = absUrl;
+    link.download = attachment?.fileName?.trim() || "download";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="cardform-body">
       <div className="cardform-left-full attachments-content-wrapper" style={{ "--card-color": cardColor }}>
@@ -621,7 +664,7 @@ function DocumentLibrary({ card, formValues }) {
             <AttachmentList
               attachments={attachments}
               onView={handleView}
-              cardColor={cardColor}
+              onDownload={handleDownload}
             />
             <div className="">
               <div className="attachments-list-header">
@@ -636,7 +679,7 @@ function DocumentLibrary({ card, formValues }) {
               <ChecklistList
                 checklistItems={checklistItems}
                 onView={handleView}
-                cardColor={cardColor}
+                onDownload={handleDownload}
               />
             </div>
           </>
