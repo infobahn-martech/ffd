@@ -1,7 +1,6 @@
-@import "partials/partials";
-
 /* ==========================================================
-   EXPORT APPROVAL TAB (Credit Approval Form)
+   EXPORT APPROVAL TAB — card form layout
+   Scoped to .approval-tab-content only
    ========================================================== */
 
 .approval-tab-content {
@@ -10,209 +9,225 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-}
 
-.approval-form-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: auto;
-  padding: 4px 2px 12px;
-  scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 999px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #aab4c3;
-    border-radius: 999px;
-
-    &:hover {
-      background: #8b96a8;
-    }
-  }
-}
-
-.approval-credit-form {
-  width: 100%;
-  min-width: 520px;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-family: "Calibri", "Segoe UI", "Open Sans", sans-serif;
-  font-size: 13px;
-  color: #000;
-  background: #fff;
-  border: 1px solid #000;
-
-  td {
-    border: 1px solid #000;
-    vertical-align: middle;
+  &.general-tab-content {
     padding: 0;
   }
-}
 
-.approval-form-title-row td {
-  padding: 10px 12px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.4px;
-  background: #fff;
-}
+  .cardform-body.general-tab-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 18px 22px;
+  }
 
-.approval-form-label {
-  width: 38%;
-  padding: 7px 10px;
-  font-weight: 400;
-  white-space: normal;
-  word-break: break-word;
-}
+  .approval-sections-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #aab4c3 #f1f5f9;
 
-.approval-form-colon {
-  width: 28px;
-  min-width: 28px;
-  max-width: 28px;
-  text-align: center;
-  padding: 7px 4px;
-}
-
-.approval-form-value {
-  width: auto;
-  padding: 0;
-  min-height: 32px;
-
-  input,
-  textarea {
-    display: block;
-    width: 100%;
-    min-height: 32px;
-    border: none;
-    outline: none;
-    background: transparent;
-    padding: 7px 10px;
-    font-family: inherit;
-    font-size: 13px;
-    color: #000;
-    box-sizing: border-box;
-    resize: vertical;
-
-    &::placeholder {
-      color: #666;
+    &::-webkit-scrollbar {
+      width: 6px;
     }
 
-    &:focus {
-      outline: 2px solid rgba(42, 0, 255, 0.2);
-      outline-offset: -2px;
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #aab4c3;
+      border-radius: 999px;
+
+      &:hover {
+        background: #8b96a8;
+      }
     }
   }
 
-  textarea {
+  .approval-section--full {
+    width: 100%;
+  }
+
+  .approval-form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    min-width: 0;
+  }
+
+  .approval-party-cards-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .approval-party-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    padding: 16px 18px;
+  }
+
+  .approval-card-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 999px;
+    }
+  }
+
+  .form-group-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    &::before {
+      content: "";
+      width: 3px;
+      height: 16px;
+      background: #000000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+  }
+
+  .approval-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 20px;
+  }
+
+  .approval-fields-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+  }
+
+  .approval-field {
+    margin-bottom: 12px;
+    min-width: 0;
+    width: 100%;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.approval-field--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .approval-textarea-wrap {
+    textarea {
+      width: 100%;
+      min-height: 88px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 13px;
+      color: #1a1a1a;
+      resize: vertical;
+      box-sizing: border-box;
+      background: #ffffff;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+      &::placeholder {
+        color: #9ca3af;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #9da8ff;
+        box-shadow: 0 0 0 3px rgba(157, 168, 255, 0.22);
+      }
+    }
+
+    &.approval-textarea--green textarea {
+      background-color: #e2efda;
+      border-color: #c5e0b4;
+    }
+
+    &.approval-textarea--blue textarea {
+      background-color: #ddebf7;
+      border-color: #b4c7e7;
+    }
+  }
+
+  .approval-party-card .approval-textarea-wrap textarea {
     min-height: 72px;
   }
 
-  .cf-input.date-time-row.cf-datetime-picker {
-    margin: 0;
-    min-height: 32px;
-
-    .MuiInputBase-root {
-      min-height: 32px;
-      font-size: 13px;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .MuiInputBase-input {
-      padding: 7px 10px;
-      font-size: 13px;
-      color: #000;
-    }
-
-    fieldset {
-      border: none;
-    }
-  }
-}
-
-.approval-section-header td {
-  padding: 8px 10px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 13px;
-  background: #f2f2f2;
-}
-
-.approval-cell-green {
-  background-color: #e2efda;
-
-  input,
-  textarea {
-    background-color: #e2efda;
-  }
-}
-
-.approval-cell-blue {
-  background-color: #ddebf7;
-
-  input,
-  textarea {
-    background-color: #ddebf7;
-  }
-}
-
-.approval-remarks-row {
-  .approval-remarks-label {
-    padding: 8px 10px;
-    font-weight: 600;
-    text-align: left;
-    background: #fff;
-    border-bottom: none;
-  }
-
-  .approval-remarks-area {
-    padding: 0;
-    border-top: none;
-
-    textarea {
-      min-height: 140px;
-      padding: 10px 12px;
-      background-color: #e2efda;
-      resize: vertical;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .approval-credit-form {
-    min-width: 100%;
+  .approval-helper-text {
+    margin: 8px 0 0;
     font-size: 12px;
+    color: #6b7280;
+    font-style: italic;
+    line-height: 1.4;
   }
 
-  .approval-form-label {
-    width: 42%;
-    padding: 6px 8px;
+  .cf-field .cf-input.date-time-row.cf-datetime-picker {
+    width: 100%;
   }
 
-  .approval-form-colon {
-    width: 24px;
-    min-width: 24px;
-    max-width: 24px;
+  @media (max-width: 1100px) {
+    .approval-party-cards-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .approval-fields-grid,
+    .approval-basic-fields-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
-  .approval-form-value {
-    input,
-    textarea {
-      padding: 6px 8px;
-      font-size: 12px;
+  @media (max-width: 640px) {
+    .cardform-body.general-tab-body {
+      padding: 14px 16px;
+    }
+
+    .approval-form-card {
+      padding: 16px;
+    }
+
+    .approval-party-cards-row {
+      grid-template-columns: 1fr;
+    }
+
+    .approval-fields-grid,
+    .approval-basic-fields-grid {
+      grid-template-columns: 1fr;
     }
   }
 }
