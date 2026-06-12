@@ -49,6 +49,7 @@ import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, 
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
+import useCommonReducer from '../../store/CommonReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 import { ROUTE_PATHS } from '../../router/paths';
 import {
@@ -62,6 +63,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const navigate = useNavigate();
   const { width } = useWindowSize();
   const createDashboard = useWorkSpaceReducer((s) => s.createDashboard);
+  const callTypes = useCommonReducer((s) => s.callTypes);
+  const ports = useCommonReducer((s) => s.ports);
+  const getCallTypes = useCommonReducer((s) => s.getCallTypes);
+  const getPorts = useCommonReducer((s) => s.getPorts);
 
   const isKanbanBoard =
     pathname === '/kanban-board/operator' ||
@@ -175,6 +180,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
   const [selectedSwimlaneId, setSelectedSwimlaneId] = useState(null);
+  const [selectedCallTypeId, setSelectedCallTypeId] = useState(null);
+  const [selectedPortId, setSelectedPortId] = useState(null);
   const [addModalWorkflows, setAddModalWorkflows] = useState([]);
   const [swimlanePhaseWorkflow, setSwimlanePhaseWorkflow] = useState(null);
 
@@ -195,6 +202,24 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }));
   }, [sidebarWorkflows]);
 
+  const callTypeOptionsForModal = useMemo(
+    () =>
+      (callTypes || []).map((callType) => ({
+        id: callType?.call_type_id ?? callType?.id,
+        name: callType?.call_type ?? callType?.callType ?? callType?.name ?? String(callType?.call_type_id ?? callType?.id ?? ''),
+      })),
+    [callTypes]
+  );
+
+  const portOptionsForModal = useMemo(
+    () =>
+      (ports || []).map((port) => ({
+        id: port?.port_id ?? port?.id,
+        name: port?.port ?? port?.name ?? port?.port_name ?? String(port?.port_id ?? port?.id ?? ''),
+      })),
+    [ports]
+  );
+
   const swimlaneContextDisplayName =
     swimlanePhaseWorkflow?.name ?? swimlanePhaseWorkflow?.title ?? '';
 
@@ -204,7 +229,15 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     setSwimlanePhaseWorkflow(null);
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
+    setSelectedCallTypeId(null);
+    setSelectedPortId(null);
   }, []);
+
+  useEffect(() => {
+    if (!showSelectWorkflowModal) return;
+    getCallTypes();
+    getPorts({ params: { limit: 1000 } });
+  }, [showSelectWorkflowModal, getCallTypes, getPorts]);
 
   const closeSelectWorkflowModal = useCallback(() => {
     pendingAddCardFromWorkflowRef.current = null;
@@ -228,6 +261,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     }
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
+    setSelectedCallTypeId(null);
+    setSelectedPortId(null);
     setShowSelectWorkflowModal(true);
   }, [sidebarWorkflows]);
 
@@ -1085,6 +1120,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           selectedSwimlaneId={addModalStep === 'swimlane' ? selectedSwimlaneId : null}
           onSelectWorkflowId={setSelectedWorkflowId}
           onSelectSwimlaneId={setSelectedSwimlaneId}
+          callTypes={callTypeOptionsForModal}
+          ports={portOptionsForModal}
+          selectedCallTypeId={selectedCallTypeId}
+          selectedPortId={selectedPortId}
+          onSelectCallTypeId={setSelectedCallTypeId}
+          onSelectPortId={setSelectedPortId}
           onClose={closeSelectWorkflowModal}
           onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}
