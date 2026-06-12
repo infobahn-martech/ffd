@@ -22,8 +22,8 @@ import {
 import useAuthReducer from "../../../../../../store/AuthReducer";
 
 // Import Tab Components
-import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../../../CardFormTabs";
-import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
+import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../../../CardFormTabs/Import";
+import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/Import/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../../../components/NavTabButton";
 import GROCardView from "../GRO/User/GROCardView";
 import CustomCardView from "../Custom/User/CustomCardView";

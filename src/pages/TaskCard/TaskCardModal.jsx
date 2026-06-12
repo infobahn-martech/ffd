@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import DateTimePickerField from "../KanbanBoard/CardFormTabs/components/DateTimePickerField";
+import DateTimePickerField from "../KanbanBoard/CardFormTabs/shared/components/DateTimePickerField";
 import "../../design/css/common/CardForm.css";
 import "../../design/scss/pages/taskCard.scss";
 

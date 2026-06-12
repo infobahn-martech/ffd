@@ -13,7 +13,7 @@ import {
   PRE_ARRIVAL_GRO_ROLE_ID,
   PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
   PRE_ARRIVAL_MWP_USER_ROLE_ID,
-} from "../../../../../CardFormTabs/tabs/operation/operationConstants";
+} from "../../../../../CardFormTabs/Import/tabs/operation/operationConstants";
 import groService from "../../../../../../../services/groService";
 import useGROReducer from "../../../../../../../store/GROReducer";
 import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";

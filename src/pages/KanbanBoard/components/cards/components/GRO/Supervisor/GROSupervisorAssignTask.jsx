@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
-import DateTimePickerField from "../../../../../CardFormTabs/components/DateTimePickerField";
+import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
 import {
   resolveGroSupervisorTaskStatus,
   formatGroSupervisorTaskRemarks,

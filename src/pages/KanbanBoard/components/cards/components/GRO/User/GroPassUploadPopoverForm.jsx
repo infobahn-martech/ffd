@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import DateTimePickerField from "../../../../../CardFormTabs/components/DateTimePickerField";
+import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
 
 /**
  * Same structure/classes as Inward clearance popover — pass no / datetime / file / footer.

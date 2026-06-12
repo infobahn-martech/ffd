@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import PropTypes from "prop-types";
-import DateTimePickerField from "../../../../../CardFormTabs/components/DateTimePickerField";
+import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
 
 /** Task document upload popover (anchored beside segmented tabs). */
 function TaskDocumentUploadPanel({

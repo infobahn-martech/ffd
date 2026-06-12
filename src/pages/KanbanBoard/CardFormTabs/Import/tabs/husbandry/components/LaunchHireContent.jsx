@@ -1,0 +1,318 @@
+import { useState } from "react";
+import PropTypes from "prop-types";
+import Select from "react-select";
+import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
+import { FormSection, FormField, FormInput, FormTextarea, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+
+const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
+
+  // Generate crew options from crewList
+  const crewOptions = formValues.crewList?.map((crew) => ({
+    value: crew.id?.toString() || crew.crewName,
+    label: crew.crewName || `Crew Member ${crew.id}`,
+  })) || [];
+
+  // Handle multi-select crew change
+  const handleCrewChange = (selectedOptions) => {
+    const values = selectedOptions?.map((option) => option.value) || [];
+    const syntheticEvent = { target: { value: values } };
+    handleChange("launchHireSelectedCrew")(syntheticEvent);
+  };
+
+  // Get selected crew values for react-select
+  const selectedCrewValues = formValues.launchHireSelectedCrew?.map((crewId) =>
+    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
+  ).filter(Boolean) || [];
+
+  const customSelectStyles = getCrewMultiSelectStyles(cardColor);
+
+
+  // Handle save
+  const handleSave = () => {
+    console.log("Saving Launch Hire data:", {
+      launchHireSelectedCrew: formValues.launchHireSelectedCrew,
+      launchHireBoardingAgentName: formValues.launchHireBoardingAgentName,
+      launchHireWeather: formValues.launchHireWeather,
+      launchHireBoatLeftBaseDate: formValues.launchHireBoatLeftBaseDate,
+      launchHireBoatLeftBaseTime: formValues.launchHireBoatLeftBaseTime,
+      launchHireBoatAlongsideShipDate: formValues.launchHireBoatAlongsideShipDate,
+      launchHireBoatAlongsideShipTime: formValues.launchHireBoatAlongsideShipTime,
+      launchHireBoatCastOffShipDate: formValues.launchHireBoatCastOffShipDate,
+      launchHireBoatCastOffShipTime: formValues.launchHireBoatCastOffShipTime,
+      launchHireBoatBackToBaseDate: formValues.launchHireBoatBackToBaseDate,
+      launchHireBoatBackToBaseTime: formValues.launchHireBoatBackToBaseTime,
+      launchHireServiceOptions: formValues.launchHireServiceOptions,
+      launchHireServiceOptionsOthersText: formValues.launchHireServiceOptionsOthersText,
+      launchHireDescription: formValues.launchHireDescription,
+    });
+  };
+
+  return (
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <FormSection icon={GroupSettingsIcon} title="">
+        <div className="pre-arrival-form launchhire-form">
+          <div className="general-info-two-column operation-section-form-layout">
+            <div className="general-info-left">
+              <FormField label="Select Crew">
+                <div className="cf-select react-select-container crew-multi-select">
+                  <Select
+                    isMulti
+                    value={selectedCrewValues}
+                    onChange={handleCrewChange}
+                    options={crewOptions}
+                    placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
+                    classNamePrefix="react-select"
+                    styles={customSelectStyles}
+                    formatOptionLabel={formatCrewOptionLabel}
+                    isClearable
+                    isSearchable
+                    closeMenuOnSelect={false}
+                    hideSelectedOptions={false}
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Boarding agent name">
+                <FormInput
+                  type="text"
+                  value={formValues.launchHireBoardingAgentName || ""}
+                  onChange={handleChange("launchHireBoardingAgentName")}
+                  placeholder="Enter boarding agent name..."
+                />
+              </FormField>
+
+              <FormField label="Weather">
+                <FormTextarea
+                  value={formValues.launchHireWeather || ""}
+                  onChange={handleChange("launchHireWeather")}
+                  placeholder="Enter weather information..."
+                  rows={3}
+                />
+              </FormField>
+
+              <FormField label="Boat left the base">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatLeftBaseDate || ""}
+                    onChange={handleChange("launchHireBoatLeftBaseDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatLeftBaseTime || ""}
+                    onChange={handleChange("launchHireBoatLeftBaseTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Boat along side ship">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatAlongsideShipDate || ""}
+                    onChange={handleChange("launchHireBoatAlongsideShipDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatAlongsideShipTime || ""}
+                    onChange={handleChange("launchHireBoatAlongsideShipTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Boat cast-off ship">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatCastOffShipDate || ""}
+                    onChange={handleChange("launchHireBoatCastOffShipDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatCastOffShipTime || ""}
+                    onChange={handleChange("launchHireBoatCastOffShipTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Boat back to base">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatBackToBaseDate || ""}
+                    onChange={handleChange("launchHireBoatBackToBaseDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatBackToBaseTime || ""}
+                    onChange={handleChange("launchHireBoatBackToBaseTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Service Options" className="cf-field-full">
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                  gap: "12px",
+                  marginBottom: "16px"
+                }}>
+                  {[
+                    { value: "FREIGHTER ANCHORAGE", label: "Freighter anchorage" },
+                    { value: "SING ON/SIGN OFF/MEDIC/PCR TECH/IMMIGRATION CREW", label: "Sign on/sign off/medic/PCR tech/immigration crew" },
+                    { value: "INNER ANCHORAGE", label: "Inner anchorage" },
+                    { value: "GARBAGE COLLECTION/JUMBO BAGS", label: "Garbage collection/jumbo bags" },
+                    { value: "MATERIAL/PALLETS", label: "Material/pallets" },
+                    { value: "SEA ISLAND", label: "Sea island" },
+                    { value: "PROVISSON/PALLETS", label: "Provisson/pallets" },
+                    { value: "JUAYMAH", label: "Juaymah" },
+                    { value: "OTHERS", label: "Others" },
+                  ].map((option) => {
+                    const isSelected = formValues.launchHireServiceOptions?.includes(option.value) || false;
+                    return (
+                      <div
+                        key={option.value}
+                        onClick={() => {
+                          const currentOptions = formValues.launchHireServiceOptions || [];
+                          const newOptions = isSelected
+                            ? currentOptions.filter(opt => opt !== option.value)
+                            : [...currentOptions, option.value];
+                          const syntheticEvent = { target: { value: newOptions } };
+                          handleChange("launchHireServiceOptions")(syntheticEvent);
+
+                          // Clear others text if OTHERS is unchecked
+                          if (option.value === "OTHERS" && isSelected) {
+                            const clearEvent = { target: { value: "" } };
+                            handleChange("launchHireServiceOptionsOthersText")(clearEvent);
+                          }
+                        }}
+                        style={{
+                          padding: "16px",
+                          borderRadius: "8px",
+                          border: isSelected
+                            ? `2px solid ${cardColor || "#00368c"}`
+                            : "2px solid #e2e2ea",
+                          backgroundColor: isSelected
+                            ? `${cardColor || "#00368c"}15`
+                            : "#ffffff",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          textAlign: "center",
+                          minHeight: "60px",
+                          position: "relative",
+                          boxShadow: isSelected
+                            ? `0 2px 8px ${cardColor || "#00368c"}40`
+                            : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = cardColor || "#00368c";
+                            e.currentTarget.style.backgroundColor = "#f8f9ff";
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = "#e2e2ea";
+                            e.currentTarget.style.backgroundColor = "#ffffff";
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.1)";
+                          }
+                        }}
+                      >
+                        <span style={{
+                          fontSize: "13px",
+                          fontWeight: isSelected ? "600" : "500",
+                          color: isSelected
+                            ? (cardColor || "#00368c")
+                            : "#1a1a1a",
+                          lineHeight: "1.4",
+                          wordBreak: "break-word",
+                        }}>
+                          {option.label}
+                        </span>
+                        {isSelected && (
+                          <div style={{
+                            position: "absolute",
+                            top: "8px",
+                            right: "8px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            backgroundColor: cardColor || "#00368c",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {formValues.launchHireServiceOptions?.includes("OTHERS") && (
+                  <div style={{ marginTop: "8px" }}>
+                    <FormInput
+                      type="text"
+                      value={formValues.launchHireServiceOptionsOthersText || ""}
+                      onChange={handleChange("launchHireServiceOptionsOthersText")}
+                      placeholder="Enter other service option..."
+                    />
+                  </div>
+                )}
+              </FormField>
+
+              <div className="form-save-button-wrapper">
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Remarks">
+                  <ReactQuillEditor
+                    value={formValues?.launchHireDescription || ""}
+                    onChange={handleChange("launchHireDescription")}
+                    placeholder="Enter remarks..."
+                    name="launchHireDescription"
+                  />
+                </FormField>
+              </div>
+            </div>
+          </div>
+        </div>
+      </FormSection>
+    </div>
+  );
+};
+
+LaunchHireContent.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+};
+
+export default LaunchHireContent;
+

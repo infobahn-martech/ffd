@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import userService from "../../../../../../../services/userService";
 import groService from "../../../../../../../services/groService";
-import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../../CardFormTabs/tabs/operation/operationConstants";
+import { PRE_ARRIVAL_GRO_ROLE_ID } from "../../../../../CardFormTabs/Import/tabs/operation/operationConstants";
 import {
   getGroSupervisorTasksForCard,
   createEmptyTaskAssignment,
