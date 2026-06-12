@@ -1,16 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import { FiX } from "react-icons/fi";
+import { FiX, FiChevronDown, FiChevronRight, FiPlus, FiTrash2 } from "react-icons/fi";
 import useCallTypeReducer from "../../store/CallTypeReducer";
 import "../../design/css/common/CardForm.css";
 import "../../design/scss/pages/callTypeBuilder.scss";
-
-const CALL_TYPE_OPTIONS = [
-    { value: "", label: "Select Call Type" },
-    { value: "import_call", label: "Import Call" },
-    { value: "export_call", label: "Export Call" },
-    { value: "husbandry_call", label: "Husbandry Call" },
-    { value: "husbandry_monthly_call", label: "Husbandry Monthly Call" },
-];
 
 const FIELD_TYPES = [
     { value: "text", label: "Text" },
@@ -20,37 +12,186 @@ const FIELD_TYPES = [
     { value: "checkbox", label: "Checkbox" },
 ];
 
-const PLACEHOLDER_MAP = {
-    text: "Enter text...",
-    number: "0",
-    date: "dd/mm/yyyy",
-    dropdown: "Select option",
-    checkbox: "",
+const CALL_TYPE_OPTIONS = [
+    { value: "", label: "Select Call Type" },
+    { value: "import_call", label: "Import Call" },
+    { value: "export_call", label: "Export Call" },
+    { value: "husbandry_call", label: "Husbandry Call" },
+    { value: "husbandry_monthly_call", label: "Husbandry Monthly Call" },
+];
+
+// Operation tabs — have individual field checkboxes
+const OPERATION_TABS = [
+    {
+        id: "appointment_acceptance",
+        label: "Appointment Acceptance",
+        fields: [
+            "Time Objects",
+            "Appointment Email",
+            "Billing Entity",
+            "Tug",
+            "Barge & Tug",
+            "Daily Report Emails",
+        ],
+    },
+    {
+        id: "pre_arrival",
+        label: "Pre-arrival",
+        fields: [
+            "Time Objects",
+            "Sale Order",
+            "Coordinates",
+        ],
+    },
+    {
+        id: "arrival",
+        label: "Arrival",
+        fields: [
+            "Time Objects",
+            "Arrival Notice",
+            "Port Clearance",
+            "Berth Confirmation",
+        ],
+    },
+    {
+        id: "departure",
+        label: "Departure",
+        fields: [
+            "Time Objects",
+            "Departure Notice",
+            "Customs Clearance",
+            "Final Documents",
+        ],
+    },
+];
+
+// Simple tabs — include/exclude only, no field breakdown
+const SIMPLE_TABS = [
+    { id: "checklist", label: "Checklist" },
+    { id: "document_library", label: "Document Library" },
+    { id: "subtasks", label: "Subtasks" },
+    { id: "notes", label: "Notes" },
+    { id: "comments", label: "Comments" },
+];
+
+const buildInitialTabConfig = () => {
+    const config = {};
+    for (const tab of OPERATION_TABS) {
+        config[tab.id] = {
+            enabled: false,
+            fields: Object.fromEntries(tab.fields.map((f) => [f, false])),
+            customFields: [],
+        };
+    }
+    for (const tab of SIMPLE_TABS) {
+        config[tab.id] = { enabled: false };
+    }
+    return config;
 };
 
-function PreviewField({ field }) {
-    const label = field.label || "Unnamed Field";
-    if (field.type === "checkbox") {
-        return (
-            <div className="ct-preview-field">
-                <span className="ct-preview-field-label">
-                    {label}{field.required && <span className="req">*</span>}
-                </span>
-                <div className="ct-preview-checkbox-mock">
-                    <input type="checkbox" readOnly />
-                    <span>{label}</span>
-                </div>
-            </div>
-        );
-    }
+function CustomFieldRow({ field, onUpdate, onRemove }) {
     return (
-        <div className="ct-preview-field">
-            <span className="ct-preview-field-label">
-                {label}{field.required && <span className="req">*</span>}
-            </span>
-            <div className="ct-preview-input-mock">
-                {field.type === "dropdown" ? "Select option ▾" : PLACEHOLDER_MAP[field.type] ?? "Enter value..."}
+        <div className="ct-custom-field-row">
+            <input
+                className="ct-custom-field-input"
+                placeholder="Field name"
+                value={field.label}
+                onChange={(e) => onUpdate(field.id, "label", e.target.value)}
+            />
+            <select
+                className="ct-custom-field-select"
+                value={field.type}
+                onChange={(e) => onUpdate(field.id, "type", e.target.value)}
+            >
+                {FIELD_TYPES.map((ft) => (
+                    <option key={ft.value} value={ft.value}>{ft.label}</option>
+                ))}
+            </select>
+            <button type="button" className="ct-custom-field-del" onClick={() => onRemove(field.id)}>
+                <FiTrash2 size={13} />
+            </button>
+        </div>
+    );
+}
+
+function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab, onToggleField, onSelectAll, onAddCustomField, onUpdateCustomField, onRemoveCustomField }) {
+    const isOpen = openTab === tab.id;
+    const isEnabled = config[tab.id]?.enabled ?? false;
+    const fieldMap = config[tab.id]?.fields ?? {};
+    const customFields = config[tab.id]?.customFields ?? [];
+    const allChecked = tab.fields.every((f) => fieldMap[f]);
+    const anyChecked = tab.fields.some((f) => fieldMap[f]) || customFields.length > 0;
+
+    return (
+        <div className={`ct-accordion-item ${isEnabled ? "ct-accordion-item--enabled" : ""}`}>
+            <div className="ct-accordion-header">
+                <label className="ct-tab-toggle">
+                    <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        onChange={(e) => onToggleTab(tab.id, e.target.checked)}
+                    />
+                </label>
+                <button
+                    type="button"
+                    className="ct-accordion-trigger"
+                    onClick={() => onToggleOpen(tab.id)}
+                >
+                    <span className="ct-accordion-label">{tab.label}</span>
+                    {anyChecked && <span className="ct-accordion-badge">{tab.fields.filter((f) => fieldMap[f]).length + customFields.length}</span>}
+                    {isOpen ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                </button>
             </div>
+
+            {isOpen && (
+                <div className="ct-accordion-body">
+                    <div className="ct-field-select-all-row">
+                        <label className="ct-field-check-label">
+                            <input
+                                type="checkbox"
+                                checked={allChecked}
+                                onChange={(e) => onSelectAll(tab.id, e.target.checked)}
+                            />
+                            <span>Select All</span>
+                        </label>
+                    </div>
+
+                    <div className="ct-field-list">
+                        {tab.fields.map((field) => (
+                            <label key={field} className="ct-field-check-label">
+                                <input
+                                    type="checkbox"
+                                    checked={fieldMap[field] ?? false}
+                                    onChange={(e) => onToggleField(tab.id, field, e.target.checked)}
+                                />
+                                <span>{field}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    {customFields.length > 0 && (
+                        <div className="ct-custom-fields-list">
+                            <p className="ct-custom-fields-heading">Custom Fields</p>
+                            {customFields.map((cf) => (
+                                <CustomFieldRow
+                                    key={cf.id}
+                                    field={cf}
+                                    onUpdate={(id, key, val) => onUpdateCustomField(tab.id, id, key, val)}
+                                    onRemove={(id) => onRemoveCustomField(tab.id, id)}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        className="ct-add-custom-btn"
+                        onClick={() => onAddCustomField(tab.id)}
+                    >
+                        <FiPlus size={13} /> Add Custom Field
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -63,10 +204,10 @@ function CallTypeBuilderModal({ show, onClose }) {
     } = useCallTypeReducer((s) => s);
 
     const [editingCallType, setEditingCallType] = useState(null);
-    const [callTypeName, setCallTypeName] = useState("");
+    const [templateName, setTemplateName] = useState("");
     const [selectedCallType, setSelectedCallType] = useState("");
-    const [fields, setFields] = useState([]);
-    const [nameError, setNameError] = useState("");
+    const [tabConfig, setTabConfig] = useState(buildInitialTabConfig);
+    const [openTab, setOpenTab] = useState(null);
     const [callTypeError, setCallTypeError] = useState("");
 
     useEffect(() => {
@@ -75,40 +216,102 @@ function CallTypeBuilderModal({ show, onClose }) {
 
     const handleNew = useCallback(() => {
         setEditingCallType(null);
-        setCallTypeName("");
+        setTemplateName("");
         setSelectedCallType("");
-        setFields([]);
-        setNameError("");
+        setTabConfig(buildInitialTabConfig());
+        setOpenTab(null);
         setCallTypeError("");
     }, []);
 
     const handleSelectCallType = (ct) => {
         setEditingCallType(ct);
-        setCallTypeName(ct.call_type_name ?? "");
+        setTemplateName(ct.call_type_name ?? "");
         setSelectedCallType(ct.selected_call_type ?? "");
-        setFields((ct.fields ?? []).map((f) => ({ ...f, id: Date.now() + Math.random() })));
-        setNameError("");
+        const restored = buildInitialTabConfig();
+        if (ct.tab_config && typeof ct.tab_config === "object") {
+            for (const key of Object.keys(restored)) {
+                if (ct.tab_config[key] != null) {
+                    restored[key] = { ...restored[key], ...ct.tab_config[key] };
+                }
+            }
+        }
+        setTabConfig(restored);
+        setOpenTab(null);
         setCallTypeError("");
     };
 
-    const addField = () =>
-        setFields((prev) => [...prev, { id: Date.now(), label: "", type: "text", required: false }]);
+    const handleToggleOpen = (tabId) =>
+        setOpenTab((prev) => (prev === tabId ? null : tabId));
 
-    const removeField = (id) => setFields((prev) => prev.filter((f) => f.id !== id));
+    const handleToggleTab = (tabId, checked) =>
+        setTabConfig((prev) => ({
+            ...prev,
+            [tabId]: { ...prev[tabId], enabled: checked },
+        }));
 
-    const updateField = (id, key, value) =>
-        setFields((prev) => prev.map((f) => (f.id === id ? { ...f, [key]: value } : f)));
+    const handleToggleField = (tabId, field, checked) =>
+        setTabConfig((prev) => ({
+            ...prev,
+            [tabId]: {
+                ...prev[tabId],
+                fields: { ...prev[tabId].fields, [field]: checked },
+            },
+        }));
+
+    const handleSelectAll = (tabId, checked) => {
+        const tab = OPERATION_TABS.find((t) => t.id === tabId);
+        if (!tab) return;
+        setTabConfig((prev) => ({
+            ...prev,
+            [tabId]: {
+                ...prev[tabId],
+                fields: Object.fromEntries(tab.fields.map((f) => [f, checked])),
+            },
+        }));
+    };
+
+    const handleAddCustomField = (tabId) =>
+        setTabConfig((prev) => ({
+            ...prev,
+            [tabId]: {
+                ...prev[tabId],
+                customFields: [
+                    ...(prev[tabId].customFields ?? []),
+                    { id: Date.now() + Math.random(), label: "", type: "text" },
+                ],
+            },
+        }));
+
+    const handleUpdateCustomField = (tabId, fieldId, key, value) =>
+        setTabConfig((prev) => ({
+            ...prev,
+            [tabId]: {
+                ...prev[tabId],
+                customFields: prev[tabId].customFields.map((cf) =>
+                    cf.id === fieldId ? { ...cf, [key]: value } : cf
+                ),
+            },
+        }));
+
+    const handleRemoveCustomField = (tabId, fieldId) =>
+        setTabConfig((prev) => ({
+            ...prev,
+            [tabId]: {
+                ...prev[tabId],
+                customFields: prev[tabId].customFields.filter((cf) => cf.id !== fieldId),
+            },
+        }));
 
     const handleSave = async () => {
-        let valid = true;
-        if (!callTypeName.trim()) { setNameError("Template name is required"); valid = false; }
-        if (!selectedCallType) { setCallTypeError("Please select a call type"); valid = false; }
-        if (!valid) return;
-        setNameError(""); setCallTypeError("");
+        if (!selectedCallType) {
+            setCallTypeError("Please select a call type");
+            return;
+        }
+        setCallTypeError("");
         const payload = {
-            call_type_name: callTypeName.trim(),
+            call_type_name: templateName.trim() || null,
             selected_call_type: selectedCallType,
-            fields: fields.map(({ label, type, required }) => ({ label, type, required })),
+            tab_config: tabConfig,
         };
         if (editingCallType?.call_type_id) {
             await updateCallType({
@@ -125,7 +328,7 @@ function CallTypeBuilderModal({ show, onClose }) {
 
     const handleDelete = async (e, ct) => {
         e.stopPropagation();
-        if (!window.confirm(`Delete "${ct.call_type_name}"?`)) return;
+        if (!window.confirm(`Delete "${ct.call_type_name || "this template"}"?`)) return;
         await deleteCallType(ct.call_type_id);
         if (editingCallType?.call_type_id === ct.call_type_id) handleNew();
         getCallTypes({});
@@ -135,6 +338,8 @@ function CallTypeBuilderModal({ show, onClose }) {
 
     const list = Array.isArray(callTypes) ? callTypes : [];
     const isEditMode = !!editingCallType?.call_type_id;
+
+    const enabledTabCount = Object.values(tabConfig).filter((t) => t.enabled).length;
 
     return (
         <div className="cardform-overlay" style={{ zIndex: 1350 }}>
@@ -146,9 +351,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                         <span className="ct-topbar-title">CALL TYPE BUILDER</span>
                     </div>
                     <div className="cardform-topbar-right">
-                        <button type="button" className="ct-modal-close-btn" onClick={onClose}>
-                            <FiX size={20} />
-                        </button>
+                        <button type="button" className="cardform-close-btn" onClick={onClose}>✕</button>
                     </div>
                 </div>
 
@@ -158,13 +361,11 @@ function CallTypeBuilderModal({ show, onClose }) {
                     {/* ── Left panel ── */}
                     <div className="ct-split-left">
 
-                        {/* Saved call types */}
+                        {/* Saved templates list */}
                         <div className="ct-saved-section">
                             <div className="ct-saved-header">
                                 <span className="ct-saved-label">Saved Templates</span>
-                                <button type="button" className="ct-new-btn" onClick={handleNew}>
-                                    + New
-                                </button>
+                                <button type="button" className="ct-new-btn" onClick={handleNew}>+ New</button>
                             </div>
                             <div className="ct-saved-list">
                                 {isLoadingGet && <div className="ct-saved-empty">Loading...</div>}
@@ -178,10 +379,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                                         onClick={() => handleSelectCallType(ct)}
                                     >
                                         <div className="ct-saved-dot" />
-                                        <span className="ct-saved-name">{ct.call_type_name}</span>
-                                        <span className="ct-saved-count">
-                                            {Array.isArray(ct.fields) ? ct.fields.length : 0} fields
-                                        </span>
+                                        <span className="ct-saved-name">{ct.call_type_name || "Unnamed"}</span>
                                         <button
                                             type="button"
                                             className="ct-saved-del"
@@ -195,129 +393,151 @@ function CallTypeBuilderModal({ show, onClose }) {
                             </div>
                         </div>
 
-                        {/* Form */}
+                        {/* Form area */}
                         <div className="ct-split-form-area">
-                            <div className="form-group">
-                                <h3 className="form-group-title">
+
+                            {/* Call Type + Template Name */}
+                            <div className="ct-form-top">
+                                <h3 className="ct-form-section-title">
                                     {isEditMode ? "Edit Template" : "New Template"}
                                 </h3>
-                                <div className="cf-field">
-                                    <label>Select Call Type <span className="text-danger">*</span></label>
-                                    <div className={`cf-input ${callTypeError ? "is-invalid" : ""}`}>
-                                        <select
-                                            value={selectedCallType}
-                                            onChange={(e) => { setSelectedCallType(e.target.value); setCallTypeError(""); }}
-                                        >
-                                            {CALL_TYPE_OPTIONS.map((opt) => (
-                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {callTypeError && <div className="text-danger ct-field-error">{callTypeError}</div>}
+
+                                <div className="subtasks-tab-field">
+                                    <label className="subtasks-tab-label">
+                                        Call Type <span className="text-danger">*</span>
+                                    </label>
+                                    <select
+                                        className={`subtasks-tab-select ${callTypeError ? "is-invalid" : ""}`}
+                                        value={selectedCallType}
+                                        onChange={(e) => { setSelectedCallType(e.target.value); setCallTypeError(""); }}
+                                    >
+                                        {CALL_TYPE_OPTIONS.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                    {callTypeError && <span className="cf-field-error">{callTypeError}</span>}
                                 </div>
-                                <div className="cf-field">
-                                    <label>Template Name <span className="text-danger">*</span></label>
-                                    <div className={`cf-input ${nameError ? "is-invalid" : ""}`}>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Import Call Template..."
-                                            value={callTypeName}
-                                            onChange={(e) => { setCallTypeName(e.target.value); setNameError(""); }}
-                                        />
-                                    </div>
-                                    {nameError && <div className="text-danger ct-field-error">{nameError}</div>}
+
+                                <div className="subtasks-tab-field">
+                                    <label className="subtasks-tab-label">Template Name</label>
+                                    <input
+                                        type="text"
+                                        className="subtasks-tab-date-input"
+                                        placeholder="e.g. Import Call Template (optional)"
+                                        value={templateName}
+                                        onChange={(e) => setTemplateName(e.target.value)}
+                                    />
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <h3 className="form-group-title">Template Fields</h3>
+                            {/* Tab configuration */}
+                            <div className="ct-tabs-section">
+                                <div className="ct-tabs-section-header">
+                                    <span className="ct-form-section-title">Tab Configuration</span>
+                                    {enabledTabCount > 0 && (
+                                        <span className="ct-tabs-count">{enabledTabCount} selected</span>
+                                    )}
+                                </div>
 
-                                {fields.length === 0 && (
-                                    <p className="text-muted small">No fields added yet. Use the button below to define the card template.</p>
-                                )}
+                                {/* Operation tabs — accordions with fields */}
+                                <div className="ct-accordion-group">
+                                    <p className="ct-group-label">Operation Tabs</p>
+                                    {OPERATION_TABS.map((tab) => (
+                                        <OperationTabAccordion
+                                            key={tab.id}
+                                            tab={tab}
+                                            config={tabConfig}
+                                            openTab={openTab}
+                                            onToggleOpen={handleToggleOpen}
+                                            onToggleTab={handleToggleTab}
+                                            onToggleField={handleToggleField}
+                                            onSelectAll={handleSelectAll}
+                                            onAddCustomField={handleAddCustomField}
+                                            onUpdateCustomField={handleUpdateCustomField}
+                                            onRemoveCustomField={handleRemoveCustomField}
+                                        />
+                                    ))}
+                                </div>
 
-                                {fields.map((field, idx) => (
-                                    <div key={field.id} className="ct-field-row">
-                                        <div className="cf-input">
-                                            <input
-                                                placeholder={`Field ${idx + 1} label`}
-                                                value={field.label}
-                                                onChange={(e) => updateField(field.id, "label", e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="cf-input">
-                                            <select
-                                                value={field.type}
-                                                onChange={(e) => updateField(field.id, "type", e.target.value)}
-                                            >
-                                                {FIELD_TYPES.map((ft) => (
-                                                    <option key={ft.value} value={ft.value}>{ft.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="ct-field-req-wrap">
+                                {/* Simple tabs — include/exclude only */}
+                                <div className="ct-simple-tabs-group">
+                                    <p className="ct-group-label">Other Tabs</p>
+                                    {SIMPLE_TABS.map((tab) => (
+                                        <label key={tab.id} className="ct-simple-tab-row">
                                             <input
                                                 type="checkbox"
-                                                id={`req-${field.id}`}
-                                                checked={field.required}
-                                                onChange={(e) => updateField(field.id, "required", e.target.checked)}
+                                                checked={tabConfig[tab.id]?.enabled ?? false}
+                                                onChange={(e) => handleToggleTab(tab.id, e.target.checked)}
                                             />
-                                            <label htmlFor={`req-${field.id}`}>Req</label>
-                                        </div>
-                                        <button type="button" className="ct-field-del" onClick={() => removeField(field.id)}>
-                                            &times;
-                                        </button>
-                                    </div>
-                                ))}
-
-                                <button type="button" className="ct-add-field-btn" onClick={addField}>
-                                    + Add Field
-                                </button>
+                                            <span className="ct-simple-tab-label">{tab.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
                         {/* Footer */}
                         <div className="ct-split-footer">
-                            <button type="button" className="ct-btn-cancel" onClick={handleNew}>
+                            <button type="button" className="btn-common close" onClick={handleNew}>
                                 Cancel
                             </button>
-                            <button type="button" className="ct-btn-save" disabled={isBeingUpdated} onClick={handleSave}>
+                            <button type="button" className="subtasks-tab-save-btn" disabled={isBeingUpdated} onClick={handleSave}>
                                 {isBeingUpdated ? "Saving..." : isEditMode ? "Update" : "Save"}
                             </button>
                         </div>
                     </div>
 
-                    {/* ── Right panel: live preview ── */}
+                    {/* ── Right panel: summary ── */}
                     <div className="ct-split-right">
-                        <div className="form-group">
-                            <h3 className="form-group-title">Card Preview</h3>
-                            <div className="ct-preview-card">
-                                <div className="ct-preview-topbar">
-                                    <h4>{callTypeName || "Template Name"}</h4>
-                                    <span>
-                                        {CALL_TYPE_OPTIONS.find((o) => o.value === selectedCallType)?.label || "No Call Type"}
-                                    </span>
-                                </div>
-                                <div className="ct-preview-body">
-                                    <p className="ct-preview-section-title">Custom Template Fields</p>
-                                    {fields.length === 0 ? (
-                                        <div className="ct-preview-empty">
-                                            <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
-                                                <rect x="8" y="8" width="32" height="32" rx="6" stroke="currentColor" strokeWidth="2" fill="none" />
-                                                <path d="M16 18h16M16 24h10M16 30h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                                            </svg>
-                                            <p>Add fields on the left to preview the card template here.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="ct-preview-grid">
-                                            {fields.map((field) => (
-                                                <PreviewField key={field.id} field={field} />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                        <h3 className="ct-form-section-title">Template Summary</h3>
+
+                        <div className="ct-summary-card">
+                            <div className="ct-summary-row">
+                                <span className="ct-summary-label">Call Type</span>
+                                <span className="ct-summary-value">
+                                    {CALL_TYPE_OPTIONS.find((o) => o.value === selectedCallType)?.label || <em>Not selected</em>}
+                                </span>
                             </div>
+                            {templateName && (
+                                <div className="ct-summary-row">
+                                    <span className="ct-summary-label">Template Name</span>
+                                    <span className="ct-summary-value">{templateName}</span>
+                                </div>
+                            )}
                         </div>
+
+                        {enabledTabCount === 0 ? (
+                            <p className="ct-summary-empty">No tabs selected yet. Enable tabs on the left to build your template.</p>
+                        ) : (
+                            <div className="ct-summary-tabs">
+                                {OPERATION_TABS.filter((t) => tabConfig[t.id]?.enabled).map((tab) => {
+                                    const enabledFields = tab.fields.filter((f) => tabConfig[tab.id]?.fields?.[f]);
+                                    const customFields = tabConfig[tab.id]?.customFields ?? [];
+                                    return (
+                                        <div key={tab.id} className="ct-summary-tab">
+                                            <p className="ct-summary-tab-name">{tab.label}</p>
+                                            <ul className="ct-summary-field-list">
+                                                {enabledFields.map((f) => <li key={f}>{f}</li>)}
+                                                {customFields.filter((cf) => cf.label).map((cf) => (
+                                                    <li key={cf.id} className="ct-summary-custom-field">
+                                                        {cf.label} {cf.type && <span>({cf.type})</span>}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {enabledFields.length === 0 && customFields.length === 0 && (
+                                                <p className="ct-summary-no-fields">All fields included</p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {SIMPLE_TABS.filter((t) => tabConfig[t.id]?.enabled).map((tab) => (
+                                    <div key={tab.id} className="ct-summary-tab">
+                                        <p className="ct-summary-tab-name">{tab.label}</p>
+                                        <p className="ct-summary-no-fields">Included</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                 </div>
