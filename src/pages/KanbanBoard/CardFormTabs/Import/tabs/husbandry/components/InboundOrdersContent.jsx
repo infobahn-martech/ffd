@@ -545,7 +545,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!formData.date) errors.date = "Date is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
     formData.orders.forEach((order, idx) => {
-      if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
       if (order.transportation) {
@@ -561,11 +560,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleAddNewOrder = () => {
     const lastOrder = formData.orders[formData.orders.length - 1];
-    if (lastOrder && (!lastOrder.poDo || !lastOrder.quantity || !lastOrder.packageType)) {
+    if (lastOrder && (!lastOrder.quantity || !lastOrder.packageType)) {
       const idx = formData.orders.length - 1;
       setFormErrors((prev) => ({
         ...prev,
-        [`o${idx}_poDo`]: !lastOrder.poDo ? "PO/DO is required" : undefined,
         [`o${idx}_quantity`]: !lastOrder.quantity ? "Quantity is required" : undefined,
         [`o${idx}_packageType`]: !lastOrder.packageType ? "Package Type is required" : undefined,
       }));
@@ -1267,7 +1265,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <div className="dispatch-edit-item-body">
                     <div className="row g-2 mb-1">
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="PO/DO *">
+                        <FormField label="PO/DO">
                           <FormInput
                             type="text"
                             value={order.poDo}
