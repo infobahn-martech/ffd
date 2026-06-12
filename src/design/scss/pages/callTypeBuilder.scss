@@ -30,6 +30,11 @@
     min-height: 0;
     padding: 16px 20px 0;
     overflow-y: auto;
+    overflow-y: overlay;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 2px; }
   }
 
   .ct-split-footer {
