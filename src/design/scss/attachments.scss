@@ -305,6 +305,106 @@
     color: #94a3b8;
   }
 
+  /* ----------------------------------------------------------
+     DOCUMENT LIBRARY — responsive card grid
+     (Reports tab keeps the legacy .attachment-item row layout)
+     ---------------------------------------------------------- */
+
+  .attachments-items.attachments-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .attachment-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e8ecf2;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    min-width: 0;
+  }
+
+  .attachment-card:hover {
+    border-color: #d4daf0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  .attachment-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .attachment-card .attachment-actions {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+
+  .attachment-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .attachment-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.35;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+
+  .attachment-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.45;
+    min-width: 0;
+  }
+
+  .attachment-card-meta .attachment-date,
+  .attachment-card-meta .attachment-uploader {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 1399px) {
+    .attachments-items.attachments-card-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 991px) {
+    .attachments-items.attachments-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575px) {
+    .attachments-items.attachments-card-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .attachment-card {
+      padding: 14px;
+    }
+  }
+
   .checklist-section {
     border-top: 1px solid #eceef2;
     background: #fafbfc;

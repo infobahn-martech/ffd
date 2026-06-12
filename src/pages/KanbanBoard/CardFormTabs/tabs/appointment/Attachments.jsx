@@ -131,50 +131,51 @@ const AttachmentItem = ({ attachment, onView, cardColor }) => {
   const displayName = attachment.fileName?.trim() || "—";
 
   return (
-    <div className="attachment-item">
-      <div className="attachment-icon-wrapper">
-        {getFileIcon(attachment.fileName)}
-      </div>
-      <div className="attachment-details">
-        <div className="attachment-name">{displayName}</div>
-        <div className="attachment-meta">
-          {attachment.fileSize != null && attachment.fileSize > 0 && (
-            <>
-              <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
-              <span className="attachment-separator">•</span>
-            </>
-          )}
-          <span className="attachment-date">{formatDate(attachment.uploadedAt)}</span>
-          {attachment.uploadedBy && (
-            <>
-              <span className="attachment-separator">•</span>
-              <span className="attachment-uploader">by {attachment.uploadedBy}</span>
-            </>
+    <div className="attachment-card">
+      <div className="attachment-card-top">
+        <div className="attachment-icon-wrapper">
+          {getFileIcon(attachment.fileName)}
+        </div>
+        <div className="attachment-actions">
+          {onView && (
+            <button
+              className="attachment-action-btn view"
+              onClick={() => onView(attachment)}
+              type="button"
+              title={attachment.fileUrl ? "View in new tab" : "No file link"}
+              disabled={!attachment.fileUrl}
+              style={{ "--card-color": cardColor }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path
+                  d="M1.5 9s3-5.25 7.5-5.25S16.5 9 16.5 9s-3 5.25-7.5 5.25S1.5 9 1.5 9Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
-      <div className="attachment-actions">
-        {onView && (
-          <button
-            className="attachment-action-btn view"
-            onClick={() => onView(attachment)}
-            type="button"
-            title={attachment.fileUrl ? "View in new tab" : "No file link"}
-            disabled={!attachment.fileUrl}
-            style={{ "--card-color": cardColor }}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <path
-                d="M1.5 9s3-5.25 7.5-5.25S16.5 9 16.5 9s-3 5.25-7.5 5.25S1.5 9 1.5 9Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-          </button>
-        )}
+      <div className="attachment-card-details">
+        <div className="attachment-card-name" title={displayName}>{displayName}</div>
+        <div className="attachment-card-meta">
+          <span className="attachment-date">
+            {formatDate(attachment.uploadedAt)}
+            {attachment.fileSize != null && attachment.fileSize > 0 && (
+              <>
+                <span className="attachment-separator"> • </span>
+                <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
+              </>
+            )}
+          </span>
+          {attachment.uploadedBy && (
+            <span className="attachment-uploader">by {attachment.uploadedBy}</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -207,7 +208,7 @@ const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
           {attachments.length}
         </span>
       </div>
-      <div className="attachments-items">
+      <div className="attachments-items attachments-card-grid">
         {attachments.map((attachment, idx) => (
           <AttachmentItem
             key={attachment.id != null ? String(attachment.id) : `att-${idx}`}
@@ -332,7 +333,7 @@ const ChecklistList = ({ checklistItems, onView, cardColor }) => {
                   {documents.length}
                 </span>
               </div>
-              <div className="attachments-items">
+              <div className="attachments-items attachments-card-grid">
                 {documents.length === 0 ? (
                   <p className="checklist-doc-empty">No documents uploaded.</p>
                 ) : (
