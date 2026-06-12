@@ -28,6 +28,8 @@ $tc-font:         "Open Sans", sans-serif;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  max-width: 50%;
+  min-width: 480px;
 }
 
 .tc-form-title {
