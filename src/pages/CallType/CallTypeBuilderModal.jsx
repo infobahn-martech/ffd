@@ -122,6 +122,12 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
     const allChecked = tab.fields.every((f) => fieldMap[f]);
     const anyChecked = tab.fields.some((f) => fieldMap[f]) || customFields.length > 0;
 
+    const handleLabelClick = (e) => {
+        e.stopPropagation();
+        if (!isOpen) onToggleOpen(tab.id);
+        onSelectAll(tab.id, !allChecked);
+    };
+
     return (
         <div className={`ct-accordion-item ${isEnabled ? "ct-accordion-item--enabled" : ""}`}>
             <div className="ct-accordion-header">
@@ -137,7 +143,7 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
                     className="ct-accordion-trigger"
                     onClick={() => onToggleOpen(tab.id)}
                 >
-                    <span className="ct-accordion-label">{tab.label}</span>
+                    <span className="ct-accordion-label" onClick={handleLabelClick}>{tab.label}</span>
                     {anyChecked && <span className="ct-accordion-badge">{tab.fields.filter((f) => fieldMap[f]).length + customFields.length}</span>}
                     {isOpen ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
                 </button>
@@ -145,17 +151,6 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
 
             {isOpen && (
                 <div className="ct-accordion-body">
-                    <div className="ct-field-select-all-row">
-                        <label className="ct-field-check-label">
-                            <input
-                                type="checkbox"
-                                checked={allChecked}
-                                onChange={(e) => onSelectAll(tab.id, e.target.checked)}
-                            />
-                            <span>Select All</span>
-                        </label>
-                    </div>
-
                     <div className="ct-field-list">
                         {tab.fields.map((field) => (
                             <label key={field} className="ct-field-check-label">
