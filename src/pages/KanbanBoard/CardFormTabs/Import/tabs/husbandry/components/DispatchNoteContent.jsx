@@ -7,6 +7,7 @@ import CustomModal from "../../../../../../../components/CustomModal";
 import DeleteConfirmationModal from "../../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
+import LocationAutocomplete from "./LocationAutocomplete";
 import MaterialTablePagination from "./MaterialTablePagination";
 import editIcon from "../../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../../assets/images/delete.svg";
@@ -676,7 +677,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </div>
                             <div className="col-md-4">
                               <FormField label="Pick-Up From">
-                                <FormInput type="text" value={item.pickUpFrom} onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)} placeholder="Pick-up location..." />
+                                <LocationAutocomplete
+                                  value={item.pickUpFrom}
+                                  onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
+                                  placeholder="Pick-up location..."
+                                />
                               </FormField>
                             </div>
                             <div className="col-md-4">

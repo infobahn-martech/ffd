@@ -10,6 +10,7 @@ import DeleteConfirmationModal from "../../../../../../../components/DeleteConfi
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
 import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
+import LocationAutocomplete from "./LocationAutocomplete";
 import editIcon from "../../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../../assets/images/eye.svg";
@@ -1370,8 +1371,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                           <div className="col-lg-4 col-md-6">
                             <FormField label="Pick-Up From">
-                              <FormInput
-                                type="text"
+                              <LocationAutocomplete
                                 value={order.pickUpFrom}
                                 onChange={(e) => handleOrderChange(order.id, "pickUpFrom", e.target.value)}
                                 placeholder="Enter pick-up location..."
