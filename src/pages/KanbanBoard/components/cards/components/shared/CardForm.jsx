@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } fr
 import { createPortal } from "react-dom";
 import salesOrderService from "../../../../../../services/salesOrderService";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
+import callFileService from "../../../../../../services/callFileService";
 import { mapSalesOrderResponse } from "../../../../../../shared/helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -23,7 +24,9 @@ import useAuthReducer from "../../../../../../store/AuthReducer";
 
 // Import Tab Components
 import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../../../CardFormTabs/Import";
+import { Approval } from "../../../../CardFormTabs/Export";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/Import/tabs/operation/preArrivalDocumentHandling";
+import { isExportCall } from "../../../../CardFormTabs/shared/utils/callTypes";
 import NavTabButton from "../../../../../../components/NavTabButton";
 import GROCardView from "../GRO/User/GROCardView";
 import CustomCardView from "../Custom/User/CustomCardView";
@@ -47,6 +50,19 @@ const ALL_TOP_TABS = [
 ];
 
 const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Document Library", "Comments", "Subtasks", "Notes"];
+
+const EXPORT_ONLY_TABS = ["Approval"];
+
+const withExportTabs = (tabs) => {
+  const next = [...tabs];
+  const appointmentIndex = next.indexOf("Appointment Details");
+  if (appointmentIndex >= 0) {
+    next.splice(appointmentIndex + 1, 0, ...EXPORT_ONLY_TABS);
+  } else {
+    next.push(...EXPORT_ONLY_TABS);
+  }
+  return next;
+};
 
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
@@ -1113,7 +1129,13 @@ StepsProgress.propTypes = {
 };
 
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, isDriverMode = false, isGROMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
-  const showSteps = isGROMode || isDriverMode || (!isSimplifiedMode && activeTab !== "Appointment Details") || (isSimplifiedMode && activeTab !== "General");
+  const hideStepsForTab =
+    activeTab === "Appointment Details" || activeTab === "Approval";
+  const showSteps =
+    isGROMode ||
+    isDriverMode ||
+    (!isSimplifiedMode && !hideStepsForTab) ||
+    (isSimplifiedMode && activeTab !== "General");
   return (
     <div className="cardform-footer">
       {showSteps && (
@@ -1438,6 +1460,8 @@ const renderTabContent = (
     switch (activeTab) {
       case "Appointment Details":
         return <General {...commonProps} />;
+      case "Approval":
+        return <Approval {...commonProps} />;
       case "Operation":
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
       case "Husbandry":
@@ -1521,16 +1545,9 @@ function CardForm({
   const isDAModule = /^\/kanban-board\/(centralized-da-desk|jubail-operations|rastanura-dammam-operations|coordinator-transport|ras-tanura-operations)$/.test(location.pathname);
 
 
-  const TOP_TABS = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
-  const ENABLED_TABS = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
   const defaultTab = isDAModule ? "General" : (isSimplifiedMode ? "General" : "Appointment Details");
 
-  const [activeTopTab, setActiveTopTab] = useState(defaultTab)
-
-  // Reset active tab when mode changes
-  useEffect(() => {
-    setActiveTopTab(defaultTab);
-  }, [isSimplifiedMode, defaultTab]);
+  const [activeTopTab, setActiveTopTab] = useState(defaultTab);
 
   // Header color: add mode defaults to ADD_CARD_TOPBAR_DEFAULT_HEX; else mirrors card.color (or GRO default).
   // In add mode, the color picker also updates formValues.cardColor so create_call_file sends card_color.
@@ -1556,6 +1573,7 @@ function CardForm({
       // FLEEyt (for simplified mode)
       type: card?.type || "Type",
       // Service Information (ids for API payloads)
+      call_type_id: String(card?.call_type_id ?? card?.typeOfCall ?? card?.raw?.call_type_id ?? ""),
       typeOfCall: String(card?.call_type_id ?? card?.typeOfCall ?? ""),
       mainBillingEntity: String(card?.main_billing_entity_id ?? card?.mainBillingEntity ?? ""),
       // Appointment Details
@@ -1703,6 +1721,78 @@ function CardForm({
   useEffect(() => {
     setFormValues(initialFormValuesRef.current);
   }, [cardFormSyncKey]);
+
+  const [callDetailSnapshot, setCallDetailSnapshot] = useState(null);
+
+  useEffect(() => {
+    if (!show || isAddMode) {
+      setCallDetailSnapshot(null);
+      return undefined;
+    }
+
+    const callIdRaw = card?.call_id ?? card?.callId;
+    const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+    if (!callId) {
+      setCallDetailSnapshot(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadCallDetail = async () => {
+      try {
+        const { data } = await callFileService.getCallDetail(callId);
+        if (!cancelled) {
+          setCallDetailSnapshot(data?.data ?? null);
+        }
+      } catch (error) {
+        console.error("[CardForm] call detail fetch failed", error);
+        if (!cancelled) {
+          setCallDetailSnapshot(null);
+        }
+      }
+    };
+
+    loadCallDetail();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [show, isAddMode, card?.call_id, card?.callId, cardFormSyncKey]);
+
+  useEffect(() => {
+    if (isAddMode || !callDetailSnapshot?.call_type_id) return;
+    const callTypeId = String(callDetailSnapshot.call_type_id).trim();
+    if (!callTypeId) return;
+
+    setFormValues((prev) => {
+      const current = String(prev.call_type_id ?? prev.typeOfCall ?? "").trim();
+      if (current === callTypeId) return prev;
+      return { ...prev, call_type_id: callTypeId, typeOfCall: callTypeId };
+    });
+  }, [isAddMode, callDetailSnapshot]);
+
+  const showExportTabs = isExportCall(card, formValues, callDetailSnapshot);
+
+  const TOP_TABS = useMemo(() => {
+    const base = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
+    return showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
+  }, [isDAModule, isSimplifiedMode, showExportTabs]);
+
+  const ENABLED_TABS = useMemo(() => {
+    const base = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
+    return showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
+  }, [isDAModule, isSimplifiedMode, showExportTabs]);
+
+  useEffect(() => {
+    setActiveTopTab(defaultTab);
+  }, [isSimplifiedMode, defaultTab]);
+
+  useEffect(() => {
+    if (!showExportTabs && activeTopTab === "Approval") {
+      setActiveTopTab(defaultTab);
+    }
+  }, [showExportTabs, activeTopTab, defaultTab]);
 
   const handleChange = useCallback(
     (field) => (e) => {

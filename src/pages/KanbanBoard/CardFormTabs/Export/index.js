@@ -1,1 +1,1 @@
-// Export workflow CardFormTabs — placeholder for future implementation
+export { default as Approval } from "./tabs/approval/Approval";
