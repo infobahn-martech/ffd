@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
+import DateTimePickerField from "../KanbanBoard/CardFormTabs/components/DateTimePickerField";
 import "../../design/css/common/CardForm.css";
-import "./TaskCard.scss";
+import "../../design/scss/pages/taskCard.scss";
 
 const DUMMY_USERS = [
     { user_id: 1, user_name: "Sarah Mitchell" },
@@ -14,6 +15,7 @@ function TaskCardModal({ show, onClose }) {
     const [taskName, setTaskName] = useState("");
     const [assignUserId, setAssignUserId] = useState("");
     const [dueDate, setDueDate] = useState("");
+    const [dueTime, setDueTime] = useState("");
     const [taskNameError, setTaskNameError] = useState("");
 
     const handleReset = useCallback(() => {
@@ -21,6 +23,7 @@ function TaskCardModal({ show, onClose }) {
         setTaskName("");
         setAssignUserId("");
         setDueDate("");
+        setDueTime("");
         setTaskNameError("");
     }, []);
 
@@ -37,19 +40,20 @@ function TaskCardModal({ show, onClose }) {
         setTaskNameError("");
 
         const assignedUser = DUMMY_USERS.find((u) => String(u.user_id) === String(assignUserId));
+        const dueDateDisplay = dueDate ? (dueTime ? `${dueDate} ${dueTime}` : dueDate) : "";
         const newTask = {
             id: Date.now(),
             cardTitle: cardTitle || "Task Card",
             taskName: taskName.trim(),
             assignUserId,
             assignedUserName: assignedUser?.user_name || "",
-            dueDate,
+            dueDate: dueDateDisplay,
             isSubTask: true,
         };
 
         window.dispatchEvent(new CustomEvent("subtask:card-created", { detail: newTask }));
         handleReset();
-    }, [cardTitle, taskName, assignUserId, dueDate, handleReset]);
+    }, [cardTitle, taskName, assignUserId, dueDate, dueTime, handleReset]);
 
     if (!show) return null;
 
@@ -106,13 +110,15 @@ function TaskCardModal({ show, onClose }) {
                         </div>
 
                         <div className="tc-field">
-                            <label className="tc-label" htmlFor="tc-due-date">Due Date</label>
-                            <input
-                                id="tc-due-date"
-                                type="date"
-                                className="tc-date-input"
-                                value={dueDate}
-                                onChange={(e) => setDueDate(e.target.value)}
+                            <label className="tc-label">Due Date &amp; Time</label>
+                            <DateTimePickerField
+                                dateValue={dueDate}
+                                timeValue={dueTime}
+                                onDateChange={(e) => setDueDate(e.target.value)}
+                                onTimeChange={(e) => setDueTime(e.target.value)}
+                                dateFieldName="dueDate"
+                                timeFieldName="dueTime"
+                                placeholder="Select date and time"
                             />
                         </div>
                     </div>

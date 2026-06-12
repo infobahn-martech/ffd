@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { FiX } from "react-icons/fi";
-import "./TaskCard.scss";
+import "../../design/scss/pages/taskCard.scss";
 
 function TaskCardDetailView({ card, onClose }) {
     const [comments, setComments] = useState("");
