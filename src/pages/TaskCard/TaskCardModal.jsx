@@ -1,14 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import DateTimePickerField from "../KanbanBoard/CardFormTabs/components/DateTimePickerField";
+import userService from "../../services/userService";
 import "../../design/css/common/CardForm.css";
 import "../../design/scss/pages/taskCard.scss";
-
-const DUMMY_USERS = [
-    { user_id: 1, user_name: "Sarah Mitchell" },
-    { user_id: 2, user_name: "James Chen" },
-    { user_id: 3, user_name: "Elena Rodriguez" },
-    { user_id: 4, user_name: "Omar Hassan" },
-];
 
 function TaskCardModal({ show, onClose }) {
     const [cardTitle, setCardTitle] = useState("");
@@ -17,6 +11,14 @@ function TaskCardModal({ show, onClose }) {
     const [dueDate, setDueDate] = useState("");
     const [dueTime, setDueTime] = useState("");
     const [taskNameError, setTaskNameError] = useState("");
+    const [users, setUsers] = useState([]);
+
+    useEffect(() => {
+        if (!show) return;
+        userService.getUsers({ params: { limit: 200 } })
+            .then(({ data }) => setUsers(data?.data || []))
+            .catch(() => setUsers([]));
+    }, [show]);
 
     const handleReset = useCallback(() => {
         setCardTitle("");
@@ -39,21 +41,21 @@ function TaskCardModal({ show, onClose }) {
         }
         setTaskNameError("");
 
-        const assignedUser = DUMMY_USERS.find((u) => String(u.user_id) === String(assignUserId));
+        const assignedUser = users.find((u) => String(u.user_id) === String(assignUserId));
         const dueDateDisplay = dueDate ? (dueTime ? `${dueDate} ${dueTime}` : dueDate) : "";
         const newTask = {
             id: Date.now(),
             cardTitle: cardTitle || "Task Card",
             taskName: taskName.trim(),
             assignUserId,
-            assignedUserName: assignedUser?.user_name || "",
+            assignedUserName: assignedUser?.name || "",
             dueDate: dueDateDisplay,
             isSubTask: true,
         };
 
         window.dispatchEvent(new CustomEvent("subtask:card-created", { detail: newTask }));
         handleReset();
-    }, [cardTitle, taskName, assignUserId, dueDate, dueTime, handleReset]);
+    }, [cardTitle, taskName, assignUserId, dueDate, dueTime, users, handleReset]);
 
     if (!show) return null;
 
@@ -103,8 +105,8 @@ function TaskCardModal({ show, onClose }) {
                                 onChange={(e) => setAssignUserId(e.target.value)}
                             >
                                 <option value="">Select user</option>
-                                {DUMMY_USERS.map((u) => (
-                                    <option key={u.user_id} value={u.user_id}>{u.user_name}</option>
+                                {users.map((u) => (
+                                    <option key={u.user_id} value={u.user_id}>{u.name}</option>
                                 ))}
                             </select>
                         </div>
