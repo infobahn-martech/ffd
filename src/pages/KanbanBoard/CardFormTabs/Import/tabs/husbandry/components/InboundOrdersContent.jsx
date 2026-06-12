@@ -254,6 +254,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       pickUpFrom: "",
       toLocation: "",
       driverName: "",
+      launchHireDate: "",
+      launchHireTime: "",
+      taxiBoat: "",
       slotNo: "",
       reason: "",
       dispatchDate: "",
@@ -415,6 +418,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
+        launchHireDate: "",
+        launchHireTime: "",
+        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -481,6 +488,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
+        launchHireDate: "",
+        launchHireTime: "",
+        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -515,6 +526,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
+        launchHireDate: "",
+        launchHireTime: "",
+        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -592,6 +607,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           pickUpFrom: "",
           toLocation: "",
           driverName: "",
+          launchHireDate: "",
+          launchHireTime: "",
+          taxiBoat: "",
           slotNo: "",
           reason: "",
           dispatchDate: "",
@@ -641,6 +659,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         package_type_id: Number(order.packageType) || 0,
         description: order.description || "",
         transportation_required: order.transportation ? 1 : 0,
+        launch_hire: order.launchHire ? 1 : 0,
+        ...(order.launchHire ? {
+          launch_hire_date: buildApiDateTime(order.launchHireDate, order.launchHireTime),
+          taxi_boat: order.taxiBoat || "",
+        } : {}),
       };
       if (order.transportation) {
         item.transportation = {
@@ -705,6 +728,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
+        launchHire: false,
+        launchHireDate: "",
+        launchHireTime: "",
+        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -1407,6 +1434,58 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               />
                             </FormField>
                             {formErrors[`o${index}_driverName`] && <span className="dispatch-edit-error">{formErrors[`o${index}_driverName`]}</span>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Launch Hire Section */}
+                    <div className="dispatch-transport-section">
+                      <div className="dispatch-edit-checkbox-group">
+                        <label className="dispatch-edit-checkbox-label">
+                          <input
+                            type="checkbox"
+                            className="dispatch-edit-checkbox"
+                            checked={order.launchHire || false}
+                            onChange={(e) => handleOrderChange(order.id, "launchHire", e.target.checked)}
+                          />
+                          <span>Launch Hire</span>
+                        </label>
+                      </div>
+
+                      {order.launchHire && (
+                        <div className="row g-2 mb-1">
+                          <div className="col-lg-6 col-md-6">
+                            <FormField label="Date &amp; Time">
+                              <DateTimePickerField
+                                dateValue={order.launchHireDate}
+                                timeValue={order.launchHireTime}
+                                onDateTimeChange={(nextValues) => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    orders: prev.orders.map((o) =>
+                                      o.id === order.id
+                                        ? { ...o, launchHireDate: nextValues.date, launchHireTime: nextValues.time }
+                                        : o
+                                    ),
+                                  }));
+                                }}
+                                dateFieldName={`launchHireDate_${order.id}`}
+                                timeFieldName={`launchHireTime_${order.id}`}
+                                placeholder="YYYY-MM-DD hh:mm"
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-6 col-md-6">
+                            <FormField label="Taxi boat">
+                              <FormInput
+                                type="text"
+                                value={order.taxiBoat}
+                                onChange={(e) => handleOrderChange(order.id, "taxiBoat", e.target.value)}
+                                placeholder="Enter taxi boat..."
+                              />
+                            </FormField>
                           </div>
                         </div>
                       )}
