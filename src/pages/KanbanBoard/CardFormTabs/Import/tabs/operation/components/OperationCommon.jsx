@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -362,6 +362,55 @@ const OPERATION_EMAIL_MESSAGE_QUILL_FORMATS = [
   "image",
 ];
 
+const EMAIL_PREVIEW_DUMMY_ATTACHMENTS = [
+  { id: "appointment-acceptance", name: "Appointment_Acceptance.pdf", size: "245K" },
+  { id: "port-details", name: "Port_Details.xlsx", size: "128K" },
+  { id: "vessel-image", name: "Vessel_Image.jpg", size: "932K" },
+];
+
+const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
+  const fileName = attachment?.name || "Untitled";
+  const fileSize = attachment?.size || "";
+
+  const handleOpen = () => {
+    console.log("[Email Preview] Open attachment:", fileName);
+  };
+
+  const handleRemove = (event) => {
+    event.stopPropagation();
+    if (typeof onRemove === "function") {
+      onRemove(attachment?.id);
+    }
+  };
+
+  return (
+    <div className="email-preview-attachment-chip" title={fileName}>
+      <button type="button" className="email-preview-attachment-link" onClick={handleOpen}>
+        <span className="email-preview-attachment-name">{fileName}</span>
+        {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
+      </button>
+      <button
+        type="button"
+        className="email-preview-attachment-remove"
+        onClick={handleRemove}
+        aria-label={`Remove ${fileName}`}
+        title="Remove"
+      >
+        ×
+      </button>
+    </div>
+  );
+};
+
+EmailPreviewAttachmentChip.propTypes = {
+  attachment: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    size: PropTypes.string,
+  }).isRequired,
+  onRemove: PropTypes.func,
+};
+
 const IconSendReport = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
     <path
@@ -395,6 +444,7 @@ export const OperationEmailPreviewPanel = ({
   isSending = false,
   isViewOnly = false,
 }) => {
+  const [previewAttachments, setPreviewAttachments] = useState(() => [...EMAIL_PREVIEW_DUMMY_ATTACHMENTS]);
   const showSend = !isViewOnly && typeof onSend === "function";
 
   return (
@@ -445,6 +495,19 @@ export const OperationEmailPreviewPanel = ({
         </FormField>
         <FormField label="Subject">
           <FormInput type="text" value={subject || ""} onChange={(e) => onChange?.("subject", e.target.value)} placeholder="Email subject" />
+        </FormField>
+        <FormField label="Attachments" className="operation-email-preview-attachments-field">
+          <div className="email-preview-attachments-list">
+            {previewAttachments.map((attachment) => (
+              <EmailPreviewAttachmentChip
+                key={attachment.id}
+                attachment={attachment}
+                onRemove={(attachmentId) => {
+                  setPreviewAttachments((prev) => prev.filter((item) => item.id !== attachmentId));
+                }}
+              />
+            ))}
+          </div>
         </FormField>
         <FormField label="Message" className="operation-email-preview-message-field">
           <div className="react-quill-wrapper operation-email-preview-message-quill operation-email-quill">
