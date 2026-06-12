@@ -30,6 +30,7 @@ import CustomCardView from "../Custom/User/CustomCardView";
 import MWPCardView from "../MWP/User/MWPCardView";
 import DynamicIcon from "../../../../../../structure/SideNav/components/DynamicIcon";
 import { mapBackendIconNameToIconKey } from "../../../../../../store/KanbanManagementReducer";
+import { TaskCardDetailView } from "../../../../../../pages/TaskCard";
 
 // Constants - All tabs
 const ALL_TOP_TABS = [
@@ -1503,6 +1504,7 @@ function CardForm({
   const isCustomVariant = effectiveVariant === "custom";
   const isGROStyleView = isGROVariant || isCustomVariant;
   const isDriverStyleView = isDriverVariant || isHotelVariant;
+  const isSubTaskCard = card?.isSubTask === true;
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
   const { stepLabels, totalSteps } = useMemo(() => {
@@ -2052,6 +2054,7 @@ function CardForm({
           topbarColor={topbarColor}
           onClose={handleClose}
           isAddMode={isAddMode}
+          isSubTaskCard={isSubTaskCard}
           onColorChange={handleTopbarColorChange}
           formValues={formValues}
           handleChange={handleChange}
@@ -2061,7 +2064,9 @@ function CardForm({
           onCardBlockerChange={handleTopbarCardBlockerChange}
           onCardStickerChange={handleTopbarCardStickerChange}
         />
-        {isDriverStyleView ? (
+        {isSubTaskCard ? (
+          <TaskCardDetailView card={card} onClose={handleClose} />
+        ) : isDriverStyleView ? (
           <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
@@ -2098,7 +2103,7 @@ function CardForm({
               )}
           </>
         )}
-        {!isAddMode && !isMWPVariant && (
+        {!isAddMode && !isMWPVariant && !isSubTaskCard && (
           <CardFormFooter
             accentColor={accentColor}
             onUpdate={handleUpdate}

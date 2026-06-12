@@ -45,7 +45,8 @@ import {
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin, FiLayers } from 'react-icons/fi';
+import TaskCardModal from '../../pages/TaskCard';
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
@@ -111,6 +112,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }
       icons.push(
         { id: 10, icon: FiMapPin, label: 'On Station' },
+        { id: 11, icon: FiLayers, label: 'Task' },
         { id: 7, icon: FiMail, label: 'Outlook' },
         { id: 8, icon: FiSettings, label: 'Settings' }
       );
@@ -120,7 +122,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     if (showEditWorkflowSidebarIcon) {
       icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
     }
-    icons.push({ id: 7, icon: FiMail, label: 'Outlook' });
+    icons.push(
+      { id: 11, icon: FiLayers, label: 'Task' },
+      { id: 7, icon: FiMail, label: 'Outlook' }
+    );
     return icons;
   }, [showEditWorkflowSidebarIcon, kanbanFullSidebar]);
 
@@ -176,6 +181,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
   const [showOnStationModal, setShowOnStationModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
+  const [showSubTaskModal, setShowSubTaskModal] = useState(false);
   const [showCallTypeBuilderModal, setShowCallTypeBuilderModal] = useState(false);
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
@@ -195,6 +201,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const workflowOptionsForModal = useMemo(() => {
     return (sidebarWorkflows || [])
       .filter((workflow) => workflow?.role_id === null)
+      .filter((workflow) => {
+        const name = workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? '';
+        return name !== 'Task Workflow';
+      })
       .map((workflow) => ({
         id: workflow?.workflow_id ?? workflow?.id,
         name: workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? 'Workflow',
@@ -885,6 +895,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       if (showTagsModal) setShowTagsModal(false);
       if (showTypesModal) setShowTypesModal(false);
       if (showAddDashboardModal) setShowAddDashboardModal(false);
+      if (showSubTaskModal && item.label !== 'Task') setShowSubTaskModal(false);
       if (item.label !== 'Add') {
         closeSelectWorkflowModal();
       }
@@ -893,6 +904,18 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
       if (item.label === 'Add') {
         beginSidebarAddCard();
+      }
+
+      if (item.label === 'Task') {
+        closeSelectWorkflowModal();
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
+        setShowSubTaskModal(true);
+        setActiveKanbanIcon(item.id);
+        return;
       }
 
       if (item.label === 'Add new dashboard') {
@@ -994,7 +1017,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
                 (item.label === 'On Station' && showOnStationModal) ||
                 (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
                 (item.label === 'Add new dashboard' && showAddDashboardModal) ||
-                (item.label === 'Add' && showSelectWorkflowModal);
+                (item.label === 'Add' && showSelectWorkflowModal) ||
+                (item.label === 'Task' && showSubTaskModal);
 
               return (
                 <div key={item.id} style={{ position: 'relative' }}>
@@ -1133,6 +1157,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         <CallTypeBuilderModal
           show={showCallTypeBuilderModal}
           onClose={() => setShowCallTypeBuilderModal(false)}
+        />
+        <TaskCardModal
+          show={showSubTaskModal}
+          onClose={() => setShowSubTaskModal(false)}
         />
       </>
     );
