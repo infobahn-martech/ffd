@@ -130,8 +130,17 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendStringField("assigned_operator_id", fv.assignedOperator);
   appendStringField("billing_entity_id", fv.mainBillingEntity);
   appendStringField("last_port", fv.lastPort);
+  const appointmentTypes = Array.isArray(fv.appointmentType)
+    ? fv.appointmentType.map((item) => str(item)).filter(Boolean)
+    : str(fv.appointmentType)
+      ? [str(fv.appointmentType)]
+      : [];
+  fd.append("appointment_type", toJsonArrayString(appointmentTypes));
+
   appendStringField("vessel_type_id", fv.vesselType);
   appendStringField("barge_type_id", fv.bargeType);
+  appendStringField("barge_name", fv.bargeName);
+  appendStringField("barge_owner", fv.bargeOwner);
   appendStringField("vessel_id", fv.vesselName);
 
   appendStringField("vessel_owner", fv.vesselOwner);

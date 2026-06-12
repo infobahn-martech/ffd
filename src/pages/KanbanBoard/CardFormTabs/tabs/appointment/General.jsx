@@ -196,6 +196,50 @@ const parseMsgSenderDetails = (msg = {}) => {
   return { extractedName, extractedEmail };
 };
 
+const APPOINTMENT_TYPE_TUG = "tug";
+const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
+const APPOINTMENT_TYPE_OPTIONS = [
+  { value: APPOINTMENT_TYPE_TUG, label: "Tug" },
+  { value: APPOINTMENT_TYPE_TUG_AND_BARGE, label: "Tug and barge" },
+];
+
+// Accepts arrays, JSON array strings, or comma-separated strings; maps entries to known option values.
+const normalizeAppointmentTypeValues = (raw, fallback = []) => {
+  let list = raw;
+  if (typeof list === "string") {
+    const trimmed = list.trim();
+    if (!trimmed) {
+      list = [];
+    } else if (trimmed.startsWith("[")) {
+      try {
+        list = JSON.parse(trimmed);
+      } catch {
+        list = trimmed.split(",");
+      }
+    } else {
+      list = trimmed.split(",");
+    }
+  }
+  if (!Array.isArray(list)) list = list === undefined || list === null ? [] : [list];
+  const matched = list
+    .map((item) => {
+      const s = String(item ?? "").trim().toLowerCase();
+      if (!s) return null;
+      const option = APPOINTMENT_TYPE_OPTIONS.find(
+        (o) => o.value === s || o.label.toLowerCase() === s
+      );
+      return option ? option.value : null;
+    })
+    .filter(Boolean);
+  const unique = [...new Set(matched)];
+  return unique.length ? unique : fallback;
+};
+
+const getDetailAppointmentTypeFallback = (detail) =>
+  detail?.barge_type_id || detail?.barge_name || detail?.barge_owner
+    ? [APPOINTMENT_TYPE_TUG, APPOINTMENT_TYPE_TUG_AND_BARGE]
+    : [APPOINTMENT_TYPE_TUG];
+
 const mapCallDetailToFormFields = (detail) => {
   const appointmentParts = splitDateTime(detail?.appointment_received_date);
   const dailyReportEmail = Array.isArray(detail?.daily_report_emails)
@@ -222,8 +266,14 @@ const mapCallDetailToFormFields = (detail) => {
     mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
     lastPort: detail?.last_port != null ? String(detail.last_port) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
+    appointmentType: normalizeAppointmentTypeValues(
+      detail?.appointment_type,
+      getDetailAppointmentTypeFallback(detail)
+    ),
     vesselType: detail?.vessel_type_id ? String(detail.vessel_type_id) : "",
     bargeType: detail?.barge_type_id ? String(detail.barge_type_id) : "",
+    bargeName: detail?.barge_name ? String(detail.barge_name) : "",
+    bargeOwner: detail?.barge_owner ? String(detail.barge_owner) : "",
     vesselName: detail?.vessel_id ? String(detail.vessel_id) : "",
     vesselOwner: detail?.vessel_owner ? String(detail.vessel_owner) : "",
     vesselPrincipal: detail?.vessel_principal ? String(detail.vessel_principal) : "",
@@ -1082,6 +1132,109 @@ MultiSelectEmail.propTypes = {
   hasError: PropTypes.bool,
 };
 
+// Generic multi-select with checkbox options (no add-new footer / filter).
+const MultiSelectField = ({ value = [], onChange, options = [], placeholder, disabled = false, name, hasError = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current?.contains(event.target)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const valuesEqual = (a, b) => String(a) === String(b);
+  const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
+  const valueToLabel = (val) => options.find((o) => valuesEqual(o.value, val))?.label ?? String(val);
+
+  const handleToggle = (optionValue) => {
+    const newValue = selectedValues.some((v) => valuesEqual(v, optionValue))
+      ? selectedValues.filter((entry) => !valuesEqual(entry, optionValue))
+      : [...selectedValues, optionValue];
+    onChange({ target: { value: newValue, name } });
+  };
+
+  const handleRemove = (rawVal, e) => {
+    e.stopPropagation();
+    onChange({ target: { value: selectedValues.filter((entry) => !valuesEqual(entry, rawVal)), name } });
+  };
+
+  return (
+    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""}`} ref={dropdownRef}>
+      <div
+        className={`cf-multi-select-email-input ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""}`}
+        onClick={disabled ? undefined : () => setIsOpen((prev) => !prev)}
+      >
+        <div className="cf-multi-select-email-tags">
+          {selectedValues.length > 0 ? (
+            selectedValues.map((entryVal) => (
+              <span key={String(entryVal)} className="cf-email-tag">
+                {valueToLabel(entryVal)}
+                {!disabled && (
+                  <button
+                    type="button"
+                    className="cf-email-tag-remove"
+                    onClick={(e) => handleRemove(entryVal, e)}
+                  >
+                    ×
+                  </button>
+                )}
+              </span>
+            ))
+          ) : (
+            <span className="cf-multi-select-placeholder">{placeholder || "Select..."}</span>
+          )}
+        </div>
+        <span className="cf-multi-select-arrow">▼</span>
+      </div>
+      {isOpen && !disabled && (
+        <div className="cf-multi-select-dropdown">
+          <div className="cf-multi-select-results">
+            <div className="cf-multi-select-options-scroll">
+              {options.map((option) => {
+                const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
+                return (
+                  <div
+                    key={String(option.value)}
+                    className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleToggle(option.value);
+                    }}
+                  >
+                    <span className="cf-multi-select-checkbox">
+                      {isSelected && "✓"}
+                    </span>
+                    <span>{option.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+MultiSelectField.propTypes = {
+  value: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
+  name: PropTypes.string,
+  hasError: PropTypes.bool,
+};
+
 const createQuillImageUploadHandler = (quillRef) => () => {
   const input = document.createElement("input");
   input.setAttribute("type", "file");
@@ -1617,6 +1770,8 @@ const ALL_DETAIL_SCALAR_FIELD_MAP = [
   ["other_billing_entity_id", "otherBillingEntity"],
   ["vessel_type_id", "vesselType"],
   ["barge_type_id", "bargeType"],
+  ["barge_name", "bargeName"],
+  ["barge_owner", "bargeOwner"],
   ["last_port", "lastPort"],
   ["vessel_owner", "vesselOwner"],
   ["vessel_principal", "vesselPrincipal"],
@@ -2438,6 +2593,9 @@ function General({
     const requireField = (condition, key, message) => {
       if (condition && isEmptyValue(v(key))) errors[key] = message;
     };
+    const selectedAppointmentTypes = normalizeAppointmentTypeValues(v("appointmentType"));
+    const tugSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG);
+    const bargeSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE);
     requireField(shouldShowApiField("port_id"), "port", "Port is required.");
     const callTypeValue = firstNonEmptyString(v("typeOfCall"), v("call_type_id"));
     if (shouldShowApiField("call_type") && !callTypeValue) {
@@ -2445,7 +2603,7 @@ function General({
     }
     requireField(shouldShowApiField("assigned_operator_id"), "assignedOperator", "Assigned operator is required.");
     requireField(shouldShowApiField("main_billing_entity_id"), "mainBillingEntity", "Main billing entity is required.");
-    requireField(shouldShowApiField("vessel_id"), "vesselName", "Vessel name is required.");
+    requireField(shouldShowApiField("vessel_id") && tugSelected, "vesselName", "Vessel name is required.");
     requireField(shouldShowApiField("service_requestor_name"), "serviceRequestorName", "Service requestor name is required.");
     requireField(shouldShowApiField("service_requestor_email"), "serviceRequestorEmail", "Service requestor email is required.");
     requireField(shouldShowApiField("appointment_received_date"), "appointmentReceivedDate", "Appointment received date is required.");
@@ -2457,8 +2615,11 @@ function General({
     }
 
     if (isAddMode) {
-      requireField(shouldShowApiField("vessel_type_id"), "vesselType", "Vessel type is required.");
-      requireField(shouldShowApiField("barge_type_id"), "bargeType", "Barge type is required.");
+      if (selectedAppointmentTypes.length === 0) {
+        errors.appointmentType = "Appointment type is required.";
+      }
+      requireField(shouldShowApiField("vessel_type_id") && tugSelected, "vesselType", "Vessel type is required.");
+      requireField(shouldShowApiField("barge_type_id") && bargeSelected, "bargeType", "Barge type is required.");
       (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
         if (String(item?.is_required ?? "0") !== "1") return;
         const timeObjectId = firstNonEmptyString(item?.time_object_id);
@@ -2653,7 +2814,10 @@ function General({
       if (!prev[fieldName]) return prev;
       const merged = { ...formValues, [fieldName]: nextVal };
       const nextValue = merged?.[fieldName];
-      const isArrayField = fieldName === "dailyReportEmail" || fieldName === "billingInstructionEmails";
+      const isArrayField =
+        fieldName === "dailyReportEmail" ||
+        fieldName === "billingInstructionEmails" ||
+        fieldName === "appointmentType";
       if (fieldName === "serviceRequestorEmail") {
         const email = getTrimmedValue(nextValue);
         const isValidEmail = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -2674,6 +2838,26 @@ function General({
       }
       return prev;
     });
+  };
+
+  const handleAppointmentTypeChange = (event) => {
+    const nextTypes = normalizeAppointmentTypeValues(event?.target?.value);
+    const syntheticEvent = { target: { value: nextTypes, name: "appointmentType" } };
+    if (isAddMode) {
+      handleValidatedChange("appointmentType")(syntheticEvent);
+    } else {
+      handleChange("appointmentType")(syntheticEvent);
+    }
+    if (!nextTypes.includes(APPOINTMENT_TYPE_TUG)) {
+      ["vesselType", "vesselName", "vesselOwner", "vesselManager", "vesselPrincipal"].forEach((fieldName) => {
+        handleChange(fieldName)({ target: { value: "", name: fieldName } });
+      });
+    }
+    if (!nextTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) {
+      ["bargeType", "bargeName", "bargeOwner"].forEach((fieldName) => {
+        handleChange(fieldName)({ target: { value: "", name: fieldName } });
+      });
+    }
   };
 
   const handleServiceRequestorEmailChange = useCallback(
@@ -4069,6 +4253,13 @@ ${body}
   const isViewMode = !isAddMode;
   const masterInputsDisabled = isDisabled || masterDataLoading;
 
+  const selectedAppointmentTypes = normalizeAppointmentTypeValues(
+    getFieldValue("appointmentType"),
+    isAddMode ? [] : [APPOINTMENT_TYPE_TUG]
+  );
+  const isTugSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG);
+  const isTugAndBargeSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE);
+
   // Check if MWP RENEWAL type is selected in simplified mode
   const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
 
@@ -5000,7 +5191,27 @@ ${body}
                             <div className="form-group">
                               <h3 className="form-group-title">Vessel Information</h3>
 
-                              {shouldShowApiField("vessel_type_id") && (
+                              {shouldShowApiField("appointment_type") && (
+                                <FormField
+                                  label={isAddMode ? "Appointment Type *" : "Appointment Type"}
+                                  hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
+                                >
+                                  <MultiSelectField
+                                    name="appointmentType"
+                                    value={selectedAppointmentTypes}
+                                    onChange={handleAppointmentTypeChange}
+                                    options={APPOINTMENT_TYPE_OPTIONS}
+                                    placeholder="Select appointment type"
+                                    disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
+                                  />
+                                  {isAddMode && fieldErrors.appointmentType && (
+                                    <div className="cf-field-error">{fieldErrors.appointmentType}</div>
+                                  )}
+                                </FormField>
+                              )}
+
+                              {isTugSelected && shouldShowApiField("vessel_type_id") && (
                                 <FormField
                                   label={isAddMode ? "Vessel type *" : "Vessel type"}
                                   hasError={isAddMode && Boolean(fieldErrors.vesselType)}
@@ -5019,26 +5230,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {shouldShowApiField("barge_type_id") && (
-                                <FormField
-                                  label={isAddMode ? "Barge type *" : "Barge type"}
-                                  hasError={isAddMode && Boolean(fieldErrors.bargeType)}
-                                >
-                                  <FormSelect
-                                    value={getFieldValue("bargeType")}
-                                    onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
-                                    options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
-                                    placeholder="Select barge type"
-                                    disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.bargeType)}
-                                  />
-                                  {isAddMode && fieldErrors.bargeType && (
-                                    <div className="cf-field-error">{fieldErrors.bargeType}</div>
-                                  )}
-                                </FormField>
-                              )}
-
-                              {shouldShowApiField("vessel_id") && (
+                              {isTugSelected && shouldShowApiField("vessel_id") && (
                                 <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.vesselName)}>
                                   {(() => {
                                     const vesselNameValue = getFieldValue("vesselName");
@@ -5058,7 +5250,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {shouldShowApiField("vessel_owner") && (
+                              {isTugSelected && shouldShowApiField("vessel_owner") && (
                                 <FormField label="Vessel Owner">
                                   <FormInput
                                     type="text"
@@ -5070,13 +5262,56 @@ ${body}
                                 </FormField>
                               )}
 
-                              {shouldShowApiField("vessel_principal") && (
-                                <FormField label="Vessel Principal">
+                              {isTugSelected && shouldShowApiField("vessel_principal") && (
+                                <FormField label="Vessel Charter">
                                   <FormInput
                                     type="text"
-                                    placeholder="Enter vessel principal..."
+                                    placeholder="Enter vessel charter..."
                                     value={getFieldValue("vesselPrincipal")}
                                     onChange={handleChange("vesselPrincipal")}
+                                    disabled={isDisabled}
+                                  />
+                                </FormField>
+                              )}
+
+                              {isTugAndBargeSelected && shouldShowApiField("barge_type_id") && (
+                                <FormField
+                                  label={isAddMode ? "Barge type *" : "Barge type"}
+                                  hasError={isAddMode && Boolean(fieldErrors.bargeType)}
+                                >
+                                  <FormSelect
+                                    value={getFieldValue("bargeType")}
+                                    onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
+                                    options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
+                                    placeholder="Select barge type"
+                                    disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.bargeType)}
+                                  />
+                                  {isAddMode && fieldErrors.bargeType && (
+                                    <div className="cf-field-error">{fieldErrors.bargeType}</div>
+                                  )}
+                                </FormField>
+                              )}
+
+                              {isTugAndBargeSelected && shouldShowApiField("barge_name") && (
+                                <FormField label="Barge Name">
+                                  <FormInput
+                                    type="text"
+                                    placeholder="Enter barge name..."
+                                    value={getFieldValue("bargeName")}
+                                    onChange={handleChange("bargeName")}
+                                    disabled={isDisabled}
+                                  />
+                                </FormField>
+                              )}
+
+                              {isTugAndBargeSelected && shouldShowApiField("barge_owner") && (
+                                <FormField label="Barge Owner">
+                                  <FormInput
+                                    type="text"
+                                    placeholder="Enter barge owner..."
+                                    value={getFieldValue("bargeOwner")}
+                                    onChange={handleChange("bargeOwner")}
                                     disabled={isDisabled}
                                   />
                                 </FormField>
