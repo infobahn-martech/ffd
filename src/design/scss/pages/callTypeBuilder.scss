@@ -27,9 +27,9 @@
 
   .ct-split-form-area {
     flex: 1;
+    min-height: 0;
     padding: 16px 20px 0;
     overflow-y: auto;
-    scrollbar-gutter: stable;
   }
 
   .ct-split-footer {
