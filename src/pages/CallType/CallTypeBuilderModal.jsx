@@ -122,6 +122,11 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
     const allChecked = tab.fields.every((f) => fieldMap[f]);
     const anyChecked = tab.fields.some((f) => fieldMap[f]) || customFields.length > 0;
 
+    const handleTabLabelClick = () => {
+        onToggleOpen(tab.id);
+        onSelectAll(tab.id, !allChecked);
+    };
+
     return (
         <div className={`ct-accordion-item ${isEnabled ? "ct-accordion-item--enabled" : ""}`}>
             <div className="ct-accordion-header">
@@ -135,7 +140,7 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
                 <button
                     type="button"
                     className="ct-accordion-trigger"
-                    onClick={() => onToggleOpen(tab.id)}
+                    onClick={handleTabLabelClick}
                 >
                     <span className="ct-accordion-label">{tab.label}</span>
                     {anyChecked && <span className="ct-accordion-badge">{tab.fields.filter((f) => fieldMap[f]).length + customFields.length}</span>}
@@ -145,17 +150,6 @@ function OperationTabAccordion({ tab, config, openTab, onToggleOpen, onToggleTab
 
             {isOpen && (
                 <div className="ct-accordion-body">
-                    <div className="ct-field-select-all-row">
-                        <label className="ct-field-check-label">
-                            <input
-                                type="checkbox"
-                                checked={allChecked}
-                                onChange={(e) => onSelectAll(tab.id, e.target.checked)}
-                            />
-                            <span>Select All</span>
-                        </label>
-                    </div>
-
                     <div className="ct-field-list">
                         {tab.fields.map((field) => (
                             <label key={field} className="ct-field-check-label">
