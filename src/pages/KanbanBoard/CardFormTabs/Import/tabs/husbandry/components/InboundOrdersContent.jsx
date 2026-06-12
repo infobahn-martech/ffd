@@ -1478,12 +1478,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
 
                           <div className="col-lg-6 col-md-6">
-                            <FormField label="Taxi / Boat">
+                            <FormField label="Taxi boat">
                               <FormInput
                                 type="text"
                                 value={order.taxiBoat}
                                 onChange={(e) => handleOrderChange(order.id, "taxiBoat", e.target.value)}
-                                placeholder="Enter taxi / boat..."
+                                placeholder="Enter taxi boat..."
                               />
                             </FormField>
                           </div>
