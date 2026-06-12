@@ -51,7 +51,7 @@ const ALL_TOP_TABS = [
 
 const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Document Library", "Comments", "Subtasks", "Notes"];
 
-const EXPORT_ONLY_TABS = ["Approval"];
+const EXPORT_ONLY_TABS = ["Export Approval"];
 
 const withExportTabs = (tabs) => {
   const next = [...tabs];
@@ -1130,7 +1130,7 @@ StepsProgress.propTypes = {
 
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, isDriverMode = false, isGROMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
   const hideStepsForTab =
-    activeTab === "Appointment Details" || activeTab === "Approval";
+    activeTab === "Appointment Details" || activeTab === "Export Approval";
   const showSteps =
     isGROMode ||
     isDriverMode ||
@@ -1460,7 +1460,7 @@ const renderTabContent = (
     switch (activeTab) {
       case "Appointment Details":
         return <General {...commonProps} />;
-      case "Approval":
+      case "Export Approval":
         return <Approval {...commonProps} />;
       case "Operation":
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
