@@ -1564,13 +1564,17 @@ function CardForm({
       appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",
       // Vessel Information
       port: String(card?.port_id ?? card?.port ?? ""),
-      // "tug" preselected in add mode; in view/edit mode an empty array lets the
+      // "tug" preselected in add mode; in view/edit mode an empty value lets the
       // value resolve from the fetched call detail (appointment_type) instead.
-      appointmentType: Array.isArray(card?.appointmentType) && card.appointmentType.length
-        ? card.appointmentType
-        : isAddMode
-          ? ["tug"]
-          : [],
+      appointmentType: (() => {
+        const raw = card?.appointmentType;
+        if (Array.isArray(raw) && raw.length) {
+          if (raw.includes("tug_and_barge")) return "tug_and_barge";
+          if (raw.includes("tug")) return "tug";
+        }
+        if (typeof raw === "string" && raw.trim()) return raw.trim();
+        return isAddMode ? "tug" : "";
+      })(),
       vesselType: String(card?.vessel_type_id ?? card?.vesselType ?? ""),
       bargeType: String(card?.barge_type_id ?? card?.bargeType ?? ""),
       bargeName: card?.bargeName || "",

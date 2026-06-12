@@ -14,6 +14,26 @@ function toJsonArrayString(value) {
   return JSON.stringify(value);
 }
 
+const APPOINTMENT_TYPE_TUG = "tug";
+const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
+
+function appointmentTypeToApiArray(value) {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => str(item)).filter(Boolean);
+    if (items.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) {
+      return [APPOINTMENT_TYPE_TUG, APPOINTMENT_TYPE_TUG_AND_BARGE];
+    }
+    return items;
+  }
+
+  const normalized = str(value);
+  if (!normalized) return [];
+  if (normalized === APPOINTMENT_TYPE_TUG_AND_BARGE) {
+    return [APPOINTMENT_TYPE_TUG, APPOINTMENT_TYPE_TUG_AND_BARGE];
+  }
+  return [normalized];
+}
+
 /**
  * Maps selected values (numeric ids, id strings, or email labels matching options) to numbers [1, 2, …].
  * Pass multiple option lists (e.g. field-specific + daily-report options): they are merged; when several
@@ -130,17 +150,14 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendStringField("assigned_operator_id", fv.assignedOperator);
   appendStringField("billing_entity_id", fv.mainBillingEntity);
   appendStringField("last_port", fv.lastPort);
-  const appointmentTypes = Array.isArray(fv.appointmentType)
-    ? fv.appointmentType.map((item) => str(item)).filter(Boolean)
-    : str(fv.appointmentType)
-      ? [str(fv.appointmentType)]
-      : [];
+  const appointmentTypes = appointmentTypeToApiArray(fv.appointmentType);
+  const includesBargeAppointment = appointmentTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE);
   fd.append("appointment_type", toJsonArrayString(appointmentTypes));
 
   appendStringField("vessel_type_id", fv.vesselType);
-  appendStringField("barge_type_id", fv.bargeType);
-  appendStringField("barge_name", fv.bargeName);
-  appendStringField("barge_owner", fv.bargeOwner);
+  appendStringField("barge_type_id", includesBargeAppointment ? fv.bargeType : "");
+  appendStringField("barge_name", includesBargeAppointment ? fv.bargeName : "");
+  appendStringField("barge_owner", includesBargeAppointment ? fv.bargeOwner : "");
   appendStringField("vessel_id", fv.vesselName);
 
   appendStringField("vessel_owner", fv.vesselOwner);

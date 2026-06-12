@@ -203,8 +203,8 @@ const APPOINTMENT_TYPE_OPTIONS = [
   { value: APPOINTMENT_TYPE_TUG_AND_BARGE, label: "Tug and barge" },
 ];
 
-// Accepts arrays, JSON array strings, or comma-separated strings; maps entries to known option values.
-const normalizeAppointmentTypeValues = (raw, fallback = []) => {
+// Accepts a scalar, arrays, JSON array strings, or comma-separated strings; returns one option value.
+const normalizeAppointmentTypeValue = (raw, fallback = "") => {
   let list = raw;
   if (typeof list === "string") {
     const trimmed = list.trim();
@@ -216,6 +216,8 @@ const normalizeAppointmentTypeValues = (raw, fallback = []) => {
       } catch {
         list = trimmed.split(",");
       }
+    } else if (APPOINTMENT_TYPE_OPTIONS.some((o) => o.value === trimmed || o.label.toLowerCase() === trimmed.toLowerCase())) {
+      list = [trimmed];
     } else {
       list = trimmed.split(",");
     }
@@ -232,13 +234,20 @@ const normalizeAppointmentTypeValues = (raw, fallback = []) => {
     })
     .filter(Boolean);
   const unique = [...new Set(matched)];
-  return unique.length ? unique : fallback;
+  if (unique.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) return APPOINTMENT_TYPE_TUG_AND_BARGE;
+  if (unique.includes(APPOINTMENT_TYPE_TUG)) return APPOINTMENT_TYPE_TUG;
+  return fallback;
 };
+
+const appointmentTypeShowsTugFields = (value) =>
+  value === APPOINTMENT_TYPE_TUG || value === APPOINTMENT_TYPE_TUG_AND_BARGE;
+
+const appointmentTypeShowsBargeFields = (value) => value === APPOINTMENT_TYPE_TUG_AND_BARGE;
 
 const getDetailAppointmentTypeFallback = (detail) =>
   detail?.barge_type_id || detail?.barge_name || detail?.barge_owner
-    ? [APPOINTMENT_TYPE_TUG, APPOINTMENT_TYPE_TUG_AND_BARGE]
-    : [APPOINTMENT_TYPE_TUG];
+    ? APPOINTMENT_TYPE_TUG_AND_BARGE
+    : APPOINTMENT_TYPE_TUG;
 
 const mapCallDetailToFormFields = (detail) => {
   const appointmentParts = splitDateTime(detail?.appointment_received_date);
@@ -266,7 +275,7 @@ const mapCallDetailToFormFields = (detail) => {
     mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
     lastPort: detail?.last_port != null ? String(detail.last_port) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
-    appointmentType: normalizeAppointmentTypeValues(
+    appointmentType: normalizeAppointmentTypeValue(
       detail?.appointment_type,
       getDetailAppointmentTypeFallback(detail)
     ),
@@ -2670,9 +2679,9 @@ function General({
     const requireField = (condition, key, message) => {
       if (condition && isEmptyValue(v(key))) errors[key] = message;
     };
-    const selectedAppointmentTypes = normalizeAppointmentTypeValues(v("appointmentType"));
-    const tugSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG);
-    const bargeSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE);
+    const selectedAppointmentType = normalizeAppointmentTypeValue(v("appointmentType"));
+    const tugSelected = appointmentTypeShowsTugFields(selectedAppointmentType);
+    const bargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
     requireField(shouldShowApiField("port_id"), "port", "Port is required.");
     const callTypeValue = firstNonEmptyString(v("typeOfCall"), v("call_type_id"));
     if (shouldShowApiField("call_type") && !callTypeValue) {
@@ -2692,7 +2701,7 @@ function General({
     }
 
     if (isAddMode) {
-      if (selectedAppointmentTypes.length === 0) {
+      if (!selectedAppointmentType) {
         errors.appointmentType = "Appointment type is required.";
       }
       requireField(shouldShowApiField("vessel_type_id") && tugSelected, "vesselType", "Vessel type is required.");
@@ -2893,8 +2902,7 @@ function General({
       const nextValue = merged?.[fieldName];
       const isArrayField =
         fieldName === "dailyReportEmail" ||
-        fieldName === "billingInstructionEmails" ||
-        fieldName === "appointmentType";
+        fieldName === "billingInstructionEmails";
       if (fieldName === "serviceRequestorEmail") {
         const email = getTrimmedValue(nextValue);
         const isValidEmail = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -2918,19 +2926,14 @@ function General({
   };
 
   const handleAppointmentTypeChange = (event) => {
-    const nextTypes = normalizeAppointmentTypeValues(event?.target?.value);
-    const syntheticEvent = { target: { value: nextTypes, name: "appointmentType" } };
+    const nextType = normalizeAppointmentTypeValue(event?.target?.value);
+    const syntheticEvent = { target: { value: nextType, name: "appointmentType" } };
     if (isAddMode) {
       handleValidatedChange("appointmentType")(syntheticEvent);
     } else {
       handleChange("appointmentType")(syntheticEvent);
     }
-    if (!nextTypes.includes(APPOINTMENT_TYPE_TUG)) {
-      ["vesselType", "vesselName", "vesselOwner", "vesselManager", "vesselPrincipal"].forEach((fieldName) => {
-        handleChange(fieldName)({ target: { value: "", name: fieldName } });
-      });
-    }
-    if (!nextTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) {
+    if (!appointmentTypeShowsBargeFields(nextType)) {
       ["bargeType", "bargeName", "bargeOwner"].forEach((fieldName) => {
         handleChange(fieldName)({ target: { value: "", name: fieldName } });
       });
@@ -4330,12 +4333,12 @@ ${body}
   const isViewMode = !isAddMode;
   const masterInputsDisabled = isDisabled || masterDataLoading;
 
-  const selectedAppointmentTypes = normalizeAppointmentTypeValues(
+  const selectedAppointmentType = normalizeAppointmentTypeValue(
     getFieldValue("appointmentType"),
-    isAddMode ? [] : [APPOINTMENT_TYPE_TUG]
+    isAddMode ? "" : APPOINTMENT_TYPE_TUG
   );
-  const isTugSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG);
-  const isTugAndBargeSelected = selectedAppointmentTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE);
+  const isTugSelected = appointmentTypeShowsTugFields(selectedAppointmentType);
+  const isTugAndBargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
 
   // Check if MWP RENEWAL type is selected in simplified mode
   const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
@@ -5273,9 +5276,8 @@ ${body}
                                   label={isAddMode ? "Appointment Type *" : "Appointment Type"}
                                   hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
                                 >
-                                  <MultiSelectField
-                                    name="appointmentType"
-                                    value={selectedAppointmentTypes}
+                                  <FormSelect
+                                    value={selectedAppointmentType}
                                     onChange={handleAppointmentTypeChange}
                                     options={APPOINTMENT_TYPE_OPTIONS}
                                     placeholder="Select appointment type"
