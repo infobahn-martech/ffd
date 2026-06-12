@@ -148,44 +148,66 @@
     }
   }
 
-  .approval-textarea-wrap {
+  .approval-textarea-wrap.cf-input {
+    display: block;
+    align-items: stretch;
+    padding: 10px 14px;
+    min-height: 0;
+
     textarea {
+      display: block;
       width: 100%;
       min-height: 88px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-family: inherit;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      font-family: "Open Sans", sans-serif;
       font-size: 13px;
       color: #1a1a1a;
       resize: vertical;
       box-sizing: border-box;
-      background: #ffffff;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: none;
 
       &::placeholder {
-        color: #9ca3af;
+        color: #999;
+        font-size: 12px;
       }
 
       &:focus {
         outline: none;
-        border-color: #9da8ff;
-        box-shadow: 0 0 0 3px rgba(157, 168, 255, 0.22);
+        box-shadow: none;
       }
     }
 
-    &.approval-textarea--green textarea {
-      background-color: #e2efda;
-      border-color: #c5e0b4;
+    &:focus-within {
+      border-color: #3e5cb6;
+      background: #fafaff;
     }
 
-    &.approval-textarea--blue textarea {
+    &.approval-textarea--green {
+      background-color: #e2efda;
+      border-color: #c5e0b4;
+
+      &:focus-within {
+        background-color: #e2efda;
+        border-color: #9bc77a;
+      }
+    }
+
+    &.approval-textarea--blue {
       background-color: #ddebf7;
       border-color: #b4c7e7;
+
+      &:focus-within {
+        background-color: #ddebf7;
+        border-color: #8aa8d8;
+      }
     }
   }
 
-  .approval-party-card .approval-textarea-wrap textarea {
+  .approval-party-card .approval-textarea-wrap.cf-input textarea {
     min-height: 72px;
   }
 
