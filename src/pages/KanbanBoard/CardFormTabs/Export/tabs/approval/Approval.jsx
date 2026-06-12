@@ -240,7 +240,7 @@ function Approval({ card, formValues }) {
                 <FormInput
                   value={basicDetails.branch}
                   onChange={(e) => handleBasicChange("branch", e.target.value)}
-                  placeholder="Branch / Port"
+                  placeholder="Branch"
                 />
               </FormField>
               <FormField label="Vessel Name">
