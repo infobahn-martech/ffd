@@ -1662,6 +1662,9 @@ const resolveEditablePreviewFieldValue = (isTouched, editedValue, ...fallbackVal
   return firstNonEmptyString(editedValue, ...fallbackValues);
 };
 
+/** Demo defaults for Email Preview Cc when no API/daily-report recipients exist. */
+const EMAIL_PREVIEW_DEFAULT_CC_EMAILS = "supervisor@sedres.com, manager@sedres.com";
+
 /** Shared Cc resolution for preview display and submit payload. */
 const resolveAppointmentAcceptanceCcEmails = ({
   isTouched = false,
@@ -1683,6 +1686,13 @@ const resolveAppointmentAcceptanceCcEmails = ({
   );
   if (forSubmit) {
     return !resolved || resolved === "—" ? "" : String(resolved).trim();
+  }
+  if (isTouched) {
+    return resolved ?? "";
+  }
+  const normalized = String(resolved || "").trim();
+  if (!normalized || normalized === "—") {
+    return EMAIL_PREVIEW_DEFAULT_CC_EMAILS;
   }
   return resolved;
 };
@@ -1822,6 +1832,56 @@ const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = [
   "image",
 ];
 
+const EMAIL_PREVIEW_DUMMY_ATTACHMENTS = [
+  { id: "appointment-acceptance", name: "Appointment_Acceptance.pdf", size: "245K" },
+  { id: "port-details", name: "Port_Details.xlsx", size: "128K" },
+  { id: "vessel-image", name: "Vessel_Image.jpg", size: "932K" },
+];
+
+const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
+  const fileName = attachment?.name || "Untitled";
+  const fileSize = attachment?.size || "";
+
+  const handleOpen = () => {
+    // Placeholder until API integration
+    console.log("[Email Preview] Open attachment:", fileName);
+  };
+
+  const handleRemove = (event) => {
+    event.stopPropagation();
+    if (typeof onRemove === "function") {
+      onRemove(attachment?.id);
+    }
+  };
+
+  return (
+    <div className="email-preview-attachment-chip" title={fileName}>
+      <button type="button" className="email-preview-attachment-link" onClick={handleOpen}>
+        <span className="email-preview-attachment-name">{fileName}</span>
+        {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
+      </button>
+      <button
+        type="button"
+        className="email-preview-attachment-remove"
+        onClick={handleRemove}
+        aria-label={`Remove ${fileName}`}
+        title="Remove"
+      >
+        ×
+      </button>
+    </div>
+  );
+};
+
+EmailPreviewAttachmentChip.propTypes = {
+  attachment: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    size: PropTypes.string,
+  }).isRequired,
+  onRemove: PropTypes.func,
+};
+
 const EmailPreviewPanel = ({
   ownerOptions,
   formValues,
@@ -1839,6 +1899,7 @@ const EmailPreviewPanel = ({
   onMessageChange,
 }) => {
   const messageQuillRef = useRef(null);
+  const [previewAttachments, setPreviewAttachments] = useState(() => [...EMAIL_PREVIEW_DUMMY_ATTACHMENTS]);
   const messageQuillModules = useMemo(
     () => ({
       ...buildQuillModules(EMAIL_PREVIEW_MESSAGE_QUILL_TOOLBAR, messageQuillRef),
@@ -1941,6 +2002,22 @@ const EmailPreviewPanel = ({
                     onChange={onEditableFieldChange("subject")}
                     placeholder="Email subject"
                   />
+                </div>
+              </div>
+              <div className="email-preview-row email-preview-row--attachments">
+                <div className="email-preview-row-label">Attachments</div>
+                <div className="email-preview-row-value">
+                  <div className="email-preview-attachments-list">
+                    {previewAttachments.map((attachment) => (
+                      <EmailPreviewAttachmentChip
+                        key={attachment.id}
+                        attachment={attachment}
+                        onRemove={(attachmentId) => {
+                          setPreviewAttachments((prev) => prev.filter((item) => item.id !== attachmentId));
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
