@@ -26,6 +26,7 @@ import MaterialManagementContent from "./components/MaterialManagementContent";
 import InboundOrdersContent from "./components/InboundOrdersContent";
 import LandingNoteContent from "./components/LandingNoteContent";
 import DispatchNoteContent from "./components/DispatchNoteContent";
+import OrderHistoryContent from "./components/OrderHistoryContent";
 import MWPRenewalContent from "./components/MWPRenewalContent";
 import OnStationContent from "./components/OnStationContent";
 import ThirdPartyServicesContent from "./components/ThirdPartyServicesContent";
@@ -362,6 +363,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               [MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS]: "Inbound Orders",
               [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: "Landing Note",
               [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: "Dispatch Note",
+              [MATERIAL_MANAGEMENT_SUBTABS.ORDER_HISTORY]: "Order History",
             };
 
             return prev.map(bs =>
@@ -529,6 +531,14 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
       case MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE:
         return (
           <DispatchNoteContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
+      case MATERIAL_MANAGEMENT_SUBTABS.ORDER_HISTORY:
+        return (
+          <OrderHistoryContent
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}

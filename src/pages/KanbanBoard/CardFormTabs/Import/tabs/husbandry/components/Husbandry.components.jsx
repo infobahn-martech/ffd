@@ -53,6 +53,10 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
         id: MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE,
         label: "Dispatch Note"
       },
+      {
+        id: MATERIAL_MANAGEMENT_SUBTABS.ORDER_HISTORY,
+        label: "Order History"
+      },
     ];
   } else if (activeMainTab === MAIN_TABS.WAREHOUSE) {
     // Warehouse - no sub-tabs for now
