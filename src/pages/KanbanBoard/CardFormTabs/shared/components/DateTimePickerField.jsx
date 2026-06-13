@@ -73,6 +73,11 @@ const DateTimePickerField = ({
   const minDateValue = useMemo(() => (minDate ? dayjs(minDate) : undefined), [minDate]);
   const maxDateValue = useMemo(() => (maxDate ? dayjs(maxDate) : undefined), [maxDate]);
 
+  const handleShouldDisableDate = useCallback(
+    (day) => (minDateValue ? dayjs(day).isBefore(minDateValue, "day") : false),
+    [minDateValue]
+  );
+
   const pickerValue = pickerOpen ? (draftValue ?? externalValue) : externalValue;
 
   const emitDateTimeChange = useCallback(
@@ -156,6 +161,7 @@ const DateTimePickerField = ({
           disabled={disabled}
           minDate={minDateValue}
           maxDate={maxDateValue}
+          shouldDisableDate={minDateValue ? handleShouldDisableDate : undefined}
           minutesStep={5}
           format="YYYY-MM-DD HH:mm"
           slotProps={{
