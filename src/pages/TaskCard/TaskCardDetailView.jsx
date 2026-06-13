@@ -4,8 +4,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../design/scss/pages/taskCard.scss";
 import "../../design/scss/invoice.scss";
-import callFileService from "../../services/callFileService";
-import { unwrapListResponse } from "../../shared/helpers/callFileFormOptions";
+import userService from "../../services/userService";
 
 const QUILL_MODULES = {
     toolbar: [
@@ -39,11 +38,11 @@ const getMentionContext = (editor) => {
     };
 };
 
-const mapManagersFromResponse = (rows) =>
+const mapUsersFromResponse = (rows) =>
     (rows || []).map((row) => ({
         user_id: row.user_id,
-        user_name: row.user_name ?? "",
-        avatar: row.avatar ?? null,
+        user_name: row.name ?? "",
+        avatar: row.avatar_path || row.avatar || null,
     }));
 
 function TaskCardDetailView({ card, onClose }) {
@@ -62,10 +61,10 @@ function TaskCardDetailView({ card, onClose }) {
     useEffect(() => {
         let cancelled = false;
         setIsManagersLoading(true);
-        callFileService.getAllManagers()
+        userService.getUsers({ params: { limit: 200 } })
             .then(({ data }) => {
-                const list = unwrapListResponse(data);
-                if (!cancelled) setManagers(mapManagersFromResponse(list));
+                const list = data?.data || [];
+                if (!cancelled) setManagers(mapUsersFromResponse(list));
             })
             .catch(() => { if (!cancelled) setManagers([]); })
             .finally(() => { if (!cancelled) setIsManagersLoading(false); });
