@@ -25,6 +25,7 @@ import {
   splitApiDateTimeParts,
   buildApiDateTime,
   formatDisplayDateTime,
+  nextDayOf,
 } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
 import MaterialTablePagination from "./MaterialTablePagination";
 
@@ -221,6 +222,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [convertingOrder, setConvertingOrder] = useState(null);
+  const [convertMinDate, setConvertMinDate] = useState(undefined);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
@@ -900,6 +902,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToLanding = (order) => {
     handleCloseDropdown();
     setConvertingOrder(order);
+    setConvertMinDate(nextDayOf(order.inbound_date || order.date));
     const now = new Date();
     const pad = (n) => String(n).padStart(2, "0");
     setConvertFormData({
@@ -925,6 +928,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         .then(({ data }) => {
           const detail = data?.data;
           if (!detail) return;
+          const detailMinDate = nextDayOf(detail.inbound_date || detail.date);
+          if (detailMinDate) setConvertMinDate(detailMinDate);
           const orders = buildConvertOrders(detail.items);
           if (orders) {
             const exp = {};
@@ -948,6 +953,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseConvertModal = () => {
     setShowConvertModal(false);
     setConvertingOrder(null);
+    setConvertMinDate(undefined);
     setConvertFormErrors({});
     setConvertFormData({
       date: "",
@@ -1573,6 +1579,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     timeFieldName="time"
                     placeholder="YYYY-MM-DD hh:mm"
                     hasError={!!convertFormErrors.date}
+                    minDate={convertMinDate}
                   />
                 </FormField>
                 {convertFormErrors.date && <span className="dispatch-edit-error">{convertFormErrors.date}</span>}
