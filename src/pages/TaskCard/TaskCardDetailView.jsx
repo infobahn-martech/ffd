@@ -1,42 +1,10 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { FiX } from "react-icons/fi";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import "../../design/scss/pages/taskCard.scss";
 import "../../design/scss/invoice.scss";
 import userService from "../../services/userService";
 
-const QUILL_MODULES = {
-    toolbar: [
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link"],
-        ["clean"],
-    ],
-};
-
-const QUILL_FORMATS = ["bold", "italic", "underline", "list", "bullet", "link"];
-
 const MENTION_TRIGGER_REGEX = /@([^\s@]*)$/;
-
-const isEmptyHtmlContent = (html) => {
-    if (!html) return true;
-    const text = html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
-    return text.length === 0;
-};
-
-const getMentionContext = (editor) => {
-    const selection = editor.getSelection();
-    if (!selection) return null;
-    const textBefore = editor.getText(0, selection.index);
-    const match = textBefore.match(MENTION_TRIGGER_REGEX);
-    if (!match) return null;
-    return {
-        search: match[1] || "",
-        startIndex: selection.index - match[0].length,
-        matchLength: match[0].length,
-    };
-};
 
 const mapUsersFromResponse = (rows) =>
     (rows || []).map((row) => ({
@@ -46,79 +14,81 @@ const mapUsersFromResponse = (rows) =>
     }));
 
 function TaskCardDetailView({ card, onClose }) {
-    const quillRef = useRef(null);
+    const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
 
     const [commentText, setCommentText] = useState("");
     const [files, setFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
-    const [managers, setManagers] = useState([]);
+    const [users, setUsers] = useState([]);
     const [mentionOpen, setMentionOpen] = useState(false);
     const [mentionSearch, setMentionSearch] = useState("");
+    const [mentionStartIndex, setMentionStartIndex] = useState(null);
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
-    const [isManagersLoading, setIsManagersLoading] = useState(false);
+    const [isUsersLoading, setIsUsersLoading] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
-        setIsManagersLoading(true);
+        setIsUsersLoading(true);
         userService.getUsers({ params: { limit: 200 } })
             .then(({ data }) => {
                 const list = data?.data || [];
-                if (!cancelled) setManagers(mapUsersFromResponse(list));
+                if (!cancelled) setUsers(mapUsersFromResponse(list));
             })
-            .catch(() => { if (!cancelled) setManagers([]); })
-            .finally(() => { if (!cancelled) setIsManagersLoading(false); });
+            .catch(() => { if (!cancelled) setUsers([]); })
+            .finally(() => { if (!cancelled) setIsUsersLoading(false); });
         return () => { cancelled = true; };
     }, []);
 
-    const filteredManagers = useMemo(() => {
+    const filteredUsers = useMemo(() => {
         const term = mentionSearch.trim().toLowerCase();
-        if (!term) return managers;
-        return managers.filter((m) => (m.user_name || "").toLowerCase().includes(term));
-    }, [managers, mentionSearch]);
+        if (!term) return users;
+        return users.filter((u) => (u.user_name || "").toLowerCase().includes(term));
+    }, [users, mentionSearch]);
 
     const closeMentionDropdown = useCallback(() => {
         setMentionOpen(false);
         setMentionSearch("");
+        setMentionStartIndex(null);
     }, []);
 
-    const syncMentionState = useCallback((editor) => {
-        const context = getMentionContext(editor);
-        if (context) {
+    const handleCommentChange = useCallback((e) => {
+        const val = e.target.value;
+        setCommentText(val);
+
+        const cursor = e.target.selectionStart;
+        const textBefore = val.slice(0, cursor);
+        const match = textBefore.match(MENTION_TRIGGER_REGEX);
+        if (match) {
             setMentionOpen(true);
-            setMentionSearch(context.search);
+            setMentionSearch(match[1] || "");
+            setMentionStartIndex(cursor - match[0].length);
         } else {
             closeMentionDropdown();
         }
     }, [closeMentionDropdown]);
 
-    const handleCommentChange = useCallback((html, _delta, _source, editor) => {
-        setCommentText(html);
-        syncMentionState(editor);
-    }, [syncMentionState]);
-
-    const addMentionedUserId = useCallback((userId) => {
+    const handleSelectUser = useCallback((user) => {
+        if (mentionStartIndex === null) return;
+        const before = commentText.slice(0, mentionStartIndex);
+        const after = commentText.slice(mentionStartIndex + 1 + mentionSearch.length);
+        const inserted = `@${user.user_name} `;
+        const newText = before + inserted + after;
+        setCommentText(newText);
         setSelectedMentionUserIds((prev) =>
-            prev.some((id) => String(id) === String(userId)) ? prev : [...prev, userId]
+            prev.some((id) => String(id) === String(user.user_id)) ? prev : [...prev, user.user_id]
         );
-    }, []);
-
-    const handleSelectManager = useCallback((manager) => {
-        const editor = quillRef.current?.getEditor?.();
-        if (!editor) return;
-        const context = getMentionContext(editor);
-        if (!context) return;
-        const mentionText = `@${manager.user_name}`;
-        editor.deleteText(context.startIndex, context.matchLength, "user");
-        editor.insertText(context.startIndex, mentionText, "user");
-        editor.setSelection(context.startIndex + mentionText.length, 0, "user");
-        setCommentText(editor.root.innerHTML);
-        addMentionedUserId(manager.user_id);
         closeMentionDropdown();
-    }, [addMentionedUserId, closeMentionDropdown]);
+
+        setTimeout(() => {
+            const pos = before.length + inserted.length;
+            textareaRef.current?.focus();
+            textareaRef.current?.setSelectionRange(pos, pos);
+        }, 0);
+    }, [commentText, mentionSearch, mentionStartIndex, closeMentionDropdown]);
 
     const handleSave = useCallback(() => {
-        if (isEmptyHtmlContent(commentText)) return;
+        if (!commentText.trim()) return;
         console.log({
             card_id: card?.id,
             comment: commentText,
@@ -162,18 +132,15 @@ function TaskCardDetailView({ card, onClose }) {
                                 <div className="subtasks-tab-field">
                                     <label className="subtasks-tab-label">Comments</label>
                                     <div className="comments-tab-mention-host">
-                                        <div className="react-quill-wrapper comments-tab-quill">
-                                            <ReactQuill
-                                                ref={quillRef}
-                                                theme="snow"
-                                                value={commentText}
-                                                onChange={handleCommentChange}
-                                                onBlur={closeMentionDropdown}
-                                                modules={QUILL_MODULES}
-                                                formats={QUILL_FORMATS}
-                                                placeholder="Write a comment... (type @ to mention)"
-                                            />
-                                        </div>
+                                        <textarea
+                                            ref={textareaRef}
+                                            className="subtasks-tab-textarea"
+                                            rows={4}
+                                            placeholder="Write a comment... (type @ to mention)"
+                                            value={commentText}
+                                            onChange={handleCommentChange}
+                                            onBlur={() => setTimeout(closeMentionDropdown, 150)}
+                                        />
 
                                         {mentionOpen && (
                                             <div
@@ -181,30 +148,30 @@ function TaskCardDetailView({ card, onClose }) {
                                                 role="listbox"
                                                 aria-label="Mention a user"
                                             >
-                                                {isManagersLoading ? (
+                                                {isUsersLoading ? (
                                                     <p className="comments-tab-mention-status">Loading users...</p>
-                                                ) : filteredManagers.length === 0 ? (
+                                                ) : filteredUsers.length === 0 ? (
                                                     <p className="comments-tab-mention-status">No users found</p>
                                                 ) : (
-                                                    filteredManagers.map((manager) => (
+                                                    filteredUsers.map((user) => (
                                                         <button
-                                                            key={manager.user_id}
+                                                            key={user.user_id}
                                                             type="button"
                                                             className="comments-tab-mention-option"
                                                             role="option"
                                                             onMouseDown={(e) => e.preventDefault()}
-                                                            onClick={() => handleSelectManager(manager)}
+                                                            onClick={() => handleSelectUser(user)}
                                                         >
                                                             <span className="comments-tab-mention-avatar">
-                                                                {manager.avatar ? (
-                                                                    <img src={manager.avatar} alt="" />
+                                                                {user.avatar ? (
+                                                                    <img src={user.avatar} alt="" />
                                                                 ) : (
                                                                     <span className="comments-tab-mention-avatar-fallback">
-                                                                        {(manager.user_name || "?").charAt(0).toUpperCase()}
+                                                                        {(user.user_name || "?").charAt(0).toUpperCase()}
                                                                     </span>
                                                                 )}
                                                             </span>
-                                                            <span className="comments-tab-mention-name">{manager.user_name}</span>
+                                                            <span className="comments-tab-mention-name">{user.user_name}</span>
                                                         </button>
                                                     ))
                                                 )}
