@@ -876,9 +876,7 @@
   font-family: "Open Sans", sans-serif;
 }
 
-.subtasks-tab-textarea,
-.subtasks-tab-select,
-.subtasks-tab-date-input {
+.subtasks-tab-textarea {
   width: 100%;
   font-size: 13px;
   font-family: "Open Sans", sans-serif;
@@ -887,6 +885,11 @@
   border-radius: 8px;
   background: #ffffff;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  resize: vertical;
+  min-height: 100px;
+  max-height: 200px;
+  padding: 10px 12px;
+  line-height: 1.5;
 
   &:hover {
     border-color: #c8d4ea;
@@ -897,37 +900,83 @@
     border-color: #00368c;
     box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
   }
-}
-
-.subtasks-tab-textarea {
-  resize: vertical;
-  min-height: 100px;
-  max-height: 200px;
-  padding: 10px 12px;
-  line-height: 1.5;
 
   &::placeholder {
     color: #9aa0ad;
   }
 }
 
-.subtasks-tab-select,
-.subtasks-tab-date-input {
-  height: 38px;
-  padding: 0 12px;
+.subtasks-tab-assignee-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
-.subtasks-tab-select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235c6370' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 32px;
+.subtasks-tab-assignee-avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
 }
 
-.subtasks-tab-date-input {
-  cursor: pointer;
+.subtasks-tab-assignee-select {
+  flex: 1;
+  min-width: 0;
+
+  .cf-multi-select-email-input {
+    min-height: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #e2e2ea;
+    border-radius: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      border-color: #c8d4ea;
+    }
+
+    &:focus-within {
+      border-color: #00368c;
+      box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+    }
+  }
+}
+
+.subtasks-tab-field--due-date {
+  .subtasks-tab-datepicker {
+    width: 100%;
+
+    .cf-datetime-input-field .MuiPickersInputBase-root,
+    .cf-datetime-input-field .MuiOutlinedInput-root,
+    .cf-datetime-input-field .MuiInputBase-root {
+      min-height: 38px;
+      height: 38px;
+      border: 1px solid #e2e2ea;
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 13px;
+      font-family: "Open Sans", sans-serif;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+      &:hover {
+        border-color: #c8d4ea;
+      }
+    }
+
+    .cf-datetime-input-field .Mui-focused .MuiPickersInputBase-root,
+    .cf-datetime-input-field .Mui-focused.MuiPickersInputBase-root,
+    .cf-datetime-input-field .Mui-focused.MuiOutlinedInput-root,
+    .cf-datetime-input-field .Mui-focused.MuiInputBase-root {
+      border-color: #00368c;
+      box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+    }
+
+    .cf-datetime-input-field .MuiOutlinedInput-input,
+    .cf-datetime-input-field .MuiPickersInputBase-input {
+      font-size: 13px;
+      padding: 0;
+    }
+  }
 }
 
 .subtasks-tab-save-row {

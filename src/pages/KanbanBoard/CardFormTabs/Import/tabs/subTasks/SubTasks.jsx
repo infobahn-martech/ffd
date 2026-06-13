@@ -1,6 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import PropTypes from "prop-types";
+import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
+import DatePickerField from "../../../shared/components/DatePickerField";
 import "../../../../../../design/scss/invoice.scss";
+import "../../../../../../design/css/common/CardForm.css";
 
 const DUMMY_USERS = [
     { user_id: 1, user_name: "Sarah Mitchell", avatar: null },
@@ -9,8 +12,36 @@ const DUMMY_USERS = [
     { user_id: 4, user_name: "Omar Hassan", avatar: null },
 ];
 
+const USER_OPTIONS = DUMMY_USERS.map((user) => ({
+    value: String(user.user_id),
+    label: user.user_name,
+    avatar: user.avatar,
+}));
+
 const getUserById = (userId) =>
     DUMMY_USERS.find((user) => String(user.user_id) === String(userId)) ?? null;
+
+const UserOptionAvatar = ({ avatarUrl, label, className = "" }) => {
+    const letterSource = label != null ? String(label).trim() : "";
+    const displayLetter = letterSource ? letterSource.charAt(0).toUpperCase() : "U";
+    const src = avatarUrl != null && String(avatarUrl).trim();
+    const [imgFailed, setImgFailed] = useState(false);
+
+    if (src && !imgFailed) {
+        return (
+            <div className={`cf-owner-avatar cf-owner-avatar--img ${className}`.trim()}>
+                <img src={src} alt="" onError={() => setImgFailed(true)} />
+            </div>
+        );
+    }
+    return <div className={`cf-owner-avatar ${className}`.trim()}>{displayLetter}</div>;
+};
+
+UserOptionAvatar.propTypes = {
+    avatarUrl: PropTypes.string,
+    label: PropTypes.string,
+    className: PropTypes.string,
+};
 
 const formatDueDate = (dateStr) => {
     if (!dateStr) return "";
@@ -32,6 +63,7 @@ function Subtasks({ card }) {
     const [dueDate, setDueDate] = useState("");
 
     const hasTasks = tasks.length > 0;
+    const selectedAssignee = useMemo(() => getUserById(assignUserId), [assignUserId]);
 
     const resetForm = useCallback(() => {
         setTitle("");
@@ -102,31 +134,43 @@ function Subtasks({ card }) {
                                         <label className="subtasks-tab-label" htmlFor="subtask-assignee">
                                             Assign User
                                         </label>
-                                        <select
-                                            id="subtask-assignee"
-                                            className="subtasks-tab-select"
-                                            value={assignUserId}
-                                            onChange={(event) => setAssignUserId(event.target.value)}
-                                        >
-                                            <option value="">Select user</option>
-                                            {DUMMY_USERS.map((user) => (
-                                                <option key={user.user_id} value={user.user_id}>
-                                                    {user.user_name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <div className="subtasks-tab-assignee-row">
+                                            <UserOptionAvatar
+                                                avatarUrl={selectedAssignee?.avatar}
+                                                label={selectedAssignee?.user_name}
+                                                className="subtasks-tab-assignee-avatar"
+                                            />
+                                            <SearchableSelect
+                                                className="cf-owner-searchable-select subtasks-tab-assignee-select"
+                                                value={assignUserId === "" ? "" : String(assignUserId)}
+                                                onChange={(event) => setAssignUserId(event.target.value)}
+                                                options={USER_OPTIONS}
+                                                placeholder="Select user"
+                                                searchPlaceholder={deriveSearchPlaceholder("Select user")}
+                                                renderOption={(option) => (
+                                                    <div className="cf-searchable-option-with-avatar">
+                                                        <UserOptionAvatar
+                                                            avatarUrl={option.avatar}
+                                                            label={option.label}
+                                                            className="cf-owner-avatar--sm"
+                                                        />
+                                                        <span>{option.label}</span>
+                                                    </div>
+                                                )}
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="subtasks-tab-field">
+                                    <div className="subtasks-tab-field subtasks-tab-field--due-date">
                                         <label className="subtasks-tab-label" htmlFor="subtask-due-date">
                                             Due Date
                                         </label>
-                                        <input
-                                            id="subtask-due-date"
-                                            type="date"
-                                            className="subtasks-tab-date-input"
-                                            value={dueDate}
-                                            onChange={(event) => setDueDate(event.target.value)}
+                                        <DatePickerField
+                                            className="subtasks-tab-datepicker"
+                                            dateValue={dueDate}
+                                            onDateChange={(event) => setDueDate(event.target.value)}
+                                            dateFieldName="subtask-due-date"
+                                            placeholder="YYYY-MM-DD"
                                         />
                                     </div>
                                 </div>
