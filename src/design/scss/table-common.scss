@@ -678,3 +678,43 @@ div[role="tooltip"].role-description-tooltip {
     background: #ffffff;
     padding: 2px;
 }
+
+.material-table-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 14px;
+
+    &__info {
+        color: #666;
+    }
+
+    &__controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__page-text {
+        color: #344054;
+        min-width: 84px;
+        text-align: center;
+    }
+
+    &__btn {
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        background: #fff;
+        color: #344054;
+        cursor: pointer;
+        padding: 6px 10px;
+
+        &:disabled {
+            background: #f5f5f5;
+            color: #98a2b3;
+            cursor: not-allowed;
+        }
+    }
+}
