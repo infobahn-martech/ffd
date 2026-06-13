@@ -15,7 +15,7 @@ const editUserProfile = (formData) => Gateway.patch("user/profile", formData);
 
 const getResetPasswordFormUrl = () => {
   const base = import.meta.env.BASE_URL || "/";
-  return `${window.location.origin}${base}#/reset-password`;
+  return `${window.location.origin}${base}users/reset_password_form`;
 };
 
 const forgotPassword = (email) =>

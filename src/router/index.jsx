@@ -1,6 +1,6 @@
 // src/routes/index.jsx
 
-import { createHashRouter } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import PublicRoutes from "./PublicRoute";
 import PrivateRoutes from "./PrivateRoute";
@@ -91,7 +91,8 @@ import TaskRoles from "../pages/TaskChecklist";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
-const router = createHashRouter([
+const router = createBrowserRouter(
+  [
   {
     element: <App />,
     errorElement: <NotFound />,
@@ -100,6 +101,7 @@ const router = createHashRouter([
       // Always available public pages
       { path: "/", element: <Login /> },
       { path: "/forget-password", element: <ForgetPassword /> },
+      { path: "/users/reset_password_form", element: <ResetPassword /> },
 
       // Standalone KPI Dashboard (no layout, header, or sidebar)
       { path: "/kpi-dashboard", element: <KPIDashboard /> },
@@ -177,7 +179,6 @@ const router = createHashRouter([
               { path: "/", element: <Login /> },
               { path: "/forget-password", element: <ForgetPassword /> },
               { path: "/reset-password", element: <ResetPassword /> },
-              { path: "/users/reset_password_form", element: <ResetPassword /> },
             ],
           },
 
@@ -332,6 +333,10 @@ const router = createHashRouter([
         ]),
     ],
   },
-]);
+  ],
+  {
+    basename: import.meta.env.BASE_URL.replace(/\/$/, ""),
+  }
+);
 
 export default router;

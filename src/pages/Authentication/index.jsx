@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
@@ -64,7 +64,7 @@ function Index() {
       <div className="left-wrap">
         <div className="content-wrap">
           <h1 className="title">
-            Smarter Ports,
+            Smarter Port,
             <span>Stronger Operations.</span>
           </h1>
           <p className="des">
@@ -174,9 +174,9 @@ function Index() {
 
           {/* FORGOT PASSWORD */}
           <div className="forgot-wrap">
-            <a href="#/forget-password" className="link">
+            <Link to="/forget-password" className="link">
               Forgot password?
-            </a>
+            </Link>
           </div>
         </div>
       </div>
