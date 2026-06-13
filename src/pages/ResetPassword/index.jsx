@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useAuthReducer from "../../store/AuthReducer";
@@ -10,6 +11,8 @@ function ResetPassword() {
     const { resetPassword, isLoginLoading } = useAuthReducer();
     const [token, setToken] = useState(null);
     const [userId, setUserId] = useState(null);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const {
         register,
@@ -95,9 +98,9 @@ function ResetPassword() {
                                 {/* PASSWORD */}
                                 <div className="input-outer-wrap">
                                     <label className="label">New Password</label>
-                                    <div className="input-wrap">
+                                    <div className="input-wrap password-input-wrap">
                                         <input
-                                            type="password"
+                                            type={showNewPassword ? "text" : "password"}
                                             placeholder="Enter your new password"
                                             className="txt"
                                             {...register("new_password", {
@@ -108,6 +111,14 @@ function ResetPassword() {
                                                 },
                                             })}
                                         />
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            aria-label={showNewPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showNewPassword ? <FiEyeOff /> : <FiEye />}
+                                        </button>
 
                                         {errors.new_password && (
                                             <div className="error">{errors.new_password.message}</div>
@@ -118,9 +129,9 @@ function ResetPassword() {
                                 {/* CONFIRM PASSWORD */}
                                 <div className="input-outer-wrap">
                                     <label className="label">Confirm Password</label>
-                                    <div className="input-wrap">
+                                    <div className="input-wrap password-input-wrap">
                                         <input
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             placeholder="Confirm your new password"
                                             className="txt"
                                             {...register("confirmPassword", {
@@ -129,6 +140,14 @@ function ResetPassword() {
                                                     value === newPassword || "Passwords do not match",
                                             })}
                                         />
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                                        </button>
 
                                         {errors.confirmPassword && (
                                             <div className="error">{errors.confirmPassword.message}</div>
