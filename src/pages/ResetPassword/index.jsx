@@ -24,18 +24,18 @@ function ResetPassword() {
 
         if (tokenParam && userIdParam) {
             setToken(tokenParam);
-            setUserId(userIdParam);
+            setUserId(Number(userIdParam));
         }
     }, [searchParams]);
 
-    const password = watch("password");
+    const newPassword = watch("new_password");
 
     const onSubmit = async (data) => {
         if (token && userId) {
             const result = await resetPassword({
                 token,
                 user_id: userId,
-                new_password: data.password
+                new_password: data.new_password,
             });
 
             // Navigate to login page after successful reset
@@ -100,7 +100,7 @@ function ResetPassword() {
                                             type="password"
                                             placeholder="Enter your new password"
                                             className="txt"
-                                            {...register("password", {
+                                            {...register("new_password", {
                                                 required: "Password is required",
                                                 minLength: {
                                                     value: 6,
@@ -109,8 +109,8 @@ function ResetPassword() {
                                             })}
                                         />
 
-                                        {errors.password && (
-                                            <div className="error">{errors.password.message}</div>
+                                        {errors.new_password && (
+                                            <div className="error">{errors.new_password.message}</div>
                                         )}
                                     </div>
                                 </div>
@@ -126,7 +126,7 @@ function ResetPassword() {
                                             {...register("confirmPassword", {
                                                 required: "Please confirm your password",
                                                 validate: (value) =>
-                                                    value === password || "Passwords do not match",
+                                                    value === newPassword || "Passwords do not match",
                                             })}
                                         />
 
