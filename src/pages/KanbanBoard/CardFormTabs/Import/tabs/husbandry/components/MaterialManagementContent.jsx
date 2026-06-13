@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
+import "../../../../../../../design/scss/materialmanagement.scss";
 import CustomModal from "../../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import LocationAutocomplete from "./LocationAutocomplete";
