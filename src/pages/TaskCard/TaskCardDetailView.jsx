@@ -1,12 +1,103 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { FiX } from "react-icons/fi";
 import "../../design/scss/pages/taskCard.scss";
+import "../../design/scss/invoice.scss";
+import userService from "../../services/userService";
+
+const MENTION_TRIGGER_REGEX = /@([^\s@]*)$/;
+
+const mapUsersFromResponse = (rows) =>
+    (rows || []).map((row) => ({
+        user_id: row.user_id,
+        user_name: row.name ?? "",
+        avatar: row.avatar_path || row.avatar || null,
+    }));
 
 function TaskCardDetailView({ card, onClose }) {
-    const [comments, setComments] = useState("");
+    const textareaRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    const [commentText, setCommentText] = useState("");
     const [files, setFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
-    const fileInputRef = useRef(null);
+    const [users, setUsers] = useState([]);
+    const [mentionOpen, setMentionOpen] = useState(false);
+    const [mentionSearch, setMentionSearch] = useState("");
+    const [mentionStartIndex, setMentionStartIndex] = useState(null);
+    const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
+    const [isUsersLoading, setIsUsersLoading] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        setIsUsersLoading(true);
+        userService.getUsers({ params: { limit: 200 } })
+            .then(({ data }) => {
+                const list = data?.data || [];
+                if (!cancelled) setUsers(mapUsersFromResponse(list));
+            })
+            .catch(() => { if (!cancelled) setUsers([]); })
+            .finally(() => { if (!cancelled) setIsUsersLoading(false); });
+        return () => { cancelled = true; };
+    }, []);
+
+    const filteredUsers = useMemo(() => {
+        const term = mentionSearch.trim().toLowerCase();
+        if (!term) return users;
+        return users.filter((u) => (u.user_name || "").toLowerCase().includes(term));
+    }, [users, mentionSearch]);
+
+    const closeMentionDropdown = useCallback(() => {
+        setMentionOpen(false);
+        setMentionSearch("");
+        setMentionStartIndex(null);
+    }, []);
+
+    const handleCommentChange = useCallback((e) => {
+        const val = e.target.value;
+        setCommentText(val);
+
+        const cursor = e.target.selectionStart;
+        const textBefore = val.slice(0, cursor);
+        const match = textBefore.match(MENTION_TRIGGER_REGEX);
+        if (match) {
+            setMentionOpen(true);
+            setMentionSearch(match[1] || "");
+            setMentionStartIndex(cursor - match[0].length);
+        } else {
+            closeMentionDropdown();
+        }
+    }, [closeMentionDropdown]);
+
+    const handleSelectUser = useCallback((user) => {
+        if (mentionStartIndex === null) return;
+        const before = commentText.slice(0, mentionStartIndex);
+        const after = commentText.slice(mentionStartIndex + 1 + mentionSearch.length);
+        const inserted = `@${user.user_name} `;
+        const newText = before + inserted + after;
+        setCommentText(newText);
+        setSelectedMentionUserIds((prev) =>
+            prev.some((id) => String(id) === String(user.user_id)) ? prev : [...prev, user.user_id]
+        );
+        closeMentionDropdown();
+
+        setTimeout(() => {
+            const pos = before.length + inserted.length;
+            textareaRef.current?.focus();
+            textareaRef.current?.setSelectionRange(pos, pos);
+        }, 0);
+    }, [commentText, mentionSearch, mentionStartIndex, closeMentionDropdown]);
+
+    const handleSave = useCallback(() => {
+        if (!commentText.trim()) return;
+        console.log({
+            card_id: card?.id,
+            comment: commentText,
+            mentioned_users: selectedMentionUserIds,
+        });
+        setCommentText("");
+        setSelectedMentionUserIds([]);
+        closeMentionDropdown();
+    }, [card?.id, commentText, selectedMentionUserIds, closeMentionDropdown]);
 
     const handleDrop = (e) => {
         e.preventDefault();
@@ -39,15 +130,64 @@ function TaskCardDetailView({ card, onClose }) {
                                 </div>
 
                                 <div className="subtasks-tab-field">
-                                    <label className="subtasks-tab-label" htmlFor="stv-cf-comments">Comments</label>
-                                    <textarea
-                                        id="stv-cf-comments"
-                                        className="subtasks-tab-textarea"
-                                        rows={4}
-                                        placeholder="Add comments..."
-                                        value={comments}
-                                        onChange={(e) => setComments(e.target.value)}
-                                    />
+                                    <label className="subtasks-tab-label">Comments</label>
+                                    <div className="comments-tab-mention-host">
+                                        <textarea
+                                            ref={textareaRef}
+                                            className="subtasks-tab-textarea"
+                                            rows={4}
+                                            placeholder="Write a comment... (type @ to mention)"
+                                            value={commentText}
+                                            onChange={handleCommentChange}
+                                            onBlur={() => setTimeout(closeMentionDropdown, 150)}
+                                        />
+
+                                        {mentionOpen && (
+                                            <div
+                                                className="comments-tab-mention-dropdown"
+                                                role="listbox"
+                                                aria-label="Mention a user"
+                                            >
+                                                {isUsersLoading ? (
+                                                    <p className="comments-tab-mention-status">Loading users...</p>
+                                                ) : filteredUsers.length === 0 ? (
+                                                    <p className="comments-tab-mention-status">No users found</p>
+                                                ) : (
+                                                    filteredUsers.map((user) => (
+                                                        <button
+                                                            key={user.user_id}
+                                                            type="button"
+                                                            className="comments-tab-mention-option"
+                                                            role="option"
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            onClick={() => handleSelectUser(user)}
+                                                        >
+                                                            <span className="comments-tab-mention-avatar">
+                                                                {user.avatar ? (
+                                                                    <img src={user.avatar} alt="" />
+                                                                ) : (
+                                                                    <span className="comments-tab-mention-avatar-fallback">
+                                                                        {(user.user_name || "?").charAt(0).toUpperCase()}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                            <span className="comments-tab-mention-name">{user.user_name}</span>
+                                                        </button>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="comments-tab-save-row">
+                                        <button
+                                            type="button"
+                                            className="comments-tab-save-btn"
+                                            onClick={handleSave}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="subtasks-tab-field">
