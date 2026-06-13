@@ -6,16 +6,33 @@
 
 .attachments-content-wrapper {
   padding: 0;
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(15, 23, 42, 0.04);
-  overflow: hidden;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+
+  .attachments-library-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .attachments-panel {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+  }
+
+  .attachments-panel--checklist {
+    margin-top: 0;
+  }
 
   .attachments-list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
+    padding: 14px 20px;
     background: #fafbfc;
     border-bottom: 1px solid #eceef2;
   }
@@ -68,25 +85,47 @@
   .attachments-categories {
     display: flex;
     flex-direction: column;
-    gap: 22px;
-    padding: 20px 24px;
+    gap: 0;
+    padding: 0;
     min-height: 0;
   }
 
-  .attachment-category {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  .attachments-accordion-list {
+    gap: 0;
+  }
+
+  .attachment-category-accordion {
+    border-bottom: 1px solid #eceef2;
+
+    &:last-child {
+      border-bottom: none;
+    }
   }
 
   .attachment-category-header {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 8px 10px;
+    gap: 10px;
+    width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 14px 20px;
+    border: none;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: #f8fafc;
+    }
+  }
+
+  .attachment-category-accent {
+    width: 3px;
+    height: 20px;
+    background: var(--card-color, #4338ca);
+    border-radius: 3px;
+    flex-shrink: 0;
   }
 
   .attachment-category-label {
@@ -96,22 +135,57 @@
     margin: 0;
     letter-spacing: -0.01em;
     line-height: 1.35;
+    flex: 1;
+    min-width: 0;
   }
 
   .attachment-category-count-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 22px;
-    height: 22px;
+    min-width: 24px;
+    height: 24px;
     padding: 0 8px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: #64748b;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    color: #475569;
+    background: #eef2ff;
+    border: 1px solid #e0e7ff;
     border-radius: 999px;
     line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .attachment-category-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: #94a3b8;
+    flex-shrink: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .attachment-category-header:hover .attachment-category-chevron {
+    color: #64748b;
+  }
+
+  .attachment-category-body {
+    padding: 0 20px 16px 33px;
+  }
+
+  .attachment-category-empty {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  .attachment-category {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   /* Reports tab still uses plain count text in parentheses */
@@ -240,16 +314,16 @@
   }
 
   .attachment-action-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border: 1px solid #e8ecf2;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #f8fafc;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
     box-shadow: none;
     color: #64748b;
     padding: 0;
@@ -259,6 +333,8 @@
     background: #f1f5f9;
     border-color: #d4daf0;
     color: #475569;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
   }
 
   .attachment-action-btn.view {
@@ -324,14 +400,15 @@
     background: #ffffff;
     border: 1px solid #e8ecf2;
     border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.03);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     min-width: 0;
   }
 
   .attachment-card:hover {
     border-color: #d4daf0;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
   }
 
   .attachment-card-top {
@@ -395,12 +472,6 @@
     white-space: nowrap;
   }
 
-  @media (max-width: 1399px) {
-    .attachments-items.attachments-card-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
   @media (max-width: 991px) {
     .attachments-items.attachments-card-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -419,33 +490,81 @@
   }
 
   .checklist-section {
-    border-top: 1px solid #eceef2;
-    background: #fafbfc;
+    border-top: none;
+    background: #ffffff;
   }
 
-  .checklist-section .attachments-list-header {
-    background: #fafbfc;
+  .checklist-item-group {
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #f1f5f9;
+
+    &:first-child {
+      padding-top: 0;
+      margin-top: 0;
+      border-top: none;
+    }
   }
 
-  .checklist-section .attachments-categories {
-    background: #fafbfc;
-    padding-bottom: 22px;
+  .checklist-item-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .checklist-item-group-label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1.35;
+    flex: 1;
+    min-width: 0;
   }
 
   .checklist-doc-empty {
     margin: 0;
     font-size: 13px;
     color: #64748b;
-    padding: 6px 0 2px;
+    padding: 4px 0 2px;
     line-height: 1.5;
   }
 
   .attachments-empty-state {
     text-align: center;
-    padding: 36px 24px;
+    padding: 32px 24px 36px;
     color: #64748b;
     font-size: 14px;
     line-height: 1.55;
+  }
+
+  .attachments-empty-state--checklist {
+    padding: 40px 24px 44px;
+  }
+
+  .attachments-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .attachments-empty-title {
+    margin: 0 auto 6px;
+    max-width: 360px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1.4;
+  }
+
+  .attachments-empty-subtitle {
+    margin: 0 auto;
+    max-width: 360px;
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.5;
   }
 
   .attachments-empty-state p {
@@ -456,15 +575,20 @@
   }
 
   @media (max-width: 640px) {
-    border-radius: 12px;
-
-    .attachments-list-header {
-      padding: 14px 18px;
+    .attachments-panel {
+      border-radius: 12px;
     }
 
-    .attachments-categories {
-      padding: 16px 18px;
-      gap: 18px;
+    .attachments-list-header {
+      padding: 12px 16px;
+    }
+
+    .attachment-category-header {
+      padding: 12px 16px;
+    }
+
+    .attachment-category-body {
+      padding: 0 16px 14px 29px;
     }
 
     .attachment-item {

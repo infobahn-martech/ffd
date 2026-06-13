@@ -10,6 +10,81 @@ const toTitleCase = (value = "") =>
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const DOCUMENT_LIBRARY_CATEGORIES = [
+  { id: "call_file_open", label: "Call File Open" },
+  { id: "pre_arrival", label: "Pre Arrival" },
+  { id: "arrival", label: "Arrival" },
+  { id: "departure", label: "Departure" },
+];
+
+const normalizeCategoryId = (category = "") => {
+  const compact = String(category).toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  if (compact.includes("callfileopen") || compact === "callfile") return "call_file_open";
+  if (compact.includes("prearrival")) return "pre_arrival";
+  if (compact.includes("departure")) return "departure";
+  if (compact.includes("arrival")) return "arrival";
+
+  const labelMatch = DOCUMENT_LIBRARY_CATEGORIES.find(
+    (entry) => entry.label.toLowerCase() === String(category).trim().toLowerCase()
+  );
+  if (labelMatch) return labelMatch.id;
+
+  return null;
+};
+
+const ChevronIcon = ({ expanded }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden
+  >
+    {expanded ? (
+      <path
+        d="M4.5 11.25L9 6.75L13.5 11.25"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ) : (
+      <path
+        d="M4.5 6.75L9 11.25L13.5 6.75"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    )}
+  </svg>
+);
+
+ChevronIcon.propTypes = {
+  expanded: PropTypes.bool.isRequired,
+};
+
+const ChecklistEmptyIllustration = () => (
+  <div className="attachments-empty-icon" aria-hidden>
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="14" y="20" width="44" height="34" rx="6" fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="1.5" />
+      <path d="M14 28H58" stroke="#C7D2FE" strokeWidth="1.5" />
+      <path
+        d="M22 18H34L38 22H58C59.1046 22 60 22.8954 60 24V54C60 55.1046 59.1046 56 58 56H14C12.8954 56 12 55.1046 12 54V20C12 18.8954 12.8954 18 14 18H22Z"
+        fill="#F8FAFC"
+        stroke="#CBD5E1"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <rect x="24" y="34" width="24" height="14" rx="2" fill="#E0E7FF" stroke="#A5B4FC" strokeWidth="1.2" />
+      <path d="M28 41H44" stroke="#818CF8" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M28 45H40" stroke="#A5B4FC" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  </div>
+);
+
 const AttachmentItem = ({ attachment, onView, onDownload }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
@@ -220,29 +295,51 @@ AttachmentItem.propTypes = {
   onDownload: PropTypes.func,
 };
 
-const AttachmentCategory = ({ label, attachments, onView, onDownload }) => {
-  if (!attachments || attachments.length === 0) {
-    return null;
-  }
+const AttachmentCategory = ({
+  label,
+  attachments = [],
+  onView,
+  onDownload,
+  isExpanded = false,
+  onToggle,
+}) => {
+  const count = attachments.length;
 
   return (
-    <div className="attachment-category">
-      <div className="attachment-category-header">
+    <div className={`attachment-category-accordion${isExpanded ? " is-expanded" : " is-collapsed"}`}>
+      <button
+        type="button"
+        className="attachment-category-header"
+        onClick={onToggle}
+        aria-expanded={isExpanded}
+      >
+        <span className="attachment-category-accent" aria-hidden />
         <h4 className="attachment-category-label">{label}</h4>
-        <span className="attachment-category-count-badge" aria-label={`${attachments.length} file(s)`}>
-          {attachments.length}
+        <span className="attachment-category-count-badge" aria-label={`${count} file(s)`}>
+          {count}
         </span>
-      </div>
-      <div className="attachments-items attachments-card-grid">
-        {attachments.map((attachment, idx) => (
-          <AttachmentItem
-            key={attachment.id != null ? String(attachment.id) : `att-${idx}`}
-            attachment={attachment}
-            onView={onView}
-            onDownload={onDownload}
-          />
-        ))}
-      </div>
+        <span className="attachment-category-chevron">
+          <ChevronIcon expanded={isExpanded} />
+        </span>
+      </button>
+      {isExpanded && (
+        <div className="attachment-category-body">
+          {count === 0 ? (
+            <p className="attachment-category-empty">No documents in this category.</p>
+          ) : (
+            <div className="attachments-items attachments-card-grid">
+              {attachments.map((attachment, idx) => (
+                <AttachmentItem
+                  key={attachment.id != null ? String(attachment.id) : `att-${idx}`}
+                  attachment={attachment}
+                  onView={onView}
+                  onDownload={onDownload}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -262,51 +359,54 @@ AttachmentCategory.propTypes = {
   ),
   onView: PropTypes.func,
   onDownload: PropTypes.func,
+  isExpanded: PropTypes.bool,
+  onToggle: PropTypes.func,
 };
 
 const AttachmentList = ({ attachments, onView, onDownload }) => {
-  // Group attachments by category/label
   const groupedAttachments = useMemo(() => {
-    if (!attachments || attachments.length === 0) {
-      return {};
-    }
+    const grouped = DOCUMENT_LIBRARY_CATEGORIES.reduce((acc, category) => {
+      acc[category.id] = [];
+      return acc;
+    }, {});
 
-    const grouped = {};
-    attachments.forEach((attachment) => {
-      const category = attachment.category || "Other Documents";
-      if (!grouped[category]) {
-        grouped[category] = [];
-      }
-      grouped[category].push(attachment);
+    (attachments || []).forEach((attachment) => {
+      const categoryId =
+        normalizeCategoryId(attachment.category) ||
+        normalizeCategoryId(toTitleCase(String(attachment.category || "").trim())) ||
+        "call_file_open";
+      grouped[categoryId].push(attachment);
     });
 
     return grouped;
   }, [attachments]);
 
-  if (!attachments || attachments.length === 0) {
-    return (
-      <div className="attachments-list">
-        <div className="attachments-categories">
-          <div className="attachments-empty-state">
-            <p>No attachments added.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const [expandedCategories, setExpandedCategories] = useState(() =>
+    DOCUMENT_LIBRARY_CATEGORIES.reduce((acc, category, index) => {
+      acc[category.id] = index === 0;
+      return acc;
+    }, {})
+  );
 
-  const categories = Object.keys(groupedAttachments);
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
+  };
 
   return (
     <div className="attachments-list">
-      <div className="attachments-categories">
-        {categories.map((category) => (
+      <div className="attachments-categories attachments-accordion-list">
+        {DOCUMENT_LIBRARY_CATEGORIES.map((category) => (
           <AttachmentCategory
-            key={category}
-            label={toTitleCase(category.trim())}
-            attachments={groupedAttachments[category]}
+            key={category.id}
+            label={category.label}
+            attachments={groupedAttachments[category.id]}
             onView={onView}
             onDownload={onDownload}
+            isExpanded={Boolean(expandedCategories[category.id])}
+            onToggle={() => toggleCategory(category.id)}
           />
         ))}
       </div>
@@ -331,50 +431,80 @@ AttachmentList.propTypes = {
 };
 
 const ChecklistList = ({ checklistItems, onView, onDownload }) => {
-  if (!checklistItems || checklistItems.length === 0) {
-    return (
-      <div className="attachments-list">
-        <div className="attachments-categories">
-          <div className="attachments-empty-state">
-            <p>No checklist items or documents.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const [isExpanded, setIsExpanded] = useState(true);
+  const items = checklistItems || [];
+  const totalDocuments = items.reduce(
+    (sum, item) => sum + (Array.isArray(item.documents) ? item.documents.length : 0),
+    0
+  );
+  const isEmpty = items.length === 0;
 
   return (
     <div className="attachments-list">
-      <div className="attachments-categories">
-        {checklistItems.map((item) => {
-          const rawName = item.itemName?.trim() || "—";
-          const label = toTitleCase(rawName);
-          const documents = item.documents || [];
-          return (
-            <div key={String(item.id)} className="attachment-category">
-              <div className="attachment-category-header">
-                <h4 className="attachment-category-label">{label}</h4>
-                <span className="attachment-category-count-badge" aria-label={`${documents.length} file(s)`}>
-                  {documents.length}
-                </span>
-              </div>
-              <div className="attachments-items attachments-card-grid">
-                {documents.length === 0 ? (
-                  <p className="checklist-doc-empty">No documents uploaded.</p>
-                ) : (
-                  documents.map((doc, idx) => (
-                    <AttachmentItem
-                      key={doc.id != null ? String(doc.id) : `chk-doc-${String(item.id)}-${idx}`}
-                      attachment={doc}
-                      onView={onView}
-                      onDownload={onDownload}
-                    />
-                  ))
-                )}
-              </div>
+      <div className="attachments-categories attachments-accordion-list">
+        <div className={`attachment-category-accordion${isExpanded ? " is-expanded" : " is-collapsed"}`}>
+          <button
+            type="button"
+            className="attachment-category-header"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            aria-expanded={isExpanded}
+          >
+            <span className="attachment-category-accent" aria-hidden />
+            <h4 className="attachment-category-label">Checklist</h4>
+            <span className="attachment-category-count-badge" aria-label={`${totalDocuments} file(s)`}>
+              {totalDocuments}
+            </span>
+            <span className="attachment-category-chevron">
+              <ChevronIcon expanded={isExpanded} />
+            </span>
+          </button>
+          {isExpanded && (
+            <div className="attachment-category-body">
+              {isEmpty ? (
+                <div className="attachments-empty-state attachments-empty-state--checklist">
+                  <ChecklistEmptyIllustration />
+                  <p className="attachments-empty-title">No checklist items or documents.</p>
+                  <p className="attachments-empty-subtitle">
+                    Add checklist items or upload documents to get started.
+                  </p>
+                </div>
+              ) : (
+                items.map((item) => {
+                  const rawName = item.itemName?.trim() || "—";
+                  const label = toTitleCase(rawName);
+                  const documents = item.documents || [];
+                  return (
+                    <div key={String(item.id)} className="checklist-item-group">
+                      <div className="checklist-item-group-header">
+                        <h5 className="checklist-item-group-label">{label}</h5>
+                        <span
+                          className="attachment-category-count-badge"
+                          aria-label={`${documents.length} file(s)`}
+                        >
+                          {documents.length}
+                        </span>
+                      </div>
+                      {documents.length === 0 ? (
+                        <p className="checklist-doc-empty">No documents uploaded.</p>
+                      ) : (
+                        <div className="attachments-items attachments-card-grid">
+                          {documents.map((doc, idx) => (
+                            <AttachmentItem
+                              key={doc.id != null ? String(doc.id) : `chk-doc-${String(item.id)}-${idx}`}
+                              attachment={doc}
+                              onView={onView}
+                              onDownload={onDownload}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -635,55 +765,51 @@ function DocumentLibrary({ card, formValues }) {
   return (
     <div className="cardform-body">
       <div className="cardform-left-full attachments-content-wrapper" style={{ "--card-color": cardColor }}>
-        <div className="attachments-list-header">
-          <h3 className="attachments-list-title">
-            <span className="attachments-list-title-bar" aria-hidden />
-            <span className="attachments-list-title-text">Attachment List</span>
-          </h3>
-        </div>
-        {!callId ? (
-          <div className="attachments-list">
-            <div className="attachments-categories">
-              <div className="attachments-empty-state">
-                <p>No call identifier available for attachments.</p>
-              </div>
+        <div className="attachments-library-layout">
+          <section className="attachments-panel attachments-panel--main">
+            <div className="attachments-list-header">
+              <h3 className="attachments-list-title">
+                <span className="attachments-list-title-bar" aria-hidden />
+                <span className="attachments-list-title-text">Attachment List</span>
+              </h3>
             </div>
-          </div>
-        ) : loading ? (
-          <CardTabListLoading message="Loading attachments…" cardColor={cardColor} />
-        ) : error ? (
-          <div className="attachments-list">
-            <div className="attachments-categories">
-              <div className="attachments-empty-state">
-                <p>{error}</p>
+            {!callId ? (
+              <div className="attachments-list">
+                <div className="attachments-categories">
+                  <div className="attachments-empty-state">
+                    <p>No call identifier available for attachments.</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <AttachmentList
-              attachments={attachments}
-              onView={handleView}
-              onDownload={handleDownload}
-            />
-            <div className="">
-              <div className="attachments-list-header">
-                <h3 className="attachments-list-title">
-                  <span className="attachments-list-title-bar" aria-hidden />
-                  <span className="attachments-list-title-text">Checklist</span>
-                  {/* <span className="attachments-section-badge" aria-label={`${checklistItems.length} checklist items`}>
-                    {checklistItems.length}
-                  </span> */}
-                </h3>
+            ) : loading ? (
+              <CardTabListLoading message="Loading attachments…" cardColor={cardColor} />
+            ) : error ? (
+              <div className="attachments-list">
+                <div className="attachments-categories">
+                  <div className="attachments-empty-state">
+                    <p>{error}</p>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <AttachmentList
+                attachments={attachments}
+                onView={handleView}
+                onDownload={handleDownload}
+              />
+            )}
+          </section>
+
+          {!loading && !error && callId && (
+            <section className="attachments-panel attachments-panel--checklist checklist-section">
               <ChecklistList
                 checklistItems={checklistItems}
                 onView={handleView}
                 onDownload={handleDownload}
               />
-            </div>
-          </>
-        )}
+            </section>
+          )}
+        </div>
       </div>
     </div>
   );
