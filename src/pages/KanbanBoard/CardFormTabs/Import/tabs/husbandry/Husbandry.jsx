@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../../../../../../design/scss/operations.scss";
 import "../../../../../../design/scss/table-common.scss";
+import "../../../../../../design/scss/materialmanagement.scss";
 
 // Import constants
 import {
