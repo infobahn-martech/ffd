@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import CommonService from '../services/commonService';
+import userService from '../services/userService';
 import useAlertReducer from './AlertReducer';
 
 const useCommonReducer = create((set) => ({
@@ -10,6 +11,8 @@ const useCommonReducer = create((set) => ({
     totalPortCount: null,
     nationalities: [],
     nationalitiesLoading: false,
+    users: [],
+    usersLoading: false,
     getCallTypes: async () => {
         try {
             set({ isLoading: true });
@@ -56,6 +59,25 @@ const useCommonReducer = create((set) => ({
                 isLoading: false,
             });
             showError(error?.response?.data?.message || error.message || 'Failed to fetch ports');
+        }
+    },
+    getUsers: async ({ params } = {}) => {
+        try {
+            set({ usersLoading: true });
+            const { data } = await userService.getUsers({
+                params: { limit: 200, page: 1, ...params },
+            });
+            const list = data?.data ?? [];
+            set({
+                users: Array.isArray(list) ? list : [],
+                usersLoading: false,
+            });
+        } catch (error) {
+            set({
+                users: [],
+                usersLoading: false,
+                errorMessage: error?.response?.data?.message || error.message,
+            });
         }
     },
 }));

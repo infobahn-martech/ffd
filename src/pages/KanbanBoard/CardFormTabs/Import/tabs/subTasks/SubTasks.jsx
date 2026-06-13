@@ -1,25 +1,25 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 import DatePickerField from "../../../shared/components/DatePickerField";
+import useCommonReducer from "../../../../../../store/CommonReducer";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/css/common/CardForm.css";
 
-const DUMMY_USERS = [
-    { user_id: 1, user_name: "Sarah Mitchell", avatar: null },
-    { user_id: 2, user_name: "James Chen", avatar: null },
-    { user_id: 3, user_name: "Elena Rodriguez", avatar: null },
-    { user_id: 4, user_name: "Omar Hassan", avatar: null },
-];
+const isActiveUser = (user) =>
+    String(user?.user_status ?? "").toLowerCase() === "active" || String(user?.status) === "1";
 
-const USER_OPTIONS = DUMMY_USERS.map((user) => ({
+const mapUserToAssignee = (user) => ({
+    user_id: user.user_id,
+    user_name: user.name ?? "",
+    avatar: user.avatar_path || user.avatar || null,
+});
+
+const mapUserToOption = (user) => ({
     value: String(user.user_id),
-    label: user.user_name,
-    avatar: user.avatar,
-}));
-
-const getUserById = (userId) =>
-    DUMMY_USERS.find((user) => String(user.user_id) === String(userId)) ?? null;
+    label: user.name ?? "",
+    avatar: user.avatar_path || user.avatar || null,
+});
 
 const UserOptionAvatar = ({ avatarUrl, label, className = "" }) => {
     const letterSource = label != null ? String(label).trim() : "";
@@ -62,8 +62,35 @@ function Subtasks({ card }) {
     const [assignUserId, setAssignUserId] = useState("");
     const [dueDate, setDueDate] = useState("");
 
+    const users = useCommonReducer((state) => state.users);
+    const usersLoading = useCommonReducer((state) => state.usersLoading);
+    const getUsers = useCommonReducer((state) => state.getUsers);
+
+    const activeUsers = useMemo(
+        () => (Array.isArray(users) ? users.filter(isActiveUser) : []),
+        [users]
+    );
+
+    const userOptions = useMemo(
+        () => activeUsers.map(mapUserToOption),
+        [activeUsers]
+    );
+
+    const getUserById = useCallback(
+        (userId) => {
+            const user = activeUsers.find((item) => String(item.user_id) === String(userId));
+            return user ? mapUserToAssignee(user) : null;
+        },
+        [activeUsers]
+    );
+
+    useEffect(() => {
+        if (users.length > 0 || usersLoading) return;
+        getUsers({ params: { limit: 200 } });
+    }, [users.length, usersLoading, getUsers]);
+
     const hasTasks = tasks.length > 0;
-    const selectedAssignee = useMemo(() => getUserById(assignUserId), [assignUserId]);
+    const selectedAssignee = useMemo(() => getUserById(assignUserId), [assignUserId, getUserById]);
 
     const resetForm = useCallback(() => {
         setTitle("");
@@ -96,7 +123,7 @@ function Subtasks({ card }) {
             assign_user_id: assignUserId || null,
             due_date: dueDate || null,
         });
-    }, [title, assignUserId, dueDate, card, resetForm]);
+    }, [title, assignUserId, dueDate, card, resetForm, getUserById]);
 
     const handleToggleStatus = useCallback((taskId) => {
         setTasks((prev) =>
@@ -144,9 +171,10 @@ function Subtasks({ card }) {
                                                 className="cf-owner-searchable-select subtasks-tab-assignee-select"
                                                 value={assignUserId === "" ? "" : String(assignUserId)}
                                                 onChange={(event) => setAssignUserId(event.target.value)}
-                                                options={USER_OPTIONS}
-                                                placeholder="Select user"
+                                                options={userOptions}
+                                                placeholder={usersLoading ? "Loading users..." : "Select user"}
                                                 searchPlaceholder={deriveSearchPlaceholder("Select user")}
+                                                disabled={usersLoading}
                                                 renderOption={(option) => (
                                                     <div className="cf-searchable-option-with-avatar">
                                                         <UserOptionAvatar
