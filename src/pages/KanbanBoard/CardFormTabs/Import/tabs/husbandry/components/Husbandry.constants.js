@@ -24,5 +24,6 @@ export const MATERIAL_MANAGEMENT_SUBTABS = {
   INBOUND_ORDERS: "inboundOrders",
   LANDING_NOTE: "landingNote",
   DISPATCH_NOTE: "dispatchNote",
+  ORDER_HISTORY: "orderHistory",
 };
 
