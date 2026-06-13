@@ -177,6 +177,7 @@ const router = createHashRouter([
               { path: "/", element: <Login /> },
               { path: "/forget-password", element: <ForgetPassword /> },
               { path: "/reset-password", element: <ResetPassword /> },
+              { path: "/users/reset_password_form", element: <ResetPassword /> },
             ],
           },
 
