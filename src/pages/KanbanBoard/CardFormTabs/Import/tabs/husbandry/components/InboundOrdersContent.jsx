@@ -928,6 +928,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         .then(({ data }) => {
           const detail = data?.data;
           if (!detail) return;
+          const detailMinDate = nextDayOf(detail.inbound_date || detail.date);
+          if (detailMinDate) setConvertMinDate(detailMinDate);
           const orders = buildConvertOrders(detail.items);
           if (orders) {
             const exp = {};

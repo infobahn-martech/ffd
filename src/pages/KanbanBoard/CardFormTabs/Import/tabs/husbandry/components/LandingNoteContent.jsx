@@ -564,6 +564,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         cb: (detail) => {
           setIsLoadingConvertDetail(false);
           if (!detail) return;
+          const detailMinDate = nextDayOf(detail.landing_date || detail.date);
+          if (detailMinDate) setConvertMinDate(detailMinDate);
           const normalizedDetail = mapLandingNoteForDisplay(detail);
           const detailOrders = buildDispatchConvertOrders(normalizedDetail, vehicleOptions, locationOptions, driverOptions);
           const detailExp = {};
