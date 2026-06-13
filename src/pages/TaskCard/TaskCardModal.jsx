@@ -221,7 +221,7 @@ function TaskCardModal({ show, onClose }) {
                             <SearchableSelect
                                 className="cf-owner-searchable-select"
                                 value={assignUserId === "" ? "" : String(assignUserId)}
-                                onChange={(val) => setAssignUserId(val)}
+                                onChange={(e) => setAssignUserId(e.target.value)}
                                 options={userOptions}
                                 placeholder="Select user"
                                 searchPlaceholder={deriveSearchPlaceholder("Select user")}
