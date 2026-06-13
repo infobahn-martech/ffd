@@ -69,6 +69,15 @@ export function buildApiDateTimeIso(dateStr, timeStr) {
   return `${datePart}T${hh}:${mm}:00`;
 }
 
+export function nextDayOf(rawDate) {
+  const datePart = (rawDate || "").split(" ")[0].split("T")[0];
+  if (!datePart) return undefined;
+  const d = new Date(`${datePart}T00:00:00`);
+  if (isNaN(d.getTime())) return undefined;
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function formatDisplayDateTime(raw, separateTime) {
   const { date, time } = splitApiDateTimeParts(raw, separateTime);
   if (!date) return "";

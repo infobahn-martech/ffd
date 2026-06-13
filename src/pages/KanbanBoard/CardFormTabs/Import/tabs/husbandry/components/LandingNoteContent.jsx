@@ -5,7 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
-import { splitApiDateTimeParts } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
+import { splitApiDateTimeParts, nextDayOf } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import LocationAutocomplete from "./LocationAutocomplete";
 import MaterialTablePagination from "./MaterialTablePagination";
@@ -302,6 +302,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [notesList, setNotesList] = useState([]);
   const [editingNote, setEditingNote] = useState(null);
   const [convertingNote, setConvertingNote] = useState(null);
+  const [convertMinDate, setConvertMinDate] = useState(undefined);
   const [viewingNote, setViewingNote] = useState(null);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
@@ -536,6 +537,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleConvertToDispatch = (note) => {
     handleCloseDropdown();
     setConvertingNote(note);
+    setConvertMinDate(nextDayOf(note.landing_date || note.date));
     const orders = buildDispatchConvertOrders(note, vehicleOptions, locationOptions, driverOptions);
     const warehouseId = note?.warehouse_id ?? note?.warehouse ?? "";
     const exp = {};
@@ -581,6 +583,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseConvertModal = () => {
     setShowConvertModal(false);
     setConvertingNote(null);
+    setConvertMinDate(undefined);
     setConvertFormErrors({});
     setIsLoadingConvertDetail(false);
     setConvertFormData({
@@ -1260,6 +1263,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     dateFieldName="dispatch_date"
                     timeFieldName="dispatch_time"
                     placeholder="YYYY-MM-DD hh:mm"
+                    minDate={convertMinDate}
                   />
                   {convertFormErrors.dispatch_date && <span className="landing-convert-error">{convertFormErrors.dispatch_date}</span>}
                 </FormField>
