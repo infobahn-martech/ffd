@@ -7,12 +7,16 @@ import { HotelModal } from "./Modals/AddEditHotel";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
+// ✅ CHANGE THIS IMPORT PATH based on your project structure
 import useHotelReducer from "../../store/HotelReducer";
+// ex: "../../stores/HotelReducer"
 
 const Hotel = () => {
+    // ✅ Store / API
     const { getHotelData, hotelData, isLoading, totalHotelCount, deleteHotel } =
         useHotelReducer((state) => state);
 
+    // ✅ Table params
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
@@ -21,10 +25,12 @@ const Hotel = () => {
         sortOrder: 1, // 1 = ASC, -1 = DESC
     });
 
-    const [showHotelModal, setShowHotelModal] = useState(false); // boolean OR row object for edit
+    // ✅ Modals
+    const [showHotelModal, setShowHotelModal] = useState(false); // boolean OR row object
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
+    // ✅ Fetch list when params change
     useEffect(() => {
         getHotelData?.({
             search: params.searchTerm || "",
@@ -42,6 +48,7 @@ const Hotel = () => {
         getHotelData,
     ]);
 
+    // ✅ Debounced search
     const debouncedSearch = useMemo(
         () =>
             debounce((value) => {
@@ -126,9 +133,14 @@ const Hotel = () => {
     };
 
     const handleDelete = async () => {
-        if (!selectedRow?.hotel_id) return;
+        if (!selectedRow?._id) return;
 
-        await deleteHotel?.({ hotel_id: selectedRow.hotel_id });
+        // ✅ adjust this payload key based on your backend
+        const payload = { hotel_id: selectedRow._id };
+
+        // If your deleteData expects only id:
+        // await deleteData(selectedRow._id);
+        await deleteHotel?.(payload);
 
         setShowDeleteModal(false);
         setSelectedRow(null);
