@@ -93,14 +93,88 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
   };
 
   const services = [
-    { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
-    // { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
-    { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
-    { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal", icon: "document" },
-    { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
-    { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal", icon: "renewal" },
-    { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services", icon: "document" },
+    {
+      id: MAIN_TABS.CREW_MANAGEMENT,
+      label: "Crew Management",
+      icon: "clock",
+      summary: "Crew transport, hotel, medical and launch hire support.",
+      metaInfo: "3 requests",
+      quickNote: "Fast booking",
+      bookedLabel: "Booked",
+      bookedSummary: "Coordinate crew movement, accommodation and welfare services.",
+    },
+    {
+      id: MAIN_TABS.MATERIAL_MANAGEMENT,
+      label: "Material Management",
+      icon: "document",
+      summary: "Inbound orders, landing note and dispatch note handling.",
+      metaInfo: "2 pending",
+      quickNote: "Auto updates",
+      bookedLabel: "Booked",
+      bookedSummary: "Track vessel material flow from intake to final dispatch.",
+    },
+    {
+      id: MAIN_TABS.WASTE_DISPOSAL,
+      label: "Waste Disposal",
+      icon: "document",
+      summary: "Waste request initiation and disposal progress tracking.",
+      metaInfo: "4 tasks",
+      quickNote: "Compliant",
+      bookedLabel: "Booked",
+      bookedSummary: "Ensure regulated pickup and transparent disposal follow-up.",
+    },
+    {
+      id: "LAUNCH_HIRE",
+      label: "Launch Hire",
+      icon: "document",
+      summary: "Launch booking, transfer coordination and movement support.",
+      metaInfo: "Priority lane",
+      quickNote: "24/7 support",
+      bookedLabel: "Booked",
+      bookedSummary: "Arrange transfer windows with optimized launch availability.",
+    },
+    {
+      id: MAIN_TABS.MWP_RENEWAL,
+      label: "MWP Renewal",
+      icon: "renewal",
+      summary: "Monitor MWP renewal requests and expected completion updates.",
+      metaInfo: "1 expiring",
+      quickNote: "Proactive alerts",
+      bookedLabel: "Booked",
+      bookedSummary: "Keep permits current with proactive renewal processing.",
+    },
+    {
+      id: MAIN_TABS.THIRD_PARTY_SERVICES,
+      label: "Third-Party Services",
+      icon: "document",
+      summary: "Raise and monitor external vendor service requests.",
+      metaInfo: "Vendor ready",
+      quickNote: "Unified view",
+      bookedLabel: "Booked",
+      bookedSummary: "Manage third-party support under a single service view.",
+    },
   ];
+
+  const totalServices = services.length;
+  const bookedCount = bookedServices.length;
+  const pendingCount = bookedServices.filter(
+    (service) => (service.status || "Pending") === "Pending"
+  ).length;
+  const completedCount = bookedServices.filter(
+    (service) => (service.status || "Pending") === "Completed"
+  ).length;
+
+  const dashboardSummaryCards = [
+    { label: "Total Services", value: totalServices, helper: "Available now" },
+    { label: "Booked Services", value: bookedCount, helper: "Added to workflow" },
+    { label: "Pending", value: pendingCount, helper: "Awaiting action" },
+    { label: "Completed", value: completedCount, helper: "Successfully closed" },
+  ];
+
+  const serviceMap = services.reduce((acc, service) => {
+    acc[service.id] = service;
+    return acc;
+  }, {});
 
   const getServiceIcon = (iconType) => {
     switch (iconType) {
@@ -143,7 +217,24 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
       <div className="husbandry-service-selection-content">
-        <h2 className="husbandry-service-selection-title">What services do you need?</h2>
+        <div className="husbandry-service-hero">
+          <p className="husbandry-service-hero-eyebrow">Husbandry Dashboard</p>
+          <h2 className="husbandry-service-selection-title">What services do you need?</h2>
+          <p className="husbandry-service-hero-subtitle">
+            Select a service to initiate requests, monitor progress and keep vessel support activities in one place.
+          </p>
+        </div>
+
+        <div className="husbandry-service-summary-grid">
+          {dashboardSummaryCards.map((card) => (
+            <div key={card.label} className="husbandry-service-summary-card">
+              <span className="husbandry-service-summary-label">{card.label}</span>
+              <span className="husbandry-service-summary-value">{card.value}</span>
+              <span className="husbandry-service-summary-helper">{card.helper}</span>
+            </div>
+          ))}
+        </div>
+
         <div className="husbandry-service-scroll-wrapper">
           {showLeftArrow && (
             <button
@@ -171,13 +262,21 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
                   <div className="husbandry-service-option-icon">
                     {getServiceIcon(service.icon)}
                   </div>
-                  <span className="husbandry-service-option-label">{service.label}</span>
+                  <div className="husbandry-service-option-content">
+                    <span className="husbandry-service-option-label">{service.label}</span>
+                    <p className="husbandry-service-option-summary">{service.summary}</p>
+                  </div>
+                  <div className="husbandry-service-option-footer">
+                    <span className="husbandry-service-option-meta">{service.metaInfo}</span>
+                    <span className="husbandry-service-option-note">{service.quickNote}</span>
+                  </div>
                   {isBooked && (
-                    <div className="husbandry-service-booked-badge">
-                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="husbandry-service-booked-badge" aria-label={`${service.label} already booked`}>
+                      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="10" cy="10" r="9" fill="#00B894" stroke="#00B894" strokeWidth="2" />
                         <path d="M6 10L9 13L14 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
+                      {service.bookedLabel}
                     </div>
                   )}
                 </button>
@@ -206,15 +305,18 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
                 <div key={service.id} className="husbandry-booked-service-item">
                   <div className="husbandry-booked-service-info">
                     <div className="husbandry-booked-service-icon">
-                      {getServiceIcon(services.find(s => s.id === service.id)?.icon || "document")}
+                      {getServiceIcon(serviceMap[service.id]?.icon || "document")}
                     </div>
                     <div className="husbandry-booked-service-details">
                       <span className="husbandry-booked-service-name">
-                        {services.find(s => s.id === service.id)?.label || service.id}
+                        {serviceMap[service.id]?.label || service.id}
                       </span>
-                      {service.subService && (
-                        <span className="husbandry-booked-service-sub">{service.subService}</span>
-                      )}
+                      <span className="husbandry-booked-service-sub">
+                        {service.subService || "General service workflow"}
+                      </span>
+                      <span className="husbandry-booked-service-summary">
+                        {serviceMap[service.id]?.bookedSummary || "Service request has been initiated."}
+                      </span>
                     </div>
                   </div>
                   <div className={`husbandry-booked-service-status ${getStatusBadgeClass(service.status)}`}>
