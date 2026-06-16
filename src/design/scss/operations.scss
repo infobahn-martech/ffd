@@ -837,7 +837,7 @@ $send-report-optional: #80868b;
   justify-content: center;
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
   min-height: 0;
   /* Allow flex child to shrink */
 
@@ -849,6 +849,7 @@ $send-report-optional: #80868b;
   max-width: 1200px;
   width: 100%;
   text-align: center;
+  overflow: visible;
 }
 
 .husbandry-service-hero {
@@ -937,37 +938,41 @@ $send-report-optional: #80868b;
 .husbandry-service-scroll-wrapper {
   position: relative;
   width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 8px;
-  /* Add top/bottom padding to accommodate hover transform and prevent border clipping */
+  padding: 8px 0;
   overflow: visible;
-  /* Ensure hover effects are not clipped */
+}
+
+.husbandry-service-scroll-viewport {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 6px 0;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .husbandry-service-options-row {
   display: flex;
   flex-direction: row;
   gap: 18px;
-  width: 100%;
+  width: max-content;
   align-items: stretch;
   flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  /* Firefox */
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  padding: 6px 0;
-  /* Add padding to accommodate hover transform and prevent border clipping */
+  padding: 2px 12px;
+}
 
-  &::-webkit-scrollbar {
-    display: none;
-    /* Chrome, Safari, Opera */
-  }
+.husbandry-service-scroll-wrapper.has-left-arrow .husbandry-service-options-row {
+  padding-left: 52px;
+}
+
+.husbandry-service-scroll-wrapper.has-right-arrow .husbandry-service-options-row {
+  padding-right: 52px;
 }
 
 .husbandry-service-option {
@@ -1240,7 +1245,9 @@ $send-report-optional: #80868b;
 
 /* Scroll Buttons */
 .husbandry-scroll-button {
-  flex-shrink: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -1251,19 +1258,22 @@ $send-report-optional: #80868b;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 54, 140, 0.15);
 
   &:hover {
     background: var(--card-color, #00368c);
     color: #ffffff;
-    transform: scale(1.1);
+    transform: translateY(-50%) scale(1.08);
     box-shadow: 0 4px 12px rgba(0, 54, 140, 0.25);
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: translateY(-50%) scale(0.96);
   }
 
   svg {
@@ -1272,9 +1282,25 @@ $send-report-optional: #80868b;
   }
 }
 
+.husbandry-scroll-button-left {
+  left: 10px;
+}
+
+.husbandry-scroll-button-right {
+  right: 10px;
+}
+
 @media (max-width: 992px) {
   .husbandry-service-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .husbandry-service-scroll-wrapper.has-left-arrow .husbandry-service-options-row {
+    padding-left: 48px;
+  }
+
+  .husbandry-service-scroll-wrapper.has-right-arrow .husbandry-service-options-row {
+    padding-right: 48px;
   }
 
   .husbandry-service-options-row {
@@ -1298,6 +1324,14 @@ $send-report-optional: #80868b;
       height: 18px;
     }
   }
+
+  .husbandry-scroll-button-left {
+    left: 8px;
+  }
+
+  .husbandry-scroll-button-right {
+    right: 8px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1308,6 +1342,14 @@ $send-report-optional: #80868b;
   .husbandry-service-summary-grid {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .husbandry-service-scroll-wrapper.has-left-arrow .husbandry-service-options-row {
+    padding-left: 44px;
+  }
+
+  .husbandry-service-scroll-wrapper.has-right-arrow .husbandry-service-options-row {
+    padding-right: 44px;
   }
 
   .husbandry-service-options-row {
@@ -1330,6 +1372,14 @@ $send-report-optional: #80868b;
       width: 16px;
       height: 16px;
     }
+  }
+
+  .husbandry-scroll-button-left {
+    left: 6px;
+  }
+
+  .husbandry-scroll-button-right {
+    right: 6px;
   }
 
   .husbandry-service-selection-title {

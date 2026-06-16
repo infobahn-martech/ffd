@@ -208,20 +208,11 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
           ))}
         </div>
 
-        <div className="husbandry-service-scroll-wrapper">
-          {showLeftArrow && (
-            <button
-              type="button"
-              className="husbandry-scroll-button husbandry-scroll-button-left"
-              onClick={scrollLeft}
-              aria-label="Scroll left"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
-          <div className="husbandry-service-options-row" ref={scrollContainerRef}>
+        <div
+          className={`husbandry-service-scroll-wrapper${showLeftArrow ? " has-left-arrow" : ""}${showRightArrow ? " has-right-arrow" : ""}`}
+        >
+          <div className="husbandry-service-scroll-viewport" ref={scrollContainerRef}>
+            <div className="husbandry-service-options-row">
             {services.map((service) => {
               const bookedEntry = bookedServicesMap[service.id];
               const isBooked = Boolean(bookedEntry);
@@ -267,7 +258,20 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
                 </button>
               );
             })}
+            </div>
           </div>
+          {showLeftArrow && (
+            <button
+              type="button"
+              className="husbandry-scroll-button husbandry-scroll-button-left"
+              onClick={scrollLeft}
+              aria-label="Scroll left"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
           {showRightArrow && (
             <button
               type="button"
