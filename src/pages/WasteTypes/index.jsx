@@ -15,7 +15,7 @@ const WasteTypes = () => {
         sortOrder: 1,
     });
 
-    const { getWasteTypes, deleteWasteType, wasteTypes, isLoadingGet, isBeingUpdated, totalCount } = useWasteTypeReducer(
+    const { getWasteTypes, deleteWasteType, wasteTypes, isLoadingGet, isDeleteLoading, totalCount } = useWasteTypeReducer(
         (state) => state
     );
 
@@ -142,7 +142,7 @@ const WasteTypes = () => {
                                 });
                             }}
                             deleteText="Are you sure you want to delete this waste type?"
-                            isLoading={isBeingUpdated}
+                            isLoading={isDeleteLoading}
                         />
                     )}
                 </div>
