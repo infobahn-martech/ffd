@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -107,6 +107,28 @@ export const appendAdditionalTimeObject = (items = []) => {
   return [...rows, { ...EMPTY_ADDITIONAL_TIME_OBJECT }];
 };
 
+const scrollAdditionalTimeObjectIntoView = (fieldEl) => {
+  if (!fieldEl) return;
+
+  const scrollContainer = fieldEl.closest(".operation-form-column");
+  if (!scrollContainer) return;
+
+  const containerRect = scrollContainer.getBoundingClientRect();
+  const fieldRect = fieldEl.getBoundingClientRect();
+  const scrollPadding = 12;
+
+  if (fieldRect.bottom > containerRect.bottom) {
+    scrollContainer.scrollTop += fieldRect.bottom - containerRect.bottom + scrollPadding;
+  } else if (fieldRect.top < containerRect.top) {
+    scrollContainer.scrollTop -= containerRect.top - fieldRect.top + scrollPadding;
+  }
+};
+
+const focusAdditionalTimeObjectRow = (fieldEl, inputEl) => {
+  scrollAdditionalTimeObjectIntoView(fieldEl);
+  inputEl?.focus({ preventScroll: true });
+};
+
 export const AdditionalTimeObjectAddButton = ({
   onClick,
   disabled = false,
@@ -193,6 +215,49 @@ export const AdditionalTimeObjectsFields = ({
   hideAddButton = false,
 }) => {
   const rows = Array.isArray(value) ? value : [];
+  const rowRefs = useRef([]);
+  const labelInputRefs = useRef([]);
+  const previousRowCountRef = useRef(rows.length);
+  const isInitialRowCountRef = useRef(true);
+  const focusTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    rowRefs.current.length = rows.length;
+    labelInputRefs.current.length = rows.length;
+  }, [rows.length]);
+
+  useEffect(() => {
+    if (isInitialRowCountRef.current) {
+      isInitialRowCountRef.current = false;
+      previousRowCountRef.current = rows.length;
+      return;
+    }
+
+    if (rows.length <= previousRowCountRef.current) {
+      previousRowCountRef.current = rows.length;
+      return;
+    }
+
+    const newRowIndex = rows.length - 1;
+    previousRowCountRef.current = rows.length;
+
+    const frameId = requestAnimationFrame(() => {
+      focusTimeoutRef.current = window.setTimeout(() => {
+        focusAdditionalTimeObjectRow(
+          rowRefs.current[newRowIndex],
+          labelInputRefs.current[newRowIndex]
+        );
+      }, 0);
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+        focusTimeoutRef.current = null;
+      }
+    };
+  }, [rows.length]);
 
   const emitChange = (nextRows) => {
     onChange?.(nextRows);
@@ -217,12 +282,21 @@ export const AdditionalTimeObjectsFields = ({
     const removeLabel = rowLabel || `additional time object ${index + 1}`;
 
     return (
-      <div key={`additional-time-object-${index}`} className="cf-field operation-additional-time-object-field">
+      <div
+        key={`additional-time-object-${index}`}
+        ref={(element) => {
+          rowRefs.current[index] = element;
+        }}
+        className="cf-field operation-additional-time-object-field"
+      >
         <div className="operation-additional-time-object-label-row">
           {isViewOnly ? (
             <label>{rowLabel || "—"}</label>
           ) : (
             <input
+              ref={(element) => {
+                labelInputRefs.current[index] = element;
+              }}
               type="text"
               className="operation-additional-time-object-label-input"
               value={row?.label || ""}
