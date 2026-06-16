@@ -15,12 +15,13 @@ const WasteTypes = () => {
         sortOrder: 1,
     });
 
-    const { getWasteTypes, wasteTypes, isLoadingGet, totalCount } = useWasteTypeReducer(
+    const { getWasteTypes, deleteWasteType, wasteTypes, isLoadingGet, isDeleteLoading, totalCount } = useWasteTypeReducer(
         (state) => state
     );
 
     const [showWasteTypeModal, setShowWasteTypeModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteRow, setDeleteRow] = useState(null);
 
     const apiParams = useMemo(
         () => ({
@@ -61,7 +62,10 @@ const WasteTypes = () => {
             contentClass: 'table-content',
             thclass: 'tb-head',
             onEditClick: (row) => { setShowWasteTypeModal(row) },
-            onDeleteClick: () => { setShowDeleteModal(true) },
+            onDeleteClick: (row) => {
+                setDeleteRow(row);
+                setShowDeleteModal(true);
+            },
             cell: RenderAction,
             width: '200',
         },
@@ -119,10 +123,26 @@ const WasteTypes = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => setShowDeleteModal(false)}
+                            onCancel={() => {
+                                setShowDeleteModal(false);
+                                setDeleteRow(null);
+                            }}
+                            onConfirm={() => {
+                                if (!deleteRow) {
+                                    setShowDeleteModal(false);
+                                    return;
+                                }
+                                deleteWasteType({
+                                    wasteTypeId: deleteRow.waste_type_id,
+                                    cb: () => {
+                                        setShowDeleteModal(false);
+                                        setDeleteRow(null);
+                                        getWasteTypes?.(apiParams);
+                                    },
+                                });
+                            }}
                             deleteText="Are you sure you want to delete this waste type?"
-                        // isLoading={isBeingUpdated}
+                            isLoading={isDeleteLoading}
                         />
                     )}
                 </div>

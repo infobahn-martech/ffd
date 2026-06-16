@@ -5,6 +5,7 @@ import wasteTypeService from "../services/wasteTypeService";
 const useWasteTypeReducer = create((set) => ({
   isLoadingGet: false,
   isBeingUpdated: false,
+  isDeleteLoading: false,
   errorMessage: "",
   successMessage: "",
   wasteTypes: [],
@@ -46,6 +47,24 @@ const useWasteTypeReducer = create((set) => ({
     }
   },
 
+  deleteWasteType: async ({ wasteTypeId, cb }) => {
+    try {
+      set({ isDeleteLoading: true });
+      const { data } = await wasteTypeService.deleteWasteType(wasteTypeId);
+      set({ successMessage: data?.message, isDeleteLoading: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: "Something went wrong deleting the waste type",
+        isDeleteLoading: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
   getWasteTypes: async (params) => {
     try {
       set({ isLoadingGet: true });
@@ -81,4 +100,3 @@ const useWasteTypeReducer = create((set) => ({
 }));
 
 export default useWasteTypeReducer;
-
