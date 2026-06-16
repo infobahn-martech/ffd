@@ -198,9 +198,11 @@ const parseMsgSenderDetails = (msg = {}) => {
 
 const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
+const APPOINTMENT_TYPE_VESSEL = "vessel";
 const APPOINTMENT_TYPE_OPTIONS = [
   { value: APPOINTMENT_TYPE_TUG, label: "Tug" },
   { value: APPOINTMENT_TYPE_TUG_AND_BARGE, label: "Tug and barge" },
+  { value: APPOINTMENT_TYPE_VESSEL, label: "Vessel" },
 ];
 
 // Accepts a scalar, arrays, JSON array strings, or comma-separated strings; returns one option value.
@@ -235,12 +237,15 @@ const normalizeAppointmentTypeValue = (raw, fallback = "") => {
     .filter(Boolean);
   const unique = [...new Set(matched)];
   if (unique.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) return APPOINTMENT_TYPE_TUG_AND_BARGE;
+  if (unique.includes(APPOINTMENT_TYPE_VESSEL)) return APPOINTMENT_TYPE_VESSEL;
   if (unique.includes(APPOINTMENT_TYPE_TUG)) return APPOINTMENT_TYPE_TUG;
   return fallback;
 };
 
 const appointmentTypeShowsTugFields = (value) =>
-  value === APPOINTMENT_TYPE_TUG || value === APPOINTMENT_TYPE_TUG_AND_BARGE;
+  value === APPOINTMENT_TYPE_TUG ||
+  value === APPOINTMENT_TYPE_TUG_AND_BARGE ||
+  value === APPOINTMENT_TYPE_VESSEL;
 
 const appointmentTypeShowsBargeFields = (value) => value === APPOINTMENT_TYPE_TUG_AND_BARGE;
 
@@ -2682,11 +2687,6 @@ function General({
     const selectedAppointmentType = normalizeAppointmentTypeValue(v("appointmentType"));
     const tugSelected = appointmentTypeShowsTugFields(selectedAppointmentType);
     const bargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
-    requireField(shouldShowApiField("port_id"), "port", "Port is required.");
-    const callTypeValue = firstNonEmptyString(v("typeOfCall"), v("call_type_id"));
-    if (shouldShowApiField("call_type") && !callTypeValue) {
-      errors.typeOfCall = "Type of call / service is required.";
-    }
     requireField(shouldShowApiField("assigned_operator_id"), "assignedOperator", "Assigned operator is required.");
     requireField(shouldShowApiField("main_billing_entity_id"), "mainBillingEntity", "Main billing entity is required.");
     requireField(shouldShowApiField("vessel_id") && tugSelected, "vesselName", "Vessel name is required.");
@@ -5076,44 +5076,6 @@ ${body}
 
                             <div className="form-group">
                               <h3 className="form-group-title">Service Information</h3>
-                              {shouldShowApiField("port_id") && (
-                                <FormField label="Port *" hasError={isAddMode && Boolean(fieldErrors.port)}>
-                                  <SearchableSelect
-                                    value={getFieldValue("port") ?? ""}
-                                    onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
-                                    options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
-                                    placeholder="Search port..."
-                                    searchPlaceholder="Search port..."
-                                    disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.port)}
-                                  />
-                                  {isAddMode && fieldErrors.port && (
-                                    <div className="cf-field-error">{fieldErrors.port}</div>
-                                  )}
-                                </FormField>
-                              )}
-                              {!isAddMode && (
-                                <FormField label="Call">
-                                  {(() => {
-                                    const callTypeValue = firstNonEmptyString(
-                                      callDetailData?.call_type_id,
-                                      getFieldValue("call_type_id"),
-                                      getFieldValue("typeOfCall")
-                                    );
-                                    const callTypeLabel = getOptionLabel(callTypeOptions, callTypeValue) || callTypeValue;
-                                    return (
-                                      <FormInput
-                                        type="text"
-                                        value={callTypeLabel}
-                                        onChange={() => { }}
-                                        placeholder="Not set"
-                                        readOnly
-                                        disabled
-                                      />
-                                    );
-                                  })()}
-                                </FormField>
-                              )}
                               {!isAddMode &&
                                 viewModeTimeObjects.map((item) => {
                                   const parsed = splitApiDateTimeValue(item.value);
@@ -5131,21 +5093,6 @@ ${body}
                                     </FormField>
                                   );
                                 })}
-                              {shouldShowApiField("call_type") && (
-                                <FormField label="Type of call / Service *" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
-                                  <FormSelect
-                                    value={getFieldValue("typeOfCall")}
-                                    onChange={isAddMode ? handleValidatedChange("typeOfCall") : handleChange("typeOfCall")}
-                                    options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
-                                    placeholder="Select type of call"
-                                    disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
-                                  />
-                                  {isAddMode && fieldErrors.typeOfCall && (
-                                    <div className="cf-field-error">{fieldErrors.typeOfCall}</div>
-                                  )}
-                                </FormField>
-                              )}
                               {isAddMode &&
                                 !stageTimeObjectsLoading &&
                                 stageTimeObjects.map((item) => {
