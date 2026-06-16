@@ -46,6 +46,24 @@ const useTimeObjectReducer = create((set) => ({
     }
   },
 
+  deleteTimeObject: async ({ timeObjectId, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await timeObjectService.deleteTimeObject(timeObjectId);
+      set({ successMessage: data?.message, isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: "Something went wrong deleting the time object",
+        isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
   getTimeObjects: async (params) => {
     try {
       set({ isLoadingGet: true });
