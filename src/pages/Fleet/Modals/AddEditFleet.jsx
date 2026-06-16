@@ -259,7 +259,7 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="status-modal-sm"
+            className="fleet-modal-sm"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
