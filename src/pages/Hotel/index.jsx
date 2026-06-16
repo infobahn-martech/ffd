@@ -200,7 +200,7 @@ const Hotel = () => {
                         }}
                         onConfirm={handleDelete}
                         isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this hotel?"
+                        deleteText={`Are you sure you want to delete this hotel${selectedRow?.hotel_name ? ` ${selectedRow.hotel_name}` : ""}?`}
                     />
                 )}
             </div>
