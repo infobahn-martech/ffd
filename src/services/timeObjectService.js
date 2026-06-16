@@ -15,4 +15,7 @@ const getAllTimeObjects = ({ params }) => {
   return Gateway.get("/time_object/get_all_time_objects", { params: apiParams });
 };
 
-export default { saveTimeObject, updateTimeObject, getAllTimeObjects };
+const deleteTimeObject = (timeObjectId) =>
+  Gateway.delete(`/time_object/delete_time_object/${timeObjectId}`);
+
+export default { saveTimeObject, updateTimeObject, getAllTimeObjects, deleteTimeObject };
