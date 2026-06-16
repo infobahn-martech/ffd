@@ -472,22 +472,23 @@ function Arrival({
         <div className="operation-tab-layout">
           <div className="arrival-form">
             <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
-              <OperationFormCard className="operation-form-column">
-                <OperationFormCard
-                  topRightAction={
-                    !isViewOnly ? (
-                      <AdditionalTimeObjectAddButton
-                        onClick={() =>
-                          handleChange("arrivalAdditionalTimeObjects")({
-                            target: {
-                              value: appendAdditionalTimeObject(formValues.arrivalAdditionalTimeObjects),
-                            },
-                          })
-                        }
-                      />
-                    ) : null
-                  }
-                >
+              <OperationFormCard
+                className="operation-form-column"
+                topRightAction={
+                  !isViewOnly ? (
+                    <AdditionalTimeObjectAddButton
+                      onClick={() =>
+                        handleChange("arrivalAdditionalTimeObjects")({
+                          target: {
+                            value: appendAdditionalTimeObject(formValues.arrivalAdditionalTimeObjects),
+                          },
+                        })
+                      }
+                    />
+                  ) : null
+                }
+              >
+                <OperationFormCard>
                   <DynamicDateTimeFields
                     eventFields={arrivalStageFields}
                     formValues={formValues}

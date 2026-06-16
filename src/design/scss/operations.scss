@@ -1838,23 +1838,14 @@ $send-report-optional: #80868b;
 }
 
 .operation-form-card--has-action {
-  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .operation-form-card-header-action {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 2;
-}
-
-.operation-form-card--has-action:not(.operation-form-column) {
-  padding-right: 36px;
-}
-
-.operation-form-column.operation-form-card--has-action .operation-form-card-header-action {
-  top: 14px;
-  right: 14px;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 8px;
 }
 
 .operation-additional-time-object-add-icon-btn {
