@@ -14,9 +14,13 @@ const getOperatorById = (operator_id) =>
 const updateOperator = (data) =>
   Gateway.post("/launch_hire/update_operator", data);
 
+const deleteOperator = (operator_id) =>
+  Gateway.post("/launch_hire/delete_taxi_boat_operator", { operator_id });
+
 export default {
   addOperator,
   getAllOperators,
   getOperatorById,
   updateOperator,
+  deleteOperator,
 };

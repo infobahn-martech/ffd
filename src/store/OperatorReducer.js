@@ -84,6 +84,24 @@ const useOperatorReducer = create((set) => ({
     }
   },
 
+  deleteOperator: async ({ operator_id, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await operatorService.deleteOperator(operator_id);
+      set({ successMessage: data?.message, isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? "Taxi boat operator deleted successfully");
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: "Something went wrong deleting the operator",
+        isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
   clearOperatorDetail: () => set({ operatorDetail: null }),
 }));
 
