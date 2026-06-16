@@ -779,20 +779,8 @@ $send-report-optional: #80868b;
   }
 
   .husbandry-service-selection-content {
-    max-width: 1492px;
+    max-width: 100%;
     /* Slightly reduced for better focus */
-  }
-
-  .husbandry-booked-services-section {
-    margin-top: 50px;
-    padding-top: 40px;
-    /* Increased spacing */
-  }
-
-  .husbandry-booked-services-title {
-    font-size: 20px;
-    margin-bottom: 30px;
-    /* Increased spacing */
   }
 
   /* CG / Zawil pass — crew select helper text */
@@ -1007,26 +995,21 @@ $send-report-optional: #80868b;
 .husbandry-service-option.booked {
   border-color: rgba(0, 54, 140, 0.5);
   background: linear-gradient(135deg, rgba(0, 54, 140, 0.08) 0%, rgba(0, 54, 140, 0.02) 100%);
+  min-height: 300px;
 }
 
-.husbandry-service-booked-badge {
+.husbandry-service-option-status {
   position: absolute;
   top: 14px;
   right: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   z-index: 1;
-  border: 1px solid rgba(0, 184, 148, 0.24);
-  background: #edfffa;
-  color: #0b9a7e;
-  border-radius: 999px;
-  padding: 5px 10px;
+  padding: 6px 12px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.3px;
   text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 
 .husbandry-service-option:hover {
@@ -1107,6 +1090,53 @@ $send-report-optional: #80868b;
 .husbandry-service-option-note {
   color: #475569;
   background: #edf2f7;
+}
+
+.husbandry-service-option-booking {
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 54, 140, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.husbandry-service-option-sub {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--card-color, #00368c);
+  line-height: 1.3;
+}
+
+.husbandry-service-option-booking-summary {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.booked-status-pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.booked-status-in-progress {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.booked-status-completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.booked-status-cancelled {
+  background: #ffebee;
+  color: #c62828;
 }
 
 @media (max-width: 992px) {
@@ -1208,196 +1238,6 @@ $send-report-optional: #80868b;
   white-space: nowrap;
 }
 
-/* Booked Services Section */
-.husbandry-booked-services-section {
-  margin-top: 34px;
-  padding-top: 28px;
-  border-top: 1px solid #dfe7f2;
-  width: 100%;
-  /* Ensure full width */
-  display: flex;
-  flex-direction: column;
-  /* Better layout control */
-}
-
-.husbandry-booked-services-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 24px 0;
-  letter-spacing: -0.3px;
-  text-align: left;
-}
-
-.husbandry-booked-services-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-height: 600px;
-  /* Increased height to show more items without scrolling */
-  overflow-y: auto;
-  overflow-x: hidden;
-  scroll-behavior: smooth;
-  padding-right: 4px;
-  /* Add padding for scrollbar */
-  padding-top: 2px;
-  padding-bottom: 24px;
-  /* Increased bottom padding to ensure last item is fully visible when scrolled */
-  margin-bottom: 0;
-  /* Remove any margin that might interfere */
-
-  /* Ensure content can scroll fully */
-  box-sizing: border-box;
-
-  /* Custom scrollbar styling */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 54, 140, 0.3) transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 10px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 54, 140, 0.3);
-    border-radius: 10px;
-
-    &:hover {
-      background: rgba(0, 54, 140, 0.5);
-    }
-  }
-
-  /* Ensure last child has proper spacing */
-  >*:last-child {
-    margin-bottom: 0;
-  }
-
-  /* Add pseudo-element at the end to ensure scroll reaches bottom */
-  &::after {
-    content: '';
-    display: block;
-    height: 1px;
-    flex-shrink: 0;
-  }
-}
-
-.husbandry-booked-service-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 22px;
-  /* Increased padding for better spacing */
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  border: 1.5px solid #dbe4ee;
-  border-radius: 14px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  gap: 20px;
-  /* Increased gap for better spacing */
-  min-height: 70px;
-  /* Ensure minimum height for better visibility */
-}
-
-.husbandry-booked-service-item:hover {
-  border-color: var(--card-color, #00368c);
-  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.12);
-  transform: translateY(-2px);
-}
-
-.husbandry-booked-service-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-  min-width: 0;
-}
-
-.husbandry-booked-service-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--card-color, #00368c);
-}
-
-.husbandry-booked-service-icon svg {
-  width: 32px;
-  height: 32px;
-}
-
-.husbandry-booked-service-details {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex: 1;
-  min-width: 0;
-}
-
-.husbandry-booked-service-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.4;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  /* Ensure text wraps instead of truncating */
-}
-
-.husbandry-booked-service-sub {
-  font-size: 12px;
-  color: #334155;
-  font-weight: 600;
-  line-height: 1.3;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  /* Ensure text wraps instead of truncating */
-}
-
-.husbandry-booked-service-summary {
-  font-size: 12px;
-  color: #64748b;
-  line-height: 1.4;
-}
-
-.husbandry-booked-service-status {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.booked-status-pending {
-  background: #fff3e0;
-  color: #f57c00;
-}
-
-.booked-status-in-progress {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.booked-status-completed {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.booked-status-cancelled {
-  background: #ffebee;
-  color: #c62828;
-}
-
 /* Scroll Buttons */
 .husbandry-scroll-button {
   flex-shrink: 0;
@@ -1495,28 +1335,6 @@ $send-report-optional: #80868b;
   .husbandry-service-selection-title {
     font-size: 24px;
     margin-bottom: 8px;
-  }
-
-  .husbandry-booked-services-section {
-    margin-top: 32px;
-    padding-top: 24px;
-  }
-
-  .husbandry-booked-services-list {
-    max-height: 400px;
-    /* Increased height for mobile while still being reasonable */
-    padding-bottom: 8px;
-    /* Ensure last item is visible on mobile */
-  }
-
-  .husbandry-booked-service-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .husbandry-booked-service-status {
-    align-self: flex-end;
   }
 }
 

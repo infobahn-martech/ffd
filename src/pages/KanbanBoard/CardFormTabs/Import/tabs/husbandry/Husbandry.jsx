@@ -37,7 +37,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const scrollContainerRef = useRef(null);
-  const bookedServicesScrollRef = useRef(null);
 
   const checkScrollButtons = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -60,26 +59,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
     }
   }, [checkScrollButtons]);
 
-  // Ensure booked services list can scroll to bottom
-  useEffect(() => {
-    if (bookedServicesScrollRef.current && bookedServices.length > 0) {
-      // Small delay to ensure DOM is updated
-      setTimeout(() => {
-        const container = bookedServicesScrollRef.current;
-        if (container) {
-          // Ensure scroll height includes all content
-          const scrollHeight = container.scrollHeight;
-          const clientHeight = container.clientHeight;
-          // If content is scrollable, ensure we can scroll to bottom
-          if (scrollHeight > clientHeight) {
-            // This ensures the scroll container is properly sized
-            container.style.maxHeight = `${clientHeight}px`;
-          }
-        }
-      }, 100);
-    }
-  }, [bookedServices]);
-
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
@@ -100,7 +79,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Crew transport, hotel, medical and launch hire support.",
       metaInfo: "3 requests",
       quickNote: "Fast booking",
-      bookedLabel: "Booked",
       bookedSummary: "Coordinate crew movement, accommodation and welfare services.",
     },
     {
@@ -110,7 +88,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Inbound orders, landing note and dispatch note handling.",
       metaInfo: "2 pending",
       quickNote: "Auto updates",
-      bookedLabel: "Booked",
       bookedSummary: "Track vessel material flow from intake to final dispatch.",
     },
     {
@@ -120,7 +97,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Waste request initiation and disposal progress tracking.",
       metaInfo: "4 tasks",
       quickNote: "Compliant",
-      bookedLabel: "Booked",
       bookedSummary: "Ensure regulated pickup and transparent disposal follow-up.",
     },
     {
@@ -130,7 +106,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Launch booking, transfer coordination and movement support.",
       metaInfo: "Priority lane",
       quickNote: "24/7 support",
-      bookedLabel: "Booked",
       bookedSummary: "Arrange transfer windows with optimized launch availability.",
     },
     {
@@ -140,7 +115,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Monitor MWP renewal requests and expected completion updates.",
       metaInfo: "1 expiring",
       quickNote: "Proactive alerts",
-      bookedLabel: "Booked",
       bookedSummary: "Keep permits current with proactive renewal processing.",
     },
     {
@@ -150,7 +124,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Raise and monitor external vendor service requests.",
       metaInfo: "Vendor ready",
       quickNote: "Unified view",
-      bookedLabel: "Booked",
       bookedSummary: "Manage third-party support under a single service view.",
     },
   ];
@@ -171,8 +144,8 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
     { label: "Completed", value: completedCount, helper: "Successfully closed" },
   ];
 
-  const serviceMap = services.reduce((acc, service) => {
-    acc[service.id] = service;
+  const bookedServicesMap = bookedServices.reduce((acc, booked) => {
+    acc[booked.id] = booked;
     return acc;
   }, {});
 
@@ -250,7 +223,10 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
           )}
           <div className="husbandry-service-options-row" ref={scrollContainerRef}>
             {services.map((service) => {
-              const isBooked = bookedServices.some(bs => bs.id === service.id);
+              const bookedEntry = bookedServicesMap[service.id];
+              const isBooked = Boolean(bookedEntry);
+              const status = bookedEntry?.status || "Pending";
+
               return (
                 <button
                   key={service.id}
@@ -259,6 +235,14 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
                   onClick={() => onSelectService(service.id)}
                   style={{ "--card-color": cardColor }}
                 >
+                  {isBooked && (
+                    <span
+                      className={`husbandry-service-option-status ${getStatusBadgeClass(status)}`}
+                      aria-label={`${service.label} status: ${status}`}
+                    >
+                      {status}
+                    </span>
+                  )}
                   <div className="husbandry-service-option-icon">
                     {getServiceIcon(service.icon)}
                   </div>
@@ -266,19 +250,20 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
                     <span className="husbandry-service-option-label">{service.label}</span>
                     <p className="husbandry-service-option-summary">{service.summary}</p>
                   </div>
+                  {isBooked && (
+                    <div className="husbandry-service-option-booking">
+                      {bookedEntry.subService && (
+                        <span className="husbandry-service-option-sub">{bookedEntry.subService}</span>
+                      )}
+                      <p className="husbandry-service-option-booking-summary">
+                        {service.bookedSummary}
+                      </p>
+                    </div>
+                  )}
                   <div className="husbandry-service-option-footer">
                     <span className="husbandry-service-option-meta">{service.metaInfo}</span>
                     <span className="husbandry-service-option-note">{service.quickNote}</span>
                   </div>
-                  {isBooked && (
-                    <div className="husbandry-service-booked-badge" aria-label={`${service.label} already booked`}>
-                      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="10" cy="10" r="9" fill="#00B894" stroke="#00B894" strokeWidth="2" />
-                        <path d="M6 10L9 13L14 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {service.bookedLabel}
-                    </div>
-                  )}
                 </button>
               );
             })}
@@ -296,37 +281,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
             </button>
           )}
         </div>
-
-        {bookedServices.length > 0 && (
-          <div className="husbandry-booked-services-section">
-            <h3 className="husbandry-booked-services-title">Booked Services</h3>
-            <div className="husbandry-booked-services-list" ref={bookedServicesScrollRef}>
-              {bookedServices.map((service) => (
-                <div key={service.id} className="husbandry-booked-service-item">
-                  <div className="husbandry-booked-service-info">
-                    <div className="husbandry-booked-service-icon">
-                      {getServiceIcon(serviceMap[service.id]?.icon || "document")}
-                    </div>
-                    <div className="husbandry-booked-service-details">
-                      <span className="husbandry-booked-service-name">
-                        {serviceMap[service.id]?.label || service.id}
-                      </span>
-                      <span className="husbandry-booked-service-sub">
-                        {service.subService || "General service workflow"}
-                      </span>
-                      <span className="husbandry-booked-service-summary">
-                        {serviceMap[service.id]?.bookedSummary || "Service request has been initiated."}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`husbandry-booked-service-status ${getStatusBadgeClass(service.status)}`}>
-                    {service.status || "Pending"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
