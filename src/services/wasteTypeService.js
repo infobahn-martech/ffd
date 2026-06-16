@@ -13,5 +13,7 @@ const getWasteTypes = ({ params }) => {
   return Gateway.get("/material/get_all_waste_type", { params: apiParams });
 };
 
-export default { addWasteType, updateWasteType, getWasteTypes };
+const deleteWasteType = (wasteTypeId) =>
+  Gateway.delete(`/material/delete_wastetype/${wasteTypeId}`);
 
+export default { addWasteType, updateWasteType, getWasteTypes, deleteWasteType };
