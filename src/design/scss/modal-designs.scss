@@ -322,6 +322,25 @@ body .role-modal-sm.transport-company-modal .modal-dialog.transport-company-moda
   }
 }
 
+/* Fleet Add/Edit Modal - compact width, override prospect-modal.scss's 1231px default */
+body .fleet-modal-sm .modal-dialog {
+  max-width: 600px !important;
+}
+
+.fleet-modal-sm .modal-content {
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* Operator (PremiumSelect, .phone-wrapper) defaults to 40px while other fields are 50px - match heights */
+.fleet-modal-sm {
+  .cf-multi-select-email-input {
+    min-height: 50px;
+    height: 50px;
+    box-sizing: border-box;
+  }
+}
+
 /* Stage Time Mapping — wide layout for dropdowns + time-object list */
 body .stage-time-mapping-modal {
   z-index: 1300 !important;
