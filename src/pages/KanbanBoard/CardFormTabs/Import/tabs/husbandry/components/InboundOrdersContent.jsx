@@ -2206,23 +2206,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             {openDropdownId === rowKey && createPortal(
                               <div
                                 data-dropdown-menu
-                                className="note-dropdown-menu"
+                                className="dispatch-note-dropdown-menu"
                                 style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
                               >
                                 <button
                                   type="button"
                                   onClick={() => { handleCloseDropdown(); handleOpenModal(order); }}
-                                  className="note-dropdown-btn"
+                                  className="dispatch-note-dropdown-btn"
                                 >
-                                  <img src={editIcon} alt="edit" className="note-dropdown-icon" />
+                                  <img src={editIcon} alt="edit" className="dispatch-note-dropdown-icon" />
                                   <span>Edit</span>
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => { handleDelete(order); }}
-                                  className="note-dropdown-btn note-dropdown-btn--danger"
+                                  className="dispatch-note-dropdown-btn dispatch-note-dropdown-btn--danger"
                                 >
-                                  <img src={deleteIcon} alt="delete" className="note-dropdown-icon" />
+                                  <img src={deleteIcon} alt="delete" className="dispatch-note-dropdown-icon" />
                                   <span>Delete</span>
                                 </button>
                               </div>,

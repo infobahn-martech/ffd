@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import "../../../../../../../design/scss/materialmanagement.scss";
 import CustomModal from "../../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import LocationAutocomplete from "./LocationAutocomplete";
+import editIcon from "../../../../../../../assets/images/edit.svg";
+import deleteIcon from "../../../../../../../assets/images/delete.svg";
 
 // Generate dummy material data
 const generateDummyMaterials = () => {
@@ -38,7 +41,11 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
   const [materialsList, setMaterialsList] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [editingMaterial, setEditingMaterial] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const fileInputRef = useRef(null);
+  const dropdownButtonRefs = useRef({});
 
   // Form state
   const [formData, setFormData] = useState({
@@ -75,26 +82,48 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     }
   }, [formValues.materialManagementList]);
 
-  const handleOpenModal = () => {
-    setFormData({
-      materialType: "",
-      materialToCollectOrDeliver: "",
-      driver: "",
-      pickUpDate: "",
-      pickUpTime: "",
-      dropOffDate: "",
-      dropOffTime: "",
-      dropOffLocation: "",
-      status: "",
-      reason: "",
-      documents: [],
-    });
-    setSelectedFiles([]);
+  const handleOpenModal = (material = null) => {
+    if (material) {
+      setEditingMaterial(material);
+      const pickUpParts = material.pickUp ? material.pickUp.split("T") : ["", ""];
+      const dropOffParts = material.dropOff ? material.dropOff.split("T") : ["", ""];
+      setFormData({
+        materialType: material.materialType || "",
+        materialToCollectOrDeliver: material.materialToCollectOrDeliver || "",
+        driver: material.driver || "",
+        pickUpDate: pickUpParts[0] || "",
+        pickUpTime: pickUpParts[1]?.slice(0, 5) || "",
+        dropOffDate: dropOffParts[0] || "",
+        dropOffTime: dropOffParts[1]?.slice(0, 5) || "",
+        dropOffLocation: material.dropOffLocation || "",
+        status: material.status || "",
+        reason: material.reason || "",
+        documents: material.documents || [],
+      });
+      setSelectedFiles(material.documents || []);
+    } else {
+      setEditingMaterial(null);
+      setFormData({
+        materialType: "",
+        materialToCollectOrDeliver: "",
+        driver: "",
+        pickUpDate: "",
+        pickUpTime: "",
+        dropOffDate: "",
+        dropOffTime: "",
+        dropOffLocation: "",
+        status: "",
+        reason: "",
+        documents: [],
+      });
+      setSelectedFiles([]);
+    }
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setEditingMaterial(null);
     setFormData({
       materialType: "",
       materialToCollectOrDeliver: "",
@@ -121,7 +150,6 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Combine date and time for pickUp and dropOff
     const pickUp = formData.pickUpDate && formData.pickUpTime
       ? `${formData.pickUpDate}T${formData.pickUpTime}`
       : "";
@@ -129,23 +157,38 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       ? `${formData.dropOffDate}T${formData.dropOffTime}`
       : "";
 
-    const newMaterial = {
-      id: materialsList.length > 0 ? Math.max(...materialsList.map(m => m.id)) + 1 : 1,
-      materialToCollectOrDeliver: formData.materialToCollectOrDeliver,
-      materialType: formData.materialType,
-      driver: formData.driver,
-      pickUp: pickUp,
-      dropOff: dropOff,
-      dropOffLocation: formData.dropOffLocation,
-      status: formData.status,
-      reason: formData.reason,
-      documents: selectedFiles,
-    };
+    let updatedList;
+    if (editingMaterial) {
+      const updatedMaterial = {
+        ...editingMaterial,
+        materialToCollectOrDeliver: formData.materialToCollectOrDeliver,
+        materialType: formData.materialType,
+        driver: formData.driver,
+        pickUp,
+        dropOff,
+        dropOffLocation: formData.dropOffLocation,
+        status: formData.status,
+        reason: formData.reason,
+        documents: selectedFiles,
+      };
+      updatedList = materialsList.map((m) => m.id === editingMaterial.id ? updatedMaterial : m);
+    } else {
+      const newMaterial = {
+        id: materialsList.length > 0 ? Math.max(...materialsList.map(m => m.id)) + 1 : 1,
+        materialToCollectOrDeliver: formData.materialToCollectOrDeliver,
+        materialType: formData.materialType,
+        driver: formData.driver,
+        pickUp,
+        dropOff,
+        dropOffLocation: formData.dropOffLocation,
+        status: formData.status,
+        reason: formData.reason,
+        documents: selectedFiles,
+      };
+      updatedList = [...materialsList, newMaterial];
+    }
 
-    const updatedList = [...materialsList, newMaterial];
     setMaterialsList(updatedList);
-
-    // Update formValues
     const syntheticEvent = { target: { value: updatedList } };
     handleChange("materialManagementList")(syntheticEvent);
 
@@ -201,6 +244,46 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("materialManagementList")(syntheticEvent);
   };
 
+  const handleToggleDropdown = (materialId, e) => {
+    e.stopPropagation();
+    if (openDropdownId === materialId) {
+      setOpenDropdownId(null);
+    } else {
+      const button = e.currentTarget;
+      const rect = button.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+      dropdownButtonRefs.current[materialId] = button;
+      setOpenDropdownId(materialId);
+    }
+  };
+
+  const handleCloseDropdown = () => {
+    setOpenDropdownId(null);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isDropdownButton = event.target.closest('.action-dropdown-wrapper');
+      const isDropdownMenu = event.target.closest('[data-dropdown-menu]');
+      if (!isDropdownButton && !isDropdownMenu) {
+        setOpenDropdownId(null);
+      }
+    };
+    const handleScroll = () => setOpenDropdownId(null);
+
+    if (openDropdownId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('scroll', handleScroll, true);
+      };
+    }
+  }, [openDropdownId]);
+
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
@@ -253,7 +336,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">Add Material</h1>
+      <h1 className="modal-title">{editingMaterial ? "Edit Material" : "Add Material"}</h1>
     </>
   );
 
@@ -518,7 +601,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
         form="materialForm"
         className="btn btn-primary btn-modal-submit"
       >
-        Add Material
+        {editingMaterial ? "Save Changes" : "Add Material"}
       </button>
     </div>
   );
@@ -576,27 +659,43 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-actions">
+                    <div className={`action-dropdown-wrapper${openDropdownId === material.id ? " action-dropdown-wrapper--open" : ""}`}>
                       <button
                         type="button"
-                        className="material-table-action-btn edit"
-                        title="Edit"
-                        onClick={() => handleOpenModal()}
+                        className="note-action-btn"
+                        onClick={(e) => handleToggleDropdown(material.id, e)}
                       >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M11.333 2a1.886 1.886 0 0 1 2.667 2.667L4.667 14H2v-2.667L11.333 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="6" r="1.5" fill="currentColor" />
+                          <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                          <circle cx="12" cy="18" r="1.5" fill="currentColor" />
                         </svg>
                       </button>
-                      <button
-                        type="button"
-                        className="material-table-action-btn delete"
-                        title="Delete"
-                        onClick={() => handleDeleteMaterial(material.id)}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2 4h12M5.333 4V2.667h5.334V4M6.667 7.333v4M9.333 7.333v4M3.333 4l.667 9.333h8L12.667 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
+                      {openDropdownId === material.id && createPortal(
+                        <div
+                          data-dropdown-menu
+                          className="dispatch-note-dropdown-menu"
+                          style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
+                        >
+                          <button
+                            type="button"
+                            className="dispatch-note-dropdown-btn"
+                            onClick={() => { handleCloseDropdown(); handleOpenModal(material); }}
+                          >
+                            <img src={editIcon} alt="edit" className="dispatch-note-dropdown-icon" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="dispatch-note-dropdown-btn dispatch-note-dropdown-btn--danger"
+                            onClick={() => { handleCloseDropdown(); handleDeleteMaterial(material.id); }}
+                          >
+                            <img src={deleteIcon} alt="delete" className="dispatch-note-dropdown-icon" />
+                            <span>Delete</span>
+                          </button>
+                        </div>,
+                        document.body
+                      )}
                     </div>
                   </td>
                 </tr>
