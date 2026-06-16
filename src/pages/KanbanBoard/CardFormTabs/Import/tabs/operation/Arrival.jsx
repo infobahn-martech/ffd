@@ -6,7 +6,9 @@ import { buildArrivalReportBody, buildArrivalDailyReportBody } from "../../servi
 import appointmentAcceptanceService from "../../../../../../services/appointmentAcceptanceService";
 import useArrivalReducer from "../../../../../../store/ArrivalReducer";
 import {
+  AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
+  appendAdditionalTimeObject,
   buildAdditionalTimeObjectsPayload,
   DynamicDateTimeFields,
   FormField,
@@ -471,7 +473,21 @@ function Arrival({
           <div className="arrival-form">
             <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
               <OperationFormCard className="operation-form-column">
-                <OperationFormCard>
+                <OperationFormCard
+                  topRightAction={
+                    !isViewOnly ? (
+                      <AdditionalTimeObjectAddButton
+                        onClick={() =>
+                          handleChange("arrivalAdditionalTimeObjects")({
+                            target: {
+                              value: appendAdditionalTimeObject(formValues.arrivalAdditionalTimeObjects),
+                            },
+                          })
+                        }
+                      />
+                    ) : null
+                  }
+                >
                   <DynamicDateTimeFields
                     eventFields={arrivalStageFields}
                     formValues={formValues}
@@ -574,6 +590,7 @@ function Arrival({
                       handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } })
                     }
                     isViewOnly={isViewOnly}
+                    hideAddButton
                   />
                 </OperationFormCard>
 

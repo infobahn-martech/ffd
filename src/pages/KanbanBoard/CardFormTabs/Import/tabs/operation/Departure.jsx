@@ -5,7 +5,9 @@ import { buildDepartureReportBody } from "../../services/sendReportBodyBuilder";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import { notify } from "../../../../../../components/Toaster";
 import {
+  AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
+  appendAdditionalTimeObject,
   buildAdditionalTimeObjectsPayload,
   DynamicDateTimeFields,
   FormField,
@@ -130,7 +132,22 @@ function Departure({
         <div className="operation-tab-layout">
           <div className="departure-form">
             <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
-              <OperationFormCard className="operation-form-column">
+              <OperationFormCard
+                className="operation-form-column"
+                topRightAction={
+                  !isViewOnly ? (
+                    <AdditionalTimeObjectAddButton
+                      onClick={() =>
+                        handleChange("departureAdditionalTimeObjects")({
+                          target: {
+                            value: appendAdditionalTimeObject(formValues.departureAdditionalTimeObjects),
+                          },
+                        })
+                      }
+                    />
+                  ) : null
+                }
+              >
                 <FormField label="Email Requested Accept">
                   <OperationFileUpload
                     files={formValues.departureAttachments || []}
@@ -147,14 +164,6 @@ function Departure({
                   isViewOnly={isViewOnly}
                 />
 
-                <AdditionalTimeObjectsFields
-                  value={formValues.departureAdditionalTimeObjects || []}
-                  onChange={(next) =>
-                    handleChange("departureAdditionalTimeObjects")({ target: { value: next } })
-                  }
-                  isViewOnly={isViewOnly}
-                />
-
                 <FormField label="Next port">
                   <FormInput
                     type="text"
@@ -164,6 +173,15 @@ function Departure({
                     disabled={isViewOnly}
                   />
                 </FormField>
+
+                <AdditionalTimeObjectsFields
+                  value={formValues.departureAdditionalTimeObjects || []}
+                  onChange={(next) =>
+                    handleChange("departureAdditionalTimeObjects")({ target: { value: next } })
+                  }
+                  isViewOnly={isViewOnly}
+                  hideAddButton
+                />
               </OperationFormCard>
               <OperationFormCard className="operation-email-column">
                 <OperationEmailPreviewPanel

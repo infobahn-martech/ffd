@@ -44,13 +44,21 @@ FormField.propTypes = {
   className: PropTypes.string,
 };
 
-export const OperationFormCard = ({ className = "", children }) => {
-  return <div className={`operation-form-card ${className}`.trim()}>{children}</div>;
+export const OperationFormCard = ({ className = "", children, topRightAction = null }) => {
+  const hasAction = Boolean(topRightAction);
+
+  return (
+    <div className={`operation-form-card${hasAction ? " operation-form-card--has-action" : ""} ${className}`.trim()}>
+      {hasAction ? <div className="operation-form-card-header-action">{topRightAction}</div> : null}
+      {children}
+    </div>
+  );
 };
 
 OperationFormCard.propTypes = {
   className: PropTypes.string,
   children: PropTypes.node.isRequired,
+  topRightAction: PropTypes.node,
 };
 
 export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false }) => {
@@ -93,6 +101,34 @@ DynamicDateTimeFields.propTypes = {
 };
 
 export const EMPTY_ADDITIONAL_TIME_OBJECT = { label: "", date: "", time: "" };
+
+export const appendAdditionalTimeObject = (items = []) => {
+  const rows = Array.isArray(items) ? items : [];
+  return [...rows, { ...EMPTY_ADDITIONAL_TIME_OBJECT }];
+};
+
+export const AdditionalTimeObjectAddButton = ({
+  onClick,
+  disabled = false,
+  title = "Add time object",
+}) => (
+  <button
+    type="button"
+    className="operation-additional-time-object-add-icon-btn"
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={title}
+    title={title}
+  >
+    +
+  </button>
+);
+
+AdditionalTimeObjectAddButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+  title: PropTypes.string,
+};
 
 const normalizeAdditionalTimeValue = (date, time) => {
   const dateValue = String(date || "").trim();
@@ -154,6 +190,7 @@ export const AdditionalTimeObjectsFields = ({
   onChange,
   isViewOnly = false,
   title = "Additional Time Objects",
+  hideAddButton = false,
 }) => {
   const rows = Array.isArray(value) ? value : [];
 
@@ -162,7 +199,7 @@ export const AdditionalTimeObjectsFields = ({
   };
 
   const handleAddRow = () => {
-    emitChange([...rows, { ...EMPTY_ADDITIONAL_TIME_OBJECT }]);
+    emitChange(appendAdditionalTimeObject(rows));
   };
 
   const handleRemoveRow = (index) => {
@@ -173,13 +210,62 @@ export const AdditionalTimeObjectsFields = ({
     emitChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
   };
 
-  if (isViewOnly && rows.length === 0) return null;
+  if (rows.length === 0) return null;
+
+  const rowFields = rows.map((row, index) => {
+    const rowLabel = String(row?.label || "").trim();
+    const removeLabel = rowLabel || `additional time object ${index + 1}`;
+
+    return (
+      <div key={`additional-time-object-${index}`} className="cf-field operation-additional-time-object-field">
+        <div className="operation-additional-time-object-label-row">
+          {isViewOnly ? (
+            <label>{rowLabel || "—"}</label>
+          ) : (
+            <input
+              type="text"
+              className="operation-additional-time-object-label-input"
+              value={row?.label || ""}
+              onChange={(e) => handleRowChange(index, { label: e.target.value })}
+              placeholder="Enter time object name..."
+              aria-label={`Time object name ${index + 1}`}
+            />
+          )}
+          {!isViewOnly ? (
+            <button
+              type="button"
+              className="operation-additional-time-object-remove-btn"
+              onClick={() => handleRemoveRow(index)}
+              aria-label={`Remove ${removeLabel}`}
+              title="Remove"
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
+
+        <DateTimePickerField
+          dateValue={row?.date || ""}
+          timeValue={row?.time || ""}
+          onDateChange={(e) => handleRowChange(index, { date: e.target.value })}
+          onTimeChange={(e) => handleRowChange(index, { time: e.target.value })}
+          dateFieldName={`additional-time-object-${index}-date`}
+          timeFieldName={`additional-time-object-${index}-time`}
+          disabled={isViewOnly}
+        />
+      </div>
+    );
+  });
+
+  if (hideAddButton) {
+    return rowFields;
+  }
 
   return (
     <div className="operation-additional-time-objects">
       <div className="operation-additional-time-objects-header">
         <h4 className="operation-additional-time-objects-title">{title}</h4>
-        {!isViewOnly && (
+        {!isViewOnly ? (
           <button
             type="button"
             className="operation-additional-time-objects-add-btn"
@@ -187,49 +273,10 @@ export const AdditionalTimeObjectsFields = ({
           >
             + Add Time Object
           </button>
-        )}
+        ) : null}
       </div>
 
-      {rows.length === 0 && !isViewOnly ? (
-        <p className="operation-additional-time-objects-empty">No additional time objects added yet.</p>
-      ) : null}
-
-      {rows.map((row, index) => (
-        <div key={`additional-time-object-${index}`} className="operation-additional-time-objects-row">
-          <FormField label="Time Object Name">
-            <FormInput
-              type="text"
-              value={row?.label || ""}
-              onChange={(e) => handleRowChange(index, { label: e.target.value })}
-              placeholder="Enter time object name..."
-              disabled={isViewOnly}
-            />
-          </FormField>
-
-          <FormField label="Date & Time">
-            <DateTimePickerField
-              dateValue={row?.date || ""}
-              timeValue={row?.time || ""}
-              onDateChange={(e) => handleRowChange(index, { date: e.target.value })}
-              onTimeChange={(e) => handleRowChange(index, { time: e.target.value })}
-              dateFieldName={`additional-time-object-${index}-date`}
-              timeFieldName={`additional-time-object-${index}-time`}
-              disabled={isViewOnly}
-            />
-          </FormField>
-
-          {!isViewOnly ? (
-            <button
-              type="button"
-              className="operation-additional-time-objects-remove-btn"
-              onClick={() => handleRemoveRow(index)}
-              aria-label={`Remove additional time object ${index + 1}`}
-            >
-              Remove
-            </button>
-          ) : null}
-        </div>
-      ))}
+      {rowFields}
     </div>
   );
 };
@@ -245,6 +292,7 @@ AdditionalTimeObjectsFields.propTypes = {
   onChange: PropTypes.func,
   isViewOnly: PropTypes.bool,
   title: PropTypes.string,
+  hideAddButton: PropTypes.bool,
 };
 
 export const FormInput = ({ type = "text", value, onChange, placeholder, className = "", disabled = false }) => {

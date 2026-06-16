@@ -21,7 +21,9 @@ import {
   SABER_APPLIED_BY_SEDRES,
 } from "./operationConstants";
 import {
+  AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
+  appendAdditionalTimeObject,
   buildAdditionalTimeObjectsPayload,
   DynamicDateTimeFields,
   FormField,
@@ -998,7 +1000,22 @@ function PreArrival({
         <div className="operation-tab-layout">
           <div className="pre-arrival-form">
             <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
-              <OperationFormCard className="operation-form-column">
+              <OperationFormCard
+                className="operation-form-column"
+                topRightAction={
+                  !isViewOnly ? (
+                    <AdditionalTimeObjectAddButton
+                      onClick={() =>
+                        handleChange("preArrivalAdditionalTimeObjects")({
+                          target: {
+                            value: appendAdditionalTimeObject(formValues.preArrivalAdditionalTimeObjects),
+                          },
+                        })
+                      }
+                    />
+                  ) : null
+                }
+              >
                 <div
                   className={`prearrival-timeobject-highlight ${formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
                     ? "is-warning"
@@ -1012,14 +1029,6 @@ function PreArrival({
                     isViewOnly={isViewOnly}
                   />
                 </div>
-
-                <AdditionalTimeObjectsFields
-                  value={formValues.preArrivalAdditionalTimeObjects || []}
-                  onChange={(next) =>
-                    handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } })
-                  }
-                  isViewOnly={isViewOnly}
-                />
 
                 <FormField label="SABER Status">
                   <FormSelect
@@ -1105,6 +1114,15 @@ function PreArrival({
                     </FormField>
                   )
                 )}
+
+                <AdditionalTimeObjectsFields
+                  value={formValues.preArrivalAdditionalTimeObjects || []}
+                  onChange={(next) =>
+                    handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } })
+                  }
+                  isViewOnly={isViewOnly}
+                  hideAddButton
+                />
               </OperationFormCard>
               <OperationFormCard className="operation-email-column">
                 <OperationEmailPreviewPanel
