@@ -14,6 +14,7 @@ const Operators = () => {
         isLoading,
         totalOperatorCount,
         deleteOperator,
+        isDeleteLoading,
     } = useOperatorReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -205,6 +206,7 @@ const Operators = () => {
                                 }
                             }}
                             deleteText="Are you sure you want to delete this operator?"
+                            isLoading={isDeleteLoading}
                         />
                     )}
                 </div>
