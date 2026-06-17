@@ -619,6 +619,17 @@
     color: #0f172a;
   }
 
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    &:hover {
+      background: #ffffff;
+      border-color: #dde3ec;
+      color: #334155;
+    }
+  }
+
   &--icon {
     width: 34px;
     padding: 0;
@@ -640,6 +651,14 @@
     background: #cbd5e1;
     border-radius: 4px;
   }
+}
+
+.document-preview__iframe {
+  width: 100%;
+  height: 520px;
+  border: 0;
+  border-radius: 12px;
+  background: #f8fafc;
 }
 
 .doc-lib-preview-mock {
