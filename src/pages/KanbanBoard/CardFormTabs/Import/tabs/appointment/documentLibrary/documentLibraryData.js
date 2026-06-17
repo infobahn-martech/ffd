@@ -284,7 +284,7 @@ export const DOCUMENTS = [
     uploadedBy: "Martech",
     date: "Jun 10, 2026",
     uploadDate: "Jun 10, 2026",
-    previewUrl: "/mock-documents/cg-pass.pdf",
+    previewUrl: `${import.meta.env.BASE_URL}mock-documents/cg-pass.pdf`,
     preview: {
       documentType: "Crew Gate Pass",
       title: "Horizon Maritime Services",
@@ -310,7 +310,7 @@ export const DOCUMENTS = [
     uploadedBy: "Martech",
     date: "Jun 10, 2026",
     uploadDate: "Jun 10, 2026",
-    previewUrl: "/mock-documents/zawil-pass.pdf",
+    previewUrl: `${import.meta.env.BASE_URL}mock-documents/zawil-pass.pdf`,
     preview: {
       documentType: "Port Entry Permit",
       title: "Zawil Port Authority",
