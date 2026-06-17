@@ -31,7 +31,7 @@
 
 .checklist-page-header {
   align-items: flex-start;
-  padding: 10px 12px 8px;
+  padding: 20px 26px 16px 22px;
   border-bottom: none;
   min-height: 0;
   gap: 12px;
@@ -4386,11 +4386,11 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   padding: 4px 6px;
 }
 
-.cl-excel-table tbody tr.checklist-table-row td + td {
+.cl-excel-table tbody tr.checklist-table-row td+td {
   border-left-style: dotted;
 }
 
-.cl-excel-table thead th + th {
+.cl-excel-table thead th+th {
   border-left-style: dotted;
 }
 
