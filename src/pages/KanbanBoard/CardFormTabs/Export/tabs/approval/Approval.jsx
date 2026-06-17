@@ -1,5 +1,6 @@
   import { useState, useCallback, useRef } from "react";
   import PropTypes from "prop-types";
+  import { FiCheckCircle, FiArrowRight, FiClock } from "react-icons/fi";
   import DateTimePickerField from "../../../shared/components/DateTimePickerField";
   import "../../../../../../design/scss/general.scss";
   import "../../../../../../design/css/common/CardForm.css";
@@ -98,37 +99,47 @@ const createEmptyPartySection = () => ({
     className: PropTypes.string,
   };
 
-  const APPROVAL_STATUS_OPTIONS = [
-    { value: "Pending", label: "Pending" },
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
-    { value: "On Hold", label: "On Hold" },
-  ];
+  function ApprovalActionButtons({
+    primaryLabel,
+    secondaryLabel,
+    onPrimaryClick,
+    onSecondaryClick,
+  }) {
+    const secondaryButtonClass =
+      secondaryLabel === "On Hold" ? "btn-onhold" : "btn-proceed";
 
-  function FormSelect({ value, onChange, options, className = "" }) {
     return (
-      <div className={`cf-select status-select ${className}`.trim()}>
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+      <div className="approval-actions">
+        <button
+          type="button"
+          className="action-btn btn-approved"
+          onClick={onPrimaryClick}
+        >
+          <FiCheckCircle size={22} />
+          {primaryLabel}
+        </button>
+
+        <button
+          type="button"
+          className={`action-btn ${secondaryButtonClass}`}
+          onClick={onSecondaryClick}
+        >
+          {secondaryLabel === "On Hold" ? (
+            <FiClock size={22} />
+          ) : (
+            <FiArrowRight size={22} />
+          )}
+          {secondaryLabel}
+        </button>
       </div>
     );
   }
 
-  FormSelect.propTypes = {
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    options: PropTypes.arrayOf(
-      PropTypes.shape({
-        value: PropTypes.string.isRequired,
-        label: PropTypes.string.isRequired,
-      })
-    ).isRequired,
-    className: PropTypes.string,
+  ApprovalActionButtons.propTypes = {
+    primaryLabel: PropTypes.string.isRequired,
+    secondaryLabel: PropTypes.string.isRequired,
+    onPrimaryClick: PropTypes.func.isRequired,
+    onSecondaryClick: PropTypes.func.isRequired,
   };
 
   function DocumentUploadField({ file, onChange }) {
@@ -202,7 +213,7 @@ const createEmptyPartySection = () => ({
     onChange: PropTypes.func.isRequired,
   };
 
-  function ApprovalSectionCard({
+  function ApprovalCard({
     title,
     commentsLabel,
     commentsValue,
@@ -211,45 +222,43 @@ const createEmptyPartySection = () => ({
     commentsClassName = "",
     document,
     onDocumentChange,
-    status,
-    onStatusChange,
+    primaryActionLabel,
+    secondaryActionLabel,
+    onPrimaryAction,
+    onSecondaryAction,
     helperText,
   }) {
     return (
-      <section className="approval-form-card approval-section--full">
+      <section className="approval-form-card approval-party-card approval-action-card">
         <h3 className="form-group-title">{title}</h3>
-        <div className="approval-row">
-          <FormField
-            label={commentsLabel}
-            className="approval-section-field--comments"
-          >
+        <div className="approval-card-body approval-fields-stack">
+          <FormField label={commentsLabel}>
             <FormTextarea
               value={commentsValue}
               onChange={onCommentsChange}
               placeholder={commentsPlaceholder}
+              rows={3}
               className={commentsClassName}
             />
             {helperText ? <p className="approval-helper-text">{helperText}</p> : null}
           </FormField>
-          <FormField
-            label="Document Upload"
-            className="approval-section-field--document"
-          >
+          <FormField label="Document Upload">
             <DocumentUploadField file={document} onChange={onDocumentChange} />
           </FormField>
-          <FormField label="Status" className="approval-section-field--status">
-            <FormSelect
-              value={status}
-              onChange={onStatusChange}
-              options={APPROVAL_STATUS_OPTIONS}
-            />
-          </FormField>
+        </div>
+        <div className="approval-card-actions">
+          <ApprovalActionButtons
+            primaryLabel={primaryActionLabel}
+            secondaryLabel={secondaryActionLabel}
+            onPrimaryClick={onPrimaryAction}
+            onSecondaryClick={onSecondaryAction}
+          />
         </div>
       </section>
     );
   }
 
-  ApprovalSectionCard.propTypes = {
+  ApprovalCard.propTypes = {
     title: PropTypes.string.isRequired,
     commentsLabel: PropTypes.string.isRequired,
     commentsValue: PropTypes.string.isRequired,
@@ -258,8 +267,10 @@ const createEmptyPartySection = () => ({
     commentsClassName: PropTypes.string,
     document: PropTypes.instanceOf(File),
     onDocumentChange: PropTypes.func.isRequired,
-    status: PropTypes.string.isRequired,
-    onStatusChange: PropTypes.func.isRequired,
+    primaryActionLabel: PropTypes.string.isRequired,
+    secondaryActionLabel: PropTypes.string.isRequired,
+    onPrimaryAction: PropTypes.func.isRequired,
+    onSecondaryAction: PropTypes.func.isRequired,
     helperText: PropTypes.string,
   };
 
@@ -382,13 +393,34 @@ const createEmptyPartySection = () => ({
     const [vesselCharterer, setVesselCharterer] = useState(createEmptyPartySection);
     const [creditControllerRemarks, setCreditControllerRemarks] = useState("");
     const [creditControllerDocument, setCreditControllerDocument] = useState(null);
-    const [creditControllerStatus, setCreditControllerStatus] = useState("Pending");
     const [managerComments, setManagerComments] = useState("");
     const [managerDocument, setManagerDocument] = useState(null);
-    const [managerStatus, setManagerStatus] = useState("Pending");
     const [ceoComments, setCeoComments] = useState("");
     const [ceoDocument, setCeoDocument] = useState(null);
-    const [ceoStatus, setCeoStatus] = useState("Pending");
+
+    const handleCreditControllerApproved = useCallback(() => {
+      console.log("Approved");
+    }, []);
+
+    const handleCreditControllerProceedToOperator = useCallback(() => {
+      console.log("Proceed to Operator");
+    }, []);
+
+    const handleManagerApproved = useCallback(() => {
+      console.log("Approved");
+    }, []);
+
+    const handleManagerProceedToCeo = useCallback(() => {
+      console.log("Proceed to CEO");
+    }, []);
+
+    const handleCeoApproved = useCallback(() => {
+      console.log("Approved");
+    }, []);
+
+    const handleCeoOnHold = useCallback(() => {
+      console.log("On Hold");
+    }, []);
 
     const handleBasicChange = useCallback((field, value) => {
       setBasicDetails((prev) => ({ ...prev, [field]: value }));
@@ -490,45 +522,53 @@ const createEmptyPartySection = () => ({
               />
             </div>
 
-            <ApprovalSectionCard
-              title="Remarks / Recommendation"
-              commentsLabel="Remarks / recommendation from Credit Controller"
-              commentsValue={creditControllerRemarks}
-              onCommentsChange={(e) => setCreditControllerRemarks(e.target.value)}
-              commentsPlaceholder="Enter remarks / recommendation from Credit Controller"
-              document={creditControllerDocument}
-              onDocumentChange={setCreditControllerDocument}
-              status={creditControllerStatus}
-              onStatusChange={setCreditControllerStatus}
-            />
+            <div className="approval-action-cards-row">
+              <ApprovalCard
+                title="Remarks / Recommendation"
+                commentsLabel="Remarks / recommendation from Credit Controller"
+                commentsValue={creditControllerRemarks}
+                onCommentsChange={(e) => setCreditControllerRemarks(e.target.value)}
+                commentsPlaceholder="Enter remarks / recommendation from Credit Controller"
+                document={creditControllerDocument}
+                onDocumentChange={setCreditControllerDocument}
+                primaryActionLabel="Approved"
+                secondaryActionLabel="Proceed to Operator"
+                onPrimaryAction={handleCreditControllerApproved}
+                onSecondaryAction={handleCreditControllerProceedToOperator}
+              />
 
-            <ApprovalSectionCard
-              title="Manager - Offshore Marine Logistics Comments"
-              commentsLabel="Manager - Offshore Marine Logistics comments"
-              commentsValue={managerComments}
-              onCommentsChange={(e) => setManagerComments(e.target.value)}
-              commentsPlaceholder="Enter manager comments"
-              commentsClassName="approval-textarea--blue"
-              document={managerDocument}
-              onDocumentChange={setManagerDocument}
-              status={managerStatus}
-              onStatusChange={setManagerStatus}
-              helperText="Require Digital Signature of OFM department Manager"
-            />
+              <ApprovalCard
+                title="Manager - Offshore Marine Logistics Comments"
+                commentsLabel="Manager - Offshore Marine Logistics comments"
+                commentsValue={managerComments}
+                onCommentsChange={(e) => setManagerComments(e.target.value)}
+                commentsPlaceholder="Enter manager comments"
+                commentsClassName="approval-textarea--blue"
+                document={managerDocument}
+                onDocumentChange={setManagerDocument}
+                primaryActionLabel="Approved"
+                secondaryActionLabel="Proceed to CEO"
+                onPrimaryAction={handleManagerApproved}
+                onSecondaryAction={handleManagerProceedToCeo}
+                helperText="Require Digital Signature of OFM department Manager"
+              />
 
-            <ApprovalSectionCard
-              title="CEO Comments"
-              commentsLabel="CEO comments"
-              commentsValue={ceoComments}
-              onCommentsChange={(e) => setCeoComments(e.target.value)}
-              commentsPlaceholder="Enter CEO comments"
-              commentsClassName="approval-textarea--blue"
-              document={ceoDocument}
-              onDocumentChange={setCeoDocument}
-              status={ceoStatus}
-              onStatusChange={setCeoStatus}
-              helperText="Require Digital Signature of CEO"
-            />
+              <ApprovalCard
+                title="CEO Comments"
+                commentsLabel="CEO comments"
+                commentsValue={ceoComments}
+                onCommentsChange={(e) => setCeoComments(e.target.value)}
+                commentsPlaceholder="Enter CEO comments"
+                commentsClassName="approval-textarea--blue"
+                document={ceoDocument}
+                onDocumentChange={setCeoDocument}
+                primaryActionLabel="Approved"
+                secondaryActionLabel="On Hold"
+                onPrimaryAction={handleCeoApproved}
+                onSecondaryAction={handleCeoOnHold}
+                helperText="Require Digital Signature of CEO"
+              />
+            </div>
           </div>
         </div>
       </div>
