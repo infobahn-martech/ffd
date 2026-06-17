@@ -134,6 +134,62 @@
     width: 100%;
   }
 
+  .approval-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 0.8fr;
+    gap: 16px;
+    width: 100%;
+    align-items: stretch;
+
+    .approval-field {
+      margin-bottom: 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .approval-field textarea,
+    .approval-field .document-upload,
+    .approval-field .status-select {
+      min-height: 48px;
+      height: 48px;
+      max-height: 48px;
+      box-sizing: border-box;
+    }
+
+    .approval-field textarea {
+      resize: none;
+    }
+
+    .approval-field .approval-textarea-wrap.cf-input {
+      height: 48px;
+      min-height: 48px;
+      max-height: 48px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+
+      textarea {
+        height: 100%;
+        min-height: 0;
+        max-height: 100%;
+        resize: none;
+        line-height: 1.4;
+      }
+    }
+
+    .approval-field .status-select {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+
+      select {
+        height: 100%;
+      }
+    }
+  }
+
   .approval-field {
     margin-bottom: 12px;
     min-width: 0;
@@ -219,20 +275,30 @@
     line-height: 1.4;
   }
 
+  .approval-upload-field,
   .approval-document-upload {
     width: 100%;
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  .approval-upload-dropzone,
   .approval-document-upload-zone {
     position: relative;
     width: 100%;
-    min-height: 72px;
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
     border: 2px dashed #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #fafbff;
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.2s ease;
-    padding: 14px 16px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -257,10 +323,14 @@
 
   .approval-document-upload-text {
     margin: 0;
-    font-size: 13px;
+    font-size: 12px;
     color: #4b5563;
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .approval-document-upload-link {
@@ -275,6 +345,7 @@
     gap: 12px;
     width: 100%;
     min-width: 0;
+    height: 100%;
   }
 
   .approval-document-upload-filename {
@@ -319,6 +390,12 @@
     .approval-fields-grid,
     .approval-basic-fields-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .approval-row {
+      grid-template-columns: 1fr;
     }
   }
 

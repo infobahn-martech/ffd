@@ -105,9 +105,9 @@ const createEmptyPartySection = () => ({
     { value: "On Hold", label: "On Hold" },
   ];
 
-  function FormSelect({ value, onChange, options }) {
+  function FormSelect({ value, onChange, options, className = "" }) {
     return (
-      <div className="cf-select">
+      <div className={`cf-select status-select ${className}`.trim()}>
         <select value={value} onChange={(e) => onChange(e.target.value)}>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -128,6 +128,7 @@ const createEmptyPartySection = () => ({
         label: PropTypes.string.isRequired,
       })
     ).isRequired,
+    className: PropTypes.string,
   };
 
   function DocumentUploadField({ file, onChange }) {
@@ -151,9 +152,9 @@ const createEmptyPartySection = () => ({
     };
 
     return (
-      <div className="approval-document-upload">
+      <div className="approval-document-upload approval-upload-field document-upload">
         <div
-          className="approval-document-upload-zone"
+          className="approval-document-upload-zone approval-upload-dropzone"
           onClick={handleBrowseClick}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -217,21 +218,26 @@ const createEmptyPartySection = () => ({
     return (
       <section className="approval-form-card approval-section--full">
         <h3 className="form-group-title">{title}</h3>
-        <div className="approval-fields-stack">
-          <FormField label={commentsLabel} fullWidth>
+        <div className="approval-row">
+          <FormField
+            label={commentsLabel}
+            className="approval-section-field--comments"
+          >
             <FormTextarea
               value={commentsValue}
               onChange={onCommentsChange}
               placeholder={commentsPlaceholder}
-              rows={5}
               className={commentsClassName}
             />
             {helperText ? <p className="approval-helper-text">{helperText}</p> : null}
           </FormField>
-          <FormField label="Document Upload" fullWidth>
+          <FormField
+            label="Document Upload"
+            className="approval-section-field--document"
+          >
             <DocumentUploadField file={document} onChange={onDocumentChange} />
           </FormField>
-          <FormField label="Status" fullWidth>
+          <FormField label="Status" className="approval-section-field--status">
             <FormSelect
               value={status}
               onChange={onStatusChange}
