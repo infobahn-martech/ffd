@@ -8469,7 +8469,7 @@ body .modal-backdrop.show {
 .kpi-analytics-title-bar {
   width: 4px;
   height: 18px;
-  background: var(--card-color, #2A00FF);
+  background: #2A00FF;
   border-radius: 2px;
   display: inline-block;
 }
@@ -8579,14 +8579,14 @@ body .modal-backdrop.show {
 }
 
 .kpi-table-container .table.kpi-table thead {
-  background: var(--card-color, #e2e6ff);
+  background: #e2e6ff;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .kpi-table-container .table.kpi-table thead th {
-  background: var(--card-color, #e2e6ff) !important;
+  background: #e2e6ff !important;
   color: #3e3633;
   font-weight: 600;
   font-size: 12px;
