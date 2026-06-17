@@ -203,7 +203,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
             <div key={card.label} className="husbandry-service-summary-card">
               <span className="husbandry-service-summary-label">{card.label}</span>
               <span className="husbandry-service-summary-value">{card.value}</span>
-              <span className="husbandry-service-summary-helper">{card.helper}</span>
+              {/* <span className="husbandry-service-summary-helper">{card.helper}</span> */}
             </div>
           ))}
         </div>
@@ -213,51 +213,51 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
         >
           <div className="husbandry-service-scroll-viewport" ref={scrollContainerRef}>
             <div className="husbandry-service-options-row">
-            {services.map((service) => {
-              const bookedEntry = bookedServicesMap[service.id];
-              const isBooked = Boolean(bookedEntry);
-              const status = bookedEntry?.status || "Pending";
+              {services.map((service) => {
+                const bookedEntry = bookedServicesMap[service.id];
+                const isBooked = Boolean(bookedEntry);
+                const status = bookedEntry?.status || "Pending";
 
-              return (
-                <button
-                  key={service.id}
-                  type="button"
-                  className={`husbandry-service-option ${isBooked ? "booked" : ""}`}
-                  onClick={() => onSelectService(service.id)}
-                  style={{ "--card-color": cardColor }}
-                >
-                  {isBooked && (
-                    <span
-                      className={`husbandry-service-option-status ${getStatusBadgeClass(status)}`}
-                      aria-label={`${service.label} status: ${status}`}
-                    >
-                      {status}
-                    </span>
-                  )}
-                  <div className="husbandry-service-option-icon">
-                    {getServiceIcon(service.icon)}
-                  </div>
-                  <div className="husbandry-service-option-content">
-                    <span className="husbandry-service-option-label">{service.label}</span>
-                    <p className="husbandry-service-option-summary">{service.summary}</p>
-                  </div>
-                  {isBooked && (
-                    <div className="husbandry-service-option-booking">
-                      {bookedEntry.subService && (
-                        <span className="husbandry-service-option-sub">{bookedEntry.subService}</span>
-                      )}
-                      <p className="husbandry-service-option-booking-summary">
-                        {service.bookedSummary}
-                      </p>
+                return (
+                  <button
+                    key={service.id}
+                    type="button"
+                    className={`husbandry-service-option ${isBooked ? "booked" : ""}`}
+                    onClick={() => onSelectService(service.id)}
+                    style={{ "--card-color": cardColor }}
+                  >
+                    {isBooked && (
+                      <span
+                        className={`husbandry-service-option-status ${getStatusBadgeClass(status)}`}
+                        aria-label={`${service.label} status: ${status}`}
+                      >
+                        {status}
+                      </span>
+                    )}
+                    <div className="husbandry-service-option-icon">
+                      {getServiceIcon(service.icon)}
                     </div>
-                  )}
-                  <div className="husbandry-service-option-footer">
-                    <span className="husbandry-service-option-meta">{service.metaInfo}</span>
-                    <span className="husbandry-service-option-note">{service.quickNote}</span>
-                  </div>
-                </button>
-              );
-            })}
+                    <div className="husbandry-service-option-content">
+                      <span className="husbandry-service-option-label">{service.label}</span>
+                      <p className="husbandry-service-option-summary">{service.summary}</p>
+                    </div>
+                    {isBooked && (
+                      <div className="husbandry-service-option-booking">
+                        {bookedEntry.subService && (
+                          <span className="husbandry-service-option-sub">{bookedEntry.subService}</span>
+                        )}
+                        <p className="husbandry-service-option-booking-summary">
+                          {service.bookedSummary}
+                        </p>
+                      </div>
+                    )}
+                    <div className="husbandry-service-option-footer">
+                      <span className="husbandry-service-option-meta">{service.metaInfo}</span>
+                      <span className="husbandry-service-option-note">{service.quickNote}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
           {showLeftArrow && (
