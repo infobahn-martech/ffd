@@ -188,9 +188,9 @@ const DocumentPreview = ({ document }) => {
             <LinkIcon />
             <span>Copy Link</span>
           </button>
-          <button type="button" className="doc-lib-preview-action-btn doc-lib-preview-action-btn--icon" aria-label="Favorite">
+          {/* <button type="button" className="doc-lib-preview-action-btn doc-lib-preview-action-btn--icon" aria-label="Favorite">
             <StarIcon />
-          </button>
+          </button> */}
         </div>
       </div>
 
