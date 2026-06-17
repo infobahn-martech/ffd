@@ -23,6 +23,58 @@
   overflow-x: hidden;
 }
 
+.checklist-tab-layout--full {
+  width: 100%;
+  padding: 0 12px 12px;
+  box-sizing: border-box;
+}
+
+.checklist-page-header {
+  align-items: flex-start;
+  padding: 10px 12px 8px;
+  border-bottom: none;
+  min-height: 0;
+  gap: 12px;
+}
+
+.checklist-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.checklist-header-type-select {
+  width: min(420px, 100%);
+  min-width: 320px;
+}
+
+.checklist-header-type-select.cf-multiselect {
+  width: min(420px, 100%);
+  min-width: 320px;
+}
+
+.checklist-header-type-select .cf-multiselect-input {
+  min-height: 36px;
+  border-radius: 4px;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.checklist-header-type-select .cf-multiselect-input:hover {
+  box-shadow: none;
+}
+
+.checklist-form--compact {
+  padding-top: 0;
+  padding-bottom: 72px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .checklist-actions {
   position: absolute;
   right: 24px;
@@ -4254,7 +4306,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
    ========================================================== */
 
 .cl-excel-type-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .cl-excel-type-group:last-child {
@@ -4607,6 +4659,27 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 @media (max-width: 768px) {
+  .checklist-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 10px 6px;
+  }
+
+  .checklist-header-right {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .checklist-header-type-select,
+  .checklist-header-type-select.cf-multiselect {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .checklist-tab-layout--full {
+    padding: 0 8px 10px;
+  }
+
   .cl-excel-table {
     min-width: 680px;
   }
