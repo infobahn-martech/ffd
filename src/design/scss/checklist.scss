@@ -626,19 +626,22 @@
   resize: none;
   background: #ffffff;
   color: #1f2937;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: none;
   flex: 0 1 auto;
   align-self: center;
+  box-shadow: none;
+  outline: none;
 }
 
 .cf-textarea.checklist-table-textarea textarea::placeholder {
   color: #9ca3af;
 }
 
+.cf-textarea.checklist-table-textarea textarea:hover,
 .cf-textarea.checklist-table-textarea textarea:focus {
   outline: none;
-  border-color: rgb(77 85 188);
-  box-shadow: 0 0 0 3px rgba(77, 85, 188, 0.12);
+  border: 1px solid #d1d5db;
+  box-shadow: none;
 }
 
 /* Compact single-row file chip inside upload cell (same 56px as empty state) */
@@ -3214,6 +3217,17 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   max-height: 32px;
   display: flex;
   align-items: center;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.cl-items-table .checklist-table-remarks .checklist-table-textarea.cf-textarea:hover,
+.cl-items-table .checklist-table-remarks .checklist-table-textarea.cf-textarea:focus-within {
+  border: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 .cl-items-table .checklist-table-remarks .cf-textarea.checklist-table-textarea textarea {
@@ -3221,6 +3235,15 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   min-height: 32px;
   max-height: 32px;
   padding: 6px 10px;
+  box-shadow: none;
+  outline: none;
+  transition: none;
+}
+
+.cl-items-table .checklist-table-remarks .cf-textarea.checklist-table-textarea textarea:hover,
+.cl-items-table .checklist-table-remarks .cf-textarea.checklist-table-textarea textarea:focus {
+  box-shadow: none;
+  outline: none;
 }
 
 .cl-upload-remove-btn:hover {
@@ -3322,9 +3345,35 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   max-height: 36px;
 }
 
+.cl-remarks-ta.cf-textarea {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.cl-remarks-ta.cf-textarea:hover,
+.cl-remarks-ta.cf-textarea:focus-within {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
 .cl-remarks-ta.cf-textarea textarea {
   padding: 6px 10px;
   font-size: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  box-shadow: none;
+  outline: none;
+  transition: none;
+}
+
+.cl-remarks-ta.cf-textarea textarea:hover,
+.cl-remarks-ta.cf-textarea textarea:focus {
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+  outline: none;
 }
 
 .cl-api-file-chip {
@@ -4613,8 +4662,25 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   max-width: 80px;
 }
 
-.cl-excel-table .checklist-table-textarea,
-.cl-excel-table .cl-remarks-ta {
+.cl-excel-table .checklist-table-textarea.cf-textarea,
+.cl-excel-table .cl-remarks-ta.cf-textarea {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.cl-excel-table .checklist-table-textarea.cf-textarea:hover,
+.cl-excel-table .checklist-table-textarea.cf-textarea:focus-within,
+.cl-excel-table .cl-remarks-ta.cf-textarea:hover,
+.cl-excel-table .cl-remarks-ta.cf-textarea:focus-within {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.cl-excel-table .cf-textarea.checklist-table-textarea textarea,
+.cl-excel-table .cf-textarea.cl-remarks-ta textarea {
   border-radius: 2px;
   border: 1px solid #999;
   padding: 3px 5px;
@@ -4622,11 +4688,20 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   min-height: 24px;
   box-shadow: none;
   background: #fff;
+  outline: none;
+  transition: none;
 }
 
-.cl-excel-table .checklist-table-textarea:focus,
-.cl-excel-table .cl-remarks-ta:focus {
-  border-color: #0066cc;
+.cl-excel-table .cf-textarea.checklist-table-textarea textarea::placeholder,
+.cl-excel-table .cf-textarea.cl-remarks-ta textarea::placeholder {
+  color: #9ca3af;
+}
+
+.cl-excel-table .cf-textarea.checklist-table-textarea textarea:hover,
+.cl-excel-table .cf-textarea.checklist-table-textarea textarea:focus,
+.cl-excel-table .cf-textarea.cl-remarks-ta textarea:hover,
+.cl-excel-table .cf-textarea.cl-remarks-ta textarea:focus {
+  border: 1px solid #999;
   box-shadow: none;
   outline: none;
 }
