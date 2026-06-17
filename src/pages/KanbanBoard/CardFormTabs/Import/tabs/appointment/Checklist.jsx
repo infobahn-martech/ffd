@@ -784,32 +784,19 @@ function Checklist({
                 !checklistError &&
                 hasChecklistData &&
                 checklistBlocks.map((block) => (
-                  <div className="checklist-type-group" key={block.typeId} style={{ "--card-color": cardColor }}>
-                    <button
-                      type="button"
-                      className="checklist-type-title-accordion"
-                      onClick={() => handleTypeGroupToggle(block.typeId)}
-                      aria-expanded={openTypeGroups[block.typeId] !== false}
-                    >
-                      <span className="checklist-type-title-text">{block.typeName}</span>
-                      <span className="checklist-type-accordion-icon">
-                        {openTypeGroups[block.typeId] !== false ? "▼" : "▶"}
-                      </span>
-                    </button>
-                    {openTypeGroups[block.typeId] !== false ? (
-                      <ChecklistTypeBlock
-                        typeTitle={block.typeName}
-                        sectionTree={block.tree}
-                        itemsData={itemsData}
-                        onItemChange={handleItemChange}
-                        openSections={openSections}
-                        onSectionToggle={handleSectionToggle}
-                        onSelectAll={handleSelectAll}
-                        cardColor={cardColor}
-                        isViewOnly={isViewOnly}
-                        isDAModule={isDAModule}
-                      />
-                    ) : null}
+                  <div className="checklist-type-group cl-excel-type-group" key={block.typeId} style={{ "--card-color": cardColor }}>
+                    <ChecklistTypeBlock
+                      typeTitle={block.typeName}
+                      sectionTree={block.tree}
+                      itemsData={itemsData}
+                      onItemChange={handleItemChange}
+                      openSections={openSections}
+                      onSectionToggle={handleSectionToggle}
+                      onSelectAll={handleSelectAll}
+                      cardColor={cardColor}
+                      isViewOnly={isViewOnly}
+                      isDAModule={isDAModule}
+                    />
                   </div>
                 ))}
             </div>
