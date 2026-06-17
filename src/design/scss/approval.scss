@@ -219,6 +219,94 @@
     line-height: 1.4;
   }
 
+  .approval-document-upload {
+    width: 100%;
+  }
+
+  .approval-document-upload-zone {
+    position: relative;
+    width: 100%;
+    min-height: 72px;
+    border: 2px dashed #e2e8f0;
+    border-radius: 10px;
+    background: #fafbff;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    &:hover,
+    &:focus-visible {
+      border-color: #3e5cb6;
+      background: #f8f9ff;
+      outline: none;
+    }
+  }
+
+  .approval-file-input-hidden {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .approval-document-upload-text {
+    margin: 0;
+    font-size: 13px;
+    color: #4b5563;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .approval-document-upload-link {
+    color: #3e5cb6;
+    font-weight: 600;
+  }
+
+  .approval-document-upload-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .approval-document-upload-filename {
+    font-size: 13px;
+    color: #1a1a1a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .approval-document-upload-remove {
+    flex-shrink: 0;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    &:hover {
+      background: #e5e7eb;
+      color: #374151;
+    }
+  }
+
   .cf-field .cf-input.date-time-row.cf-datetime-picker {
     width: 100%;
   }

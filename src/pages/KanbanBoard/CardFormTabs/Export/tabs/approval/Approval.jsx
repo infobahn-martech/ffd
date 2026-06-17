@@ -1,4 +1,4 @@
-  import { useState, useCallback } from "react";
+  import { useState, useCallback, useRef } from "react";
   import PropTypes from "prop-types";
   import DateTimePickerField from "../../../shared/components/DateTimePickerField";
   import "../../../../../../design/scss/general.scss";
@@ -96,6 +96,165 @@ const createEmptyPartySection = () => ({
     placeholder: PropTypes.string,
     rows: PropTypes.number,
     className: PropTypes.string,
+  };
+
+  const APPROVAL_STATUS_OPTIONS = [
+    { value: "Pending", label: "Pending" },
+    { value: "Approved", label: "Approved" },
+    { value: "Rejected", label: "Rejected" },
+    { value: "On Hold", label: "On Hold" },
+  ];
+
+  function FormSelect({ value, onChange, options }) {
+    return (
+      <div className="cf-select">
+        <select value={value} onChange={(e) => onChange(e.target.value)}>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  FormSelect.propTypes = {
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    options: PropTypes.arrayOf(
+      PropTypes.shape({
+        value: PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+  };
+
+  function DocumentUploadField({ file, onChange }) {
+    const inputRef = useRef(null);
+
+    const handleFileChange = (event) => {
+      const selectedFile = event.target.files?.[0] || null;
+      onChange(selectedFile);
+    };
+
+    const handleBrowseClick = () => {
+      inputRef.current?.click();
+    };
+
+    const handleRemove = (event) => {
+      event.stopPropagation();
+      onChange(null);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    };
+
+    return (
+      <div className="approval-document-upload">
+        <div
+          className="approval-document-upload-zone"
+          onClick={handleBrowseClick}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleBrowseClick();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            className="approval-file-input-hidden"
+            onChange={handleFileChange}
+            onClick={(event) => event.stopPropagation()}
+          />
+          {file ? (
+            <div className="approval-document-upload-file">
+              <span className="approval-document-upload-filename" title={file.name}>
+                {file.name}
+              </span>
+              <button
+                type="button"
+                className="approval-document-upload-remove"
+                onClick={handleRemove}
+                title="Remove file"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <p className="approval-document-upload-text">
+              Drag and drop your file here, or{" "}
+              <span className="approval-document-upload-link">click to browse</span>
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  DocumentUploadField.propTypes = {
+    file: PropTypes.instanceOf(File),
+    onChange: PropTypes.func.isRequired,
+  };
+
+  function ApprovalSectionCard({
+    title,
+    commentsLabel,
+    commentsValue,
+    onCommentsChange,
+    commentsPlaceholder,
+    commentsClassName = "",
+    document,
+    onDocumentChange,
+    status,
+    onStatusChange,
+    helperText,
+  }) {
+    return (
+      <section className="approval-form-card approval-section--full">
+        <h3 className="form-group-title">{title}</h3>
+        <div className="approval-fields-stack">
+          <FormField label={commentsLabel} fullWidth>
+            <FormTextarea
+              value={commentsValue}
+              onChange={onCommentsChange}
+              placeholder={commentsPlaceholder}
+              rows={5}
+              className={commentsClassName}
+            />
+            {helperText ? <p className="approval-helper-text">{helperText}</p> : null}
+          </FormField>
+          <FormField label="Document Upload" fullWidth>
+            <DocumentUploadField file={document} onChange={onDocumentChange} />
+          </FormField>
+          <FormField label="Status" fullWidth>
+            <FormSelect
+              value={status}
+              onChange={onStatusChange}
+              options={APPROVAL_STATUS_OPTIONS}
+            />
+          </FormField>
+        </div>
+      </section>
+    );
+  }
+
+  ApprovalSectionCard.propTypes = {
+    title: PropTypes.string.isRequired,
+    commentsLabel: PropTypes.string.isRequired,
+    commentsValue: PropTypes.string.isRequired,
+    onCommentsChange: PropTypes.func.isRequired,
+    commentsPlaceholder: PropTypes.string,
+    commentsClassName: PropTypes.string,
+    document: PropTypes.instanceOf(File),
+    onDocumentChange: PropTypes.func.isRequired,
+    status: PropTypes.string.isRequired,
+    onStatusChange: PropTypes.func.isRequired,
+    helperText: PropTypes.string,
   };
 
   function PartySectionCard({ title, fields, values, onChange }) {
@@ -215,8 +374,15 @@ const createEmptyPartySection = () => ({
     const [vesselOwner, setVesselOwner] = useState(createEmptyPartySection);
     const [vesselPrincipal, setVesselPrincipal] = useState(createEmptyPartySection);
     const [vesselCharterer, setVesselCharterer] = useState(createEmptyPartySection);
-    const [remarks, setRemarks] = useState("");
+    const [creditControllerRemarks, setCreditControllerRemarks] = useState("");
+    const [creditControllerDocument, setCreditControllerDocument] = useState(null);
+    const [creditControllerStatus, setCreditControllerStatus] = useState("Pending");
     const [managerComments, setManagerComments] = useState("");
+    const [managerDocument, setManagerDocument] = useState(null);
+    const [managerStatus, setManagerStatus] = useState("Pending");
+    const [ceoComments, setCeoComments] = useState("");
+    const [ceoDocument, setCeoDocument] = useState(null);
+    const [ceoStatus, setCeoStatus] = useState("Pending");
 
     const handleBasicChange = useCallback((field, value) => {
       setBasicDetails((prev) => ({ ...prev, [field]: value }));
@@ -318,37 +484,45 @@ const createEmptyPartySection = () => ({
               />
             </div>
 
-            <section className="approval-form-card approval-section--full">
-              <h3 className="form-group-title">Remarks / Recommendation</h3>
-              <div className="approval-fields-stack">
-                <FormField label="Remarks / recommendation from Credit Controller">
-                  <FormTextarea
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    placeholder="Enter remarks / recommendation from Credit Controller"
-                    rows={5}
-                  />
-                </FormField>
-              </div>
-            </section>
+            <ApprovalSectionCard
+              title="Remarks / Recommendation"
+              commentsLabel="Remarks / recommendation from Credit Controller"
+              commentsValue={creditControllerRemarks}
+              onCommentsChange={(e) => setCreditControllerRemarks(e.target.value)}
+              commentsPlaceholder="Enter remarks / recommendation from Credit Controller"
+              document={creditControllerDocument}
+              onDocumentChange={setCreditControllerDocument}
+              status={creditControllerStatus}
+              onStatusChange={setCreditControllerStatus}
+            />
 
-            <section className="approval-form-card approval-section--full">
-              <h3 className="form-group-title">Manager - Offshore Marine Logistics Comments</h3>
-              <div className="approval-fields-stack">
-                <FormField label="Manager - Offshore Marine Logistics comments">
-                  <FormTextarea
-                    value={managerComments}
-                    onChange={(e) => setManagerComments(e.target.value)}
-                    placeholder="Enter manager comments"
-                    rows={5}
-                    className="approval-textarea--blue"
-                  />
-                  <p className="approval-helper-text">
-                    Require Digital Signature of OFM department Manager
-                  </p>
-                </FormField>
-              </div>
-            </section>
+            <ApprovalSectionCard
+              title="Manager - Offshore Marine Logistics Comments"
+              commentsLabel="Manager - Offshore Marine Logistics comments"
+              commentsValue={managerComments}
+              onCommentsChange={(e) => setManagerComments(e.target.value)}
+              commentsPlaceholder="Enter manager comments"
+              commentsClassName="approval-textarea--blue"
+              document={managerDocument}
+              onDocumentChange={setManagerDocument}
+              status={managerStatus}
+              onStatusChange={setManagerStatus}
+              helperText="Require Digital Signature of OFM department Manager"
+            />
+
+            <ApprovalSectionCard
+              title="CEO Comments"
+              commentsLabel="CEO comments"
+              commentsValue={ceoComments}
+              onCommentsChange={(e) => setCeoComments(e.target.value)}
+              commentsPlaceholder="Enter CEO comments"
+              commentsClassName="approval-textarea--blue"
+              document={ceoDocument}
+              onDocumentChange={setCeoDocument}
+              status={ceoStatus}
+              onStatusChange={setCeoStatus}
+              helperText="Require Digital Signature of CEO"
+            />
           </div>
         </div>
       </div>

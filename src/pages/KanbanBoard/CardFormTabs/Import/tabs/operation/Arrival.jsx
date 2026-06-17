@@ -595,7 +595,7 @@ function Arrival({
                   />
                 </OperationFormCard>
 
-                <FormField label="Inward Clearance Document">
+                {/* <FormField label="Inward Clearance Document">
                   <OperationFileUpload
                     files={formValues.arrivalInwardClearanceDoc || []}
                     onAddFiles={handleSingleArrivalFileAdd("arrivalInwardClearanceDoc")}
@@ -634,7 +634,7 @@ function Arrival({
                     isViewOnly={isViewOnly}
                     ariaLabel="Upload final bayan document"
                   />
-                </FormField>
+                </FormField> */}
               </OperationFormCard>
               <OperationFormCard className="operation-email-column">
                 <OperationEmailPreviewPanel
