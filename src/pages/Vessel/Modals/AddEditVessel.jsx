@@ -383,7 +383,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                     placeholder="IMO Number (7 digits)"
                     type="text"
                     inputMode="numeric"
-                    maxLength={7}
                     onInput={(e) => {
                       e.target.value = e.target.value
                         .replace(/\D/g, "")
@@ -525,7 +524,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                     placeholder="Year Built"
                     type="text"
                     inputMode="numeric"
-                    maxLength={4}
                     onInput={(e) => {
                       e.target.value = e.target.value
                         .replace(/\D/g, "")
