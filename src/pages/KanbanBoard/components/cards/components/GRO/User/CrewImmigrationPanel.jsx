@@ -1,5 +1,19 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
 import { FiUploadCloud, FiFileText, FiCheckCircle } from "react-icons/fi";
+import BulkPassUploadView from "./BulkPassUploadView";
+
+function buildBulkRowsFromSelection(rows, selectedRowIds) {
+  return rows
+    .filter((row) => selectedRowIds.has(String(row.id)))
+    .map((row) => ({
+      id: row.id,
+      crewName: row.crewName ?? "",
+      nationality: row.nationality ?? "",
+      passportIqama: [row.passport, row.iqama].filter(Boolean).join(" / "),
+      zawilNo: "",
+    }));
+}
 
 function CrewImmigrationPassIcon({ passData, uploadLabel, viewLabel, onUpload, onView }) {
   const isUploaded = Boolean(passData);
@@ -54,13 +68,49 @@ export default function CrewImmigrationPanel({
   onZawilFileChange,
   onRowUploadClick,
 }) {
+  const [bulkUploadMode, setBulkUploadMode] = useState(null); // "cg" | "zawil" | null
+  const [bulkRows, setBulkRows] = useState([]);
+
+  const enterBulkUploadMode = (mode) => {
+    setBulkRows(buildBulkRowsFromSelection(rows, selectedRowIds));
+    setBulkUploadMode(mode);
+  };
+
+  const exitBulkUploadMode = () => {
+    setBulkUploadMode(null);
+    setBulkRows([]);
+  };
+
+  const handleBulkSubmit = () => {
+    if (bulkUploadMode === "cg") {
+      onBulkUploadCg();
+    } else if (bulkUploadMode === "zawil") {
+      onBulkUploadZawil();
+    }
+    exitBulkUploadMode();
+  };
+
+  if (bulkUploadMode) {
+    return (
+      <div className="gro-crew-immigration-panel">
+        <BulkPassUploadView
+          passType={bulkUploadMode}
+          rows={bulkRows}
+          onRowsChange={setBulkRows}
+          onBack={exitBulkUploadMode}
+          onSubmit={handleBulkSubmit}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="gro-crew-immigration-panel">
       <div className="gro-crew-immigration-toolbar">
         <button
           type="button"
           className="gro-crew-immigration-bulk-btn"
-          onClick={onBulkUploadCg}
+          onClick={() => enterBulkUploadMode("cg")}
           disabled={selectedRowIds.size === 0}
         >
           Bulk Upload CG Pass
@@ -68,7 +118,7 @@ export default function CrewImmigrationPanel({
         <button
           type="button"
           className="gro-crew-immigration-bulk-btn"
-          onClick={onBulkUploadZawil}
+          onClick={() => enterBulkUploadMode("zawil")}
           disabled={selectedRowIds.size === 0}
         >
           Bulk Upload Zawil Pass
