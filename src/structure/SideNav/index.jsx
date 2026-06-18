@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
@@ -12,7 +12,7 @@ import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
 import AddDashboardModal from './components/AddDashboardModal';
 import SelectWorkflowModal from './components/SelectWorkflowModal';
-import CallTypeBuilderModal from '../../pages/CallType/CallTypeBuilderModal';
+const CallTypeBuilderModal = lazy(() => import('../../pages/CallType/CallTypeBuilderModal'));
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import OnStationModal from '../Header/OnStationModal';
@@ -1154,10 +1154,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}
         />
-        <CallTypeBuilderModal
-          show={showCallTypeBuilderModal}
-          onClose={() => setShowCallTypeBuilderModal(false)}
-        />
+        {showCallTypeBuilderModal && (
+          <Suspense fallback={null}>
+            <CallTypeBuilderModal
+              show={showCallTypeBuilderModal}
+              onClose={() => setShowCallTypeBuilderModal(false)}
+            />
+          </Suspense>
+        )}
         <TaskCardModal
           show={showSubTaskModal}
           onClose={() => setShowSubTaskModal(false)}
