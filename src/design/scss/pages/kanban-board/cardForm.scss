@@ -771,121 +771,135 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-.gro-card-view .gro-crew-immigration-bulk-empty,
-.gro-card-view .gro-crew-immigration-bulk-preview-empty {
+.gro-card-view .gro-crew-immigration-bulk-empty {
   text-align: center;
   color: #94a3b8;
   font-style: italic;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview {
+.gro-card-view .bulk-pass-arabic-preview {
   width: 100%;
-  max-height: 520px;
+  max-height: 560px;
   overflow: auto;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background: #eef2f7;
-  padding: 16px;
+  background: #e8edf3;
+  padding: 18px;
   pointer-events: none;
   user-select: none;
-  opacity: 0.95;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-page {
+.gro-card-view .bulk-pass-arabic-paper {
   background: #ffffff;
-  border: 1px solid #d8e0ec;
-  border-radius: 6px;
-  padding: 22px 20px;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  border: 1px solid #c8d2e0;
+  border-radius: 2px;
+  padding: 28px 26px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  font-family: "Tahoma", "Segoe UI", "Arial", sans-serif;
+  color: #111827;
+  line-height: 1.9;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-head {
+.gro-card-view .bulk-pass-arabic-meta {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 2px solid #0f172a;
-  padding-bottom: 12px;
-}
-
-.gro-card-view .gro-crew-immigration-bulk-preview-titles {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.gro-card-view .gro-crew-immigration-bulk-preview-title-ar {
-  font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
-  direction: rtl;
-}
-
-.gro-card-view .gro-crew-immigration-bulk-preview-title-en {
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: #1f2937;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-meta {
+.gro-card-view .bulk-pass-arabic-title {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
-  font-size: 11px;
-  color: #475569;
-  text-align: right;
+  text-align: center;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-arabic {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+.gro-card-view .bulk-pass-arabic-title span:first-child {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.gro-card-view .bulk-pass-arabic-title span:last-child {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.gro-card-view .bulk-pass-arabic-divider {
+  height: 0;
+  border-top: 1.5px solid #1f2937;
+  width: 100%;
+}
+
+.gro-card-view .bulk-pass-arabic-paragraph {
+  margin: 0;
+  text-align: right;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.gro-card-view .bulk-pass-handwriting-labels {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 0 2px;
+}
+
+.gro-card-view .bulk-pass-handwriting-labels span {
+  font-family: "Comic Sans MS", "Segoe Script", cursive;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1d4ed8;
+  text-align: center;
+  transform: rotate(-3deg);
+}
+
+.gro-card-view .bulk-pass-handwriting-labels span:first-child {
+  grid-column: 5;
+}
+
+.gro-card-view .bulk-pass-arabic-table {
+  width: 100%;
+  border-collapse: collapse;
   direction: rtl;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-ar-line {
-  display: block;
-  height: 9px;
-  width: 100%;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #e2e8f0 0%, #eef2f7 100%);
+.gro-card-view .bulk-pass-arabic-table th,
+.gro-card-view .bulk-pass-arabic-table td {
+  border: 1px solid #1f2937;
+  padding: 7px 8px;
+  font-size: 12px;
+  color: #111827;
+  text-align: center;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-ar-line--short {
-  width: 60%;
-}
-
-.gro-card-view .gro-crew-immigration-bulk-preview-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.gro-card-view .gro-crew-immigration-bulk-preview-table th,
-.gro-card-view .gro-crew-immigration-bulk-preview-table td {
-  border: 1px solid #cbd5e1;
-  padding: 6px 8px;
-  font-size: 11px;
-  color: #1f2937;
-  text-align: left;
-}
-
-.gro-card-view .gro-crew-immigration-bulk-preview-table th {
-  background: #f1f5f9;
+.gro-card-view .bulk-pass-arabic-table th {
+  background: #eef2f7;
   font-weight: 700;
   white-space: nowrap;
 }
 
-.gro-card-view .gro-crew-immigration-bulk-preview-footer {
+.gro-card-view .bulk-pass-arabic-empty {
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.gro-card-view .bulk-pass-arabic-sign {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 18px;
-  font-size: 11px;
-  color: #64748b;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .gro-card-view .gro-crew-immigration-bulk-actions {

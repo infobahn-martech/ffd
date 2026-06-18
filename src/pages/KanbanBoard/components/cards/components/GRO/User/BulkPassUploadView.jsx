@@ -4,17 +4,18 @@ import { FiArrowLeft, FiUploadCloud } from "react-icons/fi";
 const PASS_META = {
   cg: {
     title: "Bulk Upload CG Pass",
-    docTitle: "Coast Guard Pass",
-    docTitleArabic: "تصريح خفر السواحل",
     submitLabel: "Upload CG Pass",
   },
   zawil: {
     title: "Bulk Upload Zawil Pass",
-    docTitle: "Zawil Pass",
-    docTitleArabic: "تصريح زول",
     submitLabel: "Upload Zawil Pass",
   },
 };
+
+const PREVIEW_VESSEL_NAME = "MAG CLIO";
+const PREVIEW_DATE = "2026/06/10";
+
+const HANDWRITING_LABELS = ["Zawil No", "Iqama/Passport No", "Nationality", "Name"];
 
 const EDITABLE_FIELDS = [
   { key: "crewName", label: "Crew Name" },
@@ -22,14 +23,6 @@ const EDITABLE_FIELDS = [
   { key: "passportIqama", label: "Passport / Iqama No" },
   { key: "zawilNo", label: "Zawil No" },
 ];
-
-function formatToday() {
-  const now = new Date();
-  const dd = String(now.getDate()).padStart(2, "0");
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const yyyy = now.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-}
 
 export default function BulkPassUploadView({ passType, rows, onRowsChange, onBack, onSubmit }) {
   const meta = PASS_META[passType] ?? PASS_META.cg;
@@ -96,43 +89,59 @@ export default function BulkPassUploadView({ passType, rows, onRowsChange, onBac
         <div className="gro-crew-immigration-bulk-right">
           <p className="gro-crew-immigration-bulk-section-title">Document Preview</p>
           <div
-            className="gro-crew-immigration-bulk-preview"
+            className="bulk-pass-arabic-preview"
             aria-readonly="true"
             aria-label="Document preview (read only)"
           >
-            <div className="gro-crew-immigration-bulk-preview-page">
-              <div className="gro-crew-immigration-bulk-preview-head">
-                <div className="gro-crew-immigration-bulk-preview-titles">
-                  <span className="gro-crew-immigration-bulk-preview-title-ar">{meta.docTitleArabic}</span>
-                  <span className="gro-crew-immigration-bulk-preview-title-en">{meta.docTitle}</span>
-                </div>
-                <div className="gro-crew-immigration-bulk-preview-meta">
-                  <span>Date: {formatToday()}</span>
-                  <span>Vessel: ____________________</span>
-                </div>
+            <div className="bulk-pass-arabic-paper" dir="rtl">
+              <div className="bulk-pass-arabic-meta">
+                <span>التاريخ: {PREVIEW_DATE}</span>
+                <span>اسم الباخرة: {PREVIEW_VESSEL_NAME}</span>
               </div>
 
-              <div className="gro-crew-immigration-bulk-preview-arabic">
-                <span className="gro-crew-immigration-bulk-preview-ar-line" />
-                <span className="gro-crew-immigration-bulk-preview-ar-line" />
-                <span className="gro-crew-immigration-bulk-preview-ar-line gro-crew-immigration-bulk-preview-ar-line--short" />
+              <div className="bulk-pass-arabic-title">
+                <span>صعود بحار</span>
+                <span>ميناء الجبيل التجاري</span>
               </div>
 
-              <table className="gro-crew-immigration-bulk-preview-table">
+              <div className="bulk-pass-arabic-divider" />
+
+              <p className="bulk-pass-arabic-paragraph">
+                المكرم مدير إدارة خفر السواحل بميناء الجبيل التجاري المحترم
+              </p>
+              <p className="bulk-pass-arabic-paragraph">
+                السلام عليكم ورحمة الله وبركاته، نأمل من سعادتكم التكرم بالموافقة على صعود
+                البحارة المذكورين أدناه إلى الباخرة المشار إليها أعلاه، وذلك لمباشرة أعمالهم
+                على متنها.
+              </p>
+              <p className="bulk-pass-arabic-paragraph">
+                علماً بأن جميع البيانات الموضحة أدناه صحيحة ونتحمل كامل المسؤولية تجاهها،
+                ولكم جزيل الشكر والتقدير.
+              </p>
+
+              <div className="bulk-pass-arabic-divider" />
+
+              <div className="bulk-pass-handwriting-labels" dir="rtl">
+                {HANDWRITING_LABELS.map((label) => (
+                  <span key={label}>{label}</span>
+                ))}
+              </div>
+
+              <table className="bulk-pass-arabic-table">
                 <thead>
                   <tr>
-                    <th>Sl No</th>
-                    <th>Name</th>
-                    <th>Nationality</th>
-                    <th>Passport / Iqama No</th>
-                    <th>Zawil No</th>
+                    <th>العدد</th>
+                    <th>اسم البحار</th>
+                    <th>الجنسية</th>
+                    <th>رقم الجواز/إقامة</th>
+                    <th>رقم زاول</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="gro-crew-immigration-bulk-preview-empty">
-                        No crew selected.
+                      <td colSpan={5} className="bulk-pass-arabic-empty">
+                        لا يوجد بحارة محددون.
                       </td>
                     </tr>
                   ) : (
@@ -149,9 +158,11 @@ export default function BulkPassUploadView({ passType, rows, onRowsChange, onBac
                 </tbody>
               </table>
 
-              <div className="gro-crew-immigration-bulk-preview-footer">
-                <span>Authorized Signature</span>
-                <span>Official Stamp</span>
+              <div className="bulk-pass-arabic-divider" />
+
+              <div className="bulk-pass-arabic-sign">
+                <span>الختم</span>
+                <span>التوقيع</span>
               </div>
             </div>
           </div>
