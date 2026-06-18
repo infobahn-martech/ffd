@@ -121,11 +121,11 @@ export default function BulkPassUploadView({ passType, rows, onRowsChange, onBac
 
               <div className="bulk-pass-arabic-divider" />
 
-              <div className="bulk-pass-handwriting-labels" dir="rtl">
+              {/* <div className="bulk-pass-handwriting-labels" dir="rtl">
                 {HANDWRITING_LABELS.map((label) => (
                   <span key={label}>{label}</span>
                 ))}
-              </div>
+              </div> */}
 
               <table className="bulk-pass-arabic-table">
                 <thead>
