@@ -5561,4 +5561,5 @@ General.propTypes = {
 };
 
 export default General;
+export { DailyTaskTodo };
 
