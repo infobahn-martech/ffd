@@ -11,6 +11,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import useCheckListReducer from "../../../store/CheckListReducer";
 import useVesselTypeReducer from "../../../store/VesselTypeReducer";
 import useBargeTypeReducer from "../../../store/BargeTypeReducer";
+import useTugTypeReducer from "../../../store/TugTypeReducer";
 import usePortReducer from "../../../store/PortReducer";
 import documentChecklistService from "../../../services/documentChecklistService";
 import taskChecklistService from "../../../services/taskChecklistService";
@@ -455,26 +456,33 @@ function ItemFilePreviewButton({ control, basePath, inputId, setValue, getValues
 
 const EMPTY_DEFAULTS = {
   callType: "",
+  assetType: "",
   vesselType: "",
+  tugType: "",
   bargeType: "",
   port: "",
   checklistName: "",
   sections: []
 };
 
-/** Normalize API data so vessel and barge types are never both set (vessel wins if both present). */
-function normalizeVesselBargeFormFields(data) {
+/** Derive Asset Type + selected type from API ids (vessel wins, then tug, then barge). */
+function normalizeAssetTypeFormFields(data) {
   const vt = data?.vessel_type_id;
+  const tt = data?.tug_type_id;
   const bt = data?.barge_type_id;
   const hasV = vt != null && vt !== "";
+  const hasT = tt != null && tt !== "";
   const hasB = bt != null && bt !== "";
   if (hasV) {
-    return { vesselType: String(vt), bargeType: "" };
+    return { assetType: "vessel", vesselType: String(vt), tugType: "", bargeType: "" };
+  }
+  if (hasT) {
+    return { assetType: "tug", vesselType: "", tugType: String(tt), bargeType: "" };
   }
   if (hasB) {
-    return { vesselType: "", bargeType: String(bt) };
+    return { assetType: "barge", vesselType: "", tugType: "", bargeType: String(bt) };
   }
-  return { vesselType: "", bargeType: "" };
+  return { assetType: "", vesselType: "", tugType: "", bargeType: "" };
 }
 
 function createSectionItemPayload() {
@@ -791,10 +799,12 @@ function mapApiToForm(data) {
       description: item.document_details?.description || ""
     }
   });
-  const { vesselType, bargeType } = normalizeVesselBargeFormFields(data);
+  const { assetType, vesselType, tugType, bargeType } = normalizeAssetTypeFormFields(data);
   return {
     callType: String(data.call_type_id || ""),
+    assetType,
     vesselType,
+    tugType,
     bargeType,
     port: data.port_id != null ? String(data.port_id) : "",
     checklistName: data.checklist_name || "",
@@ -822,6 +832,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   const addEditLoader = useCheckListReducer((s) => s.addEditLoader);
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((s) => s);
   const { bargeTypes, getBargeTypes, isLoading: isLoadingBargeTypes } = useBargeTypeReducer((s) => s);
+  const { tugTypes, getTugTypes, isLoading: isLoadingTugTypes } = useTugTypeReducer((s) => s);
   const { ports, getPorts, isLoading: isLoadingPorts } = usePortReducer((s) => s);
   const [customRoles, setCustomRoles] = useState([]);
   const [isLoadingRoles, setIsLoadingRoles] = useState(false);
@@ -835,6 +846,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     if (!showModal) return;
     getVesselTypes({ params: { limit: 1000 } });
     getBargeTypes({ params: { limit: 1000 } });
+    getTugTypes({ params: { limit: 1000 } });
     getPorts({ params: { limit: 1000 } });
 
     let cancelled = false;
@@ -868,6 +880,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   } = useForm({
     defaultValues: EMPTY_DEFAULTS
   });
+
+  const selectedAssetType = useWatch({ control, name: "assetType" });
 
   useEffect(() => {
     if (showModal && showModal.checklist_type_id) {
@@ -916,21 +930,24 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const port_id = num(data.port);
 
     let vessel_type_id = null;
+    let tug_type_id = null;
     let barge_type_id = null;
-    const hasVessel = data.vesselType !== "" && data.vesselType != null;
-    const hasBarge = data.bargeType !== "" && data.bargeType != null;
-    if (hasVessel) {
+
+    if (data.assetType === "vessel") {
       vessel_type_id = num(data.vesselType);
-      barge_type_id = null;
-    } else if (hasBarge) {
+    }
+    if (data.assetType === "tug") {
+      tug_type_id = num(data.tugType);
+    }
+    if (data.assetType === "barge") {
       barge_type_id = num(data.bargeType);
-      vessel_type_id = null;
     }
 
     const basePayload = {
       call_type_id: callTypeId,
       checklist_name: data.checklistName ?? "",
       vessel_type_id,
+      tug_type_id,
       barge_type_id,
       port_id,
       sections: sectionsApi
@@ -1496,63 +1513,109 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
               <div className="checklist-top-field-item">
                 <div className="phone-wrapper">
-                  <label className="phone-label">Vessel Type</label>
+                  <label className="phone-label">Asset Type</label>
                   <Controller
-                    name="vesselType"
+                    name="assetType"
                     control={control}
                     render={({ field }) => (
                       <PremiumSelect
                         value={field.value != null ? String(field.value) : ""}
                         onChange={(e) => {
-                          const v = e.target.value;
-                          field.onChange(v);
-                          if (v !== "") {
-                            setValue("bargeType", "");
-                          }
+                          field.onChange(e.target.value);
+                          setValue("vesselType", "");
+                          setValue("tugType", "");
+                          setValue("bargeType", "");
                         }}
-                        options={(vesselTypes ?? []).map((type) => {
-                          const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
-                          const label = type.vessel_type ?? type.name ?? value;
-                          return { value: String(value ?? ""), label: String(label ?? "") };
-                        })}
-                        placeholder="Select Vessel Type"
-                        searchPlaceholder="Search vessel type..."
-                        disabled={isLoadingVesselTypes}
+                        options={[
+                          { value: "vessel", label: "Vessel" },
+                          { value: "tug", label: "Tug" },
+                          { value: "barge", label: "Barge" },
+                        ]}
+                        placeholder="Select Asset Type"
+                        searchPlaceholder="Search asset type..."
                       />
                     )}
                   />
                 </div>
               </div>
 
-              <div className="checklist-top-field-item">
-                <div className="phone-wrapper">
-                  <label className="phone-label">Barge Type</label>
-                  <Controller
-                    name="bargeType"
-                    control={control}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          field.onChange(v);
-                          if (v !== "") {
-                            setValue("vesselType", "");
-                          }
-                        }}
-                        options={(bargeTypes ?? []).map((type) => {
-                          const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
-                          const label = type.barge_type ?? type.name ?? value;
-                          return { value: String(value ?? ""), label: String(label ?? "") };
-                        })}
-                        placeholder="Select Barge Type"
-                        searchPlaceholder="Search barge type..."
-                        disabled={isLoadingBargeTypes}
-                      />
-                    )}
-                  />
+              {selectedAssetType === "vessel" && (
+                <div className="checklist-top-field-item">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">Vessel Type</label>
+                    <Controller
+                      name="vesselType"
+                      control={control}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(vesselTypes ?? []).map((type) => {
+                            const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
+                            const label = type.vessel_type ?? type.name ?? value;
+                            return { value: String(value ?? ""), label: String(label ?? "") };
+                          })}
+                          placeholder="Select Vessel Type"
+                          searchPlaceholder="Search vessel type..."
+                          disabled={isLoadingVesselTypes}
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {selectedAssetType === "tug" && (
+                <div className="checklist-top-field-item">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">Tug Type</label>
+                    <Controller
+                      name="tugType"
+                      control={control}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(tugTypes ?? []).map((type) => {
+                            const value = type.tug_type_id ?? type._id ?? type.tug_type ?? type.name;
+                            const label = type.tug_type ?? type.name ?? value;
+                            return { value: String(value ?? ""), label: String(label ?? "") };
+                          })}
+                          placeholder="Select Tug Type"
+                          searchPlaceholder="Search tug type..."
+                          disabled={isLoadingTugTypes}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedAssetType === "barge" && (
+                <div className="checklist-top-field-item">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">Barge Type</label>
+                    <Controller
+                      name="bargeType"
+                      control={control}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(bargeTypes ?? []).map((type) => {
+                            const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
+                            const label = type.barge_type ?? type.name ?? value;
+                            return { value: String(value ?? ""), label: String(label ?? "") };
+                          })}
+                          placeholder="Select Barge Type"
+                          searchPlaceholder="Search barge type..."
+                          disabled={isLoadingBargeTypes}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
 
 
             </div>
