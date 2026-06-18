@@ -64,6 +64,7 @@ function Subtasks({ card }) {
     const [assignUserId, setAssignUserId] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [dueTime, setDueTime] = useState("");
+    const [documentFile, setDocumentFile] = useState(null);
 
     const users = useCommonReducer((state) => state.users);
     const usersLoading = useCommonReducer((state) => state.usersLoading);
@@ -100,6 +101,16 @@ function Subtasks({ card }) {
         setAssignUserId("");
         setDueDate("");
         setDueTime("");
+        setDocumentFile(null);
+    }, []);
+
+    const handleDocumentChange = useCallback((event) => {
+        const file = event.target.files?.[0] || null;
+        setDocumentFile(file);
+    }, []);
+
+    const handleRemoveDocument = useCallback(() => {
+        setDocumentFile(null);
     }, []);
 
     const handleSave = useCallback(() => {
@@ -116,6 +127,7 @@ function Subtasks({ card }) {
                 assignee,
                 dueDate: dueDate || null,
                 dueTime: dueTime || null,
+                document: documentFile || null,
                 completed: false,
             },
         ]);
@@ -128,8 +140,9 @@ function Subtasks({ card }) {
             assign_user_id: assignUserId || null,
             due_date: dueDate || null,
             due_time: dueTime || null,
+            document_name: documentFile?.name || null,
         });
-    }, [title, assignUserId, dueDate, dueTime, card, resetForm, getUserById]);
+    }, [title, assignUserId, dueDate, dueTime, documentFile, card, resetForm, getUserById]);
 
     const handleToggleStatus = useCallback((taskId) => {
         setTasks((prev) =>
@@ -147,20 +160,6 @@ function Subtasks({ card }) {
                         <div className="subtasks-tab-card subtasks-tab-card--editor">
                             <div className="subtasks-tab-editor-body">
                                 <h3 className="subtasks-tab-form-title">Add Task</h3>
-
-                                <div className="subtasks-tab-field">
-                                    <label className="subtasks-tab-label" htmlFor="subtask-title">
-                                        Task title / description
-                                    </label>
-                                    <textarea
-                                        id="subtask-title"
-                                        className="subtasks-tab-textarea"
-                                        rows={4}
-                                        placeholder="Enter task title or description..."
-                                        value={title}
-                                        onChange={(event) => setTitle(event.target.value)}
-                                    />
-                                </div>
 
                                 <div className="subtasks-tab-field-row">
                                     <div className="subtasks-tab-field">
@@ -211,6 +210,51 @@ function Subtasks({ card }) {
                                             placeholder="YYYY-MM-DD HH:mm"
                                         />
                                     </div>
+
+                                    <div className="subtasks-tab-field subtasks-tab-field--document">
+                                        <label className="subtasks-tab-label" htmlFor="subtask-document">
+                                            Document
+                                        </label>
+                                        {documentFile ? (
+                                            <div className="subtasks-tab-doc-chip">
+                                                <span className="subtasks-tab-doc-name" title={documentFile.name}>
+                                                    {documentFile.name}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="subtasks-tab-doc-remove"
+                                                    onClick={handleRemoveDocument}
+                                                    aria-label="Remove document"
+                                                >
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <label className="subtasks-tab-doc-upload" htmlFor="subtask-document">
+                                                <span>Upload document</span>
+                                                <input
+                                                    id="subtask-document"
+                                                    type="file"
+                                                    className="subtasks-tab-doc-input"
+                                                    onChange={handleDocumentChange}
+                                                />
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="subtasks-tab-field">
+                                    <label className="subtasks-tab-label" htmlFor="subtask-title">
+                                        Task title / description
+                                    </label>
+                                    <textarea
+                                        id="subtask-title"
+                                        className="subtasks-tab-textarea"
+                                        rows={4}
+                                        placeholder="Enter task title or description..."
+                                        value={title}
+                                        onChange={(event) => setTitle(event.target.value)}
+                                    />
                                 </div>
 
                                 <div className="subtasks-tab-save-row">
@@ -286,6 +330,14 @@ function Subtasks({ card }) {
                                                         {task.dueDate && (
                                                             <span className="subtasks-tab-task-due">
                                                                 Due {formatDueDateTime(task.dueDate, task.dueTime)}
+                                                            </span>
+                                                        )}
+                                                        {task.document && (
+                                                            <span
+                                                                className="subtasks-tab-task-doc"
+                                                                title={task.document.name}
+                                                            >
+                                                                {task.document.name}
                                                             </span>
                                                         )}
                                                     </div>
