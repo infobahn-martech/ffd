@@ -9395,6 +9395,75 @@ body .modal-backdrop.show {
   line-height: 1.4;
 }
 
+.operation-task-sadad {
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.operation-task-sadad-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
+
+  th,
+  td {
+    padding: 6px 10px;
+    text-align: left;
+    line-height: 1.4;
+    word-break: break-word;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  thead th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody td {
+    color: #374151;
+    font-weight: 500;
+  }
+}
+
+.operation-task-sadad-link {
+  color: rgb(25, 118, 210);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.35);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .operation-task-sadad-table {
+    font-size: 11px;
+
+    th,
+    td {
+      padding: 5px 7px;
+    }
+  }
+}
+
 .operation-task-view-only-note {
   margin: 18px 0 0;
   font-size: 12px;

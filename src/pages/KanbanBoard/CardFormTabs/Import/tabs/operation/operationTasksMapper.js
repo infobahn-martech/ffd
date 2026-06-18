@@ -117,6 +117,9 @@ export function mapTasksToSections(apiData) {
       documentCount,
       progress,
       documents,
+      sadadDocNo: task?.sadad_doc_no || "",
+      sadadDocument: task?.sadad_doc || "",
+      sadadExpiry: task?.sadad_expiry || "",
     });
   });
 
