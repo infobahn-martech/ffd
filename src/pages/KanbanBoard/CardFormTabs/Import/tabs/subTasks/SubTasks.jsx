@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
-import DatePickerField from "../../../shared/components/DatePickerField";
+import DateTimePickerField from "../../../shared/components/DateTimePickerField";
 import useCommonReducer from "../../../../../../store/CommonReducer";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/css/common/CardForm.css";
@@ -43,15 +43,17 @@ UserOptionAvatar.propTypes = {
     className: PropTypes.string,
 };
 
-const formatDueDate = (dateStr) => {
+const formatDueDateTime = (dateStr, timeStr) => {
     if (!dateStr) return "";
-    const parsed = new Date(`${dateStr}T00:00:00`);
+    const timepart = timeStr || "00:00";
+    const parsed = new Date(`${dateStr}T${timepart}:00`);
     if (Number.isNaN(parsed.getTime())) return dateStr;
-    return parsed.toLocaleDateString(undefined, {
+    const datePart = parsed.toLocaleDateString(undefined, {
         year: "numeric",
         month: "short",
         day: "numeric",
     });
+    return timeStr ? `${datePart} ${timepart}` : datePart;
 };
 
 const getInitials = (name) => (name || "?").charAt(0).toUpperCase();
@@ -61,6 +63,7 @@ function Subtasks({ card }) {
     const [title, setTitle] = useState("");
     const [assignUserId, setAssignUserId] = useState("");
     const [dueDate, setDueDate] = useState("");
+    const [dueTime, setDueTime] = useState("");
 
     const users = useCommonReducer((state) => state.users);
     const usersLoading = useCommonReducer((state) => state.usersLoading);
@@ -96,6 +99,7 @@ function Subtasks({ card }) {
         setTitle("");
         setAssignUserId("");
         setDueDate("");
+        setDueTime("");
     }, []);
 
     const handleSave = useCallback(() => {
@@ -111,6 +115,7 @@ function Subtasks({ card }) {
                 title: trimmedTitle,
                 assignee,
                 dueDate: dueDate || null,
+                dueTime: dueTime || null,
                 completed: false,
             },
         ]);
@@ -122,8 +127,9 @@ function Subtasks({ card }) {
             title: trimmedTitle,
             assign_user_id: assignUserId || null,
             due_date: dueDate || null,
+            due_time: dueTime || null,
         });
-    }, [title, assignUserId, dueDate, card, resetForm, getUserById]);
+    }, [title, assignUserId, dueDate, dueTime, card, resetForm, getUserById]);
 
     const handleToggleStatus = useCallback((taskId) => {
         setTasks((prev) =>
@@ -191,14 +197,18 @@ function Subtasks({ card }) {
 
                                     <div className="subtasks-tab-field subtasks-tab-field--due-date">
                                         <label className="subtasks-tab-label" htmlFor="subtask-due-date">
-                                            Due Date
+                                            Due Date &amp; Time
                                         </label>
-                                        <DatePickerField
-                                            className="subtasks-tab-datepicker"
+                                        <DateTimePickerField
                                             dateValue={dueDate}
-                                            onDateChange={(event) => setDueDate(event.target.value)}
+                                            timeValue={dueTime}
+                                            onDateTimeChange={({ date, time }) => {
+                                                setDueDate(date);
+                                                setDueTime(time);
+                                            }}
                                             dateFieldName="subtask-due-date"
-                                            placeholder="YYYY-MM-DD"
+                                            timeFieldName="subtask-due-time"
+                                            placeholder="YYYY-MM-DD HH:mm"
                                         />
                                     </div>
                                 </div>
@@ -275,7 +285,7 @@ function Subtasks({ card }) {
                                                         </span>
                                                         {task.dueDate && (
                                                             <span className="subtasks-tab-task-due">
-                                                                Due {formatDueDate(task.dueDate)}
+                                                                Due {formatDueDateTime(task.dueDate, task.dueTime)}
                                                             </span>
                                                         )}
                                                     </div>
