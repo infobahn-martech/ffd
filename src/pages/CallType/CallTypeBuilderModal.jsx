@@ -1697,6 +1697,10 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                             const enabledReports = previewFieldsList;
                                                             const extraReports = (previewScopeConfig?.customFields ?? []).filter((cf) => cf.label);
                                                             const hasAny = enabledReports.length > 0 || extraReports.length > 0;
+                                                            const allReportLabels = [
+                                                                ...enabledReports.map((f) => previewScopeConfig?.fieldOverrides?.[f] ?? f),
+                                                                ...extraReports.map((cf) => cf.label),
+                                                            ];
                                                             return (
                                                                 <div className="ct-preview-reports-wrap">
                                                                     <div className="ct-preview-reports-header">
@@ -1707,30 +1711,42 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                                         <p className="ct-summary-no-fields">No report types selected. Enable some on the left.</p>
                                                                     ) : (
                                                                         <div className="ct-preview-reports-list">
-                                                                            {[
-                                                                                ...enabledReports.map((f) => previewScopeConfig?.fieldOverrides?.[f] ?? f),
-                                                                                ...extraReports.map((cf) => cf.label),
-                                                                            ].map((label) => (
-                                                                                <div key={label} className="ct-preview-report-row">
-                                                                                    <div className="ct-preview-report-icon">
-                                                                                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-                                                                                            <rect width="32" height="32" rx="6" fill="#DC2626" />
-                                                                                            <text x="16" y="22" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
-                                                                                        </svg>
+                                                                            {allReportLabels.map((label) => (
+                                                                                <div key={label} className="ct-preview-report-group">
+                                                                                    <div className="ct-preview-report-category">
+                                                                                        <span>{label}</span>
+                                                                                        <span className="ct-preview-report-count">(1)</span>
                                                                                     </div>
-                                                                                    <span className="ct-preview-report-name">{label}</span>
-                                                                                    <div className="ct-preview-report-actions">
-                                                                                        <button type="button" className="ct-preview-report-btn" title="View report">
-                                                                                            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                                                                                                <path d="M9 4C5 4 2.27 6.11 1 9C2.27 11.89 5 14 9 14C13 14 15.73 11.89 17 9C15.73 6.11 13 4 9 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                                <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                                                                                    <div className="ct-preview-report-item">
+                                                                                        <div className="ct-preview-report-icon">
+                                                                                            <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+                                                                                                <rect width="34" height="34" rx="7" fill="#1e3a8a" />
+                                                                                                <rect x="9" y="10" width="16" height="2.5" rx="1.25" fill="white" />
+                                                                                                <rect x="9" y="15.75" width="16" height="2.5" rx="1.25" fill="white" />
+                                                                                                <rect x="9" y="21.5" width="10" height="2.5" rx="1.25" fill="white" />
                                                                                             </svg>
-                                                                                        </button>
-                                                                                        <button type="button" className="ct-preview-report-btn" title="Download report">
-                                                                                            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                                                                                                <path d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                            </svg>
-                                                                                        </button>
+                                                                                        </div>
+                                                                                        <div className="ct-preview-report-details">
+                                                                                            <div className="ct-preview-report-name">
+                                                                                                {label} - Sample Vessel 2000 - Rastanura - Import Call - 2026-06-14 17:30:00
+                                                                                            </div>
+                                                                                            <div className="ct-preview-report-meta">
+                                                                                                Jun 14, 2026, 09:58 AM &nbsp;·&nbsp; by Martech &nbsp;&nbsp; From info@onlinebareed.com &nbsp;&nbsp; To prog2@infobahnworld.com &nbsp;&nbsp; CC martech@infobahn.ae
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="ct-preview-report-actions">
+                                                                                            <button type="button" className="ct-preview-report-btn" title="View report">
+                                                                                                <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                                                                                                    <path d="M9 4C5 4 2.27 6.11 1 9C2.27 11.89 5 14 9 14C13 14 15.73 11.89 17 9C15.73 6.11 13 4 9 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                    <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                                                                                                </svg>
+                                                                                            </button>
+                                                                                            <button type="button" className="ct-preview-report-btn" title="Download report">
+                                                                                                <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                                                                                                    <path d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                </svg>
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             ))}

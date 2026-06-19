@@ -1117,25 +1117,28 @@
 
 // ── Reports tab live preview (right panel) ────────────────────────────────────
 .ct-preview-reports-wrap {
-  padding: 2px 0;
+  padding: 16px 18px;
 }
 
 .ct-preview-reports-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
   font-weight: 700;
   color: #1a1a1a;
-  letter-spacing: 0.04em;
-  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .ct-preview-reports-title-bar {
   display: inline-block;
   width: 4px;
-  height: 16px;
-  background: #dc2626;
+  height: 18px;
+  background: #1e3a8a;
   border-radius: 2px;
   flex-shrink: 0;
 }
@@ -1143,30 +1146,65 @@
 .ct-preview-reports-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
-.ct-preview-report-row {
+.ct-preview-report-group {
+  margin-bottom: 10px;
+}
+
+.ct-preview-report-category {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   padding: 8px 12px;
-  border: 1px solid #f0f0f5;
-  border-radius: 8px;
+  background: #f8f9fb;
+  border: 1px solid #e8e9ef;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ct-preview-report-count {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.ct-preview-report-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
   background: #fff;
+  border: 1px solid #e8e9ef;
+  border-top: none;
 }
 
 .ct-preview-report-icon {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  margin-top: 2px;
+}
+
+.ct-preview-report-details {
+  flex: 1;
+  min-width: 0;
 }
 
 .ct-preview-report-name {
-  flex: 1;
-  font-size: 13px;
-  color: #374151;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 5px;
+  word-break: break-word;
+}
+
+.ct-preview-report-meta {
+  font-size: 10.5px;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
 .ct-preview-report-actions {
@@ -1174,6 +1212,7 @@
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .ct-preview-report-btn {
@@ -1190,8 +1229,8 @@
   transition: color 0.15s, background 0.15s;
 
   &:hover {
-    color: #7c3aed;
-    background: #f5f3ff;
+    color: #1e3a8a;
+    background: #eff6ff;
   }
 }
 
