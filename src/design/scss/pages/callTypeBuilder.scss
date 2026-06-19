@@ -794,6 +794,13 @@
     flex: 1 !important;
     overflow-y: auto !important;
     padding: 18px 20px !important;
+    max-height: 460px !important;
+  }
+
+  .husbandry-service-selection {
+    padding: 20px !important;
+    overflow-y: auto !important;
+    max-height: 420px !important;
   }
 
   /* Document Library uses calc(100vh - 220px) by default — constrain it in the
