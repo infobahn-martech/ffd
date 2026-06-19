@@ -2209,8 +2209,11 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                     key={step}
                                                     className={`ct-preview-step${i === 0 ? " ct-preview-step--done" : ""}`}
                                                 >
-                                                    <div className="ct-preview-step-circle">{i + 1}</div>
-                                                    <span className="ct-preview-step-label">{step}</span>
+                                                    <div className="ct-preview-step-content">
+                                                        <div className="ct-preview-step-circle">{i + 1}</div>
+                                                        {i < 5 && <span className="ct-preview-step-line" />}
+                                                    </div>
+                                                    <div className="ct-preview-step-label">{step}</div>
                                                 </div>
                                             ))}
                                         </div>

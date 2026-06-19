@@ -121,9 +121,12 @@
 
 .ct-split-right {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
   padding: 20px;
   background: #f5f5f8;
+  display: flex;
+  flex-direction: column;
   @include ct-scrollbar;
 }
 
@@ -749,6 +752,10 @@
 // colors stay pixel-identical to the real kanban card modal — only sizing/containment
 // is adjusted here for the smaller preview box.
 .ct-preview-modal {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   border: 1.5px solid #e8eaf0;
   border-radius: 10px;
   background: #fff;
@@ -763,18 +770,17 @@
     display: flex !important;
     flex-direction: column !important;
     border-top: 1px solid #e1e2e8;
-    min-height: 380px;
-    height: auto !important;
-    overflow: visible !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
 
   .operation-content-container {
     display: flex !important;
     flex-direction: row !important;
-    min-height: 380px !important;
-    height: auto !important;
     flex: 1 !important;
-    overflow: visible !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
     align-items: stretch !important;
   }
 
@@ -788,27 +794,30 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 4px !important;
+    overflow-y: auto !important;
   }
 
   .operation-right {
     flex: 1 !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
     padding: 18px 20px !important;
-    max-height: 460px !important;
   }
 
   .husbandry-service-selection {
     padding: 20px !important;
     overflow-y: auto !important;
-    max-height: 420px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
   }
 
   /* Document Library uses calc(100vh - 220px) by default — constrain it in the
      smaller preview box so its internal panels scroll rather than the whole panel
      pushing out of the preview container. */
   .document-library {
-    height: 500px;
+    flex: 1;
     min-height: 0;
+    height: auto;
   }
 
   .operation-content-box {
@@ -882,53 +891,76 @@
 .ct-preview-stepper {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  padding: 16px 20px 14px;
-  position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 27px;
-    left: 40px;
-    right: 40px;
-    height: 2px;
-    background: #e2e8f0;
-    z-index: 0;
-  }
+  padding: 14px 20px 12px;
+  background: #fff;
+  width: 100%;
 }
 
 .ct-preview-step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
   flex: 1;
+  min-width: 0;
   position: relative;
-  z-index: 1;
+  overflow: visible;
+}
+
+.ct-preview-step-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  justify-content: center;
+  height: 30px;
 }
 
 .ct-preview-step-circle {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 2px solid #d1d5db;
+  border: 2px solid #8bc48a;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  color: #9ca3af;
+  color: #8bc48a;
   font-family: "Open Sans", sans-serif;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.ct-preview-step-line {
+  position: absolute;
+  left: calc(50% + 15px);
+  width: calc(100% - 15px);
+  height: 3px;
+  background: #8bc48a;
+  z-index: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .ct-preview-step-label {
-  font-size: 10px;
-  color: #9ca3af;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
   text-align: center;
+  line-height: 1.3;
+  width: 100%;
+  color: #8bc48a;
   font-family: "Open Sans", sans-serif;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  padding: 0 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .ct-preview-step--done {
@@ -939,8 +971,8 @@
   }
 
   .ct-preview-step-label {
-    color: #374151;
-    font-weight: 600;
+    color: #2e7d32;
+    font-weight: 700;
   }
 }
 
