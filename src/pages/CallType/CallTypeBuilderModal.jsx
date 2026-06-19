@@ -999,6 +999,8 @@ function CallTypeBuilderModal({ show, onClose }) {
     const handleToggleOpenMain = (mainId) => {
         setOpenMainTab((prev) => (prev === mainId ? null : mainId));
         setOpenSubTab(null);
+        setPreviewActiveMain(mainId);
+        setPreviewActiveSub(null);
     };
 
     const handleToggleOpenSub = (subId) =>
