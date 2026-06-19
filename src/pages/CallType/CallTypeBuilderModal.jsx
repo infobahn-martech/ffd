@@ -2186,12 +2186,20 @@ function CallTypeBuilderModal({ show, onClose }) {
                                         </div>
 
                                         <div className="ct-preview-stepper">
-                                            {["Appointment Received", "Enroute", "Ops in Progress", "Ops Completed", "Done", "Ready to Archive"].map((step, i) => (
-                                                <div key={step} className={`ct-preview-step${i === 0 ? " ct-preview-step--done" : ""}`}>
+                                            {allEnabledTabs.map((tab, i) => (
+                                                <div
+                                                    key={tab.id}
+                                                    className={`ct-preview-step${effectivePreviewMain?.id === tab.id ? " ct-preview-step--done" : ""}`}
+                                                    onClick={() => { setPreviewActiveMain(tab.id); setPreviewActiveSub(null); }}
+                                                    style={{ cursor: "pointer" }}
+                                                >
                                                     <div className="ct-preview-step-circle">{i + 1}</div>
-                                                    <span className="ct-preview-step-label">{step}</span>
+                                                    <span className="ct-preview-step-label">{tab.label || "Unnamed Tab"}</span>
                                                 </div>
                                             ))}
+                                            {allEnabledTabs.length === 0 && (
+                                                <span className="ct-preview-step-empty">Enable tabs on the left to see them here</span>
+                                            )}
                                         </div>
                                     </>
                                 )}
