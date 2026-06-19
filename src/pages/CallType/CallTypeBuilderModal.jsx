@@ -2197,20 +2197,22 @@ function CallTypeBuilderModal({ show, onClose }) {
                                         )}
 
                                         <div className="ct-preview-stepper">
-                                            {allEnabledTabs.map((tab, i) => (
+                                            {[
+                                                "Appointment Received",
+                                                "Enroute",
+                                                "Ops in Progress",
+                                                "Ops Completed",
+                                                "Done",
+                                                "Ready to Archive",
+                                            ].map((step, i) => (
                                                 <div
-                                                    key={tab.id}
-                                                    className={`ct-preview-step${effectivePreviewMain?.id === tab.id ? " ct-preview-step--done" : ""}`}
-                                                    onClick={() => { setPreviewActiveMain(tab.id); setPreviewActiveSub(null); }}
-                                                    style={{ cursor: "pointer" }}
+                                                    key={step}
+                                                    className={`ct-preview-step${i === 0 ? " ct-preview-step--done" : ""}`}
                                                 >
                                                     <div className="ct-preview-step-circle">{i + 1}</div>
-                                                    <span className="ct-preview-step-label">{tab.label || "Unnamed Tab"}</span>
+                                                    <span className="ct-preview-step-label">{step}</span>
                                                 </div>
                                             ))}
-                                            {allEnabledTabs.length === 0 && (
-                                                <span className="ct-preview-step-empty">Enable tabs on the left to see them here</span>
-                                            )}
                                         </div>
                                     </>
                                 )}
