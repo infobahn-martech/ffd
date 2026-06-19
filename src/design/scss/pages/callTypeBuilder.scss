@@ -47,8 +47,13 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e8e8f0;
-  overflow-y: auto;
-  @include ct-scrollbar;
+  overflow: hidden;
+
+  .ct-split-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    @include ct-scrollbar;
+  }
 
   .ct-split-form-area {
     flex: 1;
@@ -56,15 +61,19 @@
   }
 
   .ct-split-footer {
-    position: sticky;
-    bottom: 0;
     padding: 14px 20px;
     border-top: 1px solid #f0f0f0;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     gap: 10px;
     background: #fff;
     z-index: 1;
+
+    .ct-split-footer-right {
+      display: flex;
+      gap: 10px;
+    }
 
     button {
       height: 36px;

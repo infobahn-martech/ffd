@@ -92,7 +92,7 @@ const FIELD_TYPES = [
 ];
 
 const CALL_TYPE_OPTIONS = [
-    { value: "create_template", label: "Create Template" },
+    { value: "create_template", label: "New Template" },
     { value: "import_call", label: "Import Call" },
     { value: "export_call", label: "Export Call" },
     { value: "husbandry_call", label: "Husbandry Call" },
@@ -970,30 +970,51 @@ function CallTypeBuilderModal({ show, onClose }) {
     const handleToggleOpenSub = (subId) =>
         setOpenSubTab((prev) => (prev === subId ? null : subId));
 
-    const handleToggleMainTab = (mainId, checked) =>
+    const handleToggleMainTab = (mainId, checked) => {
         setTabConfig((prev) => updateScope(prev, mainId, null, (scope) => {
-            if (checked) {
-                const tab = MAIN_TABS.find((t) => t.id === mainId);
-                if (tab && (tab.fields || tab.groups)) {
-                    const allFields = getTabFieldList(tab);
+            const tab = MAIN_TABS.find((t) => t.id === mainId);
+            if (tab && (tab.fields || tab.groups)) {
+                const allFields = getTabFieldList(tab);
+                if (checked) {
                     const deletedSet = new Set(scope.deletedFields ?? []);
                     return { ...scope, enabled: true, fields: Object.fromEntries(allFields.map((f) => [f, !deletedSet.has(f)])) };
                 }
+                return { ...scope, enabled: false, fields: Object.fromEntries(allFields.map((f) => [f, false])) };
             }
-            return { ...scope, enabled: checked };
-        }));
-
-    const handleToggleSubTab = (mainId, subId, checked) =>
-        setTabConfig((prev) => updateScope(prev, mainId, subId, (scope) => {
-            if (checked) {
-                const mainTab = MAIN_TABS.find((t) => t.id === mainId);
-                const sub = mainTab?.subTabs?.find((s) => s.id === subId);
-                if (sub?.fields) {
-                    return { ...scope, enabled: true, fields: Object.fromEntries(sub.fields.map((f) => [f, true])) };
+            if (tab?.subTabs) {
+                const newSubTabs = {};
+                for (const sub of tab.subTabs) {
+                    const subScope = scope.subTabs?.[sub.id] ?? {};
+                    if (sub.fields) {
+                        newSubTabs[sub.id] = { ...subScope, enabled: checked, fields: Object.fromEntries(sub.fields.map((f) => [f, checked])) };
+                    } else {
+                        newSubTabs[sub.id] = { ...subScope, enabled: checked };
+                    }
                 }
+                return { ...scope, enabled: checked, subTabs: newSubTabs };
             }
             return { ...scope, enabled: checked };
         }));
+        if (checked) {
+            setPreviewActiveMain(mainId);
+            setPreviewActiveSub(null);
+        }
+    };
+
+    const handleToggleSubTab = (mainId, subId, checked) => {
+        setTabConfig((prev) => updateScope(prev, mainId, subId, (scope) => {
+            const mainTab = MAIN_TABS.find((t) => t.id === mainId);
+            const sub = mainTab?.subTabs?.find((s) => s.id === subId);
+            if (sub?.fields) {
+                return { ...scope, enabled: checked, fields: Object.fromEntries(sub.fields.map((f) => [f, checked])) };
+            }
+            return { ...scope, enabled: checked };
+        }));
+        if (checked) {
+            setPreviewActiveMain(mainId);
+            setPreviewActiveSub(subId);
+        }
+    };
 
     const handleToggleField = (mainId, subId, field, checked) =>
         setTabConfig((prev) => updateScope(prev, mainId, subId, (scope) => ({
@@ -1029,10 +1050,17 @@ function CallTypeBuilderModal({ show, onClose }) {
         const newTab = { id: `ct-${Date.now()}-${Math.random()}`, label: "", enabled: true, fields: [] };
         setCustomTabs((prev) => [...prev, newTab]);
         setOpenCustomTab(newTab.id);
+        setPreviewActiveMain(newTab.id);
+        setPreviewActiveSub(null);
     }, []);
 
-    const handleToggleCustomTab = (tabId, checked) =>
+    const handleToggleCustomTab = (tabId, checked) => {
         setCustomTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, enabled: checked } : t)));
+        if (checked) {
+            setPreviewActiveMain(tabId);
+            setPreviewActiveSub(null);
+        }
+    };
 
     const handleRenameCustomTab = (tabId, label) =>
         setCustomTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, label } : t)));
@@ -1204,12 +1232,11 @@ function CallTypeBuilderModal({ show, onClose }) {
                     {/* ── Left panel ── */}
                     <div className="ct-split-left">
 
+                        <div className="ct-split-scroll-area">
+
                         {/* Saved templates list */}
                         <div className="ct-saved-section">
                             <div className="ct-saved-header">
-                                <div className="ct-saved-header-actions">
-                                    <button type="button" className="ct-clear-btn" onClick={handleClearAll}>Clear All</button>
-                                </div>
                             </div>
                             <div className="ct-saved-list">
                                 {list.map((ct) => (
@@ -1265,7 +1292,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                                         <div className="cf-input">
                                             <input
                                                 type="text"
-                                                placeholder="e.g. Bunker Call Template"
+                                                placeholder="Template Name"
                                                 value={templateName}
                                                 onChange={(e) => setTemplateName(e.target.value)}
                                             />
@@ -1333,14 +1360,19 @@ function CallTypeBuilderModal({ show, onClose }) {
                             </div>
                         </div>
 
+                        </div>{/* end ct-split-scroll-area */}
+
                         {/* Footer */}
                         <div className="ct-split-footer">
-                            <button type="button" className="btn-common close" onClick={handleNew}>
-                                Cancel
-                            </button>
-                            <button type="button" className="subtasks-tab-save-btn" disabled={isBeingUpdated} onClick={handleSave}>
-                                {isBeingUpdated ? "Saving..." : isEditMode ? "Update" : "Save"}
-                            </button>
+                            <button type="button" className="ct-clear-btn" onClick={handleClearAll}>Clear All</button>
+                            <div className="ct-split-footer-right">
+                                <button type="button" className="btn-common close" onClick={handleNew}>
+                                    Cancel
+                                </button>
+                                <button type="button" className="subtasks-tab-save-btn" disabled={isBeingUpdated} onClick={handleSave}>
+                                    {isBeingUpdated ? "Saving..." : isEditMode ? "Update" : "Save"}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
