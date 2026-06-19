@@ -360,9 +360,18 @@ const updateScope = (prev, mainId, subId, updater) => {
 function CustomFieldRow({ field, onUpdate, onRemove }) {
     const isRadio = field.type === "radio";
     const options = field.options ?? [];
+    const [newVal, setNewVal] = useState("");
 
-    const handleAddOption = () =>
-        onUpdate(field.id, "options", [...options, ""]);
+    // Auto-init "Option 1" the moment type switches to radio
+    useEffect(() => {
+        if (isRadio && options.length === 0) {
+            onUpdate(field.id, "options", ["Option 1"]);
+        }
+        if (!isRadio) {
+            setNewVal("");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [field.type]);
 
     const handleUpdateOption = (idx, val) => {
         const next = [...options];
@@ -370,8 +379,23 @@ function CustomFieldRow({ field, onUpdate, onRemove }) {
         onUpdate(field.id, "options", next);
     };
 
+    const handleBlurOption = (idx) => {
+        // Auto-remove empty confirmed options on blur (keep at least 1)
+        if (!options[idx]?.trim() && options.length > 1) {
+            onUpdate(field.id, "options", options.filter((_, i) => i !== idx));
+        }
+    };
+
     const handleRemoveOption = (idx) =>
         onUpdate(field.id, "options", options.filter((_, i) => i !== idx));
+
+    const handleNewBlur = () => {
+        const trimmed = newVal.trim();
+        if (trimmed) {
+            onUpdate(field.id, "options", [...options, trimmed]);
+        }
+        setNewVal("");
+    };
 
     return (
         <div className="ct-custom-field-wrap">
@@ -405,15 +429,24 @@ function CustomFieldRow({ field, onUpdate, onRemove }) {
                                 placeholder={`Option ${idx + 1}`}
                                 value={opt}
                                 onChange={(e) => handleUpdateOption(idx, e.target.value)}
+                                onBlur={() => handleBlurOption(idx)}
                             />
                             <button type="button" className="ct-custom-field-del" onClick={() => handleRemoveOption(idx)}>
                                 <FiTrash2 size={12} />
                             </button>
                         </div>
                     ))}
-                    <button type="button" className="ct-add-radio-option-btn" onClick={handleAddOption}>
-                        <FiPlus size={11} /> Add Option
-                    </button>
+                    <div className="ct-radio-option-row">
+                        <span className="ct-radio-option-dot ct-radio-option-dot--new" />
+                        <input
+                            className="ct-custom-field-input ct-radio-new-input"
+                            placeholder={`Option ${options.length + 1}`}
+                            value={newVal}
+                            onChange={(e) => setNewVal(e.target.value)}
+                            onBlur={handleNewBlur}
+                        />
+                        <div />
+                    </div>
                 </div>
             )}
         </div>
