@@ -761,10 +761,21 @@
 
   .operation-wrapper {
     display: flex !important;
-    flex-direction: row !important;
+    flex-direction: column !important;
     border-top: 1px solid #e1e2e8;
     min-height: 380px;
-    align-items: stretch;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .operation-content-container {
+    display: flex !important;
+    flex-direction: row !important;
+    min-height: 380px !important;
+    height: auto !important;
+    flex: 1 !important;
+    overflow: visible !important;
+    align-items: stretch !important;
   }
 
   .operation-left {
@@ -773,14 +784,15 @@
     flex-shrink: 0 !important;
     background: #f0f1f6 !important;
     border-right: 1px solid #e2e2e2 !important;
-    padding: 15px 0 !important;
+    padding: 15px 10px !important;
     display: flex !important;
     flex-direction: column !important;
+    gap: 4px !important;
   }
 
   .operation-right {
     flex: 1 !important;
-    overflow-y: visible !important;
+    overflow-y: auto !important;
     padding: 18px 20px !important;
   }
 

@@ -3,6 +3,7 @@ import { FiX, FiChevronDown, FiChevronRight, FiPlus, FiTrash2 } from "react-icon
 import SearchableSelect from "../../components/form/SearchableSelect";
 import useCallTypeReducer from "../../store/CallTypeReducer";
 import { DailyTaskTodo } from "../KanbanBoard/CardFormTabs/Import/tabs/appointment/General";
+import Operation from "../KanbanBoard/CardFormTabs/Import/tabs/operation/Operation";
 import OperationTasksPanel from "../KanbanBoard/CardFormTabs/Import/tabs/operation/TaskTab";
 import KPIAnalytics from "../KanbanBoard/CardFormTabs/Import/tabs/kpi/KPIAnalytics";
 import DocumentLibrary from "../KanbanBoard/CardFormTabs/Import/tabs/appointment/documentLibrary/DocumentLibrary";
@@ -1407,6 +1408,15 @@ function CallTypeBuilderModal({ show, onClose }) {
 
                                 {effectivePreviewMain && (
                                     <>
+                                        {effectivePreviewMain.id === "operation" ? (
+                                            <Operation
+                                                card={{ color: "#2A00FF" }}
+                                                formValues={{}}
+                                                handleChange={() => () => {}}
+                                                ownerInitial="M"
+                                                isDAModule={true}
+                                            />
+                                        ) : (
                                         <div className="operation-wrapper">
                                             {allPreviewSubTabs.length > 0 && effectivePreviewMain.id !== "husbandry" && (
                                                 <div className="operation-left">
@@ -2184,6 +2194,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                 )}
                                             </div>
                                         </div>
+                                        )}
 
                                         <div className="ct-preview-stepper">
                                             {allEnabledTabs.map((tab, i) => (
