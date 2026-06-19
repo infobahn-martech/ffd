@@ -200,7 +200,7 @@ const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
 const APPOINTMENT_TYPE_VESSEL = "vessel";
 const APPOINTMENT_TYPE_OPTIONS = [
-  { value: APPOINTMENT_TYPE_TUG, label: "Tug" },
+  { value: APPOINTMENT_TYPE_TUG, label: "Taxi Tug" },
   { value: APPOINTMENT_TYPE_TUG_AND_BARGE, label: "Tug and barge" },
   { value: APPOINTMENT_TYPE_VESSEL, label: "Vessel" },
 ];
@@ -5429,25 +5429,25 @@ ${body}
                                     className="cf-billing-instruction-field"
                                     hasError={false}
                                   >
-                                  {billingInstructionType.toLowerCase() === "email" ? (
-                                    <MultiSelectEmail
-                                      name="billingInstructionEmails"
-                                      value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
-                                      onChange={handleChange("billingInstructionEmails")}
-                                      options={billingInstructionEmailOptions}
-                                      placeholder="Select billing instruction emails..."
-                                      onAddNew={handleAddBillingInstructionEmail}
-                                      disabled={isDisabled || billingInstructionLoading}
-                                    />
-                                  ) : (
-                                    <FormInput
-                                      type="text"
-                                      placeholder="Enter billing instructions..."
-                                      value={getFieldValue("billingInstructions")}
-                                      onChange={handleChange("billingInstructions")}
-                                      disabled={isDisabled || billingInstructionLoading}
-                                    />
-                                  )}
+                                    {billingInstructionType.toLowerCase() === "email" ? (
+                                      <MultiSelectEmail
+                                        name="billingInstructionEmails"
+                                        value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
+                                        onChange={handleChange("billingInstructionEmails")}
+                                        options={billingInstructionEmailOptions}
+                                        placeholder="Select billing instruction emails..."
+                                        onAddNew={handleAddBillingInstructionEmail}
+                                        disabled={isDisabled || billingInstructionLoading}
+                                      />
+                                    ) : (
+                                      <FormInput
+                                        type="text"
+                                        placeholder="Enter billing instructions..."
+                                        value={getFieldValue("billingInstructions")}
+                                        onChange={handleChange("billingInstructions")}
+                                        disabled={isDisabled || billingInstructionLoading}
+                                      />
+                                    )}
                                   </FormField>
                                 </>
                               )}
