@@ -119,8 +119,8 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
         <form id="cgPassTemplateForm" onSubmit={handleSubmit(onSubmit)}>
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row g-3">
-              <div className="col-lg-6 col-md-6 col-sm-12">
+            <div className="permInputs row">
+              <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
                     Port <span className="text-danger">*</span>
@@ -152,7 +152,7 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                 </div>
               </div>
 
-              <div className="col-lg-6 col-md-6 col-sm-12">
+              <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
                     Template Name <span className="text-danger">*</span>
@@ -173,60 +173,66 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
           </div>
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="desig-inp">
-              <label className="report-template-label">
-                Description
-              </label>
-              <textarea
-                className="form-control"
-                rows={3}
-                placeholder="Enter description..."
-                dir="auto"
-                {...register('description')}
-              />
+            <div className="permInputs row">
+              <div className="col-12">
+                <div className="form-floating desig-inp">
+                  <textarea
+                    className="form-control"
+                    placeholder="Description"
+                    rows={3}
+                    dir="auto"
+                    {...register('description')}
+                  />
+                  <label>Description</label>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="desig-inp">
-              <div className="d-flex align-items-center justify-content-between mb-2">
-                <label className="report-template-label mb-0">
-                  Content <span className="text-danger">*</span>
-                </label>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary"
-                  onClick={handleInsertTable}
-                >
-                  Insert Table
-                </button>
-              </div>
-              <Controller
-                name="content"
-                control={control}
-                rules={{
-                  required: 'Content is required',
-                  validate: (v) => !isHtmlEmpty(v) || 'Content is required',
-                }}
-                render={({ field }) => (
-                  <div className="react-quill-wrapper">
-                    <ReactQuill
-                      ref={quillRef}
-                      theme="snow"
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      modules={quillModules}
-                      formats={quillFormats}
-                      placeholder="Enter content..."
-                    />
+            <div className="permInputs row">
+              <div className="col-12">
+                <div className="desig-inp">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <label className="mb-0">
+                      Content <span className="text-danger">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={handleInsertTable}
+                    >
+                      Insert Table
+                    </button>
                   </div>
-                )}
-              />
-              {errors.content && (
-                <span className="error text-danger d-block mt-1 small">
-                  {errors.content.message}
-                </span>
-              )}
+                  <Controller
+                    name="content"
+                    control={control}
+                    rules={{
+                      required: 'Content is required',
+                      validate: (v) => !isHtmlEmpty(v) || 'Content is required',
+                    }}
+                    render={({ field }) => (
+                      <div className="react-quill-wrapper">
+                        <ReactQuill
+                          ref={quillRef}
+                          theme="snow"
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          modules={quillModules}
+                          formats={quillFormats}
+                          placeholder="Enter content..."
+                        />
+                      </div>
+                    )}
+                  />
+                  {errors.content && (
+                    <span className="error text-danger d-block mt-1 small">
+                      {errors.content.message}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
