@@ -430,7 +430,7 @@ body .material-management-modal .modal-body {
   max-height: 70vh;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #00368c #f1f1f1;
+  scrollbar-color: #aab4c3 #f1f5f9;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar {
@@ -438,17 +438,17 @@ body .material-management-modal .modal-body::-webkit-scrollbar {
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: #f1f5f9;
+  border-radius: 999px;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-thumb {
-  background: #00368c;
-  border-radius: 4px;
+  background: #aab4c3;
+  border-radius: 999px;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
-  background: #002570;
+  background: #8b96a8;
 }
 
 body .material-management-modal .modal-footer {
