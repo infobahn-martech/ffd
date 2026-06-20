@@ -81,6 +81,8 @@ import MWPHistory from "../pages/MWPHistory";
 import KPITasks from "../pages/KPITasks";
 import KPIUsers from "../pages/KPIUsers";
 import Coordinates from "../pages/Coordinates";
+import CGPassTemplate from "../pages/CGPassTemplate";
+import VesselRegistrationTemplate from "../pages/VesselRegistrationTemplate";
 import { ROUTE_PATHS } from "./paths";
 import TimeObjects from "../pages/TimeObject";
 import StageTimeMappings from "../pages/StageTimeMapping";
@@ -281,6 +283,8 @@ const router = createBrowserRouter(
                   { path: "/custom-fields", element: <RouteGuard><CustomFields /></RouteGuard> },
                   // Crew Template
                   { path: "/crew-template", element: <RouteGuard><CrewTemplate /></RouteGuard> },
+                  { path: "/cg-pass-template", element: <RouteGuard><CGPassTemplate /></RouteGuard> },
+                  { path: "/vessel-registration-template", element: <RouteGuard><VesselRegistrationTemplate /></RouteGuard> },
                   // Job Status BE
                   { path: "/job-status", element: <RouteGuard><JobStatusBE /></RouteGuard> },
                   // Group Email BE
