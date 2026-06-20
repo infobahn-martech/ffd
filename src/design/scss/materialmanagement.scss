@@ -1400,7 +1400,10 @@ body .material-management-modal {
 }
 
 .dispatch-remove-order-btn {
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
   background-color: #dc3545;
   color: white;
   border: none;

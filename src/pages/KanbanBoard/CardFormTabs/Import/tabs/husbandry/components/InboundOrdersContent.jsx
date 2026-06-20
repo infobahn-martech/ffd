@@ -1648,6 +1648,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           <div>
             <div className="dispatch-section-header">
               <h3 className="dispatch-edit-section-title">Order Details</h3>
+              <button type="button" onClick={handleAddNewConvertOrder} className="dispatch-add-order-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                Add New Order
+              </button>
             </div>
 
             {convertFormData.orders.map((order, index) => (
@@ -1655,6 +1662,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <div className="dispatch-edit-item-header" onClick={() => toggleConvertOrderExpand(order.id)}>
                   <span className="dispatch-edit-item-label">Order {index + 1}</span>
                   <div className="dispatch-item-actions">
+                    {!order.inbound_item_id && (
+                      <span
+                        className="delete"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveConvertOrder(order.id); }}
+                      >
+                        <img src={deleteIcon} alt="delete" />
+                      </span>
+                    )}
                     <svg
                       width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                       className={`dispatch-edit-chevron${expandedConvertOrders[order.id] ? " expanded" : ""}`}
@@ -1672,9 +1687,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <FormInput
                             type="text"
                             value={order.orderNo}
+                            onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)}
                             placeholder="Enter order number..."
-                            readOnly
-                            disabled
+                            readOnly={!!order.inbound_item_id}
+                            disabled={!!order.inbound_item_id}
                           />
                         </FormField>
                       </div>
@@ -1684,9 +1700,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <FormInput
                             type="text"
                             value={order.poDo}
+                            onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)}
                             placeholder="Enter PO/DO number..."
-                            readOnly
-                            disabled
+                            readOnly={!!order.inbound_item_id}
+                            disabled={!!order.inbound_item_id}
                           />
                         </FormField>
                       </div>
@@ -1696,10 +1713,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <FormInput
                             type="number"
                             value={order.quantity}
+                            onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
                             placeholder="Enter quantity..."
                             className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""}
-                            readOnly
-                            disabled
+                            readOnly={!!order.inbound_item_id}
+                            disabled={!!order.inbound_item_id}
                           />
                         </FormField>
                         {convertFormErrors[`co${index}_quantity`] && <span className="dispatch-edit-error">{convertFormErrors[`co${index}_quantity`]}</span>}
@@ -1710,9 +1728,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <FormInput
                             type="text"
                             value={order.description}
+                            onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)}
                             placeholder="Enter description..."
-                            readOnly
-                            disabled
+                            readOnly={!!order.inbound_item_id}
+                            disabled={!!order.inbound_item_id}
                           />
                         </FormField>
                       </div>
@@ -1724,7 +1743,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             onChange={(e) => handleConvertOrderChange(order.id, "packageType", e.target.value)}
                             options={mergeOptionForValue(packageTypeOptions, order.packageType)}
                             placeholder="Select package type..."
-                            disabled
+                            disabled={!!order.inbound_item_id}
                           />
                         </FormField>
                       </div>
@@ -1739,7 +1758,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             className="dispatch-edit-checkbox"
                             checked={order.transportation || false}
                             onChange={(e) => handleConvertOrderChange(order.id, "transportation", e.target.checked)}
-                            disabled
+                            disabled={!!order.inbound_item_id}
                           />
                           <span>Transportation</span>
                         </label>
@@ -1754,7 +1773,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)}
                                 options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
                                 placeholder="Select type of vehicle..."
-                                disabled
+                                disabled={!!order.inbound_item_id}
                               />
                             </FormField>
                           </div>
@@ -1766,7 +1785,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
                                 options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
-                                disabled
+                                disabled={!!order.inbound_item_id}
                               />
                             </FormField>
                           </div>
@@ -1776,9 +1795,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                               <FormInput
                                 type="text"
                                 value={order.pickUpFrom}
+                                onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
                                 placeholder="Enter pick-up location..."
-                                readOnly
-                                disabled
+                                readOnly={!!order.inbound_item_id}
+                                disabled={!!order.inbound_item_id}
                               />
                             </FormField>
                           </div>
@@ -1790,7 +1810,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
                                 options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
-                                disabled
+                                disabled={!!order.inbound_item_id}
                               />
                             </FormField>
                           </div>
@@ -1802,7 +1822,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)}
                                 options={mergeOptionForValue(materialDriverOptions, order.driverName)}
                                 placeholder="Select driver name..."
-                                disabled
+                                disabled={!!order.inbound_item_id}
                               />
                             </FormField>
                           </div>
