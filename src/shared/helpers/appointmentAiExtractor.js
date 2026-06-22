@@ -117,12 +117,40 @@ const extractTextFromPdf = async (file) => {
   for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += 1) {
     const page = await pdfDoc.getPage(pageNum);
     const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item) => (item?.str ? String(item.str) : ""))
-      .filter(Boolean)
-      .join(" ");
-    if (pageText.trim()) {
-      pages.push(pageText.trim());
+
+    // Reconstruct line breaks so downstream parsers can rely on line-anchored
+    // patterns (e.g. "Sent:", "From:", "Port of call:"). pdf.js returns text as
+    // positioned runs, so we group runs into lines by their vertical position
+    // (transform[5]) and honour the hasEOL hint when present.
+    const lines = [];
+    let currentLine = [];
+    let lastY = null;
+
+    const flushLine = () => {
+      const line = currentLine.join(" ").replace(/\s+/g, " ").trim();
+      if (line) lines.push(line);
+      currentLine = [];
+    };
+
+    textContent.items.forEach((item) => {
+      const text = item?.str ? String(item.str) : "";
+      const currentY = Array.isArray(item?.transform) ? item.transform[5] : null;
+      const isNewLine =
+        lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 1;
+
+      if (isNewLine) flushLine();
+      if (text) currentLine.push(text);
+      if (currentY !== null) lastY = currentY;
+      if (item?.hasEOL) {
+        flushLine();
+        lastY = null;
+      }
+    });
+    flushLine();
+
+    const pageText = lines.join("\n").trim();
+    if (pageText) {
+      pages.push(pageText);
     }
   }
 
