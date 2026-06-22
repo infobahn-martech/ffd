@@ -188,8 +188,9 @@ FormField.propTypes = {
 };
 
 export const FormInput = ({ type = "text", value, onChange, placeholder, className = "", readOnly = false, disabled = false }) => {
+  const hasError = className.includes("is-invalid");
   return (
-    <div className={`cf-input ${className}`}>
+    <div className={`cf-input ${className}`} style={hasError ? { borderColor: "#dc3545" } : {}}>
       <input
         type={type}
         value={value}
@@ -254,13 +255,14 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
     setSearchTerm("");
   };
 
+  const hasError = className.includes("is-invalid");
   return (
     <div ref={wrapperRef} className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`}>
       <div
         ref={triggerRef}
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
-        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
+        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1, ...(hasError ? { borderColor: "#dc3545" } : {}) }}
       >
         <div className="cf-multi-select-email-tags">
           {displayValue ? (

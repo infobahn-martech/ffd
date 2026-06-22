@@ -1,9 +1,5 @@
 const pad2 = (n) => String(n).padStart(2, "0");
 
-/**
- * Split API / stored datetime into separate date (YYYY-MM-DD) and time (HH:mm).
- * Avoids `new Date("YYYY-MM-DD")` UTC timezone shift.
- */
 export function splitApiDateTimeParts(raw, separateTime) {
   let date = "";
   let time = "";
@@ -36,9 +32,6 @@ export function splitApiDateTimeParts(raw, separateTime) {
   return { date, time };
 }
 
-/**
- * Build API datetime string: "YYYY-MM-DD HH:mm:ss" (matches transport/hotel payloads).
- */
 export function buildApiDateTime(dateStr, timeStr) {
   const datePart = String(dateStr ?? "").trim();
   if (!datePart) return "";
@@ -58,7 +51,6 @@ export function buildApiDateTime(dateStr, timeStr) {
   return `${datePart} ${hh}:${mm}:00`;
 }
 
-/** ISO-style payload: "YYYY-MM-DDTHH:mm:ss" */
 export function buildApiDateTimeIso(dateStr, timeStr) {
   const datePart = String(dateStr ?? "").trim();
   if (!datePart) return "";
