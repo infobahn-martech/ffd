@@ -1,6 +1,6 @@
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useMemo, useRef } from 'react';
-import ReactQuill from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomModal from '../../../components/CustomModal';
 import PremiumSelect from '../../../components/form/PremiumSelect';
@@ -9,6 +9,66 @@ import usePortReducer from '../../../store/PortReducer';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
+import '../../../design/scss/pages/cg-pass-template/modals/AddEditCGPassTemplate.scss';
+
+const Icons = Quill.import('ui/icons');
+Icons['table'] =
+  '<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"/><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"/><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"/></svg>';
+
+const BlockEmbed = Quill.import('blots/block/embed');
+
+class TableEmbed extends BlockEmbed {
+  static create(value) {
+    const node = super.create();
+    const rows = value?.rows ?? 3;
+    const cols = value?.cols ?? 3;
+
+    const table = document.createElement('table');
+    const tbody = document.createElement('tbody');
+
+    for (let r = 0; r < rows; r++) {
+      const tr = document.createElement('tr');
+      for (let c = 0; c < cols; c++) {
+        const td = document.createElement('td');
+        td.setAttribute('contenteditable', 'true');
+        td.setAttribute('dir', 'rtl');
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    node.appendChild(table);
+
+    node.addEventListener('mousedown', (e) => e.stopPropagation());
+    node.addEventListener('keydown', (e) => {
+      const cell = e.target.closest('td');
+      if (!cell) return;
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        if (cell.textContent.replace(/[\s ]/g, '').length === 0) {
+          e.preventDefault();
+        } else {
+          e.stopPropagation();
+        }
+      } else {
+        e.stopPropagation();
+      }
+    });
+
+    return node;
+  }
+
+  static value(node) {
+    const trs = node.querySelectorAll('tr');
+    const tds = trs[0]?.querySelectorAll('td');
+    return { rows: trs.length || 3, cols: tds?.length || 3 };
+  }
+}
+
+TableEmbed.blotName = 'table-embed';
+TableEmbed.tagName = 'div';
+TableEmbed.className = 'ql-table-embed';
+
+Quill.register(TableEmbed);
 
 const isHtmlEmpty = (value) => {
   if (!value) return true;
@@ -50,35 +110,41 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   }, []);
 
   useEffect(() => {
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      quill.format('direction', 'rtl');
+      quill.format('align', 'right');
+    }
+  }, [showModal]);
+
+  useEffect(() => {
     reset(defaultValues);
   }, [showModal, reset]);
 
-  const handleInsertTable = () => {
-    const quill = quillRef.current?.getEditor();
-    if (!quill) return;
-    const range = quill.getSelection(true);
-    const pos = range ? range.index : quill.getLength();
-    const html = `<table border="1" cellpadding="6" style="border-collapse:collapse;width:100%"><thead><tr><th style="border:1px solid #ccc">Header 1</th><th style="border:1px solid #ccc">Header 2</th><th style="border:1px solid #ccc">Header 3</th></tr></thead><tbody><tr><td style="border:1px solid #ccc">&nbsp;</td><td style="border:1px solid #ccc">&nbsp;</td><td style="border:1px solid #ccc">&nbsp;</td></tr><tr><td style="border:1px solid #ccc">&nbsp;</td><td style="border:1px solid #ccc">&nbsp;</td><td style="border:1px solid #ccc">&nbsp;</td></tr></tbody></table>`;
-    if (typeof quill.clipboard?.dangerouslyPasteHTML === 'function') {
-      quill.clipboard.dangerouslyPasteHTML(pos, html);
-    } else {
-      const delta = quill.clipboard.convert({ html });
-      quill.updateContents(delta, 'user');
-    }
-  };
-
   const quillModules = useMemo(
     () => ({
-      toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        [{ color: [] }, { background: [] }],
-        [{ align: [] }],
-        [{ direction: 'rtl' }],
-        ['link'],
-        ['clean'],
-      ],
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ direction: 'rtl' }],
+          ['link', 'table'],
+          ['clean'],
+        ],
+        handlers: {
+          table: function () {
+            const quill = this.quill;
+            quill.focus();
+            const range = quill.getSelection();
+            const index = range ? range.index : quill.getLength();
+            quill.insertEmbed(index, 'table-embed', { rows: 3, cols: 3 }, 'user');
+            quill.setSelection(index + 1, 0, 'user');
+          },
+        },
+      },
     }),
     []
   );
@@ -86,6 +152,7 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   const quillFormats = [
     'header', 'bold', 'italic', 'underline', 'strike',
     'list', 'bullet', 'color', 'background', 'align', 'direction', 'link',
+    'table-embed',
   ];
 
   const onSubmit = (data) => {
@@ -180,7 +247,7 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                     className="form-control"
                     placeholder="Description"
                     rows={3}
-                    dir="auto"
+                    dir="rtl"
                     {...register('description')}
                   />
                   <label>Description</label>
@@ -193,18 +260,9 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
             <div className="permInputs row">
               <div className="col-12">
                 <div className="desig-inp">
-                  <div className="d-flex align-items-center justify-content-between mb-2">
-                    <label className="mb-0">
-                      Content <span className="text-danger">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-secondary"
-                      onClick={handleInsertTable}
-                    >
-                      Insert Table
-                    </button>
-                  </div>
+                  <label className="mb-2 d-block">
+                    Content <span className="text-danger">*</span>
+                  </label>
                   <Controller
                     name="content"
                     control={control}
@@ -213,7 +271,7 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                       validate: (v) => !isHtmlEmpty(v) || 'Content is required',
                     }}
                     render={({ field }) => (
-                      <div className="react-quill-wrapper">
+                      <div className="react-quill-wrapper" dir="rtl">
                         <ReactQuill
                           ref={quillRef}
                           theme="snow"
