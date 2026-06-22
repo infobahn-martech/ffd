@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -64,8 +64,6 @@ const DEFAULT_WORKFLOW_DESCRIPTION =
 const DEFAULT_SWIMLANE_HELPER =
   'New cards in this workflow can be created in the selected swimlane.';
 
-const DEFAULT_PORT_NAME = 'Dammam';
-
 /**
  * Kanban Add (+) selection: workflow list and/or swimlane list (same chrome & card styling).
  * @param {'workflow' | 'swimlane'} props.selectionMode
@@ -91,19 +89,18 @@ function SelectWorkflowModal({
   onContinue,
   onExited,
 }) {
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
   const handleClose = () => {
+    setSubmitAttempted(false);
     onClose();
   };
 
   useEffect(() => {
-    if (!show) return;
-    if (selectedPortId != null && selectedPortId !== '') return;
-
-    const dammamPort = (ports || []).find((port) => port.name === DEFAULT_PORT_NAME);
-    if (dammamPort) {
-      onSelectPortId(String(dammamPort.id));
+    if (!show) {
+      setSubmitAttempted(false);
     }
-  }, [show, ports, selectedPortId, onSelectPortId]);
+  }, [show]);
 
   const isWorkflowMode = selectionMode === 'workflow';
   const list = isWorkflowMode ? workflows || [] : swimlanes || [];
@@ -116,17 +113,20 @@ function SelectWorkflowModal({
     selectedSwimlaneId != null && (selectedSwimlaneId === id || String(selectedSwimlaneId) === String(id));
 
   const hasCardSelection = isWorkflowMode ? selectedWorkflowId != null : selectedSwimlaneId != null;
+  const hasCallTypeSelection = selectedCallTypeId != null && selectedCallTypeId !== '';
+  const hasPortSelection = selectedPortId != null && selectedPortId !== '';
 
-  // Call type / port are optional for now. To make them mandatory later, set this
-  // to true (or derive it from props/config) and the validation below picks it up.
-  const areExtraFieldsRequired = false;
-  const hasExtraFieldSelection =
-    selectedCallTypeId != null && selectedCallTypeId !== '' && selectedPortId != null && selectedPortId !== '';
+  const cardError = submitAttempted && !empty && !hasCardSelection;
+  const callTypeError = submitAttempted && !hasCallTypeSelection;
+  const portError = submitAttempted && !hasPortSelection;
 
-  const isContinueDisabled = empty || !hasCardSelection || (areExtraFieldsRequired && !hasExtraFieldSelection);
+  const isFormValid = !empty && hasCardSelection && hasCallTypeSelection && hasPortSelection;
 
   const handleContinue = () => {
-    if (isContinueDisabled) return;
+    if (!isFormValid) {
+      setSubmitAttempted(true);
+      return;
+    }
     onContinue();
   };
 
@@ -246,6 +246,12 @@ function SelectWorkflowModal({
                   ))}
               </ul>
 
+              {cardError ? (
+                <p className="select-workflow-field-error" role="alert">
+                  {isWorkflowMode ? 'Please select a workflow.' : 'Please select a swimlane.'}
+                </p>
+              ) : null}
+
               <div className="select-workflow-modal-fields">
                 <div className="select-workflow-field">
                   <label className="select-workflow-field-label" htmlFor="select-workflow-call-type">
@@ -257,9 +263,10 @@ function SelectWorkflowModal({
                       selectedCallTypeId == null || selectedCallTypeId === ''
                         ? 'select-workflow-field-select--placeholder'
                         : ''
-                    }`}
+                    } ${callTypeError ? 'select-workflow-field-select--error' : ''}`}
                     value={selectedCallTypeId ?? ''}
                     onChange={handleCallTypeChange}
+                    aria-invalid={callTypeError}
                   >
                     <option value="">Select Call Type</option>
                     {(callTypes || []).map((callType) => (
@@ -268,6 +275,11 @@ function SelectWorkflowModal({
                       </option>
                     ))}
                   </select>
+                  {callTypeError ? (
+                    <p className="select-workflow-field-error" role="alert">
+                      Please select a call type.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="select-workflow-field">
@@ -280,9 +292,10 @@ function SelectWorkflowModal({
                       selectedPortId == null || selectedPortId === ''
                         ? 'select-workflow-field-select--placeholder'
                         : ''
-                    }`}
+                    } ${portError ? 'select-workflow-field-select--error' : ''}`}
                     value={selectedPortId ?? ''}
                     onChange={handlePortChange}
+                    aria-invalid={portError}
                   >
                     <option value="">Select Port</option>
                     {(ports || []).map((port) => (
@@ -291,6 +304,11 @@ function SelectWorkflowModal({
                       </option>
                     ))}
                   </select>
+                  {portError ? (
+                    <p className="select-workflow-field-error" role="alert">
+                      Please select a port.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </>
@@ -305,7 +323,8 @@ function SelectWorkflowModal({
             type="button"
             onClick={handleContinue}
             className="select-workflow-btn select-workflow-btn--primary"
-            disabled={isContinueDisabled}
+            disabled={empty}
+            aria-disabled={!isFormValid}
           >
             Continue
           </button>

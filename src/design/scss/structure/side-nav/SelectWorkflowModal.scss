@@ -315,6 +315,28 @@
       background: #ffffff;
     }
   }
+
+  &.select-workflow-field-select--error {
+    border-color: #dc2626;
+
+    &:hover {
+      border-color: #dc2626;
+    }
+
+    &:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+  }
+}
+
+.select-workflow-field-error {
+  margin: 2px 0 0;
+  font-family: $font-primary;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #dc2626;
 }
 
 .select-workflow-modal-footer {
@@ -366,9 +388,15 @@
     border: none;
     box-shadow: 0 2px 8px rgba(0, 54, 140, 0.25);
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled):not([aria-disabled='true']) {
       background: #002a6e;
       box-shadow: 0 4px 12px rgba(0, 54, 140, 0.3);
+    }
+
+    &[aria-disabled='true'] {
+      color: #f1f5f9;
+      background: #94a3b8;
+      box-shadow: none;
     }
 
     &:disabled {
