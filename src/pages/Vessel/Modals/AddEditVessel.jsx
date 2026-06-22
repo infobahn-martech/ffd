@@ -13,7 +13,11 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import "../../../design/scss/pages/vessel/modals/AddEditVessel.scss";
 
-const VESSEL_CATEGORIES = ["Vessel", "Tug", "Barge"];
+const VESSEL_CATEGORIES = [
+  { value: "vessel", label: "Vessel" },
+  { value: "tug", label: "Tug" },
+  { value: "barge", label: "Barge" },
+];
 
 const currentYear = new Date().getFullYear();
 
@@ -44,12 +48,24 @@ function resolveBillingEntityId(d, billingEntities) {
   return match != null ? String(match.entity_id) : "";
 }
 
+function resolveTypeId(d) {
+  const category = d?.vessel_category ?? "";
+  let id;
+  if (category === "tug") id = d?.tug_type_id;
+  else if (category === "barge") id = d?.barge_type_id;
+  else if (category === "vessel") id = d?.vessel_type_id;
+  if (id == null || id === "") {
+    id = d?.vessel_type_id ?? d?.tug_type_id ?? d?.barge_type_id;
+  }
+  return id != null && id !== "" ? String(id) : "";
+}
+
 function mapDetailToForm(d, billingEntities) {
   if (!d) return {};
   return {
     billingEntity: resolveBillingEntityId(d, billingEntities),
     vesselCategory: d.vessel_category ?? "",
-    vesselTypeId: d.vessel_type_id != null ? String(d.vessel_type_id) : "",
+    vesselTypeId: resolveTypeId(d),
     vesselName: d.vessel_name ?? "",
     vesselOwner: d.vessel_owner ?? "",
     vesselPrincipal: d.vessel_principal ?? "",
@@ -102,7 +118,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
 
   const typeFieldConfig = useMemo(() => {
     switch (vesselCategory) {
-      case "Tug":
+      case "tug":
         return {
           label: "Tug Type",
           placeholder: "Select Tug Type",
@@ -112,7 +128,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             label: String(t.tug_type ?? t.name ?? ""),
           })),
         };
-      case "Barge":
+      case "barge":
         return {
           label: "Barge Type",
           placeholder: "Select Barge Type",
@@ -122,7 +138,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             label: String(t.barge_type ?? t.name ?? ""),
           })),
         };
-      case "Vessel":
+      case "vessel":
         return {
           label: "Vessel Type",
           placeholder: "Select Vessel Type",
@@ -219,8 +235,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
       vessel_principal: data.vesselPrincipal?.trim(),
       vessel_manager: data.vesselManager?.trim(),
       imo_number: data.imoNumber.trim(),
-      vessel_category: data.vesselCategory,
-      vessel_type_id: data.vesselTypeId,
       flag_state: data.flagState.trim(),
       gross_tonnage: String(data.grossTonnage).trim(),
       call_sign: data.callSign.trim(),
@@ -233,6 +247,13 @@ export function VesselModal({ showModal, closeModal, callBack }) {
     };
 
     trimPayload(apiPayload);
+
+    const category = data.vesselCategory;
+    const typeId = data.vesselTypeId;
+    apiPayload.vessel_category = category;
+    apiPayload.vessel_type_id = category === "vessel" ? typeId : "";
+    apiPayload.barge_type_id = category === "barge" ? typeId : "";
+    apiPayload.tug_type_id = category === "tug" ? typeId : "";
 
     const payload = apiPayload;
 
@@ -346,10 +367,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                           field.onChange(e.target.value);
                           setValue("vesselTypeId", "");
                         }}
-                        options={VESSEL_CATEGORIES.map((c) => ({
-                          value: c,
-                          label: c,
-                        }))}
+                        options={VESSEL_CATEGORIES}
                         placeholder="Select Vessel Category"
                         searchPlaceholder="Search vessel category..."
                         hasError={Boolean(errors.vesselCategory)}
