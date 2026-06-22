@@ -538,3 +538,53 @@ body .modal.show .modal-dialog {
   z-index: 1301 !important;
   position: relative;
 }
+
+/* CG Pass Template and Vessel Registration Template modals */
+.appointment-acceptance-modal-lg {
+  .phone-wrapper .cf-multi-select-email-input {
+    min-height: 46px;
+    height: 46px;
+    box-sizing: border-box;
+  }
+
+  .phone-wrapper .form-control {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e2e2ea;
+    font-size: 13px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.is-invalid {
+      border-color: #dc3545;
+    }
+  }
+
+  .lead-form .form-control {
+    font-size: 13px;
+  }
+
+  .lead-form .form-control::placeholder {
+    font-size: 13px;
+  }
+
+  .cf-multi-select-placeholder,
+  .cf-multi-select-selected-value {
+    font-size: 13px;
+  }
+
+  .ql-editor.ql-blank::before {
+    font-size: 13px;
+  }
+}
