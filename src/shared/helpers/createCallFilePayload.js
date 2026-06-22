@@ -18,7 +18,14 @@ const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
 const APPOINTMENT_TYPE_VESSEL = "vessel";
 
-/** Collapses scalar / array / JSON-array-string appointment type values to a single canonical value. */
+// Human-readable labels expected by the backend in the appointment_type field.
+const APPOINTMENT_TYPE_API_LABEL = {
+  [APPOINTMENT_TYPE_VESSEL]: "Vessel",
+  [APPOINTMENT_TYPE_TUG]: "Taxi Tug",
+  [APPOINTMENT_TYPE_TUG_AND_BARGE]: "Tug and Barge",
+};
+
+/** Collapses scalar / array / JSON-array-string appointment type values (canonical value or label) to a canonical value. */
 function normalizeAppointmentType(value) {
   let list = value;
   if (typeof list === "string") {
@@ -35,9 +42,10 @@ function normalizeAppointmentType(value) {
   }
   if (!Array.isArray(list)) list = list == null ? [] : [list];
   const items = list.map((item) => str(item).toLowerCase()).filter(Boolean);
-  if (items.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) return APPOINTMENT_TYPE_TUG_AND_BARGE;
-  if (items.includes(APPOINTMENT_TYPE_VESSEL)) return APPOINTMENT_TYPE_VESSEL;
-  if (items.includes(APPOINTMENT_TYPE_TUG)) return APPOINTMENT_TYPE_TUG;
+  const has = (...candidates) => candidates.some((candidate) => items.includes(candidate));
+  if (has(APPOINTMENT_TYPE_TUG_AND_BARGE, "tug and barge")) return APPOINTMENT_TYPE_TUG_AND_BARGE;
+  if (has(APPOINTMENT_TYPE_VESSEL)) return APPOINTMENT_TYPE_VESSEL;
+  if (has(APPOINTMENT_TYPE_TUG, "taxi tug")) return APPOINTMENT_TYPE_TUG;
   return items[0] ?? "";
 }
 
@@ -158,34 +166,33 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendStringField("billing_entity_id", fv.mainBillingEntity);
   appendStringField("last_port", fv.lastPort);
   const appointmentType = normalizeAppointmentType(fv.appointmentType);
-  const isTugAppointment = appointmentType === APPOINTMENT_TYPE_TUG;
-  const isTugAndBargeAppointment = appointmentType === APPOINTMENT_TYPE_TUG_AND_BARGE;
-  const isVesselAppointment = appointmentType === APPOINTMENT_TYPE_VESSEL;
-  const usesTugType = isTugAppointment || isTugAndBargeAppointment;
-  fd.append("appointment_type", appointmentType);
+  fd.append("appointment_type", APPOINTMENT_TYPE_API_LABEL[appointmentType] ?? str(fv.appointmentType));
 
-  // Tug / Tug-and-barge select from the tug-type catalogue (tug_type_id); Vessel uses the vessel-type catalogue.
-  appendStringField("tug_type_id", usesTugType ? fv.vesselType : "");
-  appendStringField("vessel_type_id", isVesselAppointment ? fv.vesselType : "");
-
-  // Shared "Vessel Name" dropdown; for Tug and barge it identifies the tug.
-  appendStringField("vessel_id", fv.vesselName);
-
-  if (isTugAndBargeAppointment) {
-    appendStringField("tug_name", fv.vesselName);
-    appendStringField("tug_owner", fv.vesselOwner);
-    appendStringField("tug_charter", fv.vesselPrincipal);
-    appendStringField("barge_type_id", fv.bargeType);
-    appendStringField("barge_name", fv.bargeName);
-    appendStringField("barge_owner", fv.bargeOwner);
-    appendStringField("barge_charter", fv.bargeCharter);
-  } else {
+  // Only the keys relevant to the selected appointment type are sent.
+  if (appointmentType === APPOINTMENT_TYPE_VESSEL) {
+    appendStringField("vessel_type_id", fv.vesselType);
+    appendStringField("vessel_id", fv.vesselName);
     appendStringField("vessel_owner", fv.vesselOwner);
     appendStringField("vessel_principal", fv.vesselPrincipal);
-    appendStringField("barge_type_id", "");
-    appendStringField("barge_name", "");
-    appendStringField("barge_owner", "");
-    appendStringField("barge_charter", "");
+    appendStringField("vessel_manager", fv.vesselManager);
+  } else if (appointmentType === APPOINTMENT_TYPE_TUG) {
+    appendStringField("tug_type_id", fv.vesselType);
+    appendStringField("vessel_id", fv.vesselName);
+    appendStringField("vessel_owner", fv.vesselOwner);
+    appendStringField("vessel_principal", fv.vesselPrincipal);
+    appendStringField("vessel_manager", fv.vesselManager);
+  } else if (appointmentType === APPOINTMENT_TYPE_TUG_AND_BARGE) {
+    // Tug details reuse the standard vessel keys; barge details use the barge_vessel_* keys.
+    appendStringField("tug_type_id", fv.tugType);
+    appendStringField("barge_type_id", fv.bargeType);
+    appendStringField("vessel_id", fv.tugVesselName);
+    appendStringField("vessel_owner", fv.tugOwner);
+    appendStringField("vessel_principal", fv.tugPrincipal);
+    appendStringField("vessel_manager", fv.tugManager);
+    appendStringField("barge_vessel_id", fv.bargeVesselName);
+    appendStringField("barge_vessel_owner", fv.bargeOwner);
+    appendStringField("barge_vessel_principal", fv.bargePrincipal);
+    appendStringField("barge_vessel_manager", fv.bargeManager);
   }
   appendStringField("service_requestor_name", fv.serviceRequestorName);
   appendStringField("service_requestor_email", fv.serviceRequestorEmail);

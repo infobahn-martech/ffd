@@ -244,11 +244,6 @@ const normalizeAppointmentTypeValue = (raw, fallback = "") => {
   return fallback;
 };
 
-const appointmentTypeShowsTugFields = (value) =>
-  value === APPOINTMENT_TYPE_TUG ||
-  value === APPOINTMENT_TYPE_TUG_AND_BARGE ||
-  value === APPOINTMENT_TYPE_VESSEL;
-
 const appointmentTypeShowsBargeFields = (value) => value === APPOINTMENT_TYPE_TUG_AND_BARGE;
 
 // Single (non tug-and-barge) vessel block is shown for Taxi Tug and Vessel appointment types.
@@ -260,9 +255,48 @@ const appointmentTypeUsesTugTypeSource = (value) =>
   value === APPOINTMENT_TYPE_TUG || value === APPOINTMENT_TYPE_TUG_AND_BARGE;
 
 const getDetailAppointmentTypeFallback = (detail) =>
-  detail?.barge_type_id || detail?.barge_name || detail?.barge_owner
+  detail?.barge_type_id ||
+  detail?.barge_vessel_id ||
+  detail?.barge_vessel_owner ||
+  detail?.barge_name ||
+  detail?.barge_owner
     ? APPOINTMENT_TYPE_TUG_AND_BARGE
     : APPOINTMENT_TYPE_TUG;
+
+const toDetailString = (value) =>
+  value !== undefined && value !== null && String(value).trim() !== "" ? String(value) : "";
+
+// Builds the vessel / tug / barge form fields from a call detail, keyed by the detail's appointment type.
+const mapDetailVesselFields = (detail, appointmentType) => {
+  if (appointmentType === APPOINTMENT_TYPE_TUG_AND_BARGE) {
+    return {
+      // Tug section reuses the standard vessel_* API keys.
+      tugType: toDetailString(detail?.tug_type_id),
+      tugVesselName: toDetailString(detail?.vessel_id),
+      tugOwner: toDetailString(detail?.vessel_owner),
+      tugPrincipal: toDetailString(detail?.vessel_principal),
+      tugManager: toDetailString(detail?.vessel_manager),
+      // Barge section uses the barge_vessel_* API keys.
+      bargeType: toDetailString(detail?.barge_type_id),
+      bargeVesselName: toDetailString(detail?.barge_vessel_id),
+      bargeOwner: toDetailString(detail?.barge_vessel_owner ?? detail?.barge_owner),
+      bargePrincipal: toDetailString(detail?.barge_vessel_principal),
+      bargeManager: toDetailString(detail?.barge_vessel_manager),
+    };
+  }
+
+  // Taxi Tug stores its type in tug_type_id; Vessel uses vessel_type_id.
+  return {
+    vesselType:
+      appointmentType === APPOINTMENT_TYPE_TUG
+        ? toDetailString(detail?.tug_type_id) || toDetailString(detail?.vessel_type_id)
+        : toDetailString(detail?.vessel_type_id) || toDetailString(detail?.tug_type_id),
+    vesselName: toDetailString(detail?.vessel_id),
+    vesselOwner: toDetailString(detail?.vessel_owner),
+    vesselPrincipal: toDetailString(detail?.vessel_principal),
+    vesselManager: toDetailString(detail?.vessel_manager),
+  };
+};
 
 const mapCallDetailToFormFields = (detail) => {
   const appointmentParts = splitDateTime(detail?.appointment_received_date);
@@ -277,6 +311,11 @@ const mapCallDetailToFormFields = (detail) => {
       .filter(Boolean)
     : [];
 
+  const detailAppointmentType = normalizeAppointmentTypeValue(
+    detail?.appointment_type,
+    getDetailAppointmentTypeFallback(detail)
+  );
+
   return {
     callId: detail?.call_id ? String(detail.call_id) : "",
     call_id: detail?.call_id ? String(detail.call_id) : "",
@@ -290,34 +329,8 @@ const mapCallDetailToFormFields = (detail) => {
     mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
     lastPort: detail?.last_port != null ? String(detail.last_port) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
-    appointmentType: normalizeAppointmentTypeValue(
-      detail?.appointment_type,
-      getDetailAppointmentTypeFallback(detail)
-    ),
-    // Tug / Tug-and-barge appointments store the tug type in tug_type_id; Vessel appointments use vessel_type_id.
-    vesselType: detail?.tug_type_id
-      ? String(detail.tug_type_id)
-      : detail?.vessel_type_id
-        ? String(detail.vessel_type_id)
-        : "",
-    bargeType: detail?.barge_type_id ? String(detail.barge_type_id) : "",
-    bargeName: detail?.barge_name ? String(detail.barge_name) : "",
-    bargeOwner: detail?.barge_owner ? String(detail.barge_owner) : "",
-    bargeCharter: detail?.barge_charter ? String(detail.barge_charter) : "",
-    vesselName: detail?.vessel_id ? String(detail.vessel_id) : "",
-    vesselOwner:
-      detail?.tug_owner != null && String(detail.tug_owner).trim() !== ""
-        ? String(detail.tug_owner)
-        : detail?.vessel_owner
-          ? String(detail.vessel_owner)
-          : "",
-    vesselPrincipal:
-      detail?.tug_charter != null && String(detail.tug_charter).trim() !== ""
-        ? String(detail.tug_charter)
-        : detail?.vessel_principal
-          ? String(detail.vessel_principal)
-          : "",
-    vesselManager: detail?.vessel_manager ? String(detail.vessel_manager) : "",
+    appointmentType: detailAppointmentType,
+    ...mapDetailVesselFields(detail, detailAppointmentType),
     serviceRequestorName: detail?.service_requestor_name ? String(detail.service_requestor_name) : "",
     serviceRequestorEmail: detail?.service_requestor_email ? String(detail.service_requestor_email) : "",
     poNumber: detail?.po_number ? String(detail.po_number) : "",
@@ -1819,10 +1832,6 @@ const ALL_DETAIL_SCALAR_FIELD_MAP = [
   ["main_billing_entity_id", "mainBillingEntity"],
   ["other_billing_entity_id", "otherBillingEntity"],
   ["vessel_type_id", "vesselType"],
-  ["barge_type_id", "bargeType"],
-  ["barge_name", "bargeName"],
-  ["barge_owner", "bargeOwner"],
-  ["barge_charter", "bargeCharter"],
   ["last_port", "lastPort"],
   ["vessel_owner", "vesselOwner"],
   ["vessel_principal", "vesselPrincipal"],
@@ -2715,11 +2724,11 @@ function General({
       if (condition && isEmptyValue(v(key))) errors[key] = message;
     };
     const selectedAppointmentType = normalizeAppointmentTypeValue(v("appointmentType"));
-    const tugSelected = appointmentTypeShowsTugFields(selectedAppointmentType);
+    const singleSelected = appointmentTypeShowsSingleVesselSection(selectedAppointmentType);
     const bargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
     requireField(shouldShowApiField("assigned_operator_id"), "assignedOperator", "Assigned operator is required.");
     requireField(shouldShowApiField("main_billing_entity_id"), "mainBillingEntity", "Main billing entity is required.");
-    requireField(shouldShowApiField("vessel_id") && tugSelected, "vesselName", "Vessel name is required.");
+    requireField(shouldShowApiField("vessel_id") && singleSelected, "vesselName", "Vessel name is required.");
     requireField(shouldShowApiField("service_requestor_name"), "serviceRequestorName", "Service requestor name is required.");
     requireField(shouldShowApiField("service_requestor_email"), "serviceRequestorEmail", "Service requestor email is required.");
     requireField(shouldShowApiField("appointment_received_date"), "appointmentReceivedDate", "Appointment received date is required.");
@@ -2734,9 +2743,11 @@ function General({
       if (!selectedAppointmentType) {
         errors.appointmentType = "Appointment type is required.";
       }
-      requireField(tugSelected, "vesselType", "Vessel type is required.");
+      requireField(singleSelected, "vesselType", "Vessel type is required.");
+      requireField(bargeSelected, "tugType", "Vessel type is required.");
+      requireField(bargeSelected, "tugVesselName", "Vessel name is required.");
       requireField(bargeSelected, "bargeType", "Vessel type is required.");
-      requireField(bargeSelected, "bargeName", "Vessel name is required.");
+      requireField(bargeSelected, "bargeVesselName", "Vessel name is required.");
       (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
         if (String(item?.is_required ?? "0") !== "1") return;
         const timeObjectId = firstNonEmptyString(item?.time_object_id);
@@ -2972,15 +2983,31 @@ function General({
       });
     };
 
-    // The "Vessel type" catalogue differs between the tug source (Taxi Tug / Tug and barge)
-    // and the vessel source (Vessel), so a previously selected id is invalid across that boundary.
-    if (appointmentTypeUsesTugTypeSource(prevType) !== appointmentTypeUsesTugTypeSource(nextType)) {
-      clearFields(["vesselType"]);
-    }
+    const singleVesselKeys = ["vesselType", "vesselName", "vesselOwner", "vesselPrincipal", "vesselManager"];
+    const tugAndBargeKeys = [
+      "tugType",
+      "tugVesselName",
+      "tugOwner",
+      "tugPrincipal",
+      "tugManager",
+      "bargeType",
+      "bargeVesselName",
+      "bargeOwner",
+      "bargePrincipal",
+      "bargeManager",
+    ];
 
-    // Barge sub-section values are only relevant for "Tug and barge".
-    if (!appointmentTypeShowsBargeFields(nextType)) {
-      clearFields(["bargeType", "bargeName", "bargeOwner", "bargeCharter"]);
+    if (appointmentTypeShowsBargeFields(nextType)) {
+      // Switching into Tug and barge: drop the single-section values.
+      clearFields(singleVesselKeys);
+    } else {
+      // Switching into Taxi Tug / Vessel: drop the tug & barge sub-section values.
+      clearFields(tugAndBargeKeys);
+      // The single-section "Vessel type" catalogue differs between the tug source (Taxi Tug)
+      // and the vessel source (Vessel), so a previously selected id is invalid across that boundary.
+      if (appointmentTypeUsesTugTypeSource(prevType) !== appointmentTypeUsesTugTypeSource(nextType)) {
+        clearFields(["vesselType"]);
+      }
     }
   };
 
@@ -3974,39 +4001,75 @@ ${body}
     };
   }, []);
 
-  const handleVesselSelectionChange = useCallback(
-    async (event) => {
-      const selectedVesselId = event?.target?.value ?? "";
-      handleChange("vesselName")(event);
-      if (hasSubmitted) {
-        setFieldErrors((prev) => {
-          if (!prev.vesselName) return prev;
-          if (!firstNonEmptyString(selectedVesselId)) return prev;
-          const next = { ...prev };
-          delete next.vesselName;
-          return next;
-        });
-      }
+  // Builds a vessel-name change handler for a given set of form keys (used by the Vessel,
+  // Taxi Tug single section and the Tug / Barge sub-sections of Tug and barge).
+  const makeVesselSelectionChange = useCallback(
+    ({ nameKey, ownerKey, managerKey, principalKey }) =>
+      async (event) => {
+        const selectedVesselId = event?.target?.value ?? "";
+        handleChange(nameKey)(event);
+        if (hasSubmitted) {
+          setFieldErrors((prev) => {
+            if (!prev[nameKey]) return prev;
+            if (!firstNonEmptyString(selectedVesselId)) return prev;
+            const next = { ...prev };
+            delete next[nameKey];
+            return next;
+          });
+        }
 
-      // Clear details immediately to avoid showing stale data.
-      handleChange("vesselOwner")({ target: { value: "", name: "vesselOwner" } });
-      handleChange("vesselManager")({ target: { value: "", name: "vesselManager" } });
-      handleChange("vesselPrincipal")({ target: { value: "", name: "vesselPrincipal" } });
+        // Clear details immediately to avoid showing stale data.
+        handleChange(ownerKey)({ target: { value: "", name: ownerKey } });
+        handleChange(managerKey)({ target: { value: "", name: managerKey } });
+        handleChange(principalKey)({ target: { value: "", name: principalKey } });
 
-      const normalizedVesselId = selectedVesselId === undefined || selectedVesselId === null ? "" : String(selectedVesselId).trim();
-      if (!normalizedVesselId) return;
+        const normalizedVesselId = selectedVesselId === undefined || selectedVesselId === null ? "" : String(selectedVesselId).trim();
+        if (!normalizedVesselId) return;
 
-      try {
-        const { data } = await vesselService.getVesselDetailByVesselId(normalizedVesselId);
-        const detail = normalizeVesselDetails(data);
-        handleChange("vesselOwner")({ target: { value: detail.vessel_owner, name: "vesselOwner" } });
-        handleChange("vesselManager")({ target: { value: detail.vessel_manager, name: "vesselManager" } });
-        handleChange("vesselPrincipal")({ target: { value: detail.vessel_principal, name: "vesselPrincipal" } });
-      } catch (error) {
-        console.error("[General] vessel detail fetch failed", error);
-      }
-    },
+        try {
+          const { data } = await vesselService.getVesselDetailByVesselId(normalizedVesselId);
+          const detail = normalizeVesselDetails(data);
+          handleChange(ownerKey)({ target: { value: detail.vessel_owner, name: ownerKey } });
+          handleChange(managerKey)({ target: { value: detail.vessel_manager, name: managerKey } });
+          handleChange(principalKey)({ target: { value: detail.vessel_principal, name: principalKey } });
+        } catch (error) {
+          console.error("[General] vessel detail fetch failed", error);
+        }
+      },
     [handleChange, hasSubmitted, normalizeVesselDetails]
+  );
+
+  const handleVesselSelectionChange = useMemo(
+    () =>
+      makeVesselSelectionChange({
+        nameKey: "vesselName",
+        ownerKey: "vesselOwner",
+        managerKey: "vesselManager",
+        principalKey: "vesselPrincipal",
+      }),
+    [makeVesselSelectionChange]
+  );
+
+  const handleTugVesselSelectionChange = useMemo(
+    () =>
+      makeVesselSelectionChange({
+        nameKey: "tugVesselName",
+        ownerKey: "tugOwner",
+        managerKey: "tugManager",
+        principalKey: "tugPrincipal",
+      }),
+    [makeVesselSelectionChange]
+  );
+
+  const handleBargeVesselSelectionChange = useMemo(
+    () =>
+      makeVesselSelectionChange({
+        nameKey: "bargeVesselName",
+        ownerKey: "bargeOwner",
+        managerKey: "bargeManager",
+        principalKey: "bargePrincipal",
+      }),
+    [makeVesselSelectionChange]
   );
 
   // Handle new email addition
@@ -4082,7 +4145,8 @@ ${body}
     [getFieldValue, handleChange, normalizeBillingInstruction]
   );
 
-  const previewVesselId = firstNonEmptyString(getFieldValue("vesselName"));
+  // For Tug and barge the primary vessel is the tug (tugVesselName); otherwise the single vessel field.
+  const previewVesselId = firstNonEmptyString(getFieldValue("vesselName"), getFieldValue("tugVesselName"));
   const previewPortId = firstNonEmptyString(getFieldValue("port"));
   const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
   const previewCallTypeId = firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"));
@@ -4516,10 +4580,22 @@ ${body}
       handleChange("billingInstructions")({
         target: { value: "", name: "billingInstructions" }
       });
-      handleChange("vesselName")({ target: { value: "", name: "vesselName" } });
-      handleChange("vesselOwner")({ target: { value: "", name: "vesselOwner" } });
-      handleChange("vesselManager")({ target: { value: "", name: "vesselManager" } });
-      handleChange("vesselPrincipal")({ target: { value: "", name: "vesselPrincipal" } });
+      [
+        "vesselName",
+        "vesselOwner",
+        "vesselManager",
+        "vesselPrincipal",
+        "tugVesselName",
+        "tugOwner",
+        "tugManager",
+        "tugPrincipal",
+        "bargeVesselName",
+        "bargeOwner",
+        "bargeManager",
+        "bargePrincipal",
+      ].forEach((fieldName) => {
+        handleChange(fieldName)({ target: { value: "", name: fieldName } });
+      });
       setEntityFields([]);
       setEntityFieldValues({});
       setEntityFieldErrors({});
@@ -5325,7 +5401,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isSingleVesselSection && showAnyApiField("vessel_owner", "tug_owner") && (
+                              {isSingleVesselSection && shouldShowApiField("vessel_owner") && (
                                 <FormField label="Vessel Owner">
                                   <FormInput
                                     type="text"
@@ -5337,7 +5413,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isSingleVesselSection && showAnyApiField("vessel_principal", "tug_charter") && (
+                              {isSingleVesselSection && shouldShowApiField("vessel_principal") && (
                                 <FormField label="Vessel Charter">
                                   <FormInput
                                     type="text"
@@ -5354,64 +5430,64 @@ ${body}
                                   <div className="cf-vessel-subsection">
                                     <h4 className="cf-vessel-subsection-title">Tug</h4>
 
-                                    {showAnyApiField("tug_type_id", "vessel_type_id") && (
+                                    {showAnyApiField("tug_type_id") && (
                                       <FormField
                                         label={isAddMode ? "Vessel type *" : "Vessel type"}
-                                        hasError={isAddMode && Boolean(fieldErrors.vesselType)}
+                                        hasError={isAddMode && Boolean(fieldErrors.tugType)}
                                       >
                                         <FormSelect
-                                          value={getFieldValue("vesselType")}
-                                          onChange={isAddMode ? handleValidatedChange("vesselType") : handleChange("vesselType")}
-                                          options={mergeOptionIfMissing(tugTypeSelectOptions, getFieldValue("vesselType"))}
+                                          value={getFieldValue("tugType")}
+                                          onChange={isAddMode ? handleValidatedChange("tugType") : handleChange("tugType")}
+                                          options={mergeOptionIfMissing(tugTypeSelectOptions, getFieldValue("tugType"))}
                                           placeholder="Select vessel type"
                                           disabled={masterInputsDisabled}
-                                          hasError={isAddMode && Boolean(fieldErrors.vesselType)}
+                                          hasError={isAddMode && Boolean(fieldErrors.tugType)}
                                         />
-                                        {isAddMode && fieldErrors.vesselType && (
-                                          <div className="cf-field-error">{fieldErrors.vesselType}</div>
+                                        {isAddMode && fieldErrors.tugType && (
+                                          <div className="cf-field-error">{fieldErrors.tugType}</div>
                                         )}
                                       </FormField>
                                     )}
 
                                     {shouldShowApiField("vessel_id") && (
-                                      <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.vesselName)}>
+                                      <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.tugVesselName)}>
                                         {(() => {
-                                          const vesselNameValue = getFieldValue("vesselName");
-                                          const vesselNameLabel = getOptionLabel(vesselNameOptions, vesselNameValue) || vesselNameValue;
+                                          const tugVesselNameValue = getFieldValue("tugVesselName");
+                                          const tugVesselNameLabel = getOptionLabel(vesselNameOptions, tugVesselNameValue) || tugVesselNameValue;
                                           return (
                                             <FormSelect
-                                              value={vesselNameValue}
-                                              onChange={handleVesselSelectionChange}
-                                              options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
+                                              value={tugVesselNameValue}
+                                              onChange={handleTugVesselSelectionChange}
+                                              options={mergeOptionIfMissing(vesselNameOptions, tugVesselNameValue, tugVesselNameLabel)}
                                               placeholder="Select vessel name"
                                               disabled={isDisabled || vesselOptionsLoading}
-                                              hasError={isAddMode && Boolean(fieldErrors.vesselName)}
+                                              hasError={isAddMode && Boolean(fieldErrors.tugVesselName)}
                                             />
                                           );
                                         })()}
-                                        {isAddMode && fieldErrors.vesselName && <div className="cf-field-error">{fieldErrors.vesselName}</div>}
+                                        {isAddMode && fieldErrors.tugVesselName && <div className="cf-field-error">{fieldErrors.tugVesselName}</div>}
                                       </FormField>
                                     )}
 
-                                    {showAnyApiField("tug_owner", "vessel_owner") && (
+                                    {showAnyApiField("vessel_owner") && (
                                       <FormField label="Vessel Owner">
                                         <FormInput
                                           type="text"
                                           placeholder="Enter vessel owner..."
-                                          value={getFieldValue("vesselOwner")}
-                                          onChange={handleChange("vesselOwner")}
+                                          value={getFieldValue("tugOwner")}
+                                          onChange={handleChange("tugOwner")}
                                           disabled={isDisabled}
                                         />
                                       </FormField>
                                     )}
 
-                                    {showAnyApiField("tug_charter", "vessel_principal") && (
+                                    {showAnyApiField("vessel_principal") && (
                                       <FormField label="Vessel Charter">
                                         <FormInput
                                           type="text"
                                           placeholder="Enter vessel charter..."
-                                          value={getFieldValue("vesselPrincipal")}
-                                          onChange={handleChange("vesselPrincipal")}
+                                          value={getFieldValue("tugPrincipal")}
+                                          onChange={handleChange("tugPrincipal")}
                                           disabled={isDisabled}
                                         />
                                       </FormField>
@@ -5440,21 +5516,27 @@ ${body}
                                       </FormField>
                                     )}
 
-                                    {shouldShowApiField("barge_name") && (
-                                      <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.bargeName)}>
-                                        <FormInput
-                                          type="text"
-                                          placeholder="Enter vessel name..."
-                                          value={getFieldValue("bargeName")}
-                                          onChange={isAddMode ? handleValidatedChange("bargeName") : handleChange("bargeName")}
-                                          disabled={isDisabled}
-                                          hasError={isAddMode && Boolean(fieldErrors.bargeName)}
-                                        />
-                                        {isAddMode && fieldErrors.bargeName && <div className="cf-field-error">{fieldErrors.bargeName}</div>}
+                                    {showAnyApiField("barge_vessel_id") && (
+                                      <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.bargeVesselName)}>
+                                        {(() => {
+                                          const bargeVesselNameValue = getFieldValue("bargeVesselName");
+                                          const bargeVesselNameLabel = getOptionLabel(vesselNameOptions, bargeVesselNameValue) || bargeVesselNameValue;
+                                          return (
+                                            <FormSelect
+                                              value={bargeVesselNameValue}
+                                              onChange={handleBargeVesselSelectionChange}
+                                              options={mergeOptionIfMissing(vesselNameOptions, bargeVesselNameValue, bargeVesselNameLabel)}
+                                              placeholder="Select vessel name"
+                                              disabled={isDisabled || vesselOptionsLoading}
+                                              hasError={isAddMode && Boolean(fieldErrors.bargeVesselName)}
+                                            />
+                                          );
+                                        })()}
+                                        {isAddMode && fieldErrors.bargeVesselName && <div className="cf-field-error">{fieldErrors.bargeVesselName}</div>}
                                       </FormField>
                                     )}
 
-                                    {shouldShowApiField("barge_owner") && (
+                                    {showAnyApiField("barge_vessel_owner") && (
                                       <FormField label="Vessel Owner">
                                         <FormInput
                                           type="text"
@@ -5466,13 +5548,13 @@ ${body}
                                       </FormField>
                                     )}
 
-                                    {shouldShowApiField("barge_charter") && (
+                                    {showAnyApiField("barge_vessel_principal") && (
                                       <FormField label="Vessel Charter">
                                         <FormInput
                                           type="text"
                                           placeholder="Enter vessel charter..."
-                                          value={getFieldValue("bargeCharter")}
-                                          onChange={handleChange("bargeCharter")}
+                                          value={getFieldValue("bargePrincipal")}
+                                          onChange={handleChange("bargePrincipal")}
                                           disabled={isDisabled}
                                         />
                                       </FormField>
