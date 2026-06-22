@@ -1882,11 +1882,13 @@ const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = [
   "image",
 ];
 
-const EMAIL_PREVIEW_DUMMY_ATTACHMENTS = [
-  { id: "appointment-acceptance", name: "Appointment_Acceptance.pdf", size: "245K" },
-  { id: "port-details", name: "Port_Details.xlsx", size: "128K" },
-  { id: "vessel-image", name: "Vessel_Image.jpg", size: "932K" },
-];
+const formatAttachmentSize = (bytes) => {
+  const num = Number(bytes);
+  if (!Number.isFinite(num) || num <= 0) return "";
+  if (num < 1024) return `${num}B`;
+  if (num < 1024 * 1024) return `${Math.round(num / 1024)}K`;
+  return `${(num / (1024 * 1024)).toFixed(1)}M`;
+};
 
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
   const fileName = attachment?.name || "Untitled";
@@ -1925,7 +1927,7 @@ const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
 
 EmailPreviewAttachmentChip.propTypes = {
   attachment: PropTypes.shape({
-    id: PropTypes.string,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     name: PropTypes.string,
     size: PropTypes.string,
   }).isRequired,
@@ -1947,9 +1949,19 @@ const EmailPreviewPanel = ({
   messageValue,
   messageEditorKey,
   onMessageChange,
+  acceptanceFiles = [],
+  onAddAcceptanceFiles,
+  onRemoveAcceptanceFile,
 }) => {
   const messageQuillRef = useRef(null);
-  const [previewAttachments, setPreviewAttachments] = useState(() => [...EMAIL_PREVIEW_DUMMY_ATTACHMENTS]);
+  const acceptanceFileInputRef = useRef(null);
+  const acceptanceAttachments = (Array.isArray(acceptanceFiles) ? acceptanceFiles : []).map(
+    (file, index) => ({
+      id: index,
+      name: file?.name || `Attachment ${index + 1}`,
+      size: formatAttachmentSize(file?.size),
+    })
+  );
   const messageQuillModules = useMemo(
     () => ({
       ...buildQuillModules(EMAIL_PREVIEW_MESSAGE_QUILL_TOOLBAR, messageQuillRef),
@@ -2058,15 +2070,39 @@ const EmailPreviewPanel = ({
                 <div className="email-preview-row-label">Attachments</div>
                 <div className="email-preview-row-value">
                   <div className="email-preview-attachments-list">
-                    {previewAttachments.map((attachment) => (
+                    {acceptanceAttachments.map((attachment) => (
                       <EmailPreviewAttachmentChip
                         key={attachment.id}
                         attachment={attachment}
                         onRemove={(attachmentId) => {
-                          setPreviewAttachments((prev) => prev.filter((item) => item.id !== attachmentId));
+                          if (typeof onRemoveAcceptanceFile === "function") {
+                            onRemoveAcceptanceFile(attachmentId);
+                          }
                         }}
                       />
                     ))}
+                    <button
+                      type="button"
+                      className="email-preview-attachment-add"
+                      onClick={() => acceptanceFileInputRef.current?.click()}
+                      title="Add attachments"
+                    >
+                      + Add
+                    </button>
+                    <input
+                      ref={acceptanceFileInputRef}
+                      type="file"
+                      multiple
+                      className="file-input-hidden"
+                      style={{ display: "none" }}
+                      onChange={(event) => {
+                        const files = Array.from(event.target.files || []);
+                        if (files.length && typeof onAddAcceptanceFiles === "function") {
+                          onAddAcceptanceFiles(files);
+                        }
+                        event.target.value = "";
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -2155,6 +2191,9 @@ EmailPreviewPanel.propTypes = {
   messageEditorKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   /** Receives HTML from ReactQuill; second arg is Quill change source (e.g. "user"). */
   onMessageChange: PropTypes.func.isRequired,
+  acceptanceFiles: PropTypes.array,
+  onAddAcceptanceFiles: PropTypes.func,
+  onRemoveAcceptanceFile: PropTypes.func,
 };
 
 function General({
@@ -2181,6 +2220,7 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
+  const [appointmentAcceptanceFiles, setAppointmentAcceptanceFiles] = useState([]);
   const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("without_ai");
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
   const [isServerEmailReading, setIsServerEmailReading] = useState(false);
@@ -2910,6 +2950,7 @@ function General({
     try {
       const formData = buildCreateCallFileFormData(formPayload, {
         appointmentFiles: appointmentDocuments,
+        acceptanceFiles: appointmentAcceptanceFiles,
         dailyReportEmailOptions,
         billingInstructionEmailOptions,
         preserveAppointmentBody:
@@ -3800,6 +3841,19 @@ ${body}
     resetAppointmentEmailExtractedValues();
     console.log("[Appointment Email] removed, extracted values reset");
   };
+
+  const handleAcceptanceFilesAdd = useCallback((files) => {
+    const incoming = Array.isArray(files) ? files : [files];
+    const validFiles = incoming.filter(
+      (file) => file instanceof File || (typeof Blob !== "undefined" && file instanceof Blob)
+    );
+    if (!validFiles.length) return;
+    setAppointmentAcceptanceFiles((prev) => [...prev, ...validFiles]);
+  }, []);
+
+  const handleAcceptanceFileRemove = useCallback((index) => {
+    setAppointmentAcceptanceFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const normalizeEntityEmailOptions = useCallback((payload) => {
     const root = payload?.data ?? payload ?? {};
@@ -5701,6 +5755,9 @@ ${body}
                             setIsPreviewMessageDirty(true);
                             setPreviewMessageText(next ?? "");
                           }}
+                          acceptanceFiles={appointmentAcceptanceFiles}
+                          onAddAcceptanceFiles={handleAcceptanceFilesAdd}
+                          onRemoveAcceptanceFile={handleAcceptanceFileRemove}
                         />
                       </div>
                     </>

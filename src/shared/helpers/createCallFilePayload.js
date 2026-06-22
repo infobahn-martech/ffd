@@ -114,6 +114,7 @@ function resolveSelectionsToNumericReferenceIds(val, ...optionLists) {
  * @param {object} formPayload - merged form values + entity_fields + appointment_email_files
  * @param {{
  *   appointmentFiles?: File[],
+ *   acceptanceFiles?: File[],
  *   dailyReportEmailOptions?: Array<{ value?: unknown, label?: string }>,
  *   billingInstructionEmailOptions?: Array<{ value?: unknown, label?: string }>,
  *   preserveAppointmentBody?: boolean,
@@ -123,6 +124,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const fv = formPayload || {};
   const {
     appointmentFiles = [],
+    acceptanceFiles = [],
     dailyReportEmailOptions = [],
     billingInstructionEmailOptions = [],
     preserveAppointmentBody = false,
@@ -137,6 +139,14 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
     appointmentFiles.forEach((file) => {
       if (file instanceof File || (typeof Blob !== "undefined" && file instanceof Blob)) {
         fd.append("appointment_email_file", file);
+      }
+    });
+  }
+
+  if (Array.isArray(acceptanceFiles) && acceptanceFiles.length > 0) {
+    acceptanceFiles.forEach((file) => {
+      if (file instanceof File || (typeof Blob !== "undefined" && file instanceof Blob)) {
+        fd.append("appointment_acceptance_files[]", file);
       }
     });
   }
