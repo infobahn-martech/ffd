@@ -3,6 +3,7 @@ import { FiX, FiChevronDown, FiChevronRight, FiPlus, FiTrash2 } from "react-icon
 import SearchableSelect from "../../components/form/SearchableSelect";
 import useCallTypeReducer from "../../store/CallTypeReducer";
 import { DailyTaskTodo } from "../KanbanBoard/CardFormTabs/Import/tabs/appointment/General";
+import Operation from "../KanbanBoard/CardFormTabs/Import/tabs/operation/Operation";
 import OperationTasksPanel from "../KanbanBoard/CardFormTabs/Import/tabs/operation/TaskTab";
 import KPIAnalytics from "../KanbanBoard/CardFormTabs/Import/tabs/kpi/KPIAnalytics";
 import DocumentLibrary from "../KanbanBoard/CardFormTabs/Import/tabs/appointment/documentLibrary/DocumentLibrary";
@@ -92,7 +93,7 @@ const FIELD_TYPES = [
 ];
 
 const CALL_TYPE_OPTIONS = [
-    { value: "create_template", label: "Create Template" },
+    { value: "create_template", label: "New Template" },
     { value: "import_call", label: "Import Call" },
     { value: "export_call", label: "Export Call" },
     { value: "husbandry_call", label: "Husbandry Call" },
@@ -359,9 +360,18 @@ const updateScope = (prev, mainId, subId, updater) => {
 function CustomFieldRow({ field, onUpdate, onRemove }) {
     const isRadio = field.type === "radio";
     const options = field.options ?? [];
+    const [newVal, setNewVal] = useState("");
 
-    const handleAddOption = () =>
-        onUpdate(field.id, "options", [...options, ""]);
+    // Auto-init "Option 1" the moment type switches to radio
+    useEffect(() => {
+        if (isRadio && options.length === 0) {
+            onUpdate(field.id, "options", ["Option 1"]);
+        }
+        if (!isRadio) {
+            setNewVal("");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [field.type]);
 
     const handleUpdateOption = (idx, val) => {
         const next = [...options];
@@ -369,8 +379,23 @@ function CustomFieldRow({ field, onUpdate, onRemove }) {
         onUpdate(field.id, "options", next);
     };
 
+    const handleBlurOption = (idx) => {
+        // Auto-remove empty confirmed options on blur (keep at least 1)
+        if (!options[idx]?.trim() && options.length > 1) {
+            onUpdate(field.id, "options", options.filter((_, i) => i !== idx));
+        }
+    };
+
     const handleRemoveOption = (idx) =>
         onUpdate(field.id, "options", options.filter((_, i) => i !== idx));
+
+    const handleNewBlur = () => {
+        const trimmed = newVal.trim();
+        if (trimmed) {
+            onUpdate(field.id, "options", [...options, trimmed]);
+        }
+        setNewVal("");
+    };
 
     return (
         <div className="ct-custom-field-wrap">
@@ -404,15 +429,24 @@ function CustomFieldRow({ field, onUpdate, onRemove }) {
                                 placeholder={`Option ${idx + 1}`}
                                 value={opt}
                                 onChange={(e) => handleUpdateOption(idx, e.target.value)}
+                                onBlur={() => handleBlurOption(idx)}
                             />
                             <button type="button" className="ct-custom-field-del" onClick={() => handleRemoveOption(idx)}>
                                 <FiTrash2 size={12} />
                             </button>
                         </div>
                     ))}
-                    <button type="button" className="ct-add-radio-option-btn" onClick={handleAddOption}>
-                        <FiPlus size={11} /> Add Option
-                    </button>
+                    <div className="ct-radio-option-row">
+                        <span className="ct-radio-option-dot ct-radio-option-dot--new" />
+                        <input
+                            className="ct-custom-field-input ct-radio-new-input"
+                            placeholder={`Option ${options.length + 1}`}
+                            value={newVal}
+                            onChange={(e) => setNewVal(e.target.value)}
+                            onBlur={handleNewBlur}
+                        />
+                        <div />
+                    </div>
                 </div>
             )}
         </div>
@@ -965,35 +999,58 @@ function CallTypeBuilderModal({ show, onClose }) {
     const handleToggleOpenMain = (mainId) => {
         setOpenMainTab((prev) => (prev === mainId ? null : mainId));
         setOpenSubTab(null);
+        setPreviewActiveMain(mainId);
+        setPreviewActiveSub(null);
     };
 
     const handleToggleOpenSub = (subId) =>
         setOpenSubTab((prev) => (prev === subId ? null : subId));
 
-    const handleToggleMainTab = (mainId, checked) =>
+    const handleToggleMainTab = (mainId, checked) => {
         setTabConfig((prev) => updateScope(prev, mainId, null, (scope) => {
-            if (checked) {
-                const tab = MAIN_TABS.find((t) => t.id === mainId);
-                if (tab && (tab.fields || tab.groups)) {
-                    const allFields = getTabFieldList(tab);
+            const tab = MAIN_TABS.find((t) => t.id === mainId);
+            if (tab && (tab.fields || tab.groups)) {
+                const allFields = getTabFieldList(tab);
+                if (checked) {
                     const deletedSet = new Set(scope.deletedFields ?? []);
                     return { ...scope, enabled: true, fields: Object.fromEntries(allFields.map((f) => [f, !deletedSet.has(f)])) };
                 }
+                return { ...scope, enabled: false, fields: Object.fromEntries(allFields.map((f) => [f, false])) };
             }
-            return { ...scope, enabled: checked };
-        }));
-
-    const handleToggleSubTab = (mainId, subId, checked) =>
-        setTabConfig((prev) => updateScope(prev, mainId, subId, (scope) => {
-            if (checked) {
-                const mainTab = MAIN_TABS.find((t) => t.id === mainId);
-                const sub = mainTab?.subTabs?.find((s) => s.id === subId);
-                if (sub?.fields) {
-                    return { ...scope, enabled: true, fields: Object.fromEntries(sub.fields.map((f) => [f, true])) };
+            if (tab?.subTabs) {
+                const newSubTabs = {};
+                for (const sub of tab.subTabs) {
+                    const subScope = scope.subTabs?.[sub.id] ?? {};
+                    if (sub.fields) {
+                        newSubTabs[sub.id] = { ...subScope, enabled: checked, fields: Object.fromEntries(sub.fields.map((f) => [f, checked])) };
+                    } else {
+                        newSubTabs[sub.id] = { ...subScope, enabled: checked };
+                    }
                 }
+                return { ...scope, enabled: checked, subTabs: newSubTabs };
             }
             return { ...scope, enabled: checked };
         }));
+        if (checked) {
+            setPreviewActiveMain(mainId);
+            setPreviewActiveSub(null);
+        }
+    };
+
+    const handleToggleSubTab = (mainId, subId, checked) => {
+        setTabConfig((prev) => updateScope(prev, mainId, subId, (scope) => {
+            const mainTab = MAIN_TABS.find((t) => t.id === mainId);
+            const sub = mainTab?.subTabs?.find((s) => s.id === subId);
+            if (sub?.fields) {
+                return { ...scope, enabled: checked, fields: Object.fromEntries(sub.fields.map((f) => [f, checked])) };
+            }
+            return { ...scope, enabled: checked };
+        }));
+        if (checked) {
+            setPreviewActiveMain(mainId);
+            setPreviewActiveSub(subId);
+        }
+    };
 
     const handleToggleField = (mainId, subId, field, checked) =>
         setTabConfig((prev) => updateScope(prev, mainId, subId, (scope) => ({
@@ -1029,10 +1086,17 @@ function CallTypeBuilderModal({ show, onClose }) {
         const newTab = { id: `ct-${Date.now()}-${Math.random()}`, label: "", enabled: true, fields: [] };
         setCustomTabs((prev) => [...prev, newTab]);
         setOpenCustomTab(newTab.id);
+        setPreviewActiveMain(newTab.id);
+        setPreviewActiveSub(null);
     }, []);
 
-    const handleToggleCustomTab = (tabId, checked) =>
+    const handleToggleCustomTab = (tabId, checked) => {
         setCustomTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, enabled: checked } : t)));
+        if (checked) {
+            setPreviewActiveMain(tabId);
+            setPreviewActiveSub(null);
+        }
+    };
 
     const handleRenameCustomTab = (tabId, label) =>
         setCustomTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, label } : t)));
@@ -1204,12 +1268,11 @@ function CallTypeBuilderModal({ show, onClose }) {
                     {/* ── Left panel ── */}
                     <div className="ct-split-left">
 
+                        <div className="ct-split-scroll-area">
+
                         {/* Saved templates list */}
                         <div className="ct-saved-section">
                             <div className="ct-saved-header">
-                                <div className="ct-saved-header-actions">
-                                    <button type="button" className="ct-clear-btn" onClick={handleClearAll}>Clear All</button>
-                                </div>
                             </div>
                             <div className="ct-saved-list">
                                 {list.map((ct) => (
@@ -1265,7 +1328,7 @@ function CallTypeBuilderModal({ show, onClose }) {
                                         <div className="cf-input">
                                             <input
                                                 type="text"
-                                                placeholder="e.g. Bunker Call Template"
+                                                placeholder="Template Name"
                                                 value={templateName}
                                                 onChange={(e) => setTemplateName(e.target.value)}
                                             />
@@ -1333,14 +1396,19 @@ function CallTypeBuilderModal({ show, onClose }) {
                             </div>
                         </div>
 
+                        </div>{/* end ct-split-scroll-area */}
+
                         {/* Footer */}
                         <div className="ct-split-footer">
-                            <button type="button" className="btn-common close" onClick={handleNew}>
-                                Cancel
-                            </button>
-                            <button type="button" className="subtasks-tab-save-btn" disabled={isBeingUpdated} onClick={handleSave}>
-                                {isBeingUpdated ? "Saving..." : isEditMode ? "Update" : "Save"}
-                            </button>
+                            <button type="button" className="ct-clear-btn" onClick={handleClearAll}>Clear All</button>
+                            <div className="ct-split-footer-right">
+                                <button type="button" className="btn-common close" onClick={handleNew}>
+                                    Cancel
+                                </button>
+                                <button type="button" className="subtasks-tab-save-btn" disabled={isBeingUpdated} onClick={handleSave}>
+                                    {isBeingUpdated ? "Saving..." : isEditMode ? "Update" : "Save"}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1375,6 +1443,15 @@ function CallTypeBuilderModal({ show, onClose }) {
 
                                 {effectivePreviewMain && (
                                     <>
+                                        {effectivePreviewMain.id === "operation" ? (
+                                            <Operation
+                                                card={{ color: "#2A00FF" }}
+                                                formValues={{}}
+                                                handleChange={() => () => {}}
+                                                ownerInitial="M"
+                                                isDAModule={true}
+                                            />
+                                        ) : (
                                         <div className="operation-wrapper">
                                             {allPreviewSubTabs.length > 0 && effectivePreviewMain.id !== "husbandry" && (
                                                 <div className="operation-left">
@@ -1655,6 +1732,10 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                             const enabledReports = previewFieldsList;
                                                             const extraReports = (previewScopeConfig?.customFields ?? []).filter((cf) => cf.label);
                                                             const hasAny = enabledReports.length > 0 || extraReports.length > 0;
+                                                            const allReportLabels = [
+                                                                ...enabledReports.map((f) => previewScopeConfig?.fieldOverrides?.[f] ?? f),
+                                                                ...extraReports.map((cf) => cf.label),
+                                                            ];
                                                             return (
                                                                 <div className="ct-preview-reports-wrap">
                                                                     <div className="ct-preview-reports-header">
@@ -1665,30 +1746,42 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                                         <p className="ct-summary-no-fields">No report types selected. Enable some on the left.</p>
                                                                     ) : (
                                                                         <div className="ct-preview-reports-list">
-                                                                            {[
-                                                                                ...enabledReports.map((f) => previewScopeConfig?.fieldOverrides?.[f] ?? f),
-                                                                                ...extraReports.map((cf) => cf.label),
-                                                                            ].map((label) => (
-                                                                                <div key={label} className="ct-preview-report-row">
-                                                                                    <div className="ct-preview-report-icon">
-                                                                                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-                                                                                            <rect width="32" height="32" rx="6" fill="#DC2626" />
-                                                                                            <text x="16" y="22" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
-                                                                                        </svg>
+                                                                            {allReportLabels.map((label) => (
+                                                                                <div key={label} className="ct-preview-report-group">
+                                                                                    <div className="ct-preview-report-category">
+                                                                                        <span>{label}</span>
+                                                                                        <span className="ct-preview-report-count">(1)</span>
                                                                                     </div>
-                                                                                    <span className="ct-preview-report-name">{label}</span>
-                                                                                    <div className="ct-preview-report-actions">
-                                                                                        <button type="button" className="ct-preview-report-btn" title="View report">
-                                                                                            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                                                                                                <path d="M9 4C5 4 2.27 6.11 1 9C2.27 11.89 5 14 9 14C13 14 15.73 11.89 17 9C15.73 6.11 13 4 9 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                                <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                                                                                    <div className="ct-preview-report-item">
+                                                                                        <div className="ct-preview-report-icon">
+                                                                                            <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+                                                                                                <rect width="34" height="34" rx="7" fill="#1e3a8a" />
+                                                                                                <rect x="9" y="10" width="16" height="2.5" rx="1.25" fill="white" />
+                                                                                                <rect x="9" y="15.75" width="16" height="2.5" rx="1.25" fill="white" />
+                                                                                                <rect x="9" y="21.5" width="10" height="2.5" rx="1.25" fill="white" />
                                                                                             </svg>
-                                                                                        </button>
-                                                                                        <button type="button" className="ct-preview-report-btn" title="Download report">
-                                                                                            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                                                                                                <path d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                            </svg>
-                                                                                        </button>
+                                                                                        </div>
+                                                                                        <div className="ct-preview-report-details">
+                                                                                            <div className="ct-preview-report-name">
+                                                                                                {label} - Sample Vessel 2000 - Rastanura - Import Call - 2026-06-14 17:30:00
+                                                                                            </div>
+                                                                                            <div className="ct-preview-report-meta">
+                                                                                                Jun 14, 2026, 09:58 AM &nbsp;·&nbsp; by Martech &nbsp;&nbsp; From info@onlinebareed.com &nbsp;&nbsp; To prog2@infobahnworld.com &nbsp;&nbsp; CC martech@infobahn.ae
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="ct-preview-report-actions">
+                                                                                            <button type="button" className="ct-preview-report-btn" title="View report">
+                                                                                                <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                                                                                                    <path d="M9 4C5 4 2.27 6.11 1 9C2.27 11.89 5 14 9 14C13 14 15.73 11.89 17 9C15.73 6.11 13 4 9 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                    <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                                                                                                </svg>
+                                                                                            </button>
+                                                                                            <button type="button" className="ct-preview-report-btn" title="Download report">
+                                                                                                <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                                                                                                    <path d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                </svg>
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             ))}
@@ -2152,12 +2245,26 @@ function CallTypeBuilderModal({ show, onClose }) {
                                                 )}
                                             </div>
                                         </div>
+                                        )}
 
                                         <div className="ct-preview-stepper">
-                                            {["Appointment Received", "Enroute", "Ops in Progress", "Ops Completed", "Done", "Ready to Archive"].map((step, i) => (
-                                                <div key={step} className={`ct-preview-step${i === 0 ? " ct-preview-step--done" : ""}`}>
-                                                    <div className="ct-preview-step-circle">{i + 1}</div>
-                                                    <span className="ct-preview-step-label">{step}</span>
+                                            {[
+                                                "Appointment Received",
+                                                "Enroute",
+                                                "Ops in Progress",
+                                                "Ops Completed",
+                                                "Done",
+                                                "Ready to Archive",
+                                            ].map((step, i) => (
+                                                <div
+                                                    key={step}
+                                                    className={`ct-preview-step${i === 0 ? " ct-preview-step--done" : ""}`}
+                                                >
+                                                    <div className="ct-preview-step-content">
+                                                        <div className="ct-preview-step-circle">{i + 1}</div>
+                                                        {i < 5 && <span className="ct-preview-step-line" />}
+                                                    </div>
+                                                    <div className="ct-preview-step-label">{step}</div>
                                                 </div>
                                             ))}
                                         </div>
