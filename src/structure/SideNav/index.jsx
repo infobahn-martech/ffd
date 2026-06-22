@@ -477,16 +477,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
     },
     {
-      menu: 'Card Management',
-      isDefaultMenu: true,
-      icon: configIcon,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Templates', to: '/call-type', hasPermission: true },
-      ],
-    },
-    {
       menu: 'Material Management',
       isDefaultMenu: true,
       icon: materialIcon, // Material-specific icon
