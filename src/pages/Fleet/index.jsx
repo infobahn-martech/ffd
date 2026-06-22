@@ -14,6 +14,8 @@ const Fleet = () => {
         fleetData,
         isLoading,
         totalFleetCount,
+        deleteFleet,
+        isDeleteLoading,
     } = useFleetReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -231,12 +233,19 @@ const Fleet = () => {
                                 setSelectedRow(null);
                             }}
                             onConfirm={() => {
-                                // TODO: wire when delete API is available
-                                setShowDeleteModal(false);
-                                setSelectedRow(null);
-                                refreshList();
+                                if (selectedRow?.taxi_boat_id) {
+                                    deleteFleet({
+                                        fleet_id: selectedRow.taxi_boat_id,
+                                        cb: () => {
+                                            setShowDeleteModal(false);
+                                            setSelectedRow(null);
+                                            refreshList();
+                                        },
+                                    });
+                                }
                             }}
                             deleteText="Are you sure you want to delete this fleet?"
+                            isLoading={isDeleteLoading}
                         />
                     )}
 

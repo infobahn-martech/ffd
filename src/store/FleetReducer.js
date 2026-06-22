@@ -10,6 +10,7 @@ const useFleetReducer = create((set) => ({
   fleetDetail: null,
   isBeingUpdated: false,
   isDetailLoading: false,
+  isDeleteLoading: false,
   totalFleetCount: 0,
 
   addFleet: async ({ formData, cb }) => {
@@ -80,6 +81,24 @@ const useFleetReducer = create((set) => ({
       set({
         errorMessage: "Something went wrong updating fleet",
         isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
+  deleteFleet: async ({ fleet_id, cb }) => {
+    try {
+      set({ isDeleteLoading: true });
+      const { data } = await fleetService.deleteFleet(fleet_id);
+      set({ successMessage: data?.message, isDeleteLoading: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? "Taxi boat fleet deleted successfully");
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: "Something went wrong deleting the fleet",
+        isDeleteLoading: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }

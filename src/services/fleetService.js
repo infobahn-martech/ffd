@@ -10,9 +10,13 @@ const getFleetById = (fleet_id) =>
 
 const updateFleet = (data) => Gateway.post("/launch_hire/update_fleet", data);
 
+const deleteFleet = (fleet_id) =>
+  Gateway.delete(`/launch_hire/delete_fleet/${fleet_id}`);
+
 export default {
   addFleet,
   getAllFleet,
   getFleetById,
   updateFleet,
+  deleteFleet,
 };
