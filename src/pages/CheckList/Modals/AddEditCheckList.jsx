@@ -885,7 +885,21 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
   useEffect(() => {
     if (showModal && showModal.checklist_type_id) {
-      reset(mapApiToForm(showModal));
+      // Edit data may arrive either as the raw API response (with asset fields
+      // nested under `checklist_details` and sections under `data`) or already
+      // flattened. Normalise both shapes before mapping to the form.
+      const details = showModal?.checklist_details ?? showModal ?? {};
+      const editData = {
+        ...details,
+        call_type_id: details.call_type_id ?? showModal.call_type_id,
+        port_id: details.port_id ?? showModal.port_id,
+        vessel_type_id: details.vessel_type_id ?? showModal.vessel_type_id,
+        tug_type_id: details.tug_type_id ?? showModal.tug_type_id,
+        barge_type_id: details.barge_type_id ?? showModal.barge_type_id,
+        checklist_name: details.checklist_name ?? showModal.checklist_name,
+        sections: showModal?.data ?? showModal?.sections ?? []
+      };
+      reset(mapApiToForm(editData));
     } else {
       reset(EMPTY_DEFAULTS);
     }

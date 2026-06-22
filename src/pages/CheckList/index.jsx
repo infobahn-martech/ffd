@@ -66,6 +66,7 @@ const CheckList = () => {
           checklist_type_id: Number(details.checklist_type_id ?? checklistTypeId),
           call_type_id: Number(details.call_type_id),
           vessel_type_id: optionalTypeId(details.vessel_type_id),
+          tug_type_id: optionalTypeId(details.tug_type_id),
           barge_type_id: optionalTypeId(details.barge_type_id),
           port_id: optionalTypeId(details.port_id),
           checklist_name: details.checklist_name,
