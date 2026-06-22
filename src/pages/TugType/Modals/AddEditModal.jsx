@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
-import useBargeTypeReducer from "../../../store/BargeTypeReducer";
+import useTugTypeReducer from "../../../store/TugTypeReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
@@ -14,33 +14,45 @@ export function TugTypeModal({ showModal, closeModal, onSuccess }) {
         reset,
     } = useForm({ defaultValues: { name: "" } });
 
-    const { createBargeType, updateBargeType, addEditLoader } = useBargeTypeReducer((state) => state);
+    const { createTugType, updateTugType, getTugTypeById, addEditLoader } =
+        useTugTypeReducer((state) => state);
 
-    const isEdit = showModal && typeof showModal === "object" && (showModal.barge_type_id ?? showModal._id);
-    const bargeTypeId = isEdit ? (showModal.barge_type_id ?? showModal._id) : null;
+    const isEdit =
+        showModal &&
+        typeof showModal === "object" &&
+        (showModal.tug_type_id ?? showModal._id);
+    const tugTypeId = isEdit ? (showModal.tug_type_id ?? showModal._id) : null;
 
     useEffect(() => {
         if (isEdit) {
-            reset({ name: showModal?.name ?? showModal?.barge_type ?? "" });
+            reset({ name: showModal?.tug_type ?? showModal?.name ?? "" });
+            getTugTypeById({
+                tug_type_id: tugTypeId,
+                cb: (details) => {
+                    if (details) {
+                        reset({ name: details?.tug_type ?? details?.name ?? "" });
+                    }
+                },
+            });
         } else {
             reset({ name: "" });
         }
-    }, [showModal, isEdit, reset]);
+    }, [showModal, isEdit, tugTypeId, reset, getTugTypeById]);
 
     const onSubmit = async (data) => {
-        const barge_type = data.name?.trim() ?? "";
+        const tug_type = data.name?.trim() ?? "";
         if (isEdit) {
-            await updateBargeType({
-                barge_type_id: bargeTypeId,
-                barge_type,
+            await updateTugType({
+                tug_type_id: tugTypeId,
+                tug_type,
                 cb: () => {
                     closeModal();
                     onSuccess?.();
                 },
             });
         } else {
-            await createBargeType({
-                barge_type,
+            await createTugType({
+                tug_type,
                 cb: () => {
                     closeModal();
                     onSuccess?.();
@@ -52,7 +64,7 @@ export function TugTypeModal({ showModal, closeModal, onSuccess }) {
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {isEdit ? "Edit Barge Type" : "Add Barge Type"}
+                {isEdit ? "Edit Tug Type" : "Add Tug Type"}
             </h1>
             <button
                 type="button"
@@ -66,7 +78,7 @@ export function TugTypeModal({ showModal, closeModal, onSuccess }) {
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="bargeTypeForm" onSubmit={handleSubmit(onSubmit)}>
+                <form id="tugTypeForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 mb-3">
                             <div className="form-floating desig-inp">
@@ -96,7 +108,7 @@ export function TugTypeModal({ showModal, closeModal, onSuccess }) {
             </button>
             <button
                 type="submit"
-                form="bargeTypeForm"
+                form="tugTypeForm"
                 className="btn btn-primary"
                 disabled={addEditLoader}
             >

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import { RenderAction, DateFormat } from "./RenderCells";
-import { BargeTypeModal } from "./Modals/AddEditModal";
+import { TugTypeModal } from "./Modals/AddEditModal";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CustomTable from "../../components/customTable";
 import useTugTypeReducer from "../../store/TugTypeReducer";
@@ -15,18 +15,18 @@ const TugType = () => {
         sortOrder: 1,
     });
 
-    const [showVesselTypeModal, setShowVesselTypeModal] = useState(false);
+    const [showTugTypeModal, setShowTugTypeModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRowForDelete, setSelectedRowForDelete] = useState(null);
 
     const {
         getTugTypes,
-        deleteBargeType,
-        bargeTypes,
+        deleteTugType,
+        tugTypes,
         totalCount,
         isLoading,
         deleteLoader,
-    } = useBargeTypeReducer((state) => state);
+    } = useTugTypeReducer((state) => state);
 
     useEffect(() => {
         const apiParams = {
@@ -35,12 +35,12 @@ const TugType = () => {
             ...(params.searchTerm && { searchTerm: params.searchTerm }),
             ...(params.sortBy && { sortBy: params.sortBy }),
         };
-        getBargeTypes({ params: apiParams });
+        getTugTypes({ params: apiParams });
     }, [params]);
 
     const cols = [
         {
-            name: "Barge Type",
+            name: "Tug Type",
             selector: "name",
             sort: true,
             width: "400",
@@ -62,7 +62,7 @@ const TugType = () => {
             tableClasses: 'table-striped',
             contentClass: 'table-content',
             thclass: 'tb-head',
-            onEditClick: (row) => setShowVesselTypeModal(row),
+            onEditClick: (row) => setShowTugTypeModal(row),
             onDeleteClick: (row) => {
                 setSelectedRowForDelete(row);
                 setShowDeleteModal(true);
@@ -78,13 +78,13 @@ const TugType = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            tableTitle="Barge Types"
+                            tableTitle="Tug Types"
                             isAddEnabled
-                            addModalLabel="Add BargeType"
+                            addModalLabel="Add Tug Type"
                             setSearch={(e) =>
                                 setParams({ ...params, searchTerm: e, page: 1 })
                             }
-                            onAddModalClick={() => setShowVesselTypeModal(true)}
+                            onAddModalClick={() => setShowTugTypeModal(true)}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -95,7 +95,7 @@ const TugType = () => {
                         tableClasses="px-start"
                         count={totalCount ?? 0}
                         columns={cols}
-                        data={bargeTypes ?? []}
+                        data={tugTypes ?? []}
                         Sl={true}
                         isLoading={isLoading}
                         onPageChange={(currentPage) =>
@@ -114,11 +114,11 @@ const TugType = () => {
                         }
                     />
 
-                    {!!showVesselTypeModal && (
-                        <BargeTypeModal
-                            showModal={showVesselTypeModal}
-                            closeModal={() => setShowVesselTypeModal(false)}
-                            onSuccess={() => getBargeTypes({ params })}
+                    {!!showTugTypeModal && (
+                        <TugTypeModal
+                            showModal={showTugTypeModal}
+                            closeModal={() => setShowTugTypeModal(false)}
+                            onSuccess={() => getTugTypes({ params })}
                         />
                     )}
                     {!!showDeleteModal && (
@@ -130,20 +130,20 @@ const TugType = () => {
                                 setSelectedRowForDelete(null);
                             }}
                             onConfirm={() => {
-                                const barge_type_id =
-                                    selectedRowForDelete?.barge_type_id ??
+                                const tug_type_id =
+                                    selectedRowForDelete?.tug_type_id ??
                                     selectedRowForDelete?._id;
-                                if (!barge_type_id) return;
-                                deleteBargeType({
-                                    barge_type_id,
+                                if (!tug_type_id) return;
+                                deleteTugType({
+                                    tug_type_id,
                                     cb: () => {
                                         setShowDeleteModal(false);
                                         setSelectedRowForDelete(null);
-                                        getBargeTypes({ params });
+                                        getTugTypes({ params });
                                     },
                                 });
                             }}
-                            deleteText="Are you sure you want to delete this barge type?"
+                            deleteText="Are you sure you want to delete this tug type?"
                         />
                     )}
                 </div>
