@@ -4,8 +4,8 @@ import CustomTable from "../../components/customTable";
 import { StatusModal } from "./Modals/AddEditStatus";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { STATUS_OPTIONS, getStatusDescription } from "../../constants/statuses";
-import { STATUS_MODULE_OPTIONS } from "../../constants/statuses";
+import { STATUS_OPTIONS, getStatusDescription } from "../../shared/constants/statuses";
+import { STATUS_MODULE_OPTIONS } from "../../shared/constants/statuses";
 import "../../design/scss/status.scss";
 
 

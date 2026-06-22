@@ -6,7 +6,7 @@ import {
   isRestrictedBoardUser,
   isRestrictedUserAllowedPath,
   RESTRICTED_BOARD_HOME_PATH,
-} from '../helpers/restrictedBoardUser';
+} from '../shared/helpers/restrictedBoardUser';
 
 function RouteGuard({ children }) {
   const location = useLocation();

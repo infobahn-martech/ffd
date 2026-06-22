@@ -15,12 +15,13 @@ const TimeObjects = () => {
         sortOrder: 1,
     });
 
-    const { getTimeObjects, timeObjects, isLoadingGet, totalCount } = useTimeObjectReducer(
+    const { getTimeObjects, deleteTimeObject, timeObjects, isLoadingGet, isBeingUpdated, totalCount } = useTimeObjectReducer(
         (state) => state
     );
 
     const [showTimeObjectModal, setShowTimeObjectModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteRow, setDeleteRow] = useState(null);
 
     const apiParams = useMemo(
         () => ({
@@ -61,7 +62,10 @@ const TimeObjects = () => {
             contentClass: 'table-content',
             thclass: 'tb-head',
             onEditClick: (row) => { setShowTimeObjectModal(row) },
-            onDeleteClick: () => { setShowDeleteModal(true) },
+            onDeleteClick: (row) => {
+                setDeleteRow(row);
+                setShowDeleteModal(true);
+            },
             cell: RenderAction,
             width: '200',
         },
@@ -119,10 +123,26 @@ const TimeObjects = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => setShowDeleteModal(false)}
+                            onCancel={() => {
+                                setShowDeleteModal(false);
+                                setDeleteRow(null);
+                            }}
+                            onConfirm={() => {
+                                if (!deleteRow) {
+                                    setShowDeleteModal(false);
+                                    return;
+                                }
+                                deleteTimeObject({
+                                    timeObjectId: deleteRow.time_object_id,
+                                    cb: () => {
+                                        setShowDeleteModal(false);
+                                        setDeleteRow(null);
+                                        getTimeObjects?.(apiParams);
+                                    },
+                                });
+                            }}
                             deleteText="Are you sure you want to delete this time object?"
-                        // isLoading={isBeingUpdated}
+                            isLoading={isBeingUpdated}
                         />
                     )}
                 </div>

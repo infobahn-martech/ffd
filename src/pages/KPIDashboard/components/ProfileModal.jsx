@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiCamera, FiEdit2, FiX } from 'react-icons/fi';
 import CustomModal from '../../../components/CustomModal';
 import useAuthReducer from '../../../store/AuthReducer';
-import './ProfileModal.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/ProfileModal.scss';
 
 const ProfileModal = ({ show, onClose }) => {
   const profileData = useAuthReducer((state) => state.profileData);

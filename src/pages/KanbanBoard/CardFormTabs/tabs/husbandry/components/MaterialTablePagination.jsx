@@ -1,4 +1,6 @@
+
 import PropTypes from "prop-types";
+import "../../../../../../../design/scss/table-common.scss";
 
 const MaterialTablePagination = ({ page, total, limit, onPageChange }) => {
   const safePage = Number(page) || 1;
@@ -11,7 +13,6 @@ const MaterialTablePagination = ({ page, total, limit, onPageChange }) => {
 
   const handlePageChange = (nextPage) => {
     const clampedPage = Math.min(Math.max(nextPage, 1), totalPages);
-
     if (clampedPage !== currentPage) {
       onPageChange(clampedPage);
     }
@@ -22,51 +23,27 @@ const MaterialTablePagination = ({ page, total, limit, onPageChange }) => {
   }
 
   return (
-    <div
-      className="material-table-pagination"
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "12px",
-        padding: "12px 0",
-        fontSize: "14px",
-      }}
-    >
-      <span style={{ color: "#666" }}>
+    <div className="material-table-pagination">
+      <span className="material-table-pagination__info">
         Showing {startItem}-{endItem} of {safeTotal}
       </span>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div className="material-table-pagination__controls">
         <button
           type="button"
+          className="material-table-pagination__btn"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          style={{
-            border: "1px solid #d0d5dd",
-            borderRadius: "4px",
-            background: currentPage <= 1 ? "#f5f5f5" : "#fff",
-            color: currentPage <= 1 ? "#98a2b3" : "#344054",
-            cursor: currentPage <= 1 ? "not-allowed" : "pointer",
-            padding: "6px 10px",
-          }}
         >
           Previous
         </button>
-        <span style={{ color: "#344054", minWidth: "84px", textAlign: "center" }}>
+        <span className="material-table-pagination__page-text">
           Page {currentPage} of {totalPages}
         </span>
         <button
           type="button"
+          className="material-table-pagination__btn"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          style={{
-            border: "1px solid #d0d5dd",
-            borderRadius: "4px",
-            background: currentPage >= totalPages ? "#f5f5f5" : "#fff",
-            color: currentPage >= totalPages ? "#98a2b3" : "#344054",
-            cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
-            padding: "6px 10px",
-          }}
         >
           Next
         </button>

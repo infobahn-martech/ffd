@@ -133,14 +133,9 @@ const Hotel = () => {
     };
 
     const handleDelete = async () => {
-        if (!selectedRow?._id) return;
+        if (!selectedRow?.hotel_id) return;
 
-        // ✅ adjust this payload key based on your backend
-        const payload = { hotel_id: selectedRow._id };
-
-        // If your deleteData expects only id:
-        // await deleteData(selectedRow._id);
-        await deleteHotel?.(payload);
+        await deleteHotel?.({ hotel_id: selectedRow.hotel_id });
 
         setShowDeleteModal(false);
         setSelectedRow(null);
@@ -205,7 +200,7 @@ const Hotel = () => {
                         }}
                         onConfirm={handleDelete}
                         isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this hotel?"
+                        deleteText={`Are you sure you want to delete this hotel${selectedRow?.hotel_name ? ` ${selectedRow.hotel_name}` : ""}?`}
                     />
                 )}
             </div>

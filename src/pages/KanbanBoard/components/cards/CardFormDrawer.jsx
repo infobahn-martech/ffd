@@ -1,5 +1,1 @@
-import CardForm from "./CardForm";
-
-export default function CardFormDrawer(props) {
-  return <CardForm {...props} />;
-}
+export { default } from "./components/shared/CardFormDrawer";

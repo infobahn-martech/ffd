@@ -1,28 +1,40 @@
 import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 
-import eye from '../../assets/images/eye.svg';
 import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
-import { getInitials } from '../../utils/utils';
+import unarchiveIcon from '../../assets/images/CircleTick.svg';
+import { getInitials } from '../../shared/utils/utils';
 
-export const RenderAction = ({ onViewClick, onEditClick, row, onDeleteClick }) => {
+export const RenderAction = ({ onEditClick, row, onArchiveClick, onUnarchiveClick }) => {
+  const isArchived = row?.status === '2';
+  const unarchiveTipId = `unarchive-vessel-${row?.vessel_id ?? 'row'}`;
+
+  if (isArchived) {
+    return (
+      <>
+        <Tooltip id={unarchiveTipId} place="bottom" content="Unarchive" />
+        <div className="actions">
+          <span
+            data-tooltip-id={unarchiveTipId}
+            type="button"
+            className="edit"
+            onClick={() => onUnarchiveClick(row)}
+          >
+            <img src={unarchiveIcon} alt="unarchive" />
+          </span>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <Tooltip id="view" place="bottom" content="View" />
-      <Tooltip id="edit" place="bottom" content="Edit" />
-      <Tooltip id="delete" place="bottom" content="Delete" />
+      <Tooltip id="edit-vessel" place="bottom" content="Edit" />
+      <Tooltip id="archive-vessel" place="bottom" content="Archive" />
       <div className="actions">
-        {/* <span
-          data-tooltip-id="view"
-          type="button"
-          className="view"
-          onClick={() => onViewClick(row)}
-        >
-          <img src={eye} alt="view" />
-        </span> */}
         <span
-          data-tooltip-id="edit"
+          data-tooltip-id="edit-vessel"
           type="button"
           onClick={() => onEditClick(row)}
           className="edit"
@@ -30,12 +42,12 @@ export const RenderAction = ({ onViewClick, onEditClick, row, onDeleteClick }) =
           <img src={edit} alt="edit" />
         </span>
         <span
-          data-tooltip-id="delete"
+          data-tooltip-id="archive-vessel"
           type="button"
           className="delete"
-          onClick={() => onDeleteClick(row)}
+          onClick={() => onArchiveClick(row)}
         >
-          <img src={trash} alt="delete" />
+          <img src={trash} alt="archive" />
         </span>
       </div>
     </>

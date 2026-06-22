@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import KIPSideNavBg from '../../../assets/images/KIP-SideNav-Bg.png';
 import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
-import './SideNav.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/SideNav.scss';
 
 const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, isMobileMenuOpen, onMobileMenuClose }) => {
   const navigate = useNavigate();
@@ -38,6 +38,8 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
       navigate('/tasks');
     } else if (menuId === 'Team Leaderboard') {
       navigate('/team-leaderboard');
+    } else if (menuId === 'Level Management') {
+      navigate('/level-management');
     } else if (menuId === 'Dashboard') {
       navigate('/kpi-dashboard');
     } else if (menuId === 'Master Module') {
@@ -127,6 +129,7 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
     { id: 'Tasks', label: 'Tasks', icon: TasksIcon },
     { id: 'Earning History', label: 'Earning History', icon: EarningHistoryIcon },
     { id: 'Team Leaderboard', label: 'Team Leaderboard', icon: TeamLeaderboardIcon },
+    { id: 'Level Management', label: 'Level Management', icon: TeamLeaderboardIcon },
   ];
 
   const accountItems = [

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import './MonthlyTasksChart.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/MonthlyTasksChart.scss';
 
 const MonthlyTasksChart = () => {
   const data = [

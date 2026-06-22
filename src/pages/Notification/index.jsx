@@ -3,7 +3,7 @@ import { DateFormat, RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewNotificationModal } from "./Modals/ViewNotification";
-import "./Notification.scss";
+import "../../design/scss/pages/notification/Notification.scss";
 
 const initialNotifications = [
   {

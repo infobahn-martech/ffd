@@ -98,7 +98,7 @@ const CustomerPricing = () => {
                     <div className="container-fluid">
                         <CommonHeader
                             tableTitle="Customer Pricing"
-                            isAddEnabled
+                            isAddEnabled={false}
                             addModalLabel="Add Customer Pricing"
                             setSearch={(e) =>
                                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })

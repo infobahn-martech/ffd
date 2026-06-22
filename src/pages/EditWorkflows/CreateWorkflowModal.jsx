@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
-import '../../structure/SideNav/components/AddDashboardModal.scss';
+import '../../design/scss/structure/side-nav/AddDashboardModal.scss';
 import workflowService from '../../services/workflowService';
 import PremiumSelect from '../../components/form/PremiumSelect';
 

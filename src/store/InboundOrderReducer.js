@@ -19,19 +19,19 @@ const useInboundOrderReducer = create((set) => ({
             const { data: resData } = await inboundOrderService.saveInboundOrder(data);
             set({ isLoadingSave: false });
             const { success } = useAlertReducer.getState();
-            success(resData?.message ?? 'Inbound saved successfully');
+            success(resData?.message ?? 'Inbound order saved successfully');
             cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isLoadingSave: false });
-            error(err?.response?.data?.message ?? 'Failed to save inbound');
+            error(err?.response?.data?.message ?? err.message);
         }
     },
 
-    getAllInbound: async (params) => {
+    getAllInbound: async ({ call_id, ...params }) => {
         try {
             set({ isLoadingList: true });
-            const { data } = await inboundOrderService.getAllInbound(params);
+            const { data } = await inboundOrderService.getAllInbound(call_id, params);
             set({
                 inboundOrders: data?.data ?? [],
                 inboundTotal: data?.pagination?.total ?? 0,
@@ -62,12 +62,12 @@ const useInboundOrderReducer = create((set) => ({
             const { data: resData } = await inboundOrderService.updateInboundOrder(inboundId, data);
             set({ isBeingUpdated: false });
             const { success } = useAlertReducer.getState();
-            success(resData?.message ?? 'Inbound updated successfully');
+            success(resData?.message ?? 'Inbound order updated successfully');
             cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isBeingUpdated: false });
-            error(err?.response?.data?.message ?? 'Failed to update inbound');
+            error(err?.response?.data?.message ?? err.message);
         }
     },
 
@@ -92,12 +92,12 @@ const useInboundOrderReducer = create((set) => ({
             const { data: resData } = await inboundOrderService.convertInboundToLandingNote(data);
             set({ isBeingConverted: false });
             const { success } = useAlertReducer.getState();
-            success(resData?.message ?? 'Inbound order converted to landing note successfully');
+            success(resData?.message ?? 'Inbound converted to landing note successfully');
             cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({ isBeingConverted: false });
-            error(err?.response?.data?.message ?? err.message);
+            error(err?.response?.data?.message ?? 'Failed to convert inbound to landing note');
         }
     },
 

@@ -6,7 +6,12 @@ const getChecklistByType = (params) =>
 /** GET checklist/get_checklist_by_id/{checklist_type_id} */
 const getChecklistById = (checklist_type_id) =>
   Gateway.get(`checklist/get_checklist_by_id/${encodeURIComponent(String(checklist_type_id))}`);
-/** GET call_checklist/get_call_checklist/{call_id} */
+/**
+ * GET call_checklist/get_call_checklist/{call_id}
+ * Rows: call_checklist_id, call_id, checklist_type_id, checklist_name,
+ * sections[{ checklist_section_id, title, items[{ checklist_item_id, item_name,
+ * is_checked, remarks, expiry_date, files[{ file_id, file_name, file_url }] }] }].
+ */
 const getCallChecklist = (call_id) =>
   Gateway.get(`call_checklist/get_call_checklist/${encodeURIComponent(String(call_id))}`);
 
@@ -17,6 +22,10 @@ const getChecklistsByVesselType = (payload) =>
 /** POST checklist/checklist_by_bargetype — body: { barge_type_id, calltype, port_id } */
 const getChecklistsByBargeType = (payload) =>
   Gateway.post('checklist/checklist_by_bargetype', payload);
+
+/** POST checklist/checklist_by_port_call — body: { calltype, port_id } */
+const getChecklistsByPortCall = (payload) =>
+  Gateway.post('checklist/checklist_by_port_call', payload);
 
 /** DELETE checklist/delete/{checklist_type_id} */
 const deleteChecklist = (checklist_type_id) =>
@@ -41,6 +50,7 @@ export default {
     getCallChecklist,
     getChecklistsByVesselType,
     getChecklistsByBargeType,
+    getChecklistsByPortCall,
     deleteChecklist,
     saveCallChecklist,
 };

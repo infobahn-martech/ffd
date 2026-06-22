@@ -4,7 +4,7 @@ import { DateFormat, RenderAction, EditableStatus } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewCustomInspectionModal } from "./Modals/ViewCustomInspection";
-import "./CustomInspection.scss";
+import "../../design/scss/pages/custom-inspection/CustomInspection.scss";
 
 const initialInspections = [
   {

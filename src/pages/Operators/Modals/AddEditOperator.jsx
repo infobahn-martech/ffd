@@ -9,13 +9,9 @@ import useOperatorReducer from "../../../store/OperatorReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { PORT_OPTIONS_WITH_ID } from "../../../constants/ports";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 
-const OPERATOR_PORT_OPTIONS = PORT_OPTIONS_WITH_ID.map((p) => ({
-    value: String(p.id),
-    label: p.name,
-}));
+const DEFAULT_PORT_ID = 3;
 
 const OPERATOR_STATUS_OPTIONS = [
     { value: "Active", label: "Active" },
@@ -70,7 +66,6 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
     } = useForm({
         defaultValues: {
             operator_name: "",
-            port_id: "",
             contact_person: "",
             contact_no: "",
             email: "",
@@ -89,7 +84,6 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
             clearOperatorDetail?.();
             reset({
                 operator_name: "",
-                port_id: "",
                 contact_person: "",
                 contact_no: "",
                 email: "",
@@ -106,7 +100,6 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
         if (operatorDetail && isEdit) {
             reset({
                 operator_name: operatorDetail?.operator_name ?? "",
-                port_id: operatorDetail?.port_id ?? "",
                 contact_person: operatorDetail?.contact_person ?? "",
                 contact_no: operatorDetail?.contact_no ?? "",
                 email: operatorDetail?.email ?? "",
@@ -128,7 +121,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
     const onSubmit = (data) => {
         const basePayload = {
             operator_name: data.operator_name,
-            port_id: Number(data.port_id),
+            port_id: DEFAULT_PORT_ID,
             contact_person: data.contact_person,
             contact_no: data.contact_no,
             email: data.email?.trim(),
@@ -263,36 +256,10 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* Port + License No */}
+                    {/* License No */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">Port <span className="text-danger">*</span></label>
-                                    <Controller
-                                        name="port_id"
-                                        control={control}
-                                        rules={{ required: "Port is required" }}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
-                                                onChange={(e) => {
-                                                    const raw = e.target.value;
-                                                    field.onChange(raw === "" ? "" : Number(raw));
-                                                }}
-                                                options={OPERATOR_PORT_OPTIONS}
-                                                placeholder="Select port..."
-                                                searchPlaceholder="Search port..."
-                                                hasError={Boolean(errors.port_id)}
-                                            />
-                                        )}
-                                    />
-                                    {errors.port_id && (
-                                        <span className="error text-danger">{errors.port_id.message}</span>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="col-lg-6 col-sm-12">
+                            <div className="col-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"

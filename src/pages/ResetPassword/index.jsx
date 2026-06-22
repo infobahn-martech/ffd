@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useAuthReducer from "../../store/AuthReducer";
@@ -10,6 +11,8 @@ function ResetPassword() {
     const { resetPassword, isLoginLoading } = useAuthReducer();
     const [token, setToken] = useState(null);
     const [userId, setUserId] = useState(null);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const {
         register,
@@ -24,18 +27,18 @@ function ResetPassword() {
 
         if (tokenParam && userIdParam) {
             setToken(tokenParam);
-            setUserId(userIdParam);
+            setUserId(Number(userIdParam));
         }
     }, [searchParams]);
 
-    const password = watch("password");
+    const newPassword = watch("new_password");
 
     const onSubmit = async (data) => {
         if (token && userId) {
             const result = await resetPassword({
                 token,
                 user_id: userId,
-                new_password: data.password
+                new_password: data.new_password,
             });
 
             // Navigate to login page after successful reset
@@ -95,12 +98,12 @@ function ResetPassword() {
                                 {/* PASSWORD */}
                                 <div className="input-outer-wrap">
                                     <label className="label">New Password</label>
-                                    <div className="input-wrap">
+                                    <div className="input-wrap password-input-wrap">
                                         <input
-                                            type="password"
+                                            type={showNewPassword ? "text" : "password"}
                                             placeholder="Enter your new password"
                                             className="txt"
-                                            {...register("password", {
+                                            {...register("new_password", {
                                                 required: "Password is required",
                                                 minLength: {
                                                     value: 6,
@@ -108,9 +111,17 @@ function ResetPassword() {
                                                 },
                                             })}
                                         />
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            aria-label={showNewPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showNewPassword ? <FiEyeOff /> : <FiEye />}
+                                        </button>
 
-                                        {errors.password && (
-                                            <div className="error">{errors.password.message}</div>
+                                        {errors.new_password && (
+                                            <div className="error">{errors.new_password.message}</div>
                                         )}
                                     </div>
                                 </div>
@@ -118,17 +129,25 @@ function ResetPassword() {
                                 {/* CONFIRM PASSWORD */}
                                 <div className="input-outer-wrap">
                                     <label className="label">Confirm Password</label>
-                                    <div className="input-wrap">
+                                    <div className="input-wrap password-input-wrap">
                                         <input
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             placeholder="Confirm your new password"
                                             className="txt"
                                             {...register("confirmPassword", {
                                                 required: "Please confirm your password",
                                                 validate: (value) =>
-                                                    value === password || "Passwords do not match",
+                                                    value === newPassword || "Passwords do not match",
                                             })}
                                         />
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                                        </button>
 
                                         {errors.confirmPassword && (
                                             <div className="error">{errors.confirmPassword.message}</div>

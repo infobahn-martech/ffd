@@ -1,5 +1,5 @@
 import React from 'react';
-import './PendingBalanceCard.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/PendingBalanceCard.scss';
 
 const GraphIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="61" height="20" viewBox="0 0 61 20" fill="none">

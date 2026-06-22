@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { useLayoutView } from "../../../context/LayoutViewContext";
+import { useLayoutView } from "../../../shared/context/LayoutViewContext";
 import Workspaces from "../../Workspaces";
-import useSyncKanbanSidebarWorkflows from "../../../hooks/useSyncKanbanSidebarWorkflows";
-import useKanbanAddCardFromSidebar from "../../../hooks/useKanbanAddCardFromSidebar";
-import { getAddModeCardFormWorkflow } from "../../../helpers/kanbanSidebarWorkflow";
+import useSyncKanbanSidebarWorkflows from "../../../shared/hooks/useSyncKanbanSidebarWorkflows";
+import useKanbanAddCardFromSidebar from "../../../shared/hooks/useKanbanAddCardFromSidebar";
+import { getAddModeCardFormWorkflow } from "../../../shared/helpers/kanbanSidebarWorkflow";
 import KanbanBoardContent from "../components/board/KanbanBoardContent";
 import CardForm from "../components/cards/CardForm";
 import ContextMenu from "../components/menus/ContextMenu";
@@ -17,11 +17,9 @@ import useKanbanDnD from "../hooks/useKanbanDnD";
 import useKanbanRoleAccess from "../hooks/useKanbanRoleAccess";
 import { createNewCardDraft } from "../utils/cardHelpers";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
-import { resolveCardFormVariant } from "../../../helpers/cardFormVariant";
-import { getFirstUserRoleId } from "../../../helpers/groUserRoles";
+import { resolveCardFormVariant } from "../../../shared/helpers/cardFormVariant";
+import { getFirstUserRoleId } from "../../../shared/helpers/groUserRoles";
 import useAuthReducer from "../../../store/AuthReducer";
-import { KANBAN_DND_DISABLED } from "../../../modules/kanban/constants/kanbanConfig";
-
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
   const location = useLocation();
@@ -77,7 +75,8 @@ export default function KanbanBoardPage() {
   const { maxColumnHeights, handleColumnHeightChange } = useColumnHeights(workflows);
   const { findCardColumn, moveCardToColumn, createDragEndHandler } = useKanbanDnD(
     workflows,
-    setWorkflows
+    setWorkflows,
+    { userProfile, refetchBoard }
   );
 
   useKanbanRoleAccess();
@@ -257,9 +256,7 @@ export default function KanbanBoardPage() {
           expandedWorkflows={expandedWorkflows}
           expandedColumns={expandedColumns}
           maxColumnHeights={maxColumnHeights}
-          createDragEndHandler={
-            KANBAN_DND_DISABLED ? () => () => {} : createDragEndHandler
-          }
+          createDragEndHandler={createDragEndHandler}
           onSelectCard={handleSelectCard}
           onColumnHeaderClick={handleColumnHeaderClick}
           onContextMenu={handleColumnContextMenu}

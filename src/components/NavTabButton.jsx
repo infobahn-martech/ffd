@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import "./NavTabButton.scss";
+import "../design/scss/components/NavTabButton.scss";
 
 /**
  * Shared navigation tab: same visuals as a normal button with `active` when selected.

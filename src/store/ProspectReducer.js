@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import prospectservice from '../services/prospectservice';
-import { downloadFile } from '../utils/utils';
+import { downloadFile } from '../shared/utils/utils';
 
 const useProspectReducer = create((set) => ({
   isLoading: false,

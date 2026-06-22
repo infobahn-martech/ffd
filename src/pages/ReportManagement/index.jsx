@@ -3,7 +3,7 @@ import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewReportModal } from "./Modals/ViewReport";
-import "./ReportManagement.scss";
+import "../../design/scss/pages/report-management/ReportManagement.scss";
 
 const initialReports = [
     {

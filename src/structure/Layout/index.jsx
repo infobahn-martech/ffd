@@ -4,7 +4,7 @@ import '../../design/scss/dashboard.scss';
 import { Outlet } from 'react-router';
 import SideNav from '../SideNav/index';
 import Header from '../Header';
-import { LayoutViewProvider } from '../../context/LayoutViewContext';
+import { LayoutViewProvider } from '../../shared/context/LayoutViewContext';
 import useAuthReducer from '../../store/AuthReducer';
 
 function Layout() {

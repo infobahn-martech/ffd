@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import './SelectWorkflowModal.scss';
+import '../../../design/scss/structure/side-nav/SelectWorkflowModal.scss';
 
 function WorkflowCardIllustrationKanban({ uid = 'k' }) {
   const a = `swm-k1-${uid}`;
@@ -56,11 +57,14 @@ function WorkflowCardIllustrationFlow({ uid = 'f' }) {
   );
 }
 
+
 const DEFAULT_WORKFLOW_DESCRIPTION =
   "New cards open in this workflow's columns so you can track work in the right swimlanes.";
 
 const DEFAULT_SWIMLANE_HELPER =
   'New cards in this workflow can be created in the selected swimlane.';
+
+const DEFAULT_PORT_NAME = 'Dammam';
 
 /**
  * Kanban Add (+) selection: workflow list and/or swimlane list (same chrome & card styling).
@@ -77,6 +81,12 @@ function SelectWorkflowModal({
   selectedSwimlaneId,
   onSelectWorkflowId,
   onSelectSwimlaneId,
+  callTypes,
+  ports,
+  selectedCallTypeId,
+  selectedPortId,
+  onSelectCallTypeId,
+  onSelectPortId,
   onClose,
   onContinue,
   onExited,
@@ -84,6 +94,16 @@ function SelectWorkflowModal({
   const handleClose = () => {
     onClose();
   };
+
+  useEffect(() => {
+    if (!show) return;
+    if (selectedPortId != null && selectedPortId !== '') return;
+
+    const dammamPort = (ports || []).find((port) => port.name === DEFAULT_PORT_NAME);
+    if (dammamPort) {
+      onSelectPortId(String(dammamPort.id));
+    }
+  }, [show, ports, selectedPortId, onSelectPortId]);
 
   const isWorkflowMode = selectionMode === 'workflow';
   const list = isWorkflowMode ? workflows || [] : swimlanes || [];
@@ -95,14 +115,29 @@ function SelectWorkflowModal({
   const isSelectedSwimlane = (id) =>
     selectedSwimlaneId != null && (selectedSwimlaneId === id || String(selectedSwimlaneId) === String(id));
 
+  const hasCardSelection = isWorkflowMode ? selectedWorkflowId != null : selectedSwimlaneId != null;
+
+  // Call type / port are optional for now. To make them mandatory later, set this
+  // to true (or derive it from props/config) and the validation below picks it up.
+  const areExtraFieldsRequired = false;
+  const hasExtraFieldSelection =
+    selectedCallTypeId != null && selectedCallTypeId !== '' && selectedPortId != null && selectedPortId !== '';
+
+  const isContinueDisabled = empty || !hasCardSelection || (areExtraFieldsRequired && !hasExtraFieldSelection);
+
   const handleContinue = () => {
-    if (empty) return;
-    if (isWorkflowMode) {
-      if (selectedWorkflowId == null) return;
-    } else if (selectedSwimlaneId == null) {
-      return;
-    }
+    if (isContinueDisabled) return;
     onContinue();
+  };
+
+  const handleCallTypeChange = (event) => {
+    const { value } = event.target;
+    onSelectCallTypeId(value === '' ? null : value);
+  };
+
+  const handlePortChange = (event) => {
+    const { value } = event.target;
+    onSelectPortId(value === '' ? null : value);
   };
 
   const modalTitle = isWorkflowMode ? 'Select Workflow' : 'Select Swimlane';
@@ -162,54 +197,102 @@ function SelectWorkflowModal({
               >
                 {isWorkflowMode
                   ? list.map((w, index) => (
-                      <li key={String(w.id)}>
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelectedWorkflow(w.id)}
-                          className={`select-workflow-card ${isSelectedWorkflow(w.id) ? 'is-selected' : ''}`}
-                          onClick={() => onSelectWorkflowId(w.id)}
-                        >
-                          <div className="select-workflow-card-copy">
-                            <h3 className="select-workflow-card-title">{w.name}</h3>
-                            <p className="select-workflow-card-desc">{w.description ?? DEFAULT_WORKFLOW_DESCRIPTION}</p>
-                          </div>
-                          <div className="select-workflow-card-art" aria-hidden>
-                            {index % 2 === 0 ? (
-                              <WorkflowCardIllustrationKanban uid={`w-${String(w.id)}`} />
-                            ) : (
-                              <WorkflowCardIllustrationFlow uid={`w-${String(w.id)}`} />
-                            )}
-                          </div>
-                        </button>
-                      </li>
-                    ))
+                    <li key={String(w.id)}>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelectedWorkflow(w.id)}
+                        className={`select-workflow-card ${isSelectedWorkflow(w.id) ? 'is-selected' : ''}`}
+                        onClick={() => onSelectWorkflowId(w.id)}
+                      >
+                        <div className="select-workflow-card-copy">
+                          <h3 className="select-workflow-card-title">{w.name}</h3>
+                          <p className="select-workflow-card-desc">{w.description ?? DEFAULT_WORKFLOW_DESCRIPTION}</p>
+                        </div>
+                        <div className="select-workflow-card-art" aria-hidden>
+                          {index % 2 === 0 ? (
+                            <WorkflowCardIllustrationKanban uid={`w-${String(w.id)}`} />
+                          ) : (
+                            <WorkflowCardIllustrationFlow uid={`w-${String(w.id)}`} />
+                          )}
+                        </div>
+                      </button>
+                    </li>
+                  ))
                   : list.map((sl, index) => (
-                      <li key={String(sl.id)}>
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelectedSwimlane(sl.id)}
-                          className={`select-workflow-card ${isSelectedSwimlane(sl.id) ? 'is-selected' : ''}`}
-                          onClick={() => onSelectSwimlaneId(sl.id)}
-                        >
-                          <div className="select-workflow-card-copy">
-                            <h3 className="select-workflow-card-title">{sl.name}</h3>
-                            <p className="select-workflow-card-desc select-workflow-card-desc--muted">
-                              Swimlane
-                            </p>
-                          </div>
-                          <div className="select-workflow-card-art" aria-hidden>
-                            {index % 2 === 0 ? (
-                              <WorkflowCardIllustrationKanban uid={`s-${String(sl.id)}`} />
-                            ) : (
-                              <WorkflowCardIllustrationFlow uid={`s-${String(sl.id)}`} />
-                            )}
-                          </div>
-                        </button>
-                      </li>
-                    ))}
+                    <li key={String(sl.id)}>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelectedSwimlane(sl.id)}
+                        className={`select-workflow-card ${isSelectedSwimlane(sl.id) ? 'is-selected' : ''}`}
+                        onClick={() => onSelectSwimlaneId(sl.id)}
+                      >
+                        <div className="select-workflow-card-copy">
+                          <h3 className="select-workflow-card-title">{sl.name}</h3>
+                          <p className="select-workflow-card-desc select-workflow-card-desc--muted">
+                            Swimlane
+                          </p>
+                        </div>
+                        <div className="select-workflow-card-art" aria-hidden>
+                          {index % 2 === 0 ? (
+                            <WorkflowCardIllustrationKanban uid={`s-${String(sl.id)}`} />
+                          ) : (
+                            <WorkflowCardIllustrationFlow uid={`s-${String(sl.id)}`} />
+                          )}
+                        </div>
+                      </button>
+                    </li>
+                  ))}
               </ul>
+
+              <div className="select-workflow-modal-fields">
+                <div className="select-workflow-field">
+                  <label className="select-workflow-field-label" htmlFor="select-workflow-call-type">
+                    Select Call Type
+                  </label>
+                  <select
+                    id="select-workflow-call-type"
+                    className={`select-workflow-field-select ${
+                      selectedCallTypeId == null || selectedCallTypeId === ''
+                        ? 'select-workflow-field-select--placeholder'
+                        : ''
+                    }`}
+                    value={selectedCallTypeId ?? ''}
+                    onChange={handleCallTypeChange}
+                  >
+                    <option value="">Select Call Type</option>
+                    {(callTypes || []).map((callType) => (
+                      <option key={String(callType.id)} value={String(callType.id)}>
+                        {callType.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="select-workflow-field">
+                  <label className="select-workflow-field-label" htmlFor="select-workflow-port">
+                    Select Port
+                  </label>
+                  <select
+                    id="select-workflow-port"
+                    className={`select-workflow-field-select select-workflow-field-select--port ${
+                      selectedPortId == null || selectedPortId === ''
+                        ? 'select-workflow-field-select--placeholder'
+                        : ''
+                    }`}
+                    value={selectedPortId ?? ''}
+                    onChange={handlePortChange}
+                  >
+                    <option value="">Select Port</option>
+                    {(ports || []).map((port) => (
+                      <option key={String(port.id)} value={String(port.id)}>
+                        {port.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </>
           )}
         </div>
@@ -222,9 +305,7 @@ function SelectWorkflowModal({
             type="button"
             onClick={handleContinue}
             className="select-workflow-btn select-workflow-btn--primary"
-            disabled={
-              empty || (isWorkflowMode ? selectedWorkflowId == null : selectedSwimlaneId == null)
-            }
+            disabled={isContinueDisabled}
           >
             Continue
           </button>
@@ -256,6 +337,22 @@ SelectWorkflowModal.propTypes = {
   selectedSwimlaneId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onSelectWorkflowId: PropTypes.func.isRequired,
   onSelectSwimlaneId: PropTypes.func.isRequired,
+  callTypes: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ),
+  ports: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ),
+  selectedCallTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  selectedPortId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onSelectCallTypeId: PropTypes.func,
+  onSelectPortId: PropTypes.func,
   onClose: PropTypes.func.isRequired,
   onContinue: PropTypes.func.isRequired,
   onExited: PropTypes.func,
@@ -268,6 +365,12 @@ SelectWorkflowModal.defaultProps = {
   swimlaneHelperText: undefined,
   selectedWorkflowId: null,
   selectedSwimlaneId: null,
+  callTypes: [],
+  ports: [],
+  selectedCallTypeId: null,
+  selectedPortId: null,
+  onSelectCallTypeId: () => {},
+  onSelectPortId: () => {},
   onExited: undefined,
 };
 

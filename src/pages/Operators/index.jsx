@@ -4,7 +4,6 @@ import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import StatusConfirmationModal from "../../components/StatusConfirmationModal";
 import { OperatorModal } from "./Modals/AddEditOperator";
 import useOperatorReducer from "../../store/OperatorReducer";
 
@@ -14,6 +13,8 @@ const Operators = () => {
         operatorData,
         isLoading,
         totalOperatorCount,
+        deleteOperator,
+        isDeleteLoading,
     } = useOperatorReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -26,7 +27,6 @@ const Operators = () => {
 
     const [showOperatorModal, setShowOperatorModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showStatusModal, setShowStatusModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
     useEffect(() => {
@@ -124,10 +124,6 @@ const Operators = () => {
                 RenderAction({
                     ...props,
                     onEditClick: (row) => setShowOperatorModal(row),
-                    onStatusClick: (row) => {
-                        setSelectedRow(row);
-                        setShowStatusModal(true);
-                    },
                     onDeleteClick: (row) => {
                         setSelectedRow(row);
                         setShowDeleteModal(true);
@@ -198,29 +194,19 @@ const Operators = () => {
                                 setSelectedRow(null);
                             }}
                             onConfirm={() => {
-                                // TODO: wire when delete API is available
-                                setShowDeleteModal(false);
-                                setSelectedRow(null);
-                                refreshList();
+                                if (selectedRow?.operator_id) {
+                                    deleteOperator({
+                                        operator_id: selectedRow.operator_id,
+                                        cb: () => {
+                                            setShowDeleteModal(false);
+                                            setSelectedRow(null);
+                                            refreshList();
+                                        },
+                                    });
+                                }
                             }}
                             deleteText="Are you sure you want to delete this operator?"
-                        />
-                    )}
-
-                    {!!showStatusModal && (
-                        <StatusConfirmationModal
-                            show={showStatusModal}
-                            onCancel={() => {
-                                setShowStatusModal(false);
-                                setSelectedRow(null);
-                            }}
-                            onConfirm={() => {
-                                // TODO: wire when status update API is available
-                                setShowStatusModal(false);
-                                setSelectedRow(null);
-                                refreshList();
-                            }}
-                            statusText="Are you sure you want to deactivate this operator?"
+                            isLoading={isDeleteLoading}
                         />
                     )}
                 </div>

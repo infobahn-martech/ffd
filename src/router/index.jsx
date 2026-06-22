@@ -1,6 +1,6 @@
 // src/routes/index.jsx
 
-import { createHashRouter } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import PublicRoutes from "./PublicRoute";
 import PrivateRoutes from "./PrivateRoute";
@@ -81,17 +81,20 @@ import MWPHistory from "../pages/MWPHistory";
 import KPITasks from "../pages/KPITasks";
 import KPIUsers from "../pages/KPIUsers";
 import Coordinates from "../pages/Coordinates";
+import CGPassTemplate from "../pages/CGPassTemplate";
+import VesselRegistrationTemplate from "../pages/VesselRegistrationTemplate";
 import { ROUTE_PATHS } from "./paths";
 import TimeObjects from "../pages/TimeObject";
 import StageTimeMappings from "../pages/StageTimeMapping";
 import DocumentManagement from "../pages/DocumentManagement";
 import DocumentChecklist from "../pages/DocumentChecklist";
 import TaskManagement from "../pages/TaskManagement";
-import TaskChecklist from "../pages/TaskChecklist";
+import TaskRoles from "../pages/TaskChecklist";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
-const router = createHashRouter([
+const router = createBrowserRouter(
+  [
   {
     element: <App />,
     errorElement: <NotFound />,
@@ -100,12 +103,14 @@ const router = createHashRouter([
       // Always available public pages
       { path: "/", element: <Login /> },
       { path: "/forget-password", element: <ForgetPassword /> },
+      { path: "/users/reset_password_form", element: <ResetPassword /> },
 
       // Standalone KPI Dashboard (no layout, header, or sidebar)
       { path: "/kpi-dashboard", element: <KPIDashboard /> },
       { path: "/earning-history", element: <KPIDashboard /> },
       { path: "/tasks", element: <KPIDashboard /> },
       { path: "/team-leaderboard", element: <KPIDashboard /> },
+      { path: "/level-management", element: <KPIDashboard /> },
 
       // If TEST MODE, bypass all auth guards
       ...(TEST_MODE
@@ -278,6 +283,8 @@ const router = createHashRouter([
                   { path: "/custom-fields", element: <RouteGuard><CustomFields /></RouteGuard> },
                   // Crew Template
                   { path: "/crew-template", element: <RouteGuard><CrewTemplate /></RouteGuard> },
+                  { path: "/cg-pass-template", element: <RouteGuard><CGPassTemplate /></RouteGuard> },
+                  { path: "/vessel-registration-template", element: <RouteGuard><VesselRegistrationTemplate /></RouteGuard> },
                   // Job Status BE
                   { path: "/job-status", element: <RouteGuard><JobStatusBE /></RouteGuard> },
                   // Group Email BE
@@ -322,7 +329,7 @@ const router = createHashRouter([
                   { path: "/document-management", element: <RouteGuard><DocumentManagement /></RouteGuard> },
                   { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
                   { path: "/task-management", element: <RouteGuard><TaskManagement /></RouteGuard> },
-                  { path: "/task-checklist", element: <RouteGuard><TaskChecklist /></RouteGuard> },
+                  { path: "/task-roles", element: <RouteGuard><TaskRoles /></RouteGuard> },
                 ],
               },
             ],
@@ -330,6 +337,10 @@ const router = createHashRouter([
         ]),
     ],
   },
-]);
+  ],
+  {
+    basename: import.meta.env.BASE_URL.replace(/\/$/, ""),
+  }
+);
 
 export default router;

@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form';
 import { FiInfo, FiPlus, FiFilter } from 'react-icons/fi';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import './DashboardAddItemsModal.scss';
+import '../../design/scss/pages/workspaces/DashboardAddItemsModal.scss';
 
 function DashboardAddItemsModal({
   show,

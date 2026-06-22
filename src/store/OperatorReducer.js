@@ -10,6 +10,7 @@ const useOperatorReducer = create((set) => ({
   operatorDetail: null,
   isBeingUpdated: false,
   isDetailLoading: false,
+  isDeleteLoading: false,
   totalOperatorCount: 0,
 
   addOperator: async ({ formData, cb }) => {
@@ -79,6 +80,24 @@ const useOperatorReducer = create((set) => ({
       set({
         errorMessage: "Something went wrong updating the operator",
         isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
+  deleteOperator: async ({ operator_id, cb }) => {
+    try {
+      set({ isDeleteLoading: true });
+      const { data } = await operatorService.deleteOperator(operator_id);
+      set({ successMessage: data?.message, isDeleteLoading: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? "Taxi boat operator deleted successfully");
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: "Something went wrong deleting the operator",
+        isDeleteLoading: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }

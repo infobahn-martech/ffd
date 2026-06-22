@@ -1,5 +1,5 @@
 import React from 'react';
-import './TaskCompletionSpeedCard.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/TaskCompletionSpeedCard.scss';
 
 const ThreeDotsIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">

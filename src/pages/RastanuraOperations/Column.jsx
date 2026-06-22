@@ -4,9 +4,9 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "../KanbanBoard/components/cards/CardItem";
-import "../../design/css/Column.css";
+import "../../design/css/common/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
-import "./RTColumn.css";
+import "../../design/css/common/OperationsColumn.css";
 
 // Nested Column Component (for sub-columns within "In Progress")
 function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, columnHeight, onHeightChange }) {

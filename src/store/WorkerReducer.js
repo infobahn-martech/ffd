@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import Workerservice from '../services/workerService';
-import { downloadFile } from '../utils/utils';
+import { downloadFile } from '../shared/utils/utils';
 
 const useWorkerReducer = create((set) => ({
   isLoading: false,

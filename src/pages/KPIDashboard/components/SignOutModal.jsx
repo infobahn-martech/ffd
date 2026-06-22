@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiLogOut, FiX } from 'react-icons/fi';
 import CustomModal from '../../../components/CustomModal';
-import './SignOutModal.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/SignOutModal.scss';
 
 const SignOutModal = ({ show, onClose, onConfirm, isLoading }) => {
   const renderHeader = () => (

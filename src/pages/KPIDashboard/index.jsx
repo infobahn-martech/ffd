@@ -11,12 +11,25 @@ import TeamLeaderboard from './components/TeamLeaderboard';
 import ProfileModal from './components/ProfileModal';
 import SignOutModal from './components/SignOutModal';
 import useAuthReducer from '../../store/AuthReducer';
-import './KPIDashboard.scss';
+import useKPIDashboardReducer from '../../store/KPIDashboard';
+import { getItem } from '../../shared/helpers/localStorage';
+import '../../design/scss/pages/kpi-dashboard/KPIDashboard.scss';
+import LevelManagement from '../LevelManagement';
 
 const KPIDashboard = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const doLogout = useAuthReducer((state) => state.doLogout);
+    const userId = useAuthReducer((state) => state.authData?.userid) || getItem('userid');
+    const fetchUserKpiDashboard = useKPIDashboardReducer((state) => state.fetchUserKpiDashboard);
+    const fetchUserAssignedTasks = useKPIDashboardReducer((state) => state.fetchUserAssignedTasks);
+
+    useEffect(() => {
+        if (userId) {
+            fetchUserKpiDashboard(userId);
+            fetchUserAssignedTasks(userId);
+        }
+    }, [userId, fetchUserKpiDashboard, fetchUserAssignedTasks]);
 
     // Initialize activeMenu based on URL
     const getInitialMenu = () => {
@@ -29,6 +42,9 @@ const KPIDashboard = () => {
         }
         if (path === '/team-leaderboard') {
             return 'Team Leaderboard';
+        }
+        if (path === '/level-management') {
+            return 'Level Management';
         }
         return 'Dashboard';
     };
@@ -50,6 +66,8 @@ const KPIDashboard = () => {
             setActiveMenu('Team Leaderboard');
         } else if (path === '/kpi-dashboard') {
             setActiveMenu('Dashboard');
+        } else if (path === '/level-management') {
+            setActiveMenu('Level Management');
         }
     }, [location]);
 
@@ -61,6 +79,8 @@ const KPIDashboard = () => {
                 return <Tasks />;
             case 'Team Leaderboard':
                 return <TeamLeaderboard />;
+            case 'Level Management':
+                return <LevelManagement />;
             case 'Dashboard':
             default:
                 return (
@@ -89,6 +109,11 @@ const KPIDashboard = () => {
                 return [
                     { label: 'Dashboard', path: '/kpi-dashboard' },
                     { label: 'Team Leaderboard', path: null },
+                ];
+            case 'Level Management':
+                return [
+                    { label: 'Dashboard', path: '/kpi-dashboard' },
+                    { label: 'KPI Level Management', path: null },
                 ];
             case 'Dashboard':
             default:

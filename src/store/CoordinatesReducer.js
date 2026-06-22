@@ -9,6 +9,7 @@ const useCoordinatesReducer = create((set) => ({
     coordinates: [],
     coordinateTypes: [],
     isBeingUpdated: false,
+    isDeleteLoading: false,
     totalCount: 0,
     addCoordinates: async ({ formData, cb }) => {
         try {
@@ -68,20 +69,20 @@ const useCoordinatesReducer = create((set) => ({
         }
     },
     deleteCoordinates: async (payload) => {
-        const { coordinates_id, coordinate_type_id, cb } = payload || {};
-        const id = coordinates_id ?? coordinate_type_id;
+        const { coordinate_type_id, cb } = payload || {};
+        if (!coordinate_type_id) return;
         try {
-            set({ isBeingUpdated: true });
-            const { data } = await coordinatesService.deleteCoordinates(id);
-            set({ successMessage: data?.message, isBeingUpdated: false });
+            set({ isDeleteLoading: true });
+            const { data } = await coordinatesService.deleteCoordinates(coordinate_type_id);
+            set({ successMessage: data?.message, isDeleteLoading: false });
             const { success } = useAlertReducer.getState();
-            success(data?.message ?? 'Coordinates deleted successfully');
+            success(data?.message ?? 'Coordinate type and its coordinates deleted successfully');
             cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({
                 errorMessage: 'Something went wrong deleting the coordinates',
-                isBeingUpdated: false,
+                isDeleteLoading: false,
             });
             error(err?.response?.data?.message ?? err.message);
         }

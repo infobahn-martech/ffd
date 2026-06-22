@@ -4,11 +4,11 @@ import 'react-phone-input-2/lib/bootstrap.css';
 import { FiCamera } from 'react-icons/fi';
 import CustomModal from '../../components/CustomModal';
 import authService from '../../services/authService';
-import { getItem } from '../../helpers/localStorage';
+import { getItem } from '../../shared/helpers/localStorage';
 import '../../design/scss/profile.scss';
 import '../../design/scss/prospect-modal.scss';
 import '../../design/scss/form-designs.scss';
-import './MyAccountsModal.scss';
+import '../../design/scss/structure/header/MyAccountsModal.scss';
 
 function resolveUserImageUrl(image) {
   if (!image || typeof image !== 'string') return null;
@@ -57,7 +57,10 @@ function MyAccountsModal({ show, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (!show) return undefined;
+    if (!show) {
+      setIsEditing(false);
+      return undefined;
+    }
 
     let cancelled = false;
 
@@ -378,7 +381,7 @@ function MyAccountsModal({ show, onClose }) {
                 <>
                   <button
                     type="button"
-                    className="btn-common close"
+                    className="btn-common btn-my-acct-cancel"
                     onClick={() => {
                       setIsEditing(false);
                       onClose();
@@ -428,7 +431,7 @@ function MyAccountsModal({ show, onClose }) {
                 <>
                   <button
                     type="button"
-                    className="btn-common close"
+                    className="btn-common btn-my-acct-cancel"
                     onClick={handleCancel}
                     disabled={profileEditLoader}
                     style={{
@@ -493,7 +496,7 @@ function MyAccountsModal({ show, onClose }) {
 
   return (
     <CustomModal
-      className="modal fade show modal_backdrop custom-mod"
+      className="modal_backdrop custom-mod"
       dialgName="modal-dialog modal-dialog-centered"
       createModal
       show={show}

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanbanConfig";
+import { KANBAN_DND_DISABLED } from "../../../../shared/constants/kanbanConfig";
 import ColumnHeader from "./ColumnHeader";
 import SwimlaneColumnCell from "./SwimlaneColumnCell";
 import {
@@ -8,7 +8,7 @@ import {
   getSwimlaneColumnCards,
 } from "../../utils/columnHelpers";
 import { BOARD_COLUMN_GAP_PX, getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
-import "../../styles/swimlaneBoard.scss";
+import "../../../../design/scss/pages/kanban-board/swimlaneBoard.scss";
 
 export default function WorkflowColumns({
   workflow,

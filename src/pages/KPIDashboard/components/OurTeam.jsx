@@ -4,7 +4,7 @@ import BlueColorIcon from '../../../assets/images/BlueColorIcon.png';
 import VoilentColorIcon from '../../../assets/images/VoilentColorIcon.png';
 import GreenColorIcon from '../../../assets/images/GreenColorIcon.png';
 import PurpleColorIcon from '../../../assets/images/PurpleColorIcon.png';
-import './OurTeam.scss';
+import '../../../design/scss/pages/kpi-dashboard/components/OurTeam.scss';
 
 const OurTeam = () => {
     const teamData = [

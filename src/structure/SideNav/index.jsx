@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
@@ -12,6 +12,7 @@ import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
 import AddDashboardModal from './components/AddDashboardModal';
 import SelectWorkflowModal from './components/SelectWorkflowModal';
+const CallTypeBuilderModal = lazy(() => import('../../pages/CallType/CallTypeBuilderModal'));
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import OnStationModal from '../Header/OnStationModal';
@@ -34,33 +35,39 @@ import billingIcon from '../../assets/images/icon-billing.svg';
 import usersIcon from '../../assets/images/icon-users.svg';
 import configIcon from '../../assets/images/icon-config.svg';
 
-import useWindowSize from '../../hooks/useWindowSize';
+import useWindowSize from '../../shared/hooks/useWindowSize';
 import {
   buildKanbanAddCardEventDetail,
   getSwimlaneOptionsFromWorkflow,
   resolveSidebarAddCardAction,
-} from '../../helpers/kanbanAddWorkflowSelection';
+} from '../../shared/helpers/kanbanAddWorkflowSelection';
 
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin } from 'react-icons/fi';
-import { useLayoutView } from '../../context/LayoutViewContext';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin, FiLayers } from 'react-icons/fi';
+import TaskCardModal from '../../pages/TaskCard';
+import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
+import useCommonReducer from '../../store/CommonReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 import { ROUTE_PATHS } from '../../router/paths';
 import {
   hasKanbanFullSidebar,
   isRestrictedBoardUser,
   RESTRICTED_BOARD_HOME_PATH,
-} from '../../helpers/restrictedBoardUser';
+} from '../../shared/helpers/restrictedBoardUser';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
   const createDashboard = useWorkSpaceReducer((s) => s.createDashboard);
+  const callTypes = useCommonReducer((s) => s.callTypes);
+  const ports = useCommonReducer((s) => s.ports);
+  const getCallTypes = useCommonReducer((s) => s.getCallTypes);
+  const getPorts = useCommonReducer((s) => s.getPorts);
 
   const isKanbanBoard =
     pathname === '/kanban-board/operator' ||
@@ -105,6 +112,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }
       icons.push(
         { id: 10, icon: FiMapPin, label: 'On Station' },
+        { id: 11, icon: FiLayers, label: 'Task' },
         { id: 7, icon: FiMail, label: 'Outlook' },
         { id: 8, icon: FiSettings, label: 'Settings' }
       );
@@ -114,7 +122,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     if (showEditWorkflowSidebarIcon) {
       icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
     }
-    icons.push({ id: 7, icon: FiMail, label: 'Outlook' });
+    icons.push(
+      { id: 11, icon: FiLayers, label: 'Task' },
+      { id: 7, icon: FiMail, label: 'Outlook' }
+    );
     return icons;
   }, [showEditWorkflowSidebarIcon, kanbanFullSidebar]);
 
@@ -143,6 +154,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     { label: 'Stickers', modal: 'stickers' },
     { label: 'Tags', modal: 'tags' },
     { label: 'Types', modal: 'types' },
+    { label: 'Templates', modal: 'templates' },
   ];
 
   // Select icons based on route (restricted roles: only Workspaces + fixed board)
@@ -169,9 +181,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
   const [showOnStationModal, setShowOnStationModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
+  const [showSubTaskModal, setShowSubTaskModal] = useState(false);
+  const [showCallTypeBuilderModal, setShowCallTypeBuilderModal] = useState(false);
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
   const [selectedSwimlaneId, setSelectedSwimlaneId] = useState(null);
+  const [selectedCallTypeId, setSelectedCallTypeId] = useState(null);
+  const [selectedPortId, setSelectedPortId] = useState(null);
   const [addModalWorkflows, setAddModalWorkflows] = useState([]);
   const [swimlanePhaseWorkflow, setSwimlanePhaseWorkflow] = useState(null);
 
@@ -185,12 +201,34 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const workflowOptionsForModal = useMemo(() => {
     return (sidebarWorkflows || [])
       .filter((workflow) => workflow?.role_id === null)
+      .filter((workflow) => {
+        const name = workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? '';
+        return name !== 'Task Workflow';
+      })
       .map((workflow) => ({
         id: workflow?.workflow_id ?? workflow?.id,
         name: workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? 'Workflow',
         description: workflow?.description,
       }));
   }, [sidebarWorkflows]);
+
+  const callTypeOptionsForModal = useMemo(
+    () =>
+      (callTypes || []).map((callType) => ({
+        id: callType?.call_type_id ?? callType?.id,
+        name: callType?.call_type ?? callType?.callType ?? callType?.name ?? String(callType?.call_type_id ?? callType?.id ?? ''),
+      })),
+    [callTypes]
+  );
+
+  const portOptionsForModal = useMemo(
+    () =>
+      (ports || []).map((port) => ({
+        id: port?.port_id ?? port?.id,
+        name: port?.port ?? port?.name ?? port?.port_name ?? String(port?.port_id ?? port?.id ?? ''),
+      })),
+    [ports]
+  );
 
   const swimlaneContextDisplayName =
     swimlanePhaseWorkflow?.name ?? swimlanePhaseWorkflow?.title ?? '';
@@ -201,7 +239,15 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     setSwimlanePhaseWorkflow(null);
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
+    setSelectedCallTypeId(null);
+    setSelectedPortId(null);
   }, []);
+
+  useEffect(() => {
+    if (!showSelectWorkflowModal) return;
+    getCallTypes();
+    getPorts({ params: { limit: 1000 } });
+  }, [showSelectWorkflowModal, getCallTypes, getPorts]);
 
   const closeSelectWorkflowModal = useCallback(() => {
     pendingAddCardFromWorkflowRef.current = null;
@@ -225,6 +271,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     }
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
+    setSelectedCallTypeId(null);
+    setSelectedPortId(null);
     setShowSelectWorkflowModal(true);
   }, [sidebarWorkflows]);
 
@@ -281,7 +329,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       window.dispatchEvent(new CustomEvent('kanban:add-card', { detail: d }));
     });
     resetAddModalState();
-  }, [resetAddModalState]);
+  }, [resetAddModalState, navigate]);
 
   const [expand, setExpand] = useState(false);
 
@@ -307,35 +355,74 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       ],
       icon: usersIcon, // User management-specific icon
     },
-    // // ✅ Core Operations
-    // {
-    //   menu: 'Port Management',
-    //   isDefaultMenu: true,
-    //   to: '/port-management',
-    //   icon: portIcon, // Single human figure with document/badge
-    //   hasPermission: true,
-    // },
     {
-      menu: 'Crew Management',
+      menu: 'Vessel Management',
       isDefaultMenu: true,
-      to: '/crew-management',
-      icon: crewIcon, // Crew-specific icon
       hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Vessel', to: '/vessel-onboarding', hasPermission: true },
+        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
+        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
+        { menu: 'Tug Type', to: '/tug-type', hasPermission: true },
+      ],
+      icon: billingIcon, // Billing-specific icon
     },
     {
-      menu: 'MWP History',
+      menu: 'Entity Management',
       isDefaultMenu: true,
-      to: ROUTE_PATHS.MWP_HISTORY,
-      icon: crewIcon, // Crew-specific icon
       hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
+        { menu: 'Group Email', to: '/group-email', hasPermission: true },
+        { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
+        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
+        { menu: 'Crew Management', to: '/crew-management', hasPermission: true },
+        { menu: 'MWP History', to: "/mwp-history", hasPermission: true },
+        // { menu: 'Job Status', to: '/job-status', hasPermission: true },
+      ],
+      icon: billingIcon, // Billing-specific icon
     },
-    // {
-    //   menu: 'Custom Management',
-    //   isDefaultMenu: true,
-    //   to: '/custom-inspection',
-    //   icon: inspectionIcon, // Inspection-specific icon
-    //   hasPermission: true,
-    // },
+    {
+      menu: 'Operations Configuration',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Report Templates', to: '/appointment-acceptance', hasPermission: true },
+        // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
+        { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
+        { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
+        { menu: 'CG Pass Template', to: '/cg-pass-template', hasPermission: true },
+        { menu: 'Vessel Reg. Template', to: '/vessel-registration-template', hasPermission: true },
+        // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
+      ],
+      icon: configIcon, // Configuration-specific icon
+    },
+    {
+      menu: 'Time Object Management',
+      isDefaultMenu: true,
+      icon: materialIcon, // Material-specific icon
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
+        { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
+      ],
+    },
+    {
+      menu: 'Checklist Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Task Management', to: '/task-management', hasPermission: true },
+        { menu: 'Task Roles', to: '/task-roles', hasPermission: true },
+        { menu: 'Checklist', to: '/check-list', hasPermission: true },
+      ],
+      icon: workerIcon, // Two stylized human figures
+    },
     {
       menu: 'Launch Hire Management',
       isDefaultMenu: true,
@@ -349,20 +436,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         // { menu: 'Location', to: '/location', hasPermission: true },
       ],
       icon: workerIcon, // Two stylized human figures
-    },
-    {
-      menu: 'Transport Management',
-      isDefaultMenu: true,
-      icon: settingsIcon, // Gear/cogwheel icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
-        { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
-        { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
-        { menu: 'Transport Company', to: '/transport-company', hasPermission: true },
-
-      ],
     },
     {
       menu: 'Hotel Management',
@@ -382,34 +455,37 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Hospital Services', to: '/hospital-services', hasPermission: true },
       ],
     },
-    // {
-    //   menu: 'Third Party Management',
-    //   isDefaultMenu: true,
-    //   hasPermission: true,
-    //   isOpen: false,
-    //   subMenus: [
-    //     { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
-    //     { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
-    //     { menu: 'Third Party Services', to: '/third-party-service', hasPermission: true },
-    //   ],
-    //   icon: workerIcon, // Two stylized human figures
-    // },
     {
-      menu: 'Third Party Management',
+      menu: 'Transport Management',
+      isDefaultMenu: true,
+      icon: settingsIcon, // Gear/cogwheel icon
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
+        { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
+        { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
+        { menu: 'Transport Company', to: '/transport-company', hasPermission: true },
+
+      ],
+    },
+    {
+      menu: 'Third Party Service',
       isDefaultMenu: true,
       to: '/third-party-service',
       icon: workerIcon, // Third Party Services-specific icon
       hasPermission: true,
     },
     {
-      menu: 'Waste Management',
+      menu: 'Card Management',
       isDefaultMenu: true,
+      icon: configIcon,
       hasPermission: true,
       isOpen: false,
-      subMenus: [{ menu: 'Waste Types', to: '/waste-types', hasPermission: true }],
-      icon: wasteIcon, // Waste-specific icon
+      subMenus: [
+        { menu: 'Templates', to: '/call-type', hasPermission: true },
+      ],
     },
-    // ✅ Materials & Logistics
     {
       menu: 'Material Management',
       isDefaultMenu: true,
@@ -418,84 +494,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       isOpen: false,
       subMenus: [
         // { menu: 'Material Types', to: '/material-type', hasPermission: true },
-        { menu: 'Packing Types', to: '/packing-type', hasPermission: true },
+        { menu: 'Waste Types', to: '/waste-types', hasPermission: true },
+        { menu: 'Packaging Types', to: '/packing-type', hasPermission: true },
         { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
       ],
-    },
-    {
-      menu: 'Time Object Management',
-      isDefaultMenu: true,
-      icon: materialIcon, // Material-specific icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
-        { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
-      ],
-    },
-    {
-      menu: 'Document Management',
-      isDefaultMenu: true,
-      icon: materialIcon, // Material-specific icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Document Management', to: '/document-management', hasPermission: true },
-        { menu: 'Document Checklist', to: '/document-checklist', hasPermission: true },
-      ],
-    },
-    {
-      menu: 'Task Management',
-      isDefaultMenu: true,
-      icon: materialIcon, // Material-specific icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Task Management', to: '/task-management', hasPermission: true },
-        { menu: 'Task Checklist', to: '/task-checklist', hasPermission: true },
-      ],
-    },
-    // ✅ Finance
-    {
-      menu: 'Entity Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
-        { menu: 'Group Email', to: '/group-email', hasPermission: true },
-        { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
-        { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
-        // { menu: 'Job Status', to: '/job-status', hasPermission: true },
-        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
-      ],
-      icon: billingIcon, // Billing-specific icon
-    },
-    {
-      menu: 'Operations Configuration',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Report Templates', to: '/appointment-acceptance', hasPermission: true },
-        // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
-        { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
-        { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
-        // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
-      ],
-      icon: configIcon, // Configuration-specific icon
-    },
-    {
-      menu: 'Checklist Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
-        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
-        { menu: 'Checklist', to: '/check-list', hasPermission: true },
-      ],
-      icon: workerIcon, // Two stylized human figures
     },
     {
       menu: 'KPI Dashboard',
@@ -905,6 +907,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       if (showTagsModal) setShowTagsModal(false);
       if (showTypesModal) setShowTypesModal(false);
       if (showAddDashboardModal) setShowAddDashboardModal(false);
+      if (showSubTaskModal && item.label !== 'Task') setShowSubTaskModal(false);
       if (item.label !== 'Add') {
         closeSelectWorkflowModal();
       }
@@ -913,6 +916,18 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
       if (item.label === 'Add') {
         beginSidebarAddCard();
+      }
+
+      if (item.label === 'Task') {
+        closeSelectWorkflowModal();
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
+        setShowSubTaskModal(true);
+        setActiveKanbanIcon(item.id);
+        return;
       }
 
       if (item.label === 'Add new dashboard') {
@@ -984,11 +999,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       setShowStickersModal(false);
       setShowTagsModal(false);
       setShowTypesModal(false);
+      setShowCallTypeBuilderModal(false);
 
       if (item.modal === 'blockers') setShowBlockersModal(true);
       if (item.modal === 'stickers') setShowStickersModal(true);
       if (item.modal === 'tags') setShowTagsModal(true);
       if (item.modal === 'types') setShowTypesModal(true);
+      if (item.modal === 'templates') setShowCallTypeBuilderModal(true);
     };
 
     return (
@@ -1012,7 +1029,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
                 (item.label === 'On Station' && showOnStationModal) ||
                 (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
                 (item.label === 'Add new dashboard' && showAddDashboardModal) ||
-                (item.label === 'Add' && showSelectWorkflowModal);
+                (item.label === 'Add' && showSelectWorkflowModal) ||
+                (item.label === 'Task' && showSubTaskModal);
 
               return (
                 <div key={item.id} style={{ position: 'relative' }}>
@@ -1138,9 +1156,27 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           selectedSwimlaneId={addModalStep === 'swimlane' ? selectedSwimlaneId : null}
           onSelectWorkflowId={setSelectedWorkflowId}
           onSelectSwimlaneId={setSelectedSwimlaneId}
+          callTypes={callTypeOptionsForModal}
+          ports={portOptionsForModal}
+          selectedCallTypeId={selectedCallTypeId}
+          selectedPortId={selectedPortId}
+          onSelectCallTypeId={setSelectedCallTypeId}
+          onSelectPortId={setSelectedPortId}
           onClose={closeSelectWorkflowModal}
           onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}
+        />
+        {showCallTypeBuilderModal && (
+          <Suspense fallback={null}>
+            <CallTypeBuilderModal
+              show={showCallTypeBuilderModal}
+              onClose={() => setShowCallTypeBuilderModal(false)}
+            />
+          </Suspense>
+        )}
+        <TaskCardModal
+          show={showSubTaskModal}
+          onClose={() => setShowSubTaskModal(false)}
         />
       </>
     );
@@ -1200,7 +1236,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       </div>
 
       {/* My Accounts Modal */}
-      <MyAccountsModal show={showMyAccountsModal} onClose={() => setShowMyAccountsModal(false)} />
+      {!!showMyAccountsModal && (
+        <MyAccountsModal show={showMyAccountsModal} onClose={() => setShowMyAccountsModal(false)} />
+      )}
     </>
   );
 }

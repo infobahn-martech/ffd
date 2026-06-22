@@ -62,11 +62,12 @@ const Vessel = () => {
   });
 
   const [showVesselModal, setShowVesselModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedVesselForDelete, setSelectedVesselForDelete] = useState(null);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
+  const [selectedVessel, setSelectedVessel] = useState(null);
   const [showViewVesselModal, setShowViewVesselModal] = useState(false);
 
-  const { getVessels, vessels, totalCount, isLoading } = useVesselReducer(
+  const { getVessels, vessels, totalCount, isLoading, archiveVessel, isBeingUpdated } = useVesselReducer(
     (state) => state
   );
 
@@ -126,9 +127,6 @@ const Vessel = () => {
         sort: true,
         thclass: "tb-head",
         width: "220",
-        cell: ({ row }) => (
-          <EllipsisText value={row.vessel_name} limit={10} />
-        ),
       },
       {
         name: "Unique ID",
@@ -151,34 +149,34 @@ const Vessel = () => {
         thclass: "tb-head",
         width: "200",
       },
-      {
-        name: "Owner",
-        selector: "vessel_owner",
-        sort: true,
-        thclass: "tb-head",
-        width: "180",
-      },
-      {
-        name: "Manager",
-        selector: "vessel_manager",
-        sort: true,
-        thclass: "tb-head",
-        width: "180",
-      },
-      {
-        name: "Principal",
-        selector: "vessel_principal",
-        sort: true,
-        thclass: "tb-head",
-        width: "180",
-      },
-      {
-        name: "Flag",
-        selector: "flag_state",
-        sort: true,
-        thclass: "tb-head",
-        width: "150",
-      },
+      // {
+      //   name: "Owner",
+      //   selector: "vessel_owner",
+      //   sort: true,
+      //   thclass: "tb-head",
+      //   width: "180",
+      // },
+      // {
+      //   name: "Manager",
+      //   selector: "vessel_manager",
+      //   sort: true,
+      //   thclass: "tb-head",
+      //   width: "180",
+      // },
+      // {
+      //   name: "Principal",
+      //   selector: "vessel_principal",
+      //   sort: true,
+      //   thclass: "tb-head",
+      //   width: "180",
+      // },
+      // {
+      //   name: "Flag",
+      //   selector: "flag_state",
+      //   sort: true,
+      //   thclass: "tb-head",
+      //   width: "150",
+      // },
       {
         name: "Gross Tonnage",
         selector: "gross_tonnage",
@@ -194,25 +192,30 @@ const Vessel = () => {
       //   width: "100",
       // },
       {
-        name: <EllipsisHeader label="Days to MWP expiry" limit={8} />,
+        name: <EllipsisHeader label="Days to MWP expiry" limit={12} />,
         selector: "days_to_expiry",
         sort: true,
         thclass: "tb-head",
         width: "160",
+      },
+      {
+        name: "Status",
+        selector: "status",
+        thclass: "tb-head",
+        width: "130",
         cell: ({ row }) => (
-          <EllipsisText value={row.days_to_expiry} limit={8} />
+          <span className={row?.status === '2' ? 'status-pending' : 'status-active'}>
+            {row?.status === '2' ? 'Archive' : 'Active'}
+          </span>
         ),
       },
       {
         name: "Actions",
         selector: "links_info",
         thclass: "tb-head",
-        // onViewClick: (row) => setShowViewVesselModal(row),
         onEditClick: (row) => setShowVesselModal(row),
-        onDeleteClick: (row) => {
-          setSelectedVesselForDelete(row);
-          setShowDeleteModal(true);
-        },
+        onArchiveClick: (row) => { setSelectedVessel(row); setShowArchiveModal(true); },
+        onUnarchiveClick: (row) => { setSelectedVessel(row); setShowUnarchiveModal(true); },
         cell: RenderAction,
         width: "180",
       },
@@ -299,22 +302,31 @@ const Vessel = () => {
             />
           )}
 
-          {!!showDeleteModal && (
+          {!!showArchiveModal && (
             <DeleteConfirmationModal
-              show={showDeleteModal}
-              onCancel={() => {
-                setShowDeleteModal(false);
-                setSelectedVesselForDelete(null);
-              }}
+              show={showArchiveModal}
+              onCancel={() => { setShowArchiveModal(false); setSelectedVessel(null); }}
               onConfirm={() => {
-                console.log("Delete vessel:", selectedVesselForDelete);
-                setShowDeleteModal(false);
-                setSelectedVesselForDelete(null);
+                archiveVessel({
+                  vesselId: selectedVessel?.vessel_id,
+                  cb: () => {
+                    setShowArchiveModal(false);
+                    setSelectedVessel(null);
+                  },
+                });
               }}
-              deleteText={`Are you sure you want to delete this vessel ${selectedVesselForDelete?.vessel_name ??
-                selectedVesselForDelete?.vesselName ??
-                ""
-                }?`}
+              deleteText={`Are you sure you want to archive "${selectedVessel?.vessel_name ?? 'this vessel'}"?`}
+              isLoading={isBeingUpdated}
+            />
+          )}
+
+          {!!showUnarchiveModal && (
+            <DeleteConfirmationModal
+              show={showUnarchiveModal}
+              onCancel={() => { setShowUnarchiveModal(false); setSelectedVessel(null); }}
+              onConfirm={() => { setShowUnarchiveModal(false); setSelectedVessel(null); }}
+              deleteText={`Are you sure you want to unarchive "${selectedVessel?.vessel_name ?? 'this vessel'}"?`}
+              isLoading={isBeingUpdated}
             />
           )}
         </div>

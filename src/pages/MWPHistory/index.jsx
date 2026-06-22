@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import useMWPHistoryReducer from "../../store/MWPHistoryReducer";
-import "./Crew.scss";
+import "../../design/scss/pages/mwp-history/Crew.scss";
 
 const MWPHistory = () => {
     const { fetchAllMWPHistory, mwpHistory, vessel, isLoadingGet } =

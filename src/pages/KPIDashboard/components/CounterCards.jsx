@@ -1,5 +1,6 @@
 import React from 'react';
-import './CounterCards.scss';
+import useKPIDashboardReducer from '../../../store/KPIDashboard';
+import '../../../design/scss/pages/kpi-dashboard/components/CounterCards.scss';
 
 const CounterIcon1 = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" fill="none">
@@ -34,35 +35,42 @@ const CounterIcon4 = () => (
 );
 
 const CounterCards = () => {
+  const {
+    points_last_24h,
+    completed_tasks,
+    pending_tasks,
+    total_points,
+  } = useKPIDashboardReducer((state) => state.dashboardData);
+
   const counters = [
     {
       id: 1,
       title: 'Points within last 24h',
-      value: '246',
-      change: '+15%',
-      isPositive: true,
+      value: String(points_last_24h ?? 0),
+      change: null,
+      isPositive: null,
       icon: CounterIcon1,
     },
     {
       id: 2,
       title: 'Completed Tasks',
-      value: '14',
-      change: '+5%',
-      isPositive: true,
+      value: String(completed_tasks ?? 0),
+      change: null,
+      isPositive: null,
       icon: CounterIcon2,
     },
     {
       id: 3,
       title: 'Pending Tasks',
-      value: '11',
-      change: '-14%',
-      isPositive: false,
+      value: String(pending_tasks ?? 0),
+      change: null,
+      isPositive: null,
       icon: CounterIcon3,
     },
     {
       id: 4,
       title: 'Total Points',
-      value: '3647',
+      value: String(total_points ?? 0),
       change: null,
       isPositive: null,
       icon: CounterIcon4,

@@ -4,7 +4,7 @@ import CustomTable from '../../components/customTable';
 import { Tooltip } from 'react-tooltip';
 import { FiX, FiChevronLeft, FiChevronRight, FiSearch } from 'react-icons/fi';
 import '../../design/scss/common.scss';
-import './DocumentsModal.scss';
+import '../../design/scss/structure/header/DocumentsModal.scss';
 
 // Dummy data for documents
 const initialDocuments = [

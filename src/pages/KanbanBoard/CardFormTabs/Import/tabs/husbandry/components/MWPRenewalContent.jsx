@@ -1,0 +1,267 @@
+import { useState, useRef } from "react";
+import PropTypes from "prop-types";
+import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
+import { notify } from "../../../../../../../components/Toaster";
+import { FormSection, FormField, ReactQuillEditor } from "./Husbandry.components";
+import AttachmentsList from "../../appointment/AttachmentsList";
+import CrewPassRequestsTable from "./CrewPassRequestsTable";
+
+const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
+const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
+const DOCUMENTS_ACCEPT_ATTR = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
+
+const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingEmail, setIsDraggingEmail] = useState(false);
+  const fileInputRef = useRef(null);
+  const requestEmailInputRef = useRef(null);
+
+  const fileToAttachment = (file) => ({
+    name: file.name,
+    file,
+    size: file.size,
+    type: file.type,
+  });
+
+  const normalizeAttachmentList = (items) =>
+    (items || []).map((item) =>
+      item && typeof item === "object" && "file" in item && item.file instanceof File
+        ? item
+        : item instanceof File
+          ? fileToAttachment(item)
+          : item
+    );
+
+  const filterRequestEmailFiles = (files) =>
+    Array.from(files || []).filter((f) => REQUEST_EMAIL_EXT_RE.test(f.name));
+
+  const handleRequestEmailDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(true);
+  };
+
+  const handleRequestEmailDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+  };
+
+  const handleRequestEmailDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleRequestEmailDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+    const raw = Array.from(e.dataTransfer.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+      return;
+    }
+    handleChange("mwpRenewalRequestEmailDocuments")({
+      target: { value: [fileToAttachment(allowed[0])] },
+    });
+  };
+
+  const handleRequestEmailFileInputChange = (e) => {
+    const raw = Array.from(e.target.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+    } else {
+      handleChange("mwpRenewalRequestEmailDocuments")({
+        target: { value: [fileToAttachment(allowed[0])] },
+      });
+    }
+    if (requestEmailInputRef.current) {
+      requestEmailInputRef.current.value = "";
+    }
+  };
+
+  const handleRequestEmailRemoveAttachment = () => {
+    handleChange("mwpRenewalRequestEmailDocuments")({ target: { value: [] } });
+  };
+
+  const handleDocumentsDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDocumentsDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDocumentsDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const current = normalizeAttachmentList(formValues.mwpRenewalDocuments || []);
+      const added = files.map(fileToAttachment);
+      handleChange("mwpRenewalDocuments")({ target: { value: [...current, ...added] } });
+    }
+  };
+
+  const handleDocumentsFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const current = normalizeAttachmentList(formValues.mwpRenewalDocuments || []);
+      const added = files.map(fileToAttachment);
+      handleChange("mwpRenewalDocuments")({ target: { value: [...current, ...added] } });
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDocumentsRemoveAttachment = (index) => {
+    const current = normalizeAttachmentList(formValues.mwpRenewalDocuments || []);
+    handleChange("mwpRenewalDocuments")({
+      target: { value: current.filter((_, i) => i !== index) },
+    });
+  };
+
+  const handleSave = () => {
+    console.log("Saving MWP Renewal data:", {
+      mwpRenewalExpiryDate: formValues.mwpRenewalExpiryDate,
+      mwpRenewalRequestEmailDocuments: formValues.mwpRenewalRequestEmailDocuments,
+      mwpRenewalDocuments: formValues.mwpRenewalDocuments,
+      mwpRenewalDescription: formValues.mwpRenewalDescription,
+    });
+  };
+
+  const requestEmailAttachments = normalizeAttachmentList(
+    formValues.mwpRenewalRequestEmailDocuments || []
+  );
+  const documentsAttachments = normalizeAttachmentList(formValues.mwpRenewalDocuments || []);
+
+  return (
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <FormSection icon={GroupSettingsIcon} title="">
+        <div className="pre-arrival-form mwp-renewal-form">
+          <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
+            <div className="general-info-left crew-pass-premium-left">
+              <div className="crew-pass-request-details-card">
+                <div className="crew-pass-request-details-card__header">
+                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
+                </div>
+                <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
+                  <FormField label="Expiry Date">
+                    <div className="cf-input date-time-row">
+                      <input
+                        type="date"
+                        value={formValues.mwpRenewalExpiryDate || ""}
+                        onChange={handleChange("mwpRenewalExpiryDate")}
+                        placeholder="Select expiry date"
+                      />
+                    </div>
+                  </FormField>
+
+                  <FormField label="Request Email">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={requestEmailAttachments}
+                        onAdd={() => {}}
+                        onRemove={handleRequestEmailRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingEmail}
+                        onDragEnter={handleRequestEmailDragEnter}
+                        onDragLeave={handleRequestEmailDragLeave}
+                        onDragOver={handleRequestEmailDragOver}
+                        onDrop={handleRequestEmailDrop}
+                        fileInputRef={requestEmailInputRef}
+                        onFileInputChange={handleRequestEmailFileInputChange}
+                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                        multiple={false}
+                      />
+                    </div>
+                  </FormField>
+
+                  <FormField label="MWP Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={documentsAttachments}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDragging}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={fileInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                        accept={DOCUMENTS_ACCEPT_ATTR}
+                        multiple
+                      />
+                    </div>
+                  </FormField>
+
+                  <div className="cgpass-remarks">
+                    <FormField label="Remarks">
+                      <ReactQuillEditor
+                        value={formValues?.mwpRenewalDescription || ""}
+                        onChange={handleChange("mwpRenewalDescription")}
+                        placeholder="Enter remarks..."
+                        name="mwpRenewalDescription"
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="form-save-button-wrapper cgpass-save-footer">
+                    <button type="button" className="form-save-button" onClick={handleSave}>
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="general-info-right crew-pass-requests-sidebar">
+              <CrewPassRequestsTable
+                title="MWP Renewal Requests"
+                requests={[]}
+                loading={false}
+                passType="MWP"
+                emptyMessage="No renewal requests found"
+              />
+            </div>
+          </div>
+        </div>
+      </FormSection>
+    </div>
+  );
+};
+
+MWPRenewalContent.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+};
+
+export default MWPRenewalContent;

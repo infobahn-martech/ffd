@@ -225,11 +225,41 @@ input#selectedFile {
 }
 
 .modal-title {
-
   letter-spacing: 0.1px;
   color: #00368c;
   font-size: 20px;
   font-weight: 600;
+}
+
+body .material-management-modal .modal-content {
+  max-height: calc(100vh - 3.5rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+body .material-management-modal .modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #00368c;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #002570;
+  }
+  scrollbar-width: thin;
+  scrollbar-color: #00368c #f1f1f1;
 }
 
 .logout-modal {
@@ -278,6 +308,37 @@ body .role-modal-sm.transport-company-modal .modal-dialog.transport-company-moda
 .role-modal-sm .modal-content {
   border-radius: 16px;
   padding: 20px;
+}
+
+.role-modal-sm {
+  .form-floating.desig-inp {
+    border-color: #e2e2ea;
+  }
+
+  .cf-multi-select-email-input {
+    min-height: 50px;
+    height: 50px;
+    box-sizing: border-box;
+  }
+}
+
+/* Fleet Add/Edit Modal - compact width, override prospect-modal.scss's 1231px default */
+body .fleet-modal-sm .modal-dialog {
+  max-width: 600px !important;
+}
+
+.fleet-modal-sm .modal-content {
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* Operator (PremiumSelect, .phone-wrapper) defaults to 40px while other fields are 50px - match heights */
+.fleet-modal-sm {
+  .cf-multi-select-email-input {
+    min-height: 50px;
+    height: 50px;
+    box-sizing: border-box;
+  }
 }
 
 /* Stage Time Mapping — wide layout for dropdowns + time-object list */
@@ -476,4 +537,54 @@ body .modal.show {
 body .modal.show .modal-dialog {
   z-index: 1301 !important;
   position: relative;
+}
+
+/* CG Pass Template and Vessel Registration Template modals */
+.appointment-acceptance-modal-lg {
+  .phone-wrapper .cf-multi-select-email-input {
+    min-height: 46px;
+    height: 46px;
+    box-sizing: border-box;
+  }
+
+  .phone-wrapper .form-control {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e2e2ea;
+    font-size: 13px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.is-invalid {
+      border-color: #dc3545;
+    }
+  }
+
+  .lead-form .form-control {
+    font-size: 13px;
+  }
+
+  .lead-form .form-control::placeholder {
+    font-size: 13px;
+  }
+
+  .cf-multi-select-placeholder,
+  .cf-multi-select-selected-value {
+    font-size: 13px;
+  }
+
+  .ql-editor.ql-blank::before {
+    font-size: 13px;
+  }
 }

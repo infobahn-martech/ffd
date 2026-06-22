@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileIconKPI from '../../../assets/images/ProfileIconKPI.png';
-import './HeaderBar.scss';
+import useKPIDashboardReducer from '../../../store/KPIDashboard';
+import '../../../design/scss/pages/kpi-dashboard/components/HeaderBar.scss';
 
 const StarIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="33" viewBox="0 0 36 33" fill="none">
@@ -21,12 +22,21 @@ const HamburgerIcon = () => (
   </svg>
 );
 
+const getProgressPercentage = (totalPoints, pointsToNextLevel) => {
+  if (pointsToNextLevel == null || pointsToNextLevel <= 0) return 0;
+  const earned = totalPoints ?? 0;
+  const total = earned + pointsToNextLevel;
+  return total > 0 ? Math.round((earned / total) * 100) : 0;
+};
+
 const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard', onMobileMenuToggle }) => {
   const navigate = useNavigate();
-  const pointsLeft = 200;
-  const currentLevel = 3;
-  const nextLevel = 4;
-  const progressPercentage = 60; // 60% filled
+  const dashboardData = useKPIDashboardReducer((state) => state.dashboardData);
+  const { user, current_level, next_level, points_to_next_level, total_points } = dashboardData;
+  const userName = user?.name ?? 'User';
+  const avatarUrl = user?.avatar_url || ProfileIconKPI;
+  const progressPercentage = getProgressPercentage(total_points, points_to_next_level);
+  const showProgress = next_level != null && points_to_next_level != null;
 
   // Use breadcrumbs if provided, otherwise fall back to title
   const displayContent = breadcrumbs ? (
@@ -69,36 +79,40 @@ const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard', onMobileMenuTo
         </button>
       )}
       {displayContent}
-      <div className="kpi-header-bar__left">
-        <div className="kpi-header-bar__progress-section">
-          <span
-            className="kpi-header-bar__progress-text"
-            title={`Level ${nextLevel} in ${pointsLeft} points`}
-          >
-            Level {nextLevel} in {pointsLeft} points
-          </span>
-          <div className="kpi-header-bar__progress-bar">
-            <div
-              className="kpi-header-bar__progress-fill"
-              style={{ width: `${progressPercentage}%` }}
+      {showProgress && (
+        <div className="kpi-header-bar__left">
+          <div className="kpi-header-bar__progress-section">
+            <span
+              className="kpi-header-bar__progress-text"
+              title={`Level ${next_level} in ${points_to_next_level} points`}
             >
-              <div className="kpi-header-bar__star">
-                <StarIcon />
+              Level {next_level} in {points_to_next_level} points
+            </span>
+            <div className="kpi-header-bar__progress-bar">
+              <div
+                className="kpi-header-bar__progress-fill"
+                style={{ width: `${progressPercentage}%` }}
+              >
+                <div className="kpi-header-bar__star">
+                  <StarIcon />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
       <div className="kpi-header-bar__right">
         <div className="kpi-header-bar__greeting">
           <div className="kpi-header-bar__greeting-text">
-            Hello, <span className="kpi-header-bar__name">Mohammed Rahman</span>
+            Hello, <span className="kpi-header-bar__name">{userName}</span>
           </div>
-          <div className="kpi-header-bar__level-text">Level {currentLevel}</div>
+          {current_level != null && (
+            <div className="kpi-header-bar__level-text">Level {current_level}</div>
+          )}
         </div>
         <div className="kpi-header-bar__profile">
           <img
-            src={ProfileIconKPI}
+            src={avatarUrl}
             alt="Profile"
             className="kpi-header-bar__profile-image"
           />

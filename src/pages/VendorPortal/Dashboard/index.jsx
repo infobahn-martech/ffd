@@ -11,7 +11,7 @@ import {
     FiUpload,
     FiChevronRight,
 } from 'react-icons/fi';
-import '../../Dashboard/dashboard-content.scss';
+import '../../../design/scss/pages/dashboard/dashboard-content.scss';
 import '../../../design/scss/vendor-portal.scss';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
