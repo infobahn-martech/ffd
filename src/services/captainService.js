@@ -11,9 +11,13 @@ const getCaptainById = (captain_id) =>
 const updateCaptain = (data) =>
   Gateway.post("/launch_hire/update_captain", data);
 
+const deleteCaptain = (captain_id) =>
+  Gateway.delete(`/launch_hire/delete_captain/${captain_id}`);
+
 export default {
   addCaptain,
   getAllCaptains,
   getCaptainById,
   updateCaptain,
+  deleteCaptain,
 };

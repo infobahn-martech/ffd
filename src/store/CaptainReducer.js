@@ -85,6 +85,21 @@ const useCaptainReducer = create((set) => ({
     }
   },
 
+  deleteCaptain: async ({ captain_id, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await captainService.deleteCaptain(captain_id);
+      set({ isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? "Captain deleted successfully");
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
   clearCaptainDetail: () => set({ captainDetail: null }),
 }));
 

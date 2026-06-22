@@ -14,6 +14,8 @@ const Captains = () => {
         captainData,
         isLoading,
         totalCaptainCount,
+        deleteCaptain,
+        isBeingUpdated,
     } = useCaptainReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -218,11 +220,17 @@ const Captains = () => {
                                 setSelectedRow(null);
                             }}
                             onConfirm={() => {
-                                setShowDeleteModal(false);
-                                setSelectedRow(null);
-                                refreshList();
+                                deleteCaptain({
+                                    captain_id: selectedRow?.taxiboat_captain_id,
+                                    cb: () => {
+                                        setShowDeleteModal(false);
+                                        setSelectedRow(null);
+                                        refreshList();
+                                    },
+                                });
                             }}
                             deleteText="Are you sure you want to delete this captain?"
+                            isLoading={isBeingUpdated}
                         />
                     )}
 
