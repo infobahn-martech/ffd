@@ -21,7 +21,7 @@ const updateHospital = (data) => {
   return Gateway.post(`/medical/update_hospital/${hospital_id}`, body);
 };
 
-const deleteHospital = (id) => Gateway.delete(`/hospital/delete_hospital/${id}`);
+const deleteHospital = (id) => Gateway.delete(`/medical/delete_hospital/${id}`);
 
 const addMedicalService = (data) => Gateway.post('/medical/add_medical_service', data);
 
