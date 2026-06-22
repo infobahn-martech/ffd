@@ -137,7 +137,7 @@ const Vessel = () => {
       },
       {
         name: "Type",
-        selector: "vessel_category",
+        selector: "vessel_type_name",
         sort: true,
         thclass: "tb-head",
         width: "140",
