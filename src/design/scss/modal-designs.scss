@@ -587,4 +587,55 @@ body .modal.show .modal-dialog {
   .ql-editor.ql-blank::before {
     font-size: 13px;
   }
+
+  .react-quill-wrapper .ql-editor {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .react-quill-wrapper .ql-editor.ql-blank::before {
+    left: auto;
+    right: 15px;
+    text-align: right;
+  }
+
+  .form-floating.desig-inp > textarea[dir="rtl"] {
+    text-align: right;
+  }
+
+  .form-floating.desig-inp > textarea[dir="rtl"] ~ label {
+    left: auto;
+    right: 0.75rem;
+    transform-origin: 100% 0;
+  }
+
+  .form-floating.desig-inp > textarea[dir="rtl"]:not(:placeholder-shown) ~ label,
+  .form-floating.desig-inp > textarea[dir="rtl"]:focus ~ label {
+    transform: scale(0.85) translateY(-0.5rem) translateX(-0.15rem);
+  }
+
+  .ql-table-embed {
+    display: block;
+    margin: 8px 0;
+    overflow-x: auto;
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      direction: rtl;
+
+      th, td {
+        border: 1px solid #ccc;
+        padding: 16px 20px;
+        min-height: 48px;
+        text-align: right;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f5f5f5;
+        font-weight: 600;
+      }
+    }
+  }
 }
