@@ -35,29 +35,20 @@ const CGPassTemplate = () => {
     return () => debouncedSearch.cancel();
   }, [debouncedSearch]);
 
+  const buildParams = () => ({
+    search: params.searchTerm || '',
+    page: params.page,
+    limit: params.limit,
+    sort_by: params.sortBy,
+  });
+
   const handleRefresh = () => {
-    getTemplates?.({
-      params: {
-        search: params.searchTerm || '',
-        page: params.page,
-        limit: params.limit,
-        sortBy: params.sortBy,
-        sortOrder: params.sortOrder,
-      },
-    });
+    getTemplates?.({ params: buildParams() });
   };
 
   useEffect(() => {
-    getTemplates?.({
-      params: {
-        search: params.searchTerm || '',
-        page: params.page,
-        limit: params.limit,
-        sortBy: params.sortBy,
-        sortOrder: params.sortOrder,
-      },
-    });
-  }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder, getTemplates]);
+    getTemplates?.({ params: buildParams() });
+  }, [params.page, params.limit, params.searchTerm, params.sortBy, getTemplates]);
 
   const cols = [
     {
@@ -70,7 +61,7 @@ const CGPassTemplate = () => {
     },
     {
       name: 'Port',
-      selector: 'port',
+      selector: 'port_name',
       sort: true,
       width: '200',
       thclass: 'tb-head',
@@ -125,7 +116,6 @@ const CGPassTemplate = () => {
             setParams((prev) => ({
               ...prev,
               sortBy,
-              sortOrder: prev.sortOrder === 1 ? -1 : 1,
               page: 1,
             }))
           }
@@ -155,7 +145,7 @@ const CGPassTemplate = () => {
             }}
             onConfirm={() => {
               deleteTemplate({
-                templateId: selectedRow?.template_id,
+                templateId: selectedRow?.pass_vesselreg_template_id,
                 cb: () => {
                   setShowDeleteModal(false);
                   setSelectedRow(null);

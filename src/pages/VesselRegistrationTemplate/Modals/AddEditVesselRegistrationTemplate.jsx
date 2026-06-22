@@ -16,7 +16,7 @@ const isHtmlEmpty = (value) => {
 };
 
 export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, onSuccess }) {
-  const templateId = showModal?.template_id;
+  const templateId = showModal?.pass_vesselreg_template_id;
   const isEdit = !!templateId;
 
   const { createTemplate, updateTemplate, isBeingUpdated } = useVesselRegistrationTemplateReducer((s) => s);

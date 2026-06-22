@@ -7,18 +7,32 @@ const useVesselRegistrationTemplateReducer = create((set) => ({
   isBeingUpdated: false,
   templates: [],
   totalCount: 0,
+  selectedTemplate: null,
 
   getTemplates: async ({ params } = {}) => {
     try {
       set({ isLoading: true });
-      const { data } = await vesselRegistrationTemplateService.getAll({ template_type: 'Vessel Registration', ...(params ?? {}) });
+      const { data } = await vesselRegistrationTemplateService.getAll(params ?? {});
       set({
         templates: data?.data ?? [],
-        totalCount: data?.pagination?.total ?? data?.pagination?.count ?? data?.total ?? data?.totalCount ?? data?.count ?? data?.data?.length ?? 0,
+        totalCount: data?.pagination?.total ?? data?.pagination?.count ?? data?.total ?? data?.data?.length ?? 0,
         isLoading: false,
       });
     } catch (err) {
       set({ isLoading: false, templates: [], totalCount: 0 });
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err?.message);
+    }
+  },
+
+  getTemplateById: async ({ templateId, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await vesselRegistrationTemplateService.getById(templateId);
+      set({ isBeingUpdated: false, selectedTemplate: data?.data ?? null });
+      cb?.(data?.data ?? null);
+    } catch (err) {
+      set({ isBeingUpdated: false });
       const { error } = useAlertReducer.getState();
       error(err?.response?.data?.message ?? err?.message);
     }
