@@ -123,9 +123,6 @@ const Hospital = () => {
         if (!hospitalId) return;
 
         const payload = { hospital_id: hospitalId };
-
-        // If your deleteData expects only id:
-        // await deleteData(selectedRow._id);
         await deleteHospital?.(payload);
 
         setShowDeleteModal(false);
