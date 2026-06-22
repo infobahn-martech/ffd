@@ -356,19 +356,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       icon: usersIcon, // User management-specific icon
     },
     {
-      menu: 'Vessel Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Vessel', to: '/vessel-onboarding', hasPermission: true },
-        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
-        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
-        { menu: 'Tug Type', to: '/tug-type', hasPermission: true },
-      ],
-      icon: billingIcon, // Billing-specific icon
-    },
-    {
       menu: 'Entity Management',
       isDefaultMenu: true,
       hasPermission: true,
@@ -381,6 +368,19 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Crew Management', to: '/crew-management', hasPermission: true },
         { menu: 'MWP History', to: "/mwp-history", hasPermission: true },
         // { menu: 'Job Status', to: '/job-status', hasPermission: true },
+      ],
+      icon: billingIcon, // Billing-specific icon
+    },
+    {
+      menu: 'Vessel Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Vessel', to: '/vessel-onboarding', hasPermission: true },
+        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
+        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
+        { menu: 'Tug Type', to: '/tug-type', hasPermission: true },
       ],
       icon: billingIcon, // Billing-specific icon
     },

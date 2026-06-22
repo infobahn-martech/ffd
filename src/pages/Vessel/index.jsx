@@ -137,7 +137,7 @@ const Vessel = () => {
       },
       {
         name: "Type",
-        selector: "vessel_type",
+        selector: "vessel_category",
         sort: true,
         thclass: "tb-head",
         width: "140",
@@ -191,13 +191,13 @@ const Vessel = () => {
       //   thclass: "tb-head",
       //   width: "100",
       // },
-      {
-        name: <EllipsisHeader label="Days to MWP expiry" limit={12} />,
-        selector: "days_to_expiry",
-        sort: true,
-        thclass: "tb-head",
-        width: "160",
-      },
+      // {
+      //   name: <EllipsisHeader label="Days to MWP expiry" limit={12} />,
+      //   selector: "days_to_expiry",
+      //   sort: true,
+      //   thclass: "tb-head",
+      //   width: "160",
+      // },
       {
         name: "Status",
         selector: "status",
