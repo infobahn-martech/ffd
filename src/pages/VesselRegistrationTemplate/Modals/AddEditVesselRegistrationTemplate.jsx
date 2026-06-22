@@ -9,6 +9,7 @@ import usePortReducer from '../../../store/PortReducer';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
+import './AddEditVesselRegistrationTemplate.scss';
 
 const Icons = Quill.import('ui/icons');
 Icons['table'] =
