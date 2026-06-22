@@ -69,7 +69,6 @@ function mapDetailToForm(d, billingEntities) {
     vesselName: d.vessel_name ?? "",
     vesselOwner: d.vessel_owner ?? "",
     vesselPrincipal: d.vessel_principal ?? "",
-    vesselManager: d.vessel_manager ?? "",
     imoNumber: String(d.imo_number ?? ""),
     flagState: d.flag_state ?? "",
     grossTonnage: d.gross_tonnage != null ? String(d.gross_tonnage) : "",
@@ -233,7 +232,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
       vessel_name: data.vesselName.trim(),
       vessel_owner: data.vesselOwner?.trim(),
       vessel_principal: data.vesselPrincipal?.trim(),
-      vessel_manager: data.vesselManager?.trim(),
       imo_number: data.imoNumber.trim(),
       flag_state: data.flagState.trim(),
       gross_tonnage: String(data.grossTonnage).trim(),
@@ -483,29 +481,8 @@ export function VesselModal({ showModal, closeModal, callBack }) {
               </div>
             </div>
 
-            {/* Row 4: Vessel Manager | IMO Number */}
+            {/* Row 4: IMO Number | Flag State */}
             <div className="permInputs row mb-lg-3">
-              <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.vesselManager ? "is-invalid" : ""}`}
-                    placeholder="Vessel Manager"
-                    {...register("vesselManager", {
-                      required: "Vessel manager is required",
-                      validate: (v) =>
-                        v.trim().length > 0 || "Vessel manager is required",
-                    })}
-                  />
-                  <label>
-                    Vessel Manager <span className="text-danger">*</span>
-                  </label>
-                  {errors.vesselManager && (
-                    <span className="error text-danger">
-                      {errors.vesselManager.message}
-                    </span>
-                  )}
-                </div>
-              </div>
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -536,10 +513,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Row 5: Flag State | Gross Tonnage */}
-            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -561,6 +534,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Row 5: Gross Tonnage | Call Sign */}
+            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -588,10 +565,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Row 6: Call Sign | Year Built */}
-            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -613,6 +586,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Row 6: Year Built | Class Society */}
+            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -646,10 +623,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Row 7: Class Society | P&I Club */}
-            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -660,6 +633,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   <label>Class Society</label>
                 </div>
               </div>
+            </div>
+
+            {/* Row 7: P&I Club | Length Overall (LOA) */}
+            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -670,10 +647,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   <label>P&I Club</label>
                 </div>
               </div>
-            </div>
-
-            {/* Row 8: Length Overall (LOA) | Beam */}
-            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -684,6 +657,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   <label>Length Overall (LOA)</label>
                 </div>
               </div>
+            </div>
+
+            {/* Row 8: Beam | Draft */}
+            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
@@ -694,10 +671,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                   <label>Beam</label>
                 </div>
               </div>
-            </div>
-
-            {/* Row 9: Draft */}
-            <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
