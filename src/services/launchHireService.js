@@ -14,9 +14,13 @@ const getLaunchHireServiceById = (service_id) =>
 const updateLaunchHireService = (data) =>
   Gateway.post("/launch_hire/update_launch_hire_service", data);
 
+const deleteLaunchHireService = (service_id) =>
+  Gateway.delete(`/launch_hire/delete_launch_hire_service/${service_id}`);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
   getLaunchHireServiceById,
   updateLaunchHireService,
+  deleteLaunchHireService,
 };

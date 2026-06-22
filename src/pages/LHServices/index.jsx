@@ -13,6 +13,8 @@ const LHServices = () => {
         serviceData,
         isLoading,
         totalServiceCount,
+        deleteLaunchHireService,
+        isDeleteLoading,
     } = useLaunchHireServiceReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -157,10 +159,18 @@ const LHServices = () => {
                                 setSelectedRow(null);
                             }}
                             onConfirm={() => {
-                                setShowDeleteModal(false);
-                                setSelectedRow(null);
-                                refreshList();
+                                if (selectedRow?.launchhire_service_id) {
+                                    deleteLaunchHireService({
+                                        service_id: selectedRow.launchhire_service_id,
+                                        cb: () => {
+                                            setShowDeleteModal(false);
+                                            setSelectedRow(null);
+                                            refreshList();
+                                        },
+                                    });
+                                }
                             }}
+                            isLoading={isDeleteLoading}
                             deleteText="Are you sure you want to delete this service?"
                         />
                     )}

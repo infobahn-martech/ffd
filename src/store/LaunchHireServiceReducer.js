@@ -10,6 +10,7 @@ const useLaunchHireServiceReducer = create((set) => ({
   serviceDetail: null,
   isBeingUpdated: false,
   isDetailLoading: false,
+  isDeleteLoading: false,
   totalServiceCount: 0,
 
   addLaunchHireService: async ({ formData, cb }) => {
@@ -80,6 +81,24 @@ const useLaunchHireServiceReducer = create((set) => ({
       set({
         errorMessage: "Something went wrong updating service",
         isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
+  deleteLaunchHireService: async ({ service_id, cb }) => {
+    try {
+      set({ isDeleteLoading: true });
+      const { data } = await launchHireService.deleteLaunchHireService(service_id);
+      set({ successMessage: data?.message, isDeleteLoading: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? "Launch hire service deleted successfully");
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: "Something went wrong deleting the service",
+        isDeleteLoading: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }
