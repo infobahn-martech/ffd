@@ -276,7 +276,23 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     setShowSelectWorkflowModal(true);
   }, [sidebarWorkflows]);
 
+  const buildCallTypePortExtra = useCallback(() => {
+    const selectedCallType = callTypeOptionsForModal.find(
+      (c) => String(c.id) === String(selectedCallTypeId)
+    );
+    const selectedPort = portOptionsForModal.find(
+      (p) => String(p.id) === String(selectedPortId)
+    );
+    return {
+      callTypeId: selectedCallTypeId,
+      callTypeName: selectedCallType?.name,
+      portId: selectedPortId,
+      portName: selectedPort?.name,
+    };
+  }, [callTypeOptionsForModal, portOptionsForModal, selectedCallTypeId, selectedPortId]);
+
   const handleAddModalContinue = useCallback(() => {
+    const extra = buildCallTypePortExtra();
     if (addModalStep === 'workflow') {
       const w = addModalWorkflows.find(
         (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
@@ -290,9 +306,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         return;
       }
       if (lanes.length === 1) {
-        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, lanes[0]);
+        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, lanes[0], extra);
       } else {
-        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, null);
+        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, null, extra);
       }
       setShowSelectWorkflowModal(false);
       setSelectedWorkflowId(null);
@@ -306,7 +322,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         (l) => l.id === selectedSwimlaneId || String(l.id) === String(selectedSwimlaneId)
       );
       if (!lane) return;
-      pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(wf, lane);
+      pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(wf, lane, extra);
       setShowSelectWorkflowModal(false);
       setSelectedSwimlaneId(null);
     }
@@ -316,6 +332,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     selectedWorkflowId,
     swimlanePhaseWorkflow,
     selectedSwimlaneId,
+    buildCallTypePortExtra,
   ]);
 
   const handleSelectWorkflowModalExited = useCallback(() => {

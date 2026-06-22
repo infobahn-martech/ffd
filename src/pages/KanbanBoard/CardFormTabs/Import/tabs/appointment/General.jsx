@@ -5255,6 +5255,31 @@ ${body}
 
                             <div className="form-group">
                               <h3 className="form-group-title">Service Information</h3>
+                              {shouldShowApiField("main_billing_entity_id") && (
+                                <FormField label="Call Type">
+                                  <FormSelect
+                                    value={firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"))}
+                                    onChange={handleChange("typeOfCall")}
+                                    options={mergeOptionIfMissing(
+                                      callTypeOptions,
+                                      firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"))
+                                    )}
+                                    placeholder="Select call type"
+                                    disabled
+                                  />
+                                </FormField>
+                              )}
+                              {shouldShowApiField("main_billing_entity_id") && (
+                                <FormField label="Port">
+                                  <FormSelect
+                                    value={getFieldValue("port")}
+                                    onChange={handleChange("port")}
+                                    options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
+                                    placeholder="Select port"
+                                    disabled
+                                  />
+                                </FormField>
+                              )}
                               {!isAddMode &&
                                 viewModeTimeObjects.map((item) => {
                                   const parsed = splitApiDateTimeValue(item.value);
