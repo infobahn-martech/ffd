@@ -184,6 +184,24 @@ const useHospitalReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
+    deleteHospitalService: async (payload) => {
+        const { hospital_service_id, cb } = payload || {};
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await hospitalService.deleteHospitalService(hospital_service_id);
+            set({ successMessage: data?.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message ?? 'Hospital service deleted successfully');
+            cb?.();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong deleting the hospital service',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
     getHospitalServicesData: async ({ params }) => {
         try {
             set({ isLoading: true });

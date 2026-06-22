@@ -47,6 +47,9 @@ const updateMedicalService = (data) => {
 const deleteMedicalService = (serviceId) =>
   Gateway.delete(`/medical/delete_medical_service/${serviceId}`);
 
+const deleteHospitalService = (hospitalServiceId) =>
+  Gateway.delete(`/medical/delete_hospital_service/${hospitalServiceId}`);
+
 const getAllHospitalServices = ({ params }) => {
   const p = params || {};
   const apiParams = {
@@ -75,6 +78,7 @@ export default {
   getMedicalServiceById,
   updateMedicalService,
   deleteMedicalService,
+  deleteHospitalService,
   getAllHospitalServices,
   addUpdateHospitalService,
   getServiceByHospital,
