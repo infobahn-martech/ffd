@@ -14,6 +14,7 @@ import billingEntityService from "../../../../../../services/billingEntityServic
 import billingInstructionService from "../../../../../../services/billingInstructionService";
 import vesselTypeService from "../../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../../services/bargeTypeService";
+import tugTypeService from "../../../../../../services/tugTypeService";
 import vesselService from "../../../../../../services/vesselService";
 import kpiTasksService from "../../../../../../services/kpiTasksService";
 import useCallTaskReducer from "../../../../../../store/CallTaskReducer";
@@ -29,6 +30,7 @@ import {
   mapBillingEntitiesToOptions,
   mapVesselTypesToOptions,
   mapBargeTypesToOptions,
+  mapTugTypesToOptions,
   mergeOptionIfMissing,
 } from "../../../../../../shared/helpers/callFileFormOptions";
 import { buildCreateCallFileFormData } from "../../../../../../shared/helpers/createCallFilePayload";
@@ -249,6 +251,14 @@ const appointmentTypeShowsTugFields = (value) =>
 
 const appointmentTypeShowsBargeFields = (value) => value === APPOINTMENT_TYPE_TUG_AND_BARGE;
 
+// Single (non tug-and-barge) vessel block is shown for Taxi Tug and Vessel appointment types.
+const appointmentTypeShowsSingleVesselSection = (value) =>
+  value === APPOINTMENT_TYPE_TUG || value === APPOINTMENT_TYPE_VESSEL;
+
+// Tug and Vessel use the tug-type catalogue for their "Vessel type" dropdown; only Vessel uses the vessel-type catalogue.
+const appointmentTypeUsesTugTypeSource = (value) =>
+  value === APPOINTMENT_TYPE_TUG || value === APPOINTMENT_TYPE_TUG_AND_BARGE;
+
 const getDetailAppointmentTypeFallback = (detail) =>
   detail?.barge_type_id || detail?.barge_name || detail?.barge_owner
     ? APPOINTMENT_TYPE_TUG_AND_BARGE
@@ -284,13 +294,29 @@ const mapCallDetailToFormFields = (detail) => {
       detail?.appointment_type,
       getDetailAppointmentTypeFallback(detail)
     ),
-    vesselType: detail?.vessel_type_id ? String(detail.vessel_type_id) : "",
+    // Tug / Tug-and-barge appointments store the tug type in tug_type_id; Vessel appointments use vessel_type_id.
+    vesselType: detail?.tug_type_id
+      ? String(detail.tug_type_id)
+      : detail?.vessel_type_id
+        ? String(detail.vessel_type_id)
+        : "",
     bargeType: detail?.barge_type_id ? String(detail.barge_type_id) : "",
     bargeName: detail?.barge_name ? String(detail.barge_name) : "",
     bargeOwner: detail?.barge_owner ? String(detail.barge_owner) : "",
+    bargeCharter: detail?.barge_charter ? String(detail.barge_charter) : "",
     vesselName: detail?.vessel_id ? String(detail.vessel_id) : "",
-    vesselOwner: detail?.vessel_owner ? String(detail.vessel_owner) : "",
-    vesselPrincipal: detail?.vessel_principal ? String(detail.vessel_principal) : "",
+    vesselOwner:
+      detail?.tug_owner != null && String(detail.tug_owner).trim() !== ""
+        ? String(detail.tug_owner)
+        : detail?.vessel_owner
+          ? String(detail.vessel_owner)
+          : "",
+    vesselPrincipal:
+      detail?.tug_charter != null && String(detail.tug_charter).trim() !== ""
+        ? String(detail.tug_charter)
+        : detail?.vessel_principal
+          ? String(detail.vessel_principal)
+          : "",
     vesselManager: detail?.vessel_manager ? String(detail.vessel_manager) : "",
     serviceRequestorName: detail?.service_requestor_name ? String(detail.service_requestor_name) : "",
     serviceRequestorEmail: detail?.service_requestor_email ? String(detail.service_requestor_email) : "",
@@ -1796,6 +1822,7 @@ const ALL_DETAIL_SCALAR_FIELD_MAP = [
   ["barge_type_id", "bargeType"],
   ["barge_name", "bargeName"],
   ["barge_owner", "bargeOwner"],
+  ["barge_charter", "bargeCharter"],
   ["last_port", "lastPort"],
   ["vessel_owner", "vesselOwner"],
   ["vessel_principal", "vesselPrincipal"],
@@ -2215,6 +2242,7 @@ function General({
   const [billingEntitySelectOptions, setBillingEntitySelectOptions] = useState([]);
   const [vesselTypeSelectOptions, setVesselTypeSelectOptions] = useState([]);
   const [bargeTypeSelectOptions, setBargeTypeSelectOptions] = useState([]);
+  const [tugTypeSelectOptions, setTugTypeSelectOptions] = useState([]);
   const [entityFields, setEntityFields] = useState([]);
   const [entityFieldValues, setEntityFieldValues] = useState({});
   const [entityFieldErrors, setEntityFieldErrors] = useState({});
@@ -2486,6 +2514,7 @@ function General({
         ),
         fetchRow("vesselTypes", vesselTypeService.getVesselTypes({ params: { limit: 1000 } }), mapVesselTypesToOptions),
         fetchRow("bargeTypes", bargeTypeService.getBargeTypes({ params: { limit: 1000 } }), mapBargeTypesToOptions),
+        fetchRow("tugTypes", tugTypeService.getTugTypes({ params: { limit: 1000 } }), mapTugTypesToOptions),
       ]);
 
       if (cancelled) return;
@@ -2498,6 +2527,7 @@ function General({
         if (label === "billingEntities") setBillingEntitySelectOptions(options);
         if (label === "vesselTypes") setVesselTypeSelectOptions(options);
         if (label === "bargeTypes") setBargeTypeSelectOptions(options);
+        if (label === "tugTypes") setTugTypeSelectOptions(options);
       }
       setMasterDataLoading(false);
     };
@@ -2704,8 +2734,9 @@ function General({
       if (!selectedAppointmentType) {
         errors.appointmentType = "Appointment type is required.";
       }
-      requireField(shouldShowApiField("vessel_type_id") && tugSelected, "vesselType", "Vessel type is required.");
-      requireField(shouldShowApiField("barge_type_id") && bargeSelected, "bargeType", "Barge type is required.");
+      requireField(tugSelected, "vesselType", "Vessel type is required.");
+      requireField(bargeSelected, "bargeType", "Vessel type is required.");
+      requireField(bargeSelected, "bargeName", "Vessel name is required.");
       (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
         if (String(item?.is_required ?? "0") !== "1") return;
         const timeObjectId = firstNonEmptyString(item?.time_object_id);
@@ -2926,6 +2957,7 @@ function General({
   };
 
   const handleAppointmentTypeChange = (event) => {
+    const prevType = normalizeAppointmentTypeValue(getFieldValue("appointmentType"));
     const nextType = normalizeAppointmentTypeValue(event?.target?.value);
     const syntheticEvent = { target: { value: nextType, name: "appointmentType" } };
     if (isAddMode) {
@@ -2933,10 +2965,22 @@ function General({
     } else {
       handleChange("appointmentType")(syntheticEvent);
     }
-    if (!appointmentTypeShowsBargeFields(nextType)) {
-      ["bargeType", "bargeName", "bargeOwner"].forEach((fieldName) => {
+
+    const clearFields = (fieldNames) => {
+      fieldNames.forEach((fieldName) => {
         handleChange(fieldName)({ target: { value: "", name: fieldName } });
       });
+    };
+
+    // The "Vessel type" catalogue differs between the tug source (Taxi Tug / Tug and barge)
+    // and the vessel source (Vessel), so a previously selected id is invalid across that boundary.
+    if (appointmentTypeUsesTugTypeSource(prevType) !== appointmentTypeUsesTugTypeSource(nextType)) {
+      clearFields(["vesselType"]);
+    }
+
+    // Barge sub-section values are only relevant for "Tug and barge".
+    if (!appointmentTypeShowsBargeFields(nextType)) {
+      clearFields(["bargeType", "bargeName", "bargeOwner", "bargeCharter"]);
     }
   };
 
@@ -4337,8 +4381,13 @@ ${body}
     getFieldValue("appointmentType"),
     isAddMode ? "" : APPOINTMENT_TYPE_TUG
   );
-  const isTugSelected = appointmentTypeShowsTugFields(selectedAppointmentType);
   const isTugAndBargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
+  const isSingleVesselSection = appointmentTypeShowsSingleVesselSection(selectedAppointmentType);
+  // "Vessel type" catalogue depends on appointment type: Taxi Tug -> tug types, Vessel -> vessel types.
+  const singleVesselTypeOptions = appointmentTypeUsesTugTypeSource(selectedAppointmentType)
+    ? tugTypeSelectOptions
+    : vesselTypeSelectOptions;
+  const showAnyApiField = (...keys) => keys.some((key) => shouldShowApiField(key));
 
   // Check if MWP RENEWAL type is selected in simplified mode
   const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
@@ -5237,7 +5286,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isTugSelected && shouldShowApiField("vessel_type_id") && (
+                              {isSingleVesselSection && showAnyApiField("vessel_type_id", "tug_type_id") && (
                                 <FormField
                                   label={isAddMode ? "Vessel type *" : "Vessel type"}
                                   hasError={isAddMode && Boolean(fieldErrors.vesselType)}
@@ -5245,7 +5294,7 @@ ${body}
                                   <FormSelect
                                     value={getFieldValue("vesselType")}
                                     onChange={isAddMode ? handleValidatedChange("vesselType") : handleChange("vesselType")}
-                                    options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
+                                    options={mergeOptionIfMissing(singleVesselTypeOptions, getFieldValue("vesselType"))}
                                     placeholder="Select vessel type"
                                     disabled={masterInputsDisabled}
                                     hasError={isAddMode && Boolean(fieldErrors.vesselType)}
@@ -5256,7 +5305,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isTugSelected && shouldShowApiField("vessel_id") && (
+                              {isSingleVesselSection && shouldShowApiField("vessel_id") && (
                                 <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.vesselName)}>
                                   {(() => {
                                     const vesselNameValue = getFieldValue("vesselName");
@@ -5276,7 +5325,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isTugSelected && shouldShowApiField("vessel_owner") && (
+                              {isSingleVesselSection && showAnyApiField("vessel_owner", "tug_owner") && (
                                 <FormField label="Vessel Owner">
                                   <FormInput
                                     type="text"
@@ -5288,7 +5337,7 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isTugSelected && shouldShowApiField("vessel_principal") && (
+                              {isSingleVesselSection && showAnyApiField("vessel_principal", "tug_charter") && (
                                 <FormField label="Vessel Charter">
                                   <FormInput
                                     type="text"
@@ -5300,47 +5349,136 @@ ${body}
                                 </FormField>
                               )}
 
-                              {isTugAndBargeSelected && shouldShowApiField("barge_type_id") && (
-                                <FormField
-                                  label={isAddMode ? "Barge type *" : "Barge type"}
-                                  hasError={isAddMode && Boolean(fieldErrors.bargeType)}
-                                >
-                                  <FormSelect
-                                    value={getFieldValue("bargeType")}
-                                    onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
-                                    options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
-                                    placeholder="Select barge type"
-                                    disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.bargeType)}
-                                  />
-                                  {isAddMode && fieldErrors.bargeType && (
-                                    <div className="cf-field-error">{fieldErrors.bargeType}</div>
-                                  )}
-                                </FormField>
-                              )}
+                              {isTugAndBargeSelected && (
+                                <>
+                                  <div className="cf-vessel-subsection">
+                                    <h4 className="cf-vessel-subsection-title">Tug</h4>
 
-                              {isTugAndBargeSelected && shouldShowApiField("barge_name") && (
-                                <FormField label="Barge Name">
-                                  <FormInput
-                                    type="text"
-                                    placeholder="Enter barge name..."
-                                    value={getFieldValue("bargeName")}
-                                    onChange={handleChange("bargeName")}
-                                    disabled={isDisabled}
-                                  />
-                                </FormField>
-                              )}
+                                    {showAnyApiField("tug_type_id", "vessel_type_id") && (
+                                      <FormField
+                                        label={isAddMode ? "Vessel type *" : "Vessel type"}
+                                        hasError={isAddMode && Boolean(fieldErrors.vesselType)}
+                                      >
+                                        <FormSelect
+                                          value={getFieldValue("vesselType")}
+                                          onChange={isAddMode ? handleValidatedChange("vesselType") : handleChange("vesselType")}
+                                          options={mergeOptionIfMissing(tugTypeSelectOptions, getFieldValue("vesselType"))}
+                                          placeholder="Select vessel type"
+                                          disabled={masterInputsDisabled}
+                                          hasError={isAddMode && Boolean(fieldErrors.vesselType)}
+                                        />
+                                        {isAddMode && fieldErrors.vesselType && (
+                                          <div className="cf-field-error">{fieldErrors.vesselType}</div>
+                                        )}
+                                      </FormField>
+                                    )}
 
-                              {isTugAndBargeSelected && shouldShowApiField("barge_owner") && (
-                                <FormField label="Barge Owner">
-                                  <FormInput
-                                    type="text"
-                                    placeholder="Enter barge owner..."
-                                    value={getFieldValue("bargeOwner")}
-                                    onChange={handleChange("bargeOwner")}
-                                    disabled={isDisabled}
-                                  />
-                                </FormField>
+                                    {shouldShowApiField("vessel_id") && (
+                                      <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.vesselName)}>
+                                        {(() => {
+                                          const vesselNameValue = getFieldValue("vesselName");
+                                          const vesselNameLabel = getOptionLabel(vesselNameOptions, vesselNameValue) || vesselNameValue;
+                                          return (
+                                            <FormSelect
+                                              value={vesselNameValue}
+                                              onChange={handleVesselSelectionChange}
+                                              options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
+                                              placeholder="Select vessel name"
+                                              disabled={isDisabled || vesselOptionsLoading}
+                                              hasError={isAddMode && Boolean(fieldErrors.vesselName)}
+                                            />
+                                          );
+                                        })()}
+                                        {isAddMode && fieldErrors.vesselName && <div className="cf-field-error">{fieldErrors.vesselName}</div>}
+                                      </FormField>
+                                    )}
+
+                                    {showAnyApiField("tug_owner", "vessel_owner") && (
+                                      <FormField label="Vessel Owner">
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel owner..."
+                                          value={getFieldValue("vesselOwner")}
+                                          onChange={handleChange("vesselOwner")}
+                                          disabled={isDisabled}
+                                        />
+                                      </FormField>
+                                    )}
+
+                                    {showAnyApiField("tug_charter", "vessel_principal") && (
+                                      <FormField label="Vessel Charter">
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel charter..."
+                                          value={getFieldValue("vesselPrincipal")}
+                                          onChange={handleChange("vesselPrincipal")}
+                                          disabled={isDisabled}
+                                        />
+                                      </FormField>
+                                    )}
+                                  </div>
+
+                                  <div className="cf-vessel-subsection">
+                                    <h4 className="cf-vessel-subsection-title">Barge</h4>
+
+                                    {shouldShowApiField("barge_type_id") && (
+                                      <FormField
+                                        label={isAddMode ? "Vessel type *" : "Vessel type"}
+                                        hasError={isAddMode && Boolean(fieldErrors.bargeType)}
+                                      >
+                                        <FormSelect
+                                          value={getFieldValue("bargeType")}
+                                          onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
+                                          options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
+                                          placeholder="Select vessel type"
+                                          disabled={masterInputsDisabled}
+                                          hasError={isAddMode && Boolean(fieldErrors.bargeType)}
+                                        />
+                                        {isAddMode && fieldErrors.bargeType && (
+                                          <div className="cf-field-error">{fieldErrors.bargeType}</div>
+                                        )}
+                                      </FormField>
+                                    )}
+
+                                    {shouldShowApiField("barge_name") && (
+                                      <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.bargeName)}>
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel name..."
+                                          value={getFieldValue("bargeName")}
+                                          onChange={isAddMode ? handleValidatedChange("bargeName") : handleChange("bargeName")}
+                                          disabled={isDisabled}
+                                          hasError={isAddMode && Boolean(fieldErrors.bargeName)}
+                                        />
+                                        {isAddMode && fieldErrors.bargeName && <div className="cf-field-error">{fieldErrors.bargeName}</div>}
+                                      </FormField>
+                                    )}
+
+                                    {shouldShowApiField("barge_owner") && (
+                                      <FormField label="Vessel Owner">
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel owner..."
+                                          value={getFieldValue("bargeOwner")}
+                                          onChange={handleChange("bargeOwner")}
+                                          disabled={isDisabled}
+                                        />
+                                      </FormField>
+                                    )}
+
+                                    {shouldShowApiField("barge_charter") && (
+                                      <FormField label="Vessel Charter">
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel charter..."
+                                          value={getFieldValue("bargeCharter")}
+                                          onChange={handleChange("bargeCharter")}
+                                          disabled={isDisabled}
+                                        />
+                                      </FormField>
+                                    )}
+                                  </div>
+                                </>
                               )}
 
                               {shouldShowApiField("assigned_operator_id") && (

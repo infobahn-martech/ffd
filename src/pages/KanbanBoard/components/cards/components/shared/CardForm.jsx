@@ -1614,6 +1614,7 @@ function CardForm({
       bargeType: String(card?.barge_type_id ?? card?.bargeType ?? ""),
       bargeName: card?.bargeName || "",
       bargeOwner: card?.bargeOwner || "",
+      bargeCharter: card?.barge_charter ?? card?.bargeCharter ?? "",
       vesselName: card?.vesselName || "",
       vesselOwner: card?.vesselOwner || "",
       vesselPrincipal: card?.vesselPrincipal || "",

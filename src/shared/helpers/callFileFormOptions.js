@@ -54,6 +54,13 @@ export function mapBargeTypesToOptions(rows) {
   }));
 }
 
+export function mapTugTypesToOptions(rows) {
+  return (rows || []).map((r) => ({
+    value: String(r.tug_type_id),
+    label: r.tug_type ?? '',
+  }));
+}
+
 /** Ensures the current form value appears in the dropdown when edit payload has an id not returned in the list. */
 export function mergeOptionIfMissing(options, rawValue, fallbackLabel) {
   if (rawValue === undefined || rawValue === null || rawValue === '') return options;

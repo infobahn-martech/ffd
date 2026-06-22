@@ -3765,3 +3765,40 @@
 .cf-multi-select-email.is-invalid .cf-multi-select-email-input {
   border-color: #c62828;
 }
+
+/* Tug / Barge sub-section cards inside Vessel Information (Tug and barge appointment type) */
+.cf-vessel-subsection {
+  border: 1px solid #e2e2ea;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fafafb;
+}
+
+.cf-vessel-subsection:last-of-type {
+  margin-bottom: 0;
+}
+
+.cf-vessel-subsection .cf-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.cf-vessel-subsection-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-vessel-subsection-title::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  background: #2a00ff;
+  border-radius: 2px;
+}

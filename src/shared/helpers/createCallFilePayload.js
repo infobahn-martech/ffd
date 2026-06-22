@@ -16,22 +16,29 @@ function toJsonArrayString(value) {
 
 const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
+const APPOINTMENT_TYPE_VESSEL = "vessel";
 
-function appointmentTypeToApiArray(value) {
-  if (Array.isArray(value)) {
-    const items = value.map((item) => str(item)).filter(Boolean);
-    if (items.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) {
-      return [APPOINTMENT_TYPE_TUG, APPOINTMENT_TYPE_TUG_AND_BARGE];
+/** Collapses scalar / array / JSON-array-string appointment type values to a single canonical value. */
+function normalizeAppointmentType(value) {
+  let list = value;
+  if (typeof list === "string") {
+    const trimmed = list.trim();
+    if (trimmed.startsWith("[")) {
+      try {
+        list = JSON.parse(trimmed);
+      } catch {
+        list = trimmed.split(",");
+      }
+    } else {
+      list = [trimmed];
     }
-    return items;
   }
-
-  const normalized = str(value);
-  if (!normalized) return [];
-  if (normalized === APPOINTMENT_TYPE_TUG_AND_BARGE) {
-    return [APPOINTMENT_TYPE_TUG, APPOINTMENT_TYPE_TUG_AND_BARGE];
-  }
-  return [normalized];
+  if (!Array.isArray(list)) list = list == null ? [] : [list];
+  const items = list.map((item) => str(item).toLowerCase()).filter(Boolean);
+  if (items.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) return APPOINTMENT_TYPE_TUG_AND_BARGE;
+  if (items.includes(APPOINTMENT_TYPE_VESSEL)) return APPOINTMENT_TYPE_VESSEL;
+  if (items.includes(APPOINTMENT_TYPE_TUG)) return APPOINTMENT_TYPE_TUG;
+  return items[0] ?? "";
 }
 
 /**
@@ -150,18 +157,36 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendStringField("assigned_operator_id", fv.assignedOperator);
   appendStringField("billing_entity_id", fv.mainBillingEntity);
   appendStringField("last_port", fv.lastPort);
-  const appointmentTypes = appointmentTypeToApiArray(fv.appointmentType);
-  const includesBargeAppointment = appointmentTypes.includes(APPOINTMENT_TYPE_TUG_AND_BARGE);
-  fd.append("appointment_type", toJsonArrayString(appointmentTypes));
+  const appointmentType = normalizeAppointmentType(fv.appointmentType);
+  const isTugAppointment = appointmentType === APPOINTMENT_TYPE_TUG;
+  const isTugAndBargeAppointment = appointmentType === APPOINTMENT_TYPE_TUG_AND_BARGE;
+  const isVesselAppointment = appointmentType === APPOINTMENT_TYPE_VESSEL;
+  const usesTugType = isTugAppointment || isTugAndBargeAppointment;
+  fd.append("appointment_type", appointmentType);
 
-  appendStringField("vessel_type_id", fv.vesselType);
-  appendStringField("barge_type_id", includesBargeAppointment ? fv.bargeType : "");
-  appendStringField("barge_name", includesBargeAppointment ? fv.bargeName : "");
-  appendStringField("barge_owner", includesBargeAppointment ? fv.bargeOwner : "");
+  // Tug / Tug-and-barge select from the tug-type catalogue (tug_type_id); Vessel uses the vessel-type catalogue.
+  appendStringField("tug_type_id", usesTugType ? fv.vesselType : "");
+  appendStringField("vessel_type_id", isVesselAppointment ? fv.vesselType : "");
+
+  // Shared "Vessel Name" dropdown; for Tug and barge it identifies the tug.
   appendStringField("vessel_id", fv.vesselName);
 
-  appendStringField("vessel_owner", fv.vesselOwner);
-  appendStringField("vessel_principal", fv.vesselPrincipal);
+  if (isTugAndBargeAppointment) {
+    appendStringField("tug_name", fv.vesselName);
+    appendStringField("tug_owner", fv.vesselOwner);
+    appendStringField("tug_charter", fv.vesselPrincipal);
+    appendStringField("barge_type_id", fv.bargeType);
+    appendStringField("barge_name", fv.bargeName);
+    appendStringField("barge_owner", fv.bargeOwner);
+    appendStringField("barge_charter", fv.bargeCharter);
+  } else {
+    appendStringField("vessel_owner", fv.vesselOwner);
+    appendStringField("vessel_principal", fv.vesselPrincipal);
+    appendStringField("barge_type_id", "");
+    appendStringField("barge_name", "");
+    appendStringField("barge_owner", "");
+    appendStringField("barge_charter", "");
+  }
   appendStringField("service_requestor_name", fv.serviceRequestorName);
   appendStringField("service_requestor_email", fv.serviceRequestorEmail);
 
