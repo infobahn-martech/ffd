@@ -1,4 +1,55 @@
 .appointment-acceptance-modal-lg {
+  .react-quill-wrapper .ql-toolbar {
+    direction: ltr;
+    text-align: left;
+  }
+
+  .phone-wrapper .form-control {
+    padding: 10px 16px;
+  }
+
+  .desig-inp .cf-multi-select-email-input {
+    min-height: 46px;
+    height: 46px;
+    box-sizing: border-box;
+  }
+
+  .desig-inp input.form-control {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e2e2ea;
+    font-size: 13px;
+    padding: 10px 16px;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.field-error {
+      border-color: #dc3545;
+    }
+  }
+
+  .desig-inp .cf-multi-select-placeholder,
+  .desig-inp .cf-multi-select-selected-value {
+    font-size: 13px;
+  }
+
+  .lead-form span.error.text-danger {
+    position: static;
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
   .react-quill-wrapper .ql-editor {
     direction: rtl;
     text-align: right;
@@ -8,21 +59,6 @@
     left: auto;
     right: 15px;
     text-align: right;
-  }
-
-  .form-floating.desig-inp > textarea[dir="rtl"] {
-    text-align: right;
-  }
-
-  .form-floating.desig-inp > textarea[dir="rtl"] ~ label {
-    left: auto;
-    right: 0.75rem;
-    transform-origin: 100% 0;
-  }
-
-  .form-floating.desig-inp > textarea[dir="rtl"]:not(:placeholder-shown) ~ label,
-  .form-floating.desig-inp > textarea[dir="rtl"]:focus ~ label {
-    transform: scale(0.85) translateY(-0.5rem) translateX(-0.15rem);
   }
 
   .ql-table-embed {
