@@ -4,6 +4,48 @@
     text-align: left;
   }
 
+  .desig-inp .cf-multi-select-email-input {
+    min-height: 46px;
+    height: 46px;
+    box-sizing: border-box;
+  }
+
+  .desig-inp input.form-control {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e2e2ea;
+    font-size: 13px;
+    padding: 10px 16px;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.field-error {
+      border-color: #dc3545;
+    }
+  }
+
+  .desig-inp .cf-multi-select-placeholder,
+  .desig-inp .cf-multi-select-selected-value {
+    font-size: 13px;
+  }
+
+  .lead-form span.error.text-danger {
+    position: static;
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
   .react-quill-wrapper .ql-editor {
     direction: rtl;
     text-align: right;

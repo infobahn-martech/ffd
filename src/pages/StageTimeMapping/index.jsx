@@ -5,6 +5,7 @@ import { StageTimeMappingModal } from "./Modals/AddStageTimeMapping";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CustomTable from "../../components/customTable";
 import useStageTimeMappingReducer from "../../store/StageTimeMappingReducer";
+import "../../design/scss/pages/stage-time-mapping/StageTimeMapping.scss";
 
 const StageTimeMappings = () => {
     const [params, setParams] = useState({
@@ -97,7 +98,7 @@ const StageTimeMappings = () => {
     return (
         <>
             <div className="page-body">
-                <div className="prospect employee">
+                <div className="prospect employee stage-time-mapping">
                     <div className="container-fluid">
                         <CommonHeader
                             tableTitle="Stage Time Mappings"
