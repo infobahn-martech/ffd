@@ -57,6 +57,10 @@ function Departure({
     }
   };
 
+  const handleDepartureAttachmentsChange = (nextAttachments) => {
+    handleChange("departureAttachments")({ target: { value: nextAttachments } });
+  };
+
   useEffect(() => {
     setReportDraft((prev) => ({
       ...prev,
@@ -265,6 +269,7 @@ function Departure({
                   subject={reportDraft.subject}
                   message={reportDraft.message}
                   attachments={formValues.departureAttachments || []}
+                  onAttachmentsChange={handleDepartureAttachmentsChange}
                   onChange={handleReportDraftChange}
                   onSend={handleSaveAndSendReport}
                   isSending={isSavingDeparture}

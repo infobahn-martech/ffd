@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -639,19 +639,89 @@ const OPERATION_EMAIL_MESSAGE_QUILL_FORMATS = [
   "image",
 ];
 
-const EMAIL_PREVIEW_DUMMY_ATTACHMENTS = [
-  { id: "appointment-acceptance", name: "Appointment_Acceptance.pdf", size: "245K" },
-  { id: "port-details", name: "Port_Details.xlsx", size: "128K" },
-  { id: "vessel-image", name: "Vessel_Image.jpg", size: "932K" },
-];
+/** Pull the underlying File out of an attachment entry (or raw File). */
+export const getAttachmentFile = (item) => {
+  if (item?.file instanceof File) return item.file;
+  if (item instanceof File) return item;
+  return null;
+};
+
+/** True when an attachment list contains at least one uploadable File. */
+export const hasAttachmentFiles = (attachments = []) =>
+  (Array.isArray(attachments) ? attachments : []).some((item) => getAttachmentFile(item));
+
+/**
+ * Format an attachment size for display. Accepts a byte count (number) or an
+ * already-formatted string (e.g. "245K") which is returned unchanged.
+ */
+export const formatAttachmentSize = (size) => {
+  if (size == null || size === "") return "";
+  if (typeof size === "string") return size.trim();
+  const bytes = Number(size);
+  if (!Number.isFinite(bytes) || bytes <= 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${Math.round(kb)} KB`;
+  const mb = kb / 1024;
+  return `${mb.toFixed(mb < 10 ? 1 : 0)} MB`;
+};
+
+let attachmentIdCounter = 0;
+const createAttachmentId = () =>
+  `attachment-${Date.now().toString(36)}-${(attachmentIdCounter += 1)}`;
+
+/** Map a FileList / File[] into the attachment objects the preview panel uses. */
+export const mapFilesToAttachments = (fileList = []) =>
+  Array.from(fileList || []).map((file) => ({
+    id: createAttachmentId(),
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    file,
+  }));
+
+/**
+ * Build the send-report request body. When any attachment carries a File we
+ * return multipart FormData (so `attachments[]` can be uploaded); otherwise a
+ * plain JSON object is returned so the existing no-attachment flow is untouched.
+ */
+export const buildSendReportRequestBody = (fields = {}, attachments = []) => {
+  const files = (Array.isArray(attachments) ? attachments : [])
+    .map(getAttachmentFile)
+    .filter(Boolean);
+
+  if (!files.length) {
+    return { ...fields };
+  }
+
+  const fd = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    fd.append(key, String(value));
+  });
+  files.forEach((file) => fd.append("attachments[]", file));
+  return fd;
+};
+
+const openEmailPreviewAttachment = (attachment) => {
+  const raw = getAttachmentFile(attachment);
+  if (raw instanceof Blob) {
+    const url = URL.createObjectURL(raw);
+    window.open(url, "_blank", "noopener,noreferrer");
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  const link = attachment?.url || attachment?.attachment;
+  if (typeof link === "string" && /^https?:\/\//i.test(link)) {
+    window.open(link, "_blank", "noopener,noreferrer");
+    return;
+  }
+  console.log("[Email Preview] Open attachment:", attachment?.name);
+};
 
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
   const fileName = attachment?.name || "Untitled";
-  const fileSize = attachment?.size || "";
-
-  const handleOpen = () => {
-    console.log("[Email Preview] Open attachment:", fileName);
-  };
+  const fileSize = formatAttachmentSize(attachment?.size);
 
   const handleRemove = (event) => {
     event.stopPropagation();
@@ -662,31 +732,46 @@ const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
 
   return (
     <div className="email-preview-attachment-chip" title={fileName}>
-      <button type="button" className="email-preview-attachment-link" onClick={handleOpen}>
+      <button
+        type="button"
+        className="email-preview-attachment-link"
+        onClick={() => openEmailPreviewAttachment(attachment)}
+      >
         <span className="email-preview-attachment-name">{fileName}</span>
         {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
       </button>
-      <button
-        type="button"
-        className="email-preview-attachment-remove"
-        onClick={handleRemove}
-        aria-label={`Remove ${fileName}`}
-        title="Remove"
-      >
-        ×
-      </button>
+      {typeof onRemove === "function" ? (
+        <button
+          type="button"
+          className="email-preview-attachment-remove"
+          onClick={handleRemove}
+          aria-label={`Remove ${fileName}`}
+          title="Remove"
+        >
+          ×
+        </button>
+      ) : null}
     </div>
   );
 };
 
 EmailPreviewAttachmentChip.propTypes = {
   attachment: PropTypes.shape({
-    id: PropTypes.string,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     name: PropTypes.string,
-    size: PropTypes.string,
+    size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    file: PropTypes.object,
+    url: PropTypes.string,
   }).isRequired,
   onRemove: PropTypes.func,
 };
+
+const IconAttachmentAdd = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M12 5V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
 
 const IconSendReport = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -715,14 +800,30 @@ export const OperationEmailPreviewPanel = ({
   cc,
   subject,
   message,
+  attachments = [],
+  onAttachmentsChange,
   onChange,
   onReportTypeChange,
   onSend,
   isSending = false,
   isViewOnly = false,
+  attachmentsAccept,
 }) => {
-  const [previewAttachments, setPreviewAttachments] = useState(() => [...EMAIL_PREVIEW_DUMMY_ATTACHMENTS]);
+  const attachmentInputRef = useRef(null);
+  const attachmentList = Array.isArray(attachments) ? attachments : [];
+  const canEditAttachments = !isViewOnly && typeof onAttachmentsChange === "function";
   const showSend = !isViewOnly && typeof onSend === "function";
+
+  const handleAttachmentFilesSelected = (event) => {
+    const selected = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!selected.length) return;
+    onAttachmentsChange?.([...attachmentList, ...mapFilesToAttachments(selected)]);
+  };
+
+  const handleRemoveAttachment = (attachmentId) => {
+    onAttachmentsChange?.(attachmentList.filter((item) => item.id !== attachmentId));
+  };
 
   return (
     <div className="operation-email-preview-panel">
@@ -775,15 +876,36 @@ export const OperationEmailPreviewPanel = ({
         </FormField>
         <FormField label="Attachments" className="operation-email-preview-attachments-field">
           <div className="email-preview-attachments-list">
-            {previewAttachments.map((attachment) => (
+            {attachmentList.map((attachment) => (
               <EmailPreviewAttachmentChip
                 key={attachment.id}
                 attachment={attachment}
-                onRemove={(attachmentId) => {
-                  setPreviewAttachments((prev) => prev.filter((item) => item.id !== attachmentId));
-                }}
+                onRemove={canEditAttachments ? handleRemoveAttachment : undefined}
               />
             ))}
+            {canEditAttachments ? (
+              <>
+                <button
+                  type="button"
+                  className="email-preview-attachment-add"
+                  onClick={() => attachmentInputRef.current?.click()}
+                  title="Add attachment"
+                  aria-label="Add attachment"
+                >
+                  <IconAttachmentAdd />
+                </button>
+                <input
+                  ref={attachmentInputRef}
+                  type="file"
+                  multiple
+                  accept={attachmentsAccept}
+                  className="operation-compact-upload-input"
+                  onChange={handleAttachmentFilesSelected}
+                  aria-hidden
+                  tabIndex={-1}
+                />
+              </>
+            ) : null}
           </div>
         </FormField>
         <FormField label="Message" className="operation-email-preview-message-field">
@@ -818,11 +940,13 @@ OperationEmailPreviewPanel.propTypes = {
   subject: PropTypes.string,
   message: PropTypes.string,
   attachments: PropTypes.array,
+  onAttachmentsChange: PropTypes.func,
   onChange: PropTypes.func,
   onReportTypeChange: PropTypes.func,
   onSend: PropTypes.func,
   isSending: PropTypes.bool,
   isViewOnly: PropTypes.bool,
+  attachmentsAccept: PropTypes.string,
 };
 
 export const OperationFileUpload = ({
@@ -837,13 +961,7 @@ export const OperationFileUpload = ({
   const handleInputChange = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
-    const mapped = selectedFiles.map((file) => ({
-      name: file.name,
-      file,
-      size: file.size,
-      type: file.type,
-    }));
-    onAddFiles(mapped);
+    onAddFiles(mapFilesToAttachments(selectedFiles));
     e.target.value = "";
   };
 

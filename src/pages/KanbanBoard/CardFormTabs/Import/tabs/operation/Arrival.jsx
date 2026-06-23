@@ -10,6 +10,7 @@ import {
   AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
   appendAdditionalTimeObject,
+  buildSendReportRequestBody,
   commitAdditionalTimeObject,
   DynamicDateTimeFields,
   FormField,
@@ -201,6 +202,7 @@ function Arrival({
     subject: "Report - Arrival",
     message: "",
   });
+  const [reportAttachments, setReportAttachments] = useState([]);
   const fetchArrivalDetail = useArrivalReducer((s) => s.fetchArrivalDetail);
   const saveArrivalDetailAction = useArrivalReducer((s) => s.saveArrivalDetail);
   const sendArrivalReportAction = useArrivalReducer((s) => s.sendArrivalReport);
@@ -524,23 +526,26 @@ function Arrival({
     const cc = String(reportDraft.cc ?? "").trim();
     const subject = String(reportDraft.subject ?? "").trim();
 
+    const payload = buildSendReportRequestBody(
+      {
+        call_id: resolvedCallId,
+        report_type_id: reportTypeId,
+        from,
+        to,
+        cc,
+        from_email: from,
+        to_email: to,
+        cc_emails: cc,
+        subject,
+        message: body,
+        body,
+        ...(createdBy ? { created_by: createdBy } : {}),
+      },
+      reportAttachments
+    );
+
     try {
-      await sendArrivalReportAction({
-        payload: {
-          call_id: resolvedCallId,
-          report_type_id: reportTypeId,
-          from,
-          to,
-          cc,
-          from_email: from,
-          to_email: to,
-          cc_emails: cc,
-          subject,
-          message: body,
-          body,
-          ...(createdBy ? { created_by: createdBy } : {}),
-        },
-      });
+      await sendArrivalReportAction({ payload });
       notify(
         `${reportDraft.reportType === "daily" ? "Daily" : "Arrival"} report sent successfully.`,
         "success"
@@ -745,7 +750,8 @@ function Arrival({
                   cc={reportDraft.cc}
                   subject={reportDraft.subject}
                   message={reportDraft.message}
-                  attachments={[]}
+                  attachments={reportAttachments}
+                  onAttachmentsChange={setReportAttachments}
                   onChange={handleReportDraftChange}
                   onReportTypeChange={handleReportTypeChange}
                   onSend={handleSaveAndSendReport}

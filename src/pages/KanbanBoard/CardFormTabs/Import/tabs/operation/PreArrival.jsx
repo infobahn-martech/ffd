@@ -3,10 +3,7 @@ import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../components/Toaster";
 import { buildPreArrivalReportBody } from "../../services/sendReportBodyBuilder";
-import {
-  DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
-  collectPreArrivalProcessAttachments,
-} from "./preArrivalDocumentHandling";
+import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "./preArrivalDocumentHandling";
 import preArrivalService from "../../../../../../services/preArrivalService";
 import appointmentAcceptanceService from "../../../../../../services/appointmentAcceptanceService";
 import coordinatesService from "../../../../../../services/coordinatesService";
@@ -26,6 +23,7 @@ import {
   AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
   appendAdditionalTimeObject,
+  buildSendReportRequestBody,
   commitAdditionalTimeObject,
   DynamicDateTimeFields,
   FormField,
@@ -350,6 +348,15 @@ PreArrivalDocumentHandlingSection.propTypes = {
   }),
 };
 
+const isValidEmailList = (value = "") => {
+  const emails = String(value)
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+  if (!emails.length) return false;
+  return emails.every((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+};
+
 function PreArrival({
   card,
   formValues,
@@ -377,6 +384,7 @@ function PreArrival({
     subject: "Report - Pre Arrival",
     message: "",
   });
+  const [reportAttachments, setReportAttachments] = useState([]);
   const emailPreviewFromDetailRef = useRef(false);
   const [preArrivalDetailAssigneeHints, setPreArrivalDetailAssigneeHints] = useState({
     gro: null,
@@ -953,11 +961,6 @@ function PreArrival({
     handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } });
   };
 
-  const preArrivalReportAttachments = [
-    ...(formValues.saberUtDocumentsAttachments || []),
-    ...collectPreArrivalProcessAttachments(formValues.preArrivalDocumentHandling),
-  ];
-
   useEffect(() => {
     setReportDraft((prev) => ({
       ...prev,
@@ -1025,11 +1028,20 @@ function PreArrival({
       return;
     }
 
+    if (!String(reportDraft.to || "").trim()) {
+      notify("Recipient email is required.", "error");
+      return;
+    }
+
+    if (!isValidEmailList(reportDraft.to)) {
+      notify("Please enter valid recipient email(s).", "error");
+      return;
+    }
+
     const body = resolveReportBodyHtml(reportDraft.message, buildPreArrivalReportBody(formValues));
 
-    setIsSendingReport(true);
-    try {
-      await preArrivalService.sendPreArrivalReport({
+    const requestBody = buildSendReportRequestBody(
+      {
         call_id: callId,
         report_type_id: 2,
         from_email: String(reportDraft.from ?? "").trim(),
@@ -1037,7 +1049,14 @@ function PreArrival({
         cc_emails: String(reportDraft.cc ?? "").trim(),
         subject: String(reportDraft.subject ?? "").trim(),
         body,
-      });
+        message: body,
+      },
+      reportAttachments
+    );
+
+    setIsSendingReport(true);
+    try {
+      await preArrivalService.sendPreArrivalReport(requestBody);
       notify("Pre Arrival report sent successfully.", "success");
     } catch (error) {
       const msg =
@@ -1193,7 +1212,8 @@ function PreArrival({
                   cc={reportDraft.cc}
                   subject={reportDraft.subject}
                   message={reportDraft.message}
-                  attachments={preArrivalReportAttachments}
+                  attachments={reportAttachments}
+                  onAttachmentsChange={setReportAttachments}
                   onChange={handleReportDraftChange}
                   onSend={handleSendPreArrivalReport}
                   isSending={isSendingReport || isSavingPreArrival}
