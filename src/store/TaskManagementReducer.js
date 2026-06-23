@@ -63,6 +63,21 @@ const useTaskManagementReducer = create((set) => ({
     }
   },
 
+  deleteTaskManagement: async ({ taskId, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await taskManagementService.deleteTaskList(taskId);
+      set({ isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? "Task deleted successfully");
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isBeingUpdated: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+
   updateTaskManagement: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
