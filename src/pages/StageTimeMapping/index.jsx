@@ -17,11 +17,11 @@ const StageTimeMappings = () => {
 
     const {
         getStageTimeMappings,
-        mapTimeObjectsToStage,
+        deleteStageTimeMapping,
         stageTimeMappings,
         isLoadingGet,
         totalCount,
-        isBeingUpdated,
+        isLoadingDelete,
     } = useStageTimeMappingReducer((state) => state);
 
     const [showStageTimeMappingModal, setShowStageTimeMappingModal] = useState(false);
@@ -158,13 +158,8 @@ const StageTimeMappings = () => {
                                     setShowDeleteModal(false);
                                     return;
                                 }
-                                mapTimeObjectsToStage({
-                                    payload: {
-                                        stage_id: Number(deleteRow.stage_id),
-                                        port_id: Number(deleteRow.port_id),
-                                        call_type_id: Number(deleteRow.call_type_id),
-                                        time_objects: [],
-                                    },
+                                deleteStageTimeMapping({
+                                    timeObjects: deleteRow.time_objects ?? [],
                                     cb: () => {
                                         setShowDeleteModal(false);
                                         setDeleteRow(null);
@@ -172,8 +167,8 @@ const StageTimeMappings = () => {
                                     },
                                 });
                             }}
-                            deleteText="Remove all time objects for this stage, port, and call type?"
-                            isLoading={isBeingUpdated}
+                            deleteText="Are you sure you want to delete this stage time mapping?"
+                            isLoading={isLoadingDelete}
                         />
                     )}
                 </div>
