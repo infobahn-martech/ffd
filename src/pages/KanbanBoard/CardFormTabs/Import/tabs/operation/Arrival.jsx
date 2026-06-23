@@ -10,7 +10,7 @@ import {
   AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
   appendAdditionalTimeObject,
-  buildAdditionalTimeObjectsPayload,
+  commitAdditionalTimeObject,
   DynamicDateTimeFields,
   FormField,
   FormSection,
@@ -19,6 +19,7 @@ import {
   OperationEmailPreviewPanel,
   OperationFormCard,
   OperationSaveSection,
+  persistAdditionalTimeObjects,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
@@ -27,7 +28,7 @@ import {
   applyArrivalGetDetailToForm,
   extractArrivalReportDraftFromDetail,
 } from "./arrivalDetailApply";
-import { isEventFieldRequired } from "./operationConstants";
+import { isEventFieldRequired, OPERATION_STAGE_IDS } from "./operationConstants";
 
 const ARRIVAL_CUSTOMS_FIELD_KEYS = new Set(["ATA", "CIC", "CIC_1"]);
 const ARRIVAL_IMMIGRATION_FIELD_KEYS = new Set(["CIC_2", "CIC_3"]);
@@ -104,6 +105,7 @@ function Arrival({
   callId = "",
   portId = "",
   callTypeId = "",
+  stageId = OPERATION_STAGE_IDS.ARRIVAL,
 }) {
   const resolveFormId = (...values) => {
     for (const value of values) {
@@ -202,6 +204,8 @@ function Arrival({
   const fetchArrivalDetail = useArrivalReducer((s) => s.fetchArrivalDetail);
   const saveArrivalDetailAction = useArrivalReducer((s) => s.saveArrivalDetail);
   const sendArrivalReportAction = useArrivalReducer((s) => s.sendArrivalReport);
+  const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
+  const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const isSavingArrival = useArrivalReducer((s) => s.isSavingArrival);
   const isSendingArrivalReport = useArrivalReducer((s) => s.isSendingArrivalReport);
   const emailPreviewFromDetailRef = useRef(false);
@@ -413,10 +417,7 @@ function Arrival({
     if (!validateArrivalBeforeSave()) return false;
 
     const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
-    const saveTimeObjects = [
-      ...buildSaveTimeObjectsPayload(arrivalTimeObjectFields, formValues),
-      ...buildAdditionalTimeObjectsPayload(formValues.arrivalAdditionalTimeObjects),
-    ];
+    const saveTimeObjects = buildSaveTimeObjectsPayload(arrivalTimeObjectFields, formValues);
 
     const fd = new FormData();
     fd.append("call_id", String(resolvedCallId));
@@ -464,6 +465,29 @@ function Arrival({
 
     try {
       await saveArrivalDetailAction({ formData: fd });
+      try {
+        await persistAdditionalTimeObjects({
+          rows: formValues.arrivalAdditionalTimeObjects,
+          callId: resolvedCallId,
+          stageId,
+          saveCallTimeObject: saveCallTimeObjectAction,
+        });
+      } catch (additionalError) {
+        notify(
+          additionalError?.response?.data?.message ||
+          "Saved, but failed to save one or more additional time objects.",
+          "warning"
+        );
+      }
+      const detail = await fetchArrivalDetail({ callId: resolvedCallId });
+      if (detail) {
+        applyArrivalGetDetailToForm({
+          responseBody: detail,
+          arrivalEventFields: arrivalTimeObjectFields,
+          postArrivalEventFields: [],
+          handleChange,
+        });
+      }
       notify("Arrival saved successfully.", "success");
       return true;
     } catch (error) {
@@ -533,6 +557,53 @@ function Arrival({
 
   const handleSaveOnly = async () => {
     await saveArrivalData();
+  };
+
+  const handleCommitAdditionalTimeObject = async (row, index) => {
+    const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+    if (!resolvedCallId) return;
+    try {
+      const newId = await commitAdditionalTimeObject({
+        row,
+        callId: resolvedCallId,
+        stageId,
+        saveCallTimeObject: saveCallTimeObjectAction,
+      });
+      if (newId != null && String(row?.id ?? "") !== String(newId)) {
+        const rows = formValues.arrivalAdditionalTimeObjects || [];
+        const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
+        handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } });
+      }
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to save time object.",
+        "error"
+      );
+    }
+  };
+
+  const handleRemoveAdditionalTimeObject = async (row, index) => {
+    const rows = formValues.arrivalAdditionalTimeObjects || [];
+    const next = rows.filter((_, rowIndex) => rowIndex !== index);
+    const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+
+    if (row?.id != null && String(row.id).trim() !== "" && resolvedCallId) {
+      try {
+        await deleteCallTimeObjectAction({
+          timeObjectId: row.id,
+          callId: resolvedCallId,
+          stageId,
+        });
+      } catch (error) {
+        notify(
+          error?.response?.data?.message || "Failed to delete time object.",
+          "error"
+        );
+        return;
+      }
+    }
+
+    handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } });
   };
 
   return (
@@ -656,6 +727,8 @@ function Arrival({
                   onChange={(next) =>
                     handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } })
                   }
+                  onRemoveRow={handleRemoveAdditionalTimeObject}
+                  onCommitRow={handleCommitAdditionalTimeObject}
                   isViewOnly={isViewOnly}
                   hideAddButton
                 />
@@ -700,6 +773,7 @@ Arrival.propTypes = {
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default Arrival;

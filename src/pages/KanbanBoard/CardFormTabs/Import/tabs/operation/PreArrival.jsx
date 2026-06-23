@@ -10,8 +10,10 @@ import {
 import preArrivalService from "../../../../../../services/preArrivalService";
 import appointmentAcceptanceService from "../../../../../../services/appointmentAcceptanceService";
 import coordinatesService from "../../../../../../services/coordinatesService";
+import useArrivalReducer from "../../../../../../store/ArrivalReducer";
 import {
   BAD_WEATHER,
+  OPERATION_STAGE_IDS,
   PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
   PRE_ARRIVAL_GRO_ROLE_ID,
   PRE_ARRIVAL_SABER_STATUS_OPTIONS,
@@ -24,7 +26,7 @@ import {
   AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
   appendAdditionalTimeObject,
-  buildAdditionalTimeObjectsPayload,
+  commitAdditionalTimeObject,
   DynamicDateTimeFields,
   FormField,
   FormInput,
@@ -34,6 +36,7 @@ import {
   OperationFileUpload,
   OperationFormCard,
   OperationSaveSection,
+  persistAdditionalTimeObjects,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
@@ -357,7 +360,10 @@ function PreArrival({
   portId,
   callTypeId,
   vesselTypeId,
+  stageId = OPERATION_STAGE_IDS.PRE_ARRIVAL,
 }) {
+  const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
+  const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
   const [isSendingReport, setIsSendingReport] = useState(false);
   const [isLoadingCoordinateTypes, setIsLoadingCoordinateTypes] = useState(false);
@@ -817,11 +823,6 @@ function PreArrival({
       })
       .filter(Boolean);
 
-    const additionalTimeObjects = buildAdditionalTimeObjectsPayload(
-      formValues.preArrivalAdditionalTimeObjects
-    );
-    const allTimeObjects = [...timeObjects, ...additionalTimeObjects];
-
     const attachmentFile = (item) => {
       if (item?.file instanceof File) return item.file;
       if (item instanceof File) return item;
@@ -830,7 +831,7 @@ function PreArrival({
 
     const fd = new FormData();
     fd.append("call_id", callId);
-    fd.append("time_objects", JSON.stringify(allTimeObjects));
+    fd.append("time_objects", JSON.stringify(timeObjects));
     const saberStatusNum = PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE[formValues.saberUtStatus];
     fd.append(
       "saber_status",
@@ -875,6 +876,20 @@ function PreArrival({
       setIsSavingPreArrival(true);
       await preArrivalService.savePreArrival(fd);
       try {
+        await persistAdditionalTimeObjects({
+          rows: formValues.preArrivalAdditionalTimeObjects,
+          callId,
+          stageId,
+          saveCallTimeObject: saveCallTimeObjectAction,
+        });
+      } catch (additionalError) {
+        notify(
+          additionalError?.response?.data?.message ||
+          "Saved, but failed to save one or more additional time objects.",
+          "warning"
+        );
+      }
+      try {
         await fetchPreArrivalDetail();
       } catch (refreshError) {
         notify(
@@ -891,6 +906,51 @@ function PreArrival({
     } finally {
       setIsSavingPreArrival(false);
     }
+  };
+
+  const handleCommitAdditionalTimeObject = async (row, index) => {
+    if (!callId) return;
+    try {
+      const newId = await commitAdditionalTimeObject({
+        row,
+        callId,
+        stageId,
+        saveCallTimeObject: saveCallTimeObjectAction,
+      });
+      if (newId != null && String(row?.id ?? "") !== String(newId)) {
+        const rows = formValues.preArrivalAdditionalTimeObjects || [];
+        const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
+        handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } });
+      }
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to save time object.",
+        "error"
+      );
+    }
+  };
+
+  const handleRemoveAdditionalTimeObject = async (row, index) => {
+    const rows = formValues.preArrivalAdditionalTimeObjects || [];
+    const next = rows.filter((_, rowIndex) => rowIndex !== index);
+
+    if (row?.id != null && String(row.id).trim() !== "" && callId) {
+      try {
+        await deleteCallTimeObjectAction({
+          timeObjectId: row.id,
+          callId,
+          stageId,
+        });
+      } catch (error) {
+        notify(
+          error?.response?.data?.message || "Failed to delete time object.",
+          "error"
+        );
+        return;
+      }
+    }
+
+    handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } });
   };
 
   const preArrivalReportAttachments = [
@@ -1120,6 +1180,8 @@ function PreArrival({
                   onChange={(next) =>
                     handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } })
                   }
+                  onRemoveRow={handleRemoveAdditionalTimeObject}
+                  onCommitRow={handleCommitAdditionalTimeObject}
                   isViewOnly={isViewOnly}
                   hideAddButton
                 />
@@ -1161,6 +1223,7 @@ PreArrival.propTypes = {
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   vesselTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default PreArrival;

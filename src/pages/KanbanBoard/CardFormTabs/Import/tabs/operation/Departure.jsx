@@ -4,11 +4,13 @@ import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { buildDepartureReportBody } from "../../services/sendReportBodyBuilder";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import { notify } from "../../../../../../components/Toaster";
+import useArrivalReducer from "../../../../../../store/ArrivalReducer";
+import { OPERATION_STAGE_IDS } from "./operationConstants";
 import {
   AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
   appendAdditionalTimeObject,
-  buildAdditionalTimeObjectsPayload,
+  commitAdditionalTimeObject,
   DynamicDateTimeFields,
   FormField,
   FormInput,
@@ -17,6 +19,7 @@ import {
   OperationFileUpload,
   OperationFormCard,
   OperationSaveSection,
+  persistAdditionalTimeObjects,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 
@@ -27,7 +30,11 @@ function Departure({
   onSendReport,
   isViewOnly = false,
   eventFields = [],
+  callId = "",
+  stageId = OPERATION_STAGE_IDS.DEPARTURE,
 }) {
+  const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
+  const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
     to: "",
@@ -36,6 +43,10 @@ function Departure({
     message: "",
   });
   const [isSavingDeparture, setIsSavingDeparture] = useState(false);
+
+  const resolvedCallId = String(
+    callId || formValues?.call_id || formValues?.callId || ""
+  ).trim();
 
   const handleDepartureDocumentsAdd = (files) => {
     if (files.length > 0) {
@@ -93,14 +104,75 @@ function Departure({
       return false;
     }
 
-    const timeObjects = [
-      ...buildDepartureTimeObjectsPayload(),
-      ...buildAdditionalTimeObjectsPayload(formValues.departureAdditionalTimeObjects),
-    ];
+    if (!resolvedCallId) {
+      notify("Call ID is required to save Departure.", "error");
+      return false;
+    }
 
+    const timeObjects = buildDepartureTimeObjectsPayload();
     console.log("Saving Departure data:", { ...formValues, time_objects: timeObjects });
-    // TODO: replace with Departure save API call (append time_objects to FormData)
-    return true;
+    // TODO: replace with Departure save API call for stage time objects (append time_objects to FormData)
+
+    try {
+      await persistAdditionalTimeObjects({
+        rows: formValues.departureAdditionalTimeObjects,
+        callId: resolvedCallId,
+        stageId,
+        saveCallTimeObject: saveCallTimeObjectAction,
+      });
+      return true;
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to save departure time objects.",
+        "error"
+      );
+      return false;
+    }
+  };
+
+  const handleCommitAdditionalTimeObject = async (row, index) => {
+    if (!resolvedCallId) return;
+    try {
+      const newId = await commitAdditionalTimeObject({
+        row,
+        callId: resolvedCallId,
+        stageId,
+        saveCallTimeObject: saveCallTimeObjectAction,
+      });
+      if (newId != null && String(row?.id ?? "") !== String(newId)) {
+        const rows = formValues.departureAdditionalTimeObjects || [];
+        const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
+        handleChange("departureAdditionalTimeObjects")({ target: { value: next } });
+      }
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to save time object.",
+        "error"
+      );
+    }
+  };
+
+  const handleRemoveAdditionalTimeObject = async (row, index) => {
+    const rows = formValues.departureAdditionalTimeObjects || [];
+    const next = rows.filter((_, rowIndex) => rowIndex !== index);
+
+    if (row?.id != null && String(row.id).trim() !== "" && resolvedCallId) {
+      try {
+        await deleteCallTimeObjectAction({
+          timeObjectId: row.id,
+          callId: resolvedCallId,
+          stageId,
+        });
+      } catch (error) {
+        notify(
+          error?.response?.data?.message || "Failed to delete time object.",
+          "error"
+        );
+        return;
+      }
+    }
+
+    handleChange("departureAdditionalTimeObjects")({ target: { value: next } });
   };
 
   const handleSaveAndSendReport = async () => {
@@ -179,6 +251,8 @@ function Departure({
                   onChange={(next) =>
                     handleChange("departureAdditionalTimeObjects")({ target: { value: next } })
                   }
+                  onRemoveRow={handleRemoveAdditionalTimeObject}
+                  onCommitRow={handleCommitAdditionalTimeObject}
                   isViewOnly={isViewOnly}
                   hideAddButton
                 />
@@ -215,6 +289,8 @@ Departure.propTypes = {
   onSendReport: PropTypes.func,
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
+  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default Departure;

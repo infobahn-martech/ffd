@@ -150,7 +150,12 @@ export function applyArrivalGetDetailToForm({
     if (isAdditional) {
       const label = String(toName).trim();
       if (label) {
-        additionalTimeObjects.push({ label, date, time });
+        additionalTimeObjects.push({
+          label,
+          date,
+          time,
+          ...(toId != null ? { id: toId } : {}),
+        });
       }
       continue;
     }

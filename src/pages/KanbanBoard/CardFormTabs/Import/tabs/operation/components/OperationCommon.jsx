@@ -174,6 +174,70 @@ export const buildAdditionalTimeObjectsPayload = (items = []) =>
     })
     .filter(Boolean);
 
+/**
+ * Build the `time_object` payload for `time_object/save_call_time_object` from a
+ * single additional time-object row. Requires a name; the date/time value is
+ * included when present (empty string otherwise) so a row can be saved as soon
+ * as it's named. Returns null when there is no name. Existing rows carry an
+ * `id` (time_object_id) so the backend can update them instead of inserting.
+ */
+export const buildCallTimeObjectPayload = (row) => {
+  const label = String(row?.label || "").trim();
+  if (!label) return null;
+  const payload = {
+    time_object_name: label,
+    time_object_value: normalizeAdditionalTimeValue(row?.date, row?.time),
+    is_additional: true,
+  };
+  if (row?.id != null && String(row.id).trim() !== "") {
+    payload.time_object_id = row.id;
+  }
+  return payload;
+};
+
+/**
+ * Persist every valid additional time-object row for a stage via the shared
+ * `saveCallTimeObject` action. Invalid/empty rows are skipped.
+ */
+export const persistAdditionalTimeObjects = async ({
+  rows = [],
+  callId,
+  stageId,
+  saveCallTimeObject,
+}) => {
+  if (typeof saveCallTimeObject !== "function") return;
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const timeObject = buildCallTimeObjectPayload(row);
+    if (!timeObject) continue;
+    await saveCallTimeObject({ callId, stageId, timeObject });
+  }
+};
+
+/** Pull the saved time_object_id out of a save_call_time_object response. */
+export const extractCallTimeObjectId = (data) =>
+  data?.time_object_id ??
+  data?.data?.time_object_id ??
+  data?.id ??
+  data?.data?.id ??
+  null;
+
+/**
+ * Save a single additional time-object row via `saveCallTimeObject` and return
+ * the backend time_object_id (when provided) so the caller can stamp the row
+ * for later updates/deletes. Returns null when the row is incomplete.
+ */
+export const commitAdditionalTimeObject = async ({
+  row,
+  callId,
+  stageId,
+  saveCallTimeObject,
+}) => {
+  const timeObject = buildCallTimeObjectPayload(row);
+  if (!timeObject || typeof saveCallTimeObject !== "function" || !callId) return null;
+  const data = await saveCallTimeObject({ callId, stageId, timeObject });
+  return extractCallTimeObjectId(data);
+};
+
 export const validateAdditionalTimeObjects = (items = []) => {
   const rows = Array.isArray(items) ? items : [];
 
@@ -207,9 +271,21 @@ export const validateAdditionalTimeObjects = (items = []) => {
   return { valid: true };
 };
 
+const additionalTimeObjectSignature = (row) =>
+  [
+    String(row?.label || "").trim(),
+    String(row?.date || "").trim(),
+    String(row?.time || "").trim(),
+  ].join("|");
+
+const isAdditionalTimeObjectCommittable = (row) =>
+  Boolean(String(row?.label || "").trim());
+
 export const AdditionalTimeObjectsFields = ({
   value = [],
   onChange,
+  onRemoveRow,
+  onCommitRow,
   isViewOnly = false,
   title = "Additional Time Objects",
   hideAddButton = false,
@@ -220,6 +296,8 @@ export const AdditionalTimeObjectsFields = ({
   const previousRowCountRef = useRef(rows.length);
   const isInitialRowCountRef = useRef(true);
   const focusTimeoutRef = useRef(null);
+  const committedSignaturesRef = useRef([]);
+  const commitBlurTimeoutRef = useRef(null);
 
   useEffect(() => {
     rowRefs.current.length = rows.length;
@@ -268,12 +346,81 @@ export const AdditionalTimeObjectsFields = ({
   };
 
   const handleRemoveRow = (index) => {
+    // When a parent owns persistence (delete API call + state update), delegate
+    // the whole removal to it so saved rows can be deleted on the backend.
+    if (typeof onRemoveRow === "function") {
+      onRemoveRow(rows[index], index);
+      return;
+    }
     emitChange(rows.filter((_, rowIndex) => rowIndex !== index));
   };
 
   const handleRowChange = (index, patch) => {
     emitChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
   };
+
+  // Commit (save) a single row on Enter / outside click. Fires once a row has a
+  // name, and only when its value changed since the last successful commit so we
+  // don't spam the save_call_time_object endpoint.
+  const commitRow = (index) => {
+    if (typeof onCommitRow !== "function") return;
+    const row = rows[index];
+    if (!row || !isAdditionalTimeObjectCommittable(row)) return;
+    const signature = additionalTimeObjectSignature(row);
+    if (committedSignaturesRef.current[index] === signature) return;
+    committedSignaturesRef.current[index] = signature;
+    onCommitRow(row, index);
+  };
+
+  const handleRowKeyDown = (index) => (event) => {
+    if (event.key !== "Enter") return;
+    // Don't submit a surrounding form; just commit this row.
+    event.preventDefault();
+    commitRow(index);
+  };
+
+  const handleRowBlur = (index) => (event) => {
+    if (typeof onCommitRow !== "function") return;
+    const rowEl = rowRefs.current[index];
+    const related = event?.relatedTarget;
+    // Focus moved to another control inside the same row -> still editing.
+    if (rowEl && related && rowEl.contains(related)) return;
+    // Focus moved into the date/time picker popup (rendered in a portal).
+    if (related?.closest && related.closest(".cf-datetime-popper")) return;
+
+    if (commitBlurTimeoutRef.current) {
+      clearTimeout(commitBlurTimeoutRef.current);
+    }
+    // Defer so focus can settle; bail if the picker popup is open or focus is
+    // still within the row (covers browsers where relatedTarget is null).
+    commitBlurTimeoutRef.current = window.setTimeout(() => {
+      if (typeof document !== "undefined" && document.querySelector(".cf-datetime-popper")) {
+        return;
+      }
+      const active = document.activeElement;
+      if (rowEl && active && active !== document.body && rowEl.contains(active)) return;
+      commitRow(index);
+    }, 0);
+  };
+
+  useEffect(
+    () => () => {
+      if (commitBlurTimeoutRef.current) {
+        clearTimeout(commitBlurTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  // Seed signatures for rows that arrive already saved (have an id) so a plain
+  // focus/blur doesn't redundantly re-save an unchanged loaded row.
+  useEffect(() => {
+    rows.forEach((row, index) => {
+      if (row?.id != null && committedSignaturesRef.current[index] === undefined) {
+        committedSignaturesRef.current[index] = additionalTimeObjectSignature(row);
+      }
+    });
+  });
 
   if (rows.length === 0) return null;
 
@@ -288,6 +435,8 @@ export const AdditionalTimeObjectsFields = ({
           rowRefs.current[index] = element;
         }}
         className="cf-field operation-additional-time-object-field"
+        onKeyDown={!isViewOnly ? handleRowKeyDown(index) : undefined}
+        onBlur={!isViewOnly ? handleRowBlur(index) : undefined}
       >
         <div className="operation-additional-time-object-label-row">
           {isViewOnly ? (
@@ -358,12 +507,15 @@ export const AdditionalTimeObjectsFields = ({
 AdditionalTimeObjectsFields.propTypes = {
   value: PropTypes.arrayOf(
     PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       label: PropTypes.string,
       date: PropTypes.string,
       time: PropTypes.string,
     })
   ),
   onChange: PropTypes.func,
+  onRemoveRow: PropTypes.func,
+  onCommitRow: PropTypes.func,
   isViewOnly: PropTypes.bool,
   title: PropTypes.string,
   hideAddButton: PropTypes.bool,

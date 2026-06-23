@@ -19,6 +19,8 @@ const useArrivalReducer = create((set) => ({
   isArrivalDetailLoading: false,
   isSavingArrival: false,
   isSendingArrivalReport: false,
+  isSavingCallTimeObject: false,
+  isDeletingCallTimeObject: false,
   arrivalError: '',
   fetchArrivalDetail: async ({ callId, cb } = {}) => {
     const trimmedCallId = String(callId ?? '').trim();
@@ -70,6 +72,43 @@ const useArrivalReducer = create((set) => ({
     } catch (err) {
       const message = err?.response?.data?.message ?? err?.message ?? 'Failed to save Arrival.';
       set({ isSavingArrival: false, arrivalError: message });
+      throw err;
+    }
+  },
+
+  // Additional ("call") time objects are persisted one row at a time via the
+  // shared time_object endpoints so each stage (Pre Arrival / Arrival /
+  // Departure) can add and remove rows independently of its bulk detail save.
+  saveCallTimeObject: async ({ callId, stageId, timeObject, cb } = {}) => {
+    try {
+      set({ isSavingCallTimeObject: true });
+      const { data } = await arrivalService.saveCallTimeObject({
+        call_id: callId,
+        stage_id: stageId,
+        time_object: timeObject,
+      });
+      set({ isSavingCallTimeObject: false });
+      cb && cb(data);
+      return data;
+    } catch (err) {
+      set({ isSavingCallTimeObject: false });
+      throw err;
+    }
+  },
+
+  deleteCallTimeObject: async ({ timeObjectId, callId, stageId, cb } = {}) => {
+    try {
+      set({ isDeletingCallTimeObject: true });
+      const { data } = await arrivalService.deleteCallTimeObject({
+        timeObjectId,
+        callId,
+        stageId,
+      });
+      set({ isDeletingCallTimeObject: false });
+      cb && cb(data);
+      return data;
+    } catch (err) {
+      set({ isDeletingCallTimeObject: false });
       throw err;
     }
   },

@@ -13,6 +13,7 @@ import Departure from "./Departure";
 import CheckListTab from "./CheckListTab";
 import {
   OPERATION_TABS,
+  OPERATION_STAGE_IDS,
   SABER_APPLIED_BY_SEDRES,
   mapEventFields,
   getEventFieldKeyPrefix,
@@ -429,6 +430,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               portId={preArrivalPortId}
               callTypeId={preArrivalCallTypeId}
               vesselTypeId={preArrivalVesselTypeId}
+              stageId={OPERATION_STAGE_IDS.PRE_ARRIVAL}
             />
           )}
           {activeOperationTab === OPERATION_TABS.ARRIVAL && (
@@ -445,6 +447,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               callId={currentCallId}
               portId={preArrivalPortId}
               callTypeId={preArrivalCallTypeId}
+              stageId={OPERATION_STAGE_IDS.ARRIVAL}
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (
@@ -457,6 +460,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               onSendReport={handleSendReportRequest}
               isViewOnly={isViewOnly}
               eventFields={departureEventFields}
+              callId={currentCallId}
+              stageId={OPERATION_STAGE_IDS.DEPARTURE}
             />
           )}
           {activeOperationTab === OPERATION_TABS.CHECK_LIST && (

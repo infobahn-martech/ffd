@@ -18,6 +18,13 @@ export const PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS = [
 export const SABER_APPLIED_BY_SEDRES = "Applied by Sedres";
 export const BAD_WEATHER = "Bad weather";
 
+/** Backend stage ids used by the time-object endpoints (save/delete call time object). */
+export const OPERATION_STAGE_IDS = {
+  PRE_ARRIVAL: 2,
+  ARRIVAL: 3,
+  DEPARTURE: 5,
+};
+
 /** Role IDs from `users/get_users_by_role` / `task_documents.role_id` (document handling). */
 export const PRE_ARRIVAL_GRO_ROLE_ID = 4;
 export const PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID = 5;
