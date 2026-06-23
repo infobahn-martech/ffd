@@ -188,8 +188,8 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               <div className="col-lg-6 col-sm-12">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
+                <div className="desig-inp">
+                  <label className="mb-2 d-block">
                     Port <span className="text-danger">*</span>
                   </label>
                   <Controller
@@ -220,13 +220,13 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
               </div>
 
               <div className="col-lg-6 col-sm-12">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
+                <div className="desig-inp">
+                  <label className="mb-2 d-block">
                     Template Name <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
-                    className={`form-control ${errors.template_name ? 'is-invalid' : ''}`}
+                    className={`form-control ${errors.template_name ? 'field-error' : ''}`}
                     placeholder="Enter template name"
                     dir="auto"
                     {...register('template_name', { required: 'Template name is required' })}
@@ -242,15 +242,15 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               <div className="col-12">
-                <div className="form-floating desig-inp">
+                <div className="desig-inp">
+                  <label className="mb-2 d-block">Description</label>
                   <textarea
                     className="form-control"
-                    placeholder="Description"
+                    placeholder=""
                     rows={3}
                     dir="rtl"
                     {...register('description')}
                   />
-                  <label>Description</label>
                 </div>
               </div>
             </div>
@@ -285,7 +285,7 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                     )}
                   />
                   {errors.content && (
-                    <span className="error text-danger d-block mt-1 small">
+                    <span className="error text-danger">
                       {errors.content.message}
                     </span>
                   )}

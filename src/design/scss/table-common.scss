@@ -80,6 +80,7 @@ body {
             letter-spacing: 0.1px;
             color: #00368c;
             min-width: 300px !important;
+            white-space: nowrap;
 
             @media($sm-1679) {
                 font-size: 20px;

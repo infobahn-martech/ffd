@@ -541,7 +541,8 @@ body .modal.show .modal-dialog {
 
 /* CG Pass Template and Vessel Registration Template modals */
 .appointment-acceptance-modal-lg {
-  .phone-wrapper .cf-multi-select-email-input {
+  .phone-wrapper .cf-multi-select-email-input,
+  .desig-inp .cf-multi-select-email-input {
     min-height: 46px;
     height: 46px;
     box-sizing: border-box;
@@ -553,7 +554,7 @@ body .modal.show .modal-dialog {
     border-radius: 8px;
     border: 1px solid #e2e2ea;
     font-size: 13px;
-    padding: 10px 14px;
+    padding: 10px 16px;
     box-sizing: border-box;
 
     &:hover {
@@ -566,7 +567,32 @@ body .modal.show .modal-dialog {
       outline: none;
     }
 
-    &.is-invalid {
+    &.is-invalid,
+    &.field-error {
+      border-color: #dc3545;
+    }
+  }
+
+  .desig-inp input.form-control {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e2e2ea;
+    font-size: 13px;
+    padding: 10px 16px;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.field-error {
       border-color: #dc3545;
     }
   }
@@ -579,6 +605,8 @@ body .modal.show .modal-dialog {
     font-size: 13px;
   }
 
+  .desig-inp .cf-multi-select-placeholder,
+  .desig-inp .cf-multi-select-selected-value,
   .cf-multi-select-placeholder,
   .cf-multi-select-selected-value {
     font-size: 13px;
@@ -586,5 +614,12 @@ body .modal.show .modal-dialog {
 
   .ql-editor.ql-blank::before {
     font-size: 13px;
+  }
+
+  .lead-form span.error.text-danger {
+    position: static;
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
   }
 }
