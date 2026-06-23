@@ -185,9 +185,8 @@ export const buildCallTimeObjectPayload = (row) => {
   const label = String(row?.label || "").trim();
   if (!label) return null;
   const payload = {
-    time_object_name: label,
+    time_object: label,
     time_object_value: normalizeAdditionalTimeValue(row?.date, row?.time),
-    is_additional: true,
   };
   if (row?.id != null && String(row.id).trim() !== "") {
     payload.time_object_id = row.id;
