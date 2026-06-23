@@ -1785,6 +1785,24 @@ const resolveEmailPreviewPayload = (payload) => {
     data.messageHtml,
     data.message_html
   );
+  const rawAttachments = Array.isArray(source.attachments)
+    ? source.attachments
+    : Array.isArray(data.attachments)
+      ? data.attachments
+      : [];
+  const attachments = rawAttachments
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const fileUrl = firstNonEmptyString(item.file_url, item.url, item.path);
+      const fileName = firstNonEmptyString(
+        item.file_name,
+        item.name,
+        fileUrl ? fileUrl.split("/").pop() : ""
+      );
+      if (!fileName && !fileUrl) return null;
+      return { file_name: fileName, file_url: fileUrl };
+    })
+    .filter(Boolean);
   return {
     from: firstNonEmptyString(
       source.from,
@@ -1798,6 +1816,7 @@ const resolveEmailPreviewPayload = (payload) => {
     subject: htmlToPlainText(firstNonEmptyString(source.subject, source.email_subject)),
     messageHtml: rawBodyHtml,
     message: htmlToPlainText(rawBodyHtml),
+    attachments,
   };
 };
 
@@ -1893,9 +1912,13 @@ const formatAttachmentSize = (bytes) => {
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
   const fileName = attachment?.name || "Untitled";
   const fileSize = attachment?.size || "";
+  const fileUrl = attachment?.url || "";
 
   const handleOpen = () => {
-    // Placeholder until API integration
+    if (fileUrl) {
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     console.log("[Email Preview] Open attachment:", fileName);
   };
 
@@ -1912,15 +1935,17 @@ const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
         <span className="email-preview-attachment-name">{fileName}</span>
         {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
       </button>
-      <button
-        type="button"
-        className="email-preview-attachment-remove"
-        onClick={handleRemove}
-        aria-label={`Remove ${fileName}`}
-        title="Remove"
-      >
-        ×
-      </button>
+      {typeof onRemove === "function" ? (
+        <button
+          type="button"
+          className="email-preview-attachment-remove"
+          onClick={handleRemove}
+          aria-label={`Remove ${fileName}`}
+          title="Remove"
+        >
+          ×
+        </button>
+      ) : null}
     </div>
   );
 };
@@ -1930,6 +1955,7 @@ EmailPreviewAttachmentChip.propTypes = {
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     name: PropTypes.string,
     size: PropTypes.string,
+    url: PropTypes.string,
   }).isRequired,
   onRemove: PropTypes.func,
 };
@@ -1962,6 +1988,13 @@ const EmailPreviewPanel = ({
       size: formatAttachmentSize(file?.size),
     })
   );
+  const apiAttachments = (Array.isArray(previewData?.attachments) ? previewData.attachments : [])
+    .map((item, index) => ({
+      id: `api-${index}`,
+      name: item?.file_name || `Attachment ${index + 1}`,
+      url: item?.file_url || "",
+    }))
+    .filter((item) => item.name || item.url);
   const messageQuillModules = useMemo(
     () => ({
       ...buildQuillModules(EMAIL_PREVIEW_MESSAGE_QUILL_TOOLBAR, messageQuillRef),
@@ -2070,6 +2103,9 @@ const EmailPreviewPanel = ({
                 <div className="email-preview-row-label">Attachments</div>
                 <div className="email-preview-row-value">
                   <div className="email-preview-attachments-list">
+                    {apiAttachments.map((attachment) => (
+                      <EmailPreviewAttachmentChip key={attachment.id} attachment={attachment} />
+                    ))}
                     {acceptanceAttachments.map((attachment) => (
                       <EmailPreviewAttachmentChip
                         key={attachment.id}
@@ -4204,6 +4240,9 @@ ${body}
   const previewPortId = firstNonEmptyString(getFieldValue("port"));
   const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
   const previewCallTypeId = firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"));
+  const previewVesselTypeId = firstNonEmptyString(getFieldValue("vesselType"));
+  const previewBargeTypeId = firstNonEmptyString(getFieldValue("bargeType"));
+  const previewTugTypeId = firstNonEmptyString(getFieldValue("tugType"));
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
   const previewOperatorId = firstNonEmptyString(getFieldValue("assignedOperator"));
   const previewLastPort = firstNonEmptyString(getFieldValue("lastPort"));
@@ -4213,6 +4252,9 @@ ${body}
       vessel_id: previewVesselId,
       port_id: previewPortId,
       call_type_id: previewCallTypeId,
+      vessel_type_id: previewVesselTypeId,
+      barge_type_id: previewBargeTypeId,
+      tug_type_id: previewTugTypeId,
       service_requestor_email: previewServiceRequestorEmail,
       operator_id: previewOperatorId,
       last_port: previewLastPort,
@@ -4222,6 +4264,9 @@ ${body}
       previewVesselId,
       previewPortId,
       previewCallTypeId,
+      previewVesselTypeId,
+      previewBargeTypeId,
+      previewTugTypeId,
       previewServiceRequestorEmail,
       previewOperatorId,
       previewLastPort,
@@ -4397,6 +4442,9 @@ ${body}
           vessel_id: previewVesselId,
           port_id: previewPortId,
           call_type_id: previewCallType,
+          vessel_type_id: previewVesselTypeId,
+          barge_type_id: previewBargeTypeId,
+          tug_type_id: previewTugTypeId,
           service_requestor_email: previewServiceRequestorEmail,
           operator_id: previewOperatorId,
           last_port: previewLastPort,
@@ -4434,6 +4482,9 @@ ${body}
     previewVesselId,
     previewPortId,
     previewCallType,
+    previewVesselTypeId,
+    previewBargeTypeId,
+    previewTugTypeId,
     previewServiceRequestorEmail,
     previewOperatorId,
     previewLastPort,
@@ -4481,6 +4532,9 @@ ${body}
     previewVesselId,
     previewPortId,
     previewCallTypeId,
+    previewVesselTypeId,
+    previewBargeTypeId,
+    previewTugTypeId,
     previewServiceRequestorEmail,
     previewOperatorId,
     previewLastPort,
