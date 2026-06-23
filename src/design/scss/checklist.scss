@@ -4535,15 +4535,15 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-items-table--6col col.cl-col-requirement {
-  width: 180px;
+  width: 190px;
 }
 
 .cl-items-table--6col col.cl-col-item {
-  width: 38%;
+  width: 30%;
 }
 
 .cl-items-table--6col col.cl-col-role {
-  width: 14%;
+  width: 200px;
 }
 
 .cl-items-table--6col col.cl-col-upload {
@@ -4551,7 +4551,22 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-items-table--6col col.cl-col-remarks {
-  width: 320px;
+  width: 460px;
+}
+
+/* Item column: keep narrow and wrap long names/descriptions */
+.cl-excel-table .checklist-table-label.cl-col-item {
+  max-width: 30%;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Updated Remarks: input fills the full widened column */
+.cl-excel-table .checklist-table-remarks.cl-col-remarks .cf-textarea.checklist-table-textarea,
+.cl-excel-table .checklist-table-remarks.cl-col-remarks .cf-textarea.checklist-table-textarea textarea {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cl-excel-table .checklist-table-checkbox-header,
