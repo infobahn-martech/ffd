@@ -15,7 +15,7 @@ const TaskManagement = () => {
         sortOrder: 1,
     });
 
-    const { getTaskManagement, deleteTaskManagement, taskManagement, isLoadingGet, isBeingUpdated, totalCount } = useTaskManagementReducer(
+    const { getTaskManagement, deleteTaskManagement, taskManagement, isLoadingGet, isLoadingDelete, totalCount } = useTaskManagementReducer(
         (state) => state
     );
 
@@ -136,7 +136,7 @@ const TaskManagement = () => {
                                 });
                             }}
                             deleteText="Are you sure you want to delete this task?"
-                            isLoading={isBeingUpdated}
+                            isLoading={isLoadingDelete}
                         />
                     )}
                 </div>

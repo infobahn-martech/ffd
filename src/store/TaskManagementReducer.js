@@ -16,6 +16,7 @@ const normalizeTaskList = (data) =>
 const useTaskManagementReducer = create((set) => ({
   isLoadingGet: false,
   isBeingUpdated: false,
+  isLoadingDelete: false,
   taskManagement: [],
   totalCount: 0,
   errorMessage: "",
@@ -65,15 +66,15 @@ const useTaskManagementReducer = create((set) => ({
 
   deleteTaskManagement: async ({ taskId, cb }) => {
     try {
-      set({ isBeingUpdated: true });
+      set({ isLoadingDelete: true });
       const { data } = await taskManagementService.deleteTaskList(taskId);
-      set({ isBeingUpdated: false });
+      set({ isLoadingDelete: false });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? "Task deleted successfully");
       cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({ isBeingUpdated: false });
+      set({ isLoadingDelete: false });
       error(err?.response?.data?.message ?? err.message);
     }
   },
