@@ -20,6 +20,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
   // Filter main tabs based on selected services
   const allMainTabs = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management" },
+    { id: "LAUNCH_HIRE", label: "Launch Hire" },
     { id: MAIN_TABS.WAREHOUSE, label: "Warehouse" },
     { id: MAIN_TABS.ON_OFF_HIRE_SURVEY, label: "On/Off-Hire Survey" },
     { id: MAIN_TABS.ON_STATION, label: "On Station" },
@@ -140,7 +141,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
 
 HusbandryTabs.propTypes = {
   activeMainTab: PropTypes.string.isRequired,
-  activeSubTab: PropTypes.string.isRequired,
+  activeSubTab: PropTypes.string,
   onMainTabChange: PropTypes.func.isRequired,
   onSubTabChange: PropTypes.func.isRequired,
   onNavigateToTab: PropTypes.func,

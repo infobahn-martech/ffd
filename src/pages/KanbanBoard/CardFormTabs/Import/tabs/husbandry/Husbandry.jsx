@@ -304,12 +304,12 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
       }
     });
 
-    // Handle "LAUNCH_HIRE" selection - behaves like Crew Management but with Launch Hire only
+    // Handle "LAUNCH_HIRE" selection - render the Launch Hire booking form directly
     if (tab === "LAUNCH_HIRE") {
-      setSelectedServices([MAIN_TABS.CREW_MANAGEMENT]);
-      setActiveMainTab(MAIN_TABS.CREW_MANAGEMENT);
-      setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
-      setIsLaunchHireMode(true);
+      setIsLaunchHireMode(false);
+      setSelectedServices(["LAUNCH_HIRE"]);
+      setActiveMainTab("LAUNCH_HIRE");
+      setActiveSubTab(null);
     } else {
       // Single service selection
       setIsLaunchHireMode(false);
@@ -345,7 +345,8 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
       setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS);
     } else if (tab === MAIN_TABS.ON_STATION ||
-      tab === MAIN_TABS.WASTE_DISPOSAL) {
+      tab === MAIN_TABS.WASTE_DISPOSAL ||
+      tab === "LAUNCH_HIRE") {
       // These services have no subtabs
       setActiveSubTab(null);
     }
@@ -438,6 +439,25 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     }
   }, [activeMainTab]);
 
+  // Mark the Launch Hire booked service as Completed once its booking form is saved
+  const handleLaunchHireSaved = useCallback(() => {
+    setBookedServices((prev) => {
+      const targetId = isLaunchHireMode ? "LAUNCH_HIRE" : activeMainTab;
+      const existing = prev.find((bs) => bs.id === targetId);
+      if (existing) {
+        return prev.map((bs) =>
+          bs.id === targetId
+            ? { ...bs, status: "Completed", subService: "Launch Hire" }
+            : bs
+        );
+      }
+      return [
+        ...prev,
+        { id: targetId, status: "Completed", subService: "Launch Hire" },
+      ];
+    });
+  }, [isLaunchHireMode, activeMainTab]);
+
   const handleBackToServiceSelection = useCallback(() => {
     setServiceSelected(false);
     setSelectedServices([]);
@@ -492,6 +512,8 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            card={card}
+            onLaunchHireSaved={handleLaunchHireSaved}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.HOTEL:
@@ -638,6 +660,15 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           cardColor={cardColor}
         />
         <div className="operation-right">
+          {activeMainTab === "LAUNCH_HIRE" && (
+            <LaunchHireContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+              card={card}
+              onLaunchHireSaved={handleLaunchHireSaved}
+            />
+          )}
           {activeMainTab === MAIN_TABS.CREW_MANAGEMENT &&
             renderCrewManagementContent()}
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&

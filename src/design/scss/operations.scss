@@ -4276,6 +4276,148 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Launch Hire - Trigger & Booking Interface */
+.launchhire-booking {
+  .launchhire-dynamic-block {
+    margin-top: 6px;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid #e2e6f0;
+    border-radius: 10px;
+    background: #f8f9ff;
+  }
+
+  .launchhire-dynamic-block-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--card-color, #00368c);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .launchhire-movement-toggle {
+    display: flex;
+    gap: 10px;
+  }
+
+  .launchhire-movement-option {
+    flex: 1;
+    padding: 9px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #d5dae6;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--card-color, #00368c);
+    }
+
+    &.active {
+      border-color: var(--card-color, #00368c);
+      background: var(--card-color, #00368c);
+      color: #ffffff;
+      font-weight: 600;
+    }
+  }
+
+  .launchhire-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .launchhire-hidden-file-input {
+    display: none;
+  }
+
+  .launchhire-upload-btn,
+  .launchhire-add-batch-btn {
+    border: 1.5px solid var(--card-color, #00368c);
+    background: #ffffff;
+    color: var(--card-color, #00368c);
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: "Open Sans", sans-serif;
+
+    &:hover {
+      background: var(--card-color, #00368c);
+      color: #ffffff;
+    }
+  }
+
+  .launchhire-add-batch-btn {
+    margin-top: 4px;
+  }
+
+  .launchhire-file-name {
+    font-size: 12px;
+    color: #444;
+    background: #eef1fb;
+    padding: 6px 10px;
+    border-radius: 6px;
+    word-break: break-all;
+  }
+
+  .launchhire-batch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .launchhire-preview-table-wrapper {
+    margin-top: 14px;
+    overflow-x: auto;
+    border: 1px solid #e2e6f0;
+    border-radius: 8px;
+  }
+
+  .launchhire-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+
+    th,
+    td {
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid #eef1f6;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f1f4fb;
+      font-weight: 600;
+      color: #344054;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  .launchhire-preview-placeholder {
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px dashed #c7cee0;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    background: #ffffff;
+  }
+}
+
 @media (max-width: 900px) {
 
   .transport-form .transport-request-layout,
