@@ -15,9 +15,13 @@ const mapTimeObjectsToStage = (payload) =>
 const getStageTimeObjects = (payload) =>
   Gateway.post("/time_object/get_stage_time_objects", payload);
 
+const deleteStageMappedTimeObject = (timeObjectStageId) =>
+  Gateway.delete(`/time_object/delete_stage_mapped_time_object/${timeObjectStageId}`);
+
 export default {
   getCallStages,
   getTimeObjectsWithStage,
   mapTimeObjectsToStage,
   getStageTimeObjects,
+  deleteStageMappedTimeObject,
 };
