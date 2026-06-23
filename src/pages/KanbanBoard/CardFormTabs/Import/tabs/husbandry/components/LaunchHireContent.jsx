@@ -8,6 +8,7 @@ import {
   FormSelect,
   ReactQuillEditor,
 } from "./Husbandry.components";
+import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import {
   LAUNCH_HIRE_LOCATION_OPTIONS,
   LAUNCH_HIRE_SERVICE_TYPES,
@@ -88,6 +89,17 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor, card, onLaunch
   const crewPreviewRows = formValues.launchHireCrewPreviewRows || [];
   const immigrationBatches = formValues.launchHireImmigrationBatches || ["", ""];
   const crewMovementType = formValues.launchHireCrewMovementType || "";
+
+  // The TB booking date/time is stored as a single combined value; split it for the picker
+  const [bookingDatePart = "", bookingTimePart = ""] = (
+    formValues.launchHireTbBookingDateTime || ""
+  ).split(/[ T]/);
+
+  const handleBookingDateTimeChange = ({ date, time }) => {
+    const combined = date ? (time ? `${date} ${time}` : date) : "";
+    setValue("launchHireTbBookingDateTime", combined);
+    clearError("launchHireTbBookingDateTime");
+  };
 
   // Ensure immigration clearance always starts with two batches
   useEffect(() => {
@@ -186,13 +198,15 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor, card, onLaunch
                     label="Date & Time for TB Booking *"
                     className={errorClass("launchHireTbBookingDateTime")}
                   >
-                    <div className="cf-input">
-                      <input
-                        type="datetime-local"
-                        value={formValues.launchHireTbBookingDateTime || ""}
-                        onChange={handleFieldChange("launchHireTbBookingDateTime")}
-                      />
-                    </div>
+                    <DateTimePickerField
+                      dateValue={bookingDatePart}
+                      timeValue={bookingTimePart}
+                      onDateTimeChange={handleBookingDateTimeChange}
+                      dateFieldName="launchHireTbBookingDate"
+                      timeFieldName="launchHireTbBookingTime"
+                      hasError={Boolean(errors.launchHireTbBookingDateTime)}
+                      placeholder="Select date and time"
+                    />
                     {errors.launchHireTbBookingDateTime && (
                       <span className="cf-field-error">{errors.launchHireTbBookingDateTime}</span>
                     )}
