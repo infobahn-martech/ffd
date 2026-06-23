@@ -1811,6 +1811,65 @@ function CardForm({
 
   const showExportTabs = isExportCall(card, formValues, callDetailSnapshot);
 
+  // Flatten card management metadata (card_type / card_tag / card_blocker / card_sticker)
+  // from get_call_detail into the flat field names the TopBar resolvers expect.
+  const cardMetaFromSnapshot = useMemo(() => {
+    const snap = callDetailSnapshot;
+    if (!snap || typeof snap !== "object") return null;
+    const meta = {};
+
+    const ct = snap.card_type;
+    if (ct && typeof ct === "object") {
+      if (ct.card_type_id != null) meta.card_type_id = ct.card_type_id;
+      if (ct.type_name != null) meta.type_name = ct.type_name;
+      if (ct.color_code != null) meta.type_color_code = ct.color_code;
+      if (ct.icon_name != null) meta.type_icon_name = ct.icon_name;
+    }
+
+    const tg = snap.card_tag;
+    if (tg && typeof tg === "object") {
+      const tagId = tg.tag_id ?? tg.card_tag_id;
+      if (tagId != null) {
+        meta.card_tag_id = tagId;
+        meta.tag_id = tagId;
+      }
+      if (tg.tag_name != null) meta.tag_name = tg.tag_name;
+    }
+
+    const bl = snap.card_blocker;
+    if (bl && typeof bl === "object") {
+      const blockerId = bl.card_blocker_id ?? bl.blocker_id;
+      if (blockerId != null) {
+        meta.card_blocker_id = blockerId;
+        meta.blocker_id = blockerId;
+      }
+      if (bl.blocker_name != null) meta.blocker_name = bl.blocker_name;
+      if (bl.color_code != null) meta.blocker_color_code = bl.color_code;
+      if (bl.icon_name != null) meta.blocker_icon_name = bl.icon_name;
+    }
+
+    const st = snap.card_sticker;
+    if (st && typeof st === "object") {
+      const stickerId = st.card_sticker_id ?? st.sticker_id;
+      if (stickerId != null) {
+        meta.card_sticker_id = stickerId;
+        meta.sticker_id = stickerId;
+      }
+      if (st.sticker_name != null) meta.sticker_name = st.sticker_name;
+      if (st.color_code != null) meta.sticker_color_code = st.color_code;
+      if (st.icon_name != null) meta.sticker_icon_name = st.icon_name;
+    }
+
+    return Object.keys(meta).length ? meta : null;
+  }, [callDetailSnapshot]);
+
+  // Card passed to the TopBar: card management metadata from the call detail
+  // seeds the selection, while live card values (e.g. after a picker edit) win.
+  const topbarCard = useMemo(() => {
+    if (!cardMetaFromSnapshot) return card;
+    return { ...cardMetaFromSnapshot, ...card };
+  }, [card, cardMetaFromSnapshot]);
+
   const TOP_TABS = useMemo(() => {
     const base = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
     return showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
@@ -2196,7 +2255,7 @@ function CardForm({
     <div className="cardform-overlay">
       <div className={`cardform-panel ${isAddMode ? 'add-mode' : ''}`}>
         <TopBar
-          card={card}
+          card={topbarCard}
           topbarColor={topbarColor}
           onClose={handleClose}
           closeLoading={isClosing}
