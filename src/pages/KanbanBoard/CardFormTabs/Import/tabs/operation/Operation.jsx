@@ -11,6 +11,7 @@ import PreArrival from "./PreArrival";
 import Arrival from "./Arrival";
 import Departure from "./Departure";
 import CheckListTab from "./CheckListTab";
+import { buildSendReportRequestBody } from "./components/OperationCommon";
 import {
   OPERATION_TABS,
   OPERATION_STAGE_IDS,
@@ -122,15 +123,20 @@ async function sendOperationReportRequest(payload) {
     "Daily Report": 4,
   };
   const reportTypeId = payload?.report_type_id ?? reportTypeMap[payload?.tabName];
-  return Gateway.post("arrival/send_report", {
-    call_id: payload?.call_id,
-    report_type_id: reportTypeId,
-    from_email: payload?.from ?? "",
-    to_email: payload?.to ?? "",
-    cc_emails: payload?.cc ?? "",
-    subject: payload?.subject ?? "",
-    body: payload?.body ?? "",
-  });
+  const requestBody = buildSendReportRequestBody(
+    {
+      call_id: payload?.call_id,
+      report_type_id: reportTypeId,
+      from_email: payload?.from ?? "",
+      to_email: payload?.to ?? "",
+      cc_emails: payload?.cc ?? "",
+      subject: payload?.subject ?? "",
+      body: payload?.body ?? "",
+      message: payload?.body ?? "",
+    },
+    payload?.attachments
+  );
+  return Gateway.post("arrival/send_report", requestBody);
 }
 
 function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false, isAddMode = false }) {

@@ -187,6 +187,7 @@ function Departure({
 
       await onSendReport?.({
         tabName: "Departure",
+        call_id: resolvedCallId,
         from: reportDraft.from,
         to: reportDraft.to,
         cc: reportDraft.cc,
