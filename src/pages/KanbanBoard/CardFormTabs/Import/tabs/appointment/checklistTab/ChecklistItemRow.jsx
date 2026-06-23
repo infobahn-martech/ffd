@@ -112,6 +112,18 @@ function displayNameForEntry(entry) {
     : entry?.name || entry?.fileName || entry?.file?.name || "File";
 }
 
+/** Best-effort file name from a backend URL when no entry metadata is available. */
+const getFileNameFromUrl = (url) => {
+  if (!url) return "";
+  try {
+    const clean = String(url).split("?")[0].split("#")[0];
+    const segment = clean.substring(clean.lastIndexOf("/") + 1);
+    return decodeURIComponent(segment) || "";
+  } catch {
+    return "";
+  }
+};
+
 const fileEntryKey = (entry, idx) =>
   entry?.id != null ? String(entry.id) : `idx_${idx}_${displayNameForEntry(entry)}`;
 
@@ -339,6 +351,9 @@ const ChecklistItemRow = ({
 
   const firstPreviewableReference = referenceFiles.find((entry) => canPreviewEntry(entry));
   const canOpenReferencePreview = Boolean(firstPreviewableReference || referencePreviewUrl);
+  const referenceFileName = firstPreviewableReference
+    ? displayNameForEntry(firstPreviewableReference)
+    : getFileNameFromUrl(referencePreviewUrl);
   const showMetaRow = Boolean(expiryDateRequired);
 
   const handlePreviewReferenceFile = (e) => {
@@ -509,22 +524,29 @@ const ChecklistItemRow = ({
             <span className="cl-req-empty" aria-hidden>-</span>
           )}
           {canOpenReferencePreview ? (
-            <button
-              type="button"
-              className="cl-item-meta-preview-btn cl-req-preview-btn"
-              onClick={handlePreviewReferenceFile}
-              title="Preview reference file"
-              aria-label="Preview reference file"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                />
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
-              </svg>
-            </button>
+            <div className="cl-req-preview-wrap">
+              <button
+                type="button"
+                className="cl-item-meta-preview-btn cl-req-preview-btn"
+                onClick={handlePreviewReferenceFile}
+                title="Preview reference file"
+                aria-label="Preview reference file"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                  />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              </button>
+              {referenceFileName ? (
+                <span className="cl-req-file-name" title={referenceFileName}>
+                  {referenceFileName}
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </td>

@@ -7,7 +7,8 @@ const SECTION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const formatSectionHeaderTitle = (title, depth, sectionIndex) => {
   const label = String(title || "Section").trim();
-  if (depth > 0) return label.toUpperCase();
+  // Subsections under a main section are numbered (restarts per parent via sectionIndex).
+  if (depth > 0) return `${sectionIndex + 1}. ${label.toUpperCase()}`;
   const letter = SECTION_LETTERS[sectionIndex] ?? String(sectionIndex + 1);
   return `${letter}) ${label.toUpperCase()}`;
 };
