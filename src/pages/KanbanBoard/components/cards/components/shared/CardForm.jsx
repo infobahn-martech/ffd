@@ -269,9 +269,34 @@ const unwrapListFromApi = (data, arrayKeys) => {
   return [];
 };
 
+// Foreign keys that must never be mistaken for a picker row's own id.
+const META_ROW_ID_EXCLUDE = new Set([
+  "board_id",
+  "card_id",
+  "kanban_card_id",
+  "created_by",
+  "updated_by",
+  "user_id",
+  "owner_id",
+  "workflow_id",
+]);
+
 const normalizeMetaPickerRow = (row, { idFields, nameField, defaultName }) => {
   const fields = Array.isArray(idFields) ? idFields : [idFields];
-  const idRaw = fields.map((f) => row?.[f]).find((v) => v != null && String(v).trim() !== "");
+  let idRaw = fields.map((f) => row?.[f]).find((v) => v != null && String(v).trim() !== "");
+  // Fallback: some board endpoints return the row id under an unexpected key
+  // (e.g. `kanban_card_blocker_id`). Pick the first *_id field that isn't a
+  // known foreign key so selecting the row still resolves an id.
+  if ((idRaw == null || String(idRaw).trim() === "") && row && typeof row === "object") {
+    const fallbackKey = Object.keys(row).find(
+      (k) =>
+        /_id$/i.test(k) &&
+        !META_ROW_ID_EXCLUDE.has(k.toLowerCase()) &&
+        row[k] != null &&
+        String(row[k]).trim() !== ""
+    );
+    if (fallbackKey) idRaw = row[fallbackKey];
+  }
   const hex = normalizeHexColor(row?.color_code || "#64748b");
   const rawIcon = row?.icon_name ?? row?.icon;
   const iconTrimmed = rawIcon != null ? String(rawIcon).trim() : "";
