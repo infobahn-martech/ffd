@@ -403,6 +403,7 @@ export const FormSelect = ({
   hasError = false,
 }) => {
   const normalizedValue = value === undefined || value === null ? "" : String(value);
+  const menuPortalTarget = typeof document !== "undefined" ? document.body : null;
   return (
     <SearchableSelect
       value={normalizedValue}
@@ -413,6 +414,8 @@ export const FormSelect = ({
       className={className}
       disabled={disabled}
       hasError={hasError}
+      menuPortalTarget={menuPortalTarget}
+      menuPosition="fixed"
     />
   );
 };

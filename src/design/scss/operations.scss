@@ -1843,6 +1843,16 @@ $send-report-optional: #80868b;
   scrollbar-color: #a8b0bd #f1f3f5;
 }
 
+/* Ensure the last field and Save section stay reachable while the left
+   form column scrolls independently. Dropdown menus are portaled to the
+   body, so the clipped column no longer hides their options. */
+.operation-two-column-grid--split-scroll .operation-form-column,
+.operation-prearrival-grid--split-scroll .operation-form-column {
+  overflow-y: auto;
+  padding-bottom: 80px;
+  scroll-padding-bottom: 80px;
+}
+
 .operation-two-column-grid--split-scroll .operation-form-column::-webkit-scrollbar,
 .operation-two-column-grid--split-scroll .operation-email-column::-webkit-scrollbar,
 .operation-prearrival-grid--split-scroll .operation-form-column::-webkit-scrollbar,
