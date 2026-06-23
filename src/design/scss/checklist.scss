@@ -4396,7 +4396,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border: none;
   border-radius: 0;
   box-shadow: none;
-  min-width: 760px;
+  min-width: 1080px;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 11px;
 }
@@ -4501,7 +4501,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 .cl-excel-select-all-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   padding: 2px 4px;
   border: none;
   background: transparent;
@@ -4511,6 +4511,13 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   font-weight: 600;
   color: #000;
   cursor: pointer;
+}
+
+.cl-excel-select-all-btn .checklist-select-all-checkbox {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .cl-excel-select-all-btn:hover {
@@ -4524,15 +4531,15 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-items-table--6col col.cl-col-check {
-  width: 6%;
+  width: 70px;
 }
 
 .cl-items-table--6col col.cl-col-requirement {
-  width: 14%;
+  width: 180px;
 }
 
 .cl-items-table--6col col.cl-col-item {
-  width: 22%;
+  width: 38%;
 }
 
 .cl-items-table--6col col.cl-col-role {
@@ -4540,26 +4547,89 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-items-table--6col col.cl-col-upload {
-  width: 18%;
+  width: 180px;
 }
 
 .cl-items-table--6col col.cl-col-remarks {
-  width: 26%;
+  width: 320px;
 }
 
 .cl-excel-table .checklist-table-checkbox-header,
 .cl-excel-table .checklist-table-checkbox {
-  width: 6%;
+  width: 70px;
   text-align: center;
-  padding-left: 4px;
-  padding-right: 4px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.cl-excel-table .checklist-table-checkbox .checklist-checkbox-wrapper--table {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .cl-excel-table .checklist-checkbox-custom--table {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 3px;
   border-color: #333;
+}
+
+/* Upload column: single centered upload icon button */
+.cl-excel-table .checklist-table-upload.cl-col-upload {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.checklist-upload-compact--icon {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.checklist-upload-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.checklist-upload-icon-btn:hover {
+  color: var(--card-color, #2a00ff);
+  background: rgba(42, 0, 255, 0.06);
+  transform: scale(1.12);
+}
+
+.checklist-upload-icon-btn:active {
+  transform: scale(1.02);
+}
+
+.checklist-upload-icon-btn:focus-visible {
+  outline: 2px solid rgba(0, 91, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.checklist-upload-compact--icon .cl-upload-files-wrap {
+  margin-top: 0;
+}
+
+.checklist-upload-compact--icon .checklist-file-chip-row--upload {
+  justify-content: center;
 }
 
 .cl-excel-table .cl-item-title.cl-item-title--primary {
