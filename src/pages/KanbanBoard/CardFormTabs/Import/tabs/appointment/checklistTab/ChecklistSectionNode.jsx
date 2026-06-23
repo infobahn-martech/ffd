@@ -55,9 +55,9 @@ const ChecklistSectionNode = ({
       >
         <td colSpan={5} className="cl-excel-section-header-title-cell">
           <span className="cl-excel-section-title">{sectionTitle}</span>
-          {total > 0 ? (
+          {/* {total > 0 ? (
             <span className="cl-excel-section-count">{done} / {total}</span>
-          ) : null}
+          ) : null} */}
         </td>
         <td className="cl-excel-section-header-actions-cell">
           {!isViewOnly ? (
@@ -71,7 +71,7 @@ const ChecklistSectionNode = ({
                 type="checkbox"
                 ref={checkboxRef}
                 checked={allSelected}
-                onChange={() => {}}
+                onChange={() => { }}
                 className="checklist-select-all-checkbox"
               />
               <span className="checklist-select-all-label">{allSelected ? "Deselect all" : "Select all"}</span>

@@ -201,6 +201,8 @@ const ChecklistItemRow = ({
   const {
     id,
     title,
+    description: itemDescription,
+    documentDescription,
     expiryDateRequired,
     uploadedFromApi = [],
     requirement,
@@ -548,6 +550,9 @@ const ChecklistItemRow = ({
               ) : null}
             </div>
           ) : null}
+          {documentDescription ? (
+            <p className="cl-req-description">{documentDescription}</p>
+          ) : null}
         </div>
       </td>
       <td className="checklist-table-label cl-col-item cl-item-cell">
@@ -555,6 +560,9 @@ const ChecklistItemRow = ({
           <div className="cl-item-title-row">
             <div className="cl-item-title cl-item-title--primary" title={title}>{title}</div>
           </div>
+          {itemDescription ? (
+            <p className="cl-item-description">{itemDescription}</p>
+          ) : null}
           {showMetaRow ? (
             <div className="cl-item-meta-row cl-item-meta-row--inline">
               {expiryDateRequired ? (

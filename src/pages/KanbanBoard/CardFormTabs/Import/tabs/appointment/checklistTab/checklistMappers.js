@@ -265,6 +265,9 @@ const mapItemToRow = (it, i, sectionId) => {
     (dd.notes != null && String(dd.notes).trim()) ||
     "";
 
+  const documentDescription =
+    dd.description != null && String(dd.description).trim() ? String(dd.description).trim() : "";
+
   const uploadedFromApi = [];
   const rawFiles = dd.uploaded_files ?? it.uploaded_files ?? it.files;
   if (Array.isArray(rawFiles)) {
@@ -293,6 +296,7 @@ const mapItemToRow = (it, i, sectionId) => {
     id: itemId,
     title: title || (it?.item_name ?? "").trim() || "Item",
     description: itemDesc,
+    documentDescription,
     fullLabel: fullLabel || title,
     requirement,
     requireCopyOnlyFromApi,
