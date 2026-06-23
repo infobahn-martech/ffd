@@ -256,10 +256,10 @@ const appointmentTypeUsesTugTypeSource = (value) =>
 
 const getDetailAppointmentTypeFallback = (detail) =>
   detail?.barge_type_id ||
-  detail?.barge_vessel_id ||
-  detail?.barge_vessel_owner ||
-  detail?.barge_name ||
-  detail?.barge_owner
+    detail?.barge_vessel_id ||
+    detail?.barge_vessel_owner ||
+    detail?.barge_name ||
+    detail?.barge_owner
     ? APPOINTMENT_TYPE_TUG_AND_BARGE
     : APPOINTMENT_TYPE_TUG;
 
@@ -1716,7 +1716,7 @@ const resolveEditablePreviewFieldValue = (isTouched, editedValue, ...fallbackVal
 };
 
 /** Demo defaults for Email Preview Cc when no API/daily-report recipients exist. */
-const EMAIL_PREVIEW_DEFAULT_CC_EMAILS = "supervisor@sedres.com, manager@sedres.com";
+const EMAIL_PREVIEW_DEFAULT_CC_EMAILS = "";
 
 /** Shared Cc resolution for preview display and submit payload. */
 const resolveAppointmentAcceptanceCcEmails = ({
