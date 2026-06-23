@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
+import { FiUploadCloud } from "react-icons/fi";
 import DatePickerField from "../../../../shared/components/DatePickerField";
 import { FormTextarea } from "./checklistFormPrimitives";
 import { getBackendFileSessionRemovalKey } from "./checklistMappers";
@@ -584,21 +585,16 @@ const ChecklistItemRow = ({
         )}
       </td>
       <td className="checklist-table-upload cl-col-upload cl-col-upload--multi checklist-upload-compact-wrap">
-        <div className="checklist-upload-compact">
+        <div className="checklist-upload-compact checklist-upload-compact--icon">
           {!isViewOnly ? (
             <button
               type="button"
-              className="checklist-upload-btn"
+              className="checklist-upload-icon-btn"
               onClick={handleBrowseClick}
               title="Upload documents"
               aria-label="Upload documents"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 16V4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-                <path d="M8 8L12 4L16 8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M5 19H19" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-              </svg>
-              <span>Upload</span>
+              <FiUploadCloud size={20} />
             </button>
           ) : null}
           <input

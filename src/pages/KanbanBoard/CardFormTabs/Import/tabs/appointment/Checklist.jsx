@@ -230,25 +230,20 @@ const fetchChecklistTypes = async ({ vessel_type_id, barge_type_id, calltype, po
   const bargeCall = barge_type_id
     ? checklistService.getChecklistsByBargeType({ barge_type_id, calltype, port_id })
     : Promise.resolve(null);
-  const portCall = calltype && port_id
-    ? checklistService.getChecklistsByPortCall({ calltype, port_id })
-    : Promise.resolve(null);
 
-  const [vesselRes, bargeRes, portRes] = await Promise.allSettled([vesselCall, bargeCall, portCall]);
+  const [vesselRes, bargeRes] = await Promise.allSettled([vesselCall, bargeCall]);
   const vesselParsed = parseSourceResult(vesselRes);
   const bargeParsed = parseSourceResult(bargeRes);
-  const portParsed = parseSourceResult(portRes);
   const hasUsableData =
-    vesselParsed.rows.length > 0 || bargeParsed.rows.length > 0 || portParsed.rows.length > 0;
-  const hasFailures = vesselParsed.failed || bargeParsed.failed || portParsed.failed;
+    vesselParsed.rows.length > 0 || bargeParsed.rows.length > 0;
+  const hasFailures = vesselParsed.failed || bargeParsed.failed;
 
   return {
     vesselRows: vesselParsed.rows,
     bargeRows: bargeParsed.rows,
-    portRows: portParsed.rows,
     hasUsableData,
     hasFailures,
-    errorMessage: [vesselParsed.errorMessage, bargeParsed.errorMessage, portParsed.errorMessage]
+    errorMessage: [vesselParsed.errorMessage, bargeParsed.errorMessage]
       .filter(Boolean)
       .join(" | "),
   };
@@ -266,7 +261,7 @@ const fetchSavedCallChecklist = async (callId) => {
 };
 
 const normalizeChecklistTypeOptions = (rowsBySource) =>
-  mergeChecklistTypeOptions([rowsBySource.vesselRows, rowsBySource.bargeRows, rowsBySource.portRows]);
+  mergeChecklistTypeOptions([rowsBySource.vesselRows, rowsBySource.bargeRows]);
 
 const normalizeChecklistDetailResponse = (checklistTypeId, payload) => {
   const { checklistDetails, sections } = mapGetChecklistByIdResponse(payload);
