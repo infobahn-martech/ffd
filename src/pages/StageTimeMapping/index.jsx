@@ -21,7 +21,7 @@ const StageTimeMappings = () => {
         stageTimeMappings,
         isLoadingGet,
         totalCount,
-        isBeingUpdated,
+        isLoadingDelete,
     } = useStageTimeMappingReducer((state) => state);
 
     const [showStageTimeMappingModal, setShowStageTimeMappingModal] = useState(false);
@@ -168,7 +168,7 @@ const StageTimeMappings = () => {
                                 });
                             }}
                             deleteText="Are you sure you want to delete this stage time mapping?"
-                            isLoading={isBeingUpdated}
+                            isLoading={isLoadingDelete}
                         />
                     )}
                 </div>
