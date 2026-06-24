@@ -434,7 +434,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Task Management', to: '/task-management', hasPermission: true },
+        // { menu: 'Task Management', to: '/task-management', hasPermission: true },
         { menu: 'Task Roles', to: '/task-roles', hasPermission: true },
         { menu: 'Checklist', to: '/check-list', hasPermission: true },
       ],

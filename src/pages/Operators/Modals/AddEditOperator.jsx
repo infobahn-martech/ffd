@@ -2,9 +2,8 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import CustomModal from "../../../components/CustomModal";
+import DatePickerField from "../../KanbanBoard/CardFormTabs/shared/components/DatePickerField";
 import useOperatorReducer from "../../../store/OperatorReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -18,30 +17,6 @@ const OPERATOR_STATUS_OPTIONS = [
     { value: "Inactive", label: "Inactive" },
     { value: "Pending", label: "Pending" },
 ];
-
-const PREMIUM_DATEPICKER_PROPS = {
-    dateFormat: "dd/MM/yyyy",
-    placeholderText: "dd/mm/yyyy",
-    className: "form-control premium-date-input",
-    popperClassName: "premium-datepicker-popper",
-    calendarClassName: "premium-datepicker-calendar",
-    showPopperArrow: false,
-};
-
-const parseISODate = (value) => {
-    if (!value) return null;
-    const [year, month, day] = value.split("-").map(Number);
-    if (!year || !month || !day) return null;
-    return new Date(year, month - 1, day);
-};
-
-const toISODate = (date) => {
-    if (!date) return "";
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-};
 
 export function OperatorModal({ showModal, closeModal, onSuccess }) {
     const {
@@ -281,15 +256,25 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     name="license_expiry"
                                     control={control}
                                     render={({ field }) => (
-                                        <div
-                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
-                                        >
-                                            <DatePicker
-                                                {...PREMIUM_DATEPICKER_PROPS}
-                                                selected={parseISODate(field.value)}
-                                                onChange={(date) => field.onChange(toISODate(date))}
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.license_expiry)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
                                             />
                                             <label>License Expiry</label>
+                                            {errors?.license_expiry ? (
+                                                <span className="error text-danger">{errors.license_expiry.message}</span>
+                                            ) : null}
                                         </div>
                                     )}
                                 />
@@ -299,15 +284,25 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     name="contract_start_date"
                                     control={control}
                                     render={({ field }) => (
-                                        <div
-                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
-                                        >
-                                            <DatePicker
-                                                {...PREMIUM_DATEPICKER_PROPS}
-                                                selected={parseISODate(field.value)}
-                                                onChange={(date) => field.onChange(toISODate(date))}
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.contract_start_date)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
                                             />
                                             <label>Contract Start Date</label>
+                                            {errors?.contract_start_date ? (
+                                                <span className="error text-danger">{errors.contract_start_date.message}</span>
+                                            ) : null}
                                         </div>
                                     )}
                                 />
@@ -323,15 +318,25 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     name="contract_expiry_date"
                                     control={control}
                                     render={({ field }) => (
-                                        <div
-                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
-                                        >
-                                            <DatePicker
-                                                {...PREMIUM_DATEPICKER_PROPS}
-                                                selected={parseISODate(field.value)}
-                                                onChange={(date) => field.onChange(toISODate(date))}
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.contract_expiry_date)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
                                             />
                                             <label>Contract Expiry Date</label>
+                                            {errors?.contract_expiry_date ? (
+                                                <span className="error text-danger">{errors.contract_expiry_date.message}</span>
+                                            ) : null}
                                         </div>
                                     )}
                                 />

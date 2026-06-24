@@ -7,7 +7,7 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import useDriverReducer from "../../../store/DriverReducer";
-import PremiumDateField from "../../../components/PremiumDateField";
+import DatePickerField from "../../KanbanBoard/CardFormTabs/shared/components/DatePickerField";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 
 /** API may return driver_for as 1/2, "1"/"2", or "Transport" / "Material". */
@@ -183,11 +183,31 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             {/* JOINING DATE */}
                             <div className="col-lg-6 col-sm-12">
-                                <PremiumDateField
-                                    control={control}
+                                <Controller
                                     name="joining_date"
-                                    label="Joining Date"
-                                    error={errors.joining_date}
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.joining_date)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
+                                            />
+                                            <label>Joining Date</label>
+                                            {errors?.joining_date ? (
+                                                <span className="error text-danger">{errors.joining_date.message}</span>
+                                            ) : null}
+                                        </div>
+                                    )}
                                 />
                             </div>
 

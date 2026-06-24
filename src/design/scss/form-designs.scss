@@ -439,43 +439,97 @@ input[type=number] {
     background: transparent !important;
 }
 
-/* Premium date input style for operator modal */
-.lead-form .form-floating.desig-inp.premium-date-field .react-datepicker-wrapper,
-.lead-form .form-floating.desig-inp.premium-date-field .react-datepicker__input-container {
-    width: 100%;
-    display: block;
-}
 
-.lead-form .form-floating.desig-inp.premium-date-field .form-control.premium-date-input {
-    color: #1f2a44;
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    font-weight: 600;
-    letter-spacing: 0.1px;
+
+/* Shared DatePickerField layout for Add/Edit modal forms only */
+.add-edit-modal-date-field {
+    position: relative;
     height: 50px;
     min-height: 50px;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-    padding-right: 12px !important;
-    transition: color 0.2s ease;
+    padding: 0 !important;
+    overflow: visible;
+    border: 1px solid #bcdee2 !important;
+    border-radius: 12px;
+    background: #fff;
+
+    >.cf-date-picker {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        border: none !important;
+    }
+
+    .MuiFormControl-root,
+    .MuiPickersTextField-root,
+    .MuiInputBase-root,
+    .MuiPickersInputBase-root,
+    .MuiPickersOutlinedInput-root {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 50px !important;
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+    }
+
+    .MuiPickersOutlinedInput-notchedOutline,
+    .MuiOutlinedInput-notchedOutline,
+    fieldset {
+        border: none !important;
+    }
+
+    .MuiPickersInputBase-sectionsContainer {
+        width: 100% !important;
+        height: 50px !important;
+        min-height: 50px !important;
+        display: flex;
+        align-items: center;
+        padding: 0 44px 0 20px !important;
+        box-sizing: border-box;
+    }
+
+    .MuiPickersSectionList-root {
+        width: 100%;
+        font-size: 13px;
+        color: #2b3f5c;
+    }
+
+    .MuiInputAdornment-root,
+    .MuiPickersInputAdornment-root {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: auto;
+        margin: 0;
+    }
+
+    >label {
+        position: absolute;
+        top: -16px !important;
+        left: 2px;
+        height: auto !important;
+        padding: 0 6px;
+        background: #fff;
+        color: #35475e !important;
+        font-size: 12px !important;
+        line-height: 18px;
+        transform: none !important;
+        z-index: 5;
+    }
+
+    .error {
+        position: absolute;
+        left: 0;
+        bottom: -18px;
+        font-size: 11px;
+    }
 }
 
-.lead-form .form-floating.desig-inp.premium-date-field .form-control.premium-date-input::placeholder {
-    color: #8aa0bf;
-    opacity: 0;
-}
-
-.lead-form .form-floating.desig-inp.premium-date-field:focus-within {
-    border-color: #6f97ff;
-    box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.14);
-}
-
-.lead-form .form-floating.desig-inp.premium-date-field:focus-within>label,
-.lead-form .form-floating.desig-inp.premium-date-field.has-value>label {
-    top: -10px !important;
-    transform: scale(.85) translateY(-0.4rem) translateX(0.15rem) !important;
-    height: unset !important;
+/* Override any inherited .form-floating border for this date wrapper */
+.form-floating.form-floating.add-edit-modal-date-field {
+    border: 1px solid #bcdee2 !important;
 }
 
 #datepicker-portal {

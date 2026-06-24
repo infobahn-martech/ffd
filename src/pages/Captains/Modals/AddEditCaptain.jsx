@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
-import PremiumDateField from "../../../components/PremiumDateField";
+import DatePickerField from "../../KanbanBoard/CardFormTabs/shared/components/DatePickerField";
 import useCaptainReducer from "../../../store/CaptainReducer";
 import fleetService from "../../../services/fleetService";
 import "../../../design/scss/prospect-modal.scss";
@@ -248,10 +248,31 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <PremiumDateField
-                                    control={control}
+                                <Controller
                                     name="license_expiry"
-                                    label="License Expiry"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.license_expiry)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
+                                            />
+                                            <label>License Expiry</label>
+                                            {errors?.license_expiry ? (
+                                                <span className="error text-danger">{errors.license_expiry.message}</span>
+                                            ) : null}
+                                        </div>
+                                    )}
                                 />
                             </div>
                         </div>

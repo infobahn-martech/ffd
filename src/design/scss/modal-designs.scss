@@ -392,38 +392,18 @@ body .user-modal-sm .modal-dialog {
   .form-control,
   .premium-select,
   .premium-select__control,
-  .react-tel-input .form-control,
-  .premium-date-input,
-  .premium-date-field {
+  .react-tel-input .form-control {
     min-height: 52px;
     height: 52px;
   }
 
   .phone-wrapper,
-  .desig-inp,
-  .premium-date-field {
+  .desig-inp {
     min-height: 52px;
   }
 
   .permInputs.row {
     row-gap: 18px;
-  }
-
-  .premium-date-field .react-datepicker-wrapper,
-  .premium-date-field .react-datepicker__input-container {
-    width: 100%;
-    height: 100%;
-  }
-
-  .premium-date-input {
-    width: 100%;
-    padding-top: 1rem;
-  }
-
-  /* Override form-designs date block (50px) so DatePickers match 52px controls */
-  .lead-form .form-floating.desig-inp.premium-date-field .form-control.premium-date-input {
-    min-height: 52px;
-    height: 52px;
   }
 
   .cf-multi-select-email-input {

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
-import PremiumDateField from "../../../components/PremiumDateField";
+import DatePickerField from "../../KanbanBoard/CardFormTabs/shared/components/DatePickerField";
 import useFleetReducer from "../../../store/FleetReducer";
 import operatorService from "../../../services/operatorService";
 import "../../../design/scss/prospect-modal.scss";
@@ -210,10 +210,31 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <PremiumDateField
-                                    control={control}
+                                <Controller
                                     name="insurance_expiry"
-                                    label="Insurance Expiry"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.insurance_expiry)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
+                                            />
+                                            <label>Insurance Expiry</label>
+                                            {errors?.insurance_expiry ? (
+                                                <span className="error text-danger">{errors.insurance_expiry.message}</span>
+                                            ) : null}
+                                        </div>
+                                    )}
                                 />
                             </div>
                         </div>
@@ -223,10 +244,31 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <PremiumDateField
-                                    control={control}
+                                <Controller
                                     name="certificate_expiry"
-                                    label="Certificate Expiry"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className="form-floating desig-inp add-edit-modal-date-field">
+                                            <DatePickerField
+                                                dateValue={field.value || ""}
+                                                dateFieldName={field.name}
+                                                onDateChange={(event) => field.onChange(event.target.value)}
+                                                hasError={Boolean(errors?.certificate_expiry)}
+                                                placeholder=""
+                                                className="add-edit-modal-date-picker"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        size: "small",
+                                                    },
+                                                }}
+                                            />
+                                            <label>Certificate Expiry</label>
+                                            {errors?.certificate_expiry ? (
+                                                <span className="error text-danger">{errors.certificate_expiry.message}</span>
+                                            ) : null}
+                                        </div>
+                                    )}
                                 />
                             </div>
                         </div>
