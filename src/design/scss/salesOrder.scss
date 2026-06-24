@@ -441,7 +441,7 @@
   border-spacing: 0;
   table-layout: fixed !important;
   width: 100%;
-  min-width: 1350px;
+  min-width: 1460px;
   margin: 0;
 }
 
@@ -547,6 +547,134 @@
   white-space: nowrap;
 }
 
+/* Supporting Documents cell (chip + action button) */
+.so-docs-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.so-docs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #eef2ff, #e6ecff);
+  border: 1px solid #d4dbff;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3730a3;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(42, 0, 255, 0.06);
+}
+
+.so-docs-chip-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  color: #4f46e5;
+}
+
+.so-docs-chip-count {
+  line-height: 1.2;
+}
+
+.so-docs-action-btn {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px solid #b3baff;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #2A00FF;
+  cursor: pointer;
+  font-family: "Open Sans", sans-serif;
+  white-space: nowrap;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.so-docs-action-btn:hover {
+  background: #f0f2ff;
+  box-shadow: 0 1px 4px rgba(42, 0, 255, 0.15);
+}
+
+.so-docs-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px dashed #c2c8e8;
+  border-radius: 16px;
+  background: #f7f8fd;
+  color: #5a5f8a;
+  cursor: pointer;
+  font-family: "Open Sans", sans-serif;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.so-docs-add-btn:hover {
+  border-color: #b3baff;
+  background: #f0f2ff;
+  color: #2A00FF;
+}
+
+.so-docs-add-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.so-docs-empty {
+  color: #a7afc2;
+  font-size: 13px;
+}
+
+/* Supporting Documents control inside the Add Item form */
+.sales-order-add-form-docs {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+/* Row-level status badge */
+.so-row-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 12px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: capitalize;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.so-row-status-pending {
+  background: #fff4e5;
+  color: #b76e00;
+  border-color: #ffd9a0;
+}
+
+.so-row-status-approved {
+  background: #e6f7ee;
+  color: #1a8f4a;
+  border-color: #b2dfce;
+}
+
+.so-row-status-rejected {
+  background: #fdecea;
+  color: #c0392b;
+  border-color: #f5c6c2;
+}
+
 .sales-order-table td:nth-child(3) .sales-order-table-cell,
 .sales-order-table td:nth-child(4) .sales-order-table-cell {
   white-space: normal;
@@ -626,6 +754,11 @@
   .col-supplier {
     width: 12%;
     min-width: 190px;
+  }
+
+  .col-status {
+    width: 9%;
+    min-width: 110px;
   }
 
   &:has(thead th.col-checkbox) tbody tr:not(.sales-order-accordion-header-row) td:nth-child(3) .sales-order-table-cell {

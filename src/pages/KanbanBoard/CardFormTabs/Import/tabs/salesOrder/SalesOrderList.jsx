@@ -813,7 +813,7 @@ const DocumentListModal = ({ show, onClose, onSave, initialSelected = [] }) => {
     >
       <div style={{ background: "#fff", borderRadius: "10px", width: "90%", maxWidth: "520px", maxHeight: "70vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
         <div style={{ padding: "18px 22px", borderBottom: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "#1a1a2e" }}>Select Documents</h3>
+          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "#1a1a2e" }}>Select Supporting Documents</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "22px", cursor: "pointer", color: "#888", lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: "14px 22px", borderBottom: "1px solid #eee", flexShrink: 0 }}>
@@ -1120,10 +1120,46 @@ const SalesOrderList = ({
     return [];
   };
 
-  const formatDocumentCount = (documents) => {
+  // Supporting Documents chip/button control (shared by table rows and add-item form)
+  const renderSupportingDocsControl = (documents, onOpen) => {
     const count = documents?.length || 0;
-    if (!count) return "—";
-    return `${count} Document${count > 1 ? "s" : ""}`;
+
+    if (count > 0) {
+      return (
+        <div className="so-docs-control">
+          <span className="so-docs-chip">
+            <FiFileText className="so-docs-chip-icon" />
+            <span className="so-docs-chip-count">
+              {count} file{count > 1 ? "s" : ""}
+            </span>
+          </span>
+          {!readOnly && (
+            <button type="button" className="so-docs-action-btn" onClick={onOpen}>
+              View/Edit
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    if (readOnly) {
+      return <span className="so-docs-empty">—</span>;
+    }
+
+    return (
+      <button type="button" className="so-docs-add-btn" onClick={onOpen}>
+        <FiFilePlus className="so-docs-add-icon" />
+        Add Docs
+      </button>
+    );
+  };
+
+  // Row-level status badge (defaults to "Pending")
+  const getRowStatusClass = (status) => {
+    const s = (status || "").toLowerCase();
+    if (s.includes("approve")) return "so-row-status-approved";
+    if (s.includes("reject") || s.includes("cancel")) return "so-row-status-rejected";
+    return "so-row-status-pending";
   };
 
   const handleAddNewItem = () => {
@@ -1419,27 +1455,10 @@ const SalesOrderList = ({
         </div>
       </td>
 
-      {/* Document Picker */}
+      {/* Supporting Documents */}
       <td>
-        <div className="sales-order-table-cell sales-order-supplier-cell">
-          {readOnly ? (
-            <span>{formatDocumentCount(order.documents)}</span>
-          ) : (
-            <>
-              <span
-                className={`sales-order-supplier-code-text${order.documents?.length ? "" : " is-empty"}`}
-              >
-                {formatDocumentCount(order.documents)}
-              </span>
-              <button
-                type="button"
-                onClick={() => setDocumentModalTarget(order.id)}
-                className="sales-order-supplier-select-btn"
-              >
-                {order.documents?.length ? "Change" : "Select"}
-              </button>
-            </>
-          )}
+        <div className="sales-order-table-cell">
+          {renderSupportingDocsControl(order.documents, () => setDocumentModalTarget(order.id))}
         </div>
       </td>
 
@@ -1466,6 +1485,15 @@ const SalesOrderList = ({
               </button>
             </>
           )}
+        </div>
+      </td>
+
+      {/* Status */}
+      <td>
+        <div className="sales-order-table-cell">
+          <span className={`so-row-status-badge ${getRowStatusClass(order.status)}`}>
+            {order.status || "Pending"}
+          </span>
         </div>
       </td>
     </tr>
@@ -1861,23 +1889,9 @@ const SalesOrderList = ({
                 </select>
               </div>
               <div className="sales-order-add-form-field">
-                <label>Document Picker</label>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <input
-                    type="text"
-                    value={newItemForm.documents?.length ? formatDocumentCount(newItemForm.documents) : ""}
-                    readOnly
-                    placeholder="— Select documents —"
-                    className="sales-order-add-form-input"
-                    style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setDocumentModalTarget("new")}
-                    style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
-                  >
-                    {newItemForm.documents?.length ? "Change" : "Select"}
-                  </button>
+                <label>Supporting Documents</label>
+                <div className="sales-order-add-form-docs">
+                  {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
                 </div>
               </div>
               <div className="sales-order-add-form-field">
@@ -2064,15 +2078,16 @@ const SalesOrderList = ({
               {renderTableHeader("Tax Code", "col-tax")}
               {renderTableHeader("Total Amount", "col-total")}
               {renderTableHeader("Type of PO", "col-type-po")}
-              {renderTableHeader("Document Picker", "col-documents")}
+              {renderTableHeader("Supporting Documents", "col-documents")}
               {renderTableHeader("Supplier Code", "col-supplier")}
+              {renderTableHeader("Status", "col-status")}
             </tr>
           </thead>
           <tbody>
             {displayOrderList.length === 0 && !isLoadingSalesOrder && (
               <tr>
                 <td
-                  colSpan={isDAModule ? 10 : 11}
+                  colSpan={isDAModule ? 11 : 12}
                   style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                 >
                   No sales order line items for this call.
@@ -2105,7 +2120,7 @@ const SalesOrderList = ({
                     }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={isDAModule ? 10 : 11} style={{ padding: "12px 16px" }}>
+                    <td colSpan={isDAModule ? 11 : 12} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {!isDAModule && (
