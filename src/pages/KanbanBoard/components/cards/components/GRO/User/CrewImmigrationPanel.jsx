@@ -76,6 +76,7 @@ export default function CrewImmigrationPanel({
   const [bulkRows, setBulkRows] = useState([]);
   const [zawilModalOpen, setZawilModalOpen] = useState(false);
   const [zawilModalFile, setZawilModalFile] = useState(null);
+  const [zawilModalSubmitting, setZawilModalSubmitting] = useState(false);
   const zawilModalFileInputRef = useRef(null);
 
   const enterBulkUploadMode = (mode) => {
@@ -102,15 +103,23 @@ export default function CrewImmigrationPanel({
   };
 
   const closeZawilModal = () => {
+    if (zawilModalSubmitting) return;
     setZawilModalOpen(false);
     setZawilModalFile(null);
     if (zawilModalFileInputRef.current) zawilModalFileInputRef.current.value = "";
   };
 
-  const handleZawilModalSubmit = () => {
-    if (!zawilModalFile) return;
-    onZawilFileChange({ target: { files: [zawilModalFile] } });
-    closeZawilModal();
+  const handleZawilModalSubmit = async () => {
+    if (!zawilModalFile || zawilModalSubmitting) return;
+    setZawilModalSubmitting(true);
+    try {
+      await Promise.resolve(onZawilFileChange({ target: { files: [zawilModalFile] } }));
+      setZawilModalOpen(false);
+      setZawilModalFile(null);
+      if (zawilModalFileInputRef.current) zawilModalFileInputRef.current.value = "";
+    } finally {
+      setZawilModalSubmitting(false);
+    }
   };
 
   if (bulkUploadMode) {
@@ -282,6 +291,7 @@ export default function CrewImmigrationPanel({
                 type="button"
                 className="gro-zawil-upload-modal__dropzone"
                 onClick={() => zawilModalFileInputRef.current?.click()}
+                disabled={zawilModalSubmitting}
               >
                 <FiUploadCloud className="gro-zawil-upload-modal__dropzone-icon" />
                 <span className="gro-zawil-upload-modal__dropzone-text">
@@ -296,16 +306,27 @@ export default function CrewImmigrationPanel({
               />
             </div>
             <div className="two-btn logout-btn gro-zawil-upload-modal__footer">
-              <button type="button" className="btn-common close" onClick={closeZawilModal}>
+              <button
+                type="button"
+                className="btn-common close"
+                onClick={closeZawilModal}
+                disabled={zawilModalSubmitting}
+              >
                 Cancel
               </button>
               <button
                 type="button"
-                className="save btn-common"
-                disabled={!zawilModalFile}
+                className="save btn-common gro-zawil-upload-modal__submit"
+                disabled={!zawilModalFile || zawilModalSubmitting}
                 onClick={handleZawilModalSubmit}
               >
-                Upload Zawil Pass
+                {zawilModalSubmitting ? (
+                  <span className="spinner-border spinner-border-sm" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </span>
+                ) : (
+                  "Upload Zawil Pass"
+                )}
               </button>
             </div>
           </div>

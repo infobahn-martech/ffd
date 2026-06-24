@@ -1943,6 +1943,10 @@ body .gro-zawil-upload-modal .modal-dialog {
   z-index: 20001 !important;
 }
 
+.gro-zawil-upload-modal .gro-crew-immigration-file-input {
+  display: none;
+}
+
 .gro-zawil-upload-modal__title {
   margin-bottom: 20px;
 }
@@ -1989,6 +1993,28 @@ body .gro-zawil-upload-modal .modal-dialog {
   justify-content: center;
   padding-left: 0;
   padding-top: 28px;
+}
+
+.gro-zawil-upload-modal__submit.btn-common {
+  background: #00368c !important;
+  border-color: #00368c !important;
+  color: #fff !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+}
+
+.gro-zawil-upload-modal__submit.btn-common:hover:not(:disabled) {
+  background: #002a6e !important;
+  border-color: #002a6e !important;
+}
+
+.gro-zawil-upload-modal__submit.btn-common:disabled {
+  background: #9fb2cf !important;
+  border-color: #9fb2cf !important;
+  color: #fff !important;
+  cursor: not-allowed;
 }
 
 @media (max-width: 576px) {
