@@ -1766,6 +1766,32 @@ const normalizeEmailFieldValue = (value) => {
   return firstNonEmptyString(value);
 };
 
+const normalizeEmailAttachmentList = (value) =>
+  (Array.isArray(value) ? value : [])
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const fileUrl = firstNonEmptyString(item.file_url, item.url, item.path, item.fileUrl);
+      const fileName = firstNonEmptyString(
+        item.file_name,
+        item.name,
+        item.fileName,
+        fileUrl ? fileUrl.split("/").pop() : ""
+      );
+      if (!fileName && !fileUrl) return null;
+      return { file_name: fileName, file_url: fileUrl };
+    })
+    .filter(Boolean);
+
+const dedupeAttachmentsByUrl = (attachments) =>
+  Array.from(
+    new Map(
+      (Array.isArray(attachments) ? attachments : []).map((file) => [
+        file.file_url || file.file_name,
+        file,
+      ])
+    ).values()
+  );
+
 const resolveEmailPreviewPayload = (payload) => {
   const root = payload?.data?.data ?? payload?.data ?? payload ?? {};
   const data = Array.isArray(root) ? (root[0] ?? {}) : root;
@@ -1988,18 +2014,10 @@ const EmailPreviewPanel = ({
   const emailAttachmentInputRef = useRef(null);
   const [isAttachmentDragging, setIsAttachmentDragging] = useState(false);
 
-  const uploadedAttachments = (Array.isArray(emailAttachments) ? emailAttachments : [])
+  const displayAttachments = (Array.isArray(emailAttachments) ? emailAttachments : [])
     .map((item, index) => ({
-      id: `uploaded-${index}`,
-      index,
-      name: item?.file_name || `Attachment ${index + 1}`,
-      url: item?.file_url || "",
-    }))
-    .filter((item) => item.name || item.url);
-
-  const apiAttachments = (Array.isArray(previewData?.attachments) ? previewData.attachments : [])
-    .map((item, index) => ({
-      id: `api-${index}`,
+      id: `att-${item?._source ?? "x"}-${item?._index ?? index}`,
+      raw: item,
       name: item?.file_name || `Attachment ${index + 1}`,
       url: item?.file_url || "",
     }))
@@ -2146,16 +2164,13 @@ const EmailPreviewPanel = ({
                     onDragLeave={handleAttachmentDragLeave}
                     onDrop={handleAttachmentDrop}
                   >
-                    {apiAttachments.map((attachment) => (
-                      <EmailPreviewAttachmentChip key={attachment.id} attachment={attachment} />
-                    ))}
-                    {uploadedAttachments.map((attachment) => (
+                    {displayAttachments.map((attachment) => (
                       <EmailPreviewAttachmentChip
                         key={attachment.id}
                         attachment={attachment}
                         onRemove={() => {
                           if (typeof onRemoveEmailAttachment === "function") {
-                            onRemoveEmailAttachment(attachment.index);
+                            onRemoveEmailAttachment(attachment.raw);
                           }
                         }}
                       />
@@ -2282,6 +2297,8 @@ EmailPreviewPanel.propTypes = {
     PropTypes.shape({
       file_name: PropTypes.string,
       file_url: PropTypes.string,
+      _source: PropTypes.string,
+      _index: PropTypes.number,
     })
   ),
   onUploadEmailAttachments: PropTypes.func,
@@ -2314,7 +2331,8 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
-  const [emailAttachments, setEmailAttachments] = useState([]);
+  const [defaultEmailAttachments, setDefaultEmailAttachments] = useState([]);
+  const [uploadedEmailAttachments, setUploadedEmailAttachments] = useState([]);
   const [isUploadingEmailAttachments, setIsUploadingEmailAttachments] = useState(false);
   const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("without_ai");
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
@@ -2988,12 +3006,16 @@ function General({
       apiAppointmentBase.body,
       emailPreviewBody
     );
-    const normalizedEmailAttachments = (Array.isArray(emailAttachments) ? emailAttachments : [])
-      .map((item) => ({
-        file_name: item?.file_name ?? "",
-        file_url: item?.file_url ?? "",
-      }))
-      .filter((item) => item.file_name || item.file_url);
+    const mergedSaveAttachments = [
+      ...(Array.isArray(defaultEmailAttachments) ? defaultEmailAttachments : []),
+      ...(Array.isArray(uploadedEmailAttachments) ? uploadedEmailAttachments : []),
+    ].map((file) => ({
+      file_name: file?.file_name ?? "",
+      file_url: file?.file_url ?? "",
+    }));
+    const normalizedEmailAttachments = dedupeAttachmentsByUrl(
+      mergedSaveAttachments.filter((item) => item.file_name || item.file_url)
+    );
     const appointmentAcceptanceForSubmit = {
       ...apiAppointmentBase,
       subject: resolvedSubject,
@@ -3553,8 +3575,12 @@ function General({
 
     if (data.appointment_acceptance && typeof data.appointment_acceptance === "object") {
       setAppointmentAcceptanceFromApi(data.appointment_acceptance);
+      setDefaultEmailAttachments(
+        normalizeEmailAttachmentList(data.appointment_acceptance.attachments)
+      );
     } else {
       setAppointmentAcceptanceFromApi(null);
+      setDefaultEmailAttachments([]);
     }
 
     const resolvedPreview = resolveEmailPreviewPayload(payload);
@@ -3597,6 +3623,7 @@ function General({
     setPreviewMessageEditorKey(0);
     setEmailPreviewData(null);
     setAppointmentAcceptanceFromApi(null);
+    setDefaultEmailAttachments([]);
     setIsPreviewMessageDirty(false);
     resetTouchedPreviewFields();
     setEditablePreviewFields({
@@ -3988,7 +4015,7 @@ ${body}
           return;
         }
 
-        setEmailAttachments((prev) => [...prev, ...normalized]);
+        setUploadedEmailAttachments((prev) => [...prev, ...normalized]);
       } catch (error) {
         console.error("Email attachment upload failed:", error);
         const msg =
@@ -4004,9 +4031,26 @@ ${body}
     [getFieldValue]
   );
 
-  const handleRemoveEmailAttachment = useCallback((index) => {
-    setEmailAttachments((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveEmailAttachment = useCallback((item) => {
+    if (!item) return;
+    if (item._source === "default") {
+      setDefaultEmailAttachments((prev) => prev.filter((_, i) => i !== item._index));
+    } else {
+      setUploadedEmailAttachments((prev) => prev.filter((_, i) => i !== item._index));
+    }
   }, []);
+
+  const mergedEmailAttachments = useMemo(
+    () => [
+      ...(Array.isArray(defaultEmailAttachments) ? defaultEmailAttachments : []).map(
+        (file, index) => ({ ...file, _source: "default", _index: index })
+      ),
+      ...(Array.isArray(uploadedEmailAttachments) ? uploadedEmailAttachments : []).map(
+        (file, index) => ({ ...file, _source: "uploaded", _index: index })
+      ),
+    ],
+    [defaultEmailAttachments, uploadedEmailAttachments]
+  );
 
   const normalizeEntityEmailOptions = useCallback((payload) => {
     const root = payload?.data ?? payload ?? {};
@@ -4542,6 +4586,7 @@ ${body}
 
     if (!hasAllRequiredPreviewFields) {
       setEmailPreviewData(null);
+      setDefaultEmailAttachments([]);
       resetTouchedPreviewFields();
       setEditablePreviewFields({
         from_email: "",
@@ -4570,6 +4615,7 @@ ${body}
         if (cancelled) return;
         const resolved = resolveEmailPreviewPayload(data);
         setEmailPreviewData(resolved);
+        setDefaultEmailAttachments(normalizeEmailAttachmentList(resolved?.attachments));
         populateEditablePreviewFields(resolved);
         const apiHtml = firstNonEmptyString(resolved?.messageHtml);
         if (apiHtml && !isPreviewMessageDirty) {
@@ -4580,6 +4626,7 @@ ${body}
         console.error("[General] email preview fetch failed", error);
         if (!cancelled) {
           setEmailPreviewData(null);
+          setDefaultEmailAttachments([]);
           resetTouchedPreviewFields();
           setEditablePreviewFields({
             from_email: "",
@@ -5951,7 +5998,7 @@ ${body}
                             setIsPreviewMessageDirty(true);
                             setPreviewMessageText(next ?? "");
                           }}
-                          emailAttachments={emailAttachments}
+                          emailAttachments={mergedEmailAttachments}
                           onUploadEmailAttachments={handleEmailAttachmentUpload}
                           onRemoveEmailAttachment={handleRemoveEmailAttachment}
                           isUploadingEmailAttachments={isUploadingEmailAttachments}
