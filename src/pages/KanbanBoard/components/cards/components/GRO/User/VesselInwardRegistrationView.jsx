@@ -1,17 +1,7 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
-import { FiArrowLeft, FiUploadCloud } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
-
-const PASS_META = {
-  cg: {
-    title: "Bulk Upload CG Pass",
-    submitLabel: "Upload CG Pass",
-  },
-  zawil: {
-    title: "Bulk Upload Zawil Pass",
-    submitLabel: "Upload Zawil Pass",
-  },
-};
+import { GRO_STATIC_VESSEL_INWARD_CREW_ROWS } from "./groCardUtils";
 
 const EDITABLE_FIELDS = [
   { key: "crewName", label: "Crew Name" },
@@ -20,25 +10,18 @@ const EDITABLE_FIELDS = [
   { key: "zawilNo", label: "Zawil No" },
 ];
 
-export default function BulkPassUploadView({ passType, rows, onRowsChange, onBack, onSubmit }) {
-  const meta = PASS_META[passType] ?? PASS_META.cg;
+/** Vessel Inward Registration boarding view — crew details + Arabic document preview (static). */
+export default function VesselInwardRegistrationView({ initialRows = GRO_STATIC_VESSEL_INWARD_CREW_ROWS }) {
+  const [rows, setRows] = useState(initialRows);
 
   const handleFieldChange = (rowId, field, value) => {
-    onRowsChange(
-      rows.map((row) => (String(row.id) === String(rowId) ? { ...row, [field]: value } : row))
+    setRows((prev) =>
+      prev.map((row) => (String(row.id) === String(rowId) ? { ...row, [field]: value } : row))
     );
   };
 
   return (
-    <div className="gro-crew-immigration-bulk">
-      <div className="gro-crew-immigration-bulk-header">
-        <button type="button" className="gro-crew-immigration-bulk-back" onClick={onBack}>
-          <FiArrowLeft className="gro-crew-immigration-bulk-back-icon" />
-          Back
-        </button>
-        <h3 className="gro-crew-immigration-bulk-heading">{meta.title}</h3>
-      </div>
-
+    <div className="gro-crew-immigration-panel">
       <div className="gro-crew-immigration-bulk-body">
         <div className="gro-crew-immigration-bulk-left">
           <p className="gro-crew-immigration-bulk-section-title">Crew Details</p>
@@ -56,7 +39,7 @@ export default function BulkPassUploadView({ passType, rows, onRowsChange, onBac
                 {rows.length === 0 ? (
                   <tr>
                     <td colSpan={EDITABLE_FIELDS.length + 1} className="gro-crew-immigration-bulk-empty">
-                      No crew selected.
+                      No crew available.
                     </td>
                   </tr>
                 ) : (
@@ -87,26 +70,10 @@ export default function BulkPassUploadView({ passType, rows, onRowsChange, onBac
           <VesselBoardingArabicPreview rows={rows} />
         </div>
       </div>
-
-      <div className="gro-crew-immigration-bulk-actions">
-        <button
-          type="button"
-          className="gro-crew-immigration-bulk-submit"
-          onClick={onSubmit}
-          disabled={rows.length === 0}
-        >
-          <FiUploadCloud className="gro-crew-immigration-bulk-submit-icon" />
-          {meta.submitLabel}
-        </button>
-      </div>
     </div>
   );
 }
 
-BulkPassUploadView.propTypes = {
-  passType: PropTypes.oneOf(["cg", "zawil"]).isRequired,
-  rows: PropTypes.arrayOf(PropTypes.object).isRequired,
-  onRowsChange: PropTypes.func.isRequired,
-  onBack: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
+VesselInwardRegistrationView.propTypes = {
+  initialRows: PropTypes.arrayOf(PropTypes.object),
 };

@@ -21,7 +21,47 @@ export const GRO_MAIN_VIEWS = {
 export const GRO_ACTIVE_TABS = {
   documents: "documents",
   crewImmigration: "crewImmigration",
+  vesselInwardRegistration: "vesselInwardRegistration",
 };
+
+/** Static crew rows for the Vessel Inward Registration boarding view. */
+export const GRO_STATIC_VESSEL_INWARD_CREW_ROWS = [
+  {
+    id: "vir-1",
+    crewName: "Abdul Rahman",
+    nationality: "India",
+    passportIqama: "M9371021 / IQA-112934",
+    zawilNo: "",
+  },
+  {
+    id: "vir-2",
+    crewName: "John Mathew",
+    nationality: "Philippines",
+    passportIqama: "P1027443 / IQA-220718",
+    zawilNo: "",
+  },
+  {
+    id: "vir-3",
+    crewName: "Mohammed Saleh",
+    nationality: "Egypt",
+    passportIqama: "E8482912 / IQA-089115",
+    zawilNo: "",
+  },
+  {
+    id: "vir-4",
+    crewName: "Sanjay Kumar",
+    nationality: "India",
+    passportIqama: "M9271104 / IQA-392103",
+    zawilNo: "",
+  },
+  {
+    id: "vir-5",
+    crewName: "Ahmed Fawzy",
+    nationality: "Egypt",
+    passportIqama: "E1128930 / IQA-900111",
+    zawilNo: "",
+  },
+];
 
 export const GRO_STATIC_CREW_IMMIGRATION_ROWS = [
   {
