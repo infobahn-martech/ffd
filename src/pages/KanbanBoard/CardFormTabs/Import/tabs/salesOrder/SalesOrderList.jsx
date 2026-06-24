@@ -951,21 +951,6 @@ const SalesOrderList = ({
     return [soPort, ...PORT_OPTIONS];
   }, [soPort]);
 
-  // Status: use backend so_status when present; otherwise derive OPEN/CLOSED from delivery date
-  const soStatusDisplay = (() => {
-    const fromApi = (formValues.soStatus ?? "").trim();
-    if (fromApi) return fromApi;
-    if (!soDeliveryDate) return "OPEN";
-    return new Date(soDeliveryDate) >= new Date(new Date().toDateString()) ? "OPEN" : "CLOSED";
-  })();
-
-  const soStatusBadgeClass = (() => {
-    const s = soStatusDisplay.toLowerCase();
-    if (s.includes("close")) return "closed";
-    if (s.includes("open")) return "open";
-    return "open";
-  })();
-
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
@@ -1699,8 +1684,8 @@ const SalesOrderList = ({
           </div>
         </div>
 
-        {/* Row 4: Document Date | Ship Name | BP Currency | Status | Conversion rate (USD/EURO/SAR placeholder) */}
-        <div className="so-header-row" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+        {/* Row 4: Document Date | Ship Name | BP Currency | Conversion rate (USD/EURO/SAR placeholder) */}
+        <div className="so-header-row">
           <div className="so-header-field">
             <label className="so-header-label">Document Date</label>
             <input
@@ -1774,12 +1759,6 @@ const SalesOrderList = ({
                 />
               </>
             )}
-          </div>
-          <div className="so-header-field so-header-field-status">
-            <label className="so-header-label">Status</label>
-            <span className={"so-status-badge so-status-" + soStatusBadgeClass}>
-              {soStatusDisplay}
-            </span>
           </div>
         </div>
       </div>
