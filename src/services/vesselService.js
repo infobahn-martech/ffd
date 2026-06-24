@@ -20,9 +20,9 @@ const getVesselByVesselId = (vesselId) =>
 const getVesselByEntity = (entityId, params) =>
   Gateway.get(`/vessel/vessel_by_entity/${entityId}`, params ? { params } : undefined);
 
-/** GET /vessel/vessel_by_entity/{entity_id} filtered by vessel_type_id | tug_type_id | barge_type_id */
+/** POST /vessel/vessel_by_entity/{entity_id} filtered by vessel_type_id | tug_type_id | barge_type_id (sent in body) */
 const getVesselsByEntity = (entityId, params) =>
-  Gateway.get(`/vessel/vessel_by_entity/${entityId}`, { params });
+  Gateway.post(`/vessel/vessel_by_entity/${entityId}`, params || {});
 
 const getVesselDetailByVesselId = (vesselId) =>
   Gateway.get(`/vessel/vessel_detail_vessel_id/${vesselId}`);
