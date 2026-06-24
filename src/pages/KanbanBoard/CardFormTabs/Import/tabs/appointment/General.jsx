@@ -1982,6 +1982,7 @@ const EmailPreviewPanel = ({
   onUploadEmailAttachments,
   onRemoveEmailAttachment,
   isUploadingEmailAttachments = false,
+  isBillingEntitySelected = true,
 }) => {
   const messageQuillRef = useRef(null);
   const emailAttachmentInputRef = useRef(null);
@@ -2169,8 +2170,12 @@ const EmailPreviewPanel = ({
                       type="button"
                       className="email-preview-attachment-add"
                       onClick={() => emailAttachmentInputRef.current?.click()}
-                      title="Add attachments"
-                      disabled={isUploadingEmailAttachments}
+                      title={
+                        isBillingEntitySelected
+                          ? "Add attachments"
+                          : "Select a Main Billing entity to upload attachments"
+                      }
+                      disabled={isUploadingEmailAttachments || !isBillingEntitySelected}
                     >
                       + Add
                     </button>
@@ -2282,6 +2287,7 @@ EmailPreviewPanel.propTypes = {
   onUploadEmailAttachments: PropTypes.func,
   onRemoveEmailAttachment: PropTypes.func,
   isUploadingEmailAttachments: PropTypes.bool,
+  isBillingEntitySelected: PropTypes.bool,
 };
 
 function General({
@@ -3948,6 +3954,10 @@ ${body}
       if (!validFiles.length) return;
 
       const billingEntityId = getFieldValue("mainBillingEntity");
+      if (isEmptyValue(billingEntityId)) {
+        notify("Please select a Main Billing entity before uploading attachments.", "error");
+        return;
+      }
 
       const formData = new FormData();
       validFiles.forEach((file) => {
@@ -5945,6 +5955,7 @@ ${body}
                           onUploadEmailAttachments={handleEmailAttachmentUpload}
                           onRemoveEmailAttachment={handleRemoveEmailAttachment}
                           isUploadingEmailAttachments={isUploadingEmailAttachments}
+                          isBillingEntitySelected={!isEmptyValue(getFieldValue("mainBillingEntity"))}
                         />
                       </div>
                     </>
