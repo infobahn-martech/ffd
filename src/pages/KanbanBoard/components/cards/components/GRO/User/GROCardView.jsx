@@ -186,6 +186,11 @@ const GROCardView = forwardRef(function GROCardView(
     [taskPanelTitle]
   );
 
+  const isCrewImmigrationStage = useMemo(
+    () => String(taskPanelTitle ?? "").trim().toLowerCase() === "crew immigration",
+    [taskPanelTitle]
+  );
+
   const groCallTypeId = useMemo(() => {
     const raw = callDetail?.call_type_id;
     if (raw == null || String(raw).trim() === "") return null;
@@ -1168,15 +1173,17 @@ const GROCardView = forwardRef(function GROCardView(
                     >
                       Documents
                     </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={activeTab === GRO_ACTIVE_TABS.crewImmigration}
-                      className={`gro-pass-segment${activeTab === GRO_ACTIVE_TABS.crewImmigration ? " gro-pass-segment--active" : ""}`}
-                      onClick={selectCrewImmigrationTab}
-                    >
-                      Crew Immigration
-                    </button>
+                    {isCrewImmigrationStage ? (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === GRO_ACTIVE_TABS.crewImmigration}
+                        className={`gro-pass-segment${activeTab === GRO_ACTIVE_TABS.crewImmigration ? " gro-pass-segment--active" : ""}`}
+                        onClick={selectCrewImmigrationTab}
+                      >
+                        {taskPanelTitle}
+                      </button>
+                    ) : null}
                   </>
                 ) : (
                   <>
@@ -1210,7 +1217,7 @@ const GROCardView = forwardRef(function GROCardView(
                   </>
                 )}
               </div>
-              {(hidePassTabs && activeTab === GRO_ACTIVE_TABS.documents) ||
+              {(hidePassTabs && !isCrewImmigrationStage && activeTab === GRO_ACTIVE_TABS.documents) ||
                 (!hidePassTabs && groMainView === GRO_MAIN_VIEWS.inward) ? (
                 <InwardClearanceToolbar
                   inwardAnchorRef={inwardAnchorRef}
