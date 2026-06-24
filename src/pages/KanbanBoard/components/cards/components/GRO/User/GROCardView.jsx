@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import { FiSave } from "react-icons/fi";
 import { notify } from "../../../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
 import userService from "../../../../../../../services/userService";
@@ -1284,26 +1283,7 @@ const GROCardView = forwardRef(function GROCardView(
                   </>
                 )}
               </div>
-              {hidePassTabs && activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? (
-                <div className="gro-inward-anchor">
-                  <button
-                    type="button"
-                    className="gro-pass-segment gro-pass-segment--icon"
-                    title="Save Vessel Registration PDF"
-                    onClick={handleGenerateVesselRegistrationPdf}
-                    disabled={isGeneratingVesselPdf}
-                  >
-                    {isGeneratingVesselPdf ? (
-                      <span className="spinner-border spinner-border-sm" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </span>
-                    ) : (
-                      <FiSave />
-                    )}
-                    <span>Save</span>
-                  </button>
-                </div>
-              ) : (hidePassTabs &&
+              {(hidePassTabs &&
                 !isCrewImmigrationStage &&
                 !isVesselInwardRegistrationStage &&
                 activeTab === GRO_ACTIVE_TABS.documents) ||
@@ -1398,7 +1378,11 @@ const GROCardView = forwardRef(function GROCardView(
             onRowUploadClick={triggerCrewUploadInput}
           />
         ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? (
-          <VesselInwardRegistrationView ref={vesselRegistrationRef} />
+          <VesselInwardRegistrationView
+            ref={vesselRegistrationRef}
+            onSave={handleGenerateVesselRegistrationPdf}
+            isSaving={isGeneratingVesselPdf}
+          />
         ) : hidePassTabs || groMainView === GRO_MAIN_VIEWS.inward ? (
           <InwardClearanceView
             documents={documents}

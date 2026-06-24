@@ -727,6 +727,55 @@
   color: #64748b;
 }
 
+.gro-card-view .gro-vessel-reg-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .gro-crew-immigration-bulk-section-title {
+    margin-bottom: 0;
+  }
+}
+
+.gro-card-view .gro-vessel-reg-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gro-card-view .gro-vessel-reg-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f3c88;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #1f3c88;
+    border-color: #1f3c88;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .gro-card-view .gro-crew-immigration-bulk-table-wrap {
   width: 100%;
   overflow-x: auto;
