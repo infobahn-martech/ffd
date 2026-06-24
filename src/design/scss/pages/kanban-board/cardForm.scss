@@ -1934,6 +1934,63 @@ body .gro-doc-action-modal .modal-dialog {
   border-color: #e63535 !important;
 }
 
+body .gro-zawil-upload-modal,
+body .gro-zawil-upload-modal.show {
+  z-index: 20000 !important;
+}
+
+body .gro-zawil-upload-modal .modal-dialog {
+  z-index: 20001 !important;
+}
+
+.gro-zawil-upload-modal__title {
+  margin-bottom: 20px;
+}
+
+.gro-zawil-upload-modal__body {
+  width: 100%;
+}
+
+.gro-zawil-upload-modal__dropzone {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 18px;
+  border: 1.5px dashed #b9c6d6;
+  border-radius: 10px;
+  background: #f8f9fc;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.gro-zawil-upload-modal__dropzone:hover {
+  border-color: #00368c;
+  background: #f1f5fb;
+}
+
+.gro-zawil-upload-modal__dropzone-icon {
+  font-size: 32px;
+  color: #00368c;
+}
+
+.gro-zawil-upload-modal__dropzone-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  word-break: break-all;
+}
+
+.gro-zawil-upload-modal__footer.two-btn {
+  display: flex;
+  justify-content: center;
+  padding-left: 0;
+  padding-top: 28px;
+}
+
 @media (max-width: 576px) {
   body .gro-doc-action-modal .modal-content {
     padding: 10px 24px 28px 24px !important;

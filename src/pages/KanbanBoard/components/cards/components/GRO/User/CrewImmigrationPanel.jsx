@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { FiUploadCloud, FiFileText, FiCheckCircle } from "react-icons/fi";
 import BulkPassUploadView from "./BulkPassUploadView";
+import CustomModal from "../../../../../../../components/CustomModal";
+
+const ZAWIL_UPLOAD_MODAL_CLASS =
+  "modal change-pass fade employee-modal logout-modal gro-zawil-upload-modal";
 
 function buildBulkRowsFromSelection(rows, selectedRowIds) {
   return rows
@@ -68,8 +72,11 @@ export default function CrewImmigrationPanel({
   onZawilFileChange,
   onRowUploadClick,
 }) {
-  const [bulkUploadMode, setBulkUploadMode] = useState(null); // "cg" | "zawil" | null
+  const [bulkUploadMode, setBulkUploadMode] = useState(null); // "cg" | null
   const [bulkRows, setBulkRows] = useState([]);
+  const [zawilModalOpen, setZawilModalOpen] = useState(false);
+  const [zawilModalFile, setZawilModalFile] = useState(null);
+  const zawilModalFileInputRef = useRef(null);
 
   const enterBulkUploadMode = (mode) => {
     setBulkRows(buildBulkRowsFromSelection(rows, selectedRowIds));
@@ -84,10 +91,26 @@ export default function CrewImmigrationPanel({
   const handleBulkSubmit = () => {
     if (bulkUploadMode === "cg") {
       onBulkUploadCg();
-    } else if (bulkUploadMode === "zawil") {
-      onBulkUploadZawil();
     }
     exitBulkUploadMode();
+  };
+
+  const openZawilModal = () => {
+    setZawilModalFile(null);
+    if (zawilModalFileInputRef.current) zawilModalFileInputRef.current.value = "";
+    setZawilModalOpen(true);
+  };
+
+  const closeZawilModal = () => {
+    setZawilModalOpen(false);
+    setZawilModalFile(null);
+    if (zawilModalFileInputRef.current) zawilModalFileInputRef.current.value = "";
+  };
+
+  const handleZawilModalSubmit = () => {
+    if (!zawilModalFile) return;
+    onZawilFileChange({ target: { files: [zawilModalFile] } });
+    closeZawilModal();
   };
 
   if (bulkUploadMode) {
@@ -118,7 +141,7 @@ export default function CrewImmigrationPanel({
         <button
           type="button"
           className="gro-crew-immigration-bulk-btn"
-          onClick={() => enterBulkUploadMode("zawil")}
+          onClick={openZawilModal}
           disabled={selectedRowIds.size === 0}
         >
           Bulk Upload Zawil Pass
@@ -245,6 +268,48 @@ export default function CrewImmigrationPanel({
         type="file"
         className="gro-crew-immigration-file-input"
         onChange={onZawilFileChange}
+      />
+      <CustomModal
+        createModal
+        className={ZAWIL_UPLOAD_MODAL_CLASS}
+        show={zawilModalOpen}
+        closeModal={closeZawilModal}
+        body={
+          <div className="modal-body">
+            <div className="popup-title gro-zawil-upload-modal__title">Bulk Upload Zawil Pass</div>
+            <div className="gro-zawil-upload-modal__body">
+              <button
+                type="button"
+                className="gro-zawil-upload-modal__dropzone"
+                onClick={() => zawilModalFileInputRef.current?.click()}
+              >
+                <FiUploadCloud className="gro-zawil-upload-modal__dropzone-icon" />
+                <span className="gro-zawil-upload-modal__dropzone-text">
+                  {zawilModalFile ? zawilModalFile.name : "Click to select a file"}
+                </span>
+              </button>
+              <input
+                ref={zawilModalFileInputRef}
+                type="file"
+                className="gro-crew-immigration-file-input"
+                onChange={(e) => setZawilModalFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+            <div className="two-btn logout-btn gro-zawil-upload-modal__footer">
+              <button type="button" className="btn-common close" onClick={closeZawilModal}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="save btn-common"
+                disabled={!zawilModalFile}
+                onClick={handleZawilModalSubmit}
+              >
+                Upload Zawil Pass
+              </button>
+            </div>
+          </div>
+        }
       />
     </div>
   );
