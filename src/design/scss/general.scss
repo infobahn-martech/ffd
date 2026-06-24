@@ -3669,6 +3669,22 @@
   }
 }
 
+.email-preview-attachment-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(75, 85, 99, 0.25);
+  border-top-color: #4b5563;
+  border-radius: 50%;
+  animation: emailPreviewAttachmentSpin 0.6s linear infinite;
+}
+
+@keyframes emailPreviewAttachmentSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Add-mode static field validation (General tab) */
 .cf-field-error {
   margin-top: 4px;

@@ -30,6 +30,7 @@ import {
   FormInput,
   FormSection,
   FormSelect,
+  mapAttachmentsForSave,
   OperationEmailPreviewPanel,
   OperationFileUpload,
   OperationFormCard,
@@ -367,6 +368,7 @@ function PreArrival({
   portId,
   callTypeId,
   vesselTypeId,
+  billingEntityId,
   stageId = OPERATION_STAGE_IDS.PRE_ARRIVAL,
 }) {
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
@@ -873,6 +875,7 @@ function PreArrival({
         to_email: reportDraft.to ?? "",
         from_email: reportDraft.from ?? "",
         cc_emails: reportDraft.cc ?? "",
+        attachments: mapAttachmentsForSave(reportAttachments),
       })
     );
 
@@ -1214,6 +1217,7 @@ function PreArrival({
                   message={reportDraft.message}
                   attachments={reportAttachments}
                   onAttachmentsChange={setReportAttachments}
+                  billingEntityId={billingEntityId ?? formValues.mainBillingEntity}
                   onChange={handleReportDraftChange}
                   onSend={handleSendPreArrivalReport}
                   isSending={isSendingReport || isSavingPreArrival}
@@ -1243,6 +1247,7 @@ PreArrival.propTypes = {
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   vesselTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  billingEntityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 

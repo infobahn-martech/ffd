@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -6,6 +6,8 @@ import { ensureHtmlForQuill } from "../operationReportMessageHtml";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import { isEventFieldRequired } from "../operationConstants";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
+import callFileService from "../../../../../../../services/callFileService";
+import { notify } from "../../../../../../../components/Toaster";
 
 export const FormSection = ({ icon, title, children }) => {
   return (
@@ -679,18 +681,37 @@ export const mapFilesToAttachments = (fileList = []) =>
     file,
   }));
 
+/** Pull the uploaded { file_name, file_url } pair out of an attachment entry. */
+export const getUploadedAttachment = (item) => {
+  if (!item || getAttachmentFile(item)) return null;
+  const fileName = item.file_name ?? item.fileName ?? item.name ?? "";
+  const fileUrl = item.file_url ?? item.fileUrl ?? item.url ?? "";
+  if (!fileUrl) return null;
+  return { file_name: fileName, file_url: fileUrl };
+};
+
+/** Map an attachment list to the { file_name, file_url } objects sent on save. */
+export const mapAttachmentsForSave = (attachments = []) =>
+  (Array.isArray(attachments) ? attachments : [])
+    .map(getUploadedAttachment)
+    .filter((file) => file?.file_name && file?.file_url);
+
 /**
  * Build the send-report request body. When any attachment carries a File we
  * return multipart FormData (so `attachments[]` can be uploaded); otherwise a
  * plain JSON object is returned so the existing no-attachment flow is untouched.
+ * Already-uploaded attachments ({ file_name, file_url }) are passed along as an
+ * `attachments` array regardless of which branch is used.
  */
 export const buildSendReportRequestBody = (fields = {}, attachments = []) => {
-  const files = (Array.isArray(attachments) ? attachments : [])
-    .map(getAttachmentFile)
-    .filter(Boolean);
+  const list = Array.isArray(attachments) ? attachments : [];
+  const files = list.map(getAttachmentFile).filter(Boolean);
+  const uploaded = mapAttachmentsForSave(list);
 
   if (!files.length) {
-    return { ...fields };
+    const body = { ...fields };
+    if (uploaded.length) body.attachments = uploaded;
+    return body;
   }
 
   const fd = new FormData();
@@ -699,7 +720,37 @@ export const buildSendReportRequestBody = (fields = {}, attachments = []) => {
     fd.append(key, String(value));
   });
   files.forEach((file) => fd.append("attachments[]", file));
+  if (uploaded.length) fd.append("attachments", JSON.stringify(uploaded));
   return fd;
+};
+
+/** Normalize a single upload-API attachment record into our internal shape. */
+const normalizeUploadedAttachment = (item) => {
+  if (!item) return null;
+  const fileName =
+    item.file_name ?? item.fileName ?? item.name ?? item.original_name ?? "";
+  const fileUrl =
+    item.file_url ?? item.fileUrl ?? item.url ?? item.path ?? "";
+  if (!fileUrl) return null;
+  const fallbackName = String(fileUrl).split("/").pop() || "Attachment";
+  return {
+    id: createAttachmentId(),
+    file_name: fileName || fallbackName,
+    file_url: fileUrl,
+  };
+};
+
+/** Pull the uploaded attachment list out of an upload_email_attachments response. */
+export const extractUploadedAttachments = (response) => {
+  const data = response?.data ?? response;
+  const candidate =
+    data?.data ?? data?.attachments ?? data?.files ?? data;
+  const arr = Array.isArray(candidate)
+    ? candidate
+    : candidate && typeof candidate === "object"
+      ? [candidate]
+      : [];
+  return arr.map(normalizeUploadedAttachment).filter(Boolean);
 };
 
 const openEmailPreviewAttachment = (attachment) => {
@@ -710,16 +761,30 @@ const openEmailPreviewAttachment = (attachment) => {
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     return;
   }
-  const link = attachment?.url || attachment?.attachment;
-  if (typeof link === "string" && /^https?:\/\//i.test(link)) {
+  const link =
+    attachment?.file_url || attachment?.fileUrl || attachment?.url || attachment?.attachment;
+  if (typeof link === "string" && link.trim()) {
     window.open(link, "_blank", "noopener,noreferrer");
     return;
   }
-  console.log("[Email Preview] Open attachment:", attachment?.name);
+  console.log("[Email Preview] Open attachment:", attachment?.file_name || attachment?.name);
 };
 
+const IconAttachmentEye = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path
+      d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+  </svg>
+);
+
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
-  const fileName = attachment?.name || "Untitled";
+  const fileName = attachment?.file_name || attachment?.name || "Untitled";
   const fileSize = formatAttachmentSize(attachment?.size);
 
   const handleRemove = (event) => {
@@ -731,13 +796,16 @@ const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
 
   return (
     <div className="email-preview-attachment-chip" title={fileName}>
+      <span className="email-preview-attachment-name">{fileName}</span>
+      {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
       <button
         type="button"
-        className="email-preview-attachment-link"
+        className="email-preview-attachment-view"
         onClick={() => openEmailPreviewAttachment(attachment)}
+        aria-label={`View ${fileName}`}
+        title="View"
       >
-        <span className="email-preview-attachment-name">{fileName}</span>
-        {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
+        <IconAttachmentEye />
       </button>
       {typeof onRemove === "function" ? (
         <button
@@ -758,9 +826,11 @@ EmailPreviewAttachmentChip.propTypes = {
   attachment: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     name: PropTypes.string,
+    file_name: PropTypes.string,
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     file: PropTypes.object,
     url: PropTypes.string,
+    file_url: PropTypes.string,
   }).isRequired,
   onRemove: PropTypes.func,
 };
@@ -807,17 +877,46 @@ export const OperationEmailPreviewPanel = ({
   isSending = false,
   isViewOnly = false,
   attachmentsAccept,
+  billingEntityId,
 }) => {
   const attachmentInputRef = useRef(null);
+  const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
   const attachmentList = Array.isArray(attachments) ? attachments : [];
   const canEditAttachments = !isViewOnly && typeof onAttachmentsChange === "function";
   const showSend = !isViewOnly && typeof onSend === "function";
 
-  const handleAttachmentFilesSelected = (event) => {
+  const handleAttachmentFilesSelected = async (event) => {
     const selected = Array.from(event.target.files || []);
     event.target.value = "";
     if (!selected.length) return;
-    onAttachmentsChange?.([...attachmentList, ...mapFilesToAttachments(selected)]);
+
+    const formData = new FormData();
+    selected.forEach((file) => formData.append("files[]", file));
+    const entityId = billingEntityId == null ? "" : String(billingEntityId).trim();
+    if (entityId) {
+      formData.append("billing_entity_id", entityId);
+    }
+
+    setIsUploadingAttachments(true);
+    try {
+      const response = await callFileService.uploadEmailAttachments(formData);
+      const uploaded = extractUploadedAttachments(response);
+      if (!uploaded.length) {
+        notify("Upload succeeded but no attachments were returned.", "error");
+        return;
+      }
+      onAttachmentsChange?.([...attachmentList, ...uploaded]);
+    } catch (error) {
+      notify(
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "Failed to upload attachment(s).",
+        "error"
+      );
+    } finally {
+      setIsUploadingAttachments(false);
+    }
   };
 
   const handleRemoveAttachment = (attachmentId) => {
@@ -888,10 +987,18 @@ export const OperationEmailPreviewPanel = ({
                   type="button"
                   className="email-preview-attachment-add"
                   onClick={() => attachmentInputRef.current?.click()}
-                  title="Add attachment"
-                  aria-label="Add attachment"
+                  title={isUploadingAttachments ? "Uploading…" : "Add attachment"}
+                  aria-label={isUploadingAttachments ? "Uploading attachment" : "Add attachment"}
+                  disabled={isUploadingAttachments}
                 >
-                  <IconAttachmentAdd />
+                  {isUploadingAttachments ? (
+                    <span
+                      className="email-preview-attachment-spinner"
+                      aria-hidden
+                    />
+                  ) : (
+                    <IconAttachmentAdd />
+                  )}
                 </button>
                 <input
                   ref={attachmentInputRef}
@@ -946,6 +1053,7 @@ OperationEmailPreviewPanel.propTypes = {
   isSending: PropTypes.bool,
   isViewOnly: PropTypes.bool,
   attachmentsAccept: PropTypes.string,
+  billingEntityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export const OperationFileUpload = ({

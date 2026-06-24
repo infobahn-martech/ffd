@@ -203,6 +203,24 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     ]
   );
 
+  const billingEntityId = useMemo(
+    () =>
+      callDetailData?.main_billing_entity_id ??
+      callDetailData?.mainBillingEntity ??
+      formValues?.mainBillingEntity ??
+      formValues?.main_billing_entity_id ??
+      card?.main_billing_entity_id ??
+      card?.mainBillingEntity ??
+      "",
+    [
+      callDetailData,
+      formValues?.mainBillingEntity,
+      formValues?.main_billing_entity_id,
+      card?.main_billing_entity_id,
+      card?.mainBillingEntity,
+    ]
+  );
+
   useEffect(() => {
     if (isAddMode || !currentCallId) {
       setCallDetailData(null);
@@ -436,6 +454,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               portId={preArrivalPortId}
               callTypeId={preArrivalCallTypeId}
               vesselTypeId={preArrivalVesselTypeId}
+              billingEntityId={billingEntityId}
               stageId={OPERATION_STAGE_IDS.PRE_ARRIVAL}
             />
           )}
@@ -453,6 +472,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               callId={currentCallId}
               portId={preArrivalPortId}
               callTypeId={preArrivalCallTypeId}
+              billingEntityId={billingEntityId}
               stageId={OPERATION_STAGE_IDS.ARRIVAL}
             />
           )}
@@ -467,6 +487,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               isViewOnly={isViewOnly}
               eventFields={departureEventFields}
               callId={currentCallId}
+              billingEntityId={billingEntityId}
               stageId={OPERATION_STAGE_IDS.DEPARTURE}
             />
           )}

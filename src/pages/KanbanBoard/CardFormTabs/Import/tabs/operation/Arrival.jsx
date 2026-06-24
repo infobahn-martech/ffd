@@ -17,6 +17,7 @@ import {
   FormSection,
   FormSelect,
   FormTextarea,
+  mapAttachmentsForSave,
   OperationEmailPreviewPanel,
   OperationFormCard,
   OperationSaveSection,
@@ -106,6 +107,7 @@ function Arrival({
   callId = "",
   portId = "",
   callTypeId = "",
+  billingEntityId,
   stageId = OPERATION_STAGE_IDS.ARRIVAL,
 }) {
   const resolveFormId = (...values) => {
@@ -462,6 +464,7 @@ function Arrival({
         to_email: reportDraft.to ?? "",
         from_email: reportDraft.from ?? "",
         cc_emails: reportDraft.cc ?? "",
+        attachments: mapAttachmentsForSave(reportAttachments),
       })
     );
 
@@ -752,6 +755,7 @@ function Arrival({
                   message={reportDraft.message}
                   attachments={reportAttachments}
                   onAttachmentsChange={setReportAttachments}
+                  billingEntityId={billingEntityId ?? formValues.mainBillingEntity}
                   onChange={handleReportDraftChange}
                   onReportTypeChange={handleReportTypeChange}
                   onSend={handleSaveAndSendReport}
@@ -779,6 +783,7 @@ Arrival.propTypes = {
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  billingEntityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 

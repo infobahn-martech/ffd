@@ -15,6 +15,7 @@ import {
   FormField,
   FormInput,
   FormSection,
+  mapAttachmentsForSave,
   OperationEmailPreviewPanel,
   OperationFileUpload,
   OperationFormCard,
@@ -31,6 +32,7 @@ function Departure({
   isViewOnly = false,
   eventFields = [],
   callId = "",
+  billingEntityId,
   stageId = OPERATION_STAGE_IDS.DEPARTURE,
 }) {
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
@@ -114,8 +116,20 @@ function Departure({
     }
 
     const timeObjects = buildDepartureTimeObjectsPayload();
-    console.log("Saving Departure data:", { ...formValues, time_objects: timeObjects });
-    // TODO: replace with Departure save API call for stage time objects (append time_objects to FormData)
+    const departureReport = {
+      subject: reportDraft.subject ?? "",
+      body: resolveReportBodyHtml(reportDraft.message, buildDepartureReportBody(formValues)) ?? "",
+      to_email: reportDraft.to ?? "",
+      from_email: reportDraft.from ?? "",
+      cc_emails: reportDraft.cc ?? "",
+      attachments: mapAttachmentsForSave(formValues.departureAttachments || []),
+    };
+    console.log("Saving Departure data:", {
+      ...formValues,
+      time_objects: timeObjects,
+      departure_report: departureReport,
+    });
+    // TODO: replace with Departure save API call for stage time objects (append time_objects + departure_report to FormData)
 
     try {
       await persistAdditionalTimeObjects({
@@ -271,6 +285,7 @@ function Departure({
                   message={reportDraft.message}
                   attachments={formValues.departureAttachments || []}
                   onAttachmentsChange={handleDepartureAttachmentsChange}
+                  billingEntityId={billingEntityId ?? formValues.mainBillingEntity}
                   onChange={handleReportDraftChange}
                   onSend={handleSaveAndSendReport}
                   isSending={isSavingDeparture}
@@ -296,6 +311,7 @@ Departure.propTypes = {
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  billingEntityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
