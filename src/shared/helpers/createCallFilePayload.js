@@ -266,10 +266,12 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
     from_email: str(appointmentAcceptanceRaw.from_email),
     subject: str(appointmentAcceptanceRaw.subject),
     to_email: str(appointmentAcceptanceRaw.to_email),
-    attachments: emailAttachments,
   };
   fd.append("appointment_acceptance", JSON.stringify(appointmentAcceptance));
-  fd.append("email_attachments", JSON.stringify(emailAttachments));
+
+  // Uploaded email attachments (from /call_file/upload_email_attachments).
+  // Always sent — an empty array when nothing was uploaded.
+  fd.append("attachments", JSON.stringify(emailAttachments));
 
   return fd;
 }

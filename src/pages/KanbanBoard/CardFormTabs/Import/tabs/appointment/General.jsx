@@ -2995,7 +2995,6 @@ function General({
       to_email: resolvedToEmail,
       from_email: resolvedFromEmail,
       cc_emails: finalCcEmails,
-      attachments: normalizedEmailAttachments,
     };
     console.log("FINAL appointment_acceptance", appointmentAcceptanceForSubmit);
     const formPayload = {
@@ -3038,7 +3037,6 @@ function General({
         })
         .filter(Boolean),
       appointment_acceptance: appointmentAcceptanceForSubmit,
-      email_attachments: normalizedEmailAttachments,
       instruction_type: billingInstructionType,
       billing_instruction_det: getFieldValue("billingInstructions") ?? "",
     };
