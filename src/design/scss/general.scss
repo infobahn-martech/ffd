@@ -3589,6 +3589,53 @@
   }
 }
 
+.email-preview-attachment-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    color: #1d4ed8;
+    background: rgba(37, 99, 235, 0.1);
+  }
+
+  &:focus,
+  &:active,
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.email-preview-attachments-list.is-dragging {
+  outline: 1px dashed #3e5cb6;
+  outline-offset: 4px;
+  border-radius: 4px;
+  background: rgba(62, 92, 182, 0.04);
+}
+
+.email-preview-attachment-uploading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .email-preview-attachment-add {
   display: inline-flex;
   align-items: center;
@@ -3608,6 +3655,11 @@
     color: #1f2937;
     border-color: #9ca3af;
     background: rgba(15, 23, 42, 0.04);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 
   &:focus,

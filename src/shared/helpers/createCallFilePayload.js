@@ -115,6 +115,7 @@ function resolveSelectionsToNumericReferenceIds(val, ...optionLists) {
  * @param {{
  *   appointmentFiles?: File[],
  *   acceptanceFiles?: File[],
+ *   emailAttachments?: Array<{ file_name?: string, file_url?: string }>,
  *   dailyReportEmailOptions?: Array<{ value?: unknown, label?: string }>,
  *   billingInstructionEmailOptions?: Array<{ value?: unknown, label?: string }>,
  *   preserveAppointmentBody?: boolean,
@@ -125,6 +126,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const {
     appointmentFiles = [],
     acceptanceFiles = [],
+    emailAttachments: emailAttachmentsOption,
     dailyReportEmailOptions = [],
     billingInstructionEmailOptions = [],
     preserveAppointmentBody = false,
@@ -246,14 +248,28 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
     console.log("Sanitized email body length:", sanitizedBody.length);
     console.log("Removed base64 image:", originalBody.length !== sanitizedBody.length);
   }
+  const normalizeEmailAttachments = (value) =>
+    (Array.isArray(value) ? value : [])
+      .map((item) => ({
+        file_name: str(item?.file_name ?? item?.name),
+        file_url: str(item?.file_url ?? item?.url),
+      }))
+      .filter((item) => item.file_name || item.file_url);
+
+  const emailAttachments = normalizeEmailAttachments(
+    emailAttachmentsOption ?? fv.email_attachments ?? appointmentAcceptanceRaw.attachments
+  );
+
   const appointmentAcceptance = {
     body: str(sanitizedBody),
     cc_emails: str(appointmentAcceptanceRaw.cc_emails),
     from_email: str(appointmentAcceptanceRaw.from_email),
     subject: str(appointmentAcceptanceRaw.subject),
     to_email: str(appointmentAcceptanceRaw.to_email),
+    attachments: emailAttachments,
   };
   fd.append("appointment_acceptance", JSON.stringify(appointmentAcceptance));
+  fd.append("email_attachments", JSON.stringify(emailAttachments));
 
   return fd;
 }

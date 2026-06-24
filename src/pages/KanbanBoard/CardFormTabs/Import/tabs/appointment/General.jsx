@@ -1901,25 +1901,17 @@ const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = [
   "image",
 ];
 
-const formatAttachmentSize = (bytes) => {
-  const num = Number(bytes);
-  if (!Number.isFinite(num) || num <= 0) return "";
-  if (num < 1024) return `${num}B`;
-  if (num < 1024 * 1024) return `${Math.round(num / 1024)}K`;
-  return `${(num / (1024 * 1024)).toFixed(1)}M`;
-};
-
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
   const fileName = attachment?.name || "Untitled";
   const fileSize = attachment?.size || "";
   const fileUrl = attachment?.url || "";
+  const hasUrl = Boolean(fileUrl && String(fileUrl).trim());
 
-  const handleOpen = () => {
-    if (fileUrl) {
+  const handleOpen = (event) => {
+    event.stopPropagation();
+    if (hasUrl) {
       window.open(fileUrl, "_blank", "noopener,noreferrer");
-      return;
     }
-    console.log("[Email Preview] Open attachment:", fileName);
   };
 
   const handleRemove = (event) => {
@@ -1931,10 +1923,21 @@ const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
 
   return (
     <div className="email-preview-attachment-chip" title={fileName}>
-      <button type="button" className="email-preview-attachment-link" onClick={handleOpen}>
+      <span className="email-preview-attachment-link">
         <span className="email-preview-attachment-name">{fileName}</span>
         {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
-      </button>
+      </span>
+      {hasUrl ? (
+        <button
+          type="button"
+          className="email-preview-attachment-view"
+          onClick={handleOpen}
+          aria-label={`View ${fileName}`}
+          title="View attachment"
+        >
+          <FiEye size={14} strokeWidth={2.2} aria-hidden />
+        </button>
+      ) : null}
       {typeof onRemove === "function" ? (
         <button
           type="button"
@@ -1975,19 +1978,24 @@ const EmailPreviewPanel = ({
   messageValue,
   messageEditorKey,
   onMessageChange,
-  acceptanceFiles = [],
-  onAddAcceptanceFiles,
-  onRemoveAcceptanceFile,
+  emailAttachments = [],
+  onUploadEmailAttachments,
+  onRemoveEmailAttachment,
+  isUploadingEmailAttachments = false,
 }) => {
   const messageQuillRef = useRef(null);
-  const acceptanceFileInputRef = useRef(null);
-  const acceptanceAttachments = (Array.isArray(acceptanceFiles) ? acceptanceFiles : []).map(
-    (file, index) => ({
-      id: index,
-      name: file?.name || `Attachment ${index + 1}`,
-      size: formatAttachmentSize(file?.size),
-    })
-  );
+  const emailAttachmentInputRef = useRef(null);
+  const [isAttachmentDragging, setIsAttachmentDragging] = useState(false);
+
+  const uploadedAttachments = (Array.isArray(emailAttachments) ? emailAttachments : [])
+    .map((item, index) => ({
+      id: `uploaded-${index}`,
+      index,
+      name: item?.file_name || `Attachment ${index + 1}`,
+      url: item?.file_url || "",
+    }))
+    .filter((item) => item.name || item.url);
+
   const apiAttachments = (Array.isArray(previewData?.attachments) ? previewData.attachments : [])
     .map((item, index) => ({
       id: `api-${index}`,
@@ -1995,6 +2003,34 @@ const EmailPreviewPanel = ({
       url: item?.file_url || "",
     }))
     .filter((item) => item.name || item.url);
+
+  const handleAttachmentFilesSelected = (fileList) => {
+    const files = Array.from(fileList || []).filter((file) => Number(file?.size) > 0);
+    if (files.length && typeof onUploadEmailAttachments === "function") {
+      onUploadEmailAttachments(files);
+    }
+  };
+
+  const handleAttachmentDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (isUploadingEmailAttachments) return;
+    setIsAttachmentDragging(true);
+  };
+
+  const handleAttachmentDragLeave = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsAttachmentDragging(false);
+  };
+
+  const handleAttachmentDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsAttachmentDragging(false);
+    if (isUploadingEmailAttachments) return;
+    handleAttachmentFilesSelected(event.dataTransfer?.files);
+  };
   const messageQuillModules = useMemo(
     () => ({
       ...buildQuillModules(EMAIL_PREVIEW_MESSAGE_QUILL_TOOLBAR, messageQuillRef),
@@ -2102,40 +2138,50 @@ const EmailPreviewPanel = ({
               <div className="email-preview-row email-preview-row--attachments">
                 <div className="email-preview-row-label">Attachments</div>
                 <div className="email-preview-row-value">
-                  <div className="email-preview-attachments-list">
+                  <div
+                    className={`email-preview-attachments-list${isAttachmentDragging ? " is-dragging" : ""}`}
+                    onDragOver={handleAttachmentDragOver}
+                    onDragEnter={handleAttachmentDragOver}
+                    onDragLeave={handleAttachmentDragLeave}
+                    onDrop={handleAttachmentDrop}
+                  >
                     {apiAttachments.map((attachment) => (
                       <EmailPreviewAttachmentChip key={attachment.id} attachment={attachment} />
                     ))}
-                    {acceptanceAttachments.map((attachment) => (
+                    {uploadedAttachments.map((attachment) => (
                       <EmailPreviewAttachmentChip
                         key={attachment.id}
                         attachment={attachment}
-                        onRemove={(attachmentId) => {
-                          if (typeof onRemoveAcceptanceFile === "function") {
-                            onRemoveAcceptanceFile(attachmentId);
+                        onRemove={() => {
+                          if (typeof onRemoveEmailAttachment === "function") {
+                            onRemoveEmailAttachment(attachment.index);
                           }
                         }}
                       />
                     ))}
+                    {isUploadingEmailAttachments ? (
+                      <span className="email-preview-attachment-uploading">
+                        <span className="document-upload-spinner" aria-hidden="true" />
+                        <span>Uploading...</span>
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       className="email-preview-attachment-add"
-                      onClick={() => acceptanceFileInputRef.current?.click()}
+                      onClick={() => emailAttachmentInputRef.current?.click()}
                       title="Add attachments"
+                      disabled={isUploadingEmailAttachments}
                     >
                       + Add
                     </button>
                     <input
-                      ref={acceptanceFileInputRef}
+                      ref={emailAttachmentInputRef}
                       type="file"
                       multiple
                       className="file-input-hidden"
                       style={{ display: "none" }}
                       onChange={(event) => {
-                        const files = Array.from(event.target.files || []);
-                        if (files.length && typeof onAddAcceptanceFiles === "function") {
-                          onAddAcceptanceFiles(files);
-                        }
+                        handleAttachmentFilesSelected(event.target.files);
                         event.target.value = "";
                       }}
                     />
@@ -2227,9 +2273,15 @@ EmailPreviewPanel.propTypes = {
   messageEditorKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   /** Receives HTML from ReactQuill; second arg is Quill change source (e.g. "user"). */
   onMessageChange: PropTypes.func.isRequired,
-  acceptanceFiles: PropTypes.array,
-  onAddAcceptanceFiles: PropTypes.func,
-  onRemoveAcceptanceFile: PropTypes.func,
+  emailAttachments: PropTypes.arrayOf(
+    PropTypes.shape({
+      file_name: PropTypes.string,
+      file_url: PropTypes.string,
+    })
+  ),
+  onUploadEmailAttachments: PropTypes.func,
+  onRemoveEmailAttachment: PropTypes.func,
+  isUploadingEmailAttachments: PropTypes.bool,
 };
 
 function General({
@@ -2256,7 +2308,8 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
-  const [appointmentAcceptanceFiles, setAppointmentAcceptanceFiles] = useState([]);
+  const [emailAttachments, setEmailAttachments] = useState([]);
+  const [isUploadingEmailAttachments, setIsUploadingEmailAttachments] = useState(false);
   const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("without_ai");
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
   const [isServerEmailReading, setIsServerEmailReading] = useState(false);
@@ -2929,6 +2982,12 @@ function General({
       apiAppointmentBase.body,
       emailPreviewBody
     );
+    const normalizedEmailAttachments = (Array.isArray(emailAttachments) ? emailAttachments : [])
+      .map((item) => ({
+        file_name: item?.file_name ?? "",
+        file_url: item?.file_url ?? "",
+      }))
+      .filter((item) => item.file_name || item.file_url);
     const appointmentAcceptanceForSubmit = {
       ...apiAppointmentBase,
       subject: resolvedSubject,
@@ -2936,6 +2995,7 @@ function General({
       to_email: resolvedToEmail,
       from_email: resolvedFromEmail,
       cc_emails: finalCcEmails,
+      attachments: normalizedEmailAttachments,
     };
     console.log("FINAL appointment_acceptance", appointmentAcceptanceForSubmit);
     const formPayload = {
@@ -2978,6 +3038,7 @@ function General({
         })
         .filter(Boolean),
       appointment_acceptance: appointmentAcceptanceForSubmit,
+      email_attachments: normalizedEmailAttachments,
       instruction_type: billingInstructionType,
       billing_instruction_det: getFieldValue("billingInstructions") ?? "",
     };
@@ -2986,7 +3047,7 @@ function General({
     try {
       const formData = buildCreateCallFileFormData(formPayload, {
         appointmentFiles: appointmentDocuments,
-        acceptanceFiles: appointmentAcceptanceFiles,
+        emailAttachments: normalizedEmailAttachments,
         dailyReportEmailOptions,
         billingInstructionEmailOptions,
         preserveAppointmentBody:
@@ -3878,17 +3939,65 @@ ${body}
     console.log("[Appointment Email] removed, extracted values reset");
   };
 
-  const handleAcceptanceFilesAdd = useCallback((files) => {
-    const incoming = Array.isArray(files) ? files : [files];
-    const validFiles = incoming.filter(
-      (file) => file instanceof File || (typeof Blob !== "undefined" && file instanceof Blob)
-    );
-    if (!validFiles.length) return;
-    setAppointmentAcceptanceFiles((prev) => [...prev, ...validFiles]);
-  }, []);
+  const handleEmailAttachmentUpload = useCallback(
+    async (files) => {
+      const incoming = Array.isArray(files) ? files : [files];
+      const validFiles = incoming.filter(
+        (file) =>
+          (file instanceof File || (typeof Blob !== "undefined" && file instanceof Blob)) &&
+          Number(file?.size) > 0
+      );
+      if (!validFiles.length) return;
 
-  const handleAcceptanceFileRemove = useCallback((index) => {
-    setAppointmentAcceptanceFiles((prev) => prev.filter((_, i) => i !== index));
+      const billingEntityId = getFieldValue("mainBillingEntity");
+
+      const formData = new FormData();
+      validFiles.forEach((file) => {
+        formData.append("files[]", file);
+      });
+      formData.append("billing_entity_id", billingEntityId ?? "");
+
+      setIsUploadingEmailAttachments(true);
+      try {
+        const response = await callFileService.uploadEmailAttachments(formData);
+        const payload = response?.data?.data ?? response?.data ?? response;
+        const rawList = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.attachments)
+            ? payload.attachments
+            : Array.isArray(payload?.files)
+              ? payload.files
+              : [];
+        const normalized = rawList
+          .map((item) => ({
+            file_name: item?.file_name ?? item?.name ?? item?.fileName ?? "",
+            file_url: item?.file_url ?? item?.url ?? item?.fileUrl ?? "",
+          }))
+          .filter((item) => item.file_name || item.file_url);
+
+        if (!normalized.length) {
+          notify("No attachments were returned by the server.", "error");
+          return;
+        }
+
+        setEmailAttachments((prev) => [...prev, ...normalized]);
+      } catch (error) {
+        console.error("Email attachment upload failed:", error);
+        const msg =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "Could not upload attachments.";
+        notify(typeof msg === "string" ? msg : "Could not upload attachments.", "error");
+      } finally {
+        setIsUploadingEmailAttachments(false);
+      }
+    },
+    [getFieldValue]
+  );
+
+  const handleRemoveEmailAttachment = useCallback((index) => {
+    setEmailAttachments((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const normalizeEntityEmailOptions = useCallback((payload) => {
@@ -5834,9 +5943,10 @@ ${body}
                             setIsPreviewMessageDirty(true);
                             setPreviewMessageText(next ?? "");
                           }}
-                          acceptanceFiles={appointmentAcceptanceFiles}
-                          onAddAcceptanceFiles={handleAcceptanceFilesAdd}
-                          onRemoveAcceptanceFile={handleAcceptanceFileRemove}
+                          emailAttachments={emailAttachments}
+                          onUploadEmailAttachments={handleEmailAttachmentUpload}
+                          onRemoveEmailAttachment={handleRemoveEmailAttachment}
+                          isUploadingEmailAttachments={isUploadingEmailAttachments}
                         />
                       </div>
                     </>
