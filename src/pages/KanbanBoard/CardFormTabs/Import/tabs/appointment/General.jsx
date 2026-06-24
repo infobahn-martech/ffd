@@ -2326,10 +2326,16 @@ function General({
         : card?.color || "#2A00FF",
     [isAddMode, formValues?.cardColor, card?.color]
   );
+  // Single vessel section (Vessel / Taxi Tug) options.
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
+  // Tug and barge appointments keep independent dropdowns sourced from different type filters.
+  const [tugVesselNameOptions, setTugVesselNameOptions] = useState([]);
+  const [tugVesselOptionsLoading, setTugVesselOptionsLoading] = useState(false);
+  const [bargeVesselNameOptions, setBargeVesselNameOptions] = useState([]);
+  const [bargeVesselOptionsLoading, setBargeVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
   const [defaultEmailAttachments, setDefaultEmailAttachments] = useState([]);
   const [uploadedEmailAttachments, setUploadedEmailAttachments] = useState([]);
@@ -2422,6 +2428,10 @@ function General({
   const etaDependentLastRequestKeyRef = useRef("");
   const allDetailByVesselRequestIdRef = useRef(0);
   const lastHydratedEntityFieldCallIdRef = useRef(null);
+  // Race guards so the latest vessel-by-entity response always wins per section.
+  const vesselOptionsRequestIdRef = useRef(0);
+  const tugVesselOptionsRequestIdRef = useRef(0);
+  const bargeVesselOptionsRequestIdRef = useRef(0);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
   const [operatorKpiError, setOperatorKpiError] = useState("");
@@ -3174,6 +3184,38 @@ function General({
       }
     }
   };
+
+  // Changing a vessel-type selection invalidates the matching vessel-name dropdown, so we clear the
+  // dependent name/owner/charter/manager fields and let the fetch effects reload the filtered options.
+  const makeVesselTypeChange = (typeKey, dependentKeys) => (event) => {
+    if (isAddMode) {
+      handleValidatedChange(typeKey)(event);
+    } else {
+      handleChange(typeKey)(event);
+    }
+    dependentKeys.forEach((fieldName) => {
+      handleChange(fieldName)({ target: { value: "", name: fieldName } });
+    });
+  };
+
+  const handleSingleVesselTypeChange = makeVesselTypeChange("vesselType", [
+    "vesselName",
+    "vesselOwner",
+    "vesselManager",
+    "vesselPrincipal",
+  ]);
+  const handleTugTypeChange = makeVesselTypeChange("tugType", [
+    "tugVesselName",
+    "tugOwner",
+    "tugManager",
+    "tugPrincipal",
+  ]);
+  const handleBargeTypeChange = makeVesselTypeChange("bargeType", [
+    "bargeVesselName",
+    "bargeOwner",
+    "bargeManager",
+    "bargePrincipal",
+  ]);
 
   const handleServiceRequestorEmailChange = useCallback(
     (event) => {
@@ -4219,23 +4261,30 @@ ${body}
       .filter(Boolean);
   }, []);
 
-  const fetchVesselsByEntity = useCallback(
-    async (entityId) => {
+  // Loads vessel-name options for a single dropdown, filtered by entity + a type param
+  // (vessel_type_id | tug_type_id | barge_type_id). Empty entity or empty type clears the list.
+  const fetchVesselOptions = useCallback(
+    async ({ entityId, params, setOptions, setLoading, requestRef }) => {
       const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
-      if (!normalizedEntityId) {
-        setVesselNameOptions([]);
+      const typeParamValue = params ? firstNonEmptyString(...Object.values(params)) : "";
+      if (!normalizedEntityId || !typeParamValue) {
+        requestRef.current += 1;
+        setOptions([]);
+        setLoading(false);
         return;
       }
 
-      setVesselOptionsLoading(true);
+      const requestId = (requestRef.current += 1);
+      setLoading(true);
       try {
-        const { data } = await vesselService.getVesselByEntity(normalizedEntityId);
-        setVesselNameOptions(normalizeVesselOptions(data));
+        const { data } = await vesselService.getVesselsByEntity(normalizedEntityId, params);
+        if (requestRef.current !== requestId) return;
+        setOptions(normalizeVesselOptions(data));
       } catch (error) {
         console.error("[General] vessels by entity fetch failed", error);
-        setVesselNameOptions([]);
+        if (requestRef.current === requestId) setOptions([]);
       } finally {
-        setVesselOptionsLoading(false);
+        if (requestRef.current === requestId) setLoading(false);
       }
     },
     [normalizeVesselOptions]
@@ -4875,9 +4924,9 @@ ${body}
       void fetchEntityFields(selectedEntityId);
       void fetchBillingEntityEmails(selectedEntityId);
       void fetchBillingInstructionByEntity(selectedEntityId);
-      void fetchVesselsByEntity(selectedEntityId);
+      // Vessel-name dropdowns refetch via the entity/type effects below once the entity changes.
     },
-    [fetchBillingEntityEmails, fetchBillingInstructionByEntity, fetchEntityFields, fetchVesselsByEntity, handleChange]
+    [fetchBillingEntityEmails, fetchBillingInstructionByEntity, fetchEntityFields, handleChange]
   );
 
   const handleValidatedMainBillingEntityChange = (event) => {
@@ -4916,15 +4965,74 @@ ${body}
     if (isAddMode) {
       void fetchBillingInstructionByEntity(selectedEntityId);
     }
-    void fetchVesselsByEntity(selectedEntityId);
   }, [
     selectedEntityId,
     isAddMode,
     fetchEntityFields,
     fetchBillingEntityEmails,
     fetchBillingInstructionByEntity,
-    fetchVesselsByEntity,
   ]);
+
+  // Scalar type ids drive the vessel-name dropdown fetches (kept as primitives so the
+  // effects below only re-run when the underlying selection actually changes).
+  const singleVesselTypeId = firstNonEmptyString(getFieldValue("vesselType"));
+  const tugVesselTypeId = firstNonEmptyString(getFieldValue("tugType"));
+  const bargeVesselTypeId = firstNonEmptyString(getFieldValue("bargeType"));
+  // Vessel -> vessel_type_id; Taxi Tug -> tug_type_id (single section uses the tug source for Taxi Tug).
+  const singleVesselTypeParamKey = appointmentTypeUsesTugTypeSource(selectedAppointmentType)
+    ? "tug_type_id"
+    : "vessel_type_id";
+
+  // Single-section (Vessel / Taxi Tug) vessel names: entity + vessel_type_id|tug_type_id.
+  useEffect(() => {
+    if (!isSingleVesselSection) {
+      setVesselNameOptions([]);
+      return;
+    }
+    void fetchVesselOptions({
+      entityId: selectedEntityId,
+      params: { [singleVesselTypeParamKey]: singleVesselTypeId },
+      setOptions: setVesselNameOptions,
+      setLoading: setVesselOptionsLoading,
+      requestRef: vesselOptionsRequestIdRef,
+    });
+  }, [
+    isSingleVesselSection,
+    selectedEntityId,
+    singleVesselTypeId,
+    singleVesselTypeParamKey,
+    fetchVesselOptions,
+  ]);
+
+  // Tug sub-section vessel names (Tug and barge): entity + tug_type_id.
+  useEffect(() => {
+    if (!isTugAndBargeSelected) {
+      setTugVesselNameOptions([]);
+      return;
+    }
+    void fetchVesselOptions({
+      entityId: selectedEntityId,
+      params: { tug_type_id: tugVesselTypeId },
+      setOptions: setTugVesselNameOptions,
+      setLoading: setTugVesselOptionsLoading,
+      requestRef: tugVesselOptionsRequestIdRef,
+    });
+  }, [isTugAndBargeSelected, selectedEntityId, tugVesselTypeId, fetchVesselOptions]);
+
+  // Barge sub-section vessel names (Tug and barge): entity + barge_type_id.
+  useEffect(() => {
+    if (!isTugAndBargeSelected) {
+      setBargeVesselNameOptions([]);
+      return;
+    }
+    void fetchVesselOptions({
+      entityId: selectedEntityId,
+      params: { barge_type_id: bargeVesselTypeId },
+      setOptions: setBargeVesselNameOptions,
+      setLoading: setBargeVesselOptionsLoading,
+      requestRef: bargeVesselOptionsRequestIdRef,
+    });
+  }, [isTugAndBargeSelected, selectedEntityId, bargeVesselTypeId, fetchVesselOptions]);
 
 
 
@@ -5666,7 +5774,7 @@ ${body}
                                 >
                                   <FormSelect
                                     value={getFieldValue("vesselType")}
-                                    onChange={isAddMode ? handleValidatedChange("vesselType") : handleChange("vesselType")}
+                                    onChange={handleSingleVesselTypeChange}
                                     options={mergeOptionIfMissing(singleVesselTypeOptions, getFieldValue("vesselType"))}
                                     placeholder="Select vessel type"
                                     disabled={masterInputsDisabled}
@@ -5688,8 +5796,8 @@ ${body}
                                         value={vesselNameValue}
                                         onChange={handleVesselSelectionChange}
                                         options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
-                                        placeholder="Select vessel name"
-                                        disabled={isDisabled || vesselOptionsLoading}
+                                        placeholder={vesselOptionsLoading ? "Loading vessels..." : "Select vessel name"}
+                                        disabled={isDisabled || vesselOptionsLoading || !selectedEntityId || !singleVesselTypeId}
                                         hasError={isAddMode && Boolean(fieldErrors.vesselName)}
                                       />
                                     );
@@ -5734,7 +5842,7 @@ ${body}
                                       >
                                         <FormSelect
                                           value={getFieldValue("tugType")}
-                                          onChange={isAddMode ? handleValidatedChange("tugType") : handleChange("tugType")}
+                                          onChange={handleTugTypeChange}
                                           options={mergeOptionIfMissing(tugTypeSelectOptions, getFieldValue("tugType"))}
                                           placeholder="Select vessel type"
                                           disabled={masterInputsDisabled}
@@ -5750,14 +5858,14 @@ ${body}
                                       <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.tugVesselName)}>
                                         {(() => {
                                           const tugVesselNameValue = getFieldValue("tugVesselName");
-                                          const tugVesselNameLabel = getOptionLabel(vesselNameOptions, tugVesselNameValue) || tugVesselNameValue;
+                                          const tugVesselNameLabel = getOptionLabel(tugVesselNameOptions, tugVesselNameValue) || tugVesselNameValue;
                                           return (
                                             <FormSelect
                                               value={tugVesselNameValue}
                                               onChange={handleTugVesselSelectionChange}
-                                              options={mergeOptionIfMissing(vesselNameOptions, tugVesselNameValue, tugVesselNameLabel)}
-                                              placeholder="Select vessel name"
-                                              disabled={isDisabled || vesselOptionsLoading}
+                                              options={mergeOptionIfMissing(tugVesselNameOptions, tugVesselNameValue, tugVesselNameLabel)}
+                                              placeholder={tugVesselOptionsLoading ? "Loading vessels..." : "Select vessel name"}
+                                              disabled={isDisabled || tugVesselOptionsLoading || !selectedEntityId || !tugVesselTypeId}
                                               hasError={isAddMode && Boolean(fieldErrors.tugVesselName)}
                                             />
                                           );
@@ -5801,7 +5909,7 @@ ${body}
                                       >
                                         <FormSelect
                                           value={getFieldValue("bargeType")}
-                                          onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
+                                          onChange={handleBargeTypeChange}
                                           options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
                                           placeholder="Select vessel type"
                                           disabled={masterInputsDisabled}
@@ -5817,14 +5925,14 @@ ${body}
                                       <FormField label="Vessel Name *" hasError={isAddMode && Boolean(fieldErrors.bargeVesselName)}>
                                         {(() => {
                                           const bargeVesselNameValue = getFieldValue("bargeVesselName");
-                                          const bargeVesselNameLabel = getOptionLabel(vesselNameOptions, bargeVesselNameValue) || bargeVesselNameValue;
+                                          const bargeVesselNameLabel = getOptionLabel(bargeVesselNameOptions, bargeVesselNameValue) || bargeVesselNameValue;
                                           return (
                                             <FormSelect
                                               value={bargeVesselNameValue}
                                               onChange={handleBargeVesselSelectionChange}
-                                              options={mergeOptionIfMissing(vesselNameOptions, bargeVesselNameValue, bargeVesselNameLabel)}
-                                              placeholder="Select vessel name"
-                                              disabled={isDisabled || vesselOptionsLoading}
+                                              options={mergeOptionIfMissing(bargeVesselNameOptions, bargeVesselNameValue, bargeVesselNameLabel)}
+                                              placeholder={bargeVesselOptionsLoading ? "Loading vessels..." : "Select vessel name"}
+                                              disabled={isDisabled || bargeVesselOptionsLoading || !selectedEntityId || !bargeVesselTypeId}
                                               hasError={isAddMode && Boolean(fieldErrors.bargeVesselName)}
                                             />
                                           );
