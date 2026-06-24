@@ -33,6 +33,10 @@ export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass
 export const getStageTimeObjects = (payload) =>
   Gateway.post("time_object/get_stage_time_objects", payload);
 
+/** POST task_card/generate_vessel_reg_pdf — { call_id, card_id, role_id, task_id, file_name, html } */
+export const generateVesselRegistrationPdf = (payload) =>
+  Gateway.post("task_card/generate_vessel_reg_pdf", payload);
+
 const groService = {
   getCallDetailById,
   getDocumentsByTask,
@@ -42,6 +46,7 @@ const groService = {
   uploadZawilPass,
   uploadCgPass,
   getStageTimeObjects,
+  generateVesselRegistrationPdf,
   assignTask: taskCardService.assignTask,
   startTask: taskCardService.startTask,
 };

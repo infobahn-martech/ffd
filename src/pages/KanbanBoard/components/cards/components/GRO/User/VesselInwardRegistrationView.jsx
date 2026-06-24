@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, forwardRef, useImperativeHandle } from "react";
 import PropTypes from "prop-types";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
 import { GRO_STATIC_VESSEL_INWARD_CREW_ROWS } from "./groCardUtils";
@@ -11,8 +11,20 @@ const EDITABLE_FIELDS = [
 ];
 
 /** Vessel Inward Registration boarding view — crew details + Arabic document preview (static). */
-export default function VesselInwardRegistrationView({ initialRows = GRO_STATIC_VESSEL_INWARD_CREW_ROWS }) {
+const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
+  { initialRows = GRO_STATIC_VESSEL_INWARD_CREW_ROWS },
+  ref
+) {
   const [rows, setRows] = useState(initialRows);
+  const previewRef = useRef(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getPreviewHtml: () => previewRef.current?.outerHTML,
+    }),
+    []
+  );
 
   const handleFieldChange = (rowId, field, value) => {
     setRows((prev) =>
@@ -67,13 +79,19 @@ export default function VesselInwardRegistrationView({ initialRows = GRO_STATIC_
 
         <div className="gro-crew-immigration-bulk-right">
           <p className="gro-crew-immigration-bulk-section-title">Document Preview</p>
-          <VesselBoardingArabicPreview rows={rows} />
+          <div ref={previewRef}>
+            <VesselBoardingArabicPreview rows={rows} />
+          </div>
         </div>
       </div>
     </div>
   );
-}
+});
 
 VesselInwardRegistrationView.propTypes = {
   initialRows: PropTypes.arrayOf(PropTypes.object),
 };
+
+VesselInwardRegistrationView.displayName = "VesselInwardRegistrationView";
+
+export default VesselInwardRegistrationView;

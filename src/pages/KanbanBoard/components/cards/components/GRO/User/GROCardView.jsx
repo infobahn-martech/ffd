@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
+import { FiSave } from "react-icons/fi";
 import { notify } from "../../../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
 import userService from "../../../../../../../services/userService";
@@ -92,6 +93,7 @@ const GROCardView = forwardRef(function GROCardView(
   const { saveArrivalDocument, isSavingArrivalDocument } = useGROReducer();
 
   const inwardAnchorRef = useRef(null);
+  const vesselRegistrationRef = useRef(null);
   const extraStageFileInputRefs = useRef({});
   const [showInwardClearance, setShowInwardClearance] = useState(false);
   const [timeObjects, setTimeObjects] = useState([]);
@@ -105,6 +107,7 @@ const GROCardView = forwardRef(function GROCardView(
   const [confirmRemarks, setConfirmRemarks] = useState("");
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+  const [isGeneratingVesselPdf, setIsGeneratingVesselPdf] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [taskDocumentsData, setTaskDocumentsData] = useState(null);
@@ -1056,6 +1059,39 @@ const GROCardView = forwardRef(function GROCardView(
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const handleGenerateVesselRegistrationPdf = useCallback(async () => {
+    if (isGeneratingVesselPdf) return;
+    if (callId == null || callId === "") {
+      notify("Call id is missing.", "error");
+      return;
+    }
+    if (cardId == null || cardId === "") {
+      notify("Card id is missing.", "error");
+      return;
+    }
+    if (!taskId) {
+      notify("Task id is missing.", "error");
+      return;
+    }
+
+    setIsGeneratingVesselPdf(true);
+    try {
+      await groService.generateVesselRegistrationPdf({
+        call_id: Number(callId),
+        card_id: Number(cardId),
+        role_id: Number(userRoleId),
+        task_id: Number(taskId),
+        file_name: "Vessel_Registration",
+        html: vesselRegistrationRef.current?.getPreviewHtml(),
+      });
+      notify("Vessel Registration PDF generated successfully.", "success");
+    } catch (err) {
+      notify(groApiErrorMessage(err, "Failed to generate Vessel Registration PDF."), "error");
+    } finally {
+      setIsGeneratingVesselPdf(false);
+    }
+  }, [isGeneratingVesselPdf, callId, cardId, taskId, userRoleId]);
+
   const documentsSectionTitle = "Documents";
 
   const handleAssignedUserChange = useCallback(
@@ -1248,7 +1284,26 @@ const GROCardView = forwardRef(function GROCardView(
                   </>
                 )}
               </div>
-              {(hidePassTabs &&
+              {hidePassTabs && activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? (
+                <div className="gro-inward-anchor">
+                  <button
+                    type="button"
+                    className="gro-pass-segment gro-pass-segment--icon"
+                    title="Save Vessel Registration PDF"
+                    onClick={handleGenerateVesselRegistrationPdf}
+                    disabled={isGeneratingVesselPdf}
+                  >
+                    {isGeneratingVesselPdf ? (
+                      <span className="spinner-border spinner-border-sm" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </span>
+                    ) : (
+                      <FiSave />
+                    )}
+                    <span>Save</span>
+                  </button>
+                </div>
+              ) : (hidePassTabs &&
                 !isCrewImmigrationStage &&
                 !isVesselInwardRegistrationStage &&
                 activeTab === GRO_ACTIVE_TABS.documents) ||
@@ -1343,7 +1398,7 @@ const GROCardView = forwardRef(function GROCardView(
             onRowUploadClick={triggerCrewUploadInput}
           />
         ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? (
-          <VesselInwardRegistrationView />
+          <VesselInwardRegistrationView ref={vesselRegistrationRef} />
         ) : hidePassTabs || groMainView === GRO_MAIN_VIEWS.inward ? (
           <InwardClearanceView
             documents={documents}
