@@ -6,6 +6,7 @@ import { ensureHtmlForQuill } from "../operationReportMessageHtml";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import { isEventFieldRequired } from "../operationConstants";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
+import { FiEye } from "react-icons/fi";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
 
@@ -770,22 +771,19 @@ const openEmailPreviewAttachment = (attachment) => {
   console.log("[Email Preview] Open attachment:", attachment?.file_name || attachment?.name);
 };
 
-const IconAttachmentEye = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path
-      d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-  </svg>
-);
-
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
   const fileName = attachment?.file_name || attachment?.name || "Untitled";
   const fileSize = formatAttachmentSize(attachment?.size);
+  const fileUrl =
+    attachment?.file_url || attachment?.fileUrl || attachment?.url || "";
+  const hasOpenTarget =
+    getAttachmentFile(attachment) instanceof Blob ||
+    Boolean(fileUrl && String(fileUrl).trim());
+
+  const handleOpen = (event) => {
+    event.stopPropagation();
+    openEmailPreviewAttachment(attachment);
+  };
 
   const handleRemove = (event) => {
     event.stopPropagation();
@@ -796,17 +794,21 @@ const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {
 
   return (
     <div className="email-preview-attachment-chip" title={fileName}>
-      <span className="email-preview-attachment-name">{fileName}</span>
-      {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
-      <button
-        type="button"
-        className="email-preview-attachment-view"
-        onClick={() => openEmailPreviewAttachment(attachment)}
-        aria-label={`View ${fileName}`}
-        title="View"
-      >
-        <IconAttachmentEye />
-      </button>
+      <span className="email-preview-attachment-link">
+        <span className="email-preview-attachment-name">{fileName}</span>
+        {fileSize ? <span className="email-preview-attachment-size"> ({fileSize})</span> : null}
+      </span>
+      {hasOpenTarget ? (
+        <button
+          type="button"
+          className="email-preview-attachment-view"
+          onClick={handleOpen}
+          aria-label={`View ${fileName}`}
+          title="View attachment"
+        >
+          <FiEye size={14} strokeWidth={2.2} aria-hidden />
+        </button>
+      ) : null}
       {typeof onRemove === "function" ? (
         <button
           type="button"
