@@ -40,17 +40,13 @@ class TableEmbed extends BlockEmbed {
     node.appendChild(table);
 
     node.addEventListener('mousedown', (e) => e.stopPropagation());
+    node.addEventListener('input', (e) => e.stopPropagation());
     node.addEventListener('keydown', (e) => {
       const cell = e.target.closest('td');
       if (!cell) return;
-      if (e.key === 'Backspace' || e.key === 'Delete') {
-        if (cell.textContent.replace(/[\s ]/g, '').length === 0) {
-          e.preventDefault();
-        } else {
-          e.stopPropagation();
-        }
-      } else {
-        e.stopPropagation();
+      e.stopPropagation();
+      if ((e.key === 'Backspace' || e.key === 'Delete') && !cell.textContent.trim()) {
+        e.preventDefault();
       }
     });
 
@@ -120,6 +116,50 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
   useEffect(() => {
     reset(defaultValues);
   }, [showModal, reset]);
+
+  // Intercept keydown in capture phase on the Quill container so we fire before
+  // Quill's own listeners. This fixes two problems:
+  // 1. English typing blocked — Quill's capture handler calls preventDefault on
+  //    character keys when its cursor sits at the embed position.
+  // 2. Backspace deletes table — Quill handles Backspace after stealing focus back
+  //    to .ql-editor via selectionchange normalization.
+  useEffect(() => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const handleTableKeydown = (e) => {
+      const targetCell = e.target?.closest?.('td');
+
+      if (targetCell) {
+        // Key fired while td has focus — stop Quill from interfering at all
+        e.stopImmediatePropagation();
+        if ((e.key === 'Backspace' || e.key === 'Delete') && !targetCell.textContent.trim()) {
+          e.preventDefault();
+        }
+        return;
+      }
+
+      // Quill may have stolen focus back to .ql-editor via selectionchange.
+      // Check the browser selection to see if the cursor is still inside a td.
+      if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const anchor = sel.getRangeAt(0).startContainer;
+        const cellFromSel = anchor.nodeType === 3
+          ? anchor.parentElement?.closest('td')
+          : anchor.closest?.('td');
+        if (cellFromSel) {
+          e.stopImmediatePropagation();
+          if (!cellFromSel.textContent.trim()) {
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    quill.container.addEventListener('keydown', handleTableKeydown, true);
+    return () => quill.container.removeEventListener('keydown', handleTableKeydown, true);
+  }, [showModal]);
 
   const quillModules = useMemo(
     () => ({
