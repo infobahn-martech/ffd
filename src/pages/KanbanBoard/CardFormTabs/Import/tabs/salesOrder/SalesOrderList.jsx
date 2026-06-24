@@ -811,7 +811,7 @@ const DocumentListModal = ({ show, onClose, onSave, initialSelected = [] }) => {
       style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "16px", boxSizing: "border-box" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: "#fff", borderRadius: "10px", width: "90%", maxWidth: "520px", maxHeight: "70vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+      <div style={{ background: "#fff", borderRadius: "10px", width: "90%", maxWidth: "640px", maxHeight: "70vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
         <div style={{ padding: "18px 22px", borderBottom: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
           <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "#1a1a2e" }}>Select Supporting Documents</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "22px", cursor: "pointer", color: "#888", lineHeight: 1 }}>×</button>
@@ -826,27 +826,58 @@ const DocumentListModal = ({ show, onClose, onSave, initialSelected = [] }) => {
             style={{ width: "100%", padding: "8px 12px", border: "1px solid #dde0ea", borderRadius: "7px", fontSize: "13px", boxSizing: "border-box", fontFamily: "inherit" }}
           />
         </div>
-        <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+        <div style={{ overflowY: "auto", flex: 1, minHeight: 0, padding: "14px 18px", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", alignContent: "start" }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: "24px", textAlign: "center", color: "#888", fontSize: "13px" }}>No documents found.</div>
+            <div style={{ gridColumn: "1 / -1", padding: "24px", textAlign: "center", color: "#888", fontSize: "13px" }}>No documents found.</div>
           ) : (
-            filtered.map((d) => (
-              <label
-                key={d.id}
-                style={{ padding: "12px 22px", cursor: "pointer", borderBottom: "1px solid #f4f4f8", display: "flex", alignItems: "center", gap: "14px", transition: "background 0.1s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f6ff")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.has(d.id)}
-                  onChange={() => toggleDocument(d.id)}
-                  style={{ width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 }}
-                />
-                <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#5a5f8a", background: "#f0f2ff", padding: "3px 8px", borderRadius: "5px", flexShrink: 0 }}>{d.type}</span>
-                <span style={{ fontSize: "14px", color: "#1a1a2e", fontWeight: "500", minWidth: 0, wordBreak: "break-word" }}>{d.name}</span>
-              </label>
-            ))
+            filtered.map((d) => {
+              const isChecked = selected.has(d.id);
+              return (
+                <label
+                  key={d.id}
+                  style={{
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    padding: "12px 14px",
+                    border: `1px solid ${isChecked ? "#b3baff" : "#e6e9f2"}`,
+                    borderRadius: "10px",
+                    background: isChecked ? "#f3f4ff" : "#ffffff",
+                    boxShadow: isChecked ? "0 2px 8px rgba(42, 0, 255, 0.08)" : "0 1px 3px rgba(15, 23, 42, 0.05)",
+                    transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
+                  }}
+                  onMouseEnter={(e) => { if (!isChecked) e.currentTarget.style.background = "#f7f8ff"; }}
+                  onMouseLeave={(e) => { if (!isChecked) e.currentTarget.style.background = "#ffffff"; }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleDocument(d.id)}
+                    style={{ width: "16px", height: "16px", cursor: "pointer", flexShrink: 0, accentColor: "#2A00FF" }}
+                  />
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9px",
+                      background: "#eef1ff",
+                      color: "#2A00FF",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <FiFileText size={20} />
+                  </span>
+                  <span style={{ display: "flex", flexDirection: "column", gap: "3px", minWidth: 0, flex: 1 }}>
+                    <span style={{ fontSize: "14px", color: "#1a1a2e", fontWeight: "600", minWidth: 0, wordBreak: "break-word" }}>{d.name}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#5a5f8a", background: "#f0f2ff", padding: "2px 7px", borderRadius: "4px", alignSelf: "flex-start" }}>{d.type}</span>
+                  </span>
+                </label>
+              );
+            })
           )}
         </div>
         <div style={{ padding: "14px 22px", borderTop: "1px solid #eee", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
