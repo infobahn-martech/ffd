@@ -552,6 +552,12 @@
   .tb-stepper-wrap--step-3 & { left: 84%; }
   .tb-stepper-wrap--step-4 & { left: 92%; }
 
+  /* 5-step variant (4 timestamps + Job Completed) */
+  .tb-stepper-wrap--steps-5.tb-stepper-wrap--step-1 & { left: 28%; }
+  .tb-stepper-wrap--steps-5.tb-stepper-wrap--step-2 & { left: 47%; }
+  .tb-stepper-wrap--steps-5.tb-stepper-wrap--step-3 & { left: 66%; }
+  .tb-stepper-wrap--steps-5.tb-stepper-wrap--step-4 & { left: 84%; }
+
   /* 6-step variant (3 immigration batches × 2 steps each) */
   .tb-stepper-wrap--steps-6.tb-stepper-wrap--step-1 & { left: 23%; }
   .tb-stepper-wrap--steps-6.tb-stepper-wrap--step-2 & { left: 40%; }
@@ -871,6 +877,31 @@
   font-size: 12px;
   color: #94a3b8;
   font-style: italic;
+}
+
+/* ---- Card footer bar ---- */
+.tb-card-footer-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 4px;
+}
+
+.tb-save-btn {
+  padding: 10px 32px;
+  background: #1d4ed8;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, transform 0.1s;
+
+  &:hover  { background: #1e40af; }
+  &:active { transform: scale(0.97); }
 }
 
 /* ---- Launch Slip upload section ---- */

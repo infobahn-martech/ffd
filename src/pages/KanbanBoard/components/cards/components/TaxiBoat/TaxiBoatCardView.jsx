@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle } from "react-icons/fi";
+import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
 import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
@@ -16,6 +16,12 @@ const MOCK_CREW_ROWS = [
   { name: "Juan Dela Cruz",   rank: "AB Seaman",     nationality: "Filipino", passportNo: "P3456789", seamanBookNo: "SB-10023" },
   { name: "Omar Hassan",      rank: "Cook",          nationality: "Egyptian", passportNo: "P4567890", seamanBookNo: "SB-10024" },
 ];
+
+function getBatchCrewRows(crewCount) {
+  const n = Math.max(0, parseInt(crewCount, 10) || 0);
+  if (n === 0) return [];
+  return Array.from({ length: n }, (_, i) => ({ ...MOCK_CREW_ROWS[i % MOCK_CREW_ROWS.length] }));
+}
 
 const STANDARD_TIMESTAMPS = [
   { key: "castOff",           label: "Cast off Time",       icon: FiFlag,       animKey: "castOff"           },
@@ -150,13 +156,17 @@ TimestampGrid.propTypes = {
   onCapture: PropTypes.func.isRequired,
 };
 
-function TimestampStepper({ timestamps, tsState, onCapture }) {
+function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish }) {
   const doneCount = timestamps.filter((t) => tsState[t.key] !== null).length;
   const totalSteps = timestamps.length;
-  const allDone = doneCount === totalSteps;
+  const allTimestampsDone = doneCount === totalSteps;
+  const finalStepReady = canFinish !== undefined ? canFinish : allTimestampsDone;
+  const totalWithFinal = totalSteps + (onComplete ? 1 : 0);
+  const isArrived = onComplete ? jobCompleted : allTimestampsDone;
+
   return (
-    <div className={`tb-stepper-wrap tb-stepper-wrap--step-${doneCount} tb-stepper-wrap--steps-${totalSteps}`}>
-      <div className={`tb-stepper-boat-wrap${allDone ? " tb-stepper-boat-wrap--arrived" : ""}`}>
+    <div className={`tb-stepper-wrap tb-stepper-wrap--step-${doneCount} tb-stepper-wrap--steps-${totalWithFinal}`}>
+      <div className={`tb-stepper-boat-wrap${isArrived ? " tb-stepper-boat-wrap--arrived" : ""}`}>
         <MdDirectionsBoat size={20} className="tb-stepper-boat-icon" />
       </div>
       <ol className="tb-stepper">
@@ -203,6 +213,41 @@ function TimestampStepper({ timestamps, tsState, onCapture }) {
           </li>
         );
       })}
+      {onComplete && (
+        <li
+          className={[
+            "tb-stepper-item",
+            jobCompleted                          ? "tb-stepper-item--done"   : "",
+            finalStepReady && !jobCompleted       ? "tb-stepper-item--next"   : "",
+            !finalStepReady && !jobCompleted      ? "tb-stepper-item--locked" : "",
+          ].filter(Boolean).join(" ")}
+          onClick={() => finalStepReady && !jobCompleted && onComplete()}
+          role={finalStepReady && !jobCompleted ? "button" : undefined}
+          tabIndex={finalStepReady && !jobCompleted ? 0 : -1}
+          onKeyDown={(e) => {
+            if (finalStepReady && !jobCompleted && (e.key === "Enter" || e.key === " ")) onComplete();
+          }}
+        >
+          <div className="tb-stepper-track">
+            <div className="tb-stepper-dot">{jobCompleted ? "✓" : totalSteps + 1}</div>
+          </div>
+          <div className="tb-stepper-body">
+            <div className="tb-stepper-icon-box">
+              <FiCheckCircle size={20} />
+            </div>
+            <div className="tb-stepper-content">
+              <span className="tb-stepper-label">Job Completed</span>
+              <span className={[
+                "tb-stepper-pill",
+                jobCompleted                    ? "tb-stepper-pill--done" : "",
+                finalStepReady && !jobCompleted ? "tb-stepper-pill--next" : "",
+              ].filter(Boolean).join(" ")}>
+                {jobCompleted ? "Completed" : finalStepReady ? "Tap to complete" : "—"}
+              </span>
+            </div>
+          </div>
+        </li>
+      )}
       </ol>
     </div>
   );
@@ -212,8 +257,11 @@ TimestampStepper.propTypes = {
   timestamps: PropTypes.arrayOf(
     PropTypes.shape({ key: PropTypes.string, label: PropTypes.string, icon: PropTypes.elementType })
   ).isRequired,
-  tsState: PropTypes.object.isRequired,
-  onCapture: PropTypes.func.isRequired,
+  tsState:      PropTypes.object.isRequired,
+  onCapture:    PropTypes.func.isRequired,
+  onComplete:   PropTypes.func,
+  jobCompleted: PropTypes.bool,
+  canFinish:    PropTypes.bool,
 };
 
 function InfoCard({ label, value }) {
@@ -230,6 +278,52 @@ InfoCard.propTypes = {
   value: PropTypes.string,
 };
 
+function FinalStep({ canComplete, isDone, onComplete }) {
+  return (
+    <ol className="tb-stepper">
+      <li
+        className={[
+          "tb-stepper-item",
+          isDone                    ? "tb-stepper-item--done"   : "",
+          canComplete && !isDone    ? "tb-stepper-item--next"   : "",
+          !canComplete && !isDone   ? "tb-stepper-item--locked" : "",
+        ].filter(Boolean).join(" ")}
+        onClick={() => canComplete && !isDone && onComplete()}
+        role={canComplete && !isDone ? "button" : undefined}
+        tabIndex={canComplete && !isDone ? 0 : -1}
+        onKeyDown={(e) => {
+          if (canComplete && !isDone && (e.key === "Enter" || e.key === " ")) onComplete();
+        }}
+      >
+        <div className="tb-stepper-track">
+          <div className="tb-stepper-dot">✓</div>
+        </div>
+        <div className="tb-stepper-body">
+          <div className="tb-stepper-icon-box">
+            <FiCheckCircle size={20} />
+          </div>
+          <div className="tb-stepper-content">
+            <span className="tb-stepper-label">Job Completed</span>
+            <span className={[
+              "tb-stepper-pill",
+              isDone                 ? "tb-stepper-pill--done" : "",
+              canComplete && !isDone ? "tb-stepper-pill--next" : "",
+            ].filter(Boolean).join(" ")}>
+              {isDone ? "Completed" : canComplete ? "Tap to complete" : "—"}
+            </span>
+          </div>
+        </div>
+      </li>
+    </ol>
+  );
+}
+
+FinalStep.propTypes = {
+  canComplete: PropTypes.bool.isRequired,
+  isDone:      PropTypes.bool.isRequired,
+  onComplete:  PropTypes.func.isRequired,
+};
+
 function TaxiBoatCardView({ card }) {
   const serviceType = card?.typeOfService ?? "—";
   const assignedUser = card?.user ?? "—";
@@ -238,25 +332,15 @@ function TaxiBoatCardView({ card }) {
   const bookingDate = card?.bookingDate ?? "—";
   const location = card?.location ?? "—";
   const billingEntity = card?.name ?? "—";
-  const batchCount = Math.max(2, Number(card?.batchCount) || 2);
-
   const isCrewChange     = CREW_CHANGE_SERVICES.includes(serviceType);
   const isMaterialService = MATERIAL_SERVICES.includes(serviceType);
   const isImmigration    = IMMIGRATION_SERVICES.includes(serviceType);
-
-  const batchRows = Array.from({ length: batchCount }, (_, i) => [
-    { key: `pickup${i + 1}`, label: `Pickup ${BATCH_ORDINALS[i] ?? `${i + 1}th`} Batch`, icon: FiArrowDown, animKey: "batchPickup" },
-    { key: `drop${i + 1}`,   label: `Drop ${BATCH_ORDINALS[i] ?? `${i + 1}th`} Batch`,   icon: FiArrowUp,   animKey: "batchDrop"   },
-  ]).flat();
 
   const [dropTs, setDropTs] = useState(() =>
     makeTsState(STANDARD_TIMESTAMPS.map((t) => t.key))
   );
   const [pickupTs, setPickupTs] = useState(() =>
     makeTsState(STANDARD_TIMESTAMPS.map((t) => t.key))
-  );
-  const [batchTs, setBatchTs] = useState(() =>
-    makeTsState(batchRows.map((r) => r.key))
   );
   const [activeTab, setActiveTab] = useState("drop");
   const [jobCompleted, setJobCompleted] = useState(false);
@@ -279,22 +363,45 @@ function TaxiBoatCardView({ card }) {
   // Scenario B: Material / Provision / Garbage
   const [packingListFile, setPackingListFile] = useState(null);
 
-  // Scenario C: Immigration batch crew counts
-  const [batchCounts, setBatchCounts] = useState([{ id: 1, value: "" }, { id: 2, value: "" }]);
+  // Scenario C: unified batch state — each batch has its own crew count, operator, timestamps, and file
+  const [activeBatchTab, setActiveBatchTab] = useState(0);
+  const [batches, setBatches] = useState(() => {
+    const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
+    return [
+      { id: 1, crewCount: "10", operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+      { id: 2, crewCount: "8",  operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+      { id: 3, crewCount: "6",  operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+      { id: 4, crewCount: "5",  operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+    ];
+  });
 
   const captureNow = useCallback((setter, key) => {
     setter((prev) => ({ ...prev, [key]: new Date().toISOString() }));
   }, []);
 
-  const handleAddBatch = useCallback(() => {
-    setBatchCounts((prev) => [...prev, { id: prev.length + 1, value: "" }]);
+  const captureBatchTs = useCallback((batchIdx, key) => {
+    setBatches((prev) =>
+      prev.map((b, i) =>
+        i === batchIdx ? { ...b, ts: { ...b.ts, [key]: new Date().toISOString() } } : b
+      )
+    );
   }, []);
 
+  const handleAddBatch = useCallback(() => {
+    const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
+    setBatches((prev) => [
+      ...prev,
+      { id: prev.length + 1, crewCount: "", operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+    ]);
+    setActiveBatchTab(batches.length);
+  }, [batches.length]);
+
   const allDone = (tsState, keys) => keys.every((k) => tsState[k] !== null);
+  const isBatchDone = (batch) => STANDARD_TIMESTAMPS.every((t) => batch.ts[t.key] !== null);
 
   const tsKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
   const canComplete = isImmigration
-    ? allDone(batchTs, batchRows.map((r) => r.key))
+    ? batches.every((b) => b.completed)
     : allDone(dropTs, tsKeys) && allDone(pickupTs, tsKeys);
 
   return (
@@ -401,46 +508,147 @@ function TaxiBoatCardView({ card }) {
         </div>
       )}
 
-      {/* Scenario C: Immigration Clearance — batch crew counts */}
+      {/* Scenario C: Immigration Clearance — per-batch tabs */}
       {isImmigration && (
         <div className="tb-scenario-section">
-          <h3 className="tb-section-title">Crew Batches</h3>
-          <div className="tb-batch-fields">
-            {batchCounts.map((batch, i) => (
-              <div key={batch.id} className="tb-batch-field-row">
-                <span className="tb-batch-field-label">
-                  No. of Crew in Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
-                </span>
-                <input
-                  type="number"
-                  className="tb-batch-field-input"
-                  min="1"
-                  value={batch.value}
-                  onChange={(e) =>
-                    setBatchCounts((prev) =>
-                      prev.map((b) => b.id === batch.id ? { ...b, value: e.target.value } : b)
-                    )
-                  }
-                  placeholder="0"
-                />
-              </div>
+          <div className="tb-batch-tab-strip">
+            {batches.map((batch, i) => (
+              <button
+                key={batch.id}
+                className={[
+                  "tb-batch-tab",
+                  activeBatchTab === i ? "tb-batch-tab--active" : "",
+                  isBatchDone(batch) ? "tb-batch-tab--done" : "",
+                ].filter(Boolean).join(" ")}
+                onClick={() => setActiveBatchTab(i)}
+              >
+                {isBatchDone(batch) && <FiCheckCircle size={12} />}
+                Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
+              </button>
             ))}
             <button className="tb-add-batch-btn" onClick={handleAddBatch}>
               <FiPlus size={14} />
               Add Batch
             </button>
           </div>
-        </div>
-      )}
 
-      {isImmigration && (
-        <div className="tb-section">
-          <h3 className="tb-section-title">Immigration Batch Tracking</h3>
-          <TimestampStepper
-            timestamps={batchRows}
-            tsState={batchTs}
-            onCapture={(key) => captureNow(setBatchTs, key)}
-          />
+          {batches.map((batch, i) => {
+            if (i !== activeBatchTab) return null;
+            const crewRows = getBatchCrewRows(batch.crewCount);
+            const done = isBatchDone(batch);
+            return (
+              <div key={batch.id} className="tb-batch-tab-content">
+                <div className="tb-batch-meta-row">
+                  <div className="tb-batch-field-row">
+                    <span className="tb-batch-field-label">
+                      No. of Crew — Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
+                    </span>
+                    <input
+                      type="number"
+                      className="tb-batch-field-input"
+                      min="1"
+                      value={batch.crewCount}
+                      onChange={(e) =>
+                        setBatches((prev) =>
+                          prev.map((b, idx) =>
+                            idx === i ? { ...b, crewCount: e.target.value } : b
+                          )
+                        )
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="tb-batch-field-row">
+                    <span className="tb-batch-field-label">Operator</span>
+                    <input
+                      type="text"
+                      className="tb-batch-field-input tb-batch-operator-input"
+                      value={batch.operator}
+                      onChange={(e) =>
+                        setBatches((prev) =>
+                          prev.map((b, idx) =>
+                            idx === i ? { ...b, operator: e.target.value } : b
+                          )
+                        )
+                      }
+                      placeholder="Operator name"
+                    />
+                  </div>
+                </div>
+
+                {crewRows.length > 0 && (
+                  <div className="tb-crew-table-wrapper">
+                    <table className="tb-crew-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Rank</th>
+                          <th>Nationality</th>
+                          <th>Passport No.</th>
+                          <th>Seaman Book No.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {crewRows.map((row, ri) => (
+                          <tr key={ri}>
+                            <td>{ri + 1}</td>
+                            <td>{row.name}</td>
+                            <td>{row.rank}</td>
+                            <td>{row.nationality}</td>
+                            <td>{row.passportNo}</td>
+                            <td>{row.seamanBookNo}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                <TimestampStepper
+                  timestamps={STANDARD_TIMESTAMPS}
+                  tsState={batch.ts}
+                  onCapture={(key) => captureBatchTs(i, key)}
+                  onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true } : b))}
+                  jobCompleted={batch.completed}
+                  canFinish={isBatchDone(batch)}
+                />
+
+                <div className="tb-batch-actions">
+                  <button className="tb-batch-print-btn">
+                    <FiPrinter size={14} />
+                    Print Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
+                  </button>
+                  <div>
+                    <input
+                      type="file"
+                      id={`tb-batch-file-${batch.id}`}
+                      className="tb-launch-slip-input"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) =>
+                        setBatches((prev) =>
+                          prev.map((b, idx) =>
+                            idx === i ? { ...b, file: e.target.files?.[0] ?? null } : b
+                          )
+                        )
+                      }
+                    />
+                    <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
+                      <FiUpload size={14} />
+                      {batch.file ? batch.file.name : `Upload Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
+                    </label>
+                  </div>
+                </div>
+
+                {done && (
+                  <div className="tb-batch-done-badge">
+                    <FiCheckCircle size={16} />
+                    Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`} Complete
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -481,36 +689,26 @@ function TaxiBoatCardView({ card }) {
                 timestamps={STANDARD_TIMESTAMPS}
                 tsState={dropTs}
                 onCapture={(key) => captureNow(setDropTs, key)}
+                onComplete={() => setJobCompleted(true)}
+                jobCompleted={jobCompleted}
+                canFinish={canComplete}
               />
             ) : (
               <TimestampStepper
                 timestamps={STANDARD_TIMESTAMPS}
                 tsState={pickupTs}
                 onCapture={(key) => captureNow(setPickupTs, key)}
+                onComplete={() => setJobCompleted(true)}
+                jobCompleted={jobCompleted}
+                canFinish={canComplete}
               />
             )}
           </div>
         </div>
       )}
 
-      {jobCompleted ? (
-        <div className="tb-job-complete-success">
-          <FiCheckCircle size={22} />
-          <span>Job Completed</span>
-        </div>
-      ) : canComplete ? (
-        <button className="tb-job-complete-btn" onClick={() => setJobCompleted(true)}>
-          <FiCheckCircle size={18} />
-          Mark Job as Completed
-        </button>
-      ) : (
-        <div className="tb-job-complete-locked">
-          <span className="tb-job-complete-locked-text">Job Completed</span>
-          <span className="tb-job-complete-hint">Complete all timestamps to enable</span>
-        </div>
-      )}
 
-      {jobCompleted && (
+      {(isImmigration ? canComplete : jobCompleted) && (
         <div className="tb-launch-slip-section">
           <h4 className="tb-launch-slip-title">Upload Launch Slip</h4>
           <p className="tb-launch-slip-hint">Please upload the signed Launch Slip to finalize this job.</p>
@@ -531,6 +729,9 @@ function TaxiBoatCardView({ card }) {
           </div>
         </div>
       )}
+      <div className="tb-card-footer-bar">
+        <button className="tb-save-btn">Save</button>
+      </div>
     </div>
   );
 }
