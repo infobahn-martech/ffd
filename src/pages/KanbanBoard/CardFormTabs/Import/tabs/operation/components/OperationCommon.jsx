@@ -104,7 +104,13 @@ DynamicDateTimeFields.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
-export const EMPTY_ADDITIONAL_TIME_OBJECT = { label: "", date: "", time: "" };
+export const EMPTY_ADDITIONAL_TIME_OBJECT = {
+  label: "",
+  time_object_name: "",
+  date: "",
+  time: "",
+  time_object_value: "",
+};
 
 export const appendAdditionalTimeObject = (items = []) => {
   const rows = Array.isArray(items) ? items : [];
@@ -186,11 +192,17 @@ export const buildAdditionalTimeObjectsPayload = (items = []) =>
  * `id` (time_object_id) so the backend can update them instead of inserting.
  */
 export const buildCallTimeObjectPayload = (row) => {
-  const label = String(row?.label || "").trim();
+  const label = String(
+    row?.label ?? row?.name ?? row?.time_object_name ?? ""
+  ).trim();
   if (!label) return null;
+  const timeObjectValue =
+    String(row?.time_object_value || "").trim() ||
+    normalizeAdditionalTimeValue(row?.date, row?.time);
   const payload = {
     time_object: label,
-    time_object_value: normalizeAdditionalTimeValue(row?.date, row?.time),
+    time_object_name: label,
+    time_object_value: timeObjectValue,
   };
   if (row?.id != null && String(row.id).trim() !== "") {
     payload.time_object_id = row.id;
@@ -237,7 +249,14 @@ export const commitAdditionalTimeObject = async ({
 }) => {
   const timeObject = buildCallTimeObjectPayload(row);
   if (!timeObject || typeof saveCallTimeObject !== "function" || !callId) return null;
+  // TODO(temporary): debug logging for additional time-object save flow.
+  console.log("[AdditionalTimeObject] save_call_time_object payload", {
+    call_id: callId,
+    stage_id: stageId,
+    time_object: timeObject,
+  });
   const data = await saveCallTimeObject({ callId, stageId, timeObject });
+  console.log("[AdditionalTimeObject] save_call_time_object response", data);
   return extractCallTimeObjectId(data);
 };
 
@@ -279,13 +298,16 @@ export const mapCallTimeObjectsToAdditionalRows = (timeObjects = [], { stageId }
     ).trim();
     if (!label) continue;
 
-    const { date, time } = parseApiDateTimeParts(to.time_object_value ?? to.value);
+    const rawValue = to.time_object_value ?? to.value;
+    const { date, time } = parseApiDateTimeParts(rawValue);
     const id = to.time_object_id ?? to.timeObjectId ?? to.id ?? null;
 
     rows.push({
       label,
+      time_object_name: label,
       date,
       time,
+      time_object_value: normalizeAdditionalTimeValue(date, time),
       ...(id != null ? { id } : {}),
     });
   }
@@ -310,10 +332,13 @@ export const refreshAdditionalTimeObjectsByCall = async ({
   if (typeof getTimeObjectsByCall !== "function" || !callId) return null;
 
   const data = await getTimeObjectsByCall({ callId, stageId });
+  // TODO(temporary): debug logging for additional time-object refresh flow.
+  console.log("[AdditionalTimeObject] get_time_objects_by_call response", data);
   const serverRows = mapCallTimeObjectsToAdditionalRows(
     extractCallTimeObjects(data),
     { stageId }
   );
+  console.log("[AdditionalTimeObject] refreshed rows", serverRows);
 
   const current = Array.isArray(currentRows) ? currentRows : [];
   const drafts = current.filter((row, index) => {
@@ -448,17 +473,70 @@ export const AdditionalTimeObjectsFields = ({
     emitChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
   };
 
-  // Commit (save) a single row on Enter / outside click. Fires once a row has a
-  // name, and only when its value changed since the last successful commit so we
-  // don't spam the save_call_time_object endpoint.
-  const commitRow = (index) => {
+  // Commit (save) a single row on Enter / outside click / valid selection.
+  // Fires once a row has a name + date + time, and only when its value changed
+  // since the last successful commit so we don't spam save_call_time_object.
+  const commitRow = (index, rowOverride) => {
     if (typeof onCommitRow !== "function") return;
-    const row = rows[index];
+    const row = rowOverride || rows[index];
     if (!row || !isAdditionalTimeObjectCommittable(row)) return;
     const signature = additionalTimeObjectSignature(row);
     if (committedSignaturesRef.current[index] === signature) return;
     committedSignaturesRef.current[index] = signature;
     onCommitRow(row, index);
+  };
+
+  // Apply a date/time selection to a row in a single patch. Updating date and
+  // time together (instead of two separate emits off the same stale `rows`
+  // snapshot) is what keeps both values bound; previously the second emit
+  // overwrote the first and the date was lost. We also keep `time_object_value`
+  // (YYYY-MM-DD HH:mm:ss) in sync so the save payload is ready immediately.
+  const handleRowDateTimeChange = (index, nextDate, nextTime) => {
+    // Accept both Date objects and "YYYY-MM-DD" / "HH:mm" strings.
+    const pad = (n) => String(n).padStart(2, "0");
+    const normalizePart = (value, kind) => {
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return kind === "date"
+          ? `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
+          : `${pad(value.getHours())}:${pad(value.getMinutes())}`;
+      }
+      return String(value || "").trim();
+    };
+
+    const normalizedDate = normalizePart(nextDate, "date");
+    const normalizedTime = normalizePart(nextTime, "time");
+    const timeObjectValue = normalizeAdditionalTimeValue(normalizedDate, normalizedTime);
+
+    // TODO(temporary): debug logging for additional time-object picker binding.
+    console.log("[AdditionalTimeObject] picker onChange", {
+      index,
+      date: normalizedDate,
+      time: normalizedTime,
+      time_object_value: timeObjectValue,
+    });
+
+    const nextRows = rows.map((row, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...row,
+            date: normalizedDate,
+            time: normalizedTime,
+            time_object_value: timeObjectValue,
+          }
+        : row
+    );
+
+    const updatedRow = nextRows[index];
+    console.log("[AdditionalTimeObject] updated row", updatedRow);
+
+    emitChange(nextRows);
+
+    // Fire the save as soon as the row has a name + a complete date/time value
+    // (requirement: trigger after a valid selection, not just on blur). The
+    // signature guard de-dupes against the later blur commit.
+    if (updatedRow && isAdditionalTimeObjectCommittable(updatedRow)) {
+      commitRow(index, updatedRow);
+    }
   };
 
   const handleRowKeyDown = (index) => (event) => {
@@ -538,7 +616,12 @@ export const AdditionalTimeObjectsFields = ({
               type="text"
               className="operation-additional-time-object-label-input"
               value={row?.label || ""}
-              onChange={(e) => handleRowChange(index, { label: e.target.value })}
+              onChange={(e) =>
+                handleRowChange(index, {
+                  label: e.target.value,
+                  time_object_name: e.target.value,
+                })
+              }
               placeholder="Enter time object name..."
               aria-label={`Time object name ${index + 1}`}
             />
@@ -559,8 +642,7 @@ export const AdditionalTimeObjectsFields = ({
         <DateTimePickerField
           dateValue={row?.date || ""}
           timeValue={row?.time || ""}
-          onDateChange={(e) => handleRowChange(index, { date: e.target.value })}
-          onTimeChange={(e) => handleRowChange(index, { time: e.target.value })}
+          onDateTimeChange={({ date, time }) => handleRowDateTimeChange(index, date, time)}
           dateFieldName={`additional-time-object-${index}-date`}
           timeFieldName={`additional-time-object-${index}-time`}
           disabled={isViewOnly}
