@@ -1,94 +1,97 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { KANBAN_DND_DISABLED } from "../../../../../../shared/constants/kanbanConfig";
 import PropTypes from "prop-types";
-import { FaShip } from "react-icons/fa";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-small-card.scss";
+import saudimarcapLogo from "../../../../../../assets/images/saudimarcap.png";
+import saipemLogo      from "../../../../../../assets/images/saipem.png";
+import lamprellLogo    from "../../../../../../assets/images/lamprell.png";
+import gulfmarineLogo  from "../../../../../../assets/images/gulfmarine.png";
 
-const SERVICE_THEME = {
-  "Crew Change":         { bg: "#dbeafe", color: "#1d4ed8", border: "#bfdbfe", bar: "#2666be" },
-  "Immigration Clearance": { bg: "#ede9fe", color: "#6d28d9", border: "#ddd6fe", bar: "#7c3aed" },
-  "Material Delivery":   { bg: "#dcfce7", color: "#15803d", border: "#bbf7d0", bar: "#16a34a" },
-  "Provision Delivery":  { bg: "#dcfce7", color: "#15803d", border: "#bbf7d0", bar: "#16a34a" },
-  "Garbage Collection":  { bg: "#dcfce7", color: "#15803d", border: "#bbf7d0", bar: "#16a34a" },
+const COMPANY_LOGO_MAP = {
+  "gulf marine":  gulfmarineLogo,
+  "gulfmarine":   gulfmarineLogo,
+  "saudi marcap": saudimarcapLogo,
+  "saudimarcap":  saudimarcapLogo,
+  "snamprogetti": saipemLogo,
+  "saipem":       saipemLogo,
+  "lamprell":     lamprellLogo,
 };
 
-const DEFAULT_THEME = { bg: "#f1f5f9", color: "#475569", border: "#e2e8f0", bar: "#64748b" };
-
-const STEP_COUNT = 4;
-
-function StepDots({ completedSteps = 0 }) {
-  const items = [];
-  for (let i = 0; i < STEP_COUNT; i++) {
-    const isDone   = i < completedSteps;
-    const isActive = i === completedSteps && completedSteps < STEP_COUNT;
-
-    items.push(
-      <div
-        key={`dot-${i}`}
-        className={`tb-step-dot${isDone ? " tb-step-dot--done" : isActive ? " tb-step-dot--active" : ""}`}
-      />
-    );
-
-    if (i < STEP_COUNT - 1) {
-      items.push(
-        <div key={`line-${i}`} className={`tb-step-line${isDone ? " tb-step-line--done" : ""}`} />
-      );
-    }
-  }
-  return <div className="tb-small-card-steps">{items}</div>;
+function getCompanyLogo(name, entityLogo) {
+  if (entityLogo) return entityLogo;
+  if (!name) return null;
+  return COMPANY_LOGO_MAP[name.toLowerCase().trim()] ?? null;
 }
 
-StepDots.propTypes = { completedSteps: PropTypes.number };
+function avatarColor(name = "") {
+  const palette = ["#16a34a", "#0284c7", "#7c3aed", "#b45309", "#0f766e", "#2666be", "#dc2626"];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return palette[Math.abs(hash) % palette.length];
+}
 
 export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
-  const serviceType   = card?.typeOfService ?? "";
-  const theme         = SERVICE_THEME[serviceType] ?? DEFAULT_THEME;
-  const vesselName    = card?.vesselName || card?.title || "—";
-  const userName      = card?.user || "—";
-  const bookingDate   = card?.bookingDate || "";
-  const completedSteps = Math.min(STEP_COUNT, Math.floor(((card?.progress ?? 0) / 100) * STEP_COUNT));
-  const initial       = userName.charAt(0).toUpperCase();
+  const serviceType = card?.typeOfService ?? "";
+  const vesselName  = card?.vesselName || card?.title || "—";
+  const custName    = card?.name || "";
+  const timeLeft    = card?.timeLeft || "";
+  const progress    = card?.progress ?? 0;
+  const custInitial = custName.charAt(0).toUpperCase();
+  const svcInitial  = serviceType.charAt(0).toUpperCase();
+  const avatarBg    = avatarColor(custName);
+  const logoSrc     = getCompanyLogo(custName, card?.entityLogo);
 
   return (
-    <Draggable
-      draggableId={card.id}
-      index={index}
-      isDragDisabled={KANBAN_DND_DISABLED}
-    >
+    <Draggable draggableId={card.id} index={index} isDragDisabled={KANBAN_DND_DISABLED}>
       {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="tb-small-card"
-          style={{
-            "--tb-card-color": theme.bar,
-            "--tb-badge-bg": theme.bg,
-            "--tb-badge-color": theme.color,
-            "--tb-badge-border": theme.border,
-            ...provided.draggableProps.style,
-          }}
+          className="tb-sc"
+          style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
-          <div className="tb-small-card-top">
-            <span className="tb-small-card-badge">
-              <FaShip size={10} />
-              {serviceType || "Taxi Boat"}
-            </span>
+          {/* Accent line */}
+          <div className="tb-sc-accent-line" />
+
+          {/* Avatar — logo image if known company, else colored initial */}
+          <div className="tb-sc-avatar-row">
+            {logoSrc ? (
+              <img src={logoSrc} alt={custName} className="tb-sc-avatar-img" />
+            ) : (
+              <div className="tb-sc-avatar" style={{ background: avatarBg }}>
+                {custInitial}
+              </div>
+            )}
           </div>
 
-          <div className="tb-small-card-vessel">{vesselName}</div>
-
-          <StepDots completedSteps={completedSteps} />
-
-          <div className="tb-small-card-meta">
-            <div className="tb-small-card-user">
-              <div className="tb-small-card-avatar" style={{ background: theme.bar }}>
-                {initial}
-              </div>
-              <span className="tb-small-card-username">{userName}</span>
+          {/* Text content */}
+          <div className="tb-sc-content">
+            <div className="tb-sc-title-row">
+              <span className="tb-sc-vessel">{vesselName}</span>
+              {svcInitial && (
+                <span className="tb-sc-svc-badge">{svcInitial}</span>
+              )}
             </div>
-            {bookingDate && <span className="tb-small-card-date">{bookingDate}</span>}
+            {custName    && <div className="tb-sc-customer">{custName}</div>}
+            {serviceType && <div className="tb-sc-service">{serviceType}</div>}
+          </div>
+
+          {/* Footer: time left | circular progress */}
+          <div className="tb-sc-footer">
+            {timeLeft && <span className="tb-sc-time">{timeLeft}</span>}
+            <div className="tb-sc-progress-wrap">
+              <svg className="tb-sc-svg" viewBox="0 0 26 26">
+                <circle className="tb-sc-svg-bg" cx="13" cy="13" r="11" />
+                <circle
+                  className="tb-sc-svg-fill"
+                  cx="13" cy="13" r="11"
+                  style={{ strokeDashoffset: `calc(72 - (72 * ${progress}) / 100)` }}
+                />
+              </svg>
+              <span className="tb-sc-progress-text">{progress}%</span>
+            </div>
           </div>
         </div>
       )}
