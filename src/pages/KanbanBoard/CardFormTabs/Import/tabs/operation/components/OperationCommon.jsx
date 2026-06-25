@@ -326,20 +326,19 @@ export const mapCallTimeObjectsToAdditionalRows = (timeObjects = [], { stageId }
 export const refreshAdditionalTimeObjectsByCall = async ({
   callId,
   stageId,
+  portId,
+  callTypeId,
   getTimeObjectsByCall,
   currentRows = [],
   committedIndex = -1,
 }) => {
   if (typeof getTimeObjectsByCall !== "function" || !callId) return null;
 
-  const data = await getTimeObjectsByCall({ callId, stageId });
-  // TODO(temporary): debug logging for additional time-object refresh flow.
-  console.log("[AdditionalTimeObject] get_time_objects_by_call response", data);
+  const data = await getTimeObjectsByCall({ callId, stageId, portId, callTypeId });
   const serverRows = mapCallTimeObjectsToAdditionalRows(
     extractCallTimeObjects(data),
     { stageId }
   );
-  console.log("[AdditionalTimeObject] refreshed rows", serverRows);
 
   const current = Array.isArray(currentRows) ? currentRows : [];
   const drafts = current.filter((row, index) => {

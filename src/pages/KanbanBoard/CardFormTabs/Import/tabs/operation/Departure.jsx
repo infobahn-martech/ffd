@@ -162,6 +162,12 @@ function Departure({
       const refreshedRows = await refreshAdditionalTimeObjectsByCall({
         callId: resolvedCallId,
         stageId,
+        portId: formValues?.port_id ?? formValues?.portId ?? "",
+        callTypeId:
+          formValues?.call_type_id ??
+          formValues?.typeOfCall ??
+          formValues?.callTypeId ??
+          "",
         getTimeObjectsByCall: getTimeObjectsByCallAction,
         currentRows: formValues.departureAdditionalTimeObjects || [],
         committedIndex: index,

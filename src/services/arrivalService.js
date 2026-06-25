@@ -12,18 +12,15 @@ const arrivalService = {
     Gateway.post("time_object/save_call_time_object", {
       call_id,
       stage_id,
-      time_object,
+      time_objects: time_object,
     }),
-  getTimeObjectsByCall: ({ callId, stageId } = {}) => {
-    const params = {};
-    if (stageId != null && String(stageId).trim() !== "") {
-      params.stage_id = stageId;
-    }
-    return Gateway.get(
-      `time_object/get_time_objects_by_call/${encodeURIComponent(String(callId))}`,
-      Object.keys(params).length ? { params } : undefined
-    );
-  },
+  getTimeObjectsByCall: ({ callId, stageId, portId, callTypeId } = {}) =>
+    Gateway.post("time_object/get_time_objects_by_call", {
+      call_id: callId,
+      stage_id: stageId,
+      port_id: portId,
+      call_type_id: callTypeId,
+    }),
   deleteCallTimeObject: ({ timeObjectId, callId, stageId }) =>
     Gateway.delete(
       `time_object/delete_call_time_object/${encodeURIComponent(

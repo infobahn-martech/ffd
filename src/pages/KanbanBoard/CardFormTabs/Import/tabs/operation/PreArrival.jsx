@@ -934,6 +934,13 @@ function PreArrival({
       const refreshedRows = await refreshAdditionalTimeObjectsByCall({
         callId,
         stageId,
+        portId: resolveFormId(portId, formValues?.port_id, formValues?.portId),
+        callTypeId: resolveFormId(
+          callTypeId,
+          formValues?.call_type_id,
+          formValues?.typeOfCall,
+          formValues?.callTypeId
+        ),
         getTimeObjectsByCall: getTimeObjectsByCallAction,
         currentRows: formValues.preArrivalAdditionalTimeObjects || [],
         committedIndex: index,
@@ -984,11 +991,12 @@ function PreArrival({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadReportTemplate = async () => {
-      if (emailPreviewFromDetailRef.current) return;
+  // Fetch the Pre Arrival email template. `force` bypasses the "preview came
+  // from a saved sent_report" guard so we can refresh after saving a time
+  // object (the time objects feed the template body).
+  const loadReportTemplate = useCallback(
+    async ({ force = false } = {}) => {
+      if (!force && emailPreviewFromDetailRef.current) return;
 
       const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
       const resolvedPortId = resolveFormId(portId, formValues?.port_id, formValues?.portId);
@@ -1010,8 +1018,7 @@ function PreArrival({
           report_type_id: 2,
           time_objects: timeObjects,
         });
-        if (cancelled) return;
-        if (emailPreviewFromDetailRef.current) return;
+        if (!force && emailPreviewFromDetailRef.current) return;
 
         const template = extractReportTemplateFields(response);
         setReportDraft((prev) => ({
@@ -1028,17 +1035,16 @@ function PreArrival({
           setReportAttachments((prev) => (prev.length ? prev : templateAttachments));
         }
       } catch (error) {
-        if (cancelled) return;
         console.error("[Operation] report_template/get_template_by_port_calltype failed", error);
       }
-    };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [callId, portId, callTypeId, formValues, eventFieldsApplyKey]
+  );
 
+  useEffect(() => {
     loadReportTemplate();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [callId, portId, callTypeId, formValues, eventFieldsApplyKey]);
+  }, [loadReportTemplate]);
 
   const handleReportDraftChange = (field, value) => {
     setReportDraft((prev) => ({ ...prev, [field]: value }));

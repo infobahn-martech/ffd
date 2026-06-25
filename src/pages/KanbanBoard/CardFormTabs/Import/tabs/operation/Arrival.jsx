@@ -591,6 +591,13 @@ function Arrival({
       const refreshedRows = await refreshAdditionalTimeObjectsByCall({
         callId: resolvedCallId,
         stageId,
+        portId: resolveFormId(portId, formValues?.port_id, formValues?.portId),
+        callTypeId: resolveFormId(
+          callTypeId,
+          formValues?.call_type_id,
+          formValues?.typeOfCall,
+          formValues?.callTypeId
+        ),
         getTimeObjectsByCall: getTimeObjectsByCallAction,
         currentRows: formValues.arrivalAdditionalTimeObjects || [],
         committedIndex: index,

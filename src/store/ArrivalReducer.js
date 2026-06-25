@@ -99,7 +99,7 @@ const useArrivalReducer = create((set) => ({
 
   // Reload all call time objects after a single-row save so the additional
   // time-object list can be refreshed with backend-assigned ids/values.
-  getTimeObjectsByCall: async ({ callId, stageId, cb } = {}) => {
+  getTimeObjectsByCall: async ({ callId, stageId, portId, callTypeId, cb } = {}) => {
     const trimmedCallId = String(callId ?? '').trim();
     if (!trimmedCallId) return null;
     try {
@@ -107,6 +107,8 @@ const useArrivalReducer = create((set) => ({
       const { data } = await arrivalService.getTimeObjectsByCall({
         callId: trimmedCallId,
         stageId,
+        portId,
+        callTypeId,
       });
       set({ isLoadingCallTimeObjects: false });
       cb && cb(data);
