@@ -204,9 +204,33 @@
 /* ---- Crew Preview Table ---- */
 .tb-crew-table-wrapper {
   overflow-x: auto;
+  overflow-y: scroll;
+  max-height: 260px;
   border-radius: 10px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 0 10px 10px 0;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+
+    &:hover {
+      background: #64748b;
+    }
+  }
 }
 
 .tb-crew-table {
@@ -219,6 +243,10 @@
   }
 
   th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f1f5f9;
     padding: 10px 14px;
     text-align: left;
     font-size: 11px;
@@ -330,4 +358,139 @@
 @keyframes tb-plus-pulse {
   0%, 65%, 100% { transform: scale(1); }
   35%            { transform: scale(1.4); }
+}
+
+/* ---- Batch Tab Panel (Scenario C: Immigration Clearance) ---- */
+.tb-batch-tab-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+
+.tb-batch-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border-radius: 8px 8px 0 0;
+  border: 2px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  position: relative;
+  bottom: -2px;
+
+  &:hover:not(.tb-batch-tab--active) {
+    background: #f1f5f9;
+    color: #334155;
+  }
+
+  &.tb-batch-tab--active {
+    background: #ffffff;
+    border-color: #2666be;
+    border-bottom-color: #ffffff;
+    color: #1d4ed8;
+    z-index: 1;
+  }
+
+  &.tb-batch-tab--done:not(.tb-batch-tab--active) {
+    color: #16a34a;
+    border-color: #bbf7d0;
+  }
+
+  &.tb-batch-tab--done.tb-batch-tab--active {
+    border-color: #16a34a;
+    border-bottom-color: #ffffff;
+    color: #16a34a;
+  }
+}
+
+.tb-batch-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 18px;
+  animation: tb-batch-row-in 0.25s ease-out both;
+}
+
+.tb-batch-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tb-batch-operator-input {
+  width: 200px !important;
+}
+
+.tb-batch-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tb-batch-print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 2px solid #475569;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #334155;
+  }
+}
+
+.tb-batch-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 2px solid #2666be;
+  background: #ffffff;
+  color: #2666be;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: #eff6ff;
+  }
+}
+
+.tb-batch-done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 600;
+  align-self: flex-start;
 }
