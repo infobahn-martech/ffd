@@ -5,6 +5,7 @@ import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { BillingEntityModal } from "./Modals/AddEditBillingEntity";
 import { RenderAction } from "./RenderCells";
 import useBillingEntityReducer from "../../store/BillingEntityReducer";
+import "../../design/scss/pages/billing-entity/BillingEntity.scss";
 
 const resolveLogoUrl = (logoValue) => {
   if (!logoValue) return "";
@@ -89,9 +90,10 @@ const BillingEntity = () => {
       name: "Billing Entity",
       selector: "billing_entity",
       sort: true,
-      width: "200",
+      width: "300",
       thclass: "tb-head",
       contentClass: "table-content",
+      colClassName: "billing-entity-cell",
     },
     {
       name: "Customer Code",
@@ -151,7 +153,7 @@ const BillingEntity = () => {
   return (
     <>
       <div className="page-body">
-        <div className="prospect employee">
+        <div className="prospect employee billing-entity-page">
           <div className="container-fluid">
             <CommonHeader
               tableTitle="Billing Accounts"
