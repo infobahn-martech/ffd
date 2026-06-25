@@ -193,15 +193,16 @@ export const buildAdditionalTimeObjectsPayload = (items = []) =>
  */
 export const buildCallTimeObjectPayload = (row) => {
   const label = String(
-    row?.label ?? row?.name ?? row?.time_object_name ?? ""
+    row?.time_object ?? row?.time_object_name ?? row?.name ?? row?.label ?? ""
   ).trim();
   if (!label) return null;
   const timeObjectValue =
     String(row?.time_object_value || "").trim() ||
     normalizeAdditionalTimeValue(row?.date, row?.time);
+  // API contract: only `time_object` (name) + `time_object_value`. Do NOT send
+  // `time_object_name` — the backend rejects/ignores the duplicate key.
   const payload = {
     time_object: label,
-    time_object_name: label,
     time_object_value: timeObjectValue,
   };
   if (row?.id != null && String(row.id).trim() !== "") {
