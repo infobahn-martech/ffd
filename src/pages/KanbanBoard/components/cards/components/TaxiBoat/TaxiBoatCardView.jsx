@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus } from "react-icons/fi";
+import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
 import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
@@ -153,9 +153,10 @@ TimestampGrid.propTypes = {
 function TimestampStepper({ timestamps, tsState, onCapture }) {
   const doneCount = timestamps.filter((t) => tsState[t.key] !== null).length;
   const totalSteps = timestamps.length;
+  const allDone = doneCount === totalSteps;
   return (
     <div className={`tb-stepper-wrap tb-stepper-wrap--step-${doneCount} tb-stepper-wrap--steps-${totalSteps}`}>
-      <div className="tb-stepper-boat-wrap">
+      <div className={`tb-stepper-boat-wrap${allDone ? " tb-stepper-boat-wrap--arrived" : ""}`}>
         <MdDirectionsBoat size={20} className="tb-stepper-boat-icon" />
       </div>
       <ol className="tb-stepper">
@@ -263,8 +264,7 @@ function TaxiBoatCardView({ card }) {
 
   // Scenario A: Crew Change
   const [signMode, setSignMode] = useState("sign-on");
-  const [crewListFile, setCrewListFile] = useState(null);
-  const [parsedCrewRows, setParsedCrewRows] = useState(() => {
+  const [parsedCrewRows] = useState(() => {
     if (!Array.isArray(card?.crew) || card.crew.length === 0) return null;
     return card.crew.map((c) => ({
       name:        c.crewName     ?? "—",
@@ -274,7 +274,7 @@ function TaxiBoatCardView({ card }) {
       seamanBookNo: c.seamanBookNo ?? "—",
     }));
   });
-  const crewFromCard = Array.isArray(card?.crew) && card.crew.length > 0 && !crewListFile;
+  const crewFromCard = Array.isArray(card?.crew) && card.crew.length > 0;
 
   // Scenario B: Material / Provision / Garbage
   const [packingListFile, setPackingListFile] = useState(null);
@@ -284,12 +284,6 @@ function TaxiBoatCardView({ card }) {
 
   const captureNow = useCallback((setter, key) => {
     setter((prev) => ({ ...prev, [key]: new Date().toISOString() }));
-  }, []);
-
-  const handleCrewListUpload = useCallback((e) => {
-    const file = e.target.files?.[0] ?? null;
-    setCrewListFile(file);
-    setParsedCrewRows(file ? MOCK_CREW_ROWS : null);
   }, []);
 
   const handleAddBatch = useCallback(() => {
@@ -345,22 +339,6 @@ function TaxiBoatCardView({ card }) {
             <span className="tb-sign-mode-hint">
               {signMode === "sign-on" ? "Crew boarding the vessel" : "Crew disembarking the vessel"}
             </span>
-          </div>
-          <div className="tb-excel-upload-row">
-            <input
-              type="file"
-              id="tb-crew-list-input"
-              className="tb-excel-upload-input"
-              accept=".xlsx,.xls,.csv"
-              onChange={handleCrewListUpload}
-            />
-            <label htmlFor="tb-crew-list-input" className="tb-excel-upload-btn">
-              <FiUpload size={15} />
-              Upload Crew List
-            </label>
-            {crewListFile && (
-              <span className="tb-excel-upload-filename">{crewListFile.name}</span>
-            )}
           </div>
           {parsedCrewRows && (
             <>
@@ -515,23 +493,22 @@ function TaxiBoatCardView({ card }) {
         </div>
       )}
 
-      <div className="tb-job-complete-row">
-        <label className={`tb-job-complete-label${!canComplete ? " tb-job-complete-label--disabled" : ""}`}>
-          <input
-            type="checkbox"
-            className="tb-ts-checkbox"
-            checked={jobCompleted}
-            disabled={!canComplete || jobCompleted}
-            onChange={() => {
-              if (canComplete && !jobCompleted) setJobCompleted(true);
-            }}
-          />
+      {jobCompleted ? (
+        <div className="tb-job-complete-success">
+          <FiCheckCircle size={22} />
           <span>Job Completed</span>
-        </label>
-        {!canComplete && !jobCompleted && (
+        </div>
+      ) : canComplete ? (
+        <button className="tb-job-complete-btn" onClick={() => setJobCompleted(true)}>
+          <FiCheckCircle size={18} />
+          Mark Job as Completed
+        </button>
+      ) : (
+        <div className="tb-job-complete-locked">
+          <span className="tb-job-complete-locked-text">Job Completed</span>
           <span className="tb-job-complete-hint">Complete all timestamps to enable</span>
-        )}
-      </div>
+        </div>
+      )}
 
       {jobCompleted && (
         <div className="tb-launch-slip-section">
