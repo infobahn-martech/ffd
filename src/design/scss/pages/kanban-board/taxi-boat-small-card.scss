@@ -1,27 +1,40 @@
 .tb-sc {
-    position: relative;
     background: #ffffff;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
-    border-top: 3px solid #2666be;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    padding: 10px 12px 10px;
+    padding: 0;
     margin-bottom: 8px;
     cursor: pointer;
+    overflow: hidden;
     transition: box-shadow 0.15s ease;
 
     &:hover {
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* Company avatar — square, top-right */
+    /* Header row: thin accent line (left) + company avatar (right) */
+    .tb-sc-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 8px 6px 10px;
+    }
+
+    .tb-sc-accent-line {
+        flex: 1;
+        height: 3px;
+        background: #2666be;
+        border-radius: 2px;
+        margin-right: 8px;
+    }
+
+    /* Company avatar — square */
     .tb-sc-avatar {
-        position: absolute;
-        top: 8px;
-        right: 8px;
         width: 28px;
         height: 28px;
         border-radius: 5px;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -36,9 +49,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        padding-right: 38px;
-        margin-top: 2px;
-        margin-bottom: 4px;
+        padding: 0 10px 3px;
     }
 
     .tb-sc-vessel {
@@ -65,7 +76,7 @@
         font-size: 11px;
         color: #0d9488;
         font-weight: 600;
-        margin-bottom: 2px;
+        padding: 0 10px 2px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -77,7 +88,7 @@
         font-size: 11px;
         color: #6b7280;
         font-weight: 400;
-        margin-bottom: 8px;
+        padding: 0 10px 8px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -89,7 +100,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: 6px;
+        padding: 6px 10px 8px;
         border-top: 1px solid #f3f4f6;
     }
 
@@ -100,7 +111,7 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Circular SVG progress (matches standard CardItem style) */
+    /* Circular SVG progress */
     .tb-sc-progress-wrap {
         position: relative;
         width: 26px;
