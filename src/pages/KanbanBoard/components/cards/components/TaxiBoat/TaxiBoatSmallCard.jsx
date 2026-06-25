@@ -47,33 +47,32 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
           style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
-          {/* 1. Blue accent line — full width at top */}
-          <div className="tb-sc-accent-line" />
-
-          {/* 2. Body: text (left) | avatar square (right) */}
-          <div className="tb-sc-body">
-            <div className="tb-sc-details">
-              <div className="tb-sc-title-row">
-                <span className="tb-sc-vessel">{vesselName}</span>
-                {svcInitial && (
-                  <span
-                    className="tb-sc-svc-badge"
-                    style={{ color: badge.color, background: badge.bg }}
-                  >
-                    {svcInitial}
-                  </span>
-                )}
-              </div>
-              {custName    && <div className="tb-sc-customer">{custName}</div>}
-              {serviceType && <div className="tb-sc-service">{serviceType}</div>}
-            </div>
-
+          {/* Row 1: blue line (left) + avatar square (right) */}
+          <div className="tb-sc-header">
+            <div className="tb-sc-line" />
             <div className="tb-sc-avatar" style={{ background: avatarBg }}>
               {custInitial}
             </div>
           </div>
 
-          {/* 3. Footer separator + time (left) | circle progress (right) */}
+          {/* Row 2–4: text content */}
+          <div className="tb-sc-content">
+            <div className="tb-sc-title-row">
+              <span className="tb-sc-vessel">{vesselName}</span>
+              {svcInitial && (
+                <span
+                  className="tb-sc-svc-badge"
+                  style={{ color: badge.color, background: badge.bg }}
+                >
+                  {svcInitial}
+                </span>
+              )}
+            </div>
+            {custName    && <div className="tb-sc-customer">{custName}</div>}
+            {serviceType && <div className="tb-sc-service">{serviceType}</div>}
+          </div>
+
+          {/* Row 5: footer — time (left) + circular progress (right) */}
           <div className="tb-sc-footer">
             {timeLeft && <span className="tb-sc-time">{timeLeft}</span>}
             <div className="tb-sc-progress-wrap">

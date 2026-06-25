@@ -12,32 +12,45 @@
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* 1. Blue accent line — full width, very top */
-    .tb-sc-accent-line {
+    /* Row 1: blue line stretches left, avatar square sits right */
+    .tb-sc-header {
+        display: flex;
+        align-items: center;
+        padding: 8px 8px 6px 10px;
+        gap: 8px;
+    }
+
+    .tb-sc-line {
+        flex: 1;
         height: 3px;
         background: #2666be;
-        width: 100%;
+        border-radius: 2px;
     }
 
-    /* 2. Body: text LEFT, avatar square RIGHT */
-    .tb-sc-body {
+    .tb-sc-avatar {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 5px;
         display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 10px 10px 8px 10px;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: "Open Sans", sans-serif;
     }
 
-    .tb-sc-details {
-        flex: 1;
-        min-width: 0;
+    /* Rows 2-4: text content */
+    .tb-sc-content {
+        padding: 0 10px 8px 10px;
     }
 
     .tb-sc-title-row {
         display: flex;
         align-items: center;
         gap: 5px;
-        margin-bottom: 4px;
+        margin-bottom: 3px;
     }
 
     .tb-sc-vessel {
@@ -80,22 +93,7 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Avatar square — right side of body */
-    .tb-sc-avatar {
-        flex-shrink: 0;
-        width: 32px;
-        height: 32px;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 700;
-        font-family: "Open Sans", sans-serif;
-    }
-
-    /* 3. Footer: time (left) | circle progress (right) */
+    /* Row 5: footer — time left | circular progress */
     .tb-sc-footer {
         display: flex;
         align-items: center;
