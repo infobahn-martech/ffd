@@ -707,15 +707,8 @@ function TaxiBoatCardView({ card }) {
         </div>
       )}
 
-      {isImmigration && (
-        <FinalStep
-          canComplete={canComplete}
-          isDone={jobCompleted}
-          onComplete={() => setJobCompleted(true)}
-        />
-      )}
 
-      {jobCompleted && (
+      {(isImmigration ? canComplete : jobCompleted) && (
         <div className="tb-launch-slip-section">
           <h4 className="tb-launch-slip-title">Upload Launch Slip</h4>
           <p className="tb-launch-slip-hint">Please upload the signed Launch Slip to finalize this job.</p>
