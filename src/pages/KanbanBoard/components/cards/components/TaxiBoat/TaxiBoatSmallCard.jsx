@@ -52,11 +52,9 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
           style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
-          {/* Accent line */}
-          <div className="tb-sc-accent-line" />
-
-          {/* Avatar — logo image if known company, else colored initial */}
-          <div className="tb-sc-avatar-row">
+          {/* Top: accent line + logo merged in the same row */}
+          <div className="tb-sc-top">
+            <div className="tb-sc-accent-line" />
             {logoSrc ? (
               <img src={logoSrc} alt={custName} className="tb-sc-avatar-img" />
             ) : (

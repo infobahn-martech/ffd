@@ -16,19 +16,28 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.13);
     }
 
-    /* Accent line — inset 8px each side, 6px from top, matches CardItem ::before */
-    .tb-sc-accent-line {
-        height: 3px;
-        background: #2666be;
-        margin: 8px 8px 0;
-        border-radius: 4px 12px 4px 4px;
-    }
+    /* Top section — line spans full width, logo centered on the line */
+    .tb-sc-top {
+        position: relative;
+        height: 42px;
 
-    /* Avatar — right-aligned below the accent line */
-    .tb-sc-avatar-row {
-        display: flex;
-        justify-content: flex-end;
-        padding: 6px 8px 0;
+        .tb-sc-accent-line {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            height: 3px;
+            background: #2666be;
+            border-radius: 4px;
+        }
+
+        .tb-sc-avatar,
+        .tb-sc-avatar-img {
+            position: absolute;
+            top: 14px;
+            right: 8px;
+            z-index: 1;
+        }
     }
 
     /* Company avatar square — colored initial fallback */
