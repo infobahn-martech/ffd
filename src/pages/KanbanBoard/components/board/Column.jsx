@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "../cards/CardItem";
+import TaxiBoatSmallCard from "../cards/components/TaxiBoat/TaxiBoatSmallCard";
 import "../../../../design/scss/pages/kanban-board/column.scss";
 
 function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false, isModernLayout = false, isDarkMode = false }) {
@@ -130,18 +131,27 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
             ref={provided.innerRef}
             {...provided.droppableProps}
           >
-            {cards.map((card, index) => (
-              <CardItem
-                key={card.id}
-                card={card}
-                index={index}
-                setSelectedCard={setSelectedCard}
-                isShrunk={isShrunk}
-                isClassicLayout={isClassicLayout}
-                isModernLayout={isModernLayout}
-                columnTitle={column.title}
-              />
-            ))}
+            {cards.map((card, index) =>
+              card.cardVariant === "taxi-boat" ? (
+                <TaxiBoatSmallCard
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  setSelectedCard={setSelectedCard}
+                />
+              ) : (
+                <CardItem
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  setSelectedCard={setSelectedCard}
+                  isShrunk={isShrunk}
+                  isClassicLayout={isClassicLayout}
+                  isModernLayout={isModernLayout}
+                  columnTitle={column.title}
+                />
+              )
+            )}
             {provided.placeholder}
           </div>
         )}
