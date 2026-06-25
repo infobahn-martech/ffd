@@ -2,7 +2,26 @@ import { Draggable } from "@hello-pangea/dnd";
 import { KANBAN_DND_DISABLED } from "../../../../../../shared/constants/kanbanConfig";
 import PropTypes from "prop-types";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-small-card.scss";
+import saudimarcapLogo from "../../../../../../assets/images/saudimarcap.png";
+import saipemLogo      from "../../../../../../assets/images/saipem.png";
+import lamprellLogo    from "../../../../../../assets/images/lamprell.png";
+import gulfmarineLogo  from "../../../../../../assets/images/gulfmarine.png";
 
+const COMPANY_LOGO_MAP = {
+  "gulf marine":  gulfmarineLogo,
+  "gulfmarine":   gulfmarineLogo,
+  "saudi marcap": saudimarcapLogo,
+  "saudimarcap":  saudimarcapLogo,
+  "snamprogetti": saipemLogo,
+  "saipem":       saipemLogo,
+  "lamprell":     lamprellLogo,
+};
+
+function getCompanyLogo(name, entityLogo) {
+  if (entityLogo) return entityLogo;
+  if (!name) return null;
+  return COMPANY_LOGO_MAP[name.toLowerCase().trim()] ?? null;
+}
 
 function avatarColor(name = "") {
   const palette = ["#16a34a", "#0284c7", "#7c3aed", "#b45309", "#0f766e", "#2666be", "#dc2626"];
@@ -20,6 +39,7 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
   const custInitial = custName.charAt(0).toUpperCase();
   const svcInitial  = serviceType.charAt(0).toUpperCase();
   const avatarBg    = avatarColor(custName);
+  const logoSrc     = getCompanyLogo(custName, card?.entityLogo);
 
   return (
     <Draggable draggableId={card.id} index={index} isDragDisabled={KANBAN_DND_DISABLED}>
@@ -32,14 +52,18 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
           style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
-          {/* Full-width blue accent line */}
+          {/* Accent line */}
           <div className="tb-sc-accent-line" />
 
-          {/* Avatar — right-aligned below the line */}
+          {/* Avatar — logo image if known company, else colored initial */}
           <div className="tb-sc-avatar-row">
-            <div className="tb-sc-avatar" style={{ background: avatarBg }}>
-              {custInitial}
-            </div>
+            {logoSrc ? (
+              <img src={logoSrc} alt={custName} className="tb-sc-avatar-img" />
+            ) : (
+              <div className="tb-sc-avatar" style={{ background: avatarBg }}>
+                {custInitial}
+              </div>
+            )}
           </div>
 
           {/* Text content */}

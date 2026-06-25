@@ -31,7 +31,7 @@
         padding: 6px 8px 0;
     }
 
-    /* Company avatar square — matches .card-api-logo (28px, radius 4px) */
+    /* Company avatar square — colored initial fallback */
     .tb-sc-avatar {
         width: 28px;
         height: 28px;
@@ -43,6 +43,15 @@
         font-size: 12px;
         font-weight: 700;
         font-family: "Open Sans", sans-serif;
+        flex-shrink: 0;
+    }
+
+    /* Company logo image — matches .card-api-logo */
+    .tb-sc-avatar-img {
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        object-fit: contain;
         flex-shrink: 0;
     }
 
