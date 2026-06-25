@@ -47,15 +47,11 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
           style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
-          {/* Full-width blue accent line at top */}
+          {/* 1. Blue accent line — full width at top */}
           <div className="tb-sc-accent-line" />
 
-          {/* Body: logo on left, details on right */}
+          {/* 2. Body: text (left) | avatar square (right) */}
           <div className="tb-sc-body">
-            <div className="tb-sc-avatar" style={{ background: avatarBg }}>
-              {custInitial}
-            </div>
-
             <div className="tb-sc-details">
               <div className="tb-sc-title-row">
                 <span className="tb-sc-vessel">{vesselName}</span>
@@ -71,9 +67,13 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
               {custName    && <div className="tb-sc-customer">{custName}</div>}
               {serviceType && <div className="tb-sc-service">{serviceType}</div>}
             </div>
+
+            <div className="tb-sc-avatar" style={{ background: avatarBg }}>
+              {custInitial}
+            </div>
           </div>
 
-          {/* Footer: time + circular progress */}
+          {/* 3. Footer separator + time (left) | circle progress (right) */}
           <div className="tb-sc-footer">
             {timeLeft && <span className="tb-sc-time">{timeLeft}</span>}
             <div className="tb-sc-progress-wrap">

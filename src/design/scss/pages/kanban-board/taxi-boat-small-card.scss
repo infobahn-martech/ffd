@@ -12,48 +12,32 @@
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* Full-width blue accent line at very top */
+    /* 1. Blue accent line — full width, very top */
     .tb-sc-accent-line {
         height: 3px;
         background: #2666be;
         width: 100%;
     }
 
-    /* Body: avatar (left) + details (right) */
+    /* 2. Body: text LEFT, avatar square RIGHT */
     .tb-sc-body {
         display: flex;
         align-items: flex-start;
-        gap: 10px;
+        justify-content: space-between;
+        gap: 8px;
         padding: 10px 10px 8px 10px;
     }
 
-    /* Company logo square */
-    .tb-sc-avatar {
-        flex-shrink: 0;
-        width: 32px;
-        height: 32px;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 700;
-        font-family: "Open Sans", sans-serif;
-    }
-
-    /* Details column */
     .tb-sc-details {
         flex: 1;
         min-width: 0;
     }
 
-    /* Vessel name + service initial badge */
     .tb-sc-title-row {
         display: flex;
         align-items: center;
         gap: 5px;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
     }
 
     .tb-sc-vessel {
@@ -75,19 +59,17 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Customer name — teal */
     .tb-sc-customer {
         font-size: 11px;
         color: #0d9488;
         font-weight: 600;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Service type — gray */
     .tb-sc-service {
         font-size: 11px;
         color: #6b7280;
@@ -98,13 +80,28 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Footer: time + circular progress */
+    /* Avatar square — right side of body */
+    .tb-sc-avatar {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: "Open Sans", sans-serif;
+    }
+
+    /* 3. Footer: time (left) | circle progress (right) */
     .tb-sc-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 6px 10px 8px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #e5e7eb;
     }
 
     .tb-sc-time {
