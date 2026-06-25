@@ -327,6 +327,7 @@ const GROCardView = forwardRef(function GROCardView(
     });
   }, []);
 
+
   const extraStageFieldsContent = useMemo(
     () =>
       groStageHasExtraFields(groStageId) ? (
@@ -373,6 +374,7 @@ const GROCardView = forwardRef(function GROCardView(
         stage_id: groStageId,
         port_id: portId,
         call_type_id: groCallTypeId,
+        call_id: callId,
       })
       .then((res) => {
         if (cancelled) return;
@@ -388,7 +390,7 @@ const GROCardView = forwardRef(function GROCardView(
     return () => {
       cancelled = true;
     };
-  }, [groStageId, groPortId, groCallTypeId, resetExtraStageFileInputs]);
+  }, [groStageId, groPortId, groCallTypeId, callId, resetExtraStageFileInputs]);
 
   useEffect(() => {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });

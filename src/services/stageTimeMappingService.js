@@ -11,7 +11,7 @@ const getTimeObjectsWithStage = ({ params }) =>
 const mapTimeObjectsToStage = (payload) =>
   Gateway.post("/time_object/map_time_objects_to_stage", payload);
 
-/** POST/GET style endpoint for stage-specific time object list */
+/** POST/GET style endpoint for stage-specific time object list — { stage_id, port_id, call_type_id, call_id } */
 const getStageTimeObjects = (payload) =>
   Gateway.post("/time_object/get_stage_time_objects", payload);
 

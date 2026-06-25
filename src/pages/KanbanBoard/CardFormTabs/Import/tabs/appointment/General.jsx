@@ -4522,6 +4522,7 @@ ${body}
           stage_id: 1,
           port_id: previewPortId,
           call_type_id: previewCallType,
+          call_id: currentCallId,
         });
         if (cancelled) return;
         const rows = Array.isArray(data?.data)
@@ -4549,7 +4550,7 @@ ${body}
     return () => {
       cancelled = true;
     };
-  }, [isAddMode, previewPortId, previewCallType]);
+  }, [isAddMode, previewPortId, previewCallType, currentCallId]);
 
   const handleStageTimeObjectChange = useCallback(
     (timeObjectId) => async (nextValues) => {

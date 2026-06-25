@@ -266,21 +266,25 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
             stage_id: 2,
             port_id: preArrivalPortId,
             call_type_id: preArrivalCallTypeId,
+            call_id: currentCallId,
           }),
           stageTimeMappingService.getStageTimeObjects({
             stage_id: 3,
             port_id: preArrivalPortId,
             call_type_id: preArrivalCallTypeId,
+            call_id: currentCallId,
           }),
           stageTimeMappingService.getStageTimeObjects({
             stage_id: 4,
             port_id: preArrivalPortId,
             call_type_id: preArrivalCallTypeId,
+            call_id: currentCallId,
           }),
           stageTimeMappingService.getStageTimeObjects({
             stage_id: 5,
             port_id: preArrivalPortId,
             call_type_id: preArrivalCallTypeId,
+            call_id: currentCallId,
           }),
         ]);
 
@@ -305,7 +309,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     return () => {
       cancelled = true;
     };
-  }, [preArrivalPortId, preArrivalCallTypeId]);
+  }, [preArrivalPortId, preArrivalCallTypeId, currentCallId]);
 
   const preArrivalEventFields = (eventTypeFieldsByStage[2] || []).length
     ? eventTypeFieldsByStage[2]

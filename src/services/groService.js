@@ -37,7 +37,7 @@ export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass
 export const uploadGroStageDocument = (formData) =>
   Gateway.post("task_card/upload_stage_document", formData);
 
-/** POST time_object/get_stage_time_objects — { stage_id, port_id, call_type_id } */
+/** POST time_object/get_stage_time_objects — { stage_id, port_id, call_type_id, call_id } */
 export const getStageTimeObjects = (payload) =>
   Gateway.post("time_object/get_stage_time_objects", payload);
 
