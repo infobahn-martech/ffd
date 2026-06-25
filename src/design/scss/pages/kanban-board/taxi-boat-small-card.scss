@@ -1,9 +1,10 @@
 .tb-sc {
+    position: relative;
     background: #ffffff;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    padding: 0;
+    padding: 10px 10px 0 10px;
     margin-bottom: 8px;
     cursor: pointer;
     overflow: hidden;
@@ -13,28 +14,14 @@
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* Header row: thin accent line (left) + company avatar (right) */
-    .tb-sc-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 8px 6px 10px;
-    }
-
-    .tb-sc-accent-line {
-        flex: 1;
-        height: 3px;
-        background: #2666be;
-        border-radius: 2px;
-        margin-right: 8px;
-    }
-
-    /* Company avatar — square */
+    /* Company avatar — absolute top-right */
     .tb-sc-avatar {
-        width: 28px;
-        height: 28px;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 30px;
+        height: 30px;
         border-radius: 5px;
-        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -44,12 +31,22 @@
         font-family: "Open Sans", sans-serif;
     }
 
+    /* Thin accent line — leaves space for avatar on the right */
+    .tb-sc-accent-line {
+        height: 3px;
+        background: #2666be;
+        border-radius: 1px;
+        margin-right: 44px;  // avatar width (30) + gap (14)
+        margin-bottom: 8px;
+    }
+
     /* Vessel name + service initial badge on one row */
     .tb-sc-title-row {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 0 10px 3px;
+        padding-right: 44px;
+        margin-bottom: 3px;
     }
 
     .tb-sc-vessel {
@@ -76,7 +73,7 @@
         font-size: 11px;
         color: #0d9488;
         font-weight: 600;
-        padding: 0 10px 2px;
+        margin-bottom: 2px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -88,7 +85,7 @@
         font-size: 11px;
         color: #6b7280;
         font-weight: 400;
-        padding: 0 10px 8px;
+        margin-bottom: 8px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -100,7 +97,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 6px 10px 8px;
+        padding: 6px 0 8px;
         border-top: 1px solid #f3f4f6;
     }
 
