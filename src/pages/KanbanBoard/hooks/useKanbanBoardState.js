@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { initialData, TASK_WORKFLOW_TEMPLATE, ensureTaskWorkflow } from "../../../shared/helpers/data";
+import { initialData, TASK_WORKFLOW_TEMPLATE } from "../../../shared/helpers/data";
+import { ensureStaticWorkflows, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
 import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
 import { mapFullBoardApiResponse } from "../../../shared/helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
@@ -12,7 +13,7 @@ const isOperatorBoardId = (id) => String(id ?? "").toLowerCase() === "operator";
 
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(() =>
-    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : initialData
+    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : [TASK_WORKFLOW_WITH_DEMO]
   );
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
@@ -41,7 +42,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       if (isDev) {
         console.log("normalized workflows", mapped);
       }
-      setWorkflows(ensureTaskWorkflow(mapped.length ? mapped : []));
+      setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
       setSelectedCard((prev) => {
         if (!prev?.id) return prev;
         const wf = findWorkflowByCardId(mapped, prev.id);
@@ -54,7 +55,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       if (typeof console !== "undefined" && console.error) {
         console.error("[KanbanBoard] getFullBoard failed:", msg);
       }
-      setWorkflows([]);
+      setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
       setBoardLoadError("Could not load board data.");
     } finally {
       setBoardLoading(false);
@@ -92,7 +93,7 @@ export default function useKanbanBoardState(selectedBoardId) {
           console.log("normalized workflows", mapped);
         }
         if (cancelled) return;
-        setWorkflows(ensureTaskWorkflow(mapped.length ? mapped : []));
+        setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
         setBoardLoadError(null);
       } catch (e) {
         if (!cancelled) {
@@ -100,7 +101,7 @@ export default function useKanbanBoardState(selectedBoardId) {
           if (typeof console !== "undefined" && console.error) {
             console.error("[KanbanBoard] getFullBoard failed:", msg);
           }
-          setWorkflows([]);
+          setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
           setBoardLoadError("Could not load board data.");
         }
       } finally {
