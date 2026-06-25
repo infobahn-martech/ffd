@@ -140,6 +140,11 @@ const GROCardView = forwardRef(function GROCardView(
   const [crewImmigrationRows, setCrewImmigrationRows] = useState(() => GRO_STATIC_CREW_IMMIGRATION_ROWS);
   const [crewImmigrationPage, setCrewImmigrationPage] = useState(1);
   const [crewUploadAction, setCrewUploadAction] = useState({ variant: null, rowId: null });
+  const [showDynamicUploadModal, setShowDynamicUploadModal] = useState(false);
+  const [dynamicUploadFile, setDynamicUploadFile] = useState(null);
+  const [dynamicUploadType, setDynamicUploadType] = useState(null);
+  const [isDynamicUploadSubmitting, setIsDynamicUploadSubmitting] = useState(false);
+  const dynamicUploadFileInputRef = useRef(null);
   const bulkPassUploadBtnRef = useRef(null);
   const bulkPassPopoverPortalRef = useRef(null);
   const bulkPassFileInputRef = useRef(null);
@@ -1091,6 +1096,102 @@ const GROCardView = forwardRef(function GROCardView(
     }
   }, [isGeneratingVesselPdf, callId, cardId, taskId, userRoleId]);
 
+  const isCrewImmigrationActive =
+    hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewImmigration && isCrewImmigrationStage;
+  const isVesselInwardRegistrationActive =
+    hidePassTabs &&
+    activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration &&
+    isVesselInwardRegistrationStage;
+  const showDynamicUploadIcon = isCrewImmigrationActive || isVesselInwardRegistrationActive;
+
+  const dynamicUploadTitle =
+    dynamicUploadType === "crew_immigration"
+      ? "Upload Crew Immigration"
+      : dynamicUploadType === "vessel_inward_registration"
+        ? "Upload Vessel Inward Registration"
+        : "Upload";
+
+  const openDynamicUploadModal = useCallback(() => {
+    const type = isCrewImmigrationActive
+      ? "crew_immigration"
+      : isVesselInwardRegistrationActive
+        ? "vessel_inward_registration"
+        : null;
+    if (!type) return;
+    setDynamicUploadType(type);
+    setDynamicUploadFile(null);
+    if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
+    setShowDynamicUploadModal(true);
+  }, [isCrewImmigrationActive, isVesselInwardRegistrationActive]);
+
+  const closeDynamicUploadModal = useCallback(() => {
+    if (isDynamicUploadSubmitting) return;
+    setShowDynamicUploadModal(false);
+    setDynamicUploadFile(null);
+    setDynamicUploadType(null);
+    if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
+  }, [isDynamicUploadSubmitting]);
+
+  const handleDynamicUploadFileSelect = useCallback((file) => {
+    if (!file) return;
+    setDynamicUploadFile(file);
+  }, []);
+
+  const handleDynamicUploadDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isDynamicUploadSubmitting) return;
+      const file = e.dataTransfer?.files?.[0];
+      handleDynamicUploadFileSelect(file);
+    },
+    [isDynamicUploadSubmitting, handleDynamicUploadFileSelect]
+  );
+
+  const handleDynamicUploadSubmit = useCallback(
+    async (e) => {
+      e?.preventDefault?.();
+      if (isDynamicUploadSubmitting) return;
+      if (!dynamicUploadFile) {
+        notify("Please select a file to upload.", "warn");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("call_id", callId ?? "");
+      formData.append("card_id", cardId ?? "");
+      formData.append("task_id", taskId ?? "");
+      formData.append("stage_id", groStageId ?? "");
+      formData.append("file", dynamicUploadFile);
+      formData.append("upload_type", dynamicUploadType ?? "");
+
+      setIsDynamicUploadSubmitting(true);
+      try {
+        await groService.uploadGroStageDocument(formData);
+        notify("Document uploaded successfully.", "success");
+        setShowDynamicUploadModal(false);
+        setDynamicUploadFile(null);
+        setDynamicUploadType(null);
+        if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
+        await refreshGroDocuments();
+      } catch (err) {
+        notify(groApiErrorMessage(err, "Failed to upload document."), "error");
+      } finally {
+        setIsDynamicUploadSubmitting(false);
+      }
+    },
+    [
+      isDynamicUploadSubmitting,
+      dynamicUploadFile,
+      dynamicUploadType,
+      callId,
+      cardId,
+      taskId,
+      groStageId,
+      refreshGroDocuments,
+    ]
+  );
+
   const documentsSectionTitle = "Documents";
 
   const handleAssignedUserChange = useCallback(
@@ -1170,6 +1271,97 @@ const GROCardView = forwardRef(function GROCardView(
             hasIssueDateError={bulkPassFormError.includes("Issue date")}
             datetimePopperClassName="gro-pass-upload-datetime-popper"
           />
+        </div>,
+        document.body
+      )
+      : null;
+
+  const dynamicUploadPortal =
+    showDynamicUploadModal && typeof document !== "undefined" && document.body
+      ? createPortal(
+        <div
+          className="gro-stage-upload-modal-overlay"
+          role="presentation"
+          onClick={closeDynamicUploadModal}
+        >
+          <div
+            className="gro-stage-upload-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={dynamicUploadTitle}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="gro-inward-popover-header">{dynamicUploadTitle}</div>
+            <form onSubmit={handleDynamicUploadSubmit}>
+              <div className="gro-inward-popover-body">
+                <button
+                  type="button"
+                  className={`gro-stage-upload-dropzone${dynamicUploadFile ? " gro-stage-upload-dropzone--has-file" : ""}`}
+                  disabled={isDynamicUploadSubmitting}
+                  onClick={() => dynamicUploadFileInputRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDynamicUploadDrop}
+                >
+                  <svg
+                    className="gro-stage-upload-dropzone-icon"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M12 16V4m0 0L8 8m4-4l4 4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4 14v3a3 3 0 003 3h10a3 3 0 003-3v-3"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="gro-stage-upload-dropzone-text">
+                    Drag &amp; drop a file here, or click to browse
+                  </span>
+                  <span
+                    className="gro-stage-upload-filename"
+                    title={dynamicUploadFile?.name || ""}
+                  >
+                    {dynamicUploadFile?.name || "No file chosen"}
+                  </span>
+                </button>
+                <input
+                  ref={dynamicUploadFileInputRef}
+                  type="file"
+                  className="gro-premium-upload-input-hidden"
+                  disabled={isDynamicUploadSubmitting}
+                  onChange={(e) => handleDynamicUploadFileSelect(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <div className="gro-stage-upload-actions gro-inward-popover-footer">
+                <button
+                  type="button"
+                  className="gro-inward-popover-btn-cancel"
+                  disabled={isDynamicUploadSubmitting}
+                  onClick={closeDynamicUploadModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="gro-inward-popover-btn-submit"
+                  disabled={isDynamicUploadSubmitting}
+                >
+                  {isDynamicUploadSubmitting ? "Uploading…" : "Upload"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>,
         document.body
       )
@@ -1283,6 +1475,34 @@ const GROCardView = forwardRef(function GROCardView(
                   </>
                 )}
               </div>
+              {showDynamicUploadIcon ? (
+                <button
+                  type="button"
+                  className="gro-stage-upload-icon-btn"
+                  title={`Bulk Upload ${taskPanelTitle}`}
+                  aria-label={`Bulk Upload ${taskPanelTitle}`}
+                  onClick={openDynamicUploadModal}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      d="M12 16V4m0 0L8 8m4-4l4 4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4 14v3a3 3 0 003 3h10a3 3 0 003-3v-3"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              ) : null}
               {(hidePassTabs &&
                 !isCrewImmigrationStage &&
                 !isVesselInwardRegistrationStage &&
@@ -1428,6 +1648,7 @@ const GROCardView = forwardRef(function GROCardView(
         )}
       </div>
       {bulkPassPortal}
+      {dynamicUploadPortal}
       <DocumentActionConfirmModal
         isOpen={isConfirmModalOpen}
         confirmAction={confirmAction}
