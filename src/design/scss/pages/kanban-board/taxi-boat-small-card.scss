@@ -2,22 +2,23 @@
     position: relative;
     background: #ffffff;
     border-radius: 8px;
-    border-top: 3px solid var(--tb-bar, #2666be);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+    border-top: 3px solid #2666be;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     padding: 10px 12px 10px;
     margin-bottom: 8px;
     cursor: pointer;
     transition: box-shadow 0.15s ease;
 
     &:hover {
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.13);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* User avatar — square, top-right */
+    /* Company avatar — square, top-right */
     .tb-sc-avatar {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 8px;
+        right: 8px;
         width: 28px;
         height: 28px;
         border-radius: 5px;
@@ -30,14 +31,14 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Vessel name + client initial on one row */
+    /* Vessel name + service initial badge on one row */
     .tb-sc-title-row {
         display: flex;
         align-items: center;
         gap: 6px;
         padding-right: 38px;
         margin-top: 2px;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
     }
 
     .tb-sc-vessel {
@@ -48,22 +49,21 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
     }
 
-    .tb-sc-client-badge {
+    .tb-sc-svc-badge {
         flex-shrink: 0;
         font-size: 10px;
         font-weight: 700;
-        padding: 1px 5px;
-        border-radius: 3px;
+        padding: 1px 6px;
+        border-radius: 4px;
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Service type — coloured text */
-    .tb-sc-service {
+    /* Customer name — teal */
+    .tb-sc-customer {
         font-size: 11px;
+        color: #0d9488;
         font-weight: 600;
         margin-bottom: 2px;
         white-space: nowrap;
@@ -72,10 +72,10 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Customer / company name */
-    .tb-sc-customer {
+    /* Service type — gray */
+    .tb-sc-service {
         font-size: 11px;
-        color: #64748b;
+        color: #6b7280;
         font-weight: 400;
         margin-bottom: 8px;
         white-space: nowrap;
@@ -90,7 +90,7 @@
         align-items: center;
         justify-content: space-between;
         padding-top: 6px;
-        border-top: 1px solid #f1f5f9;
+        border-top: 1px solid #f3f4f6;
     }
 
     .tb-sc-time {
@@ -100,13 +100,44 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    .tb-sc-progress {
-        font-size: 10px;
-        font-weight: 600;
-        color: #64748b;
-        background: #f1f5f9;
-        padding: 2px 8px;
-        border-radius: 10px;
+    /* Circular SVG progress (matches standard CardItem style) */
+    .tb-sc-progress-wrap {
+        position: relative;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .tb-sc-svg {
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        transform: rotate(-90deg);
+
+        .tb-sc-svg-bg {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 2.5;
+        }
+
+        .tb-sc-svg-fill {
+            fill: none;
+            stroke: #0d9488;
+            stroke-width: 2.5;
+            stroke-dasharray: 69;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+    }
+
+    .tb-sc-progress-text {
+        position: relative;
+        font-size: 8px;
+        font-weight: 700;
+        color: #374151;
         font-family: "Open Sans", sans-serif;
+        line-height: 1;
     }
 }
