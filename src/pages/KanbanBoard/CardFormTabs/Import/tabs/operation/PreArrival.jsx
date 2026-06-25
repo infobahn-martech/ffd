@@ -37,7 +37,6 @@ import {
   OperationFormCard,
   OperationSaveSection,
   persistAdditionalTimeObjects,
-  refreshAdditionalTimeObjectsByCall,
   useApplyStageTimeObjectValues,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
@@ -375,7 +374,6 @@ function PreArrival({
   stageId = OPERATION_STAGE_IDS.PRE_ARRIVAL,
 }) {
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
-  const getTimeObjectsByCallAction = useArrivalReducer((s) => s.getTimeObjectsByCall);
   const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
   const [isSendingReport, setIsSendingReport] = useState(false);
@@ -934,27 +932,12 @@ function PreArrival({
         stageId,
         saveCallTimeObject: saveCallTimeObjectAction,
       });
-      const refreshedRows = await refreshAdditionalTimeObjectsByCall({
-        callId,
-        stageId,
-        portId: resolveFormId(portId, formValues?.port_id, formValues?.portId),
-        callTypeId: resolveFormId(
-          callTypeId,
-          formValues?.call_type_id,
-          formValues?.typeOfCall,
-          formValues?.callTypeId
-        ),
-        getTimeObjectsByCall: getTimeObjectsByCallAction,
-        currentRows: formValues.preArrivalAdditionalTimeObjects || [],
-        committedIndex: index,
-      });
-      if (refreshedRows) {
-        handleChange("preArrivalAdditionalTimeObjects")({ target: { value: refreshedRows } });
-      } else if (newId != null && String(row?.id ?? "") !== String(newId)) {
+      if (newId != null && String(row?.id ?? "") !== String(newId)) {
         const rows = formValues.preArrivalAdditionalTimeObjects || [];
         const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
         handleChange("preArrivalAdditionalTimeObjects")({ target: { value: next } });
       }
+      await fetchPreArrivalDetail();
     } catch (error) {
       notify(
         error?.response?.data?.message || "Failed to save time object.",

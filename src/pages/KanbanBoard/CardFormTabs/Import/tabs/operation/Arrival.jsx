@@ -23,7 +23,6 @@ import {
   OperationFormCard,
   OperationSaveSection,
   persistAdditionalTimeObjects,
-  refreshAdditionalTimeObjectsByCall,
   useApplyStageTimeObjectValues,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
@@ -212,7 +211,6 @@ function Arrival({
   const saveArrivalDetailAction = useArrivalReducer((s) => s.saveArrivalDetail);
   const sendArrivalReportAction = useArrivalReducer((s) => s.sendArrivalReport);
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
-  const getTimeObjectsByCallAction = useArrivalReducer((s) => s.getTimeObjectsByCall);
   const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const isSavingArrival = useArrivalReducer((s) => s.isSavingArrival);
   const isSendingArrivalReport = useArrivalReducer((s) => s.isSendingArrivalReport);
@@ -591,26 +589,19 @@ function Arrival({
         stageId,
         saveCallTimeObject: saveCallTimeObjectAction,
       });
-      const refreshedRows = await refreshAdditionalTimeObjectsByCall({
-        callId: resolvedCallId,
-        stageId,
-        portId: resolveFormId(portId, formValues?.port_id, formValues?.portId),
-        callTypeId: resolveFormId(
-          callTypeId,
-          formValues?.call_type_id,
-          formValues?.typeOfCall,
-          formValues?.callTypeId
-        ),
-        getTimeObjectsByCall: getTimeObjectsByCallAction,
-        currentRows: formValues.arrivalAdditionalTimeObjects || [],
-        committedIndex: index,
-      });
-      if (refreshedRows) {
-        handleChange("arrivalAdditionalTimeObjects")({ target: { value: refreshedRows } });
-      } else if (newId != null && String(row?.id ?? "") !== String(newId)) {
+      if (newId != null && String(row?.id ?? "") !== String(newId)) {
         const rows = formValues.arrivalAdditionalTimeObjects || [];
         const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
         handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } });
+      }
+      const detail = await fetchArrivalDetail({ callId: resolvedCallId });
+      if (detail) {
+        applyArrivalGetDetailToForm({
+          responseBody: detail,
+          arrivalEventFields: arrivalTimeObjectFields,
+          postArrivalEventFields: [],
+          handleChange,
+        });
       }
     } catch (error) {
       notify(

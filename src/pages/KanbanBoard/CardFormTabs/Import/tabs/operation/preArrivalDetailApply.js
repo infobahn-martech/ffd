@@ -1,6 +1,5 @@
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "./preArrivalDocumentHandling";
 import {
-  getEventFieldKeyPrefix,
   mapApiSaberStatusToFormValue,
   mapApiWeatherForecastToFormValue,
   PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
@@ -729,7 +728,21 @@ export function applyPreArrivalGetDetailToForm({
 
     const toId = to?.time_object_id ?? to?.timeObjectId;
     const toName = to?.time_object_name ?? to?.time_object ?? to?.event_name ?? "";
-    const isAdditional = Boolean(to?.is_additional ?? to?.isAdditional) || toId == null;
+    const toFieldKey = String(to?.field_key ?? "").trim().toLowerCase();
+
+    const matched = fields.find((field) => {
+      const fid = field?.time_object_id ?? field?.event_type_id ?? field?.id;
+      if (toId != null && fid != null && Number(fid) === Number(toId)) return true;
+      const fKey = String(field?.field_key ?? "").trim().toLowerCase();
+      if (fKey && toFieldKey && fKey === toFieldKey) return true;
+      return (
+        String(field?.event_name || "").trim().toLowerCase() === String(toName).trim().toLowerCase()
+      );
+    });
+
+    // Anything that doesn't map to a known stage field (or is explicitly flagged)
+    // is an additional/custom time object.
+    const isAdditional = Boolean(to?.is_additional ?? to?.isAdditional) || !matched;
 
     if (isAdditional) {
       const label = String(toName).trim();
@@ -744,20 +757,8 @@ export function applyPreArrivalGetDetailToForm({
       continue;
     }
 
-    let keyPrefix = "";
-    const matched = fields.find((field) => {
-      const fid = field?.time_object_id ?? field?.event_type_id ?? field?.id;
-      if (toId != null && fid != null && Number(fid) === Number(toId)) return true;
-      return (
-        String(field?.event_name || "").trim().toLowerCase() === String(toName).trim().toLowerCase()
-      );
-    });
-    if (matched?.keyPrefix) keyPrefix = matched.keyPrefix;
-    else if (toName) keyPrefix = getEventFieldKeyPrefix(toName);
-    if (!keyPrefix) continue;
-
-    handleChange(`${keyPrefix}Date`)({ target: { value: date } });
-    handleChange(`${keyPrefix}Time`)({ target: { value: time } });
+    handleChange(`${matched.keyPrefix}Date`)({ target: { value: date } });
+    handleChange(`${matched.keyPrefix}Time`)({ target: { value: time } });
     appliedAnyTime = true;
   }
 

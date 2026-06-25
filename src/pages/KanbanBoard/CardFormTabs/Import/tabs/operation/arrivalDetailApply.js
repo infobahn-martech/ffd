@@ -145,24 +145,7 @@ export function applyArrivalGetDetailToForm({
     const toId = to?.time_object_id ?? to?.timeObjectId;
     const toName = to?.time_object_name ?? to?.time_object ?? to?.event_name ?? "";
     const fieldKey = String(to?.field_key ?? "").trim();
-    const isAdditional = Boolean(to?.is_additional ?? to?.isAdditional) || toId == null;
 
-    if (isAdditional) {
-      const label = String(toName).trim();
-      if (label) {
-        additionalTimeObjects.push({
-          label,
-          date,
-          time,
-          ...(toId != null ? { id: toId } : {}),
-        });
-      }
-      continue;
-    }
-
-    if (toId == null && !fieldKey && !toName) continue;
-
-    let keyPrefix = "";
     const matched = allFields.find((field) => {
       const fid = field?.time_object_id ?? field?.event_type_id ?? field?.id;
       if (toId != null && fid != null && Number(fid) === Number(toId)) return true;
@@ -181,12 +164,26 @@ export function applyArrivalGetDetailToForm({
         String(toName).trim().toLowerCase()
       );
     });
-    if (matched?.keyPrefix) keyPrefix = matched.keyPrefix;
-    else if (toName) keyPrefix = getEventFieldKeyPrefix(toName);
-    if (!keyPrefix) continue;
 
-    handleChange(`${keyPrefix}Date`)({ target: { value: date } });
-    handleChange(`${keyPrefix}Time`)({ target: { value: time } });
+    // Anything that doesn't map to a known stage field (or is explicitly flagged)
+    // is an additional/custom time object.
+    const isAdditional = Boolean(to?.is_additional ?? to?.isAdditional) || !matched;
+
+    if (isAdditional) {
+      const label = String(toName).trim();
+      if (label) {
+        additionalTimeObjects.push({
+          label,
+          date,
+          time,
+          ...(toId != null ? { id: toId } : {}),
+        });
+      }
+      continue;
+    }
+
+    handleChange(`${matched.keyPrefix}Date`)({ target: { value: date } });
+    handleChange(`${matched.keyPrefix}Time`)({ target: { value: time } });
   }
 
   if (additionalTimeObjects.length) {
