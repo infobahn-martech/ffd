@@ -38,6 +38,7 @@ import {
   OperationSaveSection,
   persistAdditionalTimeObjects,
   refreshAdditionalTimeObjectsByCall,
+  useApplyStageTimeObjectValues,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
@@ -420,6 +421,8 @@ function PreArrival({
         .join("|"),
     [eventFields]
   );
+
+  useApplyStageTimeObjectValues(eventFields, formValues, handleChange);
 
   const resolveFormId = (...values) => {
     for (const value of values) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -102,6 +102,52 @@ DynamicDateTimeFields.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
+};
+
+// Build { fieldKey: value } updates from each event field's saved `time_object_value`
+// (returned by time_object/get_stage_time_objects). Skips null/empty values so it
+// never clears fields that the stage response does not provide.
+export const buildStageTimeObjectFormUpdates = (eventFields = [], formValues = {}) => {
+  const updates = {};
+  (Array.isArray(eventFields) ? eventFields : []).forEach((field) => {
+    const keyPrefix = field?.keyPrefix;
+    if (!keyPrefix) return;
+    const rawValue = field?.time_object_value ?? field?.timeObjectValue;
+    if (rawValue == null || String(rawValue).trim() === "") return;
+    const { date, time } = parseApiDateTimeParts(rawValue);
+    if (!date && !time) return;
+    const dateKey = `${keyPrefix}Date`;
+    const timeKey = `${keyPrefix}Time`;
+    if (date && String(formValues?.[dateKey] || "") !== date) updates[dateKey] = date;
+    if (time && String(formValues?.[timeKey] || "") !== time) updates[timeKey] = time;
+  });
+  return updates;
+};
+
+// Bind the saved `time_object_value` of each event field into the form. Re-applies
+// only when the set of field values actually changes (not on every formValues edit),
+// so it won't fight with user edits.
+export const useApplyStageTimeObjectValues = (eventFields, formValues, handleChange) => {
+  const formValuesRef = useRef(formValues);
+  useEffect(() => {
+    formValuesRef.current = formValues;
+  }, [formValues]);
+
+  const valueKey = useMemo(
+    () =>
+      (Array.isArray(eventFields) ? eventFields : [])
+        .map((field) => `${field?.keyPrefix || ""}=${field?.time_object_value ?? ""}`)
+        .join("|"),
+    [eventFields]
+  );
+
+  useEffect(() => {
+    const updates = buildStageTimeObjectFormUpdates(eventFields, formValuesRef.current);
+    Object.entries(updates).forEach(([key, value]) => {
+      handleChange(key)({ target: { value } });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valueKey, handleChange]);
 };
 
 export const EMPTY_ADDITIONAL_TIME_OBJECT = {

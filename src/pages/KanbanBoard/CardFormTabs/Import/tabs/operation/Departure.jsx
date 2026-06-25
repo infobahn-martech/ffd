@@ -22,6 +22,7 @@ import {
   OperationSaveSection,
   persistAdditionalTimeObjects,
   refreshAdditionalTimeObjectsByCall,
+  useApplyStageTimeObjectValues,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 
@@ -51,6 +52,8 @@ function Departure({
   const resolvedCallId = String(
     callId || formValues?.call_id || formValues?.callId || ""
   ).trim();
+
+  useApplyStageTimeObjectValues(eventFields, formValues, handleChange);
 
   const handleDepartureDocumentsAdd = (files) => {
     if (files.length > 0) {

@@ -24,6 +24,7 @@ import {
   OperationSaveSection,
   persistAdditionalTimeObjects,
   refreshAdditionalTimeObjectsByCall,
+  useApplyStageTimeObjectValues,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
@@ -225,6 +226,8 @@ function Arrival({
     () => splitArrivalTimeObjectFields(arrivalTimeObjectFields),
     [arrivalTimeObjectFields]
   );
+
+  useApplyStageTimeObjectValues(arrivalTimeObjectFields, formValues, handleChange);
 
   const customInspectionStatusOptions = [
     { value: "Passed", label: "Passed" },
