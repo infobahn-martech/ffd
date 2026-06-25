@@ -691,7 +691,7 @@ function TaxiBoatCardView({ card }) {
                 onCapture={(key) => captureNow(setDropTs, key)}
                 onComplete={() => setJobCompleted(true)}
                 jobCompleted={jobCompleted}
-                canFinish={canComplete}
+                canFinish={allDone(dropTs, tsKeys)}
               />
             ) : (
               <TimestampStepper
@@ -700,7 +700,7 @@ function TaxiBoatCardView({ card }) {
                 onCapture={(key) => captureNow(setPickupTs, key)}
                 onComplete={() => setJobCompleted(true)}
                 jobCompleted={jobCompleted}
-                canFinish={canComplete}
+                canFinish={allDone(pickupTs, tsKeys)}
               />
             )}
           </div>
