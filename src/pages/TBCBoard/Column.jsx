@@ -3,7 +3,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
-import CardItem from "../KanbanBoard/components/cards/CardItem";
+import TaxiBoatSmallCard from "../KanbanBoard/components/cards/components/TaxiBoat/TaxiBoatSmallCard";
 import "../../design/css/common/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
 import "../../design/css/common/DAColumn.css";
@@ -96,13 +96,11 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
             {...provided.droppableProps}
           >
             {cards.map((card, index) => (
-              <CardItem
+              <TaxiBoatSmallCard
                 key={card.id}
                 card={card}
                 index={index}
                 setSelectedCard={setSelectedCard}
-                isShrunk={isShrunk}
-                hideExtraDetails={true}
               />
             ))}
             {provided.placeholder}
@@ -276,13 +274,11 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
             {...provided.droppableProps}
           >
             {cards.map((card, index) => (
-              <CardItem
+              <TaxiBoatSmallCard
                 key={card.id}
                 card={card}
                 index={index}
                 setSelectedCard={setSelectedCard}
-                isShrunk={isShrunk}
-                hideExtraDetails={true}
               />
             ))}
             {provided.placeholder}

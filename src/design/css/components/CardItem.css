@@ -155,16 +155,6 @@
   padding-right: 24px;
 }
 
-/* Taxi-boat vessel name subtitle */
-.card-tb-vessel {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 500;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* Avatar: stick to the right edge */
 .card-avatar {
