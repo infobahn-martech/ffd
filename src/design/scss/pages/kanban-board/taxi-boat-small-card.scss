@@ -12,23 +12,21 @@
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* Row 1: blue line stretches left, avatar square sits right */
-    .tb-sc-header {
-        display: flex;
-        align-items: center;
-        padding: 8px 8px 6px 10px;
-        gap: 8px;
-    }
-
-    .tb-sc-line {
-        flex: 1;
+    /* Full-width blue accent line at very top */
+    .tb-sc-accent-line {
         height: 3px;
         background: #2666be;
-        border-radius: 2px;
+        width: 100%;
+    }
+
+    /* Avatar row — right-aligned, sits directly below the accent line */
+    .tb-sc-avatar-row {
+        display: flex;
+        justify-content: flex-end;
+        padding: 6px 8px 0;
     }
 
     .tb-sc-avatar {
-        flex-shrink: 0;
         width: 30px;
         height: 30px;
         border-radius: 5px;
@@ -41,9 +39,9 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Rows 2-4: text content */
+    /* Text content block */
     .tb-sc-content {
-        padding: 0 10px 8px 10px;
+        padding: 4px 10px 8px 10px;
     }
 
     .tb-sc-title-row {
@@ -93,7 +91,7 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Row 5: footer — time left | circular progress */
+    /* Footer: time (left) | circular progress (right) */
     .tb-sc-footer {
         display: flex;
         align-items: center;
