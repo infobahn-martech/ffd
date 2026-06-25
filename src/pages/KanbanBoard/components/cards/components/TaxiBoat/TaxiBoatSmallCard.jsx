@@ -3,20 +3,6 @@ import { KANBAN_DND_DISABLED } from "../../../../../../shared/constants/kanbanCo
 import PropTypes from "prop-types";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-small-card.scss";
 
-const SERVICE_BADGE_COLOR = {
-  "Crew Change":                        { bg: "#dbeafe", color: "#1d4ed8" },
-  "Technician Visit":                   { bg: "#e0f2fe", color: "#0369a1" },
-  "Port Captain & Port Engineer Visit": { bg: "#ede9fe", color: "#6d28d9" },
-  "Aramco Personnel":                   { bg: "#fef3c7", color: "#92400e" },
-  "Immigration Clearance":              { bg: "#ede9fe", color: "#6d28d9" },
-  "Material Delivery":                  { bg: "#dcfce7", color: "#15803d" },
-  "Provision Delivery":                 { bg: "#dcfce7", color: "#15803d" },
-  "Garbage Collection":                 { bg: "#dcfce7", color: "#15803d" },
-  "Custom Inspection":                  { bg: "#fef3c7", color: "#b45309" },
-  "Tanker Clearance":                   { bg: "#ccfbf1", color: "#0f766e" },
-};
-
-const DEFAULT_BADGE = { bg: "#f1f5f9", color: "#475569" };
 
 function avatarColor(name = "") {
   const palette = ["#16a34a", "#0284c7", "#7c3aed", "#b45309", "#0f766e", "#2666be", "#dc2626"];
@@ -27,7 +13,6 @@ function avatarColor(name = "") {
 
 export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
   const serviceType = card?.typeOfService ?? "";
-  const badge       = SERVICE_BADGE_COLOR[serviceType] ?? DEFAULT_BADGE;
   const vesselName  = card?.vesselName || card?.title || "—";
   const custName    = card?.name || "";
   const timeLeft    = card?.timeLeft || "";
@@ -62,12 +47,7 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
             <div className="tb-sc-title-row">
               <span className="tb-sc-vessel">{vesselName}</span>
               {svcInitial && (
-                <span
-                  className="tb-sc-svc-badge"
-                  style={{ color: badge.color, background: badge.bg }}
-                >
-                  {svcInitial}
-                </span>
+                <span className="tb-sc-svc-badge">{svcInitial}</span>
               )}
             </div>
             {custName    && <div className="tb-sc-customer">{custName}</div>}
@@ -83,7 +63,7 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
                 <circle
                   className="tb-sc-svg-fill"
                   cx="13" cy="13" r="11"
-                  style={{ strokeDashoffset: `calc(69 - (69 * ${progress}) / 100)` }}
+                  style={{ strokeDashoffset: `calc(72 - (72 * ${progress}) / 100)` }}
                 />
               </svg>
               <span className="tb-sc-progress-text">{progress}%</span>
