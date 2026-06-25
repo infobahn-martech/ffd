@@ -704,6 +704,25 @@ function TaxiBoatCardView({ card }) {
               />
             )}
           </div>
+          <div className="tb-batch-actions">
+            <button className="tb-batch-print-btn">
+              <FiPrinter size={14} />
+              Print Launch Slip
+            </button>
+            <div>
+              <input
+                type="file"
+                id="tb-launch-slip-file"
+                className="tb-launch-slip-input"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
+              />
+              <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
+                <FiUpload size={14} />
+                {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
+              </label>
+            </div>
+          </div>
         </div>
       )}
 
