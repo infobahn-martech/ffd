@@ -4,25 +4,52 @@
 
 const workflowsConfig = [
     {
-        id: "taxi-boat-captain-workflow",
-        title: "Taxi Boat Captain Board",
+        id: "taxi-board-workflow",
+        title: "Taxi Board Workflow",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // ToDo - Pink
-            "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Done - Blue
+            "col-1": "#2666be",
+            "col-2": "#2666be",
+            "col-3": "#f38a30",
+            "col-4": "#f38a30",
+            "col-5": "#f38a30",
+            "col-6": "#42af49",
         },
         columnTitles: [
-            "Backlog",
-            "ToDo",
-            "In Progress",
-            "Done",
+            "Appointment Received",
+            "Enroute",
+            "Vessel Arrived",
+            "Vessel Cleared",
+            "Vessel Sailed",
+            "Ready to Finalize",
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 0, // Backlog
-            "col-2": 7, // ToDo
-            "col-3": 3, // In Progress
-            "col-4": 1, // Done
+            "col-1": 3,
+            "col-2": 2,
+            "col-3": 1,
+            "col-4": 0,
+            "col-5": 0,
+            "col-6": 0,
+        },
+    },
+    {
+        id: "taxi-boat-captain-workflow",
+        title: "Taxi Boat Captain Board",
+        columnColors: {
+            "col-1": "rgb(226 16 108)", // To Do - Pink
+            "col-2": "rgb(121 21 188)", // In Progress - Purple
+            "col-3": "rgb(62 94 189)",  // Completed - Blue
+        },
+        columnTitles: [
+            "To Do",
+            "In Progress",
+            "Completed",
+        ],
+        nestedColumns: {},
+        cardCounts: {
+            "col-1": 7, // To Do
+            "col-2": 3, // In Progress
+            "col-3": 1, // Completed
         },
     },
 ];
@@ -100,11 +127,40 @@ const generateCard = (workflowId, colId, cardId) => {
         "Yuki Tanaka", "Luis Fernandez", "Anna Kowalski", "Hassan Ibrahim",
     ];
 
+    const serviceTypes = [
+        "Crew Change",
+        "Technician Visit",
+        "Port Captain & Port Engineer Visit",
+        "Aramco Personnel",
+        "Immigration Clearance",
+        "Material Delivery",
+        "Provision Delivery",
+        "Garbage Collection",
+        "Custom Inspection",
+        "Tanker Clearance",
+    ];
+
+    const locations = ["Freighter Anchorage", "RT7", "Sea Island", "Juaymah"];
+
+    const operators = [
+        "Ali Hassan", "Faisal Al-Otaibi", "Khalid Mansour", "Tariq Nasser",
+        "Samir Al-Zahrani", "Rayan Bakr", "Yousef Qureshi", "Nabil Farooq",
+    ];
+
     // Footer status icons: random subset per card (1–5 icons, including link)
     const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
-    const footerIconCount = Math.floor(Math.random() * 5) + 1; // 1, 2, 3, 4, or 5
+    const footerIconCount = Math.floor(Math.random() * 5) + 1;
     const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
     const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
+
+    const selectedServiceType = serviceTypes[Math.floor(Math.random() * serviceTypes.length)];
+    const isImmigration = selectedServiceType === "Immigration Clearance";
+
+    const bookingDateObj = new Date();
+    bookingDateObj.setDate(bookingDateObj.getDate() - Math.floor(Math.random() * 30));
+    const bookingDate = bookingDateObj.toLocaleDateString("en-GB", {
+        day: "2-digit", month: "short", year: "numeric",
+    });
 
     const cardData = {
         id,
@@ -130,6 +186,11 @@ const generateCard = (workflowId, colId, cardId) => {
         footerShowIcons: footerShowIcons,
         typeOfCall: callTypes[Math.floor(Math.random() * callTypes.length)],
         vesselType: vesselTypes[Math.floor(Math.random() * vesselTypes.length)],
+        typeOfService: selectedServiceType,
+        location: locations[Math.floor(Math.random() * locations.length)],
+        requestedOperator: operators[Math.floor(Math.random() * operators.length)],
+        bookingDate,
+        batchCount: isImmigration ? (Math.random() > 0.5 ? 3 : 2) : 2,
         crew: (() => {
             const n = Math.floor(Math.random() * 7) + 6; // 6–12 crew per card
             const statuses = ["done", "pending"];
