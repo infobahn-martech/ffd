@@ -1,56 +1,63 @@
 .tb-sc {
-    position: relative;
     background: #ffffff;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    padding: 10px 10px 0 10px;
+    overflow: hidden;
     margin-bottom: 8px;
     cursor: pointer;
-    overflow: hidden;
     transition: box-shadow 0.15s ease;
 
     &:hover {
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.11);
     }
 
-    /* Company avatar — absolute top-right */
+    /* Full-width blue accent line at very top */
+    .tb-sc-accent-line {
+        height: 3px;
+        background: #2666be;
+        width: 100%;
+    }
+
+    /* Body: avatar (left) + details (right) */
+    .tb-sc-body {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 10px 8px 10px;
+    }
+
+    /* Company logo square */
     .tb-sc-avatar {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 30px;
-        height: 30px;
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
         border-radius: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 700;
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Thin accent line — leaves space for avatar on the right */
-    .tb-sc-accent-line {
-        height: 3px;
-        background: #2666be;
-        border-radius: 1px;
-        margin-right: 44px;  // avatar width (30) + gap (14)
-        margin-bottom: 8px;
+    /* Details column */
+    .tb-sc-details {
+        flex: 1;
+        min-width: 0;
     }
 
-    /* Vessel name + service initial badge on one row */
+    /* Vessel name + service initial badge */
     .tb-sc-title-row {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding-right: 44px;
+        gap: 5px;
         margin-bottom: 3px;
     }
 
     .tb-sc-vessel {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         color: #111827;
         font-family: "Open Sans", sans-serif;
@@ -61,10 +68,10 @@
 
     .tb-sc-svc-badge {
         flex-shrink: 0;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 700;
-        padding: 1px 6px;
-        border-radius: 4px;
+        padding: 1px 5px;
+        border-radius: 3px;
         font-family: "Open Sans", sans-serif;
     }
 
@@ -73,7 +80,7 @@
         font-size: 11px;
         color: #0d9488;
         font-weight: 600;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -85,19 +92,18 @@
         font-size: 11px;
         color: #6b7280;
         font-weight: 400;
-        margin-bottom: 8px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Footer row */
+    /* Footer: time + circular progress */
     .tb-sc-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 6px 0 8px;
+        padding: 6px 10px 8px;
         border-top: 1px solid #f3f4f6;
     }
 
@@ -108,7 +114,6 @@
         font-family: "Open Sans", sans-serif;
     }
 
-    /* Circular SVG progress */
     .tb-sc-progress-wrap {
         position: relative;
         width: 26px;

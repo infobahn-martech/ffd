@@ -18,7 +18,6 @@ const SERVICE_BADGE_COLOR = {
 
 const DEFAULT_BADGE = { bg: "#f1f5f9", color: "#475569" };
 
-// Consistent avatar color derived from company name (not service-themed)
 function avatarColor(name = "") {
   const palette = ["#16a34a", "#0284c7", "#7c3aed", "#b45309", "#0f766e", "#2666be", "#dc2626"];
   let hash = 0;
@@ -27,15 +26,15 @@ function avatarColor(name = "") {
 }
 
 export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
-  const serviceType  = card?.typeOfService ?? "";
-  const badge        = SERVICE_BADGE_COLOR[serviceType] ?? DEFAULT_BADGE;
-  const vesselName   = card?.vesselName || card?.title || "—";
-  const custName     = card?.name || "";
-  const timeLeft     = card?.timeLeft || "";
-  const progress     = card?.progress ?? 0;
-  const custInitial  = custName.charAt(0).toUpperCase();
-  const svcInitial   = serviceType.charAt(0).toUpperCase();
-  const avatarBg     = avatarColor(custName);
+  const serviceType = card?.typeOfService ?? "";
+  const badge       = SERVICE_BADGE_COLOR[serviceType] ?? DEFAULT_BADGE;
+  const vesselName  = card?.vesselName || card?.title || "—";
+  const custName    = card?.name || "";
+  const timeLeft    = card?.timeLeft || "";
+  const progress    = card?.progress ?? 0;
+  const custInitial = custName.charAt(0).toUpperCase();
+  const svcInitial  = serviceType.charAt(0).toUpperCase();
+  const avatarBg    = avatarColor(custName);
 
   return (
     <Draggable draggableId={card.id} index={index} isDragDisabled={KANBAN_DND_DISABLED}>
@@ -48,32 +47,31 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
           style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
-          {/* Company avatar — absolute top-right */}
-          <div className="tb-sc-avatar" style={{ background: avatarBg }}>
-            {custInitial}
-          </div>
-
-          {/* Thin accent line — stops before avatar */}
+          {/* Full-width blue accent line at top */}
           <div className="tb-sc-accent-line" />
 
-          {/* Vessel name + service initial badge */}
-          <div className="tb-sc-title-row">
-            <span className="tb-sc-vessel">{vesselName}</span>
-            {svcInitial && (
-              <span
-                className="tb-sc-svc-badge"
-                style={{ color: badge.color, background: badge.bg }}
-              >
-                {svcInitial}
-              </span>
-            )}
+          {/* Body: logo on left, details on right */}
+          <div className="tb-sc-body">
+            <div className="tb-sc-avatar" style={{ background: avatarBg }}>
+              {custInitial}
+            </div>
+
+            <div className="tb-sc-details">
+              <div className="tb-sc-title-row">
+                <span className="tb-sc-vessel">{vesselName}</span>
+                {svcInitial && (
+                  <span
+                    className="tb-sc-svc-badge"
+                    style={{ color: badge.color, background: badge.bg }}
+                  >
+                    {svcInitial}
+                  </span>
+                )}
+              </div>
+              {custName    && <div className="tb-sc-customer">{custName}</div>}
+              {serviceType && <div className="tb-sc-service">{serviceType}</div>}
+            </div>
           </div>
-
-          {/* Customer name — teal */}
-          {custName && <div className="tb-sc-customer">{custName}</div>}
-
-          {/* Service type — gray */}
-          {serviceType && <div className="tb-sc-service">{serviceType}</div>}
 
           {/* Footer: time + circular progress */}
           <div className="tb-sc-footer">
@@ -83,9 +81,7 @@ export default function TaxiBoatSmallCard({ card, index, setSelectedCard }) {
                 <circle className="tb-sc-svg-bg" cx="13" cy="13" r="11" />
                 <circle
                   className="tb-sc-svg-fill"
-                  cx="13"
-                  cy="13"
-                  r="11"
+                  cx="13" cy="13" r="11"
                   style={{ strokeDashoffset: `calc(69 - (69 * ${progress}) / 100)` }}
                 />
               </svg>
