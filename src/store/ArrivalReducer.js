@@ -21,6 +21,7 @@ const useArrivalReducer = create((set) => ({
   isSendingArrivalReport: false,
   isSavingCallTimeObject: false,
   isDeletingCallTimeObject: false,
+  isLoadingCallTimeObjects: false,
   arrivalError: '',
   fetchArrivalDetail: async ({ callId, cb } = {}) => {
     const trimmedCallId = String(callId ?? '').trim();
@@ -92,6 +93,26 @@ const useArrivalReducer = create((set) => ({
       return data;
     } catch (err) {
       set({ isSavingCallTimeObject: false });
+      throw err;
+    }
+  },
+
+  // Reload all call time objects after a single-row save so the additional
+  // time-object list can be refreshed with backend-assigned ids/values.
+  getTimeObjectsByCall: async ({ callId, stageId, cb } = {}) => {
+    const trimmedCallId = String(callId ?? '').trim();
+    if (!trimmedCallId) return null;
+    try {
+      set({ isLoadingCallTimeObjects: true });
+      const { data } = await arrivalService.getTimeObjectsByCall({
+        callId: trimmedCallId,
+        stageId,
+      });
+      set({ isLoadingCallTimeObjects: false });
+      cb && cb(data);
+      return data;
+    } catch (err) {
+      set({ isLoadingCallTimeObjects: false });
       throw err;
     }
   },

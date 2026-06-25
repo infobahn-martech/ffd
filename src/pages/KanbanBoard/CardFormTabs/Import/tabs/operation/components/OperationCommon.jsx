@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { ensureHtmlForQuill } from "../operationReportMessageHtml";
+import { parseApiDateTimeParts } from "../preArrivalDetailApply";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import { isEventFieldRequired } from "../operationConstants";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
@@ -240,6 +241,90 @@ export const commitAdditionalTimeObject = async ({
   return extractCallTimeObjectId(data);
 };
 
+/** Pull the time-object list out of a get_time_objects_by_call response. */
+export const extractCallTimeObjects = (response) => {
+  const data = response?.data ?? response;
+  if (Array.isArray(data)) return data;
+  const root = data ?? {};
+  const candidate =
+    root.time_objects ?? root.timeObjects ?? root.data ?? root.results ?? [];
+  return Array.isArray(candidate) ? candidate : [];
+};
+
+/**
+ * Map the `time_object/get_time_objects_by_call` payload into the additional
+ * time-object rows the UI renders. Only "additional" entries are kept; when a
+ * stage id is supplied, rows tagged with a different stage are filtered out so
+ * each stage only shows its own additional time objects.
+ */
+export const mapCallTimeObjectsToAdditionalRows = (timeObjects = [], { stageId } = {}) => {
+  const list = Array.isArray(timeObjects) ? timeObjects : [];
+  const normalizedStageId =
+    stageId == null || String(stageId).trim() === "" ? null : String(stageId).trim();
+
+  const rows = [];
+  for (const to of list) {
+    if (!to || typeof to !== "object") continue;
+    if (!(to.is_additional ?? to.isAdditional)) continue;
+
+    if (normalizedStageId != null) {
+      const rowStageId = to.stage_id ?? to.stageId ?? to.call_stage_id ?? null;
+      if (rowStageId != null && String(rowStageId).trim() !== normalizedStageId) {
+        continue;
+      }
+    }
+
+    const label = String(
+      to.time_object_name ?? to.time_object ?? to.event_name ?? ""
+    ).trim();
+    if (!label) continue;
+
+    const { date, time } = parseApiDateTimeParts(to.time_object_value ?? to.value);
+    const id = to.time_object_id ?? to.timeObjectId ?? to.id ?? null;
+
+    rows.push({
+      label,
+      date,
+      time,
+      ...(id != null ? { id } : {}),
+    });
+  }
+
+  return rows;
+};
+
+/**
+ * Reload the call's time objects (after a single-row save) and merge the
+ * backend rows with any local drafts that haven't been saved yet so unsaved
+ * rows are preserved. `committedIndex` is the local row that was just saved and
+ * is now represented by a backend row, so it is dropped from the draft set to
+ * avoid duplicates.
+ */
+export const refreshAdditionalTimeObjectsByCall = async ({
+  callId,
+  stageId,
+  getTimeObjectsByCall,
+  currentRows = [],
+  committedIndex = -1,
+}) => {
+  if (typeof getTimeObjectsByCall !== "function" || !callId) return null;
+
+  const data = await getTimeObjectsByCall({ callId, stageId });
+  const serverRows = mapCallTimeObjectsToAdditionalRows(
+    extractCallTimeObjects(data),
+    { stageId }
+  );
+
+  const current = Array.isArray(currentRows) ? currentRows : [];
+  const drafts = current.filter((row, index) => {
+    if (index === committedIndex) return false;
+    const hasId = row?.id != null && String(row.id).trim() !== "";
+    return !hasId;
+  });
+
+  return [...serverRows, ...drafts];
+};
+
 export const validateAdditionalTimeObjects = (items = []) => {
   const rows = Array.isArray(items) ? items : [];
 
@@ -281,7 +366,9 @@ const additionalTimeObjectSignature = (row) =>
   ].join("|");
 
 const isAdditionalTimeObjectCommittable = (row) =>
-  Boolean(String(row?.label || "").trim());
+  Boolean(String(row?.label || "").trim()) &&
+  Boolean(String(row?.date || "").trim()) &&
+  Boolean(String(row?.time || "").trim());
 
 export const AdditionalTimeObjectsFields = ({
   value = [],

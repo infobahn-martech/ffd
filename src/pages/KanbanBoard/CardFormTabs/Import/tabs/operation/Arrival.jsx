@@ -23,6 +23,7 @@ import {
   OperationFormCard,
   OperationSaveSection,
   persistAdditionalTimeObjects,
+  refreshAdditionalTimeObjectsByCall,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
@@ -210,6 +211,7 @@ function Arrival({
   const saveArrivalDetailAction = useArrivalReducer((s) => s.saveArrivalDetail);
   const sendArrivalReportAction = useArrivalReducer((s) => s.sendArrivalReport);
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
+  const getTimeObjectsByCallAction = useArrivalReducer((s) => s.getTimeObjectsByCall);
   const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const isSavingArrival = useArrivalReducer((s) => s.isSavingArrival);
   const isSendingArrivalReport = useArrivalReducer((s) => s.isSendingArrivalReport);
@@ -586,7 +588,16 @@ function Arrival({
         stageId,
         saveCallTimeObject: saveCallTimeObjectAction,
       });
-      if (newId != null && String(row?.id ?? "") !== String(newId)) {
+      const refreshedRows = await refreshAdditionalTimeObjectsByCall({
+        callId: resolvedCallId,
+        stageId,
+        getTimeObjectsByCall: getTimeObjectsByCallAction,
+        currentRows: formValues.arrivalAdditionalTimeObjects || [],
+        committedIndex: index,
+      });
+      if (refreshedRows) {
+        handleChange("arrivalAdditionalTimeObjects")({ target: { value: refreshedRows } });
+      } else if (newId != null && String(row?.id ?? "") !== String(newId)) {
         const rows = formValues.arrivalAdditionalTimeObjects || [];
         const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
         handleChange("arrivalAdditionalTimeObjects")({ target: { value: next } });

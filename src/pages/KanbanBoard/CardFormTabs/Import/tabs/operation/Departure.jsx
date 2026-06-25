@@ -21,6 +21,7 @@ import {
   OperationFormCard,
   OperationSaveSection,
   persistAdditionalTimeObjects,
+  refreshAdditionalTimeObjectsByCall,
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 
@@ -36,6 +37,7 @@ function Departure({
   stageId = OPERATION_STAGE_IDS.DEPARTURE,
 }) {
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
+  const getTimeObjectsByCallAction = useArrivalReducer((s) => s.getTimeObjectsByCall);
   const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
@@ -157,7 +159,16 @@ function Departure({
         stageId,
         saveCallTimeObject: saveCallTimeObjectAction,
       });
-      if (newId != null && String(row?.id ?? "") !== String(newId)) {
+      const refreshedRows = await refreshAdditionalTimeObjectsByCall({
+        callId: resolvedCallId,
+        stageId,
+        getTimeObjectsByCall: getTimeObjectsByCallAction,
+        currentRows: formValues.departureAdditionalTimeObjects || [],
+        committedIndex: index,
+      });
+      if (refreshedRows) {
+        handleChange("departureAdditionalTimeObjects")({ target: { value: refreshedRows } });
+      } else if (newId != null && String(row?.id ?? "") !== String(newId)) {
         const rows = formValues.departureAdditionalTimeObjects || [];
         const next = rows.map((r, i) => (i === index ? { ...r, id: newId } : r));
         handleChange("departureAdditionalTimeObjects")({ target: { value: next } });
