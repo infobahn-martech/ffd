@@ -23,25 +23,25 @@
     .tb-sc-avatar-row {
         display: flex;
         justify-content: flex-end;
-        padding: 6px 8px 0;
+        padding: 5px 8px 0;
     }
 
     .tb-sc-avatar {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
         border-radius: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         font-family: "Open Sans", sans-serif;
     }
 
     /* Text content block */
     .tb-sc-content {
-        padding: 4px 10px 8px 10px;
+        padding: 3px 10px 6px 10px;
     }
 
     .tb-sc-title-row {
@@ -52,29 +52,31 @@
     }
 
     .tb-sc-vessel {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 700;
         color: #111827;
         font-family: "Open Sans", sans-serif;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        letter-spacing: 0.01em;
     }
 
     .tb-sc-svc-badge {
         flex-shrink: 0;
         font-size: 9px;
         font-weight: 700;
-        padding: 1px 5px;
-        border-radius: 3px;
+        padding: 2px 5px;
+        border-radius: 4px;
         font-family: "Open Sans", sans-serif;
+        line-height: 1.4;
     }
 
     .tb-sc-customer {
         font-size: 11px;
         color: #0d9488;
         font-weight: 600;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -96,8 +98,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 6px 10px 8px;
+        padding: 5px 10px 7px;
         border-top: 1px solid #e5e7eb;
+        margin-top: 6px;
     }
 
     .tb-sc-time {
