@@ -73,11 +73,11 @@
         text-overflow: ellipsis;
     }
 
-    /* Service badge — matches .card-api-user-avatar (circle, light blue) */
+    /* Service badge — circle, same size as company avatar (28px) */
     .tb-sc-svc-badge {
         flex-shrink: 0;
-        width: 22px;
-        height: 22px;
+        width: 25px;
+        height: 25px;
         border-radius: 50%;
         display: flex;
         align-items: center;
