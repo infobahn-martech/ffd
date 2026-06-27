@@ -479,7 +479,11 @@
     border-top-right-radius: 18px;
     border-bottom-right-radius: 40px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    z-index: 10; // keep above content
+    // Must sit above Kanban card/column content (card type badge uses z-index: 10)
+    // so the floating settings menu/submenus aren't covered by board elements.
+    // Kept below slide-in panels/overlays (998/999) and portaled modals.
+    z-index: 900;
+    overflow: visible; // never clip the floating submenus
     margin-top: 87px;
 }
 
