@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
@@ -9,11 +9,10 @@ import useCustomerPricingReducer from "../../store/CustomerPricingReducer";
 const CustomerPricing = () => {
     const [params, setParams] = useState({
         page: 1,
-        total: 0,
         limit: 10,
         searchTerm: "",
         sortOrder: -1,
-        sortBy: "customerName", // 👈 default sort based on visible field
+        sortBy: "item_code",
     });
 
     const [showCustomerPricingModal, setShowCustomerPricingModal] = useState(false);
@@ -26,22 +25,28 @@ const CustomerPricing = () => {
         isLoading,
     } = useCustomerPricingReducer((state) => state);
 
-    useEffect(() => {
+    const fetchList = () => {
         const apiParams = {
-            page: params.page,
-            limit: params.limit,
             ...(params.searchTerm && { searchTerm: params.searchTerm }),
             ...(params.sortBy && { sortBy: params.sortBy }),
             ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
         };
         getCustomerPriceList({ params: apiParams });
-    }, [params]);
+    };
+
+    useEffect(() => {
+        fetchList();
+    }, [params.searchTerm, params.sortBy, params.sortOrder]);
+
+    const pagedData = useMemo(() => {
+        const start = (params.page - 1) * params.limit;
+        return (customerPriceList ?? []).slice(start, start + params.limit);
+    }, [customerPriceList, params.page, params.limit]);
 
     const cols = [
         {
             name: "Item Code",
             selector: "item_code",
-            tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
@@ -50,7 +55,6 @@ const CustomerPricing = () => {
         {
             name: "Item Name",
             selector: "item_name",
-            tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
@@ -59,7 +63,6 @@ const CustomerPricing = () => {
         {
             name: "Billing Entity",
             selector: "billingEntity",
-            tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
@@ -68,7 +71,6 @@ const CustomerPricing = () => {
         {
             name: "Price",
             selector: "price",
-            tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
@@ -77,7 +79,6 @@ const CustomerPricing = () => {
         // {
         //     name: "Actions",
         //     selector: "linksInfo",
-        //     tableClasses: "table-striped",
         //     contentClass: "table-content",
         //     thclass: "tb-head",
         //     onEditClick: (row) => {
@@ -101,7 +102,7 @@ const CustomerPricing = () => {
                             isAddEnabled={false}
                             addModalLabel="Add Customer Pricing"
                             setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
+                                setParams({ ...params, searchTerm: e, page: 1 })
                             }
                             onAddModalClick={() => {
                                 setShowCustomerPricingModal(true);
@@ -112,21 +113,23 @@ const CustomerPricing = () => {
                     </div>
 
                     <CustomTable
-                        pagination={{ currentPage: params?.page, limit: params?.limit }}
+                        pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
                         count={totalCount}
                         columns={cols}
                         isLoading={isLoading}
-                        data={customerPriceList ?? []}
+                        data={pagedData}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
-                        setLimit={(newlimit) => setParams({ ...params, limit: newlimit })}
+                        setLimit={(newlimit) =>
+                            setParams({ ...params, limit: newlimit, page: 1 })
+                        }
                         onSorting={(sortBy) => {
                             setParams({
                                 ...params,
                                 sortBy,
-                                sortOrder: params?.sortOrder === -1 ? 1 : -1,
+                                sortOrder: params.sortOrder === -1 ? 1 : -1,
                                 page: 1,
                             });
                         }}
@@ -136,16 +139,7 @@ const CustomerPricing = () => {
                         <AddEditCustomerPricing
                             showModal={showCustomerPricingModal}
                             closeModal={() => setShowCustomerPricingModal(false)}
-                            onSuccess={() => {
-                                const apiParams = {
-                                    page: params.page,
-                                    limit: params.limit,
-                                    ...(params.searchTerm && { searchTerm: params.searchTerm }),
-                                    ...(params.sortBy && { sortBy: params.sortBy }),
-                                    ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
-                                };
-                                getCustomerPriceList({ params: apiParams });
-                            }}
+                            onSuccess={() => fetchList()}
                         />
                     )}
 
