@@ -1062,50 +1062,31 @@ function TaxiBoatCardView({ card }) {
               </>
             )}
           </div>
-          <div className="tb-batch-actions">
-            <button className="tb-batch-print-btn">
-              <FiPrinter size={14} />
-              Print Launch Slip
-            </button>
-            <div>
-              <input
-                type="file"
-                id="tb-launch-slip-file"
-                className="tb-launch-slip-input"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
-              />
-              <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
-                <FiUpload size={14} />
-                {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
-              </label>
+          {jobCompleted && (
+            <div className="tb-batch-actions">
+              <button className="tb-batch-print-btn">
+                <FiPrinter size={14} />
+                Print Launch Slip
+              </button>
+              <div>
+                <input
+                  type="file"
+                  id="tb-launch-slip-file"
+                  className="tb-launch-slip-input"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
+                />
+                <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
+                  <FiUpload size={14} />
+                  {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
+                </label>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
 
-      {(isImmigration ? canComplete : jobCompleted) && (
-        <div className="tb-launch-slip-section">
-          <h4 className="tb-launch-slip-title">Upload Launch Slip</h4>
-          <p className="tb-launch-slip-hint">Please upload the signed Launch Slip to finalize this job.</p>
-          <div className="tb-launch-slip-upload">
-            <input
-              type="file"
-              id="tb-launch-slip-input"
-              className="tb-launch-slip-input"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
-            />
-            <label htmlFor="tb-launch-slip-input" className="tb-launch-slip-btn">
-              {launchSlipFile ? "Change File" : "Choose File"}
-            </label>
-            {launchSlipFile && (
-              <span className="tb-launch-slip-filename">{launchSlipFile.name}</span>
-            )}
-          </div>
-        </div>
-      )}
       <div className="tb-card-footer-bar">
         <button className="tb-save-btn">Save</button>
       </div>
