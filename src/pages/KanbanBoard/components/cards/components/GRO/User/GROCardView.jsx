@@ -1106,12 +1106,7 @@ const GROCardView = forwardRef(function GROCardView(
     isVesselInwardRegistrationStage;
   const showDynamicUploadIcon = isCrewImmigrationActive || isVesselInwardRegistrationActive;
 
-  const dynamicUploadTitle =
-    dynamicUploadType === "crew_immigration"
-      ? "Upload Crew Immigration"
-      : dynamicUploadType === "vessel_inward_registration"
-        ? "Upload Vessel Inward Registration"
-        : "Upload";
+  const dynamicUploadTitle = "Upload Signed Document";
 
   const openDynamicUploadModal = useCallback(() => {
     const type = isCrewImmigrationActive
