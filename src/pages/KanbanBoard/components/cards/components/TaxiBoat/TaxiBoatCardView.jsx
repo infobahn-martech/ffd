@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
@@ -34,6 +34,33 @@ const BATCH_ORDINALS = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
 const makeTsState = (keys) =>
   keys.reduce((acc, key) => ({ ...acc, [key]: null }), {});
+
+const formatDuration = (ms) => {
+  if (!ms || ms <= 0) return null;
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+};
+
+const RECENT_OPS_KEY = "tb-recent-operators";
+const MAX_RECENT_OPS = 5;
+
+const loadRecentOps = () => {
+  try { return JSON.parse(localStorage.getItem(RECENT_OPS_KEY) || "[]"); }
+  catch { return []; }
+};
+
+const saveRecentOp = (name) => {
+  if (!name?.trim()) return;
+  const trimmed = name.trim();
+  const prev = loadRecentOps();
+  const next = [trimmed, ...prev.filter((op) => op !== trimmed)].slice(0, MAX_RECENT_OPS);
+  localStorage.setItem(RECENT_OPS_KEY, JSON.stringify(next));
+};
 
 const formatDateTime = (iso) => {
   if (!iso) return null;
@@ -156,7 +183,76 @@ TimestampGrid.propTypes = {
   onCapture: PropTypes.func.isRequired,
 };
 
-function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish }) {
+const UNDO_REASONS = [
+  "Wrong time captured",
+  "Operator error",
+  "Re-capture required",
+  "System / technical error",
+  "Other",
+];
+
+function ConfirmDialog({ label, onConfirm, onCancel }) {
+  const [reason, setReason] = useState(null);
+  const [otherText, setOtherText] = useState("");
+
+  const canConfirm = reason !== null && (reason !== "Other" || otherText.trim().length > 0);
+  const finalReason = reason === "Other" ? otherText.trim() : reason;
+
+  return (
+    <div className="tb-confirm-overlay" onClick={onCancel}>
+      <div className="tb-confirm-box" onClick={(e) => e.stopPropagation()}>
+        <p className="tb-confirm-msg">
+          Are you sure you want to undo <strong>{label}</strong>?
+          Selecting <em>Yes</em> will clear this timestamp and you will need to tap again to capture the current time.
+        </p>
+
+        <div className="tb-confirm-reason-section">
+          <span className="tb-confirm-reason-label">Reason for going back</span>
+          <div className="tb-confirm-reason-chips">
+            {UNDO_REASONS.map((r) => (
+              <button
+                key={r}
+                className={`tb-confirm-reason-chip${reason === r ? " tb-confirm-reason-chip--active" : ""}`}
+                onClick={() => { setReason(r); if (r !== "Other") setOtherText(""); }}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          {reason === "Other" && (
+            <input
+              type="text"
+              className="tb-confirm-reason-input"
+              placeholder="Please specify the reason..."
+              value={otherText}
+              onChange={(e) => setOtherText(e.target.value)}
+              autoFocus
+            />
+          )}
+        </div>
+
+        <div className="tb-confirm-btns">
+          <button
+            className={`tb-confirm-btn tb-confirm-btn--yes${!canConfirm ? " tb-confirm-btn--disabled" : ""}`}
+            disabled={!canConfirm}
+            onClick={() => canConfirm && onConfirm(finalReason)}
+          >
+            Yes, Go Back
+          </button>
+          <button className="tb-confirm-btn tb-confirm-btn--no" onClick={onCancel}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ConfirmDialog.propTypes = {
+  label:     PropTypes.string.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  onCancel:  PropTypes.func.isRequired,
+};
+
+function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish, onUndo, now }) {
   const doneCount = timestamps.filter((t) => tsState[t.key] !== null).length;
   const totalSteps = timestamps.length;
   const allTimestampsDone = doneCount === totalSteps;
@@ -172,23 +268,41 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
       <ol className="tb-stepper">
       {timestamps.map(({ key, label, icon: Icon, animKey }, i) => {
         const done = tsState[key] !== null;
-        const prevDone = i === 0 || tsState[timestamps[i - 1].key] !== null;
+        const prevKey = i > 0 ? timestamps[i - 1].key : null;
+        const prevDone = i === 0 || tsState[prevKey] !== null;
         const isNext = !done && prevDone;
         const isLocked = !done && !isNext;
+        const undoable = done && !!onUndo;
+
+        const stepDuration = done && prevKey && tsState[prevKey]
+          ? formatDuration(new Date(tsState[key]) - new Date(tsState[prevKey]))
+          : null;
+
+        const liveTimer = isNext && now && prevKey && tsState[prevKey]
+          ? formatDuration(now - new Date(tsState[prevKey]))
+          : null;
+
         return (
           <li
             key={key}
             className={[
               "tb-stepper-item",
-              done     ? "tb-stepper-item--done"   : "",
-              isNext   ? "tb-stepper-item--next"   : "",
-              isLocked ? "tb-stepper-item--locked" : "",
+              done     ? "tb-stepper-item--done"     : "",
+              undoable ? "tb-stepper-item--undoable" : "",
+              isNext   ? "tb-stepper-item--next"     : "",
+              isLocked ? "tb-stepper-item--locked"   : "",
             ].filter(Boolean).join(" ")}
-            onClick={() => isNext && onCapture(key)}
-            role={isNext ? "button" : undefined}
-            tabIndex={isNext ? 0 : -1}
+            onClick={() => {
+              if (undoable) onUndo(key, label);
+              else if (isNext) onCapture(key);
+            }}
+            role={isNext || undoable ? "button" : undefined}
+            tabIndex={isNext || undoable ? 0 : -1}
             onKeyDown={(e) => {
-              if (isNext && (e.key === "Enter" || e.key === " ")) onCapture(key);
+              if (e.key === "Enter" || e.key === " ") {
+                if (undoable) onUndo(key, label);
+                else if (isNext) onCapture(key);
+              }
             }}
           >
             <div className="tb-stepper-track">
@@ -208,6 +322,15 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
                 ].filter(Boolean).join(" ")}>
                   {done ? formatDateTime(tsState[key]) : isNext ? "Tap to capture" : "—"}
                 </span>
+                {stepDuration && (
+                  <span className="tb-step-duration">{stepDuration}</span>
+                )}
+                {liveTimer && (
+                  <span className="tb-step-live-timer">
+                    <FiClock size={9} />
+                    {liveTimer}
+                  </span>
+                )}
               </div>
             </div>
           </li>
@@ -249,6 +372,17 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
         </li>
       )}
       </ol>
+      {allTimestampsDone && (() => {
+        const firstTs = tsState[timestamps[0].key];
+        const lastTs  = tsState[timestamps[timestamps.length - 1].key];
+        const dur = firstTs && lastTs ? formatDuration(new Date(lastTs) - new Date(firstTs)) : null;
+        return dur ? (
+          <div className="tb-voyage-duration-bar">
+            <FiClock size={12} />
+            <span>Total voyage time: <strong>{dur}</strong></span>
+          </div>
+        ) : null;
+      })()}
     </div>
   );
 }
@@ -262,6 +396,8 @@ TimestampStepper.propTypes = {
   onComplete:   PropTypes.func,
   jobCompleted: PropTypes.bool,
   canFinish:    PropTypes.bool,
+  onUndo:       PropTypes.func,
+  now:          PropTypes.instanceOf(Date),
 };
 
 function InfoCard({ label, value }) {
@@ -324,6 +460,100 @@ FinalStep.propTypes = {
   onComplete:  PropTypes.func.isRequired,
 };
 
+function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, onCaptureCob, stepsAllDone, stepBackLog }) {
+  const anyDone = timestamps.some((t) => tsState[t.key] !== null);
+  if (!anyDone) return null;
+
+  return (
+    <div className="tb-ts-summary">
+      <span className="tb-ts-summary-title">Timestamps Summary</span>
+      <table className="tb-ts-summary-table">
+        <thead>
+          <tr>
+            <th className="tb-ts-summary-th-num">#</th>
+            <th>Step</th>
+            <th>Captured Time</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          {timestamps.map(({ key, label }, i) => {
+            const prevKey  = i > 0 ? timestamps[i - 1].key : null;
+            const time     = tsState[key];
+            const prevTime = prevKey ? tsState[prevKey] : null;
+            const dur = time && prevTime ? formatDuration(new Date(time) - new Date(prevTime)) : null;
+            return (
+              <tr key={key} className={time ? "tb-ts-summary-row--done" : ""}>
+                <td className="tb-ts-summary-num">{time ? "✓" : i + 1}</td>
+                <td className="tb-ts-summary-step">{label}</td>
+                <td className="tb-ts-summary-time">
+                  {time ? formatDateTime(time) : <span className="tb-ts-summary-blank">—</span>}
+                </td>
+                <td className="tb-ts-summary-dur">{dur ?? "—"}</td>
+              </tr>
+            );
+          })}
+
+          {/* Job Completed row */}
+          <tr className={["tb-ts-summary-row--job", jobCompletedAt ? "tb-ts-summary-row--done" : "tb-ts-summary-row--locked"].join(" ")}>
+            <td className="tb-ts-summary-num">{jobCompletedAt ? "✓" : <FiCheckCircle size={11} />}</td>
+            <td className="tb-ts-summary-step tb-ts-summary-job-label">Job Completed</td>
+            <td className="tb-ts-summary-time">
+              {jobCompletedAt
+                ? formatDateTime(jobCompletedAt)
+                : <span className="tb-ts-summary-blank">{stepsAllDone ? "Tap step 5 above" : "—"}</span>}
+            </td>
+            <td className="tb-ts-summary-dur">—</td>
+          </tr>
+
+          {/* COB Complete row */}
+          <tr className={[
+            "tb-ts-summary-row--cob",
+            cobTime           ? "tb-ts-summary-row--done"   : "",
+            !jobCompletedAt   ? "tb-ts-summary-row--locked" : "",
+          ].filter(Boolean).join(" ")}>
+            <td className="tb-ts-summary-num">{cobTime ? "✓" : <FiClock size={11} />}</td>
+            <td className="tb-ts-summary-step tb-ts-summary-cob-label">COB Complete</td>
+            <td className="tb-ts-summary-time">
+              {cobTime ? (
+                formatDateTime(cobTime)
+              ) : jobCompletedAt ? (
+                <button className="tb-cob-capture-btn" onClick={onCaptureCob}>
+                  Tap to capture
+                </button>
+              ) : (
+                <span className="tb-ts-summary-blank">Mark job complete first</span>
+              )}
+            </td>
+            <td className="tb-ts-summary-dur">—</td>
+          </tr>
+          {/* Step Back Log rows */}
+          {stepBackLog && stepBackLog.length > 0 && stepBackLog.map((entry, idx) => (
+            <tr key={`sb-${idx}`} className="tb-ts-summary-row--stepback">
+              <td className="tb-ts-summary-num"><FiArrowDown size={11} /></td>
+              <td className="tb-ts-summary-step tb-ts-summary-stepback-label">
+                Step Back — {entry.step}
+              </td>
+              <td className="tb-ts-summary-time">{formatDateTime(entry.time)}</td>
+              <td className="tb-ts-summary-dur tb-ts-summary-stepback-reason">{entry.reason}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+TimestampSummaryTable.propTypes = {
+  timestamps:      PropTypes.array.isRequired,
+  tsState:         PropTypes.object.isRequired,
+  jobCompletedAt:  PropTypes.string,
+  cobTime:         PropTypes.string,
+  onCaptureCob:    PropTypes.func.isRequired,
+  stepsAllDone:    PropTypes.bool.isRequired,
+  stepBackLog:     PropTypes.array,
+};
+
 function TaxiBoatCardView({ card }) {
   const serviceType = card?.typeOfService ?? "—";
   const assignedUser = card?.user ?? "—";
@@ -344,7 +574,43 @@ function TaxiBoatCardView({ card }) {
   );
   const [activeTab, setActiveTab] = useState("drop");
   const [jobCompleted, setJobCompleted] = useState(false);
+  const [jobCompletedAt, setJobCompletedAt] = useState(null);
   const [launchSlipFile, setLaunchSlipFile] = useState(null);
+  const [dropCobTime, setDropCobTime] = useState(null);
+  const [pickupCobTime, setPickupCobTime] = useState(null);
+  const [dropStepBackLog, setDropStepBackLog] = useState([]);
+  const [pickupStepBackLog, setPickupStepBackLog] = useState([]);
+  const [undoPending, setUndoPending] = useState(null); // { label, resetter }
+
+  // Live clock — ticks every second for the live waiting timer on pending steps
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Operator quick-select — recent names from localStorage
+  const [recentOps, setRecentOps] = useState(loadRecentOps);
+  const [opFocusedBatch, setOpFocusedBatch] = useState(null);
+  const opBlurTimer = useRef(null);
+
+  const handleOpBlur = useCallback((operator) => {
+    opBlurTimer.current = setTimeout(() => {
+      if (operator?.trim()) {
+        saveRecentOp(operator);
+        setRecentOps(loadRecentOps());
+      }
+      setOpFocusedBatch(null);
+    }, 150);
+  }, []);
+
+  const handleOpChipClick = useCallback((batchIdx, op) => {
+    clearTimeout(opBlurTimer.current);
+    setBatches((prev) =>
+      prev.map((b, i) => (i === batchIdx ? { ...b, operator: op } : b))
+    );
+    setOpFocusedBatch(null);
+  }, []);
 
   // Scenario A: Crew Change
   const [signMode, setSignMode] = useState("sign-on");
@@ -368,10 +634,10 @@ function TaxiBoatCardView({ card }) {
   const [batches, setBatches] = useState(() => {
     const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
     return [
-      { id: 1, crewCount: "10", operator: "", ts: makeTsState(initKeys), file: null, completed: false },
-      { id: 2, crewCount: "8",  operator: "", ts: makeTsState(initKeys), file: null, completed: false },
-      { id: 3, crewCount: "6",  operator: "", ts: makeTsState(initKeys), file: null, completed: false },
-      { id: 4, crewCount: "5",  operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+      { id: 1, crewCount: "10", operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
+      { id: 2, crewCount: "8",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
+      { id: 3, crewCount: "6",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
+      { id: 4, crewCount: "5",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
     ];
   });
 
@@ -391,7 +657,7 @@ function TaxiBoatCardView({ card }) {
     const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
     setBatches((prev) => [
       ...prev,
-      { id: prev.length + 1, crewCount: "", operator: "", ts: makeTsState(initKeys), file: null, completed: false },
+      { id: prev.length + 1, crewCount: "", operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
     ]);
     setActiveBatchTab(batches.length);
   }, [batches.length]);
@@ -511,6 +777,17 @@ function TaxiBoatCardView({ card }) {
       {/* Scenario C: Immigration Clearance — per-batch tabs */}
       {isImmigration && (
         <div className="tb-scenario-section">
+          {/* Batch summary bar */}
+          <div className="tb-batch-summary-bar">
+            <span className="tb-batch-summary-stat">
+              <strong>{batches.reduce((sum, b) => sum + (parseInt(b.crewCount, 10) || 0), 0)}</strong> total crew
+            </span>
+            <span className="tb-batch-summary-sep">·</span>
+            <span className="tb-batch-summary-stat">
+              <strong>{batches.filter((b) => b.completed).length}</strong> / {batches.length} batches complete
+            </span>
+          </div>
+
           <div className="tb-batch-tab-strip">
             {batches.map((batch, i) => (
               <button
@@ -560,19 +837,36 @@ function TaxiBoatCardView({ card }) {
                   </div>
                   <div className="tb-batch-field-row">
                     <span className="tb-batch-field-label">Operator</span>
-                    <input
-                      type="text"
-                      className="tb-batch-field-input tb-batch-operator-input"
-                      value={batch.operator}
-                      onChange={(e) =>
-                        setBatches((prev) =>
-                          prev.map((b, idx) =>
-                            idx === i ? { ...b, operator: e.target.value } : b
+                    <div className="tb-operator-picker">
+                      <input
+                        type="text"
+                        className="tb-batch-field-input tb-batch-operator-input"
+                        value={batch.operator}
+                        onChange={(e) =>
+                          setBatches((prev) =>
+                            prev.map((b, idx) =>
+                              idx === i ? { ...b, operator: e.target.value } : b
+                            )
                           )
-                        )
-                      }
-                      placeholder="Operator name"
-                    />
+                        }
+                        placeholder="Operator name"
+                        onFocus={() => setOpFocusedBatch(i)}
+                        onBlur={() => handleOpBlur(batch.operator)}
+                      />
+                      {opFocusedBatch === i && recentOps.length > 0 && (
+                        <div className="tb-recent-ops">
+                          {recentOps.map((op) => (
+                            <button
+                              key={op}
+                              className="tb-recent-op-chip"
+                              onMouseDown={() => handleOpChipClick(i, op)}
+                            >
+                              {op}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -609,9 +903,39 @@ function TaxiBoatCardView({ card }) {
                   timestamps={STANDARD_TIMESTAMPS}
                   tsState={batch.ts}
                   onCapture={(key) => captureBatchTs(i, key)}
-                  onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true } : b))}
+                  onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
                   jobCompleted={batch.completed}
                   canFinish={isBatchDone(batch)}
+                  now={now}
+                  onUndo={(key, label) => setUndoPending({
+                    label,
+                    resetter: () => setBatches((prev) =>
+                      prev.map((b, idx) =>
+                        idx === i ? { ...b, ts: { ...b.ts, [key]: null }, completed: false } : b
+                      )
+                    ),
+                    addToLog: (reason) => setBatches((prev) =>
+                      prev.map((b, idx) =>
+                        idx === i ? { ...b, stepBackLog: [...b.stepBackLog, { step: label, reason, time: new Date().toISOString() }] } : b
+                      )
+                    ),
+                  })}
+                />
+
+                <TimestampSummaryTable
+                  timestamps={STANDARD_TIMESTAMPS}
+                  tsState={batch.ts}
+                  jobCompletedAt={batch.completedAt}
+                  cobTime={batch.cobTime}
+                  stepsAllDone={isBatchDone(batch)}
+                  stepBackLog={batch.stepBackLog}
+                  onCaptureCob={() =>
+                    setBatches((prev) =>
+                      prev.map((b, idx) =>
+                        idx === i ? { ...b, cobTime: new Date().toISOString() } : b
+                      )
+                    )
+                  }
                 />
 
                 <div className="tb-batch-actions">
@@ -685,23 +1009,57 @@ function TaxiBoatCardView({ card }) {
           </div>
           <div key={activeTab} className={`tb-ts-panel tb-ts-panel--${activeTab}`}>
             {activeTab === "drop" ? (
-              <TimestampStepper
-                timestamps={STANDARD_TIMESTAMPS}
-                tsState={dropTs}
-                onCapture={(key) => captureNow(setDropTs, key)}
-                onComplete={() => setJobCompleted(true)}
-                jobCompleted={jobCompleted}
-                canFinish={allDone(dropTs, tsKeys)}
-              />
+              <>
+                <TimestampStepper
+                  timestamps={STANDARD_TIMESTAMPS}
+                  tsState={dropTs}
+                  onCapture={(key) => captureNow(setDropTs, key)}
+                  onComplete={() => { setJobCompleted(true); setJobCompletedAt(new Date().toISOString()); }}
+                  jobCompleted={jobCompleted}
+                  canFinish={allDone(dropTs, tsKeys)}
+                  now={now}
+                  onUndo={(key, label) => setUndoPending({
+                    label,
+                    resetter: () => { setDropTs((prev) => ({ ...prev, [key]: null })); setJobCompleted(false); setJobCompletedAt(null); },
+                    addToLog: (reason) => setDropStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
+                  })}
+                />
+                <TimestampSummaryTable
+                  timestamps={STANDARD_TIMESTAMPS}
+                  tsState={dropTs}
+                  jobCompletedAt={jobCompletedAt}
+                  cobTime={dropCobTime}
+                  stepsAllDone={allDone(dropTs, tsKeys)}
+                  stepBackLog={dropStepBackLog}
+                  onCaptureCob={() => setDropCobTime(new Date().toISOString())}
+                />
+              </>
             ) : (
-              <TimestampStepper
-                timestamps={STANDARD_TIMESTAMPS}
-                tsState={pickupTs}
-                onCapture={(key) => captureNow(setPickupTs, key)}
-                onComplete={() => setJobCompleted(true)}
-                jobCompleted={jobCompleted}
-                canFinish={allDone(pickupTs, tsKeys)}
-              />
+              <>
+                <TimestampStepper
+                  timestamps={STANDARD_TIMESTAMPS}
+                  tsState={pickupTs}
+                  onCapture={(key) => captureNow(setPickupTs, key)}
+                  onComplete={() => { setJobCompleted(true); setJobCompletedAt(new Date().toISOString()); }}
+                  jobCompleted={jobCompleted}
+                  canFinish={allDone(pickupTs, tsKeys)}
+                  now={now}
+                  onUndo={(key, label) => setUndoPending({
+                    label,
+                    resetter: () => { setPickupTs((prev) => ({ ...prev, [key]: null })); setJobCompleted(false); setJobCompletedAt(null); },
+                    addToLog: (reason) => setPickupStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
+                  })}
+                />
+                <TimestampSummaryTable
+                  timestamps={STANDARD_TIMESTAMPS}
+                  tsState={pickupTs}
+                  jobCompletedAt={jobCompletedAt}
+                  cobTime={pickupCobTime}
+                  stepsAllDone={allDone(pickupTs, tsKeys)}
+                  stepBackLog={pickupStepBackLog}
+                  onCaptureCob={() => setPickupCobTime(new Date().toISOString())}
+                />
+              </>
             )}
           </div>
           <div className="tb-batch-actions">
@@ -751,6 +1109,14 @@ function TaxiBoatCardView({ card }) {
       <div className="tb-card-footer-bar">
         <button className="tb-save-btn">Save</button>
       </div>
+
+      {undoPending && (
+        <ConfirmDialog
+          label={undoPending.label}
+          onConfirm={(reason) => { undoPending.resetter(); undoPending.addToLog?.(reason); setUndoPending(null); }}
+          onCancel={() => setUndoPending(null)}
+        />
+      )}
     </div>
   );
 }
