@@ -145,13 +145,12 @@ export default function CrewImmigrationPanel({
           onClick={() => enterBulkUploadMode("cg")}
           disabled={selectedRowIds.size === 0}
         >
-          Bulk Upload CG Pass
+          Generate CG Pass
         </button>
         <button
           type="button"
           className="gro-crew-immigration-bulk-btn"
           onClick={openZawilModal}
-          disabled={selectedRowIds.size === 0}
         >
           Bulk Upload Zawil Pass
         </button>
