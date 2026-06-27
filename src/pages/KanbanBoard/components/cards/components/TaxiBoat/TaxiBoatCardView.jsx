@@ -940,8 +940,37 @@ function TaxiBoatCardView({ card }) {
           {batches.map((batch, i) => {
             if (i !== activeBatchTab) return null;
             const done = isBatchDone(batch);
+            const crewRows = getBatchCrewRows(batch.crewCount);
             return (
               <div key={batch.id} className="tb-batch-tab-content">
+                {crewRows.length > 0 && (
+                  <div className="tb-crew-table-wrapper">
+                    <table className="tb-crew-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Rank</th>
+                          <th>Nationality</th>
+                          <th>Passport No.</th>
+                          <th>Seaman Book No.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {crewRows.map((row, ri) => (
+                          <tr key={ri}>
+                            <td>{ri + 1}</td>
+                            <td>{row.name}</td>
+                            <td>{row.rank}</td>
+                            <td>{row.nationality}</td>
+                            <td>{row.passportNo}</td>
+                            <td>{row.seamanBookNo}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
                 <TimestampStepper
                   timestamps={STANDARD_TIMESTAMPS}
