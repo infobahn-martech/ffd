@@ -386,7 +386,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 className="dropdown-item"
                 onClick={handleMyAccountsClick}
               >
-                My Account
+                My Accountss
               </button>
               <button
                 className="dropdown-item"
