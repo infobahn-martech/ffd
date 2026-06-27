@@ -554,6 +554,125 @@ TimestampSummaryTable.propTypes = {
   stepBackLog:     PropTypes.array,
 };
 
+const TAXI_FLEETS = [
+  { id: "BARBOSSA",  label: "BARBOSSA",  tagline: "Zone A & B",    capacity: 12 },
+  { id: "WAKANDA",   label: "WAKANDA",   tagline: "Zone C & D",    capacity: 10 },
+  { id: "MARMOLADA", label: "MARMOLADA", tagline: "All zones",      capacity: 8  },
+];
+
+const parseToInputDate = (raw) => {
+  if (!raw || raw === "—") return "";
+  try {
+    const d = new Date(raw);
+    if (!isNaN(d)) return d.toISOString().split("T")[0];
+  } catch {}
+  return "";
+};
+
+function TaxiFleetAssignPanel({
+  operatorName, operatorPhone,
+  bookingDate, bookingTime,
+  onDateChange, onTimeChange,
+  selectedFleet, onSelectFleet,
+  assigned, onAssign,
+}) {
+  return (
+    <div className="tb-fleet-panel">
+      <h3 className="tb-fleet-panel-title">Taxi Fleet Assignment</h3>
+
+      <div className="tb-fleet-operator-row">
+        <div className="tb-fleet-operator-field">
+          <span className="tb-fleet-operator-label">Requested Operator</span>
+          <span className="tb-fleet-operator-value">{operatorName || "—"}</span>
+        </div>
+        <div className="tb-fleet-operator-field">
+          <span className="tb-fleet-operator-label">Phone Number</span>
+          <span className="tb-fleet-operator-value tb-fleet-operator-phone">{operatorPhone || "—"}</span>
+        </div>
+      </div>
+
+      <div className="tb-fleet-booking-row">
+        <div className="tb-fleet-booking-field">
+          <label className="tb-fleet-booking-label">Booking Date</label>
+          <input
+            type="date"
+            className="tb-fleet-booking-input"
+            value={bookingDate}
+            onChange={(e) => onDateChange(e.target.value)}
+            disabled={assigned}
+          />
+        </div>
+        <div className="tb-fleet-booking-field">
+          <label className="tb-fleet-booking-label">Booking Time</label>
+          <input
+            type="time"
+            className="tb-fleet-booking-input"
+            value={bookingTime}
+            onChange={(e) => onTimeChange(e.target.value)}
+            disabled={assigned}
+          />
+        </div>
+      </div>
+
+      <span className="tb-fleet-select-label">Select Fleet</span>
+      <div className="tb-fleet-cards">
+        {TAXI_FLEETS.map((fleet) => {
+          const isSelected = selectedFleet === fleet.id;
+          const isAssigned = assigned && isSelected;
+          return (
+            <button
+              key={fleet.id}
+              className={[
+                "tb-fleet-card",
+                isSelected ? "tb-fleet-card--selected" : "",
+                isAssigned ? "tb-fleet-card--assigned" : "",
+              ].filter(Boolean).join(" ")}
+              onClick={() => !assigned && onSelectFleet(fleet.id)}
+              disabled={assigned}
+            >
+              <MdDirectionsBoat size={24} className="tb-fleet-card-icon" />
+              <span className="tb-fleet-card-name">{fleet.label}</span>
+              <span className="tb-fleet-card-tagline">{fleet.tagline}</span>
+              <span className="tb-fleet-card-cap">Capacity: {fleet.capacity}</span>
+              {isAssigned && <span className="tb-fleet-card-badge"><FiCheckCircle size={10} /> Assigned</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {!assigned ? (
+        <button
+          className={["tb-fleet-assign-btn", !selectedFleet ? "tb-fleet-assign-btn--disabled" : ""].filter(Boolean).join(" ")}
+          disabled={!selectedFleet}
+          onClick={onAssign}
+        >
+          {selectedFleet ? `Assign to ${selectedFleet}` : "Select a fleet to assign"}
+        </button>
+      ) : (
+        <div className="tb-fleet-assigned-banner">
+          <FiCheckCircle size={15} />
+          Task assigned to <strong>{selectedFleet}</strong>
+          {bookingDate && <> · {bookingDate}</>}
+          {bookingTime && <> at {bookingTime}</>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+TaxiFleetAssignPanel.propTypes = {
+  operatorName:  PropTypes.string,
+  operatorPhone: PropTypes.string,
+  bookingDate:   PropTypes.string.isRequired,
+  bookingTime:   PropTypes.string.isRequired,
+  onDateChange:  PropTypes.func.isRequired,
+  onTimeChange:  PropTypes.func.isRequired,
+  selectedFleet: PropTypes.string,
+  onSelectFleet: PropTypes.func.isRequired,
+  assigned:      PropTypes.bool.isRequired,
+  onAssign:      PropTypes.func.isRequired,
+};
+
 function TaxiBoatCardView({ card }) {
   const serviceType = card?.typeOfService ?? "—";
   const assignedUser = card?.user ?? "—";
@@ -581,6 +700,12 @@ function TaxiBoatCardView({ card }) {
   const [dropStepBackLog, setDropStepBackLog] = useState([]);
   const [pickupStepBackLog, setPickupStepBackLog] = useState([]);
   const [undoPending, setUndoPending] = useState(null); // { label, resetter }
+
+  // Taxi fleet assignment
+  const [selectedFleet, setSelectedFleet] = useState(null);
+  const [fleetAssigned, setFleetAssigned] = useState(false);
+  const [bookingDateEdit, setBookingDateEdit] = useState(() => parseToInputDate(card?.bookingDate));
+  const [bookingTimeEdit, setBookingTimeEdit] = useState("");
 
   // Live clock — ticks every second for the live waiting timer on pending steps
   const [now, setNow] = useState(() => new Date());
@@ -674,12 +799,23 @@ function TaxiBoatCardView({ card }) {
     <div className="tb-card-view">
       <div className="tb-info-grid">
         <InfoCard label="Assigned User"      value={assignedUser}      />
-        <InfoCard label="Requested Operator" value={requestedOperator} />
         <InfoCard label="Billing Entity"     value={billingEntity}     />
         <InfoCard label="Vessel Name"        value={vesselName}        />
         <InfoCard label="Location"           value={location}          />
-        <InfoCard label="Booking Date"       value={bookingDate}       />
       </div>
+
+      <TaxiFleetAssignPanel
+        operatorName={requestedOperator}
+        operatorPhone={card?.requestedOperatorPhone ?? card?.operatorPhone ?? card?.phone ?? null}
+        bookingDate={bookingDateEdit}
+        bookingTime={bookingTimeEdit}
+        onDateChange={setBookingDateEdit}
+        onTimeChange={setBookingTimeEdit}
+        selectedFleet={selectedFleet}
+        onSelectFleet={setSelectedFleet}
+        assigned={fleetAssigned}
+        onAssign={() => setFleetAssigned(true)}
+      />
 
       {/* Scenario A: Crew Change */}
       {isCrewChange && (
@@ -780,10 +916,6 @@ function TaxiBoatCardView({ card }) {
           {/* Batch summary bar */}
           <div className="tb-batch-summary-bar">
             <span className="tb-batch-summary-stat">
-              <strong>{batches.reduce((sum, b) => sum + (parseInt(b.crewCount, 10) || 0), 0)}</strong> total crew
-            </span>
-            <span className="tb-batch-summary-sep">·</span>
-            <span className="tb-batch-summary-stat">
               <strong>{batches.filter((b) => b.completed).length}</strong> / {batches.length} batches complete
             </span>
           </div>
@@ -803,101 +935,13 @@ function TaxiBoatCardView({ card }) {
                 Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
               </button>
             ))}
-            <button className="tb-add-batch-btn" onClick={handleAddBatch}>
-              <FiPlus size={14} />
-              Add Batch
-            </button>
           </div>
 
           {batches.map((batch, i) => {
             if (i !== activeBatchTab) return null;
-            const crewRows = getBatchCrewRows(batch.crewCount);
             const done = isBatchDone(batch);
             return (
               <div key={batch.id} className="tb-batch-tab-content">
-                <div className="tb-batch-meta-row">
-                  <div className="tb-batch-field-row">
-                    <span className="tb-batch-field-label">
-                      No. of Crew — Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
-                    </span>
-                    <input
-                      type="number"
-                      className="tb-batch-field-input"
-                      min="1"
-                      value={batch.crewCount}
-                      onChange={(e) =>
-                        setBatches((prev) =>
-                          prev.map((b, idx) =>
-                            idx === i ? { ...b, crewCount: e.target.value } : b
-                          )
-                        )
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="tb-batch-field-row">
-                    <span className="tb-batch-field-label">Operator</span>
-                    <div className="tb-operator-picker">
-                      <input
-                        type="text"
-                        className="tb-batch-field-input tb-batch-operator-input"
-                        value={batch.operator}
-                        onChange={(e) =>
-                          setBatches((prev) =>
-                            prev.map((b, idx) =>
-                              idx === i ? { ...b, operator: e.target.value } : b
-                            )
-                          )
-                        }
-                        placeholder="Operator name"
-                        onFocus={() => setOpFocusedBatch(i)}
-                        onBlur={() => handleOpBlur(batch.operator)}
-                      />
-                      {opFocusedBatch === i && recentOps.length > 0 && (
-                        <div className="tb-recent-ops">
-                          {recentOps.map((op) => (
-                            <button
-                              key={op}
-                              className="tb-recent-op-chip"
-                              onMouseDown={() => handleOpChipClick(i, op)}
-                            >
-                              {op}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {crewRows.length > 0 && (
-                  <div className="tb-crew-table-wrapper">
-                    <table className="tb-crew-table">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Name</th>
-                          <th>Rank</th>
-                          <th>Nationality</th>
-                          <th>Passport No.</th>
-                          <th>Seaman Book No.</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {crewRows.map((row, ri) => (
-                          <tr key={ri}>
-                            <td>{ri + 1}</td>
-                            <td>{row.name}</td>
-                            <td>{row.rank}</td>
-                            <td>{row.nationality}</td>
-                            <td>{row.passportNo}</td>
-                            <td>{row.seamanBookNo}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
 
                 <TimestampStepper
                   timestamps={STANDARD_TIMESTAMPS}
@@ -938,31 +982,33 @@ function TaxiBoatCardView({ card }) {
                   }
                 />
 
-                <div className="tb-batch-actions">
-                  <button className="tb-batch-print-btn">
-                    <FiPrinter size={14} />
-                    Print Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
-                  </button>
-                  <div>
-                    <input
-                      type="file"
-                      id={`tb-batch-file-${batch.id}`}
-                      className="tb-launch-slip-input"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) =>
-                        setBatches((prev) =>
-                          prev.map((b, idx) =>
-                            idx === i ? { ...b, file: e.target.files?.[0] ?? null } : b
+                {batch.completed && (
+                  <div className="tb-batch-actions">
+                    <button className="tb-batch-print-btn">
+                      <FiPrinter size={14} />
+                      Print Launch Slip
+                    </button>
+                    <div>
+                      <input
+                        type="file"
+                        id={`tb-batch-file-${batch.id}`}
+                        className="tb-launch-slip-input"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          setBatches((prev) =>
+                            prev.map((b, idx) =>
+                              idx === i ? { ...b, file: e.target.files?.[0] ?? null } : b
+                            )
                           )
-                        )
-                      }
-                    />
-                    <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
-                      <FiUpload size={14} />
-                      {batch.file ? batch.file.name : `Upload Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
-                    </label>
+                        }
+                      />
+                      <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
+                        <FiUpload size={14} />
+                        {batch.file ? batch.file.name : "Upload Launch Slip"}
+                      </label>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {done && (
                   <div className="tb-batch-done-badge">
