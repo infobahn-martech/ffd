@@ -205,7 +205,6 @@ function collectItemFiles(data) {
 }
 
 function logFormDataEntries(formData) {
-  console.log("[Checklist] FormData entries (before API call):");
   for (const [key, value] of formData.entries()) {
     if (value instanceof File) {
       console.log(key, `[File: ${value.name}, ${value.size} bytes]`);
