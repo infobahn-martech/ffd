@@ -21,7 +21,10 @@ export const GRO_EXTRA_STAGE_FIELD_KEYS = {
   MWP_APPLICATION_NO: "mwp_application_no",
   SADAD_NO: "sadad_no",
   SADAD_DOC: "sadad_doc",
+  MWP_SUBSCRIPTION_SADAD_NO: "mwp_subscription_sadad_no",
+  MWP_SUBSCRIPTION_SADAD_DOC: "mwp_subscription_sadad_doc",
   MWP_COPY: "mwp_copy",
+  MWP_SUBSCRIPTION_TAX_INVOICE: "mwp_subscription_tax_invoice",
 };
 
 export const createEmptyExtraStageFields = () => ({
@@ -35,7 +38,10 @@ export const createEmptyExtraStageFields = () => ({
   mwp_application_no: "",
   sadad_no: "",
   sadad_doc: null,
+  mwp_subscription_sadad_no: "",
+  mwp_subscription_sadad_doc: null,
   mwp_copy: null,
+  mwp_subscription_tax_invoice: null,
 });
 
 const trimText = (value) => String(value ?? "").trim();
@@ -77,9 +83,6 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
   }
 
   if (stageId === 10) {
-    if (!hasFile(data.inward_clearance_copy)) {
-      errors.inward_clearance_copy = "Inward Clearance Copy is required.";
-    }
     if (!trimText(data.mwp_application_no)) {
       errors.mwp_application_no = "MWP Application No is required.";
     }
@@ -87,10 +90,19 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
       errors.sadad_no = "SADAD No is required.";
     }
     if (!hasFile(data.sadad_doc)) {
-      errors.sadad_doc = "SADAD Doc is required.";
+      errors.sadad_doc = "SADAD Attachment is required.";
+    }
+    if (!trimText(data.mwp_subscription_sadad_no)) {
+      errors.mwp_subscription_sadad_no = "MWP Subscription SADAD No is required.";
+    }
+    if (!hasFile(data.mwp_subscription_sadad_doc)) {
+      errors.mwp_subscription_sadad_doc = "MWP Subscription SADAD file is required.";
     }
     if (!hasFile(data.mwp_copy)) {
       errors.mwp_copy = "MWP Copy is required.";
+    }
+    if (!hasFile(data.mwp_subscription_tax_invoice)) {
+      errors.mwp_subscription_tax_invoice = "MWP Subscription Tax Invoice is required.";
     }
   }
 
@@ -131,11 +143,13 @@ export const appendGroArrivalStageFieldsToFormData = (formData, stageId, fields 
   }
 
   if (stageId === 10) {
-    appendFileField(formData, "inward_clearance_doc", data.inward_clearance_copy);
     appendTextField(formData, "mwp_ticket_no", data.mwp_application_no);
     appendTextField(formData, "sadad_no", data.sadad_no);
     appendFileField(formData, "sadad_doc", data.sadad_doc);
+    appendTextField(formData, "mwp_subscription_sadad_no", data.mwp_subscription_sadad_no);
+    appendFileField(formData, "mwp_subscription_sadad_doc", data.mwp_subscription_sadad_doc);
     appendFileField(formData, "mwp_doc", data.mwp_copy);
+    appendFileField(formData, "mwp_subscription_tax_invoice_doc", data.mwp_subscription_tax_invoice);
   }
 };
 

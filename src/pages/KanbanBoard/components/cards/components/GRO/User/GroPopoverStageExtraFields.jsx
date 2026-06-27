@@ -192,16 +192,6 @@ function GroPopoverStageExtraFields({
   if (stageId === 10) {
     return (
       <>
-        <PopoverFileUploadField
-          label="Inward Clearance Copy"
-          fieldKey="inward_clearance_copy"
-          file={values?.inward_clearance_copy}
-          error={errors?.inward_clearance_copy}
-          disabled={disabled}
-          fileInputRefs={fileInputRefs}
-          onFileChange={onFileChange}
-          required
-        />
         <div className={`gro-inward-popover-field${errors?.mwp_application_no ? " gro-inward-popover-field--error" : ""}`}>
           <span className="gro-inward-popover-label">MWP Application No *</span>
           <input
@@ -231,10 +221,34 @@ function GroPopoverStageExtraFields({
           ) : null}
         </div>
         <PopoverFileUploadField
-          label="SADAD Doc"
+          label="SADAD Attachment"
           fieldKey="sadad_doc"
           file={values?.sadad_doc}
           error={errors?.sadad_doc}
+          disabled={disabled}
+          fileInputRefs={fileInputRefs}
+          onFileChange={onFileChange}
+          required
+        />
+        <div className={`gro-inward-popover-field${errors?.mwp_subscription_sadad_no ? " gro-inward-popover-field--error" : ""}`}>
+          <span className="gro-inward-popover-label">MWP Subscription SADAD No *</span>
+          <input
+            type="text"
+            className="gro-inward-popover-input"
+            placeholder="Enter MWP subscription SADAD no"
+            value={values?.mwp_subscription_sadad_no ?? ""}
+            disabled={disabled}
+            onChange={(e) => onFieldChange("mwp_subscription_sadad_no", e.target.value)}
+          />
+          {errors?.mwp_subscription_sadad_no ? (
+            <span className="gro-inward-popover-field-error">{errors.mwp_subscription_sadad_no}</span>
+          ) : null}
+        </div>
+        <PopoverFileUploadField
+          label="MWP Subscription SADAD"
+          fieldKey="mwp_subscription_sadad_doc"
+          file={values?.mwp_subscription_sadad_doc}
+          error={errors?.mwp_subscription_sadad_doc}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
@@ -245,6 +259,16 @@ function GroPopoverStageExtraFields({
           fieldKey="mwp_copy"
           file={values?.mwp_copy}
           error={errors?.mwp_copy}
+          disabled={disabled}
+          fileInputRefs={fileInputRefs}
+          onFileChange={onFileChange}
+          required
+        />
+        <PopoverFileUploadField
+          label="MWP Subscription Tax Invoice"
+          fieldKey="mwp_subscription_tax_invoice"
+          file={values?.mwp_subscription_tax_invoice}
+          error={errors?.mwp_subscription_tax_invoice}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
