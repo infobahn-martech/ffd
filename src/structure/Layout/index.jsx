@@ -18,6 +18,7 @@ function Layout() {
     userProfile?.user?.role_id ||
     userProfile?.data?.role_id;
   const isPortManagerRole = String(userRoleId) === '1';
+  const isPortSupervisorRole = String(userRoleId) === '3';
   const hideSidebar = pathname === '/edit-workflow' || pathname === '/da-module';
   const isKanbanBoard =
     pathname === '/kanban-board/operator' ||
@@ -29,7 +30,7 @@ function Layout() {
     pathname === '/kanban-board/operator' ||
     pathname.startsWith('/kanban-board/') ||
     pathname === '/compact';
-  const kanbanFullWidth = isKanbanIconSidebarRoute && !isPortManagerRole;
+  const kanbanFullWidth = isKanbanIconSidebarRoute && !isPortManagerRole && !isPortSupervisorRole;
   const isVendorPortal = pathname.startsWith('/vendor-portal');
 
   const handleMenuToggle = (isOpen) => {

@@ -95,6 +95,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     userProfile?.user?.role_id ||
     userProfile?.data?.role_id;
   const isPortManagerRole = String(userRoleId) === '1';
+  const isPortSupervisorRole = String(userRoleId) === '3';
   const restrictedNav = isRestrictedBoardUser(userProfile);
   const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
 
@@ -1017,7 +1018,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
     return (
       <>
-        {isPortManagerRole && (
+        {(isPortManagerRole || isPortSupervisorRole) && (
           <aside className={`kanban-sidebar ${isDarkMode ? 'kanban-sidebar-dark' : ''}`}>
             {kanbanIcons.map((item) => {
               const Icon = item.icon;
