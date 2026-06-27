@@ -106,7 +106,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     String(kanbanBoardIdForEditWorkflow).toLowerCase() !== 'operator';
 
   const kanbanBoardIcons = useMemo(() => {
-    if (kanbanFullSidebar) {
+    if (kanbanFullSidebar || isPortSupervisorRole) {
       const icons = [{ id: 1, icon: FiPlus, label: 'Add' }];
       if (showEditWorkflowSidebarIcon) {
         icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
@@ -128,7 +128,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       { id: 7, icon: FiMail, label: 'Outlook' }
     );
     return icons;
-  }, [showEditWorkflowSidebarIcon, kanbanFullSidebar]);
+  }, [showEditWorkflowSidebarIcon, kanbanFullSidebar, isPortSupervisorRole]);
 
   const restrictedKanbanStripIcons = useMemo(
     () => [
