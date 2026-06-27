@@ -22,12 +22,7 @@ const useCustomerPricingReducer = create((set) => ({
         createdAt: row.created_at ?? row.createdAt,
         updatedAt: row.updated_at ?? row.updatedAt,
       }));
-      const total =
-        data?.pagination?.total ??
-        data?.totalCount ??
-        data?.total ??
-        list.length ??
-        0;
+      const total = list.length;
       set({
         customerPriceList: list,
         totalCount: total,
