@@ -1139,11 +1139,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
   height: 36px;
-  min-width: 36px;
   margin-left: 2px;
-  padding: 0;
+  padding: 0 14px;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
   border-radius: 10px;
   border: 1px solid #cbd5e1;
   background: #ffffff;

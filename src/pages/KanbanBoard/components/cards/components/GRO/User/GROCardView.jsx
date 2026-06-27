@@ -1481,28 +1481,11 @@ const GROCardView = forwardRef(function GROCardView(
                 <button
                   type="button"
                   className="gro-stage-upload-icon-btn"
-                  title={`Bulk Upload ${taskPanelTitle}`}
-                  aria-label={`Bulk Upload ${taskPanelTitle}`}
+                  title="Upload Signed Document"
+                  aria-label="Upload Signed Document"
                   onClick={openDynamicUploadModal}
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                      d="M12 16V4m0 0L8 8m4-4l4 4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M4 14v3a3 3 0 003 3h10a3 3 0 003-3v-3"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  Upload Signed Document
                 </button>
               ) : null}
               {(hidePassTabs &&
