@@ -184,17 +184,19 @@ const DocumentPreview = ({ document }) => {
               <dt>Type</dt>
               <dd>{getTypeLabel(fileType)}</dd>
             </div>
-            <div className="doc-lib-preview-meta-row">
-              <dt>Size</dt>
-              <dd>{document.size}</dd>
-            </div>
+            {document.size && (
+              <div className="doc-lib-preview-meta-row">
+                <dt>Size</dt>
+                <dd>{document.size}</dd>
+              </div>
+            )}
             <div className="doc-lib-preview-meta-row">
               <dt>Uploaded by</dt>
-              <dd>{document.uploadedBy}</dd>
+              <dd>{document.uploadedBy || "—"}</dd>
             </div>
             <div className="doc-lib-preview-meta-row">
               <dt>Uploaded</dt>
-              <dd>{getUploadedDate(document)}</dd>
+              <dd>{getUploadedDate(document) || "—"}</dd>
             </div>
           </dl>
         </div>
@@ -251,8 +253,8 @@ DocumentPreview.propTypes = {
     type: PropTypes.string.isRequired,
     fileType: PropTypes.string,
     name: PropTypes.string.isRequired,
-    size: PropTypes.string.isRequired,
-    uploadedBy: PropTypes.string.isRequired,
+    size: PropTypes.string,
+    uploadedBy: PropTypes.string,
     date: PropTypes.string,
     uploadDate: PropTypes.string,
     previewUrl: PropTypes.string,

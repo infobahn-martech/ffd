@@ -330,3 +330,145 @@ export const DOCUMENTS = [
 export const DEFAULT_FOLDER = "Appointment Email";
 export const DEFAULT_PARENT_FOLDER = "Appointment Acceptance";
 export const DEFAULT_DOCUMENT_ID = 1;
+
+const getFileExtension = (fileName = "") => {
+  const match = String(fileName).toLowerCase().match(/\.([a-z0-9]+)$/);
+  return match ? match[1] : "";
+};
+
+const resolveFileType = (fileName) => {
+  const ext = getFileExtension(fileName);
+  if (ext === "pdf") return "pdf";
+  if (ext === "doc" || ext === "docx") return "doc";
+  if (ext === "xls" || ext === "xlsx" || ext === "csv") return "xls";
+  return "file";
+};
+
+const FOLDER_ICON_KEYWORDS = [
+  { keywords: ["email", "appointment", "mail"], icon: FOLDER_ICON_TYPES.EMAIL },
+  { keywords: ["pre arrival", "arrival", "saber", "vessel"], icon: FOLDER_ICON_TYPES.SHIP },
+  { keywords: ["clearance", "bayan", "customs", "sadad", "mwp", "call file"], icon: FOLDER_ICON_TYPES.CLEARANCE },
+  { keywords: ["checklist", "check"], icon: FOLDER_ICON_TYPES.CHECKLIST },
+  { keywords: ["crew", "pass", "immigration", "gate"], icon: FOLDER_ICON_TYPES.CREW },
+];
+
+const resolveFolderIcon = (label = "") => {
+  const lower = String(label).toLowerCase();
+  const found = FOLDER_ICON_KEYWORDS.find((group) =>
+    group.keywords.some((keyword) => lower.includes(keyword))
+  );
+  return found ? found.icon : FOLDER_ICON_TYPES.CLEARANCE;
+};
+
+const normalizeAttachmentDoc = (doc, folderKey, fallbackId) => {
+  const sourceName = doc?.file_name || doc?.document_name;
+  const fileType = resolveFileType(sourceName);
+  return {
+    id: fallbackId,
+    folder: folderKey,
+    type: fileType,
+    fileType,
+    name: doc?.document_name || doc?.file_name || "Untitled document",
+    fileName: doc?.file_name || "",
+    size: doc?.size || "",
+    uploadedBy: doc?.uploaded_by || "—",
+    date: doc?.date || doc?.uploaded_at || "",
+    uploadDate: doc?.date || doc?.uploaded_at || "",
+    previewUrl: doc?.file_url || "",
+  };
+};
+
+/**
+ * Transform the `attachments/get_all_attachments` response into the folder
+ * tree + flat documents shape consumed by the document library components.
+ *
+ * Stage documents become top-level folders that hold documents directly.
+ * Checklist documents become role folders (parents) → task folders (children).
+ *
+ * @param {{ stage_documents?: Object, checklist_documents?: Array }} payload
+ * @returns {{ folderTree: Array, documents: Array }}
+ */
+export const transformAttachmentsResponse = (payload) => {
+  const stageDocuments = payload?.stage_documents ?? {};
+  const checklistDocuments = payload?.checklist_documents ?? [];
+
+  const folderTree = [];
+  const documents = [];
+
+  Object.entries(stageDocuments).forEach(([stageName, stageDocs]) => {
+    const folderKey = `stage::${stageName}`;
+    folderTree.push({
+      name: folderKey,
+      label: stageName,
+      icon: resolveFolderIcon(stageName),
+      children: [],
+    });
+
+    (Array.isArray(stageDocs) ? stageDocs : []).forEach((doc, index) => {
+      documents.push(normalizeAttachmentDoc(doc, folderKey, `${folderKey}::${index}`));
+    });
+  });
+
+  (Array.isArray(checklistDocuments) ? checklistDocuments : []).forEach((role) => {
+    const roleKey = `role::${role?.role_id}`;
+    const children = [];
+
+    (Array.isArray(role?.tasks) ? role.tasks : []).forEach((task) => {
+      const taskKey = `task::${role?.role_id}::${task?.task_id}`;
+      children.push({ name: taskKey, label: task?.task_name || "Task" });
+
+      (Array.isArray(task?.documents) ? task.documents : []).forEach((doc, index) => {
+        const docId =
+          doc?.document_id != null ? `doc::${doc.document_id}` : `${taskKey}::${index}`;
+        documents.push(normalizeAttachmentDoc(doc, taskKey, docId));
+      });
+    });
+
+    folderTree.push({
+      name: roleKey,
+      label: role?.role_name || "Role",
+      icon: FOLDER_ICON_TYPES.CHECKLIST,
+      children,
+    });
+  });
+
+  return { folderTree, documents };
+};
+
+/**
+ * Resolve the initial folder/document selection for a given tree + documents.
+ * Prefers the first folder (or sub-folder) that actually contains documents.
+ */
+export const resolveLibraryDefaults = (folderTree, documents) => {
+  const folderHasDocuments = (folderKey) =>
+    documents.some((doc) => doc.folder === folderKey);
+  const firstDocumentId = (folderKey) =>
+    documents.find((doc) => doc.folder === folderKey)?.id ?? null;
+
+  for (const node of folderTree) {
+    const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+    if (hasChildren) {
+      const childWithDocs = node.children.find((child) => folderHasDocuments(child.name));
+      if (childWithDocs) {
+        return {
+          folder: childWithDocs.name,
+          parentFolder: node.name,
+          documentId: firstDocumentId(childWithDocs.name),
+        };
+      }
+    } else if (folderHasDocuments(node.name)) {
+      return { folder: node.name, parentFolder: null, documentId: firstDocumentId(node.name) };
+    }
+  }
+
+  const first = folderTree[0];
+  if (first) {
+    const hasChildren = Array.isArray(first.children) && first.children.length > 0;
+    if (hasChildren) {
+      return { folder: first.children[0].name, parentFolder: first.name, documentId: null };
+    }
+    return { folder: first.name, parentFolder: null, documentId: null };
+  }
+
+  return { folder: null, parentFolder: null, documentId: null };
+};

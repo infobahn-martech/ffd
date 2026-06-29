@@ -59,7 +59,7 @@ ChevronIcon.propTypes = {
 
 const countDocumentsInFolder = (folderName, documents, folderTree) => {
   const parent = folderTree.find((entry) => entry.name === folderName);
-  if (parent) {
+  if (parent && (parent.children || []).length > 0) {
     const childNames = (parent.children || []).map((child) => child.name);
     return documents.filter((doc) => childNames.includes(doc.folder)).length;
   }
@@ -116,7 +116,7 @@ const FolderTree = ({
                     aria-selected={isParentActive}
                   >
                     <FolderIcon open={isParentExpanded || isParentActive} />
-                    <span className="doc-lib-tree-folder-name">{parent.name}</span>
+                    <span className="doc-lib-tree-folder-name">{parent.label ?? parent.name}</span>
                     <span className="doc-lib-tree-badge" aria-label={`${countsByFolder[parent.name]} documents`}>
                       {countsByFolder[parent.name]}
                     </span>
@@ -138,7 +138,7 @@ const FolderTree = ({
                             aria-selected={isChildActive}
                           >
                             <FolderIcon open={isChildActive} />
-                            <span className="doc-lib-tree-folder-name">{child.name}</span>
+                            <span className="doc-lib-tree-folder-name">{child.label ?? child.name}</span>
                             <span className="doc-lib-tree-badge" aria-label={`${countsByFolder[child.name]} documents`}>
                               {countsByFolder[child.name]}
                             </span>
@@ -174,7 +174,7 @@ FolderTree.propTypes = {
       folder: PropTypes.string.isRequired,
     })
   ).isRequired,
-  selectedFolder: PropTypes.string.isRequired,
+  selectedFolder: PropTypes.string,
   expandedFolders: PropTypes.object.isRequired,
   onToggleExpand: PropTypes.func.isRequired,
   onSelectFolder: PropTypes.func.isRequired,

@@ -190,7 +190,7 @@ const FileExplorer = ({
                   <FolderRowIcon />
                 </span>
                 <span className="doc-lib-file-row-main">
-                  <span className="doc-lib-file-row-name">{folder.name}</span>
+                  <span className="doc-lib-file-row-name">{folder.label ?? folder.name}</span>
                   <span className="doc-lib-file-row-meta">Folder</span>
                 </span>
               </button>
@@ -216,7 +216,9 @@ const FileExplorer = ({
                     </span>
                     <span className="doc-lib-file-row-meta">
                       {file.size}
-                      <span className="doc-lib-file-row-dot" aria-hidden>•</span>
+                      {file.size && file.date && (
+                        <span className="doc-lib-file-row-dot" aria-hidden>•</span>
+                      )}
                       {file.date}
                     </span>
                   </span>
@@ -235,6 +237,7 @@ FileExplorer.propTypes = {
   childFolders: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
+      label: PropTypes.string,
       parentName: PropTypes.string,
     })
   ).isRequired,
@@ -243,8 +246,8 @@ FileExplorer.propTypes = {
       id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
       type: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      size: PropTypes.string.isRequired,
-      date: PropTypes.string.isRequired,
+      size: PropTypes.string,
+      date: PropTypes.string,
     })
   ).isRequired,
   selectedDocumentId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),

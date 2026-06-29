@@ -22,6 +22,17 @@
   overflow: hidden;
 }
 
+.document-library--message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  grid-template-columns: none;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  padding: 24px;
+}
+
 .document-library__panel {
   display: flex;
   flex-direction: column;
