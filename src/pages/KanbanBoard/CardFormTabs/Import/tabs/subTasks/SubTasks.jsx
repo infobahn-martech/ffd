@@ -439,7 +439,7 @@ function Subtasks({ card }) {
                                                                 <button type="button" className="subtasks-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || isUpdating}>
                                                                     {isUpdating ? "Saving..." : "Update"}
                                                                 </button>
-                                                                <button type="button" className="subtasks-tab-doc-remove" onClick={handleEditCancel} disabled={isUpdating}>
+                                                                <button type="button" className="subtasks-tab-cancel-btn" onClick={handleEditCancel} disabled={isUpdating}>
                                                                     Cancel
                                                                 </button>
                                                             </div>

@@ -1054,10 +1054,42 @@
 
 .subtasks-tab-save-row {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
   flex-shrink: 0;
   margin-top: auto;
   padding-top: 2px;
+}
+
+.subtasks-tab-cancel-btn {
+  background: #ffffff;
+  border: 1px solid #d4d9e3;
+  color: #5c6370;
+  border-radius: 6px;
+  height: 36px;
+  min-width: 88px;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Open Sans", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #f4f6fa;
+    border-color: #b9c1d1;
+    color: #3d4451;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .subtasks-tab-save-btn {
@@ -1154,6 +1186,42 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+}
+
+.subtasks-tab-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.subtasks-tab-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e2e6ee;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #5c6370;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #eef3fb;
+    border-color: #00368c;
+    color: #00368c;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .subtasks-tab-task-check {
