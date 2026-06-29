@@ -82,30 +82,6 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
     }
   }
 
-  if (stageId === 10) {
-    if (!trimText(data.mwp_application_no)) {
-      errors.mwp_application_no = "MWP Application No is required.";
-    }
-    if (!trimText(data.sadad_no)) {
-      errors.sadad_no = "SADAD No is required.";
-    }
-    if (!hasFile(data.sadad_doc)) {
-      errors.sadad_doc = "SADAD Attachment is required.";
-    }
-    if (!trimText(data.mwp_subscription_sadad_no)) {
-      errors.mwp_subscription_sadad_no = "MWP Subscription SADAD No is required.";
-    }
-    if (!hasFile(data.mwp_subscription_sadad_doc)) {
-      errors.mwp_subscription_sadad_doc = "MWP Subscription SADAD file is required.";
-    }
-    if (!hasFile(data.mwp_copy)) {
-      errors.mwp_copy = "MWP Copy is required.";
-    }
-    if (!hasFile(data.mwp_subscription_tax_invoice)) {
-      errors.mwp_subscription_tax_invoice = "MWP Subscription Tax Invoice is required.";
-    }
-  }
-
   return errors;
 };
 

@@ -193,7 +193,7 @@ function GroPopoverStageExtraFields({
     return (
       <>
         <div className={`gro-inward-popover-field${errors?.mwp_application_no ? " gro-inward-popover-field--error" : ""}`}>
-          <span className="gro-inward-popover-label">MWP Application No *</span>
+          <span className="gro-inward-popover-label">MWP Application No</span>
           <input
             type="text"
             className="gro-inward-popover-input"
@@ -207,7 +207,7 @@ function GroPopoverStageExtraFields({
           ) : null}
         </div>
         <div className={`gro-inward-popover-field${errors?.sadad_no ? " gro-inward-popover-field--error" : ""}`}>
-          <span className="gro-inward-popover-label">SADAD No *</span>
+          <span className="gro-inward-popover-label">SADAD No</span>
           <input
             type="text"
             className="gro-inward-popover-input"
@@ -228,10 +228,9 @@ function GroPopoverStageExtraFields({
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
-          required
         />
         <div className={`gro-inward-popover-field${errors?.mwp_subscription_sadad_no ? " gro-inward-popover-field--error" : ""}`}>
-          <span className="gro-inward-popover-label">MWP Subscription SADAD No *</span>
+          <span className="gro-inward-popover-label">MWP Subscription SADAD No</span>
           <input
             type="text"
             className="gro-inward-popover-input"
@@ -252,7 +251,6 @@ function GroPopoverStageExtraFields({
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
-          required
         />
         <PopoverFileUploadField
           label="MWP Copy"
@@ -262,7 +260,6 @@ function GroPopoverStageExtraFields({
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
-          required
         />
         <PopoverFileUploadField
           label="MWP Subscription Tax Invoice"
@@ -272,7 +269,6 @@ function GroPopoverStageExtraFields({
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
-          required
         />
       </>
     );
