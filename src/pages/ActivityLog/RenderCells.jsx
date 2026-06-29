@@ -2,11 +2,13 @@ import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 
 import eye from '../../assets/images/eye.svg';
+import deleteIcon from '../../assets/images/delete.svg';
 
-export const RenderAction = ({ row, onViewClick }) => {
+export const RenderAction = ({ row, onViewClick, onDeleteClick }) => {
   return (
     <>
       <Tooltip id="view" place="bottom" content="View" />
+      <Tooltip id="delete" place="bottom" content="Delete" />
       <div className="actions">
         <span
           data-tooltip-id="view"
@@ -18,6 +20,17 @@ export const RenderAction = ({ row, onViewClick }) => {
           }}
         >
           <img src={eye} alt="view" />
+        </span>
+        <span
+          data-tooltip-id="delete"
+          type="button"
+          className="delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteClick && onDeleteClick(row);
+          }}
+        >
+          <img src={deleteIcon} alt="delete" />
         </span>
       </div>
     </>

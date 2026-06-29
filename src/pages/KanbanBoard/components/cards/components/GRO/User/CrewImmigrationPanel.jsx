@@ -49,6 +49,9 @@ CrewImmigrationPassIcon.propTypes = {
 };
 
 export default function CrewImmigrationPanel({
+  passType,
+  onPassTypeChange,
+  passLoading,
   selectedRowIds,
   onBulkUploadCg,
   onBulkUploadZawil,
@@ -139,6 +142,28 @@ export default function CrewImmigrationPanel({
   return (
     <div className="gro-crew-immigration-panel">
       <div className="gro-crew-immigration-toolbar">
+        <div className="gro-pass-segments" role="tablist" aria-label="Pass type">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={passType === "cg"}
+            className={`gro-pass-segment${passType === "cg" ? " gro-pass-segment--active" : ""}`}
+            onClick={() => onPassTypeChange("cg")}
+            disabled={passLoading}
+          >
+            CG Pass
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={passType === "zawil"}
+            className={`gro-pass-segment${passType === "zawil" ? " gro-pass-segment--active" : ""}`}
+            onClick={() => onPassTypeChange("zawil")}
+            disabled={passLoading}
+          >
+            Zawil Pass
+          </button>
+        </div>
         <button
           type="button"
           className="gro-crew-immigration-bulk-btn"
@@ -336,6 +361,9 @@ export default function CrewImmigrationPanel({
 }
 
 CrewImmigrationPanel.propTypes = {
+  passType: PropTypes.oneOf(["cg", "zawil"]).isRequired,
+  onPassTypeChange: PropTypes.func.isRequired,
+  passLoading: PropTypes.bool,
   selectedRowIds: PropTypes.instanceOf(Set).isRequired,
   onBulkUploadCg: PropTypes.func.isRequired,
   onBulkUploadZawil: PropTypes.func.isRequired,
