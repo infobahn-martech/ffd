@@ -1,8 +1,8 @@
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useMemo, useRef } from 'react';
-import ReactQuill, { Quill } from 'react-quill';
+import Quill from 'quill';
 import QuillTableBetter from 'quill-table-better';
-import 'react-quill/dist/quill.snow.css';
+import 'quill/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import CustomModal from '../../../components/CustomModal';
 import PremiumSelect from '../../../components/form/PremiumSelect';
@@ -13,13 +13,105 @@ import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
 import '../../../design/scss/pages/cg-pass-template/modals/AddEditCGPassTemplate.scss';
 
-Quill.register({ 'modules/table-better': QuillTableBetter }, true);
-QuillTableBetter.register();
+// Register once at module level using the same Quill instance that quill-table-better uses
+if (!Quill.__tableBetterRegistered) {
+  Quill.register({ 'modules/table-better': QuillTableBetter }, true);
+  QuillTableBetter.register();
+  Quill.__tableBetterRegistered = true;
+}
 
 const isHtmlEmpty = (value) => {
   if (!value) return true;
-  return value.replace(/<(.|\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
+  return value.replace(/<(.|\\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
 };
+
+// ---------------------------------------------------------------------------
+// QuillEditor — mounts a real Quill v2 instance onto a bare div ref.
+// Accepts value (HTML string) and calls onChange(html) on every text-change.
+// ---------------------------------------------------------------------------
+function QuillEditor({ value, onChange, placeholder }) {
+  const containerRef = useRef(null);
+  const quillRef = useRef(null);
+  // Track the last value we pushed into the editor so we don't loop
+  const lastHtmlRef = useRef('');
+
+  // Mount Quill once
+  useEffect(() => {
+    if (!containerRef.current || quillRef.current) return;
+
+    const quill = new Quill(containerRef.current, {
+      theme: 'snow',
+      placeholder: placeholder || '',
+      modules: {
+        table: false,
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ direction: 'rtl' }],
+          ['link', 'table-better'],
+          ['clean'],
+        ],
+        'table-better': {
+          language: 'en_US',
+          menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+          toolbarTable: true,
+        },
+        keyboard: {
+          bindings: QuillTableBetter.keyboardBindings,
+        },
+      },
+    });
+
+    quillRef.current = quill;
+
+    // Default direction / align for RTL content
+    quill.format('direction', 'rtl');
+    quill.format('align', 'right');
+
+    // Patch getSelection so it never returns null when called with force=true.
+    // This prevents insertTable from silently aborting inside a Bootstrap modal
+    // where root.focus() can briefly reset savedRange to null.
+    const origGetSel = quill.getSelection.bind(quill);
+    quill.getSelection = function (force) {
+      const range = origGetSel(force);
+      return range !== null ? range : (force ? { index: 0, length: 0 } : null);
+    };
+
+    // Listen for text changes and bubble HTML up to react-hook-form
+    quill.on(Quill.events.TEXT_CHANGE, () => {
+      const html = quill.root.innerHTML;
+      lastHtmlRef.current = html;
+      onChange(html);
+    });
+
+    return () => {
+      // Destroy the Quill instance on unmount
+      quill.off(Quill.events.TEXT_CHANGE);
+      quillRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync external value changes into the editor (e.g. form reset)
+  useEffect(() => {
+    const quill = quillRef.current;
+    if (!quill) return;
+    const incoming = value || '';
+    if (incoming === lastHtmlRef.current) return;
+    lastHtmlRef.current = incoming;
+    const delta = quill.clipboard.convert({ html: incoming });
+    quill.setContents(delta, Quill.sources.SILENT);
+  }, [value]);
+
+  return (
+    <div className="react-quill-wrapper" dir="rtl">
+      <div ref={containerRef} />
+    </div>
+  );
+}
 
 export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess }) {
   const templateId = showModal?.pass_vesselreg_template_id;
@@ -27,8 +119,6 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
 
   const { createTemplate, updateTemplate, isBeingUpdated } = useCGPassTemplateReducer((s) => s);
   const { ports, getPorts } = usePortReducer((s) => s);
-
-  const quillRef = useRef(null);
 
   const defaultValues = useMemo(
     () =>
@@ -56,42 +146,8 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   }, []);
 
   useEffect(() => {
-    const quill = quillRef.current?.getEditor();
-    if (quill) {
-      quill.format('direction', 'rtl');
-      quill.format('align', 'right');
-    }
-  }, [showModal]);
-
-  useEffect(() => {
     reset(defaultValues);
   }, [showModal, reset]);
-
-  const quillModules = useMemo(
-    () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ color: [] }, { background: [] }],
-          [{ align: [] }],
-          [{ direction: 'rtl' }],
-          ['link', 'table-better'],
-          ['clean'],
-        ],
-      },
-      'table-better': {
-        language: 'en_US',
-        menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
-        toolbarTable: true,
-      },
-      keyboard: {
-        bindings: QuillTableBetter.keyboardBindings,
-      },
-    }),
-    []
-  );
 
   const onSubmit = (data) => {
     const payload = {
@@ -209,16 +265,11 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                       validate: (v) => !isHtmlEmpty(v) || 'Content is required',
                     }}
                     render={({ field }) => (
-                      <div className="react-quill-wrapper" dir="rtl">
-                        <ReactQuill
-                          ref={quillRef}
-                          theme="snow"
-                          value={field.value || ''}
-                          onChange={field.onChange}
-                          modules={quillModules}
-                          placeholder="Enter content..."
-                        />
-                      </div>
+                      <QuillEditor
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        placeholder="Enter content..."
+                      />
                     )}
                   />
                   {errors.content && (

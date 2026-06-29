@@ -16,6 +16,9 @@ import '../../../design/scss/pages/vessel-registration-template/modals/AddEditVe
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
 
+const Icons = Quill.import('ui/icons');
+Icons['table-better'] = `<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"/><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"/><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"/></svg>`;
+
 const isHtmlEmpty = (value) => {
   if (!value) return true;
   return value.replace(/<(.|\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
@@ -57,9 +60,55 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
 
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
-    if (quill) {
-      quill.format('direction', 'rtl');
-      quill.format('align', 'right');
+    if (!quill) return;
+
+    quill.format('direction', 'rtl');
+    quill.format('align', 'right');
+
+    const toolbarContainer = quill.getModule('toolbar')?.container;
+    const tableBtn = toolbarContainer?.querySelector('button.ql-table-better');
+    if (tableBtn && !tableBtn._focusHandlerAdded) {
+      tableBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      tableBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          const picker = document.querySelector('.ql-table-select-container');
+          if (picker && !picker._nofocusAdded) {
+            picker.addEventListener('mousedown', (e) => e.preventDefault(), true);
+            picker._nofocusAdded = true;
+          }
+        }, 0);
+      });
+      tableBtn._focusHandlerAdded = true;
+    }
+
+    // insertTable calls getSelection(true) and aborts if it returns null.
+    // Bootstrap focus on the modal causes this: root.focus() fires selectionchange
+    // → update() reads null (no cursor yet) → savedRange = null → setRange(null)
+    // → root.blur() → getSelection returns null → silent abort.
+    //
+    // Two-layer fix:
+    // 1. setSelection before origInsert plants a native DOM selection so the
+    //    selectionchange fired by root.focus() reads a valid position.
+    // 2. getSelection override is the hard guarantee — even if layer 1 races,
+    //    getSelection(true) can never return null.
+    if (!quill._getSelectionPatched) {
+      const origGetSel = quill.getSelection.bind(quill);
+      quill.getSelection = function (force) {
+        const range = origGetSel(force);
+        return range !== null ? range : (force ? { index: 0, length: 0 } : null);
+      };
+      quill._getSelectionPatched = true;
+    }
+
+    const tableBetter = quill.getModule('table-better');
+    if (tableBetter && !tableBetter._selectionPatched) {
+      const origInsert = tableBetter.insertTable.bind(tableBetter);
+      tableBetter.insertTable = function (rows, cols) {
+        const idx = quill.selection?.savedRange?.index ?? 0;
+        quill.setSelection(idx, 0, 'silent');
+        return origInsert(rows, cols);
+      };
+      tableBetter._selectionPatched = true;
     }
   }, [showModal]);
 
@@ -69,18 +118,17 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
 
   const quillModules = useMemo(
     () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ color: [] }, { background: [] }],
-          [{ align: [] }],
-          [{ direction: 'rtl' }],
-          ['link', 'table-better'],
-          ['clean'],
-        ],
-      },
+      table: false,
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        [{ direction: 'rtl' }],
+        ['link', 'table-better'],
+        ['clean'],
+      ],
       'table-better': {
         language: 'en_US',
         menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
