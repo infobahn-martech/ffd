@@ -1,3 +1,24 @@
+// Taxi Boat card — local variables (DO NOT move to _variables.scss)
+// ––––––––––––––––––––––––––––––––––––––––––––––––––
+$tb-font-size-xs:          10px;
+$tb-font-size-sm:          11px;
+$tb-font-size-md:          13px;
+$tb-font-size-base:        14px;
+$tb-font-size-lg:          15px;
+
+$tb-font-weight-medium:    500;
+$tb-font-weight-semibold:  600;
+$tb-font-weight-bold:      700;
+$tb-font-weight-extrabold: 800;
+
+$tb-space-xs:   6px;
+$tb-space-sm:   10px;
+$tb-space-md:   14px;
+$tb-space-lg:   20px;
+$tb-space-xl:   28px;
+$tb-space-2xl:  32px;
+// ––––––––––––––––––––––––––––––––––––––––––––––––––
+
 .tb-card-view {
   flex: 1;
   min-height: 0;

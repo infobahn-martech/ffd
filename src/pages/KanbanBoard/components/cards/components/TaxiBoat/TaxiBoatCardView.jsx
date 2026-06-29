@@ -5,6 +5,7 @@ import { FaShip } from "react-icons/fa";
 import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-service-scenarios.scss";
+import GroSummaryCard from "../GRO/User/GroSummaryCard";
 
 const CREW_CHANGE_SERVICES = ["Crew Change"];
 const MATERIAL_SERVICES   = ["Material Delivery", "Provision Delivery", "Garbage Collection"];
@@ -797,11 +798,13 @@ function TaxiBoatCardView({ card }) {
 
   return (
     <div className="tb-card-view">
-      <div className="tb-info-grid">
-        <InfoCard label="Assigned User"      value={assignedUser}      />
-        <InfoCard label="Billing Entity"     value={billingEntity}     />
-        <InfoCard label="Vessel Name"        value={vesselName}        />
-        <InfoCard label="Location"           value={location}          />
+      <div className="gro-summary-grid gro-summary-grid--six-col">
+        <GroSummaryCard label="Assigned User"      value={assignedUser}       />
+        <GroSummaryCard label="Requested Operator" value={requestedOperator}  />
+        <GroSummaryCard label="Billing Entity"     value={billingEntity}      />
+        <GroSummaryCard label="Vessel Name"        value={vesselName}         />
+        <GroSummaryCard label="Location"           value={location}           />
+        <GroSummaryCard label="Booking Date"       value={bookingDate}        />
       </div>
 
       <TaxiFleetAssignPanel
