@@ -1,7 +1,9 @@
 import { useForm, Controller } from 'react-hook-form';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
+import QuillTableBetter from 'quill-table-better';
 import 'react-quill/dist/quill.snow.css';
+import 'quill-table-better/dist/quill-table-better.css';
 import CustomModal from '../../../components/CustomModal';
 import PremiumSelect from '../../../components/form/PremiumSelect';
 import useCGPassTemplateReducer from '../../../store/CGPassTemplateReducer';
@@ -11,64 +13,7 @@ import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
 import '../../../design/scss/pages/cg-pass-template/modals/AddEditCGPassTemplate.scss';
 
-const Icons = Quill.import('ui/icons');
-Icons['table'] =
-  '<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"/><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"/><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"/></svg>';
-
-const BlockEmbed = Quill.import('blots/block/embed');
-
-class TableEmbed extends BlockEmbed {
-  static create(value) {
-    const node = super.create();
-    const rows = value?.rows ?? 3;
-    const cols = value?.cols ?? 3;
-
-    const table = document.createElement('table');
-    const tbody = document.createElement('tbody');
-
-    for (let r = 0; r < rows; r++) {
-      const tr = document.createElement('tr');
-      for (let c = 0; c < cols; c++) {
-        const td = document.createElement('td');
-        td.setAttribute('contenteditable', 'true');
-        td.setAttribute('dir', 'rtl');
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    node.appendChild(table);
-
-    node.addEventListener('mousedown', (e) => e.stopPropagation());
-    node.addEventListener('keydown', (e) => {
-      const cell = e.target.closest('td');
-      if (!cell) return;
-      if (e.key === 'Backspace' || e.key === 'Delete') {
-        if (cell.textContent.replace(/[\s ]/g, '').length === 0) {
-          e.preventDefault();
-        } else {
-          e.stopPropagation();
-        }
-      } else {
-        e.stopPropagation();
-      }
-    });
-
-    return node;
-  }
-
-  static value(node) {
-    const trs = node.querySelectorAll('tr');
-    const tds = trs[0]?.querySelectorAll('td');
-    return { rows: trs.length || 3, cols: tds?.length || 3 };
-  }
-}
-
-TableEmbed.blotName = 'table-embed';
-TableEmbed.tagName = 'div';
-TableEmbed.className = 'ql-table-embed';
-
-Quill.register(TableEmbed);
+Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 
 const isHtmlEmpty = (value) => {
   if (!value) return true;
@@ -83,8 +28,6 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   const { ports, getPorts } = usePortReducer((s) => s);
 
   const quillRef = useRef(null);
-  const onContentChange = useRef(null);
-  const [activeTable, setActiveTable] = useState(null);
 
   const defaultValues = useMemo(
     () =>
@@ -123,46 +66,9 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
     reset(defaultValues);
   }, [showModal, reset]);
 
-  // Detect clicks inside a table cell to show the table toolbar
-  useEffect(() => {
-    const quill = quillRef.current?.getEditor();
-    if (!quill) return;
-    const onEditorClick = (e) => {
-      const cell = e.target.closest('td');
-      setActiveTable(cell ? cell.closest('table') : null);
-    };
-    quill.root.addEventListener('click', onEditorClick);
-    return () => quill.root.removeEventListener('click', onEditorClick);
-  }, [showModal]);
-
-  const handleAddColumn = useCallback(() => {
-    if (!activeTable) return;
-    activeTable.querySelectorAll('tr').forEach((tr) => {
-      const td = document.createElement('td');
-      td.setAttribute('contenteditable', 'true');
-      td.setAttribute('dir', 'rtl');
-      tr.appendChild(td);
-    });
-    onContentChange.current?.(quillRef.current?.getEditor().root.innerHTML);
-  }, [activeTable]);
-
-  const handleAddRow = useCallback(() => {
-    if (!activeTable) return;
-    const tbody = activeTable.querySelector('tbody') || activeTable;
-    const colCount = tbody.querySelector('tr')?.querySelectorAll('td').length ?? 3;
-    const tr = document.createElement('tr');
-    for (let i = 0; i < colCount; i++) {
-      const td = document.createElement('td');
-      td.setAttribute('contenteditable', 'true');
-      td.setAttribute('dir', 'rtl');
-      tr.appendChild(td);
-    }
-    tbody.appendChild(tr);
-    onContentChange.current?.(quillRef.current?.getEditor().root.innerHTML);
-  }, [activeTable]);
-
   const quillModules = useMemo(
     () => ({
+      table: false,
       toolbar: {
         container: [
           [{ header: [1, 2, 3, false] }],
@@ -171,29 +77,21 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
           [{ color: [] }, { background: [] }],
           [{ align: [] }],
           [{ direction: 'rtl' }],
-          ['link', 'table'],
+          ['link', 'table-better'],
           ['clean'],
         ],
-        handlers: {
-          table: function () {
-            const quill = this.quill;
-            quill.focus();
-            const range = quill.getSelection();
-            const index = range ? range.index : quill.getLength();
-            quill.insertEmbed(index, 'table-embed', { rows: 3, cols: 3 }, 'user');
-            quill.setSelection(index + 1, 0, 'user');
-          },
-        },
+      },
+      'table-better': {
+        language: 'en_US',
+        menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+        toolbarTable: true,
+      },
+      keyboard: {
+        bindings: QuillTableBetter.keyboardBindings,
       },
     }),
     []
   );
-
-  const quillFormats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'color', 'background', 'align', 'direction', 'link',
-    'table-embed',
-  ];
 
   const onSubmit = (data) => {
     const payload = {
@@ -310,31 +208,18 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                       required: 'Content is required',
                       validate: (v) => !isHtmlEmpty(v) || 'Content is required',
                     }}
-                    render={({ field }) => {
-                      onContentChange.current = field.onChange;
-                      return (
-                        <div className="react-quill-wrapper" dir="rtl">
-                          <div className="cg-table-toolbar">
-                            <span className="cg-table-toolbar-label">Table</span>
-                            <button type="button" className="cg-table-toolbar-btn" onClick={handleAddColumn} disabled={!activeTable}>
-                              + Add Column
-                            </button>
-                            <button type="button" className="cg-table-toolbar-btn" onClick={handleAddRow} disabled={!activeTable}>
-                              + Add Row
-                            </button>
-                          </div>
-                          <ReactQuill
-                            ref={quillRef}
-                            theme="snow"
-                            value={field.value || ''}
-                            onChange={field.onChange}
-                            modules={quillModules}
-                            formats={quillFormats}
-                            placeholder="Enter content..."
-                          />
-                        </div>
-                      );
-                    }}
+                    render={({ field }) => (
+                      <div className="react-quill-wrapper" dir="rtl">
+                        <ReactQuill
+                          ref={quillRef}
+                          theme="snow"
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          modules={quillModules}
+                          placeholder="Enter content..."
+                        />
+                      </div>
+                    )}
                   />
                   {errors.content && (
                     <span className="error text-danger">
