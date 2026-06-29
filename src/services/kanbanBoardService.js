@@ -43,6 +43,22 @@ const getCardTagsByBoard = (boardId) =>
 const updateCardTag = (payload) =>
   Gateway.post('/kanban_card/update_card_tag', payload);
 
+/** GET — subtasks for a card; response: { data: [{ subtask_id, description, assigned_to, assigned_to_name, is_completed, due_date, document, document_url }] } */
+const getSubtasks = (cardId) =>
+  Gateway.get(`/kanban_card/get_subtasks/${encodeURIComponent(String(cardId))}`);
+
+/** POST multipart FormData — { card_id, description, assigned_to, due_date, document? } */
+const createSubtask = (formData) =>
+  Gateway.post('/kanban_card/create_subtask', formData);
+
+/** POST multipart FormData — { subtask_id, description, assigned_to, due_date, document? } */
+const updateSubtask = (formData) =>
+  Gateway.post('/kanban_card/update_subtask', formData);
+
+/** POST — { subtask_id, is_completed: 0|1 } */
+const completeSubtask = (subtaskId, isCompleted) =>
+  Gateway.post('/kanban_card/complete_subtask', { subtask_id: subtaskId, is_completed: isCompleted });
+
 export default {
   getFullBoard,
   updateCardColor,
@@ -54,4 +70,8 @@ export default {
   updateCardSticker,
   getCardTagsByBoard,
   updateCardTag,
+  getSubtasks,
+  createSubtask,
+  updateSubtask,
+  completeSubtask,
 };
