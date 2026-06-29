@@ -35,13 +35,9 @@ export const uploadZawilPass = (formData) => Gateway.post("crew_pass/upload_zawi
 
 export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass", formData);
 
-/**
- * Placeholder bulk upload for dynamic GRO stages (Crew Immigration / Vessel Inward Registration).
- * Expects FormData: call_id, card_id, task_id, stage_id, file, upload_type.
- * TODO: confirm final endpoint with backend.
- */
-export const uploadGroStageDocument = (formData) =>
-  Gateway.post("task_card/upload_stage_document", formData);
+/** POST multipart FormData — { call_id, card_id, task_id, stage_id, file, upload_type, call_task_document_id } */
+export const reuploadVesselRegDocument = (formData) =>
+  Gateway.post("task_card/reupload_vessel_reg_document", formData);
 
 /** POST time_object/get_stage_time_objects — { stage_id, port_id, call_type_id, call_id } */
 export const getStageTimeObjects = (payload) =>
@@ -61,7 +57,7 @@ const groService = {
   getZawilRequests,
   uploadZawilPass,
   uploadCgPass,
-  uploadGroStageDocument,
+  reuploadVesselRegDocument,
   getStageTimeObjects,
   generateVesselRegistrationPdf,
   assignTask: taskCardService.assignTask,

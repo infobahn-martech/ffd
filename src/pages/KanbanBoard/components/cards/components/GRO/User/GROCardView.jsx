@@ -1184,17 +1184,16 @@ const GROCardView = forwardRef(function GROCardView(
         return;
       }
 
+      const callTaskDocumentId =
+        documents.find((d) => d.call_task_document_id != null)?.call_task_document_id ?? "";
+
       const formData = new FormData();
-      formData.append("call_id", callId ?? "");
-      formData.append("card_id", cardId ?? "");
-      formData.append("task_id", taskId ?? "");
-      formData.append("stage_id", groStageId ?? "");
+      formData.append("call_task_document_id", callTaskDocumentId);
       formData.append("file", dynamicUploadFile);
-      formData.append("upload_type", dynamicUploadType ?? "");
 
       setIsDynamicUploadSubmitting(true);
       try {
-        await groService.uploadGroStageDocument(formData);
+        await groService.reuploadVesselRegDocument(formData);
         notify("Document uploaded successfully.", "success");
         setShowDynamicUploadModal(false);
         setDynamicUploadFile(null);
@@ -1210,11 +1209,7 @@ const GROCardView = forwardRef(function GROCardView(
     [
       isDynamicUploadSubmitting,
       dynamicUploadFile,
-      dynamicUploadType,
-      callId,
-      cardId,
-      taskId,
-      groStageId,
+      documents,
       refreshGroDocuments,
     ]
   );
