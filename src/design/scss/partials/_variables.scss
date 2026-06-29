@@ -46,27 +46,3 @@ $sm-1441 : "max-width: 1441px";
 $sm-1481 : "max-width: 1481px";
 $sm-1679 : "max-width: 1679px";
 /*** WSXGA (Wide Super Extended Graphics Array) resolution ***/
-
-// Taxi Boat card — typography
-//––––––––––––––––––––––––––––––––––––––––––––––––––
-$tb-font-family:          $font-primary;   // 'Open Sans', sans-serif
-
-$tb-font-size-xs:         10px;            // fleet meta, duration badges
-$tb-font-size-sm:         11px;            // labels, section titles, table headers
-$tb-font-size-md:         13px;            // body text, tabs, buttons
-$tb-font-size-base:       14px;            // values, confirm messages
-$tb-font-size-lg:         15px;            // job-complete button
-
-$tb-font-weight-medium:   500;
-$tb-font-weight-semibold: 600;
-$tb-font-weight-bold:     700;
-$tb-font-weight-extrabold: 800;
-
-// Taxi Boat card — spacing
-//––––––––––––––––––––––––––––––––––––––––––––––––––
-$tb-space-xs:   6px;    // tight gaps (icon rows, pill padding)
-$tb-space-sm:   10px;   // card inner gap, chip gap
-$tb-space-md:   14px;   // section gaps, table cell padding
-$tb-space-lg:   20px;   // card-view column gap
-$tb-space-xl:   28px;   // card-view top padding
-$tb-space-2xl:  32px;   // card-view side padding
