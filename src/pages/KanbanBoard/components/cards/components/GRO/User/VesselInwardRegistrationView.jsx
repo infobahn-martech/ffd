@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from "react";
 import PropTypes from "prop-types";
 import { FiSave, FiPrinter } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
 import { GRO_STATIC_VESSEL_INWARD_CREW_ROWS } from "./groCardUtils";
+import groService from "../../../../../../../services/groService";
 
 const EDITABLE_FIELDS = [
   { key: "crewName", label: "Crew Name" },
@@ -11,13 +12,33 @@ const EDITABLE_FIELDS = [
   { key: "zawilNo", label: "Zawil No" },
 ];
 
-/** Vessel Inward Registration boarding view — crew details + Arabic document preview (static). */
+/** Vessel Inward Registration boarding view — crew details + Arabic document preview. */
 const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
-  { initialRows = GRO_STATIC_VESSEL_INWARD_CREW_ROWS, onSave, isSaving = false },
+  { initialRows = GRO_STATIC_VESSEL_INWARD_CREW_ROWS, onSave, isSaving = false, portId },
   ref
 ) {
   const [rows, setRows] = useState(initialRows);
+  const [templateData, setTemplateData] = useState(null);
   const previewRef = useRef(null);
+
+  useEffect(() => {
+    if (!portId) return;
+    let cancelled = false;
+    groService
+      .getTemplatesByPort(portId, "Vessel Registration")
+      .then((res) => {
+        if (cancelled) return;
+        const list = res?.data?.data ?? res?.data ?? [];
+        const first = Array.isArray(list) ? list[0] : null;
+        setTemplateData(first ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setTemplateData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [portId]);
 
   useImperativeHandle(
     ref,
@@ -132,7 +153,7 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
             </div>
           </div>
           <div ref={previewRef}>
-            <VesselBoardingArabicPreview rows={rows} />
+            <VesselBoardingArabicPreview rows={rows} templateData={templateData} />
           </div>
         </div>
       </div>
@@ -144,6 +165,7 @@ VesselInwardRegistrationView.propTypes = {
   initialRows: PropTypes.arrayOf(PropTypes.object),
   onSave: PropTypes.func,
   isSaving: PropTypes.bool,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 VesselInwardRegistrationView.displayName = "VesselInwardRegistrationView";

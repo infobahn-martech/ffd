@@ -1567,6 +1567,7 @@ const GROCardView = forwardRef(function GROCardView(
               setCrewImmigrationSelectedRowIds(new Set());
             }}
             passLoading={crewImmigrationPassLoading}
+            portId={groPortId}
             selectedRowIds={crewImmigrationSelectedRowIds}
             onBulkUploadCg={() => triggerCrewUploadInput("cg")}
             onBulkUploadZawil={() => triggerCrewUploadInput("zawil")}
@@ -1614,6 +1615,7 @@ const GROCardView = forwardRef(function GROCardView(
             ref={vesselRegistrationRef}
             onSave={handleGenerateVesselRegistrationPdf}
             isSaving={isGeneratingVesselPdf}
+            portId={groPortId}
           />
         ) : hidePassTabs || groMainView === GRO_MAIN_VIEWS.inward ? (
           <InwardClearanceView

@@ -52,6 +52,7 @@ export default function CrewImmigrationPanel({
   passType,
   onPassTypeChange,
   passLoading,
+  portId,
   selectedRowIds,
   onBulkUploadCg,
   onBulkUploadZawil,
@@ -134,6 +135,7 @@ export default function CrewImmigrationPanel({
           onRowsChange={setBulkRows}
           onBack={exitBulkUploadMode}
           onSubmit={handleBulkSubmit}
+          portId={portId}
         />
       </div>
     );
@@ -364,6 +366,7 @@ CrewImmigrationPanel.propTypes = {
   passType: PropTypes.oneOf(["cg", "zawil"]).isRequired,
   onPassTypeChange: PropTypes.func.isRequired,
   passLoading: PropTypes.bool,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   selectedRowIds: PropTypes.instanceOf(Set).isRequired,
   onBulkUploadCg: PropTypes.func.isRequired,
   onBulkUploadZawil: PropTypes.func.isRequired,

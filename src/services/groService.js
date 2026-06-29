@@ -20,6 +20,12 @@ export const getDocumentsByTask = (taskId, callId) => {
 /** POST task_card/verify_docs — { call_id, task_id, card_id, documents: [{ document_id, status, remarks }] } */
 export const verifyGroDocs = (payload) => Gateway.post("task_card/verify_docs", payload);
 
+/** GET — pass templates for a port filtered by template_type ("CG Pass" | "Vessel Registration") */
+export const getTemplatesByPort = (portId, templateType) =>
+  Gateway.get(`pass_template/templates_by_port/${encodeURIComponent(String(portId))}`, {
+    params: { template_type: templateType },
+  });
+
 export const saveArrivalDocument = groArrivalService.saveArrivalDocument;
 
 export const getPassRequests = (callId) =>
@@ -51,6 +57,7 @@ const groService = {
   getCallDetailById,
   getDocumentsByTask,
   verifyGroDocs,
+  getTemplatesByPort,
   saveArrivalDocument,
   getPassRequests,
   getCgRequests,

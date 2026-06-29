@@ -1,14 +1,22 @@
 import PropTypes from "prop-types";
 
-const PREVIEW_VESSEL_NAME = "MAG CLIO";
-const PREVIEW_DATE = "2026/06/10";
+const FALLBACK_TITLE = "صعود بحار";
+const FALLBACK_DESCRIPTION =
+  "المكرم مدير إدارة خفر السواحل بميناء الجبيل التجاري المحترم";
+const FALLBACK_MORE_DESCRIPTION =
+  "السلام عليكم ورحمة الله وبركاته، نأمل من سعادتكم التكرم بالموافقة على صعود البحارة المذكورين أدناه إلى الباخرة المشار إليها أعلاه، وذلك لمباشرة أعمالهم على متنها.\n\nعلماً بأن جميع البيانات الموضحة أدناه صحيحة ونتحمل كامل المسؤولية تجاهها، ولكم جزيل الشكر والتقدير.";
 
-/** Read-only Arabic vessel boarding ("صعود بحار") document preview. */
+/** Read-only Arabic vessel boarding document preview. */
 export default function VesselBoardingArabicPreview({
   rows,
-  vesselName = PREVIEW_VESSEL_NAME,
-  date = PREVIEW_DATE,
+  vesselName = "",
+  date = "",
+  templateData = null,
 }) {
+  const title = templateData?.template_name || FALLBACK_TITLE;
+  const description = templateData?.description || FALLBACK_DESCRIPTION;
+  const moreDescription = templateData?.more_description || FALLBACK_MORE_DESCRIPTION;
+
   return (
     <div
       className="bulk-pass-arabic-preview"
@@ -17,29 +25,24 @@ export default function VesselBoardingArabicPreview({
     >
       <div className="bulk-pass-arabic-paper" dir="rtl">
         <div className="bulk-pass-arabic-meta">
-          <span>التاريخ: {date}</span>
-          <span>اسم الباخرة: {vesselName}</span>
+          {date ? <span>التاريخ: {date}</span> : null}
+          {vesselName ? <span>اسم الباخرة: {vesselName}</span> : null}
         </div>
 
         <div className="bulk-pass-arabic-title">
-          <span>صعود بحار</span>
+          <span>{title}</span>
           <span>ميناء الجبيل التجاري</span>
         </div>
 
         <div className="bulk-pass-arabic-divider" />
 
-        <p className="bulk-pass-arabic-paragraph">
-          المكرم مدير إدارة خفر السواحل بميناء الجبيل التجاري المحترم
-        </p>
-        <p className="bulk-pass-arabic-paragraph">
-          السلام عليكم ورحمة الله وبركاته، نأمل من سعادتكم التكرم بالموافقة على صعود
-          البحارة المذكورين أدناه إلى الباخرة المشار إليها أعلاه، وذلك لمباشرة أعمالهم
-          على متنها.
-        </p>
-        <p className="bulk-pass-arabic-paragraph">
-          علماً بأن جميع البيانات الموضحة أدناه صحيحة ونتحمل كامل المسؤولية تجاهها،
-          ولكم جزيل الشكر والتقدير.
-        </p>
+        {description.split("\n").filter(Boolean).map((para, i) => (
+          <p key={i} className="bulk-pass-arabic-paragraph">{para}</p>
+        ))}
+
+        {moreDescription.split("\n").filter(Boolean).map((para, i) => (
+          <p key={`more-${i}`} className="bulk-pass-arabic-paragraph">{para}</p>
+        ))}
 
         <div className="bulk-pass-arabic-divider" />
 
@@ -89,4 +92,9 @@ VesselBoardingArabicPreview.propTypes = {
   rows: PropTypes.arrayOf(PropTypes.object).isRequired,
   vesselName: PropTypes.string,
   date: PropTypes.string,
+  templateData: PropTypes.shape({
+    template_name: PropTypes.string,
+    description: PropTypes.string,
+    more_description: PropTypes.string,
+  }),
 };

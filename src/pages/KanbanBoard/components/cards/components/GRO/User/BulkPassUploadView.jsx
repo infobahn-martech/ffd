@@ -1,15 +1,19 @@
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { FiArrowLeft, FiUploadCloud } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
+import groService from "../../../../../../../services/groService";
 
 const PASS_META = {
   cg: {
     title: "Bulk Upload CG Pass",
     submitLabel: "Upload CG Pass",
+    templateType: "CG Pass",
   },
   zawil: {
     title: "Bulk Upload Zawil Pass",
     submitLabel: "Upload Zawil Pass",
+    templateType: "Vessel Registration",
   },
 };
 
@@ -20,8 +24,28 @@ const EDITABLE_FIELDS = [
   { key: "zawilNo", label: "Zawil No" },
 ];
 
-export default function BulkPassUploadView({ passType, rows, onRowsChange, onBack, onSubmit }) {
+export default function BulkPassUploadView({ passType, rows, onRowsChange, onBack, onSubmit, portId }) {
   const meta = PASS_META[passType] ?? PASS_META.cg;
+  const [templateData, setTemplateData] = useState(null);
+
+  useEffect(() => {
+    if (!portId) return;
+    let cancelled = false;
+    groService
+      .getTemplatesByPort(portId, meta.templateType)
+      .then((res) => {
+        if (cancelled) return;
+        const list = res?.data?.data ?? res?.data ?? [];
+        const first = Array.isArray(list) ? list[0] : null;
+        setTemplateData(first ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setTemplateData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [portId, meta.templateType]);
 
   const handleFieldChange = (rowId, field, value) => {
     onRowsChange(
@@ -84,7 +108,7 @@ export default function BulkPassUploadView({ passType, rows, onRowsChange, onBac
 
         <div className="gro-crew-immigration-bulk-right">
           <p className="gro-crew-immigration-bulk-section-title">Document Preview</p>
-          <VesselBoardingArabicPreview rows={rows} />
+          <VesselBoardingArabicPreview rows={rows} templateData={templateData} />
         </div>
       </div>
 
@@ -109,4 +133,5 @@ BulkPassUploadView.propTypes = {
   onRowsChange: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
