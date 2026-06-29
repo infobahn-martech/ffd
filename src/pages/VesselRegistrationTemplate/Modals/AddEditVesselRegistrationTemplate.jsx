@@ -14,6 +14,7 @@ import '../../../design/scss/form-designs.scss';
 import '../../../design/scss/pages/vessel-registration-template/modals/AddEditVesselRegistrationTemplate.scss';
 
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
+QuillTableBetter.register();
 
 const isHtmlEmpty = (value) => {
   if (!value) return true;
@@ -68,7 +69,6 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
 
   const quillModules = useMemo(
     () => ({
-      table: false,
       toolbar: {
         container: [
           [{ header: [1, 2, 3, false] }],

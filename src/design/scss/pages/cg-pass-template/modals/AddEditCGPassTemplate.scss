@@ -80,4 +80,26 @@
     text-align: right;
   }
 
+  .react-quill-wrapper .ql-toolbar {
+    overflow: visible;
+  }
+
+  .react-quill-wrapper .ql-editor table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .react-quill-wrapper .ql-editor table td,
+  .react-quill-wrapper .ql-editor table th {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    min-width: 40px;
+    vertical-align: top;
+  }
+
+  .ql-table-select-container,
+  .ql-table-menus-container {
+    z-index: 9999;
+  }
+
 }
