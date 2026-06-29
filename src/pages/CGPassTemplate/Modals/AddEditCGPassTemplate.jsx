@@ -1,5 +1,5 @@
 import { useForm, Controller } from 'react-hook-form';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomModal from '../../../components/CustomModal';
@@ -83,6 +83,8 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   const { ports, getPorts } = usePortReducer((s) => s);
 
   const quillRef = useRef(null);
+  const onContentChange = useRef(null);
+  const [activeTable, setActiveTable] = useState(null);
 
   const defaultValues = useMemo(
     () =>
@@ -120,6 +122,44 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   useEffect(() => {
     reset(defaultValues);
   }, [showModal, reset]);
+
+  // Detect clicks inside a table cell to show the table toolbar
+  useEffect(() => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+    const onEditorClick = (e) => {
+      const cell = e.target.closest('td');
+      setActiveTable(cell ? cell.closest('table') : null);
+    };
+    quill.root.addEventListener('click', onEditorClick);
+    return () => quill.root.removeEventListener('click', onEditorClick);
+  }, [showModal]);
+
+  const handleAddColumn = useCallback(() => {
+    if (!activeTable) return;
+    activeTable.querySelectorAll('tr').forEach((tr) => {
+      const td = document.createElement('td');
+      td.setAttribute('contenteditable', 'true');
+      td.setAttribute('dir', 'rtl');
+      tr.appendChild(td);
+    });
+    onContentChange.current?.(quillRef.current?.getEditor().root.innerHTML);
+  }, [activeTable]);
+
+  const handleAddRow = useCallback(() => {
+    if (!activeTable) return;
+    const tbody = activeTable.querySelector('tbody') || activeTable;
+    const colCount = tbody.querySelector('tr')?.querySelectorAll('td').length ?? 3;
+    const tr = document.createElement('tr');
+    for (let i = 0; i < colCount; i++) {
+      const td = document.createElement('td');
+      td.setAttribute('contenteditable', 'true');
+      td.setAttribute('dir', 'rtl');
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+    onContentChange.current?.(quillRef.current?.getEditor().root.innerHTML);
+  }, [activeTable]);
 
   const quillModules = useMemo(
     () => ({
@@ -270,19 +310,31 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                       required: 'Content is required',
                       validate: (v) => !isHtmlEmpty(v) || 'Content is required',
                     }}
-                    render={({ field }) => (
-                      <div className="react-quill-wrapper" dir="rtl">
-                        <ReactQuill
-                          ref={quillRef}
-                          theme="snow"
-                          value={field.value || ''}
-                          onChange={field.onChange}
-                          modules={quillModules}
-                          formats={quillFormats}
-                          placeholder="Enter content..."
-                        />
-                      </div>
-                    )}
+                    render={({ field }) => {
+                      onContentChange.current = field.onChange;
+                      return (
+                        <div className="react-quill-wrapper" dir="rtl">
+                          <div className="cg-table-toolbar">
+                            <span className="cg-table-toolbar-label">Table</span>
+                            <button type="button" className="cg-table-toolbar-btn" onClick={handleAddColumn} disabled={!activeTable}>
+                              + Add Column
+                            </button>
+                            <button type="button" className="cg-table-toolbar-btn" onClick={handleAddRow} disabled={!activeTable}>
+                              + Add Row
+                            </button>
+                          </div>
+                          <ReactQuill
+                            ref={quillRef}
+                            theme="snow"
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            modules={quillModules}
+                            formats={quillFormats}
+                            placeholder="Enter content..."
+                          />
+                        </div>
+                      );
+                    }}
                   />
                   {errors.content && (
                     <span className="error text-danger">
