@@ -819,6 +819,15 @@ function TaxiBoatCardView({ card }) {
   });
   const crewFromCard = Array.isArray(card?.crew) && card.crew.length > 0;
 
+  // Scenario A: Crew Change — own timestamps + print/upload
+  const [crewTs, setCrewTs]               = useState(() => makeTsState(STANDARD_TIMESTAMPS.map((t) => t.key)));
+  const [crewTsOps, setCrewTsOps]         = useState(() => makeTsState(STANDARD_TIMESTAMPS.map((t) => t.key)));
+  const [crewStepBackLog, setCrewStepBackLog] = useState([]);
+  const [crewJobCompleted, setCrewJobCompleted]   = useState(false);
+  const [crewJobCompletedAt, setCrewJobCompletedAt] = useState(null);
+  const [crewLaunchSlipFile, setCrewLaunchSlipFile] = useState(null);
+  const [crewCobTime, setCrewCobTime]     = useState(null);
+
   // Scenario B: Material / Provision / Garbage
   const [packingListFile, setPackingListFile] = useState(null);
   const parsedPackingRows = packingListFile ? MOCK_PACKING_LIST_ROWS : null;
@@ -1031,6 +1040,66 @@ function TaxiBoatCardView({ card }) {
               </div>
             </>
           )}
+          <h3 className="tb-section-title">Movement Timestamps</h3>
+          <div className="tb-guide-name-row">
+            <label className="tb-guide-name-label"><FiUser size={13} />Taxi Boat Guide</label>
+            <input
+              type="text"
+              className="tb-guide-name-input"
+              placeholder="Enter guide name..."
+              value={operatorName}
+              onChange={(e) => setOperatorName(e.target.value)}
+            />
+          </div>
+          <TimestampStepper
+            timestamps={STANDARD_TIMESTAMPS}
+            tsState={crewTs}
+            tsOps={crewTsOps}
+            shipName={vesselName}
+            onCapture={(key) => captureNow(setCrewTs, key, setCrewTsOps, operatorName)}
+            onComplete={() => { setCrewJobCompleted(true); setCrewJobCompletedAt(new Date().toISOString()); }}
+            jobCompleted={crewJobCompleted}
+            canFinish={STANDARD_TIMESTAMPS.every((t) => crewTs[t.key] !== null)}
+            now={now}
+            onUndo={(key, label) => setUndoPending({
+              label,
+              resetter: () => { setCrewTs((prev) => ({ ...prev, [key]: null })); setCrewTsOps((prev) => ({ ...prev, [key]: null })); setCrewJobCompleted(false); setCrewJobCompletedAt(null); },
+              addToLog: (reason) => setCrewStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
+            })}
+          />
+          <TimestampSummaryTable
+            timestamps={STANDARD_TIMESTAMPS}
+            tsState={crewTs}
+            jobCompletedAt={crewJobCompletedAt}
+            cobTime={crewCobTime}
+            stepsAllDone={STANDARD_TIMESTAMPS.every((t) => crewTs[t.key] !== null)}
+            stepBackLog={crewStepBackLog}
+            onCaptureCob={() => setCrewCobTime(new Date().toISOString())}
+          />
+          {crewJobCompleted && (
+            <div className="tb-batch-actions">
+              <button
+                className="tb-batch-print-btn"
+                onClick={() => printLaunchSlip(crewTs, `Crew Change — ${signMode === "sign-on" ? "Sign On" : "Sign Off"}`, operatorName, crewJobCompletedAt)}
+              >
+                <FiPrinter size={14} />
+                Print Launch Slip
+              </button>
+              <div>
+                <input
+                  type="file"
+                  id="tb-crew-launch-slip-file"
+                  className="tb-launch-slip-input"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => setCrewLaunchSlipFile(e.target.files?.[0] ?? null)}
+                />
+                <label htmlFor="tb-crew-launch-slip-file" className="tb-batch-upload-btn">
+                  <FiUpload size={14} />
+                  {crewLaunchSlipFile ? crewLaunchSlipFile.name : "Upload Launch Slip"}
+                </label>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1235,7 +1304,7 @@ function TaxiBoatCardView({ card }) {
         </div>
       )}
 
-      {!isImmigration && (
+      {!isImmigration && !isCrewChange && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
           <div className="tb-guide-name-row">
