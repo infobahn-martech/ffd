@@ -1,0 +1,16 @@
+.group-email-modal {
+    .form-control:disabled {
+        background-color: #f2f2f2 !important;
+        cursor: not-allowed;
+    }
+
+    .form-floating > .form-control:disabled ~ label::after,
+    .form-floating > :disabled ~ label::after {
+        background-color: #f2f2f2;
+    }
+
+    &.modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}

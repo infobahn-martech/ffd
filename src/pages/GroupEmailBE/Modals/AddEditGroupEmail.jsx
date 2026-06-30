@@ -8,6 +8,7 @@ import useBillingEntityReducer from "../../../store/BillingEntityReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/group-email-modal.scss";
 
 export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     const {
@@ -130,7 +131,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     );
 
     const renderBody = () => (
-        <div className="modal-body">
+        <div className="modal-body group-email-modal">
             <div className="lead-form">
                 {isEdit && isLoadingDetail && (
                     <div className="text-center py-4 text-muted">Loading...</div>
@@ -148,27 +149,36 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                             <label className="phone-label">
                                 Billing Entity <span className="text-danger">*</span>
                             </label>
-                            <Controller
-                                name="entity_id"
-                                control={control}
-                                rules={{ required: "Billing entity is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={(billingEntities ?? []).map((be) => ({
-                                            value: String(be.entity_id ?? ""),
-                                            label: String(be.billing_entity ?? ""),
-                                        }))}
-                                        placeholder={
-                                            billingLoading ? "Loading..." : "Select Billing Entity"
-                                        }
-                                        searchPlaceholder="Search billing entity..."
-                                        disabled={isEdit || billingLoading}
-                                        hasError={Boolean(errors.entity_id)}
-                                    />
-                                )}
-                            />
+                            {isEdit ? (
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={showModal?.billing_entity ?? ""}
+                                    disabled
+                                    readOnly
+                                />
+                            ) : (
+                                <Controller
+                                    name="entity_id"
+                                    control={control}
+                                    rules={{ required: "Billing entity is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={(billingEntities ?? []).map((be) => ({
+                                                value: String(be.entity_id ?? ""),
+                                                label: String(be.billing_entity ?? ""),
+                                            }))}
+                                            placeholder={
+                                                billingLoading ? "Loading..." : "Select Billing Entity"
+                                            }
+                                            searchPlaceholder="Search billing entity..."
+                                            hasError={Boolean(errors.entity_id)}
+                                        />
+                                    )}
+                                />
+                            )}
                             {errors.entity_id && (
                                 <span className="error text-danger">
                                     {errors.entity_id.message}
@@ -192,12 +202,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
                                             placeholder="email@example.com"
-                                            style={{
-                                                paddingRight:
-                                                    index === fields.length - 1
-                                                        ? "80px"
-                                                        : "45px",
-                                            }}
+                                            disabled={isEdit}
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
                                                 pattern: {
@@ -210,7 +215,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             Email <span className="text-danger">*</span>
                                         </label>
 
-                                        {index === fields.length - 1 ? (
+                                        {!isEdit && (index === fields.length - 1 ? (
                                             <>
                                                 {fields.length > 1 && (
                                                     <button
@@ -245,7 +250,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             >
                                                 <FiX size={18} />
                                             </button>
-                                        )}
+                                        ))}
 
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger">
