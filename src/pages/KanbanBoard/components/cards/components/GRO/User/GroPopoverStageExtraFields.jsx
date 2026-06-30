@@ -261,16 +261,21 @@ function GroPopoverStageExtraFields({
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
         />
-        <PopoverFileUploadField
-          label="MWP Subscription Tax Invoice"
-          fieldKey="mwp_subscription_tax_invoice"
-          file={values?.mwp_subscription_tax_invoice}
-          error={errors?.mwp_subscription_tax_invoice}
-          disabled={disabled}
-          fileInputRefs={fileInputRefs}
-          onFileChange={onFileChange}
-        />
       </>
+    );
+  }
+
+  if (stageId === 11) {
+    return (
+      <PopoverFileUploadField
+        label="MWP Subscription Tax Invoice"
+        fieldKey="mwp_subscription_tax_invoice"
+        file={values?.mwp_subscription_tax_invoice}
+        error={errors?.mwp_subscription_tax_invoice}
+        disabled={disabled}
+        fileInputRefs={fileInputRefs}
+        onFileChange={onFileChange}
+      />
     );
   }
 

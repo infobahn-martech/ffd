@@ -24,10 +24,12 @@ import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import GroPopoverStageExtraFields from "./GroPopoverStageExtraFields";
 import CrewImmigrationPanel from "./CrewImmigrationPanel";
 import VesselInwardRegistrationView from "./VesselInwardRegistrationView";
+import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
 import {
   createEmptyExtraStageFields,
   validateGroExtraStageFields,
   buildGroArrivalSaveFormData,
+  appendGroArrivalStageFieldsToFormData,
   groStageHasExtraFields,
   GRO_CREW_IMMIGRATION_STATUS,
   GRO_CUSTOM_INSPECTION_STATUS,
@@ -100,6 +102,9 @@ const GROCardView = forwardRef(function GROCardView(
   const [timeObjectsLoading, setTimeObjectsLoading] = useState(false);
   const [timeObjectValues, setTimeObjectValues] = useState({});
   const [timeObjectErrors, setTimeObjectErrors] = useState({});
+  const [stage11TimeObjects, setStage11TimeObjects] = useState([]);
+  const [stage11TimeObjectValues, setStage11TimeObjectValues] = useState({});
+  const [stage11TimeObjectErrors, setStage11TimeObjectErrors] = useState({});
   const [extraStageFields, setExtraStageFields] = useState(() => createEmptyExtraStageFields());
   const [extraStageFieldErrors, setExtraStageFieldErrors] = useState({});
   const [selectedDocument, setSelectedDocument] = useState(null);
@@ -253,6 +258,8 @@ const GROCardView = forwardRef(function GROCardView(
   const resetInwardClearanceFields = () => {
     setTimeObjectValues({});
     setTimeObjectErrors({});
+    setStage11TimeObjectValues({});
+    setStage11TimeObjectErrors({});
     setExtraStageFields(createEmptyExtraStageFields());
     setExtraStageFieldErrors({});
     resetExtraStageFileInputs();
@@ -268,6 +275,26 @@ const GROCardView = forwardRef(function GROCardView(
           [fieldKey]: { date: normalizedDate, time: normalizedTime },
         }));
         setTimeObjectErrors((prev) => {
+          if (!prev?.[fieldKey]) return prev;
+          if (!normalizedDate || !normalizedTime) return prev;
+          const next = { ...prev };
+          delete next[fieldKey];
+          return next;
+        });
+      },
+    []
+  );
+
+  const handleStage11TimeObjectChange = useCallback(
+    (fieldKey) =>
+      ({ date, time }) => {
+        const normalizedDate = date || "";
+        const normalizedTime = time != null && time !== "" ? String(time).slice(0, 5) : "";
+        setStage11TimeObjectValues((prev) => ({
+          ...prev,
+          [fieldKey]: { date: normalizedDate, time: normalizedTime },
+        }));
+        setStage11TimeObjectErrors((prev) => {
           if (!prev?.[fieldKey]) return prev;
           if (!normalizedDate || !normalizedTime) return prev;
           const next = { ...prev };
@@ -298,6 +325,28 @@ const GROCardView = forwardRef(function GROCardView(
         })
         .filter(Boolean),
     [timeObjects, timeObjectValues, timeObjectErrors, handleTimeObjectChange]
+  );
+
+  const stage11InwardTimeObjectFields = useMemo(
+    () =>
+      (Array.isArray(stage11TimeObjects) ? stage11TimeObjects : [])
+        .map((item) => {
+          const valueKey = resolveGroTimeObjectValueKey(item);
+          if (!valueKey) return null;
+          const label = String(item?.time_object ?? "").trim() || "Date & Time";
+          const isRequired = String(item?.is_required ?? "0") === "1";
+          const fieldValue = stage11TimeObjectValues?.[valueKey] ?? { date: "", time: "" };
+          return {
+            fieldKey: valueKey,
+            label,
+            isRequired,
+            pickerParts: fieldValue,
+            onDateTimeChange: handleStage11TimeObjectChange(valueKey),
+            error: stage11TimeObjectErrors?.[valueKey] ?? "",
+          };
+        })
+        .filter(Boolean),
+    [stage11TimeObjects, stage11TimeObjectValues, stage11TimeObjectErrors, handleStage11TimeObjectChange]
   );
 
   const handleExtraStageFieldChange = useCallback((field, value) => {
@@ -331,34 +380,66 @@ const GROCardView = forwardRef(function GROCardView(
   }, []);
 
 
-  const extraStageFieldsContent = useMemo(
-    () =>
-      groStageHasExtraFields(groStageId) ? (
-        <GroPopoverStageExtraFields
-          stageId={groStageId}
-          values={extraStageFields}
-          errors={extraStageFieldErrors}
-          onFieldChange={handleExtraStageFieldChange}
-          onFileChange={handleExtraStageFileChange}
-          fileInputRefs={extraStageFileInputRefs}
-          disabled={isGroLoading || isSavingArrivalDocument}
-        />
-      ) : null,
-    [
-      groStageId,
-      extraStageFields,
-      extraStageFieldErrors,
-      handleExtraStageFieldChange,
-      handleExtraStageFileChange,
-      isGroLoading,
-      isSavingArrivalDocument,
-    ]
-  );
+  const extraStageFieldsContent = useMemo(() => {
+    if (!groStageHasExtraFields(groStageId)) return null;
+
+    const commonProps = {
+      values: extraStageFields,
+      errors: extraStageFieldErrors,
+      onFieldChange: handleExtraStageFieldChange,
+      onFileChange: handleExtraStageFileChange,
+      fileInputRefs: extraStageFileInputRefs,
+      disabled: isGroLoading || isSavingArrivalDocument,
+    };
+
+    if (groStageId === 10) {
+      return (
+        <>
+          <GroPopoverStageExtraFields stageId={10} {...commonProps} />
+          {stage11InwardTimeObjectFields.map((field) => (
+            <div
+              key={field.fieldKey}
+              className={`gro-inward-popover-field gro-inward-popover-datetime-full${field.error ? " gro-inward-popover-field--error" : ""}`}
+            >
+              <span className="gro-inward-popover-label">
+                {field.label}{field.isRequired ? " *" : ""}
+              </span>
+              <DateTimePickerField
+                dateValue={field.pickerParts?.date ?? ""}
+                timeValue={field.pickerParts?.time ?? ""}
+                onDateTimeChange={field.onDateTimeChange}
+                placeholder="YYYY-MM-DD hh:mm"
+                popperClassName="gro-inward-datetime-popper"
+                disabled={isGroLoading || isSavingArrivalDocument}
+                hasError={Boolean(field.error)}
+              />
+              {field.error ? <span className="gro-inward-popover-field-error">{field.error}</span> : null}
+            </div>
+          ))}
+          <GroPopoverStageExtraFields stageId={11} {...commonProps} />
+        </>
+      );
+    }
+
+    return <GroPopoverStageExtraFields stageId={groStageId} {...commonProps} />;
+  }, [
+    groStageId,
+    extraStageFields,
+    extraStageFieldErrors,
+    handleExtraStageFieldChange,
+    handleExtraStageFileChange,
+    isGroLoading,
+    isSavingArrivalDocument,
+    stage11InwardTimeObjectFields,
+  ]);
 
   useEffect(() => {
     setTimeObjects([]);
     setTimeObjectValues({});
     setTimeObjectErrors({});
+    setStage11TimeObjects([]);
+    setStage11TimeObjectValues({});
+    setStage11TimeObjectErrors({});
     setExtraStageFields(createEmptyExtraStageFields());
     setExtraStageFieldErrors({});
     resetExtraStageFileInputs();
@@ -372,19 +453,35 @@ const GROCardView = forwardRef(function GROCardView(
     let cancelled = false;
     setTimeObjectsLoading(true);
 
-    groService
-      .getStageTimeObjects({
+    const isApplyingMwp = groStageId === 10;
+    const calls = [
+      groService.getStageTimeObjects({
         stage_id: groStageId,
         port_id: portId,
         call_type_id: groCallTypeId,
         call_id: callId,
-      })
-      .then((res) => {
+      }),
+      ...(isApplyingMwp
+        ? [groService.getStageTimeObjects({
+            stage_id: 11,
+            port_id: portId,
+            call_type_id: groCallTypeId,
+            call_id: callId,
+          })]
+        : []),
+    ];
+
+    Promise.allSettled(calls)
+      .then(([result10, result11]) => {
         if (cancelled) return;
-        setTimeObjects(parseGroStageTimeObjectsResponse(res));
-      })
-      .catch(() => {
-        if (!cancelled) setTimeObjects([]);
+        setTimeObjects(
+          result10?.status === "fulfilled" ? parseGroStageTimeObjectsResponse(result10.value) : []
+        );
+        if (isApplyingMwp) {
+          setStage11TimeObjects(
+            result11?.status === "fulfilled" ? parseGroStageTimeObjectsResponse(result11.value) : []
+          );
+        }
       })
       .finally(() => {
         if (!cancelled) setTimeObjectsLoading(false);
@@ -956,6 +1053,16 @@ const GROCardView = forwardRef(function GROCardView(
     }
     setTimeObjectErrors({});
 
+    if (groStageId === 10 && stage11TimeObjects.length > 0) {
+      const stage11TimeErrors = validateGroRequiredTimeObjects(stage11TimeObjects, stage11TimeObjectValues);
+      if (Object.keys(stage11TimeErrors).length > 0) {
+        setStage11TimeObjectErrors(stage11TimeErrors);
+        notify("Please fill in all required time fields.", "warn");
+        return;
+      }
+      setStage11TimeObjectErrors({});
+    }
+
     if (groStageHasExtraFields(groStageId)) {
       const extraErrors = validateGroExtraStageFields(groStageId, extraStageFields);
       if (Object.keys(extraErrors).length > 0) {
@@ -966,14 +1073,25 @@ const GROCardView = forwardRef(function GROCardView(
       setExtraStageFieldErrors({});
     }
 
+    const allTimeObjects = groStageId === 10
+      ? [...timeObjects, ...stage11TimeObjects]
+      : timeObjects;
+    const allTimeObjectValues = groStageId === 10
+      ? { ...timeObjectValues, ...stage11TimeObjectValues }
+      : timeObjectValues;
+
     const formData = buildGroArrivalSaveFormData({
       callId,
       taskId,
-      timeObjects,
-      timeObjectValues,
+      timeObjects: allTimeObjects,
+      timeObjectValues: allTimeObjectValues,
       stageId: groStageId,
       extraStageFields,
     });
+
+    if (groStageId === 10) {
+      appendGroArrivalStageFieldsToFormData(formData, 11, extraStageFields);
+    }
 
     try {
       await saveArrivalDocument({ formData });

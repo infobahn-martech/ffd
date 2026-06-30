@@ -125,6 +125,9 @@ export const appendGroArrivalStageFieldsToFormData = (formData, stageId, fields 
     appendTextField(formData, "mwp_subscription_sadad_no", data.mwp_subscription_sadad_no);
     appendFileField(formData, "mwp_subscription_sadad_doc", data.mwp_subscription_sadad_doc);
     appendFileField(formData, "mwp_doc", data.mwp_copy);
+  }
+
+  if (stageId === 11) {
     appendFileField(formData, "mwp_subscription_tax_invoice_doc", data.mwp_subscription_tax_invoice);
   }
 };
@@ -132,7 +135,7 @@ export const appendGroArrivalStageFieldsToFormData = (formData, stageId, fields 
 /** @deprecated Use appendGroArrivalStageFieldsToFormData */
 export const appendGroExtraStageFieldsToFormData = appendGroArrivalStageFieldsToFormData;
 
-export const groStageHasExtraFields = (stageId) => [7, 8, 9, 10].includes(Number(stageId));
+export const groStageHasExtraFields = (stageId) => [7, 8, 9, 10, 11].includes(Number(stageId));
 
 export const buildGroArrivalSaveFormData = ({
   callId,

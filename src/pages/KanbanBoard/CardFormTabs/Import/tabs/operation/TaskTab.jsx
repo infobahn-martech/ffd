@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-refresh/only-export-components */
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { TASK_STATUS } from "./operationTasksMapper";
@@ -193,46 +195,74 @@ TaskDocumentsAccordion.propTypes = {
   taskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
-function SadadInfoTable({ sadadNo, sadadDocument, sadadExpiry }) {
+function MwpDocLink({ url }) {
+  if (!url) return <span>-</span>;
+  return (
+    <a
+      className="operation-task-sadad-link"
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View Document
+    </a>
+  );
+}
+
+MwpDocLink.propTypes = { url: PropTypes.string };
+
+function MwpInfoPanel({
+  mwpApplicationNo,
+  sadadNo,
+  sadadDocument,
+  sadadExpiry,
+  mwpSubscriptionSadadNo,
+  mwpSubscriptionSadadDoc,
+  mwpCopy,
+  mwpSubscriptionTaxInvoice,
+}) {
+  const rows = [
+    { label: "MWP Application No", value: mwpApplicationNo || "-" },
+    { label: "SADAD No", value: sadadNo || "-" },
+    { label: "SADAD Attachment", value: <MwpDocLink url={sadadDocument} /> },
+    { label: "SADAD Expiry", value: formatSadadExpiry(sadadExpiry) },
+    { label: "MWP Subscription SADAD No", value: mwpSubscriptionSadadNo || "-" },
+    { label: "MWP Subscription SADAD", value: <MwpDocLink url={mwpSubscriptionSadadDoc} /> },
+    { label: "MWP Copy", value: <MwpDocLink url={mwpCopy} /> },
+    { label: "MWP Subscription Tax Invoice", value: <MwpDocLink url={mwpSubscriptionTaxInvoice} /> },
+  ];
+
   return (
     <div className="operation-task-sadad">
       <table className="operation-task-sadad-table">
         <thead>
           <tr>
-            <th scope="col">Sadad No</th>
-            <th scope="col">Sadad Document</th>
-            <th scope="col">Sadad Expiry</th>
+            <th scope="col">Field</th>
+            <th scope="col">Value</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>{sadadNo || "-"}</td>
-            <td>
-              {sadadDocument ? (
-                <a
-                  className="operation-task-sadad-link"
-                  href={sadadDocument}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View Document
-                </a>
-              ) : (
-                "-"
-              )}
-            </td>
-            <td>{formatSadadExpiry(sadadExpiry)}</td>
-          </tr>
+          {rows.map(({ label, value }) => (
+            <tr key={label}>
+              <td>{label}</td>
+              <td>{value}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
 
-SadadInfoTable.propTypes = {
+MwpInfoPanel.propTypes = {
+  mwpApplicationNo: PropTypes.string,
   sadadNo: PropTypes.string,
   sadadDocument: PropTypes.string,
   sadadExpiry: PropTypes.string,
+  mwpSubscriptionSadadNo: PropTypes.string,
+  mwpSubscriptionSadadDoc: PropTypes.string,
+  mwpCopy: PropTypes.string,
+  mwpSubscriptionTaxInvoice: PropTypes.string,
 };
 
 function OperationTasksPanel({
@@ -309,10 +339,15 @@ function OperationTasksPanel({
                       </p>
                       <TaskProgressIndicator status={task.status} progress={task.progress} />
                       {(String(task.id) === "6" || task.title === "Applying MWP") && (
-                        <SadadInfoTable
-                          sadadNo={task.sadadDocNo}
+                        <MwpInfoPanel
+                          mwpApplicationNo={task.mwpApplicationNo}
+                          sadadNo={task.sadadNo}
                           sadadDocument={task.sadadDocument}
                           sadadExpiry={task.sadadExpiry}
+                          mwpSubscriptionSadadNo={task.mwpSubscriptionSadadNo}
+                          mwpSubscriptionSadadDoc={task.mwpSubscriptionSadadDoc}
+                          mwpCopy={task.mwpCopy}
+                          mwpSubscriptionTaxInvoice={task.mwpSubscriptionTaxInvoice}
                         />
                       )}
                       <TaskDocumentsAccordion documents={task.documents} taskId={task.id} />
@@ -348,6 +383,12 @@ OperationTasksPanel.propTypes = {
           sadadDocNo: PropTypes.string,
           sadadDocument: PropTypes.string,
           sadadExpiry: PropTypes.string,
+          mwpApplicationNo: PropTypes.string,
+          sadadNo: PropTypes.string,
+          mwpSubscriptionSadadNo: PropTypes.string,
+          mwpSubscriptionSadadDoc: PropTypes.string,
+          mwpCopy: PropTypes.string,
+          mwpSubscriptionTaxInvoice: PropTypes.string,
           documents: PropTypes.arrayOf(
             PropTypes.shape({
               id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
