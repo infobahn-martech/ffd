@@ -188,7 +188,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     {/* EMAIL LIST */}
-                    <div className="mt-3 group-email-list">
+                    <div className="mt-3">
                         {fields.map((field, index) => (
                             <div className="row align-items-center mb-2 g-1" key={field.id}>
                                 <div className="col-12">

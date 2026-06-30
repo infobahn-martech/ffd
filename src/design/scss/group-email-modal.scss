@@ -9,9 +9,8 @@
         background-color: #f2f2f2;
     }
 
-    .group-email-list {
-        max-height: 300px;
+    &.modal-body {
+        max-height: 60vh;
         overflow-y: auto;
-        padding-right: 4px;
     }
 }
