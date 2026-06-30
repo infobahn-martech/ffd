@@ -8,6 +8,7 @@ import useBillingEntityReducer from "../../../store/BillingEntityReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/group-email-modal.scss";
 
 export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     const {
@@ -130,7 +131,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     );
 
     const renderBody = () => (
-        <div className="modal-body">
+        <div className="modal-body group-email-modal">
             <div className="lead-form">
                 {isEdit && isLoadingDetail && (
                     <div className="text-center py-4 text-muted">Loading...</div>
