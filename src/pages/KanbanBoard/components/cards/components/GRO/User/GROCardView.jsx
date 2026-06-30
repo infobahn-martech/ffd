@@ -383,39 +383,62 @@ const GROCardView = forwardRef(function GROCardView(
   const extraStageFieldsContent = useMemo(() => {
     if (!groStageHasExtraFields(groStageId)) return null;
 
+    const isDisabled = isGroLoading || isSavingArrivalDocument;
+
     const commonProps = {
       values: extraStageFields,
       errors: extraStageFieldErrors,
       onFieldChange: handleExtraStageFieldChange,
       onFileChange: handleExtraStageFileChange,
       fileInputRefs: extraStageFileInputRefs,
-      disabled: isGroLoading || isSavingArrivalDocument,
+      disabled: isDisabled,
     };
+
+    const renderTimeObjectField = (field) => (
+      <div
+        key={field.fieldKey}
+        className={`gro-inward-popover-field gro-inward-popover-datetime-full${field.error ? " gro-inward-popover-field--error" : ""}`}
+      >
+        <span className="gro-inward-popover-label">
+          {field.label}{field.isRequired ? " *" : ""}
+        </span>
+        <DateTimePickerField
+          dateValue={field.pickerParts?.date ?? ""}
+          timeValue={field.pickerParts?.time ?? ""}
+          onDateTimeChange={field.onDateTimeChange}
+          placeholder="YYYY-MM-DD hh:mm"
+          popperClassName="gro-inward-datetime-popper"
+          disabled={isDisabled}
+          hasError={Boolean(field.error)}
+        />
+        {field.error ? <span className="gro-inward-popover-field-error">{field.error}</span> : null}
+      </div>
+    );
 
     if (groStageId === 10) {
       return (
         <>
-          <GroPopoverStageExtraFields stageId={10} {...commonProps} />
-          {stage11InwardTimeObjectFields.map((field) => (
-            <div
-              key={field.fieldKey}
-              className={`gro-inward-popover-field gro-inward-popover-datetime-full${field.error ? " gro-inward-popover-field--error" : ""}`}
-            >
-              <span className="gro-inward-popover-label">
-                {field.label}{field.isRequired ? " *" : ""}
-              </span>
-              <DateTimePickerField
-                dateValue={field.pickerParts?.date ?? ""}
-                timeValue={field.pickerParts?.time ?? ""}
-                onDateTimeChange={field.onDateTimeChange}
-                placeholder="YYYY-MM-DD hh:mm"
-                popperClassName="gro-inward-datetime-popper"
-                disabled={isGroLoading || isSavingArrivalDocument}
-                hasError={Boolean(field.error)}
-              />
-              {field.error ? <span className="gro-inward-popover-field-error">{field.error}</span> : null}
+          <div className={`gro-inward-popover-field${extraStageFieldErrors?.mwp_application_no ? " gro-inward-popover-field--error" : ""}`}>
+            <span className="gro-inward-popover-label">MWP Application No</span>
+            <input
+              type="text"
+              className="gro-inward-popover-input"
+              placeholder="Enter MWP application no"
+              value={extraStageFields?.mwp_application_no ?? ""}
+              disabled={isDisabled}
+              onChange={(e) => handleExtraStageFieldChange("mwp_application_no", e.target.value)}
+            />
+            {extraStageFieldErrors?.mwp_application_no ? (
+              <span className="gro-inward-popover-field-error">{extraStageFieldErrors.mwp_application_no}</span>
+            ) : null}
+          </div>
+          {timeObjectsLoading ? (
+            <div className="gro-inward-popover-field">
+              <span className="gro-inward-popover-label gro-inward-popover-loading">Loading time fields…</span>
             </div>
-          ))}
+          ) : inwardTimeObjectFields.map(renderTimeObjectField)}
+          <GroPopoverStageExtraFields stageId={10} {...commonProps} />
+          {stage11InwardTimeObjectFields.map(renderTimeObjectField)}
           <GroPopoverStageExtraFields stageId={11} {...commonProps} />
         </>
       );
@@ -430,7 +453,9 @@ const GROCardView = forwardRef(function GROCardView(
     handleExtraStageFileChange,
     isGroLoading,
     isSavingArrivalDocument,
+    inwardTimeObjectFields,
     stage11InwardTimeObjectFields,
+    timeObjectsLoading,
   ]);
 
   useEffect(() => {
@@ -1638,8 +1663,8 @@ const GROCardView = forwardRef(function GROCardView(
                   onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
                   inwardActionLabel={inwardPanelLabel}
                   inwardPopoverTitle={taskPanelTitle}
-                  timeObjectFields={inwardTimeObjectFields}
-                  timeObjectsLoading={timeObjectsLoading}
+                  timeObjectFields={groStageId === 10 ? [] : inwardTimeObjectFields}
+                  timeObjectsLoading={groStageId === 10 ? false : timeObjectsLoading}
                   extraStageFieldsContent={extraStageFieldsContent}
                   onInwardCancel={handleInwardCancel}
                   onInwardSubmit={handleInwardSubmit}

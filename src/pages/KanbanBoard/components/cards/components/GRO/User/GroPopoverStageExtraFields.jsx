@@ -192,20 +192,6 @@ function GroPopoverStageExtraFields({
   if (stageId === 10) {
     return (
       <>
-        <div className={`gro-inward-popover-field${errors?.mwp_application_no ? " gro-inward-popover-field--error" : ""}`}>
-          <span className="gro-inward-popover-label">MWP Application No</span>
-          <input
-            type="text"
-            className="gro-inward-popover-input"
-            placeholder="Enter MWP application no"
-            value={values?.mwp_application_no ?? ""}
-            disabled={disabled}
-            onChange={(e) => onFieldChange("mwp_application_no", e.target.value)}
-          />
-          {errors?.mwp_application_no ? (
-            <span className="gro-inward-popover-field-error">{errors.mwp_application_no}</span>
-          ) : null}
-        </div>
         <div className={`gro-inward-popover-field${errors?.sadad_no ? " gro-inward-popover-field--error" : ""}`}>
           <span className="gro-inward-popover-label">SADAD No</span>
           <input
