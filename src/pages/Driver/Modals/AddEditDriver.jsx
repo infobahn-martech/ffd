@@ -43,7 +43,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             email: "",
             iqama_no: "",
             location: "",
-            port_id: "",
+            port_id: [],
             nationality: "",
             driver_for: 1,
         },
@@ -69,7 +69,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 email: showModal?.email || "",
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
-                port_id: showModal?.port_id ? String(showModal.port_id) : "",
+                port_id: showModal?.port_ids?.map(String) || (showModal?.port_id ? [String(showModal.port_id)] : []),
                 nationality: showModal?.nationality ?? showModal?.country_id ?? "",
                 driver_for: normalizeDriverFor(showModal?.driver_for),
             });
@@ -82,7 +82,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 email: "",
                 iqama_no: "",
                 location: "",
-                port_id: "",
+                port_id: [],
                 nationality: "",
                 driver_for: 1,
             });
@@ -107,7 +107,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             iqama_no: data.iqama_no,
             nationality: data.nationality,
             location: data.location,
-            port_id: data.port_id,
+            port_ids: (data.port_id || []).map(Number),
             joining_date: data.joining_date,
             driver_for: normalizeDriverFor(data.driver_for),
         };
@@ -444,10 +444,14 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                     <Controller
                                         name="port_id"
                                         control={control}
-                                        rules={{ required: "Port is required" }}
+                                        rules={{
+                                            validate: (val) =>
+                                                (Array.isArray(val) && val.length > 0) || "Port is required",
+                                        }}
                                         render={({ field }) => (
                                             <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
+                                                isMulti
+                                                value={field.value}
                                                 onChange={(e) => field.onChange(e.target.value)}
                                                 options={(ports || []).map((p) => ({
                                                     value: String(p.port_id ?? ""),

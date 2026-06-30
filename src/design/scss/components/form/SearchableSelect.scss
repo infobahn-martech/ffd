@@ -43,6 +43,48 @@
   background: #e8eef9;
 }
 
+.cf-ms-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.cf-ms-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e8eef9;
+  color: #1a1a1a;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-ms-tag-remove {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: #666;
+  flex-shrink: 0;
+
+  &:hover {
+    color: #c00;
+  }
+}
+
+.cf-ms-option-checkbox {
+  flex-shrink: 0;
+  pointer-events: none;
+  margin-right: 4px;
+  accent-color: #4c7ef3;
+}
+
 .cf-owner-searchable-select {
   flex: 1;
   min-width: 0;

@@ -56,8 +56,9 @@ export default function PremiumSelect({
 }
 
 PremiumSelect.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.array]),
   onChange: PropTypes.func.isRequired,
+  isMulti: PropTypes.bool,
   options: PropTypes.array,
   placeholder: PropTypes.string,
   searchPlaceholder: PropTypes.string,

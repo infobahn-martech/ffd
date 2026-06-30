@@ -24,6 +24,7 @@ const SearchableSelect = ({
   className = "",
   disabled = false,
   hasError = false,
+  isMulti = false,
   getOptionLabel = defaultGetOptionLabel,
   getOptionValue = defaultGetOptionValue,
   renderOption,
@@ -52,12 +53,17 @@ const SearchableSelect = ({
 
   const useMenuPortal = Boolean(menuPortalTarget);
 
-  const normalizedValue = value === undefined || value === null ? "" : String(value);
+  const normalizedValue = !isMulti && (value === undefined || value === null ? "" : String(value));
+  const normalizedValues = isMulti ? (Array.isArray(value) ? value.map(String) : []) : [];
   const searchPlaceholder = searchPlaceholderProp ?? deriveSearchPlaceholder(placeholder);
 
   const selectedOption = useMemo(
-    () => options.find((opt) => String(getOptionValue(opt)) === normalizedValue),
-    [options, normalizedValue, getOptionValue]
+    () => (!isMulti ? options.find((opt) => String(getOptionValue(opt)) === normalizedValue) : null),
+    [options, normalizedValue, getOptionValue, isMulti]
+  );
+  const selectedOptions = useMemo(
+    () => (isMulti ? options.filter((opt) => normalizedValues.includes(String(getOptionValue(opt)))) : []),
+    [options, normalizedValues, getOptionValue, isMulti]
   );
   const displayLabel = selectedOption ? getOptionLabel(selectedOption) : "";
 
@@ -154,15 +160,30 @@ const SearchableSelect = ({
 
   const handleSelect = useCallback(
     (optionValue) => {
-      const syntheticEvent = {
-        target: { value: optionValue },
-      };
-      onChange(syntheticEvent);
+      if (isMulti) {
+        const strVal = String(optionValue);
+        const current = Array.isArray(value) ? value.map(String) : [];
+        const newValues = current.includes(strVal)
+          ? current.filter((v) => v !== strVal)
+          : [...current, strVal];
+        onChange({ target: { value: newValues } });
+        return;
+      }
+      onChange({ target: { value: optionValue } });
       setIsOpen(false);
       setSearchQuery("");
       setActiveIndex(0);
     },
-    [onChange]
+    [onChange, isMulti, value]
+  );
+
+  const handleRemoveTag = useCallback(
+    (optionValue) => {
+      const strVal = String(optionValue);
+      const current = Array.isArray(value) ? value.map(String) : [];
+      onChange({ target: { value: current.filter((v) => v !== strVal) } });
+    },
+    [onChange, value]
   );
 
   const handleTriggerAreaClick = () => {
@@ -223,7 +244,9 @@ const SearchableSelect = ({
     ) : (
       filteredOptions.map((option, index) => {
         const optVal = getOptionValue(option);
-        const isSelected = normalizedValue === String(optVal);
+        const isSelected = isMulti
+          ? normalizedValues.includes(String(optVal))
+          : normalizedValue === String(optVal);
         const isHighlighted = index === activeIndex;
         return (
           <div
@@ -236,6 +259,15 @@ const SearchableSelect = ({
             }}
             onMouseEnter={() => setActiveIndex(index)}
           >
+            {isMulti && (
+              <input
+                type="checkbox"
+                className="cf-ms-option-checkbox"
+                checked={isSelected}
+                readOnly
+                tabIndex={-1}
+              />
+            )}
             {typeof renderOption === "function" ? (
               renderOption(option, { getOptionLabel, getOptionValue })
             ) : (
@@ -312,6 +344,24 @@ const SearchableSelect = ({
                 aria-expanded={isOpen}
                 autoComplete="off"
               />
+            ) : isMulti && selectedOptions.length > 0 ? (
+              <div className="cf-ms-tags-list">
+                {selectedOptions.map((opt) => (
+                  <span key={getOptionValue(opt)} className="cf-ms-tag">
+                    {getOptionLabel(opt)}
+                    <span
+                      className="cf-ms-tag-remove"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveTag(getOptionValue(opt));
+                      }}
+                    >
+                      ×
+                    </span>
+                  </span>
+                ))}
+              </div>
             ) : displayLabel ? (
               <span className="cf-multi-select-selected-value">{displayLabel}</span>
             ) : (
@@ -330,8 +380,9 @@ const SearchableSelect = ({
 };
 
 SearchableSelect.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.array]),
   onChange: PropTypes.func.isRequired,
+  isMulti: PropTypes.bool,
   options: PropTypes.array,
   placeholder: PropTypes.string,
   searchPlaceholder: PropTypes.string,
