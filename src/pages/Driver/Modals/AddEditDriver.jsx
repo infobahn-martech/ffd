@@ -7,6 +7,7 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import useDriverReducer from "../../../store/DriverReducer";
+import usePortReducer from "../../../store/PortReducer";
 import DatePickerField from "../../KanbanBoard/CardFormTabs/shared/components/DatePickerField";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 
@@ -39,18 +40,22 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             employee_no: "",
             joining_date: "",
             contact_no: "",
+            email: "",
             iqama_no: "",
             location: "",
+            port_id: "",
             nationality: "",
             driver_for: 1,
         },
     });
 
     const { countries, fetchAllCountries, addDriver, updateDriver, isBeingUpdated, isLoadingCountries } = useDriverReducer();
+    const { ports, getPorts, isLoading: isLoadingPorts } = usePortReducer((s) => s);
 
     useEffect(() => {
         if (showModal) {
             fetchAllCountries();
+            getPorts({ params: { limit: 1000 } });
         }
     }, [showModal]);
 
@@ -61,8 +66,10 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 employee_no: showModal?.employee_no || "",
                 joining_date: showModal?.joining_date || "",
                 contact_no: showModal?.contact_no || "",
+                email: showModal?.email || "",
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
+                port_id: showModal?.port_id ? String(showModal.port_id) : "",
                 nationality: showModal?.nationality ?? showModal?.country_id ?? "",
                 driver_for: normalizeDriverFor(showModal?.driver_for),
             });
@@ -72,8 +79,10 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 employee_no: "",
                 joining_date: "",
                 contact_no: "",
+                email: "",
                 iqama_no: "",
                 location: "",
+                port_id: "",
                 nationality: "",
                 driver_for: 1,
             });
@@ -94,9 +103,11 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             driver_name: data.driver_name,
             employee_no: data.employee_no,
             contact_no: data.contact_no,
+            email: data.email,
             iqama_no: data.iqama_no,
             nationality: data.nationality,
             location: data.location,
+            port_id: data.port_id,
             joining_date: data.joining_date,
             driver_for: normalizeDriverFor(data.driver_for),
         };
@@ -389,6 +400,73 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                     {errors.driver_for && (
                                         <span className="error text-danger d-block mt-1">
                                             Please select Driver For
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* ===== Email + Port ===== */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            {/* EMAIL */}
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="email"
+                                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                                        placeholder="Email"
+                                        {...register("email", {
+                                            required: "Email is required",
+                                            pattern: {
+                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                message: "Enter a valid email address",
+                                            },
+                                        })}
+                                    />
+                                    <label>
+                                        Email <span className="text-danger">*</span>
+                                    </label>
+                                    {errors.email && (
+                                        <span className="error text-danger">
+                                            {errors.email.message}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* PORT */}
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Port <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="port_id"
+                                        control={control}
+                                        rules={{ required: "Port is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={(ports || []).map((p) => ({
+                                                    value: String(p.port_id ?? ""),
+                                                    label: String(p.port_name ?? p.port ?? p.port_id ?? ""),
+                                                }))}
+                                                placeholder={
+                                                    isLoadingPorts || ports === null
+                                                        ? "Loading..."
+                                                        : "Select Port"
+                                                }
+                                                searchPlaceholder="Search port..."
+                                                disabled={isLoadingPorts || ports === null}
+                                                hasError={Boolean(errors.port_id)}
+                                            />
+                                        )}
+                                    />
+                                    {errors.port_id && (
+                                        <span className="error text-danger">
+                                            {errors.port_id.message}
                                         </span>
                                     )}
                                 </div>
