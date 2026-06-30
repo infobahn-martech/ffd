@@ -560,6 +560,10 @@ function PreArrival({
             subject: sent.subject != null ? String(sent.subject) : "Report - Pre Arrival",
             message: sent.body != null ? ensureHtmlForQuill(String(sent.body)) : "",
           });
+          const sentAttachments = extractUploadedAttachments(sent);
+          if (sentAttachments.length) {
+            setReportAttachments(sentAttachments);
+          }
         } else {
           emailPreviewFromDetailRef.current = false;
         }
