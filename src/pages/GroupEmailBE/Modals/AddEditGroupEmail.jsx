@@ -201,12 +201,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
                                             placeholder="email@example.com"
-                                            style={{
-                                                paddingRight:
-                                                    index === fields.length - 1
-                                                        ? "80px"
-                                                        : "45px",
-                                            }}
+                                            disabled={isEdit}
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
                                                 pattern: {
@@ -219,7 +214,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             Email <span className="text-danger">*</span>
                                         </label>
 
-                                        {index === fields.length - 1 ? (
+                                        {!isEdit && (index === fields.length - 1 ? (
                                             <>
                                                 {fields.length > 1 && (
                                                     <button
@@ -254,7 +249,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             >
                                                 <FiX size={18} />
                                             </button>
-                                        )}
+                                        ))}
 
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger">
