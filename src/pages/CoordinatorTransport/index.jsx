@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useCTPendingCards } from "../../shared/store/ctStore";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { KANBAN_DND_DISABLED } from "../../shared/constants/kanbanConfig";
 import { FiLayers } from "react-icons/fi";
@@ -164,6 +165,32 @@ export default function CoordinatorTransport() {
             setIsLoading(false);
         }, 500);
         return () => clearTimeout(timer);
+    }, []);
+
+    // Consume intermediate-trip cards queued from TaxiBoatCardView via Zustand store
+    const consumePendingCards = useCTPendingCards((state) => state.consumePendingCards);
+    const consumeRef = useRef(consumePendingCards);
+    useEffect(() => {
+        const cards = consumeRef.current();
+        if (cards.length === 0) return;
+        setWorkflows(prev => prev.map(workflow => {
+            const inProgressKey = Object.keys(workflow.columns).find(k => workflow.columns[k].title === "In Progress");
+            if (!inProgressKey) return workflow;
+            const newCards = {};
+            const newIds = [];
+            cards.forEach(card => { newCards[card.id] = card; newIds.push(card.id); });
+            return {
+                ...workflow,
+                cards: { ...workflow.cards, ...newCards },
+                columns: {
+                    ...workflow.columns,
+                    [inProgressKey]: {
+                        ...workflow.columns[inProgressKey],
+                        cardIds: [...newIds, ...workflow.columns[inProgressKey].cardIds],
+                    },
+                },
+            };
+        }));
     }, []);
 
     useSyncKanbanSidebarWorkflows(workflows);
