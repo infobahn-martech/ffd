@@ -1,7 +1,9 @@
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useMemo, useRef } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
+import QuillTableBetter from 'quill-table-better';
 import 'react-quill/dist/quill.snow.css';
+import 'quill-table-better/dist/quill-table-better.css';
 import CustomModal from '../../../components/CustomModal';
 import PremiumSelect from '../../../components/form/PremiumSelect';
 import useVesselRegistrationTemplateReducer from '../../../store/VesselRegistrationTemplateReducer';
@@ -11,60 +13,11 @@ import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
 import '../../../design/scss/pages/vessel-registration-template/modals/AddEditVesselRegistrationTemplate.scss';
 
+Quill.register({ 'modules/table-better': QuillTableBetter }, true);
+QuillTableBetter.register();
+
 const Icons = Quill.import('ui/icons');
-Icons['table'] =
-  '<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"/><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"/><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"/></svg>';
-
-const BlockEmbed = Quill.import('blots/block/embed');
-
-class TableEmbed extends BlockEmbed {
-  static create(value) {
-    const node = super.create();
-    const rows = value?.rows ?? 3;
-    const cols = value?.cols ?? 3;
-
-    const table = document.createElement('table');
-    const tbody = document.createElement('tbody');
-
-    for (let r = 0; r < rows; r++) {
-      const tr = document.createElement('tr');
-      for (let c = 0; c < cols; c++) {
-        const td = document.createElement('td');
-        td.setAttribute('contenteditable', 'true');
-        td.setAttribute('dir', 'rtl');
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    node.appendChild(table);
-
-    node.addEventListener('mousedown', (e) => e.stopPropagation());
-    node.addEventListener('input', (e) => e.stopPropagation());
-    node.addEventListener('keydown', (e) => {
-      const cell = e.target.closest('td');
-      if (!cell) return;
-      e.stopPropagation();
-      if ((e.key === 'Backspace' || e.key === 'Delete') && !cell.textContent.trim()) {
-        e.preventDefault();
-      }
-    });
-
-    return node;
-  }
-
-  static value(node) {
-    const trs = node.querySelectorAll('tr');
-    const tds = trs[0]?.querySelectorAll('td');
-    return { rows: trs.length || 3, cols: tds?.length || 3 };
-  }
-}
-
-TableEmbed.blotName = 'table-embed';
-TableEmbed.tagName = 'div';
-TableEmbed.className = 'ql-table-embed';
-
-Quill.register(TableEmbed);
+Icons['table-better'] = `<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"/><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"/><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"/></svg>`;
 
 const isHtmlEmpty = (value) => {
   if (!value) return true;
@@ -107,9 +60,55 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
 
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
-    if (quill) {
-      quill.format('direction', 'rtl');
-      quill.format('align', 'right');
+    if (!quill) return;
+
+    quill.format('direction', 'rtl');
+    quill.format('align', 'right');
+
+    const toolbarContainer = quill.getModule('toolbar')?.container;
+    const tableBtn = toolbarContainer?.querySelector('button.ql-table-better');
+    if (tableBtn && !tableBtn._focusHandlerAdded) {
+      tableBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      tableBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          const picker = document.querySelector('.ql-table-select-container');
+          if (picker && !picker._nofocusAdded) {
+            picker.addEventListener('mousedown', (e) => e.preventDefault(), true);
+            picker._nofocusAdded = true;
+          }
+        }, 0);
+      });
+      tableBtn._focusHandlerAdded = true;
+    }
+
+    // insertTable calls getSelection(true) and aborts if it returns null.
+    // Bootstrap focus on the modal causes this: root.focus() fires selectionchange
+    // → update() reads null (no cursor yet) → savedRange = null → setRange(null)
+    // → root.blur() → getSelection returns null → silent abort.
+    //
+    // Two-layer fix:
+    // 1. setSelection before origInsert plants a native DOM selection so the
+    //    selectionchange fired by root.focus() reads a valid position.
+    // 2. getSelection override is the hard guarantee — even if layer 1 races,
+    //    getSelection(true) can never return null.
+    if (!quill._getSelectionPatched) {
+      const origGetSel = quill.getSelection.bind(quill);
+      quill.getSelection = function (force) {
+        const range = origGetSel(force);
+        return range !== null ? range : (force ? { index: 0, length: 0 } : null);
+      };
+      quill._getSelectionPatched = true;
+    }
+
+    const tableBetter = quill.getModule('table-better');
+    if (tableBetter && !tableBetter._selectionPatched) {
+      const origInsert = tableBetter.insertTable.bind(tableBetter);
+      tableBetter.insertTable = function (rows, cols) {
+        const idx = quill.selection?.savedRange?.index ?? 0;
+        quill.setSelection(idx, 0, 'silent');
+        return origInsert(rows, cols);
+      };
+      tableBetter._selectionPatched = true;
     }
   }, [showModal]);
 
@@ -117,83 +116,30 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
     reset(defaultValues);
   }, [showModal, reset]);
 
-  // Intercept keydown in capture phase on the Quill container so we fire before
-  // Quill's own listeners. This fixes two problems:
-  // 1. English typing blocked — Quill's capture handler calls preventDefault on
-  //    character keys when its cursor sits at the embed position.
-  // 2. Backspace deletes table — Quill handles Backspace after stealing focus back
-  //    to .ql-editor via selectionchange normalization.
-  useEffect(() => {
-    const quill = quillRef.current?.getEditor();
-    if (!quill) return;
-
-    const handleTableKeydown = (e) => {
-      const targetCell = e.target?.closest?.('td');
-
-      if (targetCell) {
-        // Key fired while td has focus — stop Quill from interfering at all
-        e.stopImmediatePropagation();
-        if ((e.key === 'Backspace' || e.key === 'Delete') && !targetCell.textContent.trim()) {
-          e.preventDefault();
-        }
-        return;
-      }
-
-      // Quill may have stolen focus back to .ql-editor via selectionchange.
-      // Check the browser selection to see if the cursor is still inside a td.
-      if (e.key !== 'Backspace' && e.key !== 'Delete') return;
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const anchor = sel.getRangeAt(0).startContainer;
-        const cellFromSel = anchor.nodeType === 3
-          ? anchor.parentElement?.closest('td')
-          : anchor.closest?.('td');
-        if (cellFromSel) {
-          e.stopImmediatePropagation();
-          if (!cellFromSel.textContent.trim()) {
-            e.preventDefault();
-          }
-        }
-      }
-    };
-
-    quill.container.addEventListener('keydown', handleTableKeydown, true);
-    return () => quill.container.removeEventListener('keydown', handleTableKeydown, true);
-  }, [showModal]);
-
   const quillModules = useMemo(
     () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ color: [] }, { background: [] }],
-          [{ align: [] }],
-          [{ direction: 'rtl' }],
-          ['link', 'table'],
-          ['clean'],
-        ],
-        handlers: {
-          table: function () {
-            const quill = this.quill;
-            quill.focus();
-            const range = quill.getSelection();
-            const index = range ? range.index : quill.getLength();
-            quill.insertEmbed(index, 'table-embed', { rows: 3, cols: 3 }, 'user');
-            quill.setSelection(index + 1, 0, 'user');
-          },
-        },
+      table: false,
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        [{ direction: 'rtl' }],
+        ['link', 'table-better'],
+        ['clean'],
+      ],
+      'table-better': {
+        language: 'en_US',
+        menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+        toolbarTable: true,
+      },
+      keyboard: {
+        bindings: QuillTableBetter.keyboardBindings,
       },
     }),
     []
   );
-
-  const quillFormats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'color', 'background', 'align', 'direction', 'link',
-    'table-embed',
-  ];
 
   const onSubmit = (data) => {
     const payload = {
@@ -320,7 +266,6 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
                           value={field.value || ''}
                           onChange={field.onChange}
                           modules={quillModules}
-                          formats={quillFormats}
                           placeholder="Enter content..."
                         />
                       </div>

@@ -1,3 +1,28 @@
+// Top-level rules ensure table cell borders apply regardless of modal
+// portal nesting. The .ql-table-better class is set by quill-table-better
+// on every table it creates, so this only targets our feature's tables.
+.ql-editor table.ql-table-better {
+  border-collapse: collapse !important;
+  table-layout: auto !important;
+  width: 100%;
+}
+
+.ql-editor table.ql-table-better td,
+.ql-editor table.ql-table-better th {
+  border: 1px solid #999 !important;
+  padding: 6px 10px !important;
+  min-width: 80px;
+  height: 36px;
+  vertical-align: top;
+  box-sizing: border-box;
+}
+
+.ql-editor table.ql-table-better td > p,
+.ql-editor table.ql-table-better th > p {
+  margin: 0 !important;
+  line-height: 1.5;
+}
+
 .appointment-acceptance-modal-lg {
   .react-quill-wrapper .ql-toolbar {
     direction: ltr;
@@ -78,6 +103,37 @@
     left: auto;
     right: 15px;
     text-align: right;
+  }
+
+  .react-quill-wrapper .ql-toolbar {
+    overflow: visible;
+  }
+
+  .react-quill-wrapper .ql-editor table.ql-table-better {
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    width: 100%;
+  }
+
+  .react-quill-wrapper .ql-editor table.ql-table-better td,
+  .react-quill-wrapper .ql-editor table.ql-table-better th {
+    border: 1px solid #666 !important;
+    padding: 6px 10px !important;
+    min-width: 80px;
+    height: 36px;
+    vertical-align: top;
+    box-sizing: border-box;
+  }
+
+  .react-quill-wrapper .ql-editor table.ql-table-better td > p,
+  .react-quill-wrapper .ql-editor table.ql-table-better th > p {
+    margin: 0 !important;
+    line-height: 1.5;
+  }
+
+  .ql-table-select-container,
+  .ql-table-menus-container {
+    z-index: 9999;
   }
 
   .ql-table-embed {
