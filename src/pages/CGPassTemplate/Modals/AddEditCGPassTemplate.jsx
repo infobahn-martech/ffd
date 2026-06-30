@@ -1,7 +1,9 @@
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useMemo, useRef } from 'react';
-import ReactQuill, { Quill } from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import Quill from 'quill';
+import QuillTableBetter from 'quill-table-better';
+import 'quill/dist/quill.snow.css';
+import 'quill-table-better/dist/quill-table-better.css';
 import CustomModal from '../../../components/CustomModal';
 import PremiumSelect from '../../../components/form/PremiumSelect';
 import useCGPassTemplateReducer from '../../../store/CGPassTemplateReducer';
@@ -11,69 +13,105 @@ import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
 import '../../../design/scss/pages/cg-pass-template/modals/AddEditCGPassTemplate.scss';
 
-const Icons = Quill.import('ui/icons');
-Icons['table'] =
-  '<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"/><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"/><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"/></svg>';
-
-const BlockEmbed = Quill.import('blots/block/embed');
-
-class TableEmbed extends BlockEmbed {
-  static create(value) {
-    const node = super.create();
-    const rows = value?.rows ?? 3;
-    const cols = value?.cols ?? 3;
-
-    const table = document.createElement('table');
-    const tbody = document.createElement('tbody');
-
-    for (let r = 0; r < rows; r++) {
-      const tr = document.createElement('tr');
-      for (let c = 0; c < cols; c++) {
-        const td = document.createElement('td');
-        td.setAttribute('contenteditable', 'true');
-        td.setAttribute('dir', 'rtl');
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    node.appendChild(table);
-
-    node.addEventListener('mousedown', (e) => e.stopPropagation());
-    node.addEventListener('keydown', (e) => {
-      const cell = e.target.closest('td');
-      if (!cell) return;
-      if (e.key === 'Backspace' || e.key === 'Delete') {
-        if (cell.textContent.replace(/[\s ]/g, '').length === 0) {
-          e.preventDefault();
-        } else {
-          e.stopPropagation();
-        }
-      } else {
-        e.stopPropagation();
-      }
-    });
-
-    return node;
-  }
-
-  static value(node) {
-    const trs = node.querySelectorAll('tr');
-    const tds = trs[0]?.querySelectorAll('td');
-    return { rows: trs.length || 3, cols: tds?.length || 3 };
-  }
+// Register once at module level using the same Quill instance that quill-table-better uses
+if (!Quill.__tableBetterRegistered) {
+  Quill.register({ 'modules/table-better': QuillTableBetter }, true);
+  QuillTableBetter.register();
+  Quill.__tableBetterRegistered = true;
 }
-
-TableEmbed.blotName = 'table-embed';
-TableEmbed.tagName = 'div';
-TableEmbed.className = 'ql-table-embed';
-
-Quill.register(TableEmbed);
 
 const isHtmlEmpty = (value) => {
   if (!value) return true;
-  return value.replace(/<(.|\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
+  return value.replace(/<(.|\\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0;
 };
+
+// ---------------------------------------------------------------------------
+// QuillEditor — mounts a real Quill v2 instance onto a bare div ref.
+// Accepts value (HTML string) and calls onChange(html) on every text-change.
+// ---------------------------------------------------------------------------
+function QuillEditor({ value, onChange, placeholder }) {
+  const containerRef = useRef(null);
+  const quillRef = useRef(null);
+  // Track the last value we pushed into the editor so we don't loop
+  const lastHtmlRef = useRef('');
+
+  // Mount Quill once
+  useEffect(() => {
+    if (!containerRef.current || quillRef.current) return;
+
+    const quill = new Quill(containerRef.current, {
+      theme: 'snow',
+      placeholder: placeholder || '',
+      modules: {
+        table: false,
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ direction: 'rtl' }],
+          ['link', 'table-better'],
+          ['clean'],
+        ],
+        'table-better': {
+          language: 'en_US',
+          menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+          toolbarTable: true,
+        },
+        keyboard: {
+          bindings: QuillTableBetter.keyboardBindings,
+        },
+      },
+    });
+
+    quillRef.current = quill;
+
+    // Default direction / align for RTL content
+    quill.format('direction', 'rtl');
+    quill.format('align', 'right');
+
+    // Patch getSelection so it never returns null when called with force=true.
+    // This prevents insertTable from silently aborting inside a Bootstrap modal
+    // where root.focus() can briefly reset savedRange to null.
+    const origGetSel = quill.getSelection.bind(quill);
+    quill.getSelection = function (force) {
+      const range = origGetSel(force);
+      return range !== null ? range : (force ? { index: 0, length: 0 } : null);
+    };
+
+    // Listen for text changes and bubble HTML up to react-hook-form
+    quill.on(Quill.events.TEXT_CHANGE, () => {
+      const html = quill.root.innerHTML;
+      lastHtmlRef.current = html;
+      onChange(html);
+    });
+
+    return () => {
+      // Destroy the Quill instance on unmount
+      quill.off(Quill.events.TEXT_CHANGE);
+      quillRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync external value changes into the editor (e.g. form reset)
+  useEffect(() => {
+    const quill = quillRef.current;
+    if (!quill) return;
+    const incoming = value || '';
+    if (incoming === lastHtmlRef.current) return;
+    lastHtmlRef.current = incoming;
+    const delta = quill.clipboard.convert({ html: incoming });
+    quill.setContents(delta, Quill.sources.SILENT);
+  }, [value]);
+
+  return (
+    <div className="react-quill-wrapper" dir="rtl">
+      <div ref={containerRef} />
+    </div>
+  );
+}
 
 export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess }) {
   const templateId = showModal?.pass_vesselreg_template_id;
@@ -81,8 +119,6 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
 
   const { createTemplate, updateTemplate, isBeingUpdated } = useCGPassTemplateReducer((s) => s);
   const { ports, getPorts } = usePortReducer((s) => s);
-
-  const quillRef = useRef(null);
 
   const defaultValues = useMemo(
     () =>
@@ -110,50 +146,8 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
   }, []);
 
   useEffect(() => {
-    const quill = quillRef.current?.getEditor();
-    if (quill) {
-      quill.format('direction', 'rtl');
-      quill.format('align', 'right');
-    }
-  }, [showModal]);
-
-  useEffect(() => {
     reset(defaultValues);
   }, [showModal, reset]);
-
-  const quillModules = useMemo(
-    () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ color: [] }, { background: [] }],
-          [{ align: [] }],
-          [{ direction: 'rtl' }],
-          ['link', 'table'],
-          ['clean'],
-        ],
-        handlers: {
-          table: function () {
-            const quill = this.quill;
-            quill.focus();
-            const range = quill.getSelection();
-            const index = range ? range.index : quill.getLength();
-            quill.insertEmbed(index, 'table-embed', { rows: 3, cols: 3 }, 'user');
-            quill.setSelection(index + 1, 0, 'user');
-          },
-        },
-      },
-    }),
-    []
-  );
-
-  const quillFormats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'color', 'background', 'align', 'direction', 'link',
-    'table-embed',
-  ];
 
   const onSubmit = (data) => {
     const payload = {
@@ -271,17 +265,11 @@ export function AddEditCGPassTemplateModal({ showModal, closeModal, onSuccess })
                       validate: (v) => !isHtmlEmpty(v) || 'Content is required',
                     }}
                     render={({ field }) => (
-                      <div className="react-quill-wrapper" dir="rtl">
-                        <ReactQuill
-                          ref={quillRef}
-                          theme="snow"
-                          value={field.value || ''}
-                          onChange={field.onChange}
-                          modules={quillModules}
-                          formats={quillFormats}
-                          placeholder="Enter content..."
-                        />
-                      </div>
+                      <QuillEditor
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        placeholder="Enter content..."
+                      />
                     )}
                   />
                   {errors.content && (
