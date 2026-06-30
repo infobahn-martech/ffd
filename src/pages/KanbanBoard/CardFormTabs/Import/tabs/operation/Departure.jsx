@@ -129,11 +129,6 @@ function Departure({
       cc_emails: reportDraft.cc ?? "",
       attachments: mapAttachmentsForSave(formValues.departureAttachments || []),
     };
-    console.log("Saving Departure data:", {
-      ...formValues,
-      time_objects: timeObjects,
-      departure_report: departureReport,
-    });
     // TODO: replace with Departure save API call for stage time objects (append time_objects + departure_report to FormData)
 
     try {

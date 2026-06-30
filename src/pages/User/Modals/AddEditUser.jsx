@@ -197,7 +197,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         });
       }
     } catch (error) {
-      console.error("Error submitting user form:", error);
     }
   };
 

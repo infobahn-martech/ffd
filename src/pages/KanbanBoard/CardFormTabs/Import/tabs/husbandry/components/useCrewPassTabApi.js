@@ -75,7 +75,6 @@ export function useCrewPassTabApi({
       const next = extractPassRequestsFromEnvelope(response);
       setPassRequests(next);
     } catch (err) {
-      console.error("get_pass_requests failed", err);
       setPassRequests({ cg: [], zawil: [] });
     } finally {
       setPassRequestsLoading(false);
@@ -108,7 +107,6 @@ export function useCrewPassTabApi({
           setCrewLoadState(mappedOptions.length > 0 ? "success" : "empty");
         }
       } catch (err) {
-        console.error("Failed to load crew list for pass tab", err);
         if (!cancelled) {
           setCrewOptions([]);
           setCrewLoadError(pickBackendErrorMessage(err));
@@ -208,7 +206,6 @@ export function useCrewPassTabApi({
       notify("Pass request saved successfully.", "success", "top-center");
       await fetchPassRequests();
     } catch (err) {
-      console.error("create_pass_request failed", err);
       notify(pickBackendErrorMessage(err), "error", "top-center");
     } finally {
       setSaving(false);

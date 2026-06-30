@@ -41,10 +41,7 @@ export function AddEditCustomerPricing({ showModal, closeModal, onSuccess }) {
             : {},
     });
 
-    console.log("errors", errors);
-
     const onSubmit = (data) => {
-        console.log("CUSTOMER PRICING FORM SUBMITTED:", data);
         onSuccess?.();
         closeModal();
     };

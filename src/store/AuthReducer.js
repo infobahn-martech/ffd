@@ -254,8 +254,6 @@ const useAuthReducer = create((set) => ({
         isProfileFetchLoading: false
       });
 
-      // Optionally log the error without affecting the user experience
-      console.warn('getUserDetail API failed, using fallback profile:', err?.response?.data?.message ?? err.message);
     }
   },
 

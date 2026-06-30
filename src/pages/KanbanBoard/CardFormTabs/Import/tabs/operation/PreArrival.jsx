@@ -76,7 +76,6 @@ function openAttachmentPreview(attachment) {
     window.open(link, "_blank", "noopener,noreferrer");
     return;
   }
-  console.log("Preview document:", attachment?.name);
 }
 
 const DOC_STATUS_NOT_UPLOADED = 0;
@@ -568,7 +567,6 @@ function PreArrival({
         applyDetailDocuments();
       } catch (error) {
         if (!abortSignal?.aborted) {
-          console.error("[Operation] pre_arrival/get_prearrival_detail failed", error);
         }
         throw error;
       }
@@ -827,7 +825,6 @@ function PreArrival({
           field.id ??
           null;
         if (timeObjectId == null) {
-          console.warn("[Operation] Missing time_object_id for event field", field, index);
           return null;
         }
         return {
@@ -882,10 +879,6 @@ function PreArrival({
         attachments: mapAttachmentsForSave(reportAttachments),
       })
     );
-
-    for (let pair of fd.entries()) {
-      console.log(pair[0], pair[1]);
-    }
 
     try {
       setIsSavingPreArrival(true);
@@ -1021,7 +1014,6 @@ function PreArrival({
           setReportAttachments((prev) => (prev.length ? prev : templateAttachments));
         }
       } catch (error) {
-        console.error("[Operation] report_template/get_template_by_port_calltype failed", error);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

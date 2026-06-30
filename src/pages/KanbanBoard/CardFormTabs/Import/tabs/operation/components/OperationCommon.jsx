@@ -296,14 +296,7 @@ export const commitAdditionalTimeObject = async ({
 }) => {
   const timeObject = buildCallTimeObjectPayload(row);
   if (!timeObject || typeof saveCallTimeObject !== "function" || !callId) return null;
-  // TODO(temporary): debug logging for additional time-object save flow.
-  console.log("[AdditionalTimeObject] save_call_time_object payload", {
-    call_id: callId,
-    stage_id: stageId,
-    time_object: timeObject,
-  });
   const data = await saveCallTimeObject({ callId, stageId, timeObject });
-  console.log("[AdditionalTimeObject] save_call_time_object response", data);
   return extractCallTimeObjectId(data);
 };
 
@@ -553,14 +546,6 @@ export const AdditionalTimeObjectsFields = ({
     const normalizedTime = normalizePart(nextTime, "time");
     const timeObjectValue = normalizeAdditionalTimeValue(normalizedDate, normalizedTime);
 
-    // TODO(temporary): debug logging for additional time-object picker binding.
-    console.log("[AdditionalTimeObject] picker onChange", {
-      index,
-      date: normalizedDate,
-      time: normalizedTime,
-      time_object_value: timeObjectValue,
-    });
-
     const nextRows = rows.map((row, rowIndex) =>
       rowIndex === index
         ? {
@@ -573,7 +558,6 @@ export const AdditionalTimeObjectsFields = ({
     );
 
     const updatedRow = nextRows[index];
-    console.log("[AdditionalTimeObject] updated row", updatedRow);
 
     emitChange(nextRows);
 
@@ -983,7 +967,6 @@ const openEmailPreviewAttachment = (attachment) => {
     window.open(link, "_blank", "noopener,noreferrer");
     return;
   }
-  console.log("[Email Preview] Open attachment:", attachment?.file_name || attachment?.name);
 };
 
 const EmailPreviewAttachmentChip = ({ attachment, onRemove }) => {

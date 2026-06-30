@@ -103,11 +103,6 @@ const WarehouseContent = ({ formValues, handleChange, cardColor }) => {
 
   // Handle save
   const handleSave = () => {
-    console.log("Saving Warehouse data:", {
-      warehouseRequestEmailDocuments: formValues.warehouseRequestEmailDocuments,
-      warehouseDocuments: formValues.warehouseDocuments,
-      warehouseDescription: formValues.warehouseDescription,
-    });
     // Add your save logic here
   };
 

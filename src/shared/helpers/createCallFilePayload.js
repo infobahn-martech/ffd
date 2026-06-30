@@ -243,11 +243,6 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const sanitizedBody = preserveAppointmentBody
     ? originalBody
     : sanitizeAppointmentEmailBody(originalBody);
-  if (!preserveAppointmentBody) {
-    console.log("Original email body length:", originalBody.length);
-    console.log("Sanitized email body length:", sanitizedBody.length);
-    console.log("Removed base64 image:", originalBody.length !== sanitizedBody.length);
-  }
   const normalizeEmailAttachments = (value) =>
     (Array.isArray(value) ? value : [])
       .map((item) => ({

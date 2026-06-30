@@ -141,7 +141,6 @@ const usePermissionReducer = create((set) => ({
       });
       return { data: data || null };
     } catch (err) {
-      console.log(err);
       const { error } = useAlertReducer.getState();
       set({
         errorMessage: 'Something went wrong fetching role permissions',

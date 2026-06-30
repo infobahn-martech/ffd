@@ -318,21 +318,21 @@ function OnStationModal({ show, onClose }) {
                             disabled={!row.salesOrderPrinted}
                             tooltip={row.salesOrderPrinted ? 'Print Sales Order' : 'Sales Order not available yet'}
                             tooltipId={`so-${row._id}`}
-                            onClick={() => console.log('Print Sales Order:', row.cardId)}
+                            onClick={() => {}}
                         />
                         <ActionButton
                             icon={FiDollarSign}
                             disabled={!canPrintInvoice}
                             tooltip={canPrintInvoice ? 'Print Invoice' : 'Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor'}
                             tooltipId={`inv-${row._id}`}
-                            onClick={() => console.log('Print Invoice:', row.cardId)}
+                            onClick={() => {}}
                         />
                         <ActionButton
                             icon={FiList}
                             disabled={!row.summaryReady}
                             tooltip={row.summaryReady ? 'Print Summary' : 'Summary Sheet not ready'}
                             tooltipId={`sum-${row._id}`}
-                            onClick={() => console.log('Print Summary:', row.cardId)}
+                            onClick={() => {}}
                         />
                     </div>
                 );

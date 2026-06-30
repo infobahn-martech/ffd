@@ -30,7 +30,6 @@ const useCallTaskReducer = create((set, get) => ({
         set({ callTasks: rows, isLoadingTasks: false });
       }
     } catch (err) {
-      console.error("[CallTaskReducer] getTasksByCall failed", err);
       if (get().tasksCallId === trimmed) {
         set({
           callTasks: [],

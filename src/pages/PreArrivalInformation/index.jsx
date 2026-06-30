@@ -256,7 +256,6 @@ const PreArrivalInformation = () => {
                 setSelectedRow(null);
               }}
               onConfirm={() => {
-                console.log("Delete pre-arrival information:", selectedRow);
                 setShowDeleteModal(false);
                 setSelectedRow(null);
               }}

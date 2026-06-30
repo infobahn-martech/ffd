@@ -269,7 +269,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         const trLocRows = Array.isArray(trLocRes?.data) ? trLocRes.data : trLocRes?.data?.data ?? [];
         setLocationOptions(trLocRows.map((r) => ({ value: String(r.location_id ?? ""), label: String(r.location ?? "") })).filter((o) => o.value));
       } catch (err) {
-        console.error("Failed to load reference data", err);
       }
     })();
     return () => { cancelled = true; };

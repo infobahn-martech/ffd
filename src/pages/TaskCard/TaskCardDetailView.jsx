@@ -89,11 +89,6 @@ function TaskCardDetailView({ card, onClose }) {
 
     const handleSave = useCallback(() => {
         if (!commentText.trim()) return;
-        console.log({
-            card_id: card?.id,
-            comment: commentText,
-            mentioned_users: selectedMentionUserIds,
-        });
         setCommentText("");
         setSelectedMentionUserIds([]);
         closeMentionDropdown();

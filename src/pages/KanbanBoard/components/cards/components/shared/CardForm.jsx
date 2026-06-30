@@ -1810,7 +1810,6 @@ function CardForm({
           setCallDetailSnapshot(data?.data ?? null);
         }
       } catch (error) {
-        console.error("[CardForm] call detail fetch failed", error);
         if (!cancelled) {
           setCallDetailSnapshot(null);
         }
@@ -2026,9 +2025,6 @@ function CardForm({
         await kanbanBoardService.getFullBoard(boardId ?? 1);
       }
     } catch (e) {
-      if (typeof console !== "undefined" && console.error) {
-        console.error("[CardForm] getFullBoard on close failed:", e?.message ?? e);
-      }
     } finally {
       close();
       isClosingRef.current = false;

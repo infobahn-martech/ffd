@@ -34,7 +34,6 @@ const ReportsCardView = ({ reportsList, cardColor, onViewReport, onDownloadRepor
   };
 
   const handlePreview = (report) => {
-    console.log("Opening preview for report:", report);
     setPreviewReport(report);
   };
 
@@ -54,8 +53,6 @@ const ReportsCardView = ({ reportsList, cardColor, onViewReport, onDownloadRepor
   const handleDownloadReport = (report) => {
     if (onDownloadReport) {
       onDownloadReport(report);
-    } else {
-      console.log("Download report:", report);
     }
   };
 

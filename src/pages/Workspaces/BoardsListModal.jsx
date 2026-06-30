@@ -113,7 +113,6 @@ const BoardsListModal = ({ show, onClose, onSelect }) => {
                 className="boards-list-filter-btn"
                 onClick={() => {
                   // TODO: Implement dropdown toggle
-                  console.log('Filter dropdown');
                 }}
               >
                 {filterType}
@@ -173,7 +172,6 @@ const BoardsListModal = ({ show, onClose, onSelect }) => {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 // TODO: Implement external link
-                                console.log('External link:', board.id);
                               }}
                               aria-label="Open in new tab"
                             >

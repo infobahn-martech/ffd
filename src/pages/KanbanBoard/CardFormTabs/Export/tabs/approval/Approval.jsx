@@ -399,27 +399,21 @@ const createEmptyPartySection = () => ({
     const [ceoDocument, setCeoDocument] = useState(null);
 
     const handleCreditControllerApproved = useCallback(() => {
-      console.log("Approved");
     }, []);
 
     const handleCreditControllerProceedToOperator = useCallback(() => {
-      console.log("Proceed to Operator");
     }, []);
 
     const handleManagerApproved = useCallback(() => {
-      console.log("Approved");
     }, []);
 
     const handleManagerProceedToCeo = useCallback(() => {
-      console.log("Proceed to CEO");
     }, []);
 
     const handleCeoApproved = useCallback(() => {
-      console.log("Approved");
     }, []);
 
     const handleCeoOnHold = useCallback(() => {
-      console.log("On Hold");
     }, []);
 
     const handleBasicChange = useCallback((field, value) => {

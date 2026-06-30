@@ -659,9 +659,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     value={formValues.transportFrom || ""}
                     onChange={handleChange("transportFrom")}
                     placeholder="Search for a location..."
-                    onLocationSelect={(locationData) => {
-                      console.log("From location selected:", locationData);
-                    }}
+                    onLocationSelect={() => {}}
                   />
                 </FormField>
 
@@ -670,9 +668,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     value={formValues.transportTo || ""}
                     onChange={handleChange("transportTo")}
                     placeholder="Search for a location..."
-                    onLocationSelect={(locationData) => {
-                      console.log("To location selected:", locationData);
-                    }}
+                    onLocationSelect={() => {}}
                   />
                 </FormField>
 

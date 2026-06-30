@@ -32,7 +32,6 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
       item.workspace.toLowerCase().includes(filterValue.toLowerCase()) ||
       item.board.toLowerCase().includes(filterValue.toLowerCase())
   );
-  console.log("archiveLog", archiveLog);
   useEffect(() => {
     if (show) fetchWorkspaceArchiveLog();
   }, [show, fetchWorkspaceArchiveLog]);

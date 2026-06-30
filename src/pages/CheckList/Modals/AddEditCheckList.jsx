@@ -204,15 +204,6 @@ function collectItemFiles(data) {
   return map;
 }
 
-function logFormDataEntries(formData) {
-  for (const [key, value] of formData.entries()) {
-    if (value instanceof File) {
-      console.log(key, `[File: ${value.name}, ${value.size} bytes]`);
-    } else {
-      console.log(key, value);
-    }
-  }
-}
 
 function getSelectedFile(requiredCopyOnly) {
   if (requiredCopyOnly instanceof FileList && requiredCopyOnly.length > 0) {

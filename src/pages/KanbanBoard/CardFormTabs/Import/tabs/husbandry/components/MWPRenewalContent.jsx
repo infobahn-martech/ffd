@@ -147,12 +147,6 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const handleSave = () => {
-    console.log("Saving MWP Renewal data:", {
-      mwpRenewalExpiryDate: formValues.mwpRenewalExpiryDate,
-      mwpRenewalRequestEmailDocuments: formValues.mwpRenewalRequestEmailDocuments,
-      mwpRenewalDocuments: formValues.mwpRenewalDocuments,
-      mwpRenewalDescription: formValues.mwpRenewalDescription,
-    });
   };
 
   const requestEmailAttachments = normalizeAttachmentList(

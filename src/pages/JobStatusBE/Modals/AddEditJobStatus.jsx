@@ -32,7 +32,6 @@ export function JobStatusBEModal({ showModal, closeModal }) {
     });
 
     const onSubmit = (data) => {
-        console.log("JOB STATUS FORM SUBMITTED:", data);
         closeModal();
     };
 

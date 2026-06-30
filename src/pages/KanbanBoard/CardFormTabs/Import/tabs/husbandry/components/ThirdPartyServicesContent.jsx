@@ -194,14 +194,6 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const isOthersSelected = formValues.thirdPartyServiceType === "Others";
 
   const handleSave = () => {
-    console.log("Saving Third-Party Services data:", {
-      serviceType: formValues.thirdPartyServiceType,
-      thirdPartyServiceTypeOther: formValues.thirdPartyServiceTypeOther,
-      thirdPartyPONumber: formValues.thirdPartyPONumber,
-      thirdPartyServicesRequestEmailDocuments: formValues.thirdPartyServicesRequestEmailDocuments,
-      thirdPartyServicesDocuments: formValues.thirdPartyServicesDocuments,
-      thirdPartyServicesDescription: formValues.thirdPartyServicesDescription,
-    });
   };
 
   const requestEmailAttachments = normalizeAttachmentList(

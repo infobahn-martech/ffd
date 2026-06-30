@@ -161,12 +161,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const handleSave = () => {
-    console.log("Saving Medical Service data:", {
-      medicalServiceSelectedCrew: formValues.medicalServiceSelectedCrew,
-      medicalServiceSelectedHospital: formValues.medicalServiceSelectedHospital,
-      medicalServiceSelectedService: formValues.medicalServiceSelectedService,
-      medicalServiceDocuments: formValues.medicalServiceDocuments,
-    });
   };
 
   return (

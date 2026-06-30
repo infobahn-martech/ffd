@@ -73,7 +73,6 @@ function Notes({ card }) {
                     setManagers(mapManagersFromResponse(list));
                 }
             } catch (error) {
-                console.error("[Notes] failed to load managers", error);
                 if (!cancelled) {
                     setManagers([]);
                 }
@@ -161,12 +160,6 @@ function Notes({ card }) {
 
     const handleSave = () => {
         if (isEmptyHtmlContent(noteText)) return;
-
-        console.log({
-            card_id: getCardId(card),
-            note: noteText,
-            mentioned_users: selectedMentionUserIds,
-        });
 
         setNoteText("");
         setSelectedMentionUserIds([]);

@@ -237,7 +237,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
           setCallDetailData(detail);
         }
       } catch (e) {
-        console.error("[Operation] get_call_detail failed", e);
         if (!cancelled) setCallDetailData(null);
       } finally {
         if (!cancelled) setCallDetailLoading(false);
@@ -300,7 +299,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
         if (!cancelled) {
           setEventTypeFieldsByStage({ 2: [], 3: [], 4: [], 5: [] });
         }
-        console.error("[Operation] stage time objects fetch failed", error);
       }
     };
 
@@ -392,7 +390,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
         });
       } catch (error) {
         if (cancelled) return;
-        console.error("[Operation] pre_arrival/get_eta_dependent_times failed", error);
       }
     };
 
@@ -427,12 +424,10 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
 
   const handleAddLink = useCallback(() => {
     // TODO: Implement link add logic
-    console.log("Add link");
   }, []);
 
   const handleRemoveLink = useCallback((index) => {
     // TODO: Implement link remove logic
-    console.log("Remove link", index);
   }, []);
 
   return (

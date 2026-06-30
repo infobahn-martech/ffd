@@ -32,10 +32,7 @@ export function PortModal({ showModal, closeModal }) {
   });
 
 
-  console.log("errors",errors)
-
   const onSubmit = (data) => {
-    console.log("PORT FORM SUBMITTED:", data);
     closeModal();
   };
 

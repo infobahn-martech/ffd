@@ -733,7 +733,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           resolvedVesselId = Number(callDetailData?.vessel_id);
         }
       } catch (e) {
-        console.error("Crew list: failed to resolve call detail:", e);
       }
     }
 
@@ -895,11 +894,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           await refreshCallCrewListFromApi();
           setPreferLocalUploadView(false);
         } catch (importErr) {
-          console.error("Error importing crew file:", importErr);
         }
       }
     } catch (error) {
-      console.error("Error importing crew file:", error);
     }
 
     const reader = new FileReader();
@@ -928,7 +925,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           setIsFileUploaded(true);
         }
       } catch (error) {
-        console.error("Error parsing file:", error);
         // Even on error, show the crew list (empty or with default data)
         const syntheticEvent = { target: { value: [] } };
         handleChange("crewList")(syntheticEvent);
@@ -1044,7 +1040,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("Failed to download crew template:", error);
       alert("Crew template file not available.");
     } finally {
       setIsDownloadingTemplate(false);
@@ -1148,7 +1143,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         }
         resolvedVesselId = Number(callDetailData?.vessel_id);
       } catch (error) {
-        console.error("Failed to resolve call detail for crew save:", error);
       }
     }
 
@@ -1181,7 +1175,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       await refreshCallCrewListFromApi();
       setPreferLocalUploadView(false);
     } catch (error) {
-      console.error("Failed to save crew:", error);
       alert("Failed to save crew data. Please try again.");
       return;
     }
@@ -1504,7 +1497,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       : null;
 
     if (!crewId) {
-      console.error("handleCrewDocumentUpload: missing crew.crew_id", crew);
       window.alert("Cannot upload document: crew_id is missing for this crew.");
       return;
     }
@@ -1528,7 +1520,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
       await refreshCallCrewListFromApi();
     } catch (err) {
-      console.error(`Error uploading ${fieldName} for crew ${crewId}:`, err);
       // updateCrewDocuments already surfaces an alert via AlertReducer.
     }
   };

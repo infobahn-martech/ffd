@@ -86,7 +86,6 @@ export function CustomFieldModal({ showModal, closeModal }) {
     }, [customFieldName, fieldKey, setValue, showModal]);
 
     const onSubmit = (data) => {
-        console.log("CUSTOM FIELD FORM SUBMITTED:", data);
         // You can transform data here before sending to API if needed
         closeModal();
     };

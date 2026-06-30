@@ -51,13 +51,10 @@ const ReportsList = ({ formValues, handleChange, isDAModule = false }) => {
   const displayReportsList = reportsList.length > 0 ? reportsList : generateDummyReports();
 
   const handleViewReport = (report) => {
-    console.log("View report:", report);
     // Modal is handled by ReportsListView component
   };
 
   const handleSaveReport = (report) => {
-    console.log("Sending report:", report);
-    
     // Create sent report object
     const sentReport = {
       ...report,
@@ -91,7 +88,6 @@ const ReportsList = ({ formValues, handleChange, isDAModule = false }) => {
   };
 
   const handleDownloadReport = (report) => {
-    console.log("Download report:", report);
     // TODO: Implement download functionality
     alert(`Downloading report: ${report.reportName}`);
   };

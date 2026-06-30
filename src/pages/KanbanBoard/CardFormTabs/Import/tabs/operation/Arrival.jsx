@@ -408,7 +408,6 @@ function Arrival({
         }
       } catch (error) {
         if (cancelled) return;
-        console.error("[Operation] arrival/get_template_by_port_calltype failed", error);
       }
     };
 

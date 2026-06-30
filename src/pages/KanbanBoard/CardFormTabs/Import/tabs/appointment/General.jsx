@@ -1312,7 +1312,6 @@ const createQuillImageUploadHandler = (quillRef) => () => {
         quill.setSelection((range?.index ?? 0) + 1);
       }
     } catch (error) {
-      console.error("Image upload failed:", error);
       notify("Image upload failed.", "error");
     }
   };
@@ -2464,7 +2463,6 @@ function General({
           setCallDetailData(detail);
         }
       } catch (error) {
-        console.error("[General] call detail fetch failed", error);
       } finally {
         if (!cancelled) {
           setCallDetailLoading(false);
@@ -2627,7 +2625,6 @@ function General({
           setOperatorKpiTasks(rows);
         }
       } catch (error) {
-        console.error("[General] operator KPI fetch failed", error);
         if (!cancelled) {
           setOperatorKpiTasks([]);
           setOperatorKpiError("Unable to load KPI tasks.");
@@ -2667,7 +2664,6 @@ function General({
         const list = unwrapListResponse(data);
         return { label, options: mapFn(list) };
       } catch (e) {
-        console.error(`[General] ${label} master data failed`, e);
         return { label, options: [] };
       }
     };
@@ -3034,7 +3030,6 @@ function General({
       from_email: resolvedFromEmail,
       cc_emails: finalCcEmails,
     };
-    console.log("FINAL appointment_acceptance", appointmentAcceptanceForSubmit);
     const formPayload = {
       ...formValues,
       swimlane_id: swimlaneId,
@@ -3089,14 +3084,9 @@ function General({
         preserveAppointmentBody:
           !isPreviewMessageDirty && Boolean(firstNonEmptyString(apiAppointmentBase.body)),
       });
-      console.log("FINAL FORM DATA");
-      for (const pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
       const response = await callFileService.createCallFile(formData);
       if (onSave) onSave(response);
     } catch (error) {
-      console.error("Create failed:", error);
       const msg =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
@@ -3559,11 +3549,6 @@ function General({
     updateFormValue("appointmentReceived", combinedMinute);
     updateFormValue("appointmentReceivedDateTime", combinedMinute);
     updateFormValue("appointment_received_date", combinedSecond);
-    console.log("[Appointment Received Applied]", {
-      date: receivedParts.date,
-      time: receivedParts.time,
-      combined: combinedMinute,
-    });
     return true;
   };
 
@@ -3687,15 +3672,6 @@ function General({
       firstNonEmptyString(msgSenderDetails?.extractedEmail) ||
       firstNonEmptyString(extracted?.fromEmail) ||
       fallbackEmail;
-    console.log("[Appointment Non-AI Parse] resolved sender", {
-      fromName: extracted?.fromName,
-      msgSenderName: msgSenderDetails?.extractedName,
-      resolvedRequestorName,
-      fromEmail: extracted?.fromEmail,
-      msgSenderEmail: msgSenderDetails?.extractedEmail,
-      fallbackEmail,
-      resolvedRequestorEmail,
-    });
     if (applyAppointmentReceivedDateTime(receivedParts)) filledCount += 1;
     if (setFieldIfEmpty("serviceRequestorName", resolvedRequestorName)) filledCount += 1;
     if (setFieldIfEmpty("serviceRequestorEmail", resolvedRequestorEmail)) filledCount += 1;
@@ -3835,15 +3811,11 @@ function General({
       MsgReaderModule;
 
     if (typeof MsgReaderConstructor !== "function") {
-      console.error("[MSG Reader Module]", MsgReaderModule);
       throw new Error("MSG reader constructor not found");
     }
 
     const msgReader = new MsgReaderConstructor(uint8Array);
     const msgInfo = msgReader.getFileData();
-    console.log("[MSG FULL DATA]", msgInfo);
-    console.log("[MSG HEADER RAW]", msgInfo?.headers || msgInfo?.transportMessageHeaders || msgInfo?.messageHeaders);
-    console.log("[Appointment Non-AI Parse] MSG raw data", msgInfo);
 
     const body = msgInfo.body || msgInfo.bodyHTML || "";
     const subject = msgInfo.subject || "";
@@ -3938,10 +3910,6 @@ ${body}
       } else {
         extractedText = await extractTextFromFile(file);
       }
-      console.log("[Appointment Non-AI] msgData keys", Object.keys(msgData || {}));
-      console.log("[Appointment Non-AI] msgData raw", msgData);
-      console.log("[Appointment Non-AI] extractedText first 500", extractedText?.slice(0, 500));
-      console.log("[Appointment Non-AI Parse] upload text", extractedText);
       if (!firstNonEmptyString(extractedText)) {
         notify("File uploaded, but no matching appointment details found.", "warning");
         return;
@@ -3955,22 +3923,12 @@ ${body}
       const extracted = extractEmailHeaderDetails(extractedText);
       const msgSenderDetails = msgData ? parseMsgSenderDetails(msgData) : null;
       const receivedParts = resolveMsgReceivedDateTime(msgData, extractedText);
-      console.log("[Appointment Non-AI] resolved received date", receivedParts);
-      console.log("[Appointment Non-AI Parse] extracted", extracted);
-      console.log("[Appointment Non-AI Parse] msg sender", msgSenderDetails);
       const filledCount = applyNonAiAppointmentFields(extracted, receivedParts, msgSenderDetails);
       const appointmentReceivedDate = getFieldValue("appointmentReceivedDate");
       const appointmentReceivedTime = getFieldValue("appointmentReceivedTime");
       const appointmentReceived = getFieldValue("appointmentReceived");
       const appointmentReceivedDateTime = getFieldValue("appointmentReceivedDateTime");
       const appointment_received_date = getFieldValue("appointment_received_date");
-      console.log("[Appointment Non-AI] current appointment fields after bind", {
-        appointmentReceivedDate,
-        appointmentReceivedTime,
-        appointmentReceived,
-        appointmentReceivedDateTime,
-        appointment_received_date,
-      });
       if (filledCount > 0) {
         notify("Appointment details auto-filled from uploaded email.", "success");
       } else {
@@ -3979,14 +3937,12 @@ ${body}
     } catch (error) {
       const isBeMode = appointmentExtractionMode === "be";
       if (isBeMode) {
-        console.error("[Appointment BE Extraction] failed", error);
         const beMessage =
           firstNonEmptyString(error?.response?.data?.message, error?.response?.data?.error, error?.message) ||
           "Backend email extraction failed.";
         notify(beMessage, "error");
         setAiExtractionError(beMessage);
       } else {
-        console.error("Appointment non-AI extraction failed", error);
         const isUnsupportedFormat = error?.message === "UNSUPPORTED_FILE_FORMAT";
         const quotaErrorText = firstNonEmptyString(error?.message);
         const isQuotaExceeded = quotaErrorText.toLowerCase().includes("gemini quota exceeded");
@@ -4009,7 +3965,6 @@ ${body}
   const handleDocumentRemove = (index) => {
     setAppointmentDocuments((prev) => prev.filter((_, i) => i !== index));
     resetAppointmentEmailExtractedValues();
-    console.log("[Appointment Email] removed, extracted values reset");
   };
 
   const handleEmailAttachmentUpload = useCallback(
@@ -4059,7 +4014,6 @@ ${body}
 
         setUploadedEmailAttachments((prev) => [...prev, ...normalized]);
       } catch (error) {
-        console.error("Email attachment upload failed:", error);
         const msg =
           error?.response?.data?.message ||
           error?.response?.data?.error ||
@@ -4125,7 +4079,6 @@ ${body}
         setDailyReportEmailOptions(opts);
         return opts;
       } catch (error) {
-        console.error("[General] billing entity emails fetch failed", error);
         setDailyReportEmailOptions([]);
         return [];
       } finally {
@@ -4186,7 +4139,6 @@ ${body}
           target: { value: isEmailInstruction ? "" : description, name: "billingInstructions" }
         });
       } catch (error) {
-        console.error("[General] billing instruction fetch failed", error);
         setBillingInstructionType("");
         setBillingInstructionEmailOptions([]);
         handleChange("billingInstructionEmails")({ target: { value: [], name: "billingInstructionEmails" } });
@@ -4281,7 +4233,6 @@ ${body}
         if (requestRef.current !== requestId) return;
         setOptions(normalizeVesselOptions(data));
       } catch (error) {
-        console.error("[General] vessels by entity fetch failed", error);
         if (requestRef.current === requestId) setOptions([]);
       } finally {
         if (requestRef.current === requestId) setLoading(false);
@@ -4333,7 +4284,6 @@ ${body}
           handleChange(managerKey)({ target: { value: detail.vessel_manager, name: managerKey } });
           handleChange(principalKey)({ target: { value: detail.vessel_principal, name: principalKey } });
         } catch (error) {
-          console.error("[General] vessel detail fetch failed", error);
         }
       },
     [handleChange, hasSubmitted, normalizeVesselDetails]
@@ -4397,7 +4347,6 @@ ${body}
           handleChange("dailyReportEmail")({ target: { value: next, name: "dailyReportEmail" } });
         }
       } catch (error) {
-        console.error("[General] add billing entity email failed", error);
       }
     },
     [getFieldValue, fetchBillingEntityEmails, handleChange]
@@ -4439,7 +4388,6 @@ ${body}
           target: { value: isEmailInstruction ? "" : description, name: "billingInstructions" },
         });
       } catch (error) {
-        console.error("[General] add billing instruction email failed", error);
       }
     },
     [getFieldValue, handleChange, normalizeBillingInstruction]
@@ -4535,7 +4483,6 @@ ${body}
         const sortedRows = [...rows].sort((a, b) => Number(a?.sort_order ?? 0) - Number(b?.sort_order ?? 0));
         setStageTimeObjects(sortedRows);
       } catch (error) {
-        console.error("[General] stage time objects fetch failed", error);
         if (!cancelled) {
           setStageTimeObjects([]);
         }
@@ -4616,7 +4563,6 @@ ${body}
           });
         }
       } catch (error) {
-        console.error("[General] pre_arrival/get_eta_dependent_times failed", error);
       } finally {
         if (etaDependentRequestIdRef.current === requestId) {
           setIsEtaDependentTimesLoading(false);
@@ -4673,7 +4619,6 @@ ${body}
           setPreviewMessageEditorKey((key) => key + 1);
         }
       } catch (error) {
-        console.error("[General] email preview fetch failed", error);
         if (!cancelled) {
           setEmailPreviewData(null);
           setDefaultEmailAttachments([]);
@@ -4726,13 +4671,10 @@ ${body}
       allDetailByVesselRequestIdRef.current = requestId;
 
       try {
-        console.log("[General] all_detail_by_vessel_id payload", requestPayload);
         const response = await callFileService.allDetailByVesselId(requestPayload);
-        console.log("[General] all_detail_by_vessel_id response", response?.data);
         if (cancelled || allDetailByVesselRequestIdRef.current !== requestId) return;
         applyAllDetailByVesselResponse(response?.data);
       } catch (error) {
-        console.error("[General] all_detail_by_vessel_id failed", error);
       }
     }, 500);
 
@@ -4877,7 +4819,6 @@ ${body}
           return nextValues;
         });
       } catch (error) {
-        console.error("[General] entity fields fetch failed", error);
         setEntityFields([]);
         setEntityFieldValues({});
         setEntityFieldErrors({});

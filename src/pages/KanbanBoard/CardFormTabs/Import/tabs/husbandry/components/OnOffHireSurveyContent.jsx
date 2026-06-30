@@ -103,11 +103,6 @@ const OnOffHireSurveyContent = ({ formValues, handleChange, cardColor }) => {
 
     // Handle save
     const handleSave = () => {
-        console.log("Saving On/Off-Hire Survey data:", {
-            onOffHireSurveyRequestEmailDocuments: formValues.onOffHireSurveyRequestEmailDocuments,
-            onOffHireSurveyDocuments: formValues.onOffHireSurveyDocuments,
-            onOffHireSurveyDescription: formValues.onOffHireSurveyDescription,
-        });
         // Add your save logic here
     };
 

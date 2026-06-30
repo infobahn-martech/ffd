@@ -127,7 +127,7 @@ function DocumentsModal({ show, onClose }) {
               className="truncated-cell-text clickable-link"
               data-tooltip-id={tooltipId}
               data-tooltip-content={props.row.cardId.toString()}
-              onClick={() => console.log('Navigate to card:', props.row.cardId)}
+              onClick={() => {}}
               style={{ color: '#2563eb', cursor: 'pointer' }}
             >
               {props.row.cardId}

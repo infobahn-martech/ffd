@@ -139,7 +139,6 @@ const KPIDashboard = () => {
                 setShowSignOutModal(false);
             }, 500);
         } catch (error) {
-            console.error('Error during logout:', error);
             setIsLoggingOut(false);
         }
     };

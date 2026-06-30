@@ -20,7 +20,6 @@ export function TransportPartyModal({ showModal, closeModal }) {
     });
 
     const onSubmit = (data) => {
-        console.log("TRANSPORT PARTY FORM SUBMITTED:", data);
         closeModal();
     };
 

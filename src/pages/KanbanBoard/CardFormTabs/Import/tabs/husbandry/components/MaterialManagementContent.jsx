@@ -424,7 +424,6 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                   placeholder="Search for a location..."
                   onLocationSelect={(locationData) => {
                     // Optional: Store additional location data if needed
-                    console.log("Drop off location selected:", locationData);
                   }}
                 />
               </FormField>

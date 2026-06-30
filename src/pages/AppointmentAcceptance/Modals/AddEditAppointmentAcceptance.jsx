@@ -147,7 +147,6 @@ export function ReportTemplatesModal({
           quill.setSelection((range?.index ?? 0) + 1);
         }
       } catch (error) {
-        console.error("Image upload failed:", error);
       }
     };
   };

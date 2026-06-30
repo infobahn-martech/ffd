@@ -1306,8 +1306,6 @@ const SalesOrderList = ({
       window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
     }
     // TODO: Implement API call to create work order (when not sharing)
-    console.log("Creating work order:", workOrderData);
-
     setShowWorkOrderModal(false);
     setSelectedItems(new Set());
   };
@@ -1335,7 +1333,6 @@ const SalesOrderList = ({
 
   const handleSendPreview = () => {
     // TODO: Implement send functionality
-    console.log("Sending:", previewModalType);
     handleClosePreviewModal();
   };
 

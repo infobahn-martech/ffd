@@ -20,7 +20,6 @@ export function ServiceProviderModal({ showModal, closeModal }) {
     });
 
     const onSubmit = (data) => {
-        console.log("SERVICE PROVIDER FORM SUBMITTED:", data);
         closeModal();
     };
 

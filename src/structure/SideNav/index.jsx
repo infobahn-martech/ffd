@@ -755,9 +755,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   }
 
   if (isKanbanBoard && !isVendorPortal) {
-    console.log('raw workflows:', sidebarWorkflows);
-    console.log('modal workflows:', workflowOptionsForModal);
-
     const handleIconClick = (item) => {
       if (restrictedNav) {
         if (item.label === 'Workspaces') {

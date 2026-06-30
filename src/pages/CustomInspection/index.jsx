@@ -175,7 +175,6 @@ const CustomInspection = () => {
       )
     );
     // TODO: Add API call to update status
-    console.log("Status updated:", row._id, newStatus);
   };
 
   return (

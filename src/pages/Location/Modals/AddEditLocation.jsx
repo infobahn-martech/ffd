@@ -20,7 +20,6 @@ export function LocationModal({ showModal, closeModal }) {
     });
 
     const onSubmit = (data) => {
-        console.log("LOCATION FORM SUBMITTED:", data);
         closeModal();
     };
 

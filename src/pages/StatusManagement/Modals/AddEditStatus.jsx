@@ -32,7 +32,6 @@ export function StatusModal({ showModal, closeModal }) {
     });
 
     const onSubmit = (data) => {
-        console.log("STATUS FORM SUBMITTED:", data);
         closeModal();
     };
 

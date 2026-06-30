@@ -73,7 +73,6 @@ function Comments({ card }) {
                     setManagers(mapManagersFromResponse(list));
                 }
             } catch (error) {
-                console.error("[Comments] failed to load managers", error);
                 if (!cancelled) {
                     setManagers([]);
                 }
@@ -161,12 +160,6 @@ function Comments({ card }) {
 
     const handleSave = () => {
         if (isEmptyHtmlContent(commentText)) return;
-
-        console.log({
-            card_id: getCardId(card),
-            comment: commentText,
-            mentioned_users: selectedMentionUserIds,
-        });
 
         setCommentText("");
         setSelectedMentionUserIds([]);

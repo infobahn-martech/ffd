@@ -58,7 +58,6 @@ const useArrivalReducer = create((set) => ({
         isArrivalDetailLoading: false,
         arrivalError: message,
       });
-      console.error('[ArrivalReducer] fetchArrivalDetail failed', err);
       return null;
     }
   },

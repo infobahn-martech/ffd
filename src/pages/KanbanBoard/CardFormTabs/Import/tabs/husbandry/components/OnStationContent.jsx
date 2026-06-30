@@ -99,12 +99,6 @@ const OnStationContent = ({ formValues, handleChange, cardColor }) => {
 
   // Handle save
   const handleSave = () => {
-    console.log("Saving On Station data:", {
-      onStationDocumentType: formValues.onStationDocumentType,
-      onStationRequestEmailDocuments: formValues.onStationRequestEmailDocuments,
-      onStationDocuments: formValues.onStationDocuments,
-      onStationDescription: formValues.onStationDescription,
-    });
     // Add your save logic here
   };
 
