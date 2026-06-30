@@ -9,9 +9,12 @@ import ContextMenu from "../KanbanBoard/components/menus/ContextMenu";
 import AccordionMenu from "../KanbanBoard/components/menus/AccordionMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
+import "../../design/scss/pages/coordinator-transport/ct-task-card.scss";
 import useSyncKanbanSidebarWorkflows from "../../shared/hooks/useSyncKanbanSidebarWorkflows";
 import useKanbanAddCardFromSidebar from "../../shared/hooks/useKanbanAddCardFromSidebar";
 import { getAddModeCardFormWorkflow } from "../../shared/helpers/kanbanSidebarWorkflow";
+
+const CT_FLEETS = ["BARBOSSA", "WAKANDA", "MARMOLADA"];
 
 export default function CoordinatorTransport() {
     const [workflows, setWorkflows] = useState(initialData);
@@ -51,6 +54,13 @@ export default function CoordinatorTransport() {
     // Control expand/shrink functionality
     const [enableExpandShrink, setEnableExpandShrink] = useState(false);
 
+    // Multi-select and trip assignment
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [selectedCardIds, setSelectedCardIds] = useState(new Set());
+    const [tripFleet, setTripFleet] = useState(null);
+    const [tripBookingDate, setTripBookingDate] = useState("");
+    const [tripBookingTime, setTripBookingTime] = useState("");
+
     // Context menu state
     const [contextMenu, setContextMenu] = useState(null);
     const [contextMenuColumn, setContextMenuColumn] = useState(null);
@@ -88,6 +98,64 @@ export default function CoordinatorTransport() {
         setIsAddMode(false);
         setAddTargetWorkflowId(null);
     }, []);
+
+    const handleToggleSelectionMode = useCallback(() => {
+        setIsSelectionMode(prev => !prev);
+        setSelectedCardIds(new Set());
+        setTripFleet(null);
+        setTripBookingDate("");
+        setTripBookingTime("");
+    }, []);
+
+    const handleToggleCardSelect = useCallback((cardId) => {
+        setSelectedCardIds(prev => {
+            const next = new Set(prev);
+            if (next.has(cardId)) next.delete(cardId);
+            else next.add(cardId);
+            return next;
+        });
+    }, []);
+
+    const handleAssignTrip = useCallback(() => {
+        if (!tripFleet || selectedCardIds.size === 0) return;
+        const tripId = `trip-${Date.now()}`;
+        const idsArray = Array.from(selectedCardIds);
+        const selectedSet = new Set(idsArray);
+        setWorkflows(prev => prev.map(workflow => {
+            const updatedColumns = { ...workflow.columns };
+            const updatedCards = { ...workflow.cards };
+            idsArray.forEach(cardId => {
+                if (updatedCards[cardId]) {
+                    updatedCards[cardId] = {
+                        ...updatedCards[cardId],
+                        assignedFleet: tripFleet,
+                        tripBookingDate,
+                        tripBookingTime,
+                        tripId,
+                    };
+                }
+            });
+            Object.keys(updatedColumns).forEach(colKey => {
+                const col = updatedColumns[colKey];
+                if (col && Array.isArray(col.cardIds)) {
+                    updatedColumns[colKey] = { ...col, cardIds: col.cardIds.filter(id => !selectedSet.has(id)) };
+                }
+            });
+            const targetColKey = Object.keys(updatedColumns).find(k => updatedColumns[k].title === "Driver assigned");
+            if (targetColKey) {
+                updatedColumns[targetColKey] = {
+                    ...updatedColumns[targetColKey],
+                    cardIds: [...idsArray, ...updatedColumns[targetColKey].cardIds],
+                };
+            }
+            return { ...workflow, columns: updatedColumns, cards: updatedCards };
+        }));
+        setSelectedCardIds(new Set());
+        setIsSelectionMode(false);
+        setTripFleet(null);
+        setTripBookingDate("");
+        setTripBookingTime("");
+    }, [tripFleet, selectedCardIds, tripBookingDate, tripBookingTime]);
 
     // Set loading to false after component mounts
     useEffect(() => {
@@ -536,6 +604,9 @@ export default function CoordinatorTransport() {
                         subColumns={item.subColumns}
                         subColumnCards={item.subColumnCards}
                         subColumnHeights={item.subColumnHeights}
+                        isSelectionMode={isSelectionMode}
+                        selectedCardIds={selectedCardIds}
+                        onToggleCardSelect={handleToggleCardSelect}
                     />
                 );
             } else {
@@ -553,11 +624,14 @@ export default function CoordinatorTransport() {
                         onContextMenu={handleColumnContextMenu}
                         columnHeight={maxHeight > 0 ? maxHeight : undefined}
                         onHeightChange={handleColumnHeightChange}
+                        isSelectionMode={isSelectionMode}
+                        selectedCardIds={selectedCardIds}
+                        onToggleCardSelect={handleToggleCardSelect}
                     />
                 );
             }
         });
-    }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, columnHeights, handleColumnHeightChange]);
+    }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, columnHeights, handleColumnHeightChange, isSelectionMode, selectedCardIds, handleToggleCardSelect]);
 
     // Show Workspaces view when Workspaces icon is clicked
     if (showWorkspaces) {
@@ -608,6 +682,14 @@ export default function CoordinatorTransport() {
                         </div>
                         <div className="kanban-accordion-actions">
                             <button
+                                className={`ct-select-toggle-btn${isSelectionMode ? " ct-select-toggle-btn--active" : ""}`}
+                                onClick={(e) => { e.stopPropagation(); handleToggleSelectionMode(); }}
+                            >
+                                {isSelectionMode
+                                    ? (selectedCardIds.size > 0 ? `${selectedCardIds.size} selected` : "Selecting...")
+                                    : "Select Tasks"}
+                            </button>
+                            <button
                                 className="accordion-menu-button"
                                 onClick={(e) => handleAccordionMenuClick(e, workflow.id)}
                                 aria-label="Menu"
@@ -626,6 +708,52 @@ export default function CoordinatorTransport() {
 
                     {expandedWorkflows[workflow.id] && (
                         <div className="kanban-container">
+                            {isSelectionMode && (
+                                <div className="ct-trip-panel">
+                                    <span className="ct-trip-panel-label">
+                                        {selectedCardIds.size > 0
+                                            ? `${selectedCardIds.size} task${selectedCardIds.size > 1 ? "s" : ""} selected`
+                                            : "Tap cards to select"}
+                                    </span>
+                                    <div className="ct-trip-panel-divider" />
+                                    <div className="ct-trip-panel-fleet-row">
+                                        {CT_FLEETS.map(fleet => (
+                                            <button
+                                                key={fleet}
+                                                className={`ct-trip-panel-fleet-btn${tripFleet === fleet ? " ct-trip-panel-fleet-btn--active" : ""}`}
+                                                onClick={() => setTripFleet(f => f === fleet ? null : fleet)}
+                                            >
+                                                {fleet}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="date"
+                                        className="ct-trip-panel-date-input"
+                                        value={tripBookingDate}
+                                        onChange={(e) => setTripBookingDate(e.target.value)}
+                                    />
+                                    <input
+                                        type="time"
+                                        className="ct-trip-panel-time-input"
+                                        value={tripBookingTime}
+                                        onChange={(e) => setTripBookingTime(e.target.value)}
+                                    />
+                                    <button
+                                        className="ct-trip-panel-assign-btn"
+                                        disabled={selectedCardIds.size === 0 || !tripFleet}
+                                        onClick={handleAssignTrip}
+                                    >
+                                        Assign to Fleet
+                                    </button>
+                                    <button
+                                        className="ct-trip-panel-cancel-btn"
+                                        onClick={handleToggleSelectionMode}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
                             <DragDropContext onDragEnd={KANBAN_DND_DISABLED ? () => {} : createDragEndHandler(workflow.id)}>
                                 <div className="kanban-board">
                                     {renderWorkflowColumns(workflow)}

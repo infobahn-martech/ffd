@@ -3,12 +3,12 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
-import CardItem from "../KanbanBoard/components/cards/CardItem";
+import CTTaskCard from "./CTTaskCard";
 import "../../design/css/common/Column.css";
 import "../../design/css/common/OperationsColumn.css";
 
 // Nested Column Component (for sub-columns within "In Progress")
-function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, columnHeight, onHeightChange }) {
+function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, columnHeight, onHeightChange, isSelectionMode, selectedCardIds, onToggleCardSelect }) {
     const columnRef = useRef(null);
     const columnColor = column.color || "#2A00FF";
     const tooltipId = `nested-column-title-${column.id}`;
@@ -95,13 +95,14 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
                         {...provided.droppableProps}
                     >
                         {cards.map((card, index) => (
-                            <CardItem
+                            <CTTaskCard
                                 key={card.id}
                                 card={card}
                                 index={index}
                                 setSelectedCard={setSelectedCard}
-                                isShrunk={isShrunk}
-                                hideExtraDetails={true}
+                                isSelected={selectedCardIds?.has(card.id) ?? false}
+                                onToggleSelect={onToggleCardSelect}
+                                isSelectionMode={isSelectionMode}
                             />
                         ))}
                         {provided.placeholder}
@@ -113,7 +114,7 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
 }
 
 // Main Column Component (handles both regular and nested columns)
-function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, subColumns, subColumnCards, subColumnHeights }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, subColumns, subColumnCards, subColumnHeights, isSelectionMode, selectedCardIds, onToggleCardSelect }) {
     const columnRef = useRef(null);
     const columnColor = column.color || "#2A00FF";
     const isNestedColumn = column.isNested || (subColumns && subColumns.length > 0);
@@ -227,6 +228,9 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                                 isShrunk={isShrunk}
                                 columnHeight={subHeight}
                                 onHeightChange={onHeightChange}
+                                isSelectionMode={isSelectionMode}
+                                selectedCardIds={selectedCardIds}
+                                onToggleCardSelect={onToggleCardSelect}
                             />
                         );
                     })}
@@ -276,13 +280,14 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                         {...provided.droppableProps}
                     >
                         {cards.map((card, index) => (
-                            <CardItem
+                            <CTTaskCard
                                 key={card.id}
                                 card={card}
                                 index={index}
                                 setSelectedCard={setSelectedCard}
-                                isShrunk={isShrunk}
-                                hideExtraDetails={true}
+                                isSelected={selectedCardIds?.has(card.id) ?? false}
+                                onToggleSelect={onToggleCardSelect}
+                                isSelectionMode={isSelectionMode}
                             />
                         ))}
                         {provided.placeholder}
@@ -311,6 +316,9 @@ Column.propTypes = {
     subColumns: PropTypes.array,
     subColumnCards: PropTypes.object,
     subColumnHeights: PropTypes.object,
+    isSelectionMode: PropTypes.bool,
+    selectedCardIds: PropTypes.instanceOf(Set),
+    onToggleCardSelect: PropTypes.func,
 };
 
 NestedColumn.propTypes = {
@@ -324,6 +332,9 @@ NestedColumn.propTypes = {
     isShrunk: PropTypes.bool,
     columnHeight: PropTypes.number,
     onHeightChange: PropTypes.func,
+    isSelectionMode: PropTypes.bool,
+    selectedCardIds: PropTypes.instanceOf(Set),
+    onToggleCardSelect: PropTypes.func,
 };
 
 export default Column;
