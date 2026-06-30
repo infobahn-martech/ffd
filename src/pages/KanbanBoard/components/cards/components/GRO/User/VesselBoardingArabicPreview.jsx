@@ -1,5 +1,22 @@
 import PropTypes from "prop-types";
 
+function formatGregorianDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}/${m}/${d}`;
+}
+
+function formatHijriDate(date) {
+  const parts = new Intl.DateTimeFormat("en-SA-u-ca-islamic-umalqura", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}/${get("month")}/${get("day")}`;
+}
+
 const FALLBACK_TITLE = "صعود بحار";
 const FALLBACK_DESCRIPTION =
   "المكرم مدير إدارة خفر السواحل بميناء الجبيل التجاري المحترم";
@@ -16,6 +33,10 @@ export default function VesselBoardingArabicPreview({
   const title = templateData?.template_name || FALLBACK_TITLE;
   const description = templateData?.description || FALLBACK_DESCRIPTION;
   const moreDescription = templateData?.more_description || FALLBACK_MORE_DESCRIPTION;
+
+  const today = new Date();
+  const gregorianDate = formatGregorianDate(today);
+  const hijriDate = formatHijriDate(today);
 
   return (
     <div
@@ -35,6 +56,11 @@ export default function VesselBoardingArabicPreview({
         </div>
 
         <div className="bulk-pass-arabic-divider" />
+
+        <div className="bulk-pass-arabic-date-box">
+          <div>التاريخ : {hijriDate} هـ</div>
+          <div>الموافق : {gregorianDate} م</div>
+        </div>
 
         {description.split("\n").filter(Boolean).map((para, i) => (
           <p key={i} className="bulk-pass-arabic-paragraph">{para}</p>
