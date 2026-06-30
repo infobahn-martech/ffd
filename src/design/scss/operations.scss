@@ -3933,8 +3933,7 @@ $send-report-optional: #80868b;
     }
   }
 
-  .form-save-button-wrapper.cgpass-save-footer,
-  .form-save-button-wrapper.zawilpass-save-footer {
+  .form-save-button-wrapper.cgpass-save-footer {
     flex-shrink: 0;
     background: #fff;
     padding: 12px 16px 14px;
@@ -4003,6 +4002,13 @@ $send-report-optional: #80868b;
         overflow-y: auto;
       }
     }
+  }
+
+  .form-save-button-wrapper.zawilpass-save-footer {
+    flex-shrink: 0;
+    background: #fff;
+    padding: 12px 16px 14px;
+    border-top: 1px solid #e5e7eb;
   }
 }
 
