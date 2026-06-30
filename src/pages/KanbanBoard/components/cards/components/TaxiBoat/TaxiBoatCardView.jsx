@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter } from "react-icons/fi";
+import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
 import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
@@ -253,7 +253,7 @@ ConfirmDialog.propTypes = {
   onCancel:  PropTypes.func.isRequired,
 };
 
-function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish, onUndo, now }) {
+function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish, onUndo, now, tsOps }) {
   const doneCount = timestamps.filter((t) => tsState[t.key] !== null).length;
   const totalSteps = timestamps.length;
   const allTimestampsDone = doneCount === totalSteps;
@@ -332,6 +332,12 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
                     {liveTimer}
                   </span>
                 )}
+                {done && tsOps?.[key] && (
+                  <span className="tb-stepper-operator-name">
+                    <FiUser size={9} />
+                    {tsOps[key]}
+                  </span>
+                )}
               </div>
             </div>
           </li>
@@ -399,6 +405,7 @@ TimestampStepper.propTypes = {
   canFinish:    PropTypes.bool,
   onUndo:       PropTypes.func,
   now:          PropTypes.instanceOf(Date),
+  tsOps:        PropTypes.object,
 };
 
 function InfoCard({ label, value }) {
@@ -702,6 +709,11 @@ function TaxiBoatCardView({ card }) {
   const [pickupStepBackLog, setPickupStepBackLog] = useState([]);
   const [undoPending, setUndoPending] = useState(null); // { label, resetter }
 
+  // Operator name recorded with each timestamp
+  const [operatorName, setOperatorName] = useState(() => card?.requestedOperator ?? "");
+  const [dropTsOps, setDropTsOps] = useState(() => makeTsState(STANDARD_TIMESTAMPS.map(t => t.key)));
+  const [pickupTsOps, setPickupTsOps] = useState(() => makeTsState(STANDARD_TIMESTAMPS.map(t => t.key)));
+
   // Taxi fleet assignment
   const [selectedFleet, setSelectedFleet] = useState(null);
   const [fleetAssigned, setFleetAssigned] = useState(false);
@@ -767,14 +779,17 @@ function TaxiBoatCardView({ card }) {
     ];
   });
 
-  const captureNow = useCallback((setter, key) => {
+  const captureNow = useCallback((setter, key, opSetter, operator) => {
     setter((prev) => ({ ...prev, [key]: new Date().toISOString() }));
+    if (opSetter) opSetter((prev) => ({ ...prev, [key]: operator || "—" }));
   }, []);
 
   const captureBatchTs = useCallback((batchIdx, key) => {
     setBatches((prev) =>
       prev.map((b, i) =>
-        i === batchIdx ? { ...b, ts: { ...b.ts, [key]: new Date().toISOString() } } : b
+        i === batchIdx
+          ? { ...b, ts: { ...b.ts, [key]: new Date().toISOString() }, tsOps: { ...(b.tsOps ?? {}), [key]: b.operator || "—" } }
+          : b
       )
     );
   }, []);
@@ -978,6 +993,7 @@ function TaxiBoatCardView({ card }) {
                 <TimestampStepper
                   timestamps={STANDARD_TIMESTAMPS}
                   tsState={batch.ts}
+                  tsOps={batch.tsOps}
                   onCapture={(key) => captureBatchTs(i, key)}
                   onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
                   jobCompleted={batch.completed}
@@ -1057,6 +1073,19 @@ function TaxiBoatCardView({ card }) {
       {!isImmigration && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
+          <div className="tb-guide-name-row">
+            <label className="tb-guide-name-label">
+              <FiUser size={13} />
+              Taxi Boat Guide
+            </label>
+            <input
+              type="text"
+              className="tb-guide-name-input"
+              placeholder="Enter guide name..."
+              value={operatorName}
+              onChange={(e) => setOperatorName(e.target.value)}
+            />
+          </div>
           <div className="tb-tabs">
             <button
               className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
@@ -1091,14 +1120,15 @@ function TaxiBoatCardView({ card }) {
                 <TimestampStepper
                   timestamps={STANDARD_TIMESTAMPS}
                   tsState={dropTs}
-                  onCapture={(key) => captureNow(setDropTs, key)}
+                  tsOps={dropTsOps}
+                  onCapture={(key) => captureNow(setDropTs, key, setDropTsOps, operatorName)}
                   onComplete={() => { setJobCompleted(true); setJobCompletedAt(new Date().toISOString()); }}
                   jobCompleted={jobCompleted}
                   canFinish={allDone(dropTs, tsKeys)}
                   now={now}
                   onUndo={(key, label) => setUndoPending({
                     label,
-                    resetter: () => { setDropTs((prev) => ({ ...prev, [key]: null })); setJobCompleted(false); setJobCompletedAt(null); },
+                    resetter: () => { setDropTs((prev) => ({ ...prev, [key]: null })); setDropTsOps((prev) => ({ ...prev, [key]: null })); setJobCompleted(false); setJobCompletedAt(null); },
                     addToLog: (reason) => setDropStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
                   })}
                 />
@@ -1117,14 +1147,15 @@ function TaxiBoatCardView({ card }) {
                 <TimestampStepper
                   timestamps={STANDARD_TIMESTAMPS}
                   tsState={pickupTs}
-                  onCapture={(key) => captureNow(setPickupTs, key)}
+                  tsOps={pickupTsOps}
+                  onCapture={(key) => captureNow(setPickupTs, key, setPickupTsOps, operatorName)}
                   onComplete={() => { setJobCompleted(true); setJobCompletedAt(new Date().toISOString()); }}
                   jobCompleted={jobCompleted}
                   canFinish={allDone(pickupTs, tsKeys)}
                   now={now}
                   onUndo={(key, label) => setUndoPending({
                     label,
-                    resetter: () => { setPickupTs((prev) => ({ ...prev, [key]: null })); setJobCompleted(false); setJobCompletedAt(null); },
+                    resetter: () => { setPickupTs((prev) => ({ ...prev, [key]: null })); setPickupTsOps((prev) => ({ ...prev, [key]: null })); setJobCompleted(false); setJobCompletedAt(null); },
                     addToLog: (reason) => setPickupStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
                   })}
                 />

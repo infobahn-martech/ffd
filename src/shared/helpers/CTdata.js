@@ -55,6 +55,19 @@ const generateCard = (workflowId, colId, cardId) => {
 
     const id = `${workflowId}-card-${cardId}`;
 
+    const serviceTypes = [
+        "Crew Change",
+        "Technician Visit",
+        "Port Captain & Port Engineer Visit",
+        "Aramco Personnel",
+        "Immigration Clearance",
+        "Material Delivery",
+        "Provision Delivery",
+        "Garbage Collection",
+        "Custom Inspection",
+        "Tanker Clearance",
+    ];
+
     const customerNames = [
         "Gulf Marine",
         "Saudi Marcap",
@@ -119,6 +132,7 @@ const generateCard = (workflowId, colId, cardId) => {
         medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
         medicalServiceCount: Math.floor(Math.random() * 5) + 1,
         footerShowIcons: footerShowIcons,
+        typeOfService: serviceTypes[Math.floor(Math.random() * serviceTypes.length)],
     };
 
     return { id, cardData };
