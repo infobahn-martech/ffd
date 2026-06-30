@@ -8,4 +8,10 @@
     .form-floating > :disabled ~ label::after {
         background-color: #f2f2f2;
     }
+
+    .group-email-list {
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
 }
