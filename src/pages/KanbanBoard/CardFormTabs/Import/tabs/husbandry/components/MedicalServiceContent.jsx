@@ -251,11 +251,11 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                     </FormField>
                   </div>
 
-                  <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button type="button" className="form-save-button" onClick={handleSave}>
-                      Save
-                    </button>
-                  </div>
+                </div>
+                <div className="form-save-button-wrapper cgpass-save-footer">
+                  <button type="button" className="form-save-button" onClick={handleSave}>
+                    Save
+                  </button>
                 </div>
               </div>
             </div>

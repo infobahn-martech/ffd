@@ -276,18 +276,18 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     </FormField>
                   </div>
 
-                  <div className="form-save-button-wrapper zawilpass-save-footer">
-                    <button
-                      type="button"
-                      className="form-save-button"
-                      onClick={() => {
-                        void handleSave();
-                      }}
-                      disabled={saving}
-                    >
-                      {saving ? "Saving..." : "Save"}
-                    </button>
-                  </div>
+                </div>
+                <div className="form-save-button-wrapper zawilpass-save-footer">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={() => {
+                      void handleSave();
+                    }}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
                 </div>
               </div>
             </div>

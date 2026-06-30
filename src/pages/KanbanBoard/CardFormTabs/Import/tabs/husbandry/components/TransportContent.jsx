@@ -694,16 +694,16 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     </FormField>
                   </div>
 
-                  <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button
-                      type="button"
-                      className="form-save-button"
-                      onClick={handleSave}
-                      disabled={isSavingTransport}
-                    >
-                      {isSavingTransport ? "Saving..." : "Save"}
-                    </button>
-                  </div>
+                </div>
+                <div className="form-save-button-wrapper cgpass-save-footer">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={handleSave}
+                    disabled={isSavingTransport}
+                  >
+                    {isSavingTransport ? "Saving..." : "Save"}
+                  </button>
                 </div>
               </div>
             </div>

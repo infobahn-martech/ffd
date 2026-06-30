@@ -418,16 +418,16 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                     </FormField>
                   </div>
 
-                  <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button
-                      type="button"
-                      className="form-save-button"
-                      onClick={handleSave}
-                      disabled={isSavingHotel}
-                    >
-                      {isSavingHotel ? "Saving..." : "Save"}
-                    </button>
-                  </div>
+                </div>
+                <div className="form-save-button-wrapper cgpass-save-footer">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={handleSave}
+                    disabled={isSavingHotel}
+                  >
+                    {isSavingHotel ? "Saving..." : "Save"}
+                  </button>
                 </div>
               </div>
             </div>
