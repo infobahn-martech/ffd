@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 import userService from "../../services/userService";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../components/form/SearchableSelect";
+import { Tag, Layers3, AlertTriangle, Sticker } from "lucide-react";
+import ColorPickerIcon from "../../assets/images/ColorPicker.png";
+
 import "../../design/css/common/CardForm.css";
 import "../../design/scss/pages/taskCard.scss";
 import "../../design/scss/invoice.scss";
@@ -155,6 +158,23 @@ function TaskCardModal({ show, onClose }) {
                         autoFocus
                     />
                     <div className="cardform-topbar-right">
+                        <button type="button" className="topbar-icon-btn" title="Tag" aria-label="Tag">
+                            <Tag size={20} aria-hidden />
+                        </button>
+                        <button type="button" className="topbar-icon-btn" title="Type" aria-label="Type">
+                            <Layers3 size={20} aria-hidden />
+                        </button>
+                        <button type="button" className="topbar-icon-btn" title="Blocker" aria-label="Blocker">
+                            <AlertTriangle size={20} aria-hidden />
+                        </button>
+                        <button type="button" className="topbar-icon-btn" title="Sticker" aria-label="Sticker">
+                            <Sticker size={20} aria-hidden />
+                        </button>
+                        <div className="topbar-color-picker-wrapper">
+                            <button type="button" className="topbar-color-picker-label" title="Change header color" aria-label="Color Picker">
+                                <img src={ColorPickerIcon} alt="Color Picker" className="topbar-color-picker-icon" />
+                            </button>
+                        </div>
                         <button type="button" className="cardform-close-btn" onClick={handleClose}>✕</button>
                     </div>
                 </div>
