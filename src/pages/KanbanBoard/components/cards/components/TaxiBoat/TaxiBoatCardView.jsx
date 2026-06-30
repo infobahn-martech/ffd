@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useCTPendingCards } from "../../../../../../shared/store/ctStore";
+import { useTaxiBoatStore } from "../../../../../../shared/store/taxiBoatStore";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
@@ -48,21 +49,6 @@ const formatDuration = (ms) => {
   return `${s}s`;
 };
 
-const RECENT_OPS_KEY = "tb-recent-operators";
-const MAX_RECENT_OPS = 5;
-
-const loadRecentOps = () => {
-  try { return JSON.parse(localStorage.getItem(RECENT_OPS_KEY) || "[]"); }
-  catch { return []; }
-};
-
-const saveRecentOp = (name) => {
-  if (!name?.trim()) return;
-  const trimmed = name.trim();
-  const prev = loadRecentOps();
-  const next = [trimmed, ...prev.filter((op) => op !== trimmed)].slice(0, MAX_RECENT_OPS);
-  localStorage.setItem(RECENT_OPS_KEY, JSON.stringify(next));
-};
 
 const formatDateTime = (iso) => {
   if (!iso) return null;
@@ -771,20 +757,18 @@ function TaxiBoatCardView({ card }) {
     return () => clearInterval(id);
   }, []);
 
-  // Operator quick-select — recent names from localStorage
-  const [recentOps, setRecentOps] = useState(loadRecentOps);
+  // Operator quick-select — recent names from Zustand store
+  const recentOps = useTaxiBoatStore((s) => s.recentOperators);
+  const addRecentOperator = useTaxiBoatStore((s) => s.addRecentOperator);
   const [opFocusedBatch, setOpFocusedBatch] = useState(null);
   const opBlurTimer = useRef(null);
 
   const handleOpBlur = useCallback((operator) => {
     opBlurTimer.current = setTimeout(() => {
-      if (operator?.trim()) {
-        saveRecentOp(operator);
-        setRecentOps(loadRecentOps());
-      }
+      if (operator?.trim()) addRecentOperator(operator);
       setOpFocusedBatch(null);
     }, 150);
-  }, []);
+  }, [addRecentOperator]);
 
   const handleOpChipClick = useCallback((batchIdx, op) => {
     clearTimeout(opBlurTimer.current);
@@ -1070,6 +1054,10 @@ function TaxiBoatCardView({ card }) {
                 Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
               </button>
             ))}
+            <button className="tb-add-batch-btn" onClick={handleAddBatch}>
+              <FiPlus size={13} />
+              Add Batch
+            </button>
           </div>
 
           {batches.map((batch, i) => {
@@ -1078,6 +1066,54 @@ function TaxiBoatCardView({ card }) {
             const crewRows = getBatchCrewRows(batch.crewCount);
             return (
               <div key={batch.id} className="tb-batch-tab-content">
+                {/* Batch meta: crew count + operator */}
+                <div className="tb-batch-meta-row">
+                  <div className="tb-batch-field-row">
+                    <span className="tb-batch-field-label">Crew Count</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="tb-batch-field-input"
+                      value={batch.crewCount}
+                      onChange={(e) =>
+                        setBatches((prev) =>
+                          prev.map((b, idx) => idx === i ? { ...b, crewCount: e.target.value } : b)
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="tb-batch-field-row">
+                    <span className="tb-batch-field-label">Boat Operator</span>
+                    <div className="tb-op-autocomplete-wrap">
+                      <input
+                        type="text"
+                        className="tb-batch-field-input tb-batch-operator-input"
+                        placeholder="Enter operator name..."
+                        value={batch.operator}
+                        onChange={(e) =>
+                          setBatches((prev) =>
+                            prev.map((b, idx) => idx === i ? { ...b, operator: e.target.value } : b)
+                          )
+                        }
+                        onFocus={() => setOpFocusedBatch(i)}
+                        onBlur={() => handleOpBlur(batch.operator)}
+                      />
+                      {opFocusedBatch === i && recentOps.length > 0 && (
+                        <div className="tb-op-chips">
+                          {recentOps.map((op) => (
+                            <button
+                              key={op}
+                              className="tb-op-chip"
+                              onMouseDown={(e) => { e.preventDefault(); handleOpChipClick(i, op); }}
+                            >
+                              {op}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 {crewRows.length > 0 && (
                   <div className="tb-crew-table-wrapper">
                     <table className="tb-crew-table">
