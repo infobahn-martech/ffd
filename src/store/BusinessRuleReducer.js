@@ -33,6 +33,22 @@ const useBusinessRuleReducer = create((set) => ({
             set({ fields: [], isLoadingFields: false });
         }
     },
+
+    isLoadingTimeUnits: false,
+    timeUnits: [],
+
+    getTimeUnits: async (params) => {
+        try {
+            set({ isLoadingTimeUnits: true });
+            const { data } = await businessRuleService.getTimeUnits({ params });
+            set({
+                timeUnits: data?.data ?? [],
+                isLoadingTimeUnits: false,
+            });
+        } catch (err) {
+            set({ timeUnits: [], isLoadingTimeUnits: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;

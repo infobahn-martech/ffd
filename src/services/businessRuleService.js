@@ -6,4 +6,7 @@ const getTriggerTypes = ({ params } = {}) =>
 const getFields = ({ params } = {}) =>
   Gateway.get('/business_rule/get_fields', { params });
 
-export default { getTriggerTypes, getFields };
+const getTimeUnits = ({ params } = {}) =>
+  Gateway.get('/business_rule/get_time_units', { params });
+
+export default { getTriggerTypes, getFields, getTimeUnits };
