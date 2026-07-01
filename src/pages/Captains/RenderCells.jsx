@@ -1,18 +1,30 @@
 import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 
-import eye from '../../assets/images/eye.svg';
 import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import { getInitials } from '../../shared/utils/utils';
 
 export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick }) => {
+    const isActive = row?.status === 'Active' || Number(row?.status) === 1;
+    const toggleTipId = `captain-toggle-${row?.taxiboat_captain_id ?? 'row'}`;
+
     return (
         <>
-            <Tooltip id="active" place="bottom" content="Active" />
+            <Tooltip id={toggleTipId} place="bottom" content={isActive ? 'Deactivate' : 'Activate'} />
             <Tooltip id="edit" place="bottom" content="Edit" />
             <Tooltip id="delete" place="bottom" content="Delete" />
             <div className="actions">
+                <span data-tooltip-id={toggleTipId} className="captain-toggle-wrap">
+                    <label className="captain-toggle-switch">
+                        <input
+                            type="checkbox"
+                            checked={isActive}
+                            onChange={() => onStatusClick(row)}
+                        />
+                        <span className="captain-toggle-slider" />
+                    </label>
+                </span>
                 <span
                     data-tooltip-id="edit"
                     type="button"
@@ -20,9 +32,6 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick })
                     className="edit"
                 >
                     <img src={edit} alt="edit" />
-                </span>
-                <span data-tooltip-id="active" type="button" className="view" onClick={() => onStatusClick(row)}>
-                    <img src={eye} alt="eye" />
                 </span>
                 <span
                     data-tooltip-id="delete"
