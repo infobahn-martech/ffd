@@ -7,6 +7,7 @@ import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import StatusConfirmationModal from "../../components/StatusConfirmationModal";
 import useCaptainReducer from "../../store/CaptainReducer";
+import "../../design/scss/pages/captains/Captains.scss";
 
 const Captains = () => {
     const {
@@ -246,7 +247,11 @@ const Captains = () => {
                                 setSelectedRow(null);
                                 refreshList();
                             }}
-                            statusText="Are you sure you want to deactivate this captain?"
+                            statusText={
+                                selectedRow?.status === 'Active' || Number(selectedRow?.status) === 1
+                                    ? 'Are you sure you want to deactivate this captain?'
+                                    : 'Are you sure you want to activate this captain?'
+                            }
                         />
                     )}
                 </div>
