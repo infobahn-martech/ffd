@@ -132,30 +132,6 @@ const GroupEmailBE = () => {
                             onAddModalClick={handleOpenAdd}
                             exportTitle="Export"
                             exportLoader={false}
-                            showFilter
-                            filterOptions={[
-                                {
-                                    key: "entity_id",
-                                    label: "Billing Entity",
-                                    placeholder: "All Billing Entities",
-                                    options: billingEntityOptions,
-                                },
-                            ]}
-                            filterValue={filterValues}
-                            onFilterChange={(key, value) =>
-                                setFilterValues((prev) => ({ ...prev, [key]: value }))
-                            }
-                            onApplyFilter={() =>
-                                setParams((prev) => ({
-                                    ...prev,
-                                    page: 1,
-                                    entity_id: filterValues.entity_id,
-                                }))
-                            }
-                            onClearFilter={() => {
-                                setFilterValues({ entity_id: "" });
-                                setParams((prev) => ({ ...prev, page: 1, entity_id: "" }));
-                            }}
                         />
                     </div>
 
