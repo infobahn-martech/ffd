@@ -5,6 +5,7 @@ import useBillingEntityReducer from "../../../store/BillingEntityReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/billing-entity-modal.scss";
 import userIcon from "../../../assets/images/DummyProPic.avif";
 import edit from "../../../assets/images/edit.svg";
 
@@ -79,7 +80,7 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
   );
 
   const renderBody = () => (
-    <div className="modal-body">
+    <div className="modal-body billing-entity-modal">
       <div className="lead-form">
         <form id="billingEntityForm" onSubmit={handleSubmit(onSubmit)}>
 
@@ -114,7 +115,8 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
                 <input
                   className={`form-control ${errors.billingEntityName ? "is-invalid" : ""}`}
                   placeholder="Billing Entity Name"
-                  {...register("billingEntityName", { required: "Billing Entity Name is required" })}
+                  disabled={isEdit}
+                  {...register("billingEntityName", { required: !isEdit && "Billing Entity Name is required" })}
                 />
                 <label>Billing Entity Name <span className="text-danger">*</span></label>
                 {errors.billingEntityName && (

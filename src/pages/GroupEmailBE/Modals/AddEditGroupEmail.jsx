@@ -154,7 +154,6 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                     type="text"
                                     className="form-control"
                                     value={showModal?.billing_entity ?? ""}
-                                    disabled
                                     readOnly
                                 />
                             ) : (
@@ -202,7 +201,6 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
                                             placeholder="email@example.com"
-                                            disabled={isEdit}
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
                                                 pattern: {
