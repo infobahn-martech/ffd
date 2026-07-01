@@ -21,7 +21,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [selectedRule, setSelectedRule] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
-  const { triggerTypes, isLoadingGet, getTriggerTypes } = useBusinessRuleReducer();
+  const { triggerTypes, isLoadingGet, getTriggerTypes, timeUnits, getTimeUnits } = useBusinessRuleReducer();
 
   useEffect(() => {
     if (!show) {
@@ -30,6 +30,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       return;
     }
     getTriggerTypes();
+    getTimeUnits();
   }, [show]);
 
   const mappedRules = triggerTypes.map((item) => ({
