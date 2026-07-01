@@ -49,6 +49,22 @@ const useBusinessRuleReducer = create((set) => ({
             set({ timeUnits: [], isLoadingTimeUnits: false });
         }
     },
+
+    isLoadingCustomFields: false,
+    customFields: [],
+
+    getCustomFields: async (params) => {
+        try {
+            set({ isLoadingCustomFields: true });
+            const { data } = await businessRuleService.getCustomFields({ params });
+            set({
+                customFields: data?.data ?? [],
+                isLoadingCustomFields: false,
+            });
+        } catch (err) {
+            set({ customFields: [], isLoadingCustomFields: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;
