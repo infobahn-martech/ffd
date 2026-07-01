@@ -231,10 +231,10 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* License No */}
+                    {/* License No + License Expiry */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            <div className="col-12">
+                            <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
@@ -245,12 +245,6 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     <label>License No</label>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* License Expiry + Contract Start — one row (no empty columns) */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
                                 <Controller
                                     name="license_expiry"
@@ -279,6 +273,12 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     )}
                                 />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Contract Start Date + Contract Expiry Date */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
                                 <Controller
                                     name="contract_start_date"
@@ -307,13 +307,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     )}
                                 />
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Contract Expiry (+ Status when edit) */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            <div className={isEdit ? "col-lg-6 col-sm-12" : "col-12"}>
+                            <div className="col-lg-6 col-sm-12">
                                 <Controller
                                     name="contract_expiry_date"
                                     control={control}
@@ -341,7 +335,13 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     )}
                                 />
                             </div>
-                            {isEdit && (
+                        </div>
+                    </div>
+
+                    {/* Status (edit only) */}
+                    {isEdit && (
+                        <div className="mb-lg-3 mb-sm-0">
+                            <div className="permInputs row">
                                 <div className="col-lg-6 col-sm-12">
                                     <div className="phone-wrapper">
                                         <label className="phone-label">Status</label>
@@ -360,9 +360,9 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                         />
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </form>
             </div>
         </div>
