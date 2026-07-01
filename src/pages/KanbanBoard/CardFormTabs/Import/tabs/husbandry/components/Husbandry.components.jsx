@@ -174,9 +174,19 @@ FormSection.propTypes = {
 };
 
 export const FormField = ({ label, children, className = "" }) => {
+  const renderLabel = (text) => {
+    const parts = text.split("*");
+    if (parts.length === 1) return <label>{text}</label>;
+    return (
+      <label>
+        {parts[0]}<span className="text-danger">*</span>{parts.slice(1).join("*")}
+      </label>
+    );
+  };
+
   return (
     <div className={`cf-field ${className}`}>
-      {label && <label>{label}</label>}
+      {label && renderLabel(label)}
       {children}
     </div>
   );
