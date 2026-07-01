@@ -29,21 +29,26 @@
 
 .sidebar {
     background-color: #00368c;
+    width: 300px;
     max-width: 300px;
+    flex-shrink: 0;
     transition: all ease-in-out 0.3s;
     border-top-right-radius: 24px;
     border-bottom-right-radius: 24px;
     overflow: hidden;
 
     @media($sm-1481) {
+        width: 266px;
         max-width: 266px;
     }
 
     @media($sm-1281) {
+        width: 220px;
         max-width: 220px;
     }
 
     @media ($sm-991) {
+        width: 72px;
         max-width: 72px;
         position: fixed;
         z-index: 999;
@@ -405,7 +410,7 @@
         // upto 991
     }
 
-    // show 
+    // show
 }
 
 .st-wrp {
