@@ -17,6 +17,22 @@ const useBusinessRuleReducer = create((set) => ({
             set({ triggerTypes: [], isLoadingGet: false });
         }
     },
+
+    isLoadingFields: false,
+    fields: [],
+
+    getFields: async (params) => {
+        try {
+            set({ isLoadingFields: true });
+            const { data } = await businessRuleService.getFields({ params });
+            set({
+                fields: data?.data ?? [],
+                isLoadingFields: false,
+            });
+        } catch (err) {
+            set({ fields: [], isLoadingFields: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;
