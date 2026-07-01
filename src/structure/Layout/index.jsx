@@ -32,6 +32,15 @@ function Layout() {
     pathname === '/compact';
   const kanbanFullWidth = isKanbanIconSidebarRoute && !isPortManagerRole && !isPortSupervisorRole;
   const isVendorPortal = pathname.startsWith('/vendor-portal');
+  const isMedicalPortal = pathname.startsWith('/medical-portal');
+  const isTransportPortal = pathname.startsWith('/transport-portal');
+  const isInhouseDriverPortal = pathname.startsWith('/inhouse-driver');
+
+  const activePortal = isVendorPortal ? 'vendor'
+    : isMedicalPortal ? 'medical'
+    : isTransportPortal ? 'transport'
+    : isInhouseDriverPortal ? 'inhouse-driver'
+    : null;
 
   const handleMenuToggle = (isOpen) => {
     setMobileMenuOpen(isOpen);
@@ -49,7 +58,7 @@ function Layout() {
         <Header
           onMenuToggle={handleMenuToggle}
           mobileMenuOpen={mobileMenuOpen}
-          isVendorPortal={isVendorPortal}
+          activePortal={activePortal}
         />
 
         <div
@@ -59,7 +68,7 @@ function Layout() {
             <SideNav
               isMobileMenuOpen={mobileMenuOpen}
               onCloseMobileMenu={handleCloseMobileMenu}
-              isVendorPortal={isVendorPortal}
+              activePortal={activePortal}
             />
           )}
 

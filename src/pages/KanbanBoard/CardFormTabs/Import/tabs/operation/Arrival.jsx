@@ -622,6 +622,15 @@ function Arrival({
           callId: resolvedCallId,
           stageId,
         });
+        const detail = await fetchArrivalDetail({ callId: resolvedCallId });
+        if (detail) {
+          applyArrivalGetDetailToForm({
+            responseBody: detail,
+            arrivalEventFields: arrivalTimeObjectFields,
+            postArrivalEventFields: [],
+            handleChange,
+          });
+        }
       } catch (error) {
         notify(
           error?.response?.data?.message || "Failed to delete time object.",

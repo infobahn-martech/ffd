@@ -72,6 +72,9 @@ import CrewTemplate from "../pages/CrewTemplate";
 import VendorPortalDashboard from "../pages/VendorPortal/Dashboard";
 import VendorPortalInvoices from "../pages/VendorPortal/Invoices";
 import VendorPortalOrders from "../pages/VendorPortal/Orders";
+import MedicalDashboard from "../pages/MedicalPortal/Dashboard";
+import TransportDashboard from "../pages/TransportPortal/Dashboard";
+import InhouseDriverDashboard from "../pages/InhouseDriverPortal/Dashboard";
 import TransportCompany from "../pages/TransportCompany";
 import Hospital from "../pages/Hospital";
 import MedicalServices from "../pages/MedicalServices";
@@ -315,6 +318,12 @@ const router = createBrowserRouter(
                     { path: "/vendor-portal/dashboard", element: <RouteGuard><VendorPortalDashboard /></RouteGuard> },
                     { path: "/vendor-portal/invoices", element: <RouteGuard><VendorPortalInvoices /></RouteGuard> },
                     { path: "/vendor-portal/orders", element: <RouteGuard><VendorPortalOrders /></RouteGuard> },
+                    // Medical Portal
+                    { path: "/medical-portal/dashboard", element: <RouteGuard><MedicalDashboard /></RouteGuard> },
+                    // Transport Company Portal
+                    { path: "/transport-portal/dashboard", element: <RouteGuard><TransportDashboard /></RouteGuard> },
+                    // Inhouse Driver Portal
+                    { path: "/inhouse-driver/dashboard", element: <RouteGuard><InhouseDriverDashboard /></RouteGuard> },
                     // Transport Company
                     { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                     { path: "/hospital-management", element: <RouteGuard><Hospital /></RouteGuard> },

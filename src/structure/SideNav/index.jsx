@@ -59,7 +59,8 @@ import {
   RESTRICTED_BOARD_HOME_PATH,
 } from '../../shared/helpers/restrictedBoardUser';
 
-function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
+function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
+  const isVendorPortal = activePortal === 'vendor';
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
@@ -81,9 +82,27 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   // Vendor Portal menu - simple direct links, no accordions
   const vendorMenus = [
     { menu: 'Dashboard', isDefaultMenu: true, to: '/vendor-portal/dashboard', icon: dashboardIcon, hasPermission: true },
-    // { menu: 'Invoices Management', isDefaultMenu: true, to: '/vendor-portal/invoices', icon: billingIcon, hasPermission: true },
     { menu: 'Invoice Management', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
   ];
+
+  const medicalMenus = [
+    { menu: 'Dashboard', isDefaultMenu: true, to: '/medical-portal/dashboard', icon: dashboardIcon, hasPermission: true },
+  ];
+
+  const transportMenus = [
+    { menu: 'Dashboard', isDefaultMenu: true, to: '/transport-portal/dashboard', icon: dashboardIcon, hasPermission: true },
+  ];
+
+  const inhouseDriverMenus = [
+    { menu: 'Dashboard', isDefaultMenu: true, to: '/inhouse-driver/dashboard', icon: dashboardIcon, hasPermission: true },
+  ];
+
+  const portalMenuMap = {
+    vendor: vendorMenus,
+    medical: medicalMenus,
+    transport: transportMenus,
+    'inhouse-driver': inhouseDriverMenus,
+  };
   const isMobile = width <= 991;
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
@@ -592,7 +611,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   useEffect(() => {
     // 🔒 Don’t touch normal menu behaviour when on Kanban sidebar
-    if (isKanbanBoard || isVendorPortal || restrictedNav) return;
+    if (isKanbanBoard || activePortal || restrictedNav) return;
 
     if (width > 991)
       setMenuState((prev) =>
@@ -606,7 +625,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       setMenuState((prev) => prev.map((e) => ({ ...e, isOpen: false })));
       setExpand(false);
     }
-  }, [pathname, width, isKanbanBoard, isVendorPortal, restrictedNav]);
+  }, [pathname, width, isKanbanBoard, activePortal, restrictedNav]);
 
   const toggleCollapse = (menu) => {
     setMenuState((prev) => {
@@ -721,7 +740,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   }, [showCardManagementSubmenu]);
 
   // 🆕 Special layout for /kanban-board and /workspaces (skip when in Vendor Portal)
-  if (isKanbanBoard && !isVendorPortal && isWorkspacesShell) {
+  if (isKanbanBoard && !activePortal && isWorkspacesShell) {
     return (
       <>
         <WorkspacesSideNavPanel
@@ -754,7 +773,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     );
   }
 
-  if (isKanbanBoard && !isVendorPortal) {
+  if (isKanbanBoard && !activePortal) {
     const handleIconClick = (item) => {
       if (restrictedNav) {
         if (item.label === 'Workspaces') {
@@ -1217,7 +1236,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
         <div className="menuWrp">
           <ul className="menu">
-            {(isVendorPortal ? vendorMenus : effectiveMenuState)
+            {(activePortal ? (portalMenuMap[activePortal] || []) : effectiveMenuState)
               .filter((e) => e.hasPermission === true)
               .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
                 if (!isDefaultMenu) return null;

@@ -954,6 +954,7 @@ function PreArrival({
           callId,
           stageId,
         });
+        await fetchPreArrivalDetail();
       } catch (error) {
         notify(
           error?.response?.data?.message || "Failed to delete time object.",

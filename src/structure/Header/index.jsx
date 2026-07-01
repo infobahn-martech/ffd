@@ -13,6 +13,9 @@ import {
   FiMoon,
   FiBarChart2,
   FiShoppingBag,
+  FiActivity,
+  FiTruck,
+  FiNavigation,
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -29,7 +32,7 @@ import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import NavTabButton from '../../components/NavTabButton';
 import { isRestrictedBoardUser, isPortOperatorUser } from '../../shared/helpers/restrictedBoardUser';
 
-function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendorPortal = false }) {
+function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePortal = null }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
@@ -279,7 +282,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 <Tooltip id="master-module" place="bottom" content="Master Module" />
                 <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
-                  active={!isVendorPortal}
+                  active={!activePortal}
                   locked={pathname === '/dashboard'}
                   aria-label="Master Module"
                   onClick={() => navigate('/dashboard')}
@@ -290,13 +293,46 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
                 <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
-                  active={isVendorPortal}
+                  active={activePortal === 'vendor'}
                   locked={pathname === '/vendor-portal/dashboard'}
                   aria-label="Vendor Portal"
                   onClick={() => navigate('/vendor-portal/dashboard')}
                   data-tooltip-id="vendor-portal"
                 >
                   <FiShoppingBag />
+                </NavTabButton>
+                <Tooltip id="medical-portal" place="bottom" content="Medical" />
+                <NavTabButton
+                  className="icon-btn icon-btn-hide-mobile"
+                  active={activePortal === 'medical'}
+                  locked={pathname === '/medical-portal/dashboard'}
+                  aria-label="Medical"
+                  onClick={() => navigate('/medical-portal/dashboard')}
+                  data-tooltip-id="medical-portal"
+                >
+                  <FiActivity />
+                </NavTabButton>
+                <Tooltip id="transport-portal" place="bottom" content="Transport Company" />
+                <NavTabButton
+                  className="icon-btn icon-btn-hide-mobile"
+                  active={activePortal === 'transport'}
+                  locked={pathname === '/transport-portal/dashboard'}
+                  aria-label="Transport Company"
+                  onClick={() => navigate('/transport-portal/dashboard')}
+                  data-tooltip-id="transport-portal"
+                >
+                  <FiTruck />
+                </NavTabButton>
+                <Tooltip id="inhouse-driver-portal" place="bottom" content="Inhouse Driver" />
+                <NavTabButton
+                  className="icon-btn icon-btn-hide-mobile"
+                  active={activePortal === 'inhouse-driver'}
+                  locked={pathname === '/inhouse-driver/dashboard'}
+                  aria-label="Inhouse Driver"
+                  onClick={() => navigate('/inhouse-driver/dashboard')}
+                  data-tooltip-id="inhouse-driver-portal"
+                >
+                  <FiNavigation />
                 </NavTabButton>
               </>
             )}

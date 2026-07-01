@@ -196,6 +196,23 @@ function Departure({
           callId: resolvedCallId,
           stageId,
         });
+        const refreshedRows = await refreshAdditionalTimeObjectsByCall({
+          callId: resolvedCallId,
+          stageId,
+          portId: formValues?.port_id ?? formValues?.portId ?? "",
+          callTypeId:
+            formValues?.call_type_id ??
+            formValues?.typeOfCall ??
+            formValues?.callTypeId ??
+            "",
+          getTimeObjectsByCall: getTimeObjectsByCallAction,
+          currentRows: next,
+          committedIndex: -1,
+        });
+        if (refreshedRows) {
+          handleChange("departureAdditionalTimeObjects")({ target: { value: refreshedRows } });
+          return;
+        }
       } catch (error) {
         notify(
           error?.response?.data?.message || "Failed to delete time object.",
