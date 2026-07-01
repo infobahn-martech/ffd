@@ -48,6 +48,8 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
   } = useForm({
     defaultValues: {
       transport_company: '',
+      contact_no: '',
+      email: '',
       drivers: [emptyDriver()],
     },
   });
@@ -68,6 +70,8 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
       setLoadError('');
       reset({
         transport_company: '',
+        contact_no: '',
+        email: '',
         drivers: [emptyDriver()],
       });
     }
@@ -89,6 +93,8 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
         if (cancelled || !row) return;
         reset({
           transport_company: String(row.transport_company ?? ''),
+          contact_no: String(row.contact_no ?? ''),
+          email: String(row.email ?? ''),
           drivers: mapDriversFromApi(row.drivers),
         });
       } catch (e) {
@@ -121,6 +127,8 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
 
     const payload = {
       transport_company: data.transport_company?.trim() ?? '',
+      contact_no: data.contact_no?.trim() ?? '',
+      email: data.email?.trim() ?? '',
       drivers: driversPayload,
     };
 
@@ -172,6 +180,48 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
               </label>
               {errors.transport_company && (
                 <span className="error text-danger">{errors.transport_company.message}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="form-floating desig-inp">
+              <input
+                type="text"
+                className={`form-control ${errors.contact_no ? 'is-invalid' : ''}`}
+                placeholder=" "
+                disabled={isEdit && isLoadingDetail}
+                {...register('contact_no', { required: 'Contact number is required' })}
+              />
+              <label>
+                Contact no <span className="text-danger">*</span>
+              </label>
+              {errors.contact_no && (
+                <span className="error text-danger">{errors.contact_no.message}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="form-floating desig-inp">
+              <input
+                type="email"
+                className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                placeholder=" "
+                disabled={isEdit && isLoadingDetail}
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Enter a valid email address',
+                  },
+                })}
+              />
+              <label>
+                Email <span className="text-danger">*</span>
+              </label>
+              {errors.email && (
+                <span className="error text-danger">{errors.email.message}</span>
               )}
             </div>
           </div>
