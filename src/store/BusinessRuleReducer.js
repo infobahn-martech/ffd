@@ -81,6 +81,24 @@ const useBusinessRuleReducer = create((set) => ({
             set({ regularFields: [], isLoadingRegularFields: false });
         }
     },
+
+    isLoadingBusinessRules: false,
+    businessRules: [],
+    businessRulesCount: 0,
+
+    getBusinessRules: async ({ params } = {}) => {
+        try {
+            set({ isLoadingBusinessRules: true });
+            const { data } = await businessRuleService.getBusinessRules({ params });
+            set({
+                businessRules: data?.data ?? [],
+                businessRulesCount: data?.count ?? data?.total ?? 0,
+                isLoadingBusinessRules: false,
+            });
+        } catch (err) {
+            set({ businessRules: [], businessRulesCount: 0, isLoadingBusinessRules: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;

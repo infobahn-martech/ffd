@@ -94,6 +94,7 @@ import DocumentChecklist from "../pages/DocumentChecklist";
 import TaskManagement from "../pages/TaskManagement";
 import TaskRoles from "../pages/TaskChecklist";
 import TugType from "../pages/TugType";
+import BusinessRules from "../pages/BusinessRules";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -341,6 +342,7 @@ const router = createBrowserRouter(
                     { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
                     { path: "/task-management", element: <RouteGuard><TaskManagement /></RouteGuard> },
                     { path: "/task-roles", element: <RouteGuard><TaskRoles /></RouteGuard> },
+                    { path: "/business-rules", element: <RouteGuard><BusinessRules /></RouteGuard> },
                   ],
                 },
               ],

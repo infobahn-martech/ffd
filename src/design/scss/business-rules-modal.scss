@@ -236,6 +236,223 @@
   }
 }
 
+// Modal header with back button
+.br-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .br-modal-back-btn {
+    background: #f3f4f6;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #374151;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+
+    &:hover {
+      background: #e5e7eb;
+    }
+  }
+}
+
+.br-add-new-rule-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Business Rules table inside modal
+.br-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8f9fc;
+  gap: 12px;
+
+  .br-table-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+
+    .br-table-filter-btn {
+      background-color: #2563eb;
+      border-color: #2563eb;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .br-table-search-wrap {
+      flex: 1;
+      max-width: 420px;
+    }
+  }
+}
+
+.br-table-scroll {
+  overflow-x: auto;
+}
+
+.br-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  thead tr {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+
+    th {
+      padding: 10px 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: #f9fafb; }
+
+    td {
+      padding: 10px 14px;
+      color: #111827;
+      vertical-align: middle;
+    }
+  }
+}
+
+.br-table-id {
+  color: #374151;
+  font-weight: 500;
+}
+
+.br-table-rule-name {
+  color: #1d4ed8;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.br-table-owner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .br-table-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .br-table-avatar-placeholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    color: #6b7280;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+}
+
+.br-table-deleted-user {
+  color: #ef4444;
+}
+
+.br-table-board-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.br-table-action-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 1.2rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover { color: #111827; }
+}
+
+.br-table-state {
+  text-align: center;
+  padding: 48px 0;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.br-table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.8rem;
+  color: #6b7280;
+
+  .br-table-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .br-table-page-select {
+      width: 60px;
+      padding: 3px 6px;
+      font-size: 0.8rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+    }
+
+    .br-table-page-btn {
+      background: none;
+      border: none;
+      color: #374151;
+      font-size: 0.875rem;
+      padding: 2px 6px;
+      cursor: pointer;
+
+      &:hover { color: #2563eb; }
+      &:disabled { color: #d1d5db; cursor: default; }
+    }
+  }
+}
+
 // Add / Edit Business Rule form modal
 .business-rule-form-modal-backdrop {
   z-index: 1065 !important;
