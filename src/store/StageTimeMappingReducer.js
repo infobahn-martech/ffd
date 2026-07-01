@@ -9,12 +9,10 @@ const useStageTimeMappingReducer = create((set) => ({
   stageTimeMappings: [],
   totalCount: 0,
 
-  deleteStageTimeMapping: async ({ timeObjects, cb }) => {
+  deleteStageTimeMapping: async ({ timeObjectStageId, cb }) => {
     try {
       set({ isLoadingDelete: true });
-      for (const t of timeObjects) {
-        await stageTimeMappingService.deleteStageMappedTimeObject(t.time_object_stage_id);
-      }
+      await stageTimeMappingService.deleteStageMappedTimeObject(timeObjectStageId);
       set({ isLoadingDelete: false });
       const { success } = useAlertReducer.getState();
       success("Stage time mapping deleted successfully");

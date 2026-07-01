@@ -160,7 +160,7 @@ const StageTimeMappings = () => {
                                     return;
                                 }
                                 deleteStageTimeMapping({
-                                    timeObjects: deleteRow.time_objects ?? [],
+                                    timeObjectStageId: deleteRow.time_objects?.[0]?.time_object_stage_id,
                                     cb: () => {
                                         setShowDeleteModal(false);
                                         setDeleteRow(null);
