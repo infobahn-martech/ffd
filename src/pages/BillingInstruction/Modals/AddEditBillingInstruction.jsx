@@ -9,6 +9,7 @@ import useAlertReducer from "../../../store/AlertReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/pages/billing-instruction/AddEditBillingInstruction.scss";
 
 const INSTRUCTION_TYPES = [
     { value: "Email", label: "Email" },
@@ -45,7 +46,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
     } = useForm({
         defaultValues: {
             entity_id: "",
-            instruction_type: "Email",
+            instruction_type: "",
             description: "",
             emails: [{ value: "" }],
         },
@@ -71,7 +72,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
             clearInstructionDetail();
             reset({
                 entity_id: "",
-                instruction_type: "Email",
+                instruction_type: "",
                 description: "",
                 emails: [{ value: "" }],
             });
@@ -185,7 +186,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
     const showDescription = instructionType === "Client Portal" || instructionType === "Hand Delivery";
 
     const renderBody = () => (
-        <div className="modal-body">
+        <div className="modal-body billing-instruction-modal">
             <div className="lead-form">
                 {isEdit && isLoadingDetail && (
                     <div className="text-center py-4 text-muted">Loading...</div>
@@ -197,7 +198,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                         display: isEdit && isLoadingDetail ? "none" : undefined,
                     }}
                 >
-                    <div className="mb-lg-3 mb-sm-0 mt-2">
+                    <div className="mt-2">
                         <div className="phone-wrapper">
                             <label className="phone-label">
                                 Billing Entity <span className="text-danger">*</span>
@@ -229,7 +230,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className={`billing-instruction-type-field ${showEmailFields ? "billing-instruction-type-field--compact" : ""}`}>
                         <div className="phone-wrapper">
                             <label className="phone-label">
                                 Instruction Type <span className="text-danger">*</span>
@@ -237,7 +238,12 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                             <Controller
                                 name="instruction_type"
                                 control={control}
-                                rules={{ required: "Instruction type is required" }}
+                                rules={{
+                                    validate: (value) =>
+                                        String(value ?? "").trim()
+                                            ? true
+                                            : "Instruction type is required",
+                                }}
                                 render={({ field }) => (
                                     <PremiumSelect
                                         value={field.value != null ? String(field.value) : ""}
@@ -250,7 +256,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                                 )}
                             />
                             {errors.instruction_type && (
-                                <span className="error text-danger">
+                                <span className="billing-instruction-field-error text-danger">
                                     {errors.instruction_type.message}
                                 </span>
                             )}
@@ -258,8 +264,8 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     {showEmailFields && (
-                        <div className="mt-3">
-                            <label className="form-label mb-2">
+                        <div className="billing-instruction-email-section">
+                            <label className="emails-section-label mb-2">
                                 Emails <span className="text-danger">*</span>
                             </label>
                             {fields.map((field, index) => (
@@ -325,19 +331,21 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                     )}
 
                     {showDescription && (
-                        <div className="mb-lg-3 mb-sm-0 mt-2">
-                            <label className="form-label mb-2">
-                                Description <span className="text-danger">*</span>
-                            </label>
-                            <textarea
-                                className={`form-control ${errors.description ? "is-invalid" : ""}`}
-                                placeholder="Enter instruction details..."
-                                rows={4}
-                                {...register("description")}
-                            />
-                            {errors.description && (
-                                <span className="error text-danger">{errors.description.message}</span>
-                            )}
+                        <div>
+                            <div className="phone-wrapper">
+                                <label className="phone-label billing-instruction-description-label">
+                                    Description <span className="text-danger">*</span>
+                                </label>
+                                <textarea
+                                    className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                                    placeholder="Enter instruction details..."
+                                    rows={4}
+                                    {...register("description")}
+                                />
+                                {errors.description && (
+                                    <span className="error text-danger">{errors.description.message}</span>
+                                )}
+                            </div>
                         </div>
                     )}
                 </form>
