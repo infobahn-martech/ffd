@@ -8,6 +8,7 @@ import { mapApiCoordinatesToFormRows } from "../coordinateUtils";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/coordinates-modal.scss";
 
 const emptyCoordinateRow = () => ({ value: "", coordinates_id: "" });
 
@@ -404,7 +405,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                 One pair per row (lat,lon). Use + to add more.
                             </span> */}
                         </div>
-                        <div className="d-flex flex-column gap-2">
+                        <div className="d-flex flex-column gap-2 coordinates-list-scroll">
                             {fields.map((field, index) => (
                                 <div className="d-flex align-items-start gap-2" key={field.id}>
                                     <input

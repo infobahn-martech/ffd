@@ -383,7 +383,7 @@ export function ReportTemplatesModal({
   return (
     <CustomModal
       className="appointment-acceptance-modal-lg"
-      dialgName="modal-dialog modal-dialog-centered"
+      dialgName="modal-dialog modal-dialog-centered modal-dialog-scrollable"
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}
