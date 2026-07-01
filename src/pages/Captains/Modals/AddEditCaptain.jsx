@@ -9,6 +9,7 @@ import fleetService from "../../../services/fleetService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/captain-modal.scss";
 import userIcon from "../../../assets/images/user.png";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 
@@ -126,7 +127,7 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
     );
 
     const renderBody = () => (
-        <div className="modal-body">
+        <div className="modal-body captain-modal">
             <div className="lead-form">
                 <form id="captainForm" onSubmit={handleSubmit(onSubmit)}>
                     {/* <div className="d-flex justify-content-center mb-4">
