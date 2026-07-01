@@ -1,16 +1,23 @@
 .group-email-modal {
-    .form-control:disabled {
-        background-color: #f2f2f2 !important;
-        cursor: not-allowed;
-    }
-
-    .form-floating > .form-control:disabled ~ label::after,
-    .form-floating > :disabled ~ label::after {
-        background-color: #f2f2f2;
-    }
-
     &.modal-body {
         max-height: 60vh;
         overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #f2f2f2;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: #868e96;
+        }
     }
 }
