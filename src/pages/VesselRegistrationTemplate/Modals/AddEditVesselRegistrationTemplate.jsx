@@ -214,7 +214,7 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
                   </label>
                   <input
                     type="text"
-                    className={`form-control ${errors.template_name ? 'field-error' : ''}`}
+                    className="form-control"
                     placeholder="Enter template name"
                     dir="auto"
                     {...register('template_name', { required: 'Template name is required' })}
