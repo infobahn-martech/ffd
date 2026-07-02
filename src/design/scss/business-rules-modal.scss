@@ -886,6 +886,22 @@
   }
 }
 
+.business-rule-form-action-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.business-rule-form-action-chip-label {
+  font: normal normal 500 13px/1.4 $font-primary;
+  color: $txtColor;
+}
+
 .business-rule-form-then-stack {
   display: flex;
   flex-direction: column;
