@@ -6,6 +6,7 @@ import { AddEditVesselRegistrationTemplateModal } from './Modals/AddEditVesselRe
 import { RenderAction } from './RenderCells';
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import useVesselRegistrationTemplateReducer from '../../store/VesselRegistrationTemplateReducer';
+import '../../design/scss/pages/vessel-registration-template/VesselRegistrationTemplate.scss';
 
 const VesselRegistrationTemplate = () => {
   const [params, setParams] = useState({
@@ -86,7 +87,7 @@ const VesselRegistrationTemplate = () => {
   ];
 
   return (
-    <div className="page-body">
+    <div className="page-body vessel-registration-template">
       <div className="prospect employee">
         <div className="container-fluid">
           <CommonHeader
