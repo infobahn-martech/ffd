@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { AddEditThirdPartyServiceModal } from "./Modals/AddEditModal";
-import { RenderAction } from "./RenderCells";
+import { RenderAction, RenderDescription } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useThirdPartyServiceReducer from "../../store/ThirdPartyReducer";
+import "../../design/scss/pages/third-party-service/ThirdPartyService.scss";
 
 const ThirdPartyService = () => {
     const { getThirdPartyServices, thirdPartyServices, isLoadingGet, deleteData, isLoadingDelete, totalCount } =
@@ -81,9 +82,10 @@ const ThirdPartyService = () => {
             name: "Description",
             selector: "description",
             sort: true,
-            width: "280",
+            width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
+            cell: RenderDescription,
         },
         {
             name: "Actions",

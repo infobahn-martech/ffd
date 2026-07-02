@@ -272,7 +272,13 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     type="text"
                     className={`form-control ${errors.name ? "is-invalid" : ""}`}
                     placeholder="Name"
-                    {...register("name", { required: "Name is required" })}
+                    {...register("name", {
+                      required: "Name is required",
+                      pattern: {
+                        value: /^[A-Za-z\s]+$/,
+                        message: "Name cannot contain numbers or special characters",
+                      },
+                    })}
                   />
                   <label>
                     Name <span className="text-danger">*</span>

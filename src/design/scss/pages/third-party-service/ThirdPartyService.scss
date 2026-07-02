@@ -1,0 +1,30 @@
+.third-party-description-text {
+    display: inline-block;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+
+    &.is-truncated {
+        cursor: help;
+    }
+}
+
+// Target the react-tooltip v5 tooltip rendered for truncated Third Party descriptions
+[id^="tps-desc-"],
+.third-party-description-tooltip {
+    max-width: 400px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.5 !important;
+    text-align: left !important;
+}
+
+[id^="tps-desc-"] * {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+}
