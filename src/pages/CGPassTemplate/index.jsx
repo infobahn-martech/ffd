@@ -104,6 +104,7 @@ const CGPassTemplate = () => {
         </div>
 
         <CustomTable
+          Sl
           loading={isLoading}
           pagination={{ currentPage: params.page, limit: params.limit }}
           tableClasses="px-start"
