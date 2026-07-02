@@ -137,6 +137,7 @@ const HospitalServices = () => {
                 </div>
 
                 <CustomTable
+                    Sl
                     isLoading={isLoading}
                     pagination={{ currentPage: params.page, limit: params.limit }}
                     tableClasses="px-start"

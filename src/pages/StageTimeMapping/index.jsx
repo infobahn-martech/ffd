@@ -114,6 +114,7 @@ const StageTimeMappings = () => {
                     </div>
 
                     <CustomTable
+                        Sl
                         isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"

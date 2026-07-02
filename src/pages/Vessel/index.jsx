@@ -251,7 +251,7 @@ const Vessel = () => {
             count={totalCount ?? filteredVessels.length}
             columns={cols}
             data={filteredVessels}
-            Sl={false}
+            Sl
             loading={isLoading}
             onPageChange={(currentPage) =>
               setParams((prev) => ({ ...prev, page: currentPage }))

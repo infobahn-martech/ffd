@@ -83,6 +83,7 @@ const Port = () => {
           </div>
 
           <CustomTable
+            Sl
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
             count={totalPortCount ?? 0}
