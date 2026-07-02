@@ -213,7 +213,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             Email <span className="text-danger">*</span>
                                         </label>
 
-                                        {!isEdit && (index === fields.length - 1 ? (
+                                        {index === fields.length - 1 ? (
                                             <>
                                                 {fields.length > 1 && (
                                                     <button
@@ -248,7 +248,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             >
                                                 <FiX size={18} />
                                             </button>
-                                        ))}
+                                        )}
 
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger">
