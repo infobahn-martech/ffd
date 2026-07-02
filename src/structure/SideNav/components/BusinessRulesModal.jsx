@@ -66,9 +66,6 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
     triggerTypes, isLoadingGet, getTriggerTypes,
-    timeUnits, getTimeUnits,
-    customFields, getCustomFields,
-    regularFields, getRegularFields,
   } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
@@ -88,9 +85,6 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   useEffect(() => {
     if (view === 'picker') {
       getTriggerTypes();
-      getTimeUnits();
-      getCustomFields();
-      getRegularFields();
     }
   }, [view]);
 
