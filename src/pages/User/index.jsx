@@ -98,7 +98,6 @@ const User = () => {
       width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
-      sort: true,
       cell: ({ row }) => (
         <span
           className={

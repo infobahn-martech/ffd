@@ -39,3 +39,33 @@ export const RenderName = ({ row }) => {
         </>
     );
 };
+
+export const RenderDescription = ({ row, selector }) => {
+    const description = row[selector] || '';
+    const MAX_LENGTH = 120;
+    const isTruncated = description.length > MAX_LENGTH;
+    const tooltipId = `tps-desc-${row?._id || row?.third_party_service_id || Math.random()}`;
+
+    if (!description) {
+        return <span>-</span>;
+    }
+
+    return (
+        <>
+            {isTruncated && (
+                <Tooltip
+                    id={tooltipId}
+                    place="top"
+                    content={description}
+                    className="third-party-description-tooltip"
+                />
+            )}
+            <span
+                data-tooltip-id={isTruncated ? tooltipId : undefined}
+                className={`third-party-description-text${isTruncated ? " is-truncated" : ""}`}
+            >
+                {description}
+            </span>
+        </>
+    );
+};
