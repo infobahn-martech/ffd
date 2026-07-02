@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS,
+  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
@@ -289,6 +289,108 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }
   );
 }
 
+function CreateActionModal({ show, onClose, onSelect }) {
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [expandedRegularFields, setExpandedRegularFields] = useState(true);
+  const [filterText, setFilterText] = useState('');
+
+  useEffect(() => {
+    if (!show) return;
+    setSelectedKey(null);
+    setFilterText('');
+  }, [show]);
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredOptions = filterQuery
+    ? CREATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : CREATE_ACTION_OPTIONS;
+
+  const handleAdd = () => {
+    const option = CREATE_ACTION_OPTIONS.find((opt) => opt.key === selectedKey);
+    if (!option) return;
+    onSelect(option);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Create Card or Subtask</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedRegularFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedRegularFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expandedRegularFields && (
+              <div className="br-property-pill-grid">
+                {filteredOptions.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredOptions.map((option) => (
+                    <PropertyPill
+                      key={option.key}
+                      pillKey={option.key}
+                      label={option.label}
+                      selected={selectedKey === option.key}
+                      onClick={() => setSelectedKey(option.key)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selectedKey}
+            onClick={handleAdd}
+          >
+            Add
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -297,6 +399,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
   const [conditions, setConditions] = useState([]);
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
+  const [createActions, setCreateActions] = useState([]);
+  const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -307,6 +411,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setDisallowTriggerChain(false);
     setConditions([]);
     setShowPropertyPicker(false);
+    setCreateActions([]);
+    setShowCreateActionPicker(false);
   }, [show, rule]);
 
   if (!rule) return null;
@@ -320,6 +426,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       shareWith,
       disallowTriggerChain,
       conditions,
+      createActions,
     });
     onClose();
   };
@@ -343,6 +450,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveCondition = (id) => {
     setConditions((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleSelectCreateAction = (option) => {
+    setCreateActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+  };
+
+  const handleRemoveCreateAction = (id) => {
+    setCreateActions((prev) => prev.filter((a) => a.id !== id));
   };
 
   const boardLabel = boardName?.trim() || 'Current board';
@@ -520,7 +635,26 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                 {THEN_ACTION_SECTIONS.map((section) => (
                   <div key={section.id} className="business-rule-form-action-section">
                     <h4 className="business-rule-form-action-title">{section.title}</h4>
-                    <button type="button" className="business-rule-form-add-action">
+
+                    {section.id === 'create' && createActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-chip">
+                        <span className="business-rule-form-action-chip-label">{action.label}</span>
+                        <button
+                          type="button"
+                          className="business-rule-form-condition-remove"
+                          onClick={() => handleRemoveCreateAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      className="business-rule-form-add-action"
+                      onClick={section.id === 'create' ? () => setShowCreateActionPicker(true) : undefined}
+                    >
                       <FiPlus size={14} aria-hidden />
                       Add new action
                     </button>
@@ -547,6 +681,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowPropertyPicker(false)}
       onSelect={handleSelectProperty}
       existingFieldLabels={['board', ...conditions.map((c) => c.fieldLabel.trim().toLowerCase())]}
+    />
+
+    <CreateActionModal
+      show={showCreateActionPicker}
+      onClose={() => setShowCreateActionPicker(false)}
+      onSelect={handleSelectCreateAction}
     />
     </>
   );
@@ -577,6 +717,12 @@ PropertyPill.propTypes = {
 CardPropertyMatchModal.propTypes = {
   show: PropTypes.bool.isRequired,
   existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
+  onClose: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+};
+
+CreateActionModal.propTypes = {
+  show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
 };

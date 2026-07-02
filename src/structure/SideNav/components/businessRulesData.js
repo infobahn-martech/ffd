@@ -58,6 +58,16 @@ export const THEN_ACTION_SECTIONS = [
   { id: 'notify', title: 'Send notifications' },
 ];
 
+export const CREATE_ACTION_OPTIONS = [
+  { key: 'card', label: 'Create card' },
+  { key: 'child', label: 'Create child' },
+  { key: 'parent', label: 'Create parent' },
+  { key: 'predecessor', label: 'Create predecessor' },
+  { key: 'relative', label: 'Create relative' },
+  { key: 'subtask', label: 'Create subtask' },
+  { key: 'successor', label: 'Create successor' },
+];
+
 // Dev-only fallback data for the "Card property match" modal, used when the
 // real business_rule field endpoints return nothing (e.g. local dev without
 // a live backend). Never shown in production builds.
