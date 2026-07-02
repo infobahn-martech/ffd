@@ -111,7 +111,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
             });
         } else {
             const payload = {
-                entity_id: data.entity_id,
+                entity_id: Number(data.entity_id) || data.entity_id,
                 emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
             };
             addGroupEmailBE({
@@ -139,9 +139,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                 <form
                     id="groupEmailForm"
                     onSubmit={handleSubmit(onSubmit)}
-                    style={{
-                        display: isEdit && isLoadingDetail ? "none" : undefined,
-                    }}
+                    className={isEdit && isLoadingDetail ? "group-email-form-loading" : undefined}
                 >
                     {/* BILLING ENTITY SELECT */}
                     <div className="mb-lg-3 mb-sm-0 mt-2">
