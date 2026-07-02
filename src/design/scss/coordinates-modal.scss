@@ -1,4 +1,23 @@
 .coordinates-list-scroll {
     max-height: 300px;
     overflow-y: auto;
+    padding-right: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: #aab4c3 transparent;
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #aab4c3;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: #aab4c3;
+    }
 }
