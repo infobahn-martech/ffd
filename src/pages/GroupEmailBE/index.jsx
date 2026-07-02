@@ -177,7 +177,7 @@ const GroupEmailBE = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            loading={isDeleteLoading}
+                            isLoading={isDeleteLoading}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                                 setSelectedRow(null);
