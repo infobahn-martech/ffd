@@ -1,11 +1,70 @@
-import { useEffect, useState } from 'react';
-import { FiX, FiPlus, FiChevronDown } from 'react-icons/fi';
+import { useEffect, useRef, useState } from 'react';
+import { FiX, FiPlus, FiChevronDown, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import { SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS } from './businessRulesData';
+import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
+
+function PropertyPicker({ fields, isLoading, onSelect, onClose, pickerRef }) {
+  const [search, setSearch] = useState('');
+
+  const filteredCategories = (fields ?? [])
+    .map((cat) => ({
+      ...cat,
+      fields: (cat.fields ?? []).filter((f) => {
+        const label = f.field_label ?? f.unit_label ?? f.field_name ?? '';
+        return label.toLowerCase().includes(search.toLowerCase().trim());
+      }),
+    }))
+    .filter((cat) => cat.fields.length > 0);
+
+  return (
+    <div className="br-property-picker" ref={pickerRef}>
+      <div className="br-property-picker-search">
+        <FiSearch size={14} className="br-property-picker-search-icon" />
+        <input
+          type="text"
+          className="br-property-picker-search-input"
+          placeholder="Search fields..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          autoFocus
+        />
+      </div>
+
+      <div className="br-property-picker-list">
+        {isLoading ? (
+          <div className="br-property-picker-empty">Loading...</div>
+        ) : filteredCategories.length === 0 ? (
+          <div className="br-property-picker-empty">No fields found</div>
+        ) : (
+          filteredCategories.map((cat) => (
+            <div key={cat.field_category_id} className="br-property-picker-group">
+              <div className="br-property-picker-group-label">{cat.category_label}</div>
+              {cat.fields.map((field, idx) => {
+                const label = field.field_label ?? field.unit_label ?? field.field_name ?? '';
+                const key = field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? idx;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className="br-property-picker-item"
+                    onClick={() => onSelect(field, cat)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
 
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
@@ -13,6 +72,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [tags, setTags] = useState('');
   const [shareWith, setShareWith] = useState(SHARE_WITH_OPTIONS[0].value);
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
+  const [conditions, setConditions] = useState([]);
+  const [showPropertyPicker, setShowPropertyPicker] = useState(false);
+  const pickerRef = useRef(null);
+
+  const { fields, isLoadingFields, getFields } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -21,7 +85,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setTags('');
     setShareWith(SHARE_WITH_OPTIONS[0].value);
     setDisallowTriggerChain(false);
+    setConditions([]);
+    setShowPropertyPicker(false);
   }, [show, rule]);
+
+  useEffect(() => {
+    if (!showPropertyPicker) return;
+    const handleClickOutside = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setShowPropertyPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPropertyPicker]);
 
   if (!rule) return null;
 
@@ -33,8 +110,33 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       tags: tags.trim(),
       shareWith,
       disallowTriggerChain,
+      conditions,
     });
     onClose();
+  };
+
+  const handleOpenPropertyPicker = () => {
+    if (fields.length === 0) getFields();
+    setShowPropertyPicker((prev) => !prev);
+  };
+
+  const handleSelectProperty = (field, category) => {
+    const label = field.field_label ?? field.unit_label ?? field.field_name ?? '';
+    setConditions((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        fieldLabel: label,
+        fieldKey: field.field_key ?? field.unit_key ?? String(field.custom_field_id ?? ''),
+        category: category.category_key,
+        value: '',
+      },
+    ]);
+    setShowPropertyPicker(false);
+  };
+
+  const handleRemoveCondition = (id) => {
+    setConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
   const boardLabel = boardName?.trim() || 'Current board';
@@ -66,9 +168,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         <div className="business-rule-form-modal-body">
           <section className="business-rule-form-meta">
             <div className="business-rule-form-field">
-              <label htmlFor="br-form-name" className="business-rule-form-label">
-                Name
-              </label>
+              <label htmlFor="br-form-name" className="business-rule-form-label">Name</label>
               <input
                 id="br-form-name"
                 type="text"
@@ -79,9 +179,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
             </div>
 
             <div className="business-rule-form-field">
-              <label htmlFor="br-form-description" className="business-rule-form-label">
-                Description
-              </label>
+              <label htmlFor="br-form-description" className="business-rule-form-label">Description</label>
               <textarea
                 id="br-form-description"
                 className="business-rule-form-textarea"
@@ -93,9 +191,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
             <div className="business-rule-form-secondary-grid">
               <div className="business-rule-form-field">
-                <label htmlFor="br-form-tags" className="business-rule-form-label">
-                  Tags
-                </label>
+                <label htmlFor="br-form-tags" className="business-rule-form-label">Tags</label>
                 <input
                   id="br-form-tags"
                   type="text"
@@ -109,17 +205,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               <div className="business-rule-form-field">
                 <span className="business-rule-form-label">Owner</span>
                 <div className="business-rule-form-owner business-rule-form-control">
-                  <span className="business-rule-form-owner-avatar" aria-hidden>
-                    {DEFAULT_OWNER.initials}
-                  </span>
+                  <span className="business-rule-form-owner-avatar" aria-hidden>{DEFAULT_OWNER.initials}</span>
                   <span className="business-rule-form-owner-name">{DEFAULT_OWNER.name}</span>
                 </div>
               </div>
 
               <div className="business-rule-form-field">
-                <label htmlFor="br-form-share" className="business-rule-form-label">
-                  Share with
-                </label>
+                <label htmlFor="br-form-share" className="business-rule-form-label">Share with</label>
                 <div className="business-rule-form-select-wrap business-rule-form-control">
                   <select
                     id="br-form-share"
@@ -128,9 +220,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                     onChange={(e) => setShareWith(e.target.value)}
                   >
                     {SHARE_WITH_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
@@ -138,9 +228,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               </div>
 
               <div className="business-rule-form-field business-rule-form-field--toggle">
-                <span className="business-rule-form-label business-rule-form-label--spacer" aria-hidden="true">
-                  Tags
-                </span>
+                <span className="business-rule-form-label business-rule-form-label--spacer" aria-hidden="true">Tags</span>
                 <div className="business-rule-form-toggle-box business-rule-form-control">
                   <label className="business-rule-form-toggle">
                     <input
@@ -177,10 +265,55 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                     <FiChevronDown size={16} aria-hidden />
                   </button>
                 </div>
-                <button type="button" className="business-rule-form-add-link">
-                  <FiPlus size={14} aria-hidden />
-                  Add filter
-                </button>
+
+                {conditions.map((cond) => (
+                  <div key={cond.id} className="business-rule-form-condition">
+                    <span className="business-rule-form-condition-label">{cond.fieldLabel}</span>
+                    <div className="business-rule-form-condition-row">
+                      <input
+                        type="text"
+                        className="business-rule-form-condition-input"
+                        placeholder="Enter value"
+                        value={cond.value}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setConditions((prev) =>
+                            prev.map((c) => c.id === cond.id ? { ...c, value: val } : c)
+                          );
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="business-rule-form-condition-remove"
+                        onClick={() => handleRemoveCondition(cond.id)}
+                        aria-label="Remove condition"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="br-add-property-wrap">
+                  <button
+                    type="button"
+                    className="business-rule-form-add-link"
+                    onClick={handleOpenPropertyPicker}
+                  >
+                    <FiPlus size={14} aria-hidden />
+                    Add new property
+                  </button>
+
+                  {showPropertyPicker && (
+                    <PropertyPicker
+                      fields={fields}
+                      isLoading={isLoadingFields}
+                      onSelect={handleSelectProperty}
+                      onClose={() => setShowPropertyPicker(false)}
+                      pickerRef={pickerRef}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
@@ -203,7 +336,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
         <footer className="business-rule-form-modal-footer">
           <p className="business-rule-form-footer-note">
-            <strong>Note:</strong> This rule runs automatically when the trigger and filters match.
+            <strong>Note:</strong> Due to their asynchronous nature, the business rules may sometimes run with a short delay. In rare cases it may take up to 30 minutes.
           </p>
           <button type="button" className="business-rule-form-save-btn" onClick={handleSave}>
             Save
@@ -225,6 +358,14 @@ BusinessRuleFormModal.propTypes = {
   boardName: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
+};
+
+PropertyPicker.propTypes = {
+  fields: PropTypes.array.isRequired,
+  isLoading: PropTypes.bool,
+  onSelect: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  pickerRef: PropTypes.object.isRequired,
 };
 
 export default BusinessRuleFormModal;

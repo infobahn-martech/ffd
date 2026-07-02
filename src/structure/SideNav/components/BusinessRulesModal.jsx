@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiX, FiSearch } from 'react-icons/fi';
+import { FiX, FiSearch, FiArrowLeft } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
@@ -13,51 +13,113 @@ const TRIGGER_CODE_TO_ICON = {
   card_moved: 'moved',
   child_card_blocked: 'child-blocked',
   child_card_moved: 'child-moved',
+  child_card_updated: 'child-updated',
   all_children_moved: 'all-children-moved',
+  time_based: 'time-based',
+  recurring_created: 'time-based',
+  time_based_rule: 'time-based',
+  parent_card_moved: 'parent-moved',
+  parent_card_updated: 'parent-updated',
+  parent_card_created: 'parent-created',
+  archive_cards: 'archive',
+  card_archived: 'archive',
+  task_created: 'task-created',
+  task_card_moved: 'task-moved',
+  task_card_updated: 'task-updated',
+};
+
+const FILTER_OPTIONS = [
+  { label: 'All', value: 'all' },
+  { label: 'Enabled', value: 'enabled' },
+  { label: 'Disabled', value: 'disabled' },
+];
+
+const OwnerCell = ({ owner }) => {
+  if (!owner) return <span className="br-table-deleted-user">Deleted user</span>;
+  const name = typeof owner === 'object' ? (owner?.name ?? owner?.username ?? '') : owner;
+  const avatar = typeof owner === 'object' ? owner?.avatar : null;
+  if (!name) return <span className="br-table-deleted-user">Deleted user</span>;
+  return (
+    <div className="br-table-owner">
+      {avatar ? (
+        <img src={avatar} className="br-table-avatar" alt={name} />
+      ) : (
+        <div className="br-table-avatar-placeholder">{name.charAt(0).toUpperCase()}</div>
+      )}
+      <span>{name}</span>
+    </div>
+  );
 };
 
 const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [searchValue, setSearchValue] = useState('');
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  // view: 'table' | 'picker'
+  const [view, setView] = useState('table');
   const [selectedRule, setSelectedRule] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
-  const { triggerTypes, isLoadingGet, getTriggerTypes, timeUnits, getTimeUnits, customFields, getCustomFields, regularFields, getRegularFields } = useBusinessRuleReducer();
+  const {
+    getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
+    triggerTypes, isLoadingGet, getTriggerTypes,
+  } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
     if (!show) {
-      setShowFormModal(false);
+      setSearchValue('');
+      setTriggerSearch('');
+      setFilter('all');
+      setPage(1);
+      setView('table');
       setSelectedRule(null);
+      setShowFormModal(false);
       return;
     }
-    getTriggerTypes();
-    getTimeUnits();
-    getCustomFields();
-    getRegularFields();
-  }, [show]);
+    getBusinessRules({ params: { page, limit, searchTerm: searchValue, filter } });
+  }, [show, page, searchValue, filter]);
 
-  const mappedRules = triggerTypes.map((item) => ({
+  useEffect(() => {
+    if (view === 'picker') {
+      getTriggerTypes();
+    }
+  }, [view]);
+
+  const totalPages = Math.max(1, Math.ceil(businessRulesCount / limit));
+
+  const mappedTriggers = triggerTypes.map((item) => ({
     id: item.trigger_type_id,
     name: item.trigger_name,
     icon: TRIGGER_CODE_TO_ICON[item.trigger_code] ?? item.trigger_code,
     description: item.description,
   }));
 
-  const filteredRules = mappedRules.filter((rule) =>
-    rule.name.toLowerCase().includes(searchValue.toLowerCase().trim())
+  const filteredTriggers = mappedTriggers.filter((t) =>
+    t.name.toLowerCase().includes(triggerSearch.toLowerCase().trim())
   );
 
-  const handleCardClick = (rule) => {
-    setSelectedRule(rule);
+  const handleTriggerCardClick = (trigger) => {
+    setSelectedRule(trigger);
     setShowFormModal(true);
   };
 
   const handleCloseFormModal = () => {
     setShowFormModal(false);
     setSelectedRule(null);
+    setView('table');
   };
 
-  const handleSaveForm = () => {
-    // Hook for API integration when backend is ready
+  const handleAddNewRule = () => {
+    setTriggerSearch('');
+    setView('picker');
+  };
+
+  const handleBackToTable = () => {
+    setView('table');
+    setTriggerSearch('');
   };
 
   return (
@@ -70,7 +132,21 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         size="xl"
       >
         <Modal.Header className="business-rules-modal-header">
-          <Modal.Title className="business-rules-modal-title">Business Rules</Modal.Title>
+          <div className="br-modal-header-left">
+            {view === 'picker' && (
+              <button
+                type="button"
+                className="br-modal-back-btn"
+                onClick={handleBackToTable}
+                aria-label="Back"
+              >
+                <FiArrowLeft size={18} />
+              </button>
+            )}
+            <Modal.Title className="business-rules-modal-title">
+              {view === 'picker' ? 'Select Rule Type' : 'Business Rules'}
+            </Modal.Title>
+          </div>
           <button
             type="button"
             className="business-rules-modal-close"
@@ -80,41 +156,205 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
             <FiX size={20} />
           </button>
         </Modal.Header>
-        <Modal.Body className="business-rules-modal-body">
-          <div className="business-rules-search-section">
-            <div className="business-rules-search-wrapper">
-              <FiSearch className="business-rules-search-icon" />
-              <input
-                type="text"
-                className="business-rules-search-input"
-                placeholder="Filter by business rule name"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div className="business-rules-grid-wrapper">
-            {isLoadingGet ? (
-              <div className="business-rules-empty-state">Loading...</div>
-            ) : filteredRules.length > 0 ? (
-              <div className="business-rules-grid">
-                {filteredRules.map((rule) => (
-                  <button
-                    key={rule.id}
-                    type="button"
-                    className="business-rules-card"
-                    onClick={() => handleCardClick(rule)}
-                  >
-                    <BusinessRuleIcon iconType={rule.icon} />
-                    <span className="business-rules-card-title">{rule.name}</span>
-                  </button>
-                ))}
+        <Modal.Body className="business-rules-modal-body">
+          {view === 'table' ? (
+            <>
+              <div className="br-table-toolbar">
+                <div className="br-table-toolbar-left">
+                  <div className="dropdown">
+                    <button
+                      className="btn btn-primary dropdown-toggle br-table-filter-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      {FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? 'All'}
+                    </button>
+                    <ul className="dropdown-menu">
+                      {FILTER_OPTIONS.map((opt) => (
+                        <li key={opt.value}>
+                          <button
+                            className="dropdown-item"
+                            type="button"
+                            onClick={() => { setFilter(opt.value); setPage(1); }}
+                          >
+                            {opt.label}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="business-rules-search-wrapper br-table-search-wrap">
+                    <FiSearch className="business-rules-search-icon" />
+                    <input
+                      type="text"
+                      className="business-rules-search-input"
+                      placeholder="Filter by business rule name, ID, owner, t"
+                      value={searchValue}
+                      onChange={(e) => { setSearchValue(e.target.value.trimStart()); setPage(1); }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="br-add-new-rule-btn"
+                  onClick={handleAddNewRule}
+                >
+                  Add new rule
+                </button>
               </div>
-            ) : (
-              <div className="business-rules-empty-state">No business rules found</div>
-            )}
-          </div>
+
+              <div className="br-table-scroll">
+                <table className="br-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 44 }} />
+                      <th>ID</th>
+                      <th>NAME</th>
+                      <th>OWNER</th>
+                      <th>BOARD NAME</th>
+                      <th>EXECUTION ORDER</th>
+                      <th>TAGS</th>
+                      <th>SHARED WITH</th>
+                      <th style={{ width: 44 }} />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoadingBusinessRules ? (
+                      <tr><td colSpan={9} className="br-table-state">Loading...</td></tr>
+                    ) : businessRules.length === 0 ? (
+                      <tr><td colSpan={9} className="br-table-state">No business rules found</td></tr>
+                    ) : (
+                      businessRules.map((rule) => {
+                        const ruleId = rule?.business_rule_id ?? rule?.id;
+                        const name = rule?.name ?? rule?.rule_name ?? '-';
+                        const execOrder = rule?.execution_order ?? '-';
+                        const tags = Array.isArray(rule?.tags) && rule.tags.length > 0
+                          ? rule.tags.join(', ') : '-';
+                        const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
+                          ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
+                          : '-';
+                        const boards = rule?.boards ?? (rule?.board_name ? [rule.board_name] : []);
+
+                        return (
+                          <tr key={ruleId}>
+                            <td>
+                              <div className="form-check form-switch mb-0">
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  checked={rule?.is_enabled ?? false}
+                                  readOnly
+                                />
+                              </div>
+                            </td>
+                            <td className="br-table-id">{ruleId}</td>
+                            <td><span className="br-table-rule-name">{name}</span></td>
+                            <td><OwnerCell owner={rule?.owner} /></td>
+                            <td>
+                              {Array.isArray(boards) && boards.length > 0
+                                ? boards.map((b, i) => (
+                                  <span key={i} className="br-table-board-link">
+                                    {typeof b === 'object' ? b?.name : b}
+                                    {i < boards.length - 1 && ', '}
+                                  </span>
+                                ))
+                                : <span>-</span>
+                              }
+                            </td>
+                            <td>{execOrder}</td>
+                            <td>{tags}</td>
+                            <td>{sharedWith}</td>
+                            <td>
+                              <div className="dropdown">
+                                <button
+                                  className="br-table-action-btn"
+                                  type="button"
+                                  data-bs-toggle="dropdown"
+                                  aria-expanded="false"
+                                >
+                                  &#8942;
+                                </button>
+                                <ul className="dropdown-menu dropdown-menu-end">
+                                  <li><button className="dropdown-item" type="button">Edit</button></li>
+                                  <li><button className="dropdown-item text-danger" type="button">Delete</button></li>
+                                </ul>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="br-table-pagination">
+                <div className="br-table-pagination-controls">
+                  <select
+                    className="br-table-page-select"
+                    value={page}
+                    onChange={(e) => setPage(Number(e.target.value))}
+                  >
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                  <button
+                    className="br-table-page-btn"
+                    type="button"
+                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={page >= totalPages}
+                  >
+                    &gt;
+                  </button>
+                </div>
+                <span className="br-table-count">
+                  Available business rules {businessRulesCount}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="business-rules-search-section">
+                <div className="business-rules-search-wrapper">
+                  <FiSearch className="business-rules-search-icon" />
+                  <input
+                    type="text"
+                    className="business-rules-search-input"
+                    placeholder="Filter by business rule name"
+                    value={triggerSearch}
+                    onChange={(e) => setTriggerSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="business-rules-grid-wrapper">
+                {isLoadingGet ? (
+                  <div className="business-rules-empty-state">Loading...</div>
+                ) : filteredTriggers.length > 0 ? (
+                  <div className="business-rules-grid">
+                    {filteredTriggers.map((trigger) => (
+                      <button
+                        key={trigger.id}
+                        type="button"
+                        className="business-rules-card"
+                        onClick={() => handleTriggerCardClick(trigger)}
+                      >
+                        <BusinessRuleIcon iconType={trigger.icon} />
+                        <span className="business-rules-card-title">{trigger.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="business-rules-empty-state">No rule types found</div>
+                )}
+              </div>
+            </>
+          )}
         </Modal.Body>
       </Modal>
 
@@ -123,7 +363,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         rule={selectedRule}
         boardName={boardName}
         onClose={handleCloseFormModal}
-        onSave={handleSaveForm}
+        onSave={handleCloseFormModal}
       />
     </>
   );
