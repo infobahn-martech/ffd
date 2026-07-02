@@ -1,68 +1,291 @@
-import { useEffect, useRef, useState } from 'react';
-import { FiX, FiPlus, FiChevronDown, FiSearch, FiTrash2 } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2 } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
-import { SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS } from './businessRulesData';
+import {
+  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS,
+  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
+} from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
+import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
+import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
 
-function PropertyPicker({ fields, isLoading, onSelect, onClose, pickerRef }) {
-  const [search, setSearch] = useState('');
+const PROPERTY_DOT_COLORS = [...PRIMARY_PRESET_COLORS, ...SECONDARY_PRESET_COLORS];
 
-  const filteredCategories = (fields ?? [])
-    .map((cat) => ({
-      ...cat,
-      fields: (cat.fields ?? []).filter((f) => {
-        const label = f.field_label ?? f.unit_label ?? f.field_name ?? '';
-        return label.toLowerCase().includes(search.toLowerCase().trim());
-      }),
-    }))
-    .filter((cat) => cat.fields.length > 0);
+const getFieldLabel = (field) =>
+  field.field_label ?? field.unit_label ?? field.field_name ?? field.custom_field_name ?? field.unit_name ?? '';
+
+const getPropertyDotColor = (idx) => PROPERTY_DOT_COLORS[idx % PROPERTY_DOT_COLORS.length];
+
+function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick }) {
+  return (
+    <button
+      type="button"
+      key={pillKey}
+      className={`br-property-pill${selected ? ' br-property-pill--selected' : ''}${disabled ? ' br-property-pill--disabled' : ''}`}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+    >
+      {dotColor && <span className="br-property-pill-dot" style={{ backgroundColor: dotColor }} aria-hidden />}
+      {label}
+    </button>
+  );
+}
+
+function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }) {
+  const [selected, setSelected] = useState(null);
+  const [expandedRegularFields, setExpandedRegularFields] = useState(true);
+  const [expandedTimeUnit, setExpandedTimeUnit] = useState(true);
+  const [expandedCustomFields, setExpandedCustomFields] = useState(true);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [showDisabled, setShowDisabled] = useState(false);
+  const [filterText, setFilterText] = useState('');
+
+  const {
+    regularFields, isLoadingRegularFields, getRegularFields,
+    timeUnits, isLoadingTimeUnits, getTimeUnits,
+    customFields, isLoadingCustomFields, getCustomFields,
+  } = useBusinessRuleReducer((s) => s);
+
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
+
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
+  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
+  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+
+  const isFieldUsed = (field) =>
+    (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const matchesFilter = (field) => getFieldLabel(field).toLowerCase().includes(filterQuery);
+  const filteredRegularFields = filterQuery ? displayRegularFields.filter(matchesFilter) : displayRegularFields;
+  const filteredTimeUnits = filterQuery ? displayTimeUnits.filter(matchesFilter) : displayTimeUnits;
+  const filteredCustomFields = filterQuery ? displayCustomFields.filter(matchesFilter) : displayCustomFields;
+
+  useEffect(() => {
+    if (!show) return;
+    setSelected(null);
+    setFilterText('');
+    if (regularFields.length === 0) getRegularFields();
+    if (timeUnits.length === 0) getTimeUnits();
+    if (workspaces.length === 0) listAllWorkspaces();
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
+  }, [selectedBoardId, showDisabled]);
+
+  const handlePick = (type, field) => {
+    const key = `${type}-${field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? getFieldLabel(field)}`;
+    setSelected({ key, type, field });
+  };
+
+  const handleAdd = () => {
+    if (!selected) return;
+    onSelect(selected.field, { category_key: selected.type });
+    onClose();
+  };
 
   return (
-    <div className="br-property-picker" ref={pickerRef}>
-      <div className="br-property-picker-search">
-        <FiSearch size={14} className="br-property-picker-search-icon" />
-        <input
-          type="text"
-          className="br-property-picker-search-input"
-          placeholder="Search fields..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          autoFocus
-        />
-      </div>
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Card property match</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
 
-      <div className="br-property-picker-list">
-        {isLoading ? (
-          <div className="br-property-picker-empty">Loading...</div>
-        ) : filteredCategories.length === 0 ? (
-          <div className="br-property-picker-empty">No fields found</div>
-        ) : (
-          filteredCategories.map((cat) => (
-            <div key={cat.field_category_id} className="br-property-picker-group">
-              <div className="br-property-picker-group-label">{cat.category_label}</div>
-              {cat.fields.map((field, idx) => {
-                const label = field.field_label ?? field.unit_label ?? field.field_name ?? '';
-                const key = field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? idx;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className="br-property-picker-item"
-                    onClick={() => onSelect(field, cat)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          ))
-        )}
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedRegularFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedRegularFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expandedRegularFields && (
+              <div className="br-property-pill-grid">
+                {isLoadingRegularFields ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredRegularFields.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredRegularFields.map((field, idx) => {
+                    const key = `regular-${field.regular_field_id ?? idx}`;
+                    return (
+                      <PropertyPill
+                        key={key}
+                        pillKey={key}
+                        label={getFieldLabel(field)}
+                        selected={selected?.key === key}
+                        disabled={isFieldUsed(field)}
+                        onClick={() => handlePick('regular', field)}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedTimeUnit((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedTimeUnit ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Time unit
+            </button>
+            {expandedTimeUnit && (
+              <div className="br-property-pill-grid">
+                {isLoadingTimeUnits ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredTimeUnits.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredTimeUnits.map((field, idx) => {
+                    const key = `time_unit-${field.time_unit_id ?? idx}`;
+                    return (
+                      <PropertyPill
+                        key={key}
+                        pillKey={key}
+                        label={getFieldLabel(field)}
+                        selected={selected?.key === key}
+                        onClick={() => handlePick('time_unit', field)}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedCustomFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Custom fields
+            </button>
+            {expandedCustomFields && (
+              <>
+                <div className="br-property-board-filter">
+                  <span className="br-property-board-filter-label">Show fields from board:</span>
+                  <div className="br-property-board-filter-row">
+                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
+                      <select
+                        className="business-rule-form-select"
+                        value={selectedBoardId}
+                        onChange={(e) => setSelectedBoardId(e.target.value)}
+                      >
+                        <option value="">All Boards</option>
+                        {boards.map((b) => (
+                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
+                        ))}
+                      </select>
+                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                    </div>
+                    <button
+                      type="button"
+                      className="br-property-board-clear-btn"
+                      onClick={() => setSelectedBoardId('')}
+                      aria-label="Reset board filter"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="business-rule-form-toggle br-property-disabled-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showDisabled}
+                    onChange={(e) => setShowDisabled(e.target.checked)}
+                  />
+                  <span className="business-rule-form-toggle-track" aria-hidden />
+                  <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
+                </label>
+
+                <div className="br-property-pill-grid">
+                  {isLoadingCustomFields ? (
+                    <div className="br-property-picker-empty">Loading...</div>
+                  ) : filteredCustomFields.length === 0 ? (
+                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : (
+                    filteredCustomFields.map((field, idx) => {
+                      const key = `custom-${field.custom_field_id ?? idx}`;
+                      return (
+                        <PropertyPill
+                          key={key}
+                          pillKey={key}
+                          label={getFieldLabel(field)}
+                          selected={selected?.key === key}
+                          dotColor={getPropertyDotColor(idx)}
+                          disabled={isFieldUsed(field)}
+                          onClick={() => handlePick('custom', field)}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selected}
+            onClick={handleAdd}
+          >
+            Add
+          </button>
+        </footer>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -74,9 +297,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
   const [conditions, setConditions] = useState([]);
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
-  const pickerRef = useRef(null);
-
-  const { fields, isLoadingFields, getFields } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -88,17 +308,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setConditions([]);
     setShowPropertyPicker(false);
   }, [show, rule]);
-
-  useEffect(() => {
-    if (!showPropertyPicker) return;
-    const handleClickOutside = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
-        setShowPropertyPicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showPropertyPicker]);
 
   if (!rule) return null;
 
@@ -116,23 +325,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleOpenPropertyPicker = () => {
-    if (fields.length === 0) getFields();
-    setShowPropertyPicker((prev) => !prev);
+    setShowPropertyPicker(true);
   };
 
   const handleSelectProperty = (field, category) => {
-    const label = field.field_label ?? field.unit_label ?? field.field_name ?? '';
     setConditions((prev) => [
       ...prev,
       {
         id: Date.now(),
-        fieldLabel: label,
-        fieldKey: field.field_key ?? field.unit_key ?? String(field.custom_field_id ?? ''),
+        fieldLabel: getFieldLabel(field),
+        fieldKey: field.field_key ?? field.unit_key ?? String(field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? ''),
         category: category.category_key,
         value: '',
       },
     ]);
-    setShowPropertyPicker(false);
   };
 
   const handleRemoveCondition = (id) => {
@@ -142,6 +348,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const boardLabel = boardName?.trim() || 'Current board';
 
   return (
+    <>
     <Modal
       show={show}
       onHide={onClose}
@@ -303,16 +510,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                     <FiPlus size={14} aria-hidden />
                     Add new property
                   </button>
-
-                  {showPropertyPicker && (
-                    <PropertyPicker
-                      fields={fields}
-                      isLoading={isLoadingFields}
-                      onSelect={handleSelectProperty}
-                      onClose={() => setShowPropertyPicker(false)}
-                      pickerRef={pickerRef}
-                    />
-                  )}
                 </div>
               </div>
             </div>
@@ -344,6 +541,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         </footer>
       </div>
     </Modal>
+
+    <CardPropertyMatchModal
+      show={showPropertyPicker}
+      onClose={() => setShowPropertyPicker(false)}
+      onSelect={handleSelectProperty}
+      existingFieldLabels={['board', ...conditions.map((c) => c.fieldLabel.trim().toLowerCase())]}
+    />
+    </>
   );
 }
 
@@ -360,12 +565,20 @@ BusinessRuleFormModal.propTypes = {
   onSave: PropTypes.func,
 };
 
-PropertyPicker.propTypes = {
-  fields: PropTypes.array.isRequired,
-  isLoading: PropTypes.bool,
-  onSelect: PropTypes.func.isRequired,
+PropertyPill.propTypes = {
+  pillKey: PropTypes.string.isRequired,
+  label: PropTypes.string,
+  selected: PropTypes.bool,
+  dotColor: PropTypes.string,
+  disabled: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
+};
+
+CardPropertyMatchModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
-  pickerRef: PropTypes.object.isRequired,
+  onSelect: PropTypes.func.isRequired,
 };
 
 export default BusinessRuleFormModal;
