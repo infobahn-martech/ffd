@@ -6,6 +6,7 @@ import useAppointmentAcceptanceReducer from "../../../store/AppointmentAcceptanc
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/pages/report-template/modals/AddEditReportTemplate.scss";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import PremiumSelect from "../../../components/form/PremiumSelect";
@@ -202,7 +203,7 @@ export function ReportTemplatesModal({
             <div className="permInputs row g-3">
               {/* REPORT TYPE */}
               <div className="col-lg-4 col-md-4 col-sm-12">
-                <div className="phone-wrapper">
+                <div className="phone-wrapper report-type-field">
                   <label className="phone-label">
                     Report Type <span className="text-danger">*</span>
                   </label>

@@ -1,0 +1,31 @@
+.appointment-acceptance-modal-lg {
+  /* Subject field: plain neutral border, no teal highlight */
+  .desig-inp textarea.form-control {
+    border: 1px solid #e2e2ea;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+    }
+
+    &.is-invalid {
+      border-color: #dc3545;
+    }
+  }
+
+  /* Report Type: plain label above the field instead of the floating label
+     that overlaps the select box's border line */
+  .report-type-field .phone-label {
+    position: static;
+    display: block;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #35475e;
+  }
+}
