@@ -62,23 +62,36 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
     }
   }, [showModal, isEdit, reset]);
 
-  const selectedFile = watch("template_file")?.[0];
+  const selectedFiles = watch("template_file") ?? [];
+
+  const addFiles = (fileList) => {
+    const newFiles = Array.from(fileList ?? []);
+    if (!newFiles.length) return;
+    const existing = watch("template_file") ?? [];
+    const merged = [...existing];
+    newFiles.forEach((file) => {
+      const isDuplicate = merged.some((f) => f.name === file.name && f.size === file.size);
+      if (!isDuplicate) merged.push(file);
+    });
+    setValue("template_file", merged, { shouldValidate: true });
+  };
 
   const handleFileChange = (e) => {
-    const file = e.target?.files?.[0];
-    if (file) setValue("template_file", [file], { shouldValidate: true });
+    addFiles(e.target?.files);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleFileDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) setValue("template_file", [file], { shouldValidate: true });
+    addFiles(e.dataTransfer?.files);
   };
 
-  const clearFile = (e) => {
+  const removeFile = (e, index) => {
     e.stopPropagation();
-    setValue("template_file", null, { shouldValidate: true });
+    const existing = watch("template_file") ?? [];
+    const updated = existing.filter((_, i) => i !== index);
+    setValue("template_file", updated.length ? updated : null, { shouldValidate: true });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -93,10 +106,10 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
     formData.append("port_id", data.port_id ? Number(data.port_id) : "");
     formData.append("call_type_id", data.call_type_id ? Number(data.call_type_id) : "");
 
-    const file = data.template_file?.[0];
-    if (file) {
+    const files = data.template_file ?? [];
+    files.forEach((file) => {
       formData.append("template_file", file);
-    }
+    });
 
     const cb = () => {
       onSuccess?.();
@@ -123,20 +136,19 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
         <div className="form-section">
           <div className="form-section-title">Basic Details</div>
 
-          <div className="form-field">
-            <label className="form-field-label">Name <span className="text-danger">*</span></label>
-            <input
-              type="text"
-              className={`form-control ${errors.template_name ? "is-invalid" : ""}`}
-              placeholder="Template name"
-              {...register("template_name", { required: "Name is required" })}
-            />
-            {errors.template_name && (
-              <span className="field-error">{errors.template_name.message}</span>
-            )}
-          </div>
-
-          <div className="form-field form-row-2">
+          <div className="form-field form-row-3">
+            <div>
+              <label className="form-field-label">Name <span className="text-danger">*</span></label>
+              <input
+                type="text"
+                className={`form-control ${errors.template_name ? "is-invalid" : ""}`}
+                placeholder="Template name"
+                {...register("template_name", { required: "Name is required" })}
+              />
+              {errors.template_name && (
+                <span className="field-error">{errors.template_name.message}</span>
+              )}
+            </div>
             <div>
               <label className="form-field-label">Port <span className="text-danger">*</span></label>
               <Controller
@@ -193,7 +205,7 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
           <div className="form-field">
             <label className="form-field-label">Template File</label>
             <div
-              className={`crew-template-upload-zone ${isDragging ? "dragging" : ""} ${selectedFile ? "has-file" : ""} ${errors.template_file ? "is-invalid" : ""}`}
+              className={`crew-template-upload-zone ${isDragging ? "dragging" : ""} ${errors.template_file ? "is-invalid" : ""}`}
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleFileDrop}
@@ -201,40 +213,44 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
               onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
               role="button"
               tabIndex={0}
-              aria-label="Upload template file - click or drag and drop"
+              aria-label="Upload template files - click or drag and drop"
             >
               <input
                 type="file"
                 className="file-input-hidden"
                 accept=".xlsx,.xls,.doc,.docx,.pdf"
-                aria-label="Upload template file"
+                aria-label="Upload template files"
+                multiple
                 {...templateFileRest}
                 ref={(el) => {
                   fileInputRef.current = el;
                   templateFileRef(el);
                 }}
               />
-              {selectedFile ? (
-                <div className="upload-zone-file-info">
-                  <span className="file-name">{selectedFile.name}</span>
-                  <button type="button" className="remove-file-btn" onClick={clearFile} aria-label="Remove file">
-                    Remove
-                  </button>
+              <div className="upload-zone-placeholder">
+                <div className="upload-icon">
+                  <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                    <rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" fill="none" />
+                    <path d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
-              ) : (
-                <div className="upload-zone-placeholder">
-                  <div className="upload-icon">
-                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                      <rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" fill="none" />
-                      <path d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <p className="upload-main-text">Drag and drop your file here, or <span className="upload-link">browse</span></p>
-                  <p className="upload-sub-text">Supports: PDF, DOC, DOCX, XLS, XLSX (Max 10MB)</p>
-                </div>
-              )}
+                <p className="upload-main-text">Drag and drop your files here, or <span className="upload-link">browse</span></p>
+                <p className="upload-sub-text">Supports: PDF, DOC, DOCX, XLS, XLSX (Max 10MB)</p>
+              </div>
             </div>
-            {isEdit && showModal?.file_name && !selectedFile && (
+            {selectedFiles.length > 0 && (
+              <div className="upload-file-list">
+                {selectedFiles.map((file, index) => (
+                  <div className="upload-file-item" key={`${file.name}-${file.size}-${index}`}>
+                    <span className="file-name">{file.name}</span>
+                    <button type="button" className="remove-file-btn" onClick={(e) => removeFile(e, index)} aria-label={`Remove ${file.name}`}>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {isEdit && showModal?.file_name && selectedFiles.length === 0 && (
               <span className="form-text text-muted">Current: {showModal.file_name}</span>
             )}
             {errors.template_file && (
