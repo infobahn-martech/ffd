@@ -6301,8 +6301,9 @@ $send-report-optional: #80868b;
 .crew-card {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  height: 100%;
+  // Sizes to its content (header + legend + table + pagination) rather
+  // than stretching to fill the available modal height — avoids a large
+  // near-empty card when there are only a few crew rows.
   background: #ffffff;
   border: 1px solid $border-color-default;
   border-radius: $card-radius;
@@ -6582,11 +6583,14 @@ $send-report-optional: #80868b;
   transform: translateY(0);
 }
 
+// Sizes to its content (header + rows + pagination) instead of forcing a
+// tall minimum height regardless of row count — the internal scroll
+// (.crew-table-scroll below) still caps growth once a crew list is long
+// enough to exceed max-height, so large lists still scroll internally.
 .crew-table-wrapper {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 320px);
-  min-height: 500px;
+  max-height: calc(100vh - 320px);
   background: #fff;
 }
 
@@ -6603,13 +6607,15 @@ $send-report-optional: #80868b;
   -webkit-overflow-scrolling: touch;
 }
 
+// Quiet card footer — no gradient, subtle single-tone divider, matching the
+// "pagination sits inside the card footer" direction.
 .crew-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 22px;
-  border-top: 1px solid #e8ecf5;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: $space-3 $space-6;
+  border-top: 1px solid $border-color-default;
+  background: #ffffff;
   margin-top: auto;
 }
 
@@ -6662,9 +6668,9 @@ $send-report-optional: #80868b;
   width: 32px;
   padding: 0;
   border-radius: 999px;
-  background: #2563eb;
+  background: #0f172a;
   color: #ffffff;
-  border-color: #2563eb;
+  border-color: #0f172a;
   box-shadow: none;
 }
 
@@ -7312,7 +7318,7 @@ $send-report-optional: #80868b;
 
 .crew-table-container .table.crew-table thead th {
   background: $table-header-bg !important;
-  height: 44px;
+  height: 38px;
   padding: 0 $space-4;
   font-size: 12px;
   font-weight: 700;
@@ -7338,7 +7344,7 @@ $send-report-optional: #80868b;
 
 .crew-list-table th,
 .crew-table-scroll th {
-  height: 44px;
+  height: 38px;
   padding: 0 $space-4;
   font-size: 12px;
   font-weight: 700;
@@ -7388,7 +7394,7 @@ $send-report-optional: #80868b;
 }
 
 .crew-table tbody td {
-  padding: 12px 16px;
+  padding: 6px 12px;
   font-size: 12px;
   vertical-align: middle;
   border-bottom: 1px solid #f0f0f0;
@@ -7399,6 +7405,54 @@ $send-report-optional: #80868b;
   color: #333;
   font-size: 12px;
   line-height: 1.5;
+}
+
+// Crew Name — avatar initials + name (Phase 2)
+.crew-name-cell {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+// NOTE: the <table> element itself sets --card-color to a near-white
+// lavender (see JSX) for unrelated legacy reasons, which would wash out
+// anything inside the table that reads var(--card-color). Using
+// $colorPrimary directly here (not var(--card-color)) avoids inheriting
+// that override so the avatar/pill colors render correctly.
+.crew-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: $colorPrimary;
+  background: color-mix(in srgb, $colorPrimary 15%, white);
+}
+
+.crew-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+// Movement Type — soft pill badge
+.crew-movement-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: $colorPrimary;
+  background: color-mix(in srgb, $colorPrimary 12%, white);
+  border-radius: $radius-pill;
+  padding: 4px $space-3;
+  white-space: nowrap;
 }
 
 // Passport/Iqama/Visa (CrewDocumentCell) + CG Pass/Zawil Pass upload cells
@@ -7416,19 +7470,19 @@ $send-report-optional: #80868b;
   gap: $space-1;
 }
 
+// Small dashed-square upload tiles (Phase 2) — replaces the earlier
+// circular icon-only treatment. Same three states/conditions as before
+// (missing / uploaded / preview / uploading), only the container shape and
+// border style changed.
 .crew-doc-btn {
-  background: transparent;
-  border: none;
-  padding: $space-1;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border-radius: $radius-sm;
   display: flex;
   align-items: center;
-  transition: background-color 0.15s ease, transform 0.15s ease;
-}
-
-.crew-doc-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-  background: $table-header-bg;
+  justify-content: center;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
 .crew-doc-btn:focus-visible {
@@ -7438,7 +7492,9 @@ $send-report-optional: #80868b;
 
 .crew-doc-btn--preview,
 .crew-doc-btn--uploaded {
-  color: $status-success;
+  background: $status-success;
+  border: 1.5px solid $status-success;
+  color: #ffffff;
   cursor: pointer;
 }
 
@@ -7446,30 +7502,46 @@ $send-report-optional: #80868b;
   cursor: default;
 }
 
+.crew-doc-btn--preview:hover,
+.crew-doc-btn--uploaded:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
 .crew-doc-btn--missing {
-  color: $status-danger;
+  background: transparent;
+  border: 1.5px dashed $status-warning;
+  color: $status-warning;
   cursor: pointer;
 }
 
+.crew-doc-btn--missing:hover {
+  background: color-mix(in srgb, $status-warning 10%, white);
+}
+
 .crew-doc-btn--uploading {
-  color: $status-danger;
-  opacity: 0.6;
+  background: transparent;
+  border: 1.5px dashed #cbd5e1;
+  color: #94a3b8;
+  opacity: 0.8;
   cursor: not-allowed;
 }
 
 .crew-doc-btn__spinner {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-width: 2px;
 }
 
-// Transport / Hotel / Medical status icon + count badge
+// Transport / Hotel / Medical — compact rounded counter pill (icon + count
+// side-by-side), replacing the earlier icon-with-overlapping-badge layout.
 .crew-status-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 4px 0;
-  position: relative;
+  gap: $space-2;
+  padding: 4px $space-3;
+  border-radius: $radius-pill;
+  background: $table-header-bg;
+  border: 1px solid #dbe3ff;
 }
 
 .crew-status-icon svg {
@@ -7477,21 +7549,9 @@ $send-report-optional: #80868b;
 }
 
 .crew-status-count-badge {
-  position: absolute;
-  top: -4px;
-  right: 14px;
-  background: $status-success;
-  color: #ffffff;
-  border-radius: $radius-pill;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 0 5px;
-  border: 1.5px solid #ffffff;
+  color: $txtColor;
 }
 
 .crew-table tbody tr:nth-child(even) {
@@ -9709,11 +9769,10 @@ body .modal-backdrop.show {
   // Removed stray width, syntax fix
 }
 
-.crew-status-icon {
-  width: 40px;
-  margin: 0 auto !important;
-}
-
+// (Older width:40px/margin:auto centering rule removed — it targeted the
+// pre-Phase-2 fixed-width icon-only layout and now conflicts with the
+// pill's natural content width; centering is handled by the cell's
+// text-align: center from the nth-child(n+6) rule instead.)
 .crew-status-icon span {
   pointer-events: none; // badge won't affect hover
 }

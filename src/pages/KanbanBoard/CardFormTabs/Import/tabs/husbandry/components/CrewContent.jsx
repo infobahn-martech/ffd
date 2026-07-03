@@ -12,6 +12,7 @@ import PremiumSelect from "../../../../../../../components/form/PremiumSelect";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import useCommonReducer from "../../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../../services/callFileService";
+import { getInitials } from "../../../../../../../shared/utils/utils";
 import "../../../../../../../design/scss/operations.scss";
 
 // Status colors
@@ -2385,18 +2386,25 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           />
                         </td>
                         <td>
-                          <div className="crew-table-cell" title={crew.crewName || ""}>{crew.crewName || ""}</div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || ""}</div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={crew.movementType || crew.movement_type || ""}>
-                            {crew.movementType || crew.movement_type || ""}
+                          <div className="crew-table-cell crew-name-cell" title={crew.crewName || ""}>
+                            <span className="crew-avatar" aria-hidden="true">{getInitials(crew.crewName || "") || "?"}</span>
+                            <span className="crew-name-text">{crew.crewName || ""}</span>
                           </div>
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || "—"}</div>
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || "—"}</div>
+                        </td>
+                        <td>
+                          {(crew.movementType || crew.movement_type) ? (
+                            <span className="crew-movement-pill" title={crew.movementType || crew.movement_type}>
+                              {crew.movementType || crew.movement_type}
+                            </span>
+                          ) : (
+                            <div className="crew-table-cell">—</div>
+                          )}
                         </td>
                         <td>
                           <CrewDocumentCell
