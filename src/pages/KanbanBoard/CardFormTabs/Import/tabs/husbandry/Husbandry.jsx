@@ -658,6 +658,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           selectedServices={selectedServices}
           onBackToServiceSelection={handleBackToServiceSelection}
           cardColor={cardColor}
+          crewCount={formValues?.crewCount}
         />
         <div className="operation-right">
           {activeMainTab === "LAUNCH_HIRE" && (

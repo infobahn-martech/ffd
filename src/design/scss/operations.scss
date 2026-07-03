@@ -1481,9 +1481,9 @@ $send-report-optional: #80868b;
   background: #f0f1f6;
   border-right: 1px solid #e0e0e0;
   flex-shrink: 0;
-  min-width: 178px;
-  max-width: 178px;
-  width: 178px;
+  min-width: 244px;
+  max-width: 244px;
+  width: 244px;
 }
 
 .op-tab-group {
@@ -1678,6 +1678,57 @@ $send-report-optional: #80868b;
   background: #e2e6ff;
   color: #333333;
   font-weight: 600;
+}
+
+// Left-nav icon + label + count pill (Phase 1 of the Crew Management
+// redesign pivot) — scoped under .husbandry-wrapper per the existing
+// precedent above, so this never touches the Operation tab or CallType
+// builder modal which reuse the same .op-tab class name.
+.operation-wrapper.husbandry-wrapper .op-tab {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.op-tab-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: $radius-sm;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tab-icon-color, #64748b);
+  background: color-mix(in srgb, var(--tab-icon-color, #64748b) 15%, white);
+}
+
+.op-tab-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.op-tab-count {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background: #eef1f6;
+  border-radius: $radius-pill;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 $space-2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.operation-wrapper.husbandry-wrapper .op-tab.active .op-tab-count {
+  background: #ffffff;
+  color: var(--card-color, #{$colorPrimary});
 }
 
 .operation-right {
@@ -6244,26 +6295,76 @@ $send-report-optional: #80868b;
   overflow: hidden;
 }
 
+// Outer bordered card (Phase 1) — everything (header, legend, table,
+// pagination) now sits inside one clean card instead of separate flat
+// sections, with a subtle brand-colored top accent strip.
+.crew-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: #ffffff;
+  border: 1px solid $border-color-default;
+  border-radius: $card-radius;
+  border-top: 3px solid var(--card-color, #{$colorPrimary});
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
 .crew-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-height: 72px;
-  padding: 18px 22px;
+  padding: $space-5 $space-6;
   background: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
   transition: none !important;
   animation: none !important;
   transform: none !important;
 }
 
+.crew-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex: 1;
+  min-width: 0;
+}
+
+.crew-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-md;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--card-color, #{$colorPrimary});
+  background: color-mix(in srgb, var(--card-color, #{$colorPrimary}) 12%, white);
+}
+
+.crew-card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.crew-card__subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .crew-list-header-actions {
   min-height: 40px;
-  min-width: 460px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: $space-3;
   flex-shrink: 0;
 }
 
@@ -6287,6 +6388,10 @@ $send-report-optional: #80868b;
   height: 36px;
 }
 
+// Pre-existing: hover/active/focus on these header controls intentionally
+// disable transition/animation/transform (likely to avoid a layout jitter
+// inside the modal). Kept as-is — new hover/focus states below only ever
+// touch background/border/color, never transform, so they still work.
 .crew-list-header .crew-header-btn,
 .crew-list-header .crew-header-select,
 .crew-list-header .crew-header-btn:hover,
@@ -6300,23 +6405,157 @@ $send-report-optional: #80868b;
 }
 
 .crew-list-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.crew-list-title-bar {
-  width: 4px;
-  height: 18px;
-  background: var(--card-color, #2A00FF);
-  border-radius: 2px;
+// Status legend — informational only (not wired to any filter; matches
+// existing behavior, see STATUS_COLORS/STATUS_LABELS in CrewContent.jsx).
+// Sits as a plain inline row directly under the card header (no boxed
+// background) with a divider separating it from the table below.
+.crew-status-legend {
+  display: flex;
+  align-items: center;
+  gap: $space-5;
+  padding: 0 $space-6 $space-4;
+  border-bottom: 1px solid $border-color-default;
+}
+
+.crew-status-legend__item {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.crew-status-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-pill;
   display: inline-block;
+  flex-shrink: 0;
+}
+
+.crew-status-legend__dot--done {
+  background: $status-success;
+}
+
+.crew-status-legend__dot--in-progress {
+  background: $status-warning;
+}
+
+// Uses $status-danger (not $status-neutral) to match the actual rendered
+// color today — STATUS_COLORS.rejected (#dc3545) paired with the
+// STATUS_LABELS.rejected text ("Pending").
+.crew-status-legend__dot--pending {
+  background: $status-danger;
+}
+
+.crew-status-legend__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $txtColor;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Shared ellipsis-safe label for all three header buttons
+.crew-header-btn__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crew-header-btn {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  border: 1px solid #e2e6ff;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.crew-header-btn:hover {
+  background: $table-header-bg;
+  border-color: var(--card-color, #2A00FF);
+}
+
+.crew-header-btn:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+.crew-header-btn--launch-hire {
+  border-color: var(--card-color, #2A00FF);
+  background: var(--card-color, #2A00FF);
+  color: #ffffff;
+  margin-right: $space-3;
+}
+
+.crew-header-btn--launch-hire:hover {
+  background: var(--card-color, #2A00FF);
+  border-color: var(--card-color, #2A00FF);
+  opacity: 0.9;
+}
+
+// Always the strong/primary action in this header — a constant dark fill
+// regardless of selection state (only the button's label text toggles
+// between "Select All" / "Deselect All", per existing logic).
+.crew-header-btn--select-all {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+.crew-header-btn--select-all:hover {
+  background: #0f172a;
+  border-color: #0f172a;
+  opacity: 0.9;
+}
+
+.crew-header-select-wrap {
+  position: relative;
+}
+
+.crew-header-select-wrap--action {
+  margin-right: $space-3;
+}
+
+.crew-header-select {
+  padding: $space-2 32px $space-2 $space-3;
+  border-radius: $radius-md;
+  border: 1px solid #e2e6ff;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  min-width: 140px;
+}
+
+.crew-header-select:hover {
+  border-color: var(--card-color, #2A00FF);
+}
+
+.crew-header-select:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
 }
 
 .crew-add-btn {
@@ -6460,6 +6699,10 @@ $send-report-optional: #80868b;
 .crew-table {
   margin: 0;
   width: 100%;
+  // Sum of the 13 column widths below — below this the container scrolls
+  // horizontally instead of squeezing columns illegible (see
+  // .crew-table-container { overflow-x: auto } further up).
+  min-width: 1314px;
   background: #ffffff;
   border-collapse: separate;
   border-spacing: 0;
@@ -6474,24 +6717,18 @@ $send-report-optional: #80868b;
   padding: 10px 12px;
 }
 
-.crew-table th:nth-child(1),
-.crew-table td:nth-child(1) {
-  width: 140px;
-  min-width: 140px;
-}
-
 /* Crew Name */
 .crew-table th:nth-child(2),
 .crew-table td:nth-child(2) {
-  width: 110px;
-  min-width: 110px;
+  width: 160px;
+  min-width: 160px;
 }
 
 /* Nationality */
 .crew-table th:nth-child(3),
 .crew-table td:nth-child(3) {
-  width: 130px;
-  min-width: 130px;
+  width: 120px;
+  min-width: 120px;
 }
 
 /* Premium Crew Bulk Upload Wizard */
@@ -6990,108 +7227,164 @@ $send-report-optional: #80868b;
 }
 
 /* Rank */
+/* Rank */
 .crew-table th:nth-child(4),
 .crew-table td:nth-child(4) {
-  width: 120px;
-  min-width: 120px;
+  width: 110px;
+  min-width: 110px;
 }
 
-/* Passport No */
+/* Movement Type */
 .crew-table th:nth-child(5),
 .crew-table td:nth-child(5) {
-  width: 90px;
-  min-width: 90px;
+  width: 110px;
+  min-width: 110px;
 }
 
-/* Transport */
+/* Passport */
 .crew-table th:nth-child(6),
 .crew-table td:nth-child(6) {
   width: 90px;
   min-width: 90px;
 }
 
-/* CG Pass */
+/* Iqama */
 .crew-table th:nth-child(7),
 .crew-table td:nth-child(7) {
-  width: 100px;
-  min-width: 100px;
+  width: 90px;
+  min-width: 90px;
 }
 
-/* Zawil Pass */
+/* Visa */
 .crew-table th:nth-child(8),
 .crew-table td:nth-child(8) {
   width: 90px;
   min-width: 90px;
 }
 
-/* Hotel */
+/* CG Pass */
 .crew-table th:nth-child(9),
 .crew-table td:nth-child(9) {
-  width: 110px;
-  min-width: 110px;
-}
-
-/* Launch Hire */
-.crew-table th:nth-child(10),
-.crew-table td:nth-child(10) {
-  width: 120px;
-  min-width: 120px;
-}
-
-/* Medical Service */
-.crew-table th:nth-child(11),
-.crew-table td:nth-child(11) {
   width: 90px;
   min-width: 90px;
 }
 
+/* Zawil Pass */
+.crew-table th:nth-child(10),
+.crew-table td:nth-child(10) {
+  width: 90px;
+  min-width: 90px;
+}
+
+/* Transport */
+.crew-table th:nth-child(11),
+.crew-table td:nth-child(11) {
+  width: 100px;
+  min-width: 100px;
+}
+
+/* Hotel */
+.crew-table th:nth-child(12),
+.crew-table td:nth-child(12) {
+  width: 100px;
+  min-width: 100px;
+}
+
+/* Medical */
+.crew-table th:nth-child(13),
+.crew-table td:nth-child(13) {
+  width: 100px;
+  min-width: 100px;
+}
+
 /* Actions */
 
+// Cleaner, flatter header — replaces the earlier lavender gradient with a
+// single restrained tone (reuses the same $table-header-bg token as other
+// restyled areas) per the "cleaner table header" / "avoid excessive
+// gradients" direction.
 .crew-table-container .table.crew-table thead {
-  background: linear-gradient(180deg, #eef2ff 0%, #e0e7ff 100%) !important;
+  background: $table-header-bg !important;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .crew-table-container .table.crew-table thead th {
-  background: linear-gradient(180deg, #eef2ff 0%, #e0e7ff 100%) !important;
-  height: 48px;
-  padding: 0 16px;
-  font-size: 13px;
+  background: $table-header-bg !important;
+  height: 44px;
+  padding: 0 $space-4;
+  font-size: 12px;
   font-weight: 700;
-  color: #1f2937 !important;
-  letter-spacing: 0;
-  text-transform: none !important;
+  color: $txtColor !important;
+  letter-spacing: 0.2px;
+  text-transform: uppercase !important;
   white-space: nowrap;
   vertical-align: middle;
-  border-bottom: 1px solid #dbe3ff;
+  border-bottom: 1px solid $border-color-default;
   text-align: left;
 }
 
 .crew-list-table th,
 .crew-table-scroll th,
 .crew-table-wrapper th {
-  text-transform: none !important;
+  text-transform: uppercase !important;
 }
 
 .crew-list-table thead tr,
 .crew-table-scroll thead tr {
-  background: linear-gradient(180deg, #eef2ff 0%, #e0e7ff 100%);
+  background: $table-header-bg;
 }
 
 .crew-list-table th,
 .crew-table-scroll th {
-  height: 48px;
-  padding: 0 16px;
-  font-size: 13px;
+  height: 44px;
+  padding: 0 $space-4;
+  font-size: 12px;
   font-weight: 700;
-  color: #1f2937;
-  letter-spacing: 0;
-  text-transform: none !important;
+  color: $txtColor;
+  letter-spacing: 0.2px;
+  text-transform: uppercase !important;
   white-space: nowrap;
   vertical-align: middle;
-  border-bottom: 1px solid #dbe3ff;
+  border-bottom: 1px solid $border-color-default;
+}
+
+// Header icon + label wrapper (icons reuse the previously-unused
+// CrewNameIcon/NationalityIcon/RankIcon/PassportIcon/IqamaIcon/VisaIcon/
+// CGPassIcon/ZawilPassIcon components already defined in CrewContent.jsx —
+// no new components created)
+.crew-th {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  color: inherit;
+
+  svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+}
+
+// Identity/text columns read better left-aligned; document/status columns
+// match their already visually-centered cell content.
+.crew-list-table th:nth-child(2),
+.crew-list-table th:nth-child(3),
+.crew-list-table th:nth-child(4),
+.crew-list-table th:nth-child(5) {
+  text-align: left;
+}
+
+.crew-list-table td:nth-child(2),
+.crew-list-table td:nth-child(3),
+.crew-list-table td:nth-child(4),
+.crew-list-table td:nth-child(5) {
+  text-align: left;
+}
+
+.crew-list-table th:nth-child(n + 6),
+.crew-list-table td:nth-child(n + 6) {
+  text-align: center;
 }
 
 .crew-table tbody td {
@@ -7108,15 +7401,97 @@ $send-report-optional: #80868b;
   line-height: 1.5;
 }
 
+// Passport/Iqama/Visa (CrewDocumentCell) + CG Pass/Zawil Pass upload cells
+.crew-table-cell--doc-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+}
+
+.crew-doc-cell__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-1;
+}
+
+.crew-doc-btn {
+  background: transparent;
+  border: none;
+  padding: $space-1;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.crew-doc-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  background: $table-header-bg;
+}
+
+.crew-doc-btn:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+.crew-doc-btn--preview,
+.crew-doc-btn--uploaded {
+  color: $status-success;
+  cursor: pointer;
+}
+
+.crew-doc-btn--uploaded {
+  cursor: default;
+}
+
+.crew-doc-btn--missing {
+  color: $status-danger;
+  cursor: pointer;
+}
+
+.crew-doc-btn--uploading {
+  color: $status-danger;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.crew-doc-btn__spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+// Transport / Hotel / Medical status icon + count badge
 .crew-status-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px 0;
+  position: relative;
 }
 
 .crew-status-icon svg {
   display: block;
+}
+
+.crew-status-count-badge {
+  position: absolute;
+  top: -4px;
+  right: 14px;
+  background: $status-success;
+  color: #ffffff;
+  border-radius: $radius-pill;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 5px;
+  border: 1.5px solid #ffffff;
 }
 
 .crew-table tbody tr:nth-child(even) {
@@ -7168,11 +7543,35 @@ $send-report-optional: #80868b;
   white-space: nowrap;
   vertical-align: middle;
   text-align: left !important;
+  // Frozen first column so row identity survives horizontal scroll.
+  // Background is left to the existing row-state rules (zebra/hover/
+  // selected already target `td` generically, so they still apply here).
+  position: sticky;
+  left: 0;
+  z-index: 2;
 }
 
 .crew-list-table th.crew-checkbox-cell-header {
   font-size: 0;
   line-height: 0;
+  // Corner cell is sticky on both axes (thead th is already top-sticky,
+  // z-index 10) — needs the highest z-index so it stays above every other
+  // header cell while scrolling horizontally.
+  z-index: 11;
+}
+
+// Crew Name is the 2nd frozen column, offset by the checkbox column's
+// fixed 64px width.
+.crew-list-table td:nth-child(2) {
+  position: sticky;
+  left: 64px;
+  z-index: 1;
+}
+
+.crew-list-table th:nth-child(2) {
+  position: sticky;
+  left: 64px;
+  z-index: 11;
 }
 
 .crew-list-table th.crew-checkbox-cell-header::before,
@@ -7203,10 +7602,14 @@ $send-report-optional: #80868b;
   accent-color: #00368c;
 }
 
-.crew-list-checkbox:focus,
+.crew-list-checkbox:focus {
+  outline: none;
+  transform: none !important;
+}
+
 .crew-list-checkbox:focus-visible {
   outline: none;
-  box-shadow: none;
+  box-shadow: $shadow-focus;
   transform: none !important;
 }
 
@@ -7245,8 +7648,7 @@ $send-report-optional: #80868b;
 .crew-table-empty {
   text-align: center;
   padding: 60px 40px;
-  color: #999;
-  font-style: italic;
+  color: #94a3b8;
   font-size: 13px;
 }
 

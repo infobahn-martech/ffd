@@ -517,13 +517,16 @@ const CrewDocumentCell = ({
     localFileInputRef.current?.click();
   };
 
-  const iconColor = isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected;
+  const docBtnStateClass = isUploading
+    ? "crew-doc-btn--uploading"
+    : hasUrl
+      ? "crew-doc-btn--preview"
+      : isUploaded
+        ? "crew-doc-btn--uploaded"
+        : "crew-doc-btn--missing";
 
   return (
-    <div
-      className="crew-table-cell"
-      style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}
-    >
+    <div className="crew-table-cell crew-table-cell--doc-action">
       <input
         type="file"
         ref={setInputRef}
@@ -535,7 +538,7 @@ const CrewDocumentCell = ({
           e.target.value = "";
         }}
       />
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+      <div className="crew-doc-cell__inner">
         <Tooltip
           id={tooltipId}
           place={tooltipPlace}
@@ -548,34 +551,13 @@ const CrewDocumentCell = ({
           onClick={handleClick}
           data-tooltip-id={tooltipId}
           aria-label={tooltipContent}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: isUploading
-              ? "not-allowed"
-              : isClickable
-                ? "pointer"
-                : "default",
-            padding: "4px",
-            display: "flex",
-            alignItems: "center",
-            color: iconColor,
-            opacity: isUploading ? 0.6 : 1,
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            if (isClickable) e.currentTarget.style.transform = "scale(1.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
-          }}
+          className={`crew-doc-btn ${docBtnStateClass}`}
         >
           {isUploading ? (
             <span
-              className="spinner-border spinner-border-sm"
+              className="spinner-border spinner-border-sm crew-doc-btn__spinner"
               role="status"
               aria-hidden="true"
-              style={{ width: "16px", height: "16px", borderWidth: "2px" }}
             />
           ) : hasUrl ? (
             <FiEye size={20} strokeWidth={2.2} />
@@ -785,6 +767,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       setCrewPage(totalCrewPages);
     }
   }, [crewPage, totalCrewPages]);
+
+  // Surface the crew count to Husbandry.jsx (and from there, HusbandryTabs'
+  // sidebar count pill) via the same formValues/handleChange channel already
+  // used for crewList/crewUploadedFileName etc. — no new store or API.
+  useEffect(() => {
+    if (formValues.crewCount !== displayCrewList.length) {
+      handleChange("crewCount")({ target: { value: displayCrewList.length } });
+    }
+  }, [displayCrewList.length]);
 
   // Editable preview table data (max 5 rows)
   const [previewTableData, setPreviewTableData] = useState(createEmptyPreviewRows);
@@ -2145,147 +2136,25 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         </div >
       ) : (
         // Crew List
-        <>
-          <div className="crew-list-header" style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "20px",
-            paddingBottom: "16px",
-            borderBottom: "2px solid #f0f0f0"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1 }}>
-              <h3 className="crew-list-title" style={{
-                fontSize: "20px",
-                fontWeight: "700",
-                color: "#1a1a1a",
-                margin: "0",
-                fontFamily: "\"Open Sans\", sans-serif",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                textTransform: "none",
-                letterSpacing: "normal",
-              }} title="Crew List">
-                <span className="crew-list-title-bar" style={{
-                  width: "4px",
-                  height: "24px",
-                  backgroundColor: "var(--card-color, #2A00FF)",
-                  borderRadius: "2px",
-                  display: "inline-block",
-                  flexShrink: 0
-                }}></span>
-                Crew List
-              </h3>
-              {/* Status Legend */}
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-                marginLeft: "20px",
-                padding: "8px 16px",
-                backgroundColor: "#f8f9ff",
-                borderRadius: "8px",
-                border: "1px solid #e2e6ff"
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <div style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: STATUS_COLORS.done,
-                    flexShrink: 0
-                  }}></div>
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      color: "#1a1a1a",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
-                    }}
-                    title={STATUS_LABELS.done}
-                  >
-                    {STATUS_LABELS.done}
-                  </span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <div style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: STATUS_COLORS.inProgress,
-                    flexShrink: 0
-                  }}></div>
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      color: "#1a1a1a",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
-                    }}
-                    title={STATUS_LABELS.inProgress}
-                  >
-                    {STATUS_LABELS.inProgress}
-                  </span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <div style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: STATUS_COLORS.rejected,
-                    flexShrink: 0
-                  }}></div>
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      color: "#1a1a1a",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
-                    }}
-                    title={STATUS_LABELS.rejected}
-                  >
-                    {STATUS_LABELS.rejected}
-                  </span>
-                </div>
+        <div className="crew-card">
+          <div className="crew-list-header">
+            <div className="crew-list-header-left">
+              <span className="crew-card__icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45768C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <div className="crew-card__heading">
+                <h3 className="crew-list-title" title="Crew List">Crew List</h3>
+                <p className="crew-card__subtitle">Documents &amp; services per crew member</p>
               </div>
-              {/* {uploadedFileName && (
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "6px 12px",
-                  backgroundColor: "#f8f9ff",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff"
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M14 2V8H20" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      color: "#666",
-                      fontWeight: "500",
-                      fontFamily: "\"Open Sans\", sans-serif",
-                      whiteSpace: "nowrap"
-                    }}
-                    title={uploadedFileName}
-                  >
-                    {uploadedFileName.length > 6 ? `${uploadedFileName.substring(0, 6)}..` : uploadedFileName}
-                  </span>
-                </div>
-              )} */}
+            </div>
+            <div
+              className={`crew-list-header-actions${showActionDropdown ? " has-selection" : ""}`}
+            >
               <Tooltip id="upload-new-file-btn" place="top" positionStrategy="fixed" content="Upload New File" />
               <button
                 className="crew-header-btn crew-header-btn--upload"
@@ -2304,55 +2173,14 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   }
                 }}
                 data-tooltip-id="upload-new-file-btn"
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff",
-                  backgroundColor: "#ffffff",
-                  color: "#1a1a1a",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "\"Open Sans\", sans-serif",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  minWidth: 0
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f8f9ff";
-                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ffffff";
-                  e.currentTarget.style.borderColor = "#e2e6ff";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
-                  }}
-                >
-                  Upload New File
-                </span>
+                <span className="crew-header-btn__label">Upload New File</span>
               </button>
-            </div>
-            <div
-              className={`crew-list-header-actions${showActionDropdown ? " has-selection" : ""}`}
-              style={{ display: "flex", gap: "10px", alignItems: "center" }}
-            >
-              <div style={{ position: "relative" }}>
+              <div className="crew-header-select-wrap">
                 <select
                   className="crew-header-select crew-header-select--bulk"
                   onChange={(e) => {
@@ -2375,24 +2203,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }
                     }
                     e.target.value = ""; // Reset dropdown
-                  }}
-                  style={{
-                    padding: "8px 32px 8px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #e2e6ff",
-                    backgroundColor: "#ffffff",
-                    color: "#1a1a1a",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    outline: "none",
-                    fontFamily: "\"Open Sans\", sans-serif",
-                    appearance: "none",
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 12px center",
-                    paddingRight: "32px",
-                    minWidth: "140px"
                   }}
                   defaultValue=""
                 >
@@ -2420,47 +2230,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         }
                       }}
                       data-tooltip-id="launch-hire-btn"
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--card-color, #2A00FF)",
-                        backgroundColor: "var(--card-color, #2A00FF)",
-                        color: "#ffffff",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        fontFamily: "\"Open Sans\", sans-serif",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        minWidth: 0,
-                        marginRight: "10px"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.opacity = "0.9";
-                        e.currentTarget.style.transform = "translateY(-1px)";
-                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.opacity = "1";
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
                     >
-                      <span
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis"
-                        }}
-                      >
-                        Launch Hire
-                      </span>
+                      <span className="crew-header-btn__label">Launch Hire</span>
                     </button>
                   </>
                 ) : showActionDropdown && !launchHireOnly ? (
-                  <div style={{ position: "relative", marginRight: "10px" }}>
+                  <div className="crew-header-select-wrap crew-header-select-wrap--action">
                     <select
                       className="crew-header-select crew-header-select--action"
                       onChange={(e) => {
@@ -2469,24 +2244,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           handleActionSelect(selectedOption);
                         }
                         e.target.value = ""; // Reset dropdown
-                      }}
-                      style={{
-                        padding: "8px 32px 8px 12px",
-                        borderRadius: "8px",
-                        border: "1px solid #e2e6ff",
-                        backgroundColor: "#ffffff",
-                        color: "#1a1a1a",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                        cursor: "pointer",
-                        outline: "none",
-                        fontFamily: "\"Open Sans\", sans-serif",
-                        appearance: "none",
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "right 12px center",
-                        paddingRight: "32px",
-                        minWidth: "140px"
                       }}
                       defaultValue=""
                     >
@@ -2510,48 +2267,32 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 type="button"
                 onClick={handleSelectAll}
                 data-tooltip-id="select-all-btn"
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff",
-                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff",
-                  color: selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "\"Open Sans\", sans-serif",
-                  minWidth: 0
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedCrewIds.length !== displayCrewList.length) {
-                    e.currentTarget.style.backgroundColor = "#f8f9ff";
-                    e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                  } else {
-                    e.currentTarget.style.opacity = "0.9";
-                  }
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff";
-                  e.currentTarget.style.borderColor = "#e2e6ff";
-                  e.currentTarget.style.color = selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a";
-                  e.currentTarget.style.opacity = "1";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
               >
-                <span
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
-                  }}
-                >
+                <span className="crew-header-btn__label">
                   {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
                 </span>
               </button>
+            </div>
+          </div>
+          {/* Status Legend */}
+          <div className="crew-status-legend">
+            <div className="crew-status-legend__item">
+              <span className="crew-status-legend__dot crew-status-legend__dot--done" />
+              <span className="crew-status-legend__label" title={STATUS_LABELS.done}>
+                {STATUS_LABELS.done}
+              </span>
+            </div>
+            <div className="crew-status-legend__item">
+              <span className="crew-status-legend__dot crew-status-legend__dot--in-progress" />
+              <span className="crew-status-legend__label" title={STATUS_LABELS.inProgress}>
+                {STATUS_LABELS.inProgress}
+              </span>
+            </div>
+            <div className="crew-status-legend__item">
+              <span className="crew-status-legend__dot crew-status-legend__dot--pending" />
+              <span className="crew-status-legend__label" title={STATUS_LABELS.rejected}>
+                {STATUS_LABELS.rejected}
+              </span>
             </div>
           </div>
           <div className="crew-table-wrapper">
@@ -2559,7 +2300,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <table className="table table-striped crew-table crew-list-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
                 <thead>
                   <tr>
-                    <th className="crew-checkbox-cell-header" style={{ width: "64px", minWidth: "64px", maxWidth: "64px" }}>
+                    <th className="crew-checkbox-cell-header">
                       <input
                         className="crew-list-checkbox crew-list-checkbox--header"
                         type="checkbox"
@@ -2567,41 +2308,41 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         onChange={handleSelectAll}
                       />
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Crew Name
+                    <th>
+                      <span className="crew-th"><CrewNameIcon size={14} /> Crew Name</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Nationality
+                    <th>
+                      <span className="crew-th"><NationalityIcon size={14} /> Nationality</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Rank
+                    <th>
+                      <span className="crew-th"><RankIcon size={14} /> Rank</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Movement Type
+                    <th>
+                      <span className="crew-th">Movement Type</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Passport
+                    <th>
+                      <span className="crew-th"><PassportIcon size={14} /> Passport</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Iqama
+                    <th>
+                      <span className="crew-th"><IqamaIcon size={14} /> Iqama</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Visa
+                    <th>
+                      <span className="crew-th"><VisaIcon size={14} /> Visa</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      CG Pass
+                    <th>
+                      <span className="crew-th"><CGPassIcon size={14} /> CG Pass</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Zawil Pass
+                    <th>
+                      <span className="crew-th"><ZawilPassIcon size={14} /> Zawil Pass</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Transport
+                    <th>
+                      <span className="crew-th"><CarIcon size={14} /> Transport</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Hotel
+                    <th>
+                      <span className="crew-th"><HotelIcon size={14} /> Hotel</span>
                     </th>
-                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                      Medical
+                    <th>
+                      <span className="crew-th"><MedicalIcon size={14} /> Medical</span>
                     </th>
                     {/* <th>Actions</th> */}
                   </tr>
@@ -2609,13 +2350,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 <tbody>
                   {isCallCrewListLoading && crewList.length === 0 && callCrewList === null ? (
                     <tr>
-                      <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                      <td colSpan="13" className="crew-table-empty">
                         Loading crew list…
                       </td>
                     </tr>
                   ) : displayCrewList.length === 0 ? (
                     <tr>
-                      <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                      <td colSpan="13" className="crew-table-empty">
                         No crew data found. Upload a crew list file or add crew from preview.
                       </td>
                     </tr>
@@ -2643,16 +2384,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             onChange={() => handleCrewToggle(getCrewSelectionId(crew))}
                           />
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div className="crew-table-cell" title={crew.crewName || ""}>{crew.crewName || ""}</div>
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || ""}</div>
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div className="crew-table-cell" title={crew.movementType || crew.movement_type || ""}>
                             {crew.movementType || crew.movement_type || ""}
                           </div>
@@ -2703,7 +2444,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           />
                         </td>
                         <td>
-                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <div className="crew-table-cell crew-table-cell--doc-action">
                             <input
                               type="file"
                               ref={(el) => {
@@ -2718,28 +2459,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 }
                               }}
                             />
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <div className="crew-doc-cell__inner">
                               <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "Uploaded" : "Upload"} />
                               <button
                                 type="button"
                                 onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
                                 data-tooltip-id={`cg-pass-upload-${crew.id}`}
-                                style={{
-                                  background: "transparent",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  color: (cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                  transition: "all 0.2s ease"
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = "scale(1.1)";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = "scale(1)";
-                                }}
+                                className={`crew-doc-btn ${(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
                               >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -2750,7 +2476,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           </div>
                         </td>
                         <td>
-                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <div className="crew-table-cell crew-table-cell--doc-action">
                             <input
                               type="file"
                               ref={(el) => {
@@ -2765,28 +2491,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 }
                               }}
                             />
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <div className="crew-doc-cell__inner">
                               <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "Uploaded" : "Upload"} />
                               <button
                                 type="button"
                                 onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
                                 data-tooltip-id={`zawil-pass-upload-${crew.id}`}
-                                style={{
-                                  background: "transparent",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  color: (zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                  transition: "all 0.2s ease"
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = "scale(1.1)";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = "scale(1)";
-                                }}
+                                className={`crew-doc-btn ${(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
                               >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -2796,96 +2507,36 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             </div>
                           </div>
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div
                             className="crew-table-cell crew-status-icon"
-                            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                             data-tooltip-id={`transport-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}
                           >
                             <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
-                            <span style={{
-                              position: "absolute",
-                              top: "-4px",
-                              right: "18px",
-                              backgroundColor: STATUS_COLORS.done,
-                              color: "#ffffff",
-                              borderRadius: "10px",
-                              minWidth: "18px",
-                              height: "18px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "10px",
-                              fontWeight: "700",
-                              padding: "0 5px",
-                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                              border: "2px solid #ffffff"
-                            }}>
-                              {crew.transportCount || 0}
-                            </span>
+                            <span className="crew-status-count-badge">{crew.transportCount || 0}</span>
                           </div>
                           <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div
                             className="crew-table-cell crew-status-icon"
-                            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                             data-tooltip-id={`hotel-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}
                           >
                             <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
-                            <span style={{
-                              position: "absolute",
-                              top: "-4px",
-                              right: "18px",
-                              backgroundColor: STATUS_COLORS.done,
-                              color: "#ffffff",
-                              borderRadius: "10px",
-                              minWidth: "18px",
-                              height: "18px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "10px",
-                              fontWeight: "700",
-                              padding: "0 5px",
-                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                              border: "2px solid #ffffff"
-                            }}>
-                              {crew.hotelCount || 0}
-                            </span>
+                            <span className="crew-status-count-badge">{crew.hotelCount || 0}</span>
                           </div>
                           <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
                         </td>
-                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <td>
                           <div
                             className="crew-table-cell crew-status-icon"
-                            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                             data-tooltip-id={`medical-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}
                           >
                             <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
-                            <span style={{
-                              position: "absolute",
-                              top: "-4px",
-                              right: "18px",
-                              backgroundColor: STATUS_COLORS.done,
-                              color: "#ffffff",
-                              borderRadius: "10px",
-                              minWidth: "18px",
-                              height: "18px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "10px",
-                              fontWeight: "700",
-                              padding: "0 5px",
-                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                              border: "2px solid #ffffff"
-                            }}>
-                              {crew.medicalServiceCount || 0}
-                            </span>
+                            <span className="crew-status-count-badge">{crew.medicalServiceCount || 0}</span>
                           </div>
                           <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
                         </td>
@@ -2941,7 +2592,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       <CustomModal
