@@ -5,6 +5,7 @@ import { FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { flattenPassRequestRows } from "../../../../../../../services/cgAndZwailpassService";
+import { PremiumCardHeader, CrewCell, WorkOrderChip } from "./Husbandry.components";
 
 const DEFAULT_PAGE_SIZE = 5;
 const EMPTY_LIST = [];
@@ -54,6 +55,8 @@ CellText.propTypes = {
 
 const CrewPassRequestsTable = ({
   title,
+  subtitle,
+  icon,
   requests,
   loading,
   passType,
@@ -103,17 +106,19 @@ const CrewPassRequestsTable = ({
 
   return (
     <div
-      className="crew-pass-requests-table-card"
+      className="crew-pass-requests-table-card husb-accent-blue"
       data-pass-type={passType}
       role="region"
       aria-label={title}
     >
-      <div className="crew-pass-requests-table-card__header">
-        <h3 className="crew-pass-requests-table-card__title">{title}</h3>
-        <span className="crew-pass-requests-table-card__count" aria-live="polite">
-          {loading ? "…" : count}
-        </span>
-      </div>
+      <PremiumCardHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        count={loading ? "…" : count}
+        headerClassName="crew-pass-requests-table-card__header"
+        titleClassName="crew-pass-requests-table-card__title"
+      />
 
       <div className="crew-pass-requests-table-card__body">
         {loading ? (
@@ -153,10 +158,10 @@ const CrewPassRequestsTable = ({
                     return (
                       <tr key={rowKey}>
                         <td>
-                          <CellText value={row?.wo_number} />
+                          <WorkOrderChip value={row?.wo_number} />
                         </td>
                         <td>
-                          <CellText value={row?.crew_name} />
+                          <CrewCell name={row?.crew_name} index={(page - 1) * pageSize + idx} />
                         </td>
                         <td>
                           <CellText value={row?.passport_no} />
@@ -232,6 +237,8 @@ const CrewPassRequestsTable = ({
 
 CrewPassRequestsTable.propTypes = {
   title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
+  icon: PropTypes.string,
   requests: PropTypes.array,
   loading: PropTypes.bool,
   passType: PropTypes.string,
@@ -240,6 +247,7 @@ CrewPassRequestsTable.propTypes = {
 };
 
 CrewPassRequestsTable.defaultProps = {
+  icon: "list",
   requests: [],
   loading: false,
   passType: "",

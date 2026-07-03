@@ -15,6 +15,7 @@ const AttachmentsList = ({
   onFileInputChange,
   accept = "*/*",
   multiple = true,
+  helperText,
 }) => {
   return (
     <div className="attachment-list-wrapper">
@@ -42,7 +43,7 @@ const AttachmentsList = ({
                 Drag and drop your files here, or{" "}
                 <span className="upload-link">click to browse</span>
               </p>
-              {/* <p className="upload-sub-text">Supports all file formats</p> */}
+              {helperText && <p className="upload-sub-text">{helperText}</p>}
             </div>
 
             {attachments.length > 0 && (
@@ -86,6 +87,7 @@ AttachmentsList.propTypes = {
   onFileInputChange: PropTypes.func,
   accept: PropTypes.string,
   multiple: PropTypes.bool,
+  helperText: PropTypes.string,
 };
 
 export default AttachmentsList;

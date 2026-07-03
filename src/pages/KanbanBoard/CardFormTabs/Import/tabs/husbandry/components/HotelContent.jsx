@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import hotelService, {
@@ -15,8 +15,8 @@ import { buildPickupDateTime } from "../../../../../../../store/TransportContent
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 
 const HOTEL_REQUEST_COLUMNS = [
-  { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
-  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name ?? r?.crewName },
+  { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
+  { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew" },
   { key: "hotel_name", header: "Hotel", accessor: (r) => r?.hotel_name ?? r?.hotelName },
   {
     key: "check_in",
@@ -320,93 +320,107 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form hotel-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card">
-                <div className="crew-pass-request-details-card__header">
-                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
-                </div>
+              <div className="crew-pass-request-details-card husb-accent-amber">
+                <PremiumCardHeader
+                  icon="hotel"
+                  title="New hotel request"
+                  subtitle="Book a stay for crew accommodation"
+                  headerClassName="crew-pass-request-details-card__header"
+                  titleClassName="crew-pass-request-details-card__title"
+                />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormField label="Select Crew">
-                  <div className="cf-select react-select-container crew-multi-select">
-                    <Select
-                      isMulti
-                      value={selectedCrewValues}
-                      onChange={handleCrewChange}
-                      options={crewOptions}
-                      placeholder={loadingCrew ? "Loading crew..." : "Select crew members..."}
-                      classNamePrefix="react-select"
-                      styles={customSelectStyles}
-                      formatOptionLabel={formatCrewOptionLabel}
-                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                      menuPosition="fixed"
-                      menuShouldBlockScroll={true}
-                      isClearable
-                      isSearchable
-                      closeMenuOnSelect={false}
-                      hideSelectedOptions={false}
-                      isLoading={loadingCrew}
-                      isDisabled={loadingCrew || !callId}
+                <FormGroup icon="crew" label="Crew" accent="purple">
+                  <FormField label="Select Crew">
+                    <div className="cf-select react-select-container crew-multi-select">
+                      <Select
+                        isMulti
+                        value={selectedCrewValues}
+                        onChange={handleCrewChange}
+                        options={crewOptions}
+                        placeholder={loadingCrew ? "Loading crew..." : "Select crew members..."}
+                        classNamePrefix="react-select"
+                        styles={customSelectStyles}
+                        formatOptionLabel={formatCrewOptionLabel}
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        menuPosition="fixed"
+                        menuShouldBlockScroll={true}
+                        isClearable
+                        isSearchable
+                        closeMenuOnSelect={false}
+                        hideSelectedOptions={false}
+                        isLoading={loadingCrew}
+                        isDisabled={loadingCrew || !callId}
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+
+                <FormGroup icon="calendar" label="Stay Details" accent="teal">
+                  <FormField label="Hotel Name">
+                    <FormSelect
+                      value={formValues.hotelId || ""}
+                      onChange={handleHotelChange}
+                      options={hotelOptions}
+                      placeholder={loadingHotels ? "Loading hotels..." : "Select hotel name..."}
+                      disabled={loadingHotels}
                     />
-                  </div>
-                </FormField>
+                  </FormField>
 
-                <FormField label="Hotel Name">
-                  <FormSelect
-                    value={formValues.hotelId || ""}
-                    onChange={handleHotelChange}
-                    options={hotelOptions}
-                    placeholder={loadingHotels ? "Loading hotels..." : "Select hotel name..."}
-                    disabled={loadingHotels}
-                  />
-                </FormField>
+                  <FieldRow>
+                    <FormField label="Check-in Date">
+                      <div className="transport-date-time-field">
+                        <DateTimePickerField
+                          dateValue={formValues.hotelCheckInDate || ""}
+                          timeValue={formValues.hotelCheckInTime || ""}
+                          onDateChange={handleChange("hotelCheckInDate")}
+                          onTimeChange={handleChange("hotelCheckInTime")}
+                          dateFieldName="hotelCheckInDate"
+                          timeFieldName="hotelCheckInTime"
+                          placeholder="Select date and time"
+                        />
+                      </div>
+                    </FormField>
 
-                <FormField label="Check-in Date">
-                  <div className="transport-date-time-field">
-                    <DateTimePickerField
-                      dateValue={formValues.hotelCheckInDate || ""}
-                      timeValue={formValues.hotelCheckInTime || ""}
-                      onDateChange={handleChange("hotelCheckInDate")}
-                      onTimeChange={handleChange("hotelCheckInTime")}
-                      dateFieldName="hotelCheckInDate"
-                      timeFieldName="hotelCheckInTime"
-                      placeholder="Select date and time"
-                    />
-                  </div>
-                </FormField>
+                    <FormField label="Check-out Date">
+                      <div className="transport-date-time-field">
+                        <DateTimePickerField
+                          dateValue={formValues.hotelCheckOutDate || ""}
+                          timeValue={formValues.hotelCheckOutTime || ""}
+                          onDateChange={handleChange("hotelCheckOutDate")}
+                          onTimeChange={handleChange("hotelCheckOutTime")}
+                          dateFieldName="hotelCheckOutDate"
+                          timeFieldName="hotelCheckOutTime"
+                          placeholder="Select date and time"
+                        />
+                      </div>
+                    </FormField>
+                  </FieldRow>
+                </FormGroup>
 
-                <FormField label="Check-out Date">
-                  <div className="transport-date-time-field">
-                    <DateTimePickerField
-                      dateValue={formValues.hotelCheckOutDate || ""}
-                      timeValue={formValues.hotelCheckOutTime || ""}
-                      onDateChange={handleChange("hotelCheckOutDate")}
-                      onTimeChange={handleChange("hotelCheckOutTime")}
-                      dateFieldName="hotelCheckOutDate"
-                      timeFieldName="hotelCheckOutTime"
-                      placeholder="Select date and time"
-                    />
-                  </div>
-                </FormField>
+                <FormGroup icon="folder" label="Documents" accent="blue">
+                  <FormField label="Documents">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.hotelRequestEmail || []}
+                        onAdd={() => {}}
+                        onRemove={handleRequestEmailRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingEmail}
+                        onDragEnter={handleRequestEmailDragEnter}
+                        onDragLeave={handleRequestEmailDragLeave}
+                        onDragOver={handleRequestEmailDragOver}
+                        onDrop={handleRequestEmailDrop}
+                        fileInputRef={requestEmailInputRef}
+                        onFileInputChange={handleRequestEmailFileInputChange}
+                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                        multiple={false}
+                        helperText=".msg, .eml, .pdf, .doc or .docx"
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
 
-                <FormField label="Documents">
-                  <div className="transport-upload-box">
-                    <AttachmentsList
-                      attachments={formValues.hotelRequestEmail || []}
-                      onAdd={() => {}}
-                      onRemove={handleRequestEmailRemoveAttachment}
-                      cardColor={cardColor}
-                      isDragging={isDraggingEmail}
-                      onDragEnter={handleRequestEmailDragEnter}
-                      onDragLeave={handleRequestEmailDragLeave}
-                      onDragOver={handleRequestEmailDragOver}
-                      onDrop={handleRequestEmailDrop}
-                      fileInputRef={requestEmailInputRef}
-                      onFileInputChange={handleRequestEmailFileInputChange}
-                      accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                      multiple={false}
-                    />
-                  </div>
-                </FormField>
-
+                <FormGroup icon="notebook" label="Notes" accent="slate">
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor
@@ -417,6 +431,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                       />
                     </FormField>
                   </div>
+                </FormGroup>
 
                 </div>
                 <div className="form-save-button-wrapper cgpass-save-footer">
@@ -434,7 +449,9 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="general-info-right crew-pass-requests-sidebar">
               <HusbandryServiceRequestsTable
-                title="Hotel Requests"
+                title="Hotel requests"
+                subtitle="All hotel bookings for this job"
+                icon="list"
                 requests={hotelRequests}
                 loading={loadingHotelRequests}
                 columns={HOTEL_REQUEST_COLUMNS}

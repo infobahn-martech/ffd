@@ -9,6 +9,8 @@ import {
   ReactQuillEditor,
   getCrewMultiSelectStyles,
   formatCrewOptionLabel,
+  FormGroup,
+  PremiumCardHeader,
 } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import CrewPassRequestsTable from "./CrewPassRequestsTable";
@@ -183,98 +185,111 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
         <div className="pre-arrival-form zawilpass-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card">
-                <div className="crew-pass-request-details-card__header">
-                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
-                </div>
+              <div className="crew-pass-request-details-card husb-accent-purple">
+                <PremiumCardHeader
+                  icon="zawilPass"
+                  title="New Zawil pass request"
+                  subtitle="Submit crew documents for port access clearance"
+                  headerClassName="crew-pass-request-details-card__header"
+                  titleClassName="crew-pass-request-details-card__title"
+                />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormField label="Request Email">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={formValues.zawilPassRequestEmailFile || []}
-                        onAdd={() => {}}
-                        onRemove={handleRequestEmailRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingEmail}
-                        onDragEnter={handleRequestEmailDragEnter}
-                        onDragLeave={handleRequestEmailDragLeave}
-                        onDragOver={handleRequestEmailDragOver}
-                        onDrop={handleRequestEmailDrop}
-                        fileInputRef={requestEmailInputRef}
-                        onFileInputChange={handleRequestEmailFileInputChange}
-                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                        multiple={false}
-                      />
-                    </div>
-                  </FormField>
-
-                  <FormField label="Select Crew">
-                    <div className="cf-select react-select-container crew-multi-select">
-                      <Select
-                        isMulti
-                        value={selectedCrewValues}
-                        onChange={handleCrewChange}
-                        options={crewOptions}
-                        placeholder={crewPlaceholder}
-                        classNamePrefix="react-select"
-                        styles={customSelectStyles}
-                        formatOptionLabel={formatCrewOptionLabel}
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        menuPosition="fixed"
-                        menuShouldBlockScroll={true}
-                        isClearable
-                        isSearchable
-                        closeMenuOnSelect={false}
-                        hideSelectedOptions={false}
-                        isLoading={crewLoading}
-                        isDisabled={crewLoading || crewLoadState === "missing_call_id"}
-                        noOptionsMessage={() =>
-                          crewLoading ? "Loading..." : "No crew found"
-                        }
-                      />
-                    </div>
-                    {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "api_error") ? (
-                      <div className="crew-pass-select-message crew-pass-select-message--error">
-                        {crewLoadState === "missing_call_id"
-                          ? "Call id is required"
-                          : "Unable to load crew"}
+                  <FormGroup icon="mail" label="Request" accent="blue">
+                    <FormField label="Request Email">
+                      <div className="transport-upload-box">
+                        <AttachmentsList
+                          attachments={formValues.zawilPassRequestEmailFile || []}
+                          onAdd={() => {}}
+                          onRemove={handleRequestEmailRemoveAttachment}
+                          cardColor={cardColor}
+                          isDragging={isDraggingEmail}
+                          onDragEnter={handleRequestEmailDragEnter}
+                          onDragLeave={handleRequestEmailDragLeave}
+                          onDragOver={handleRequestEmailDragOver}
+                          onDrop={handleRequestEmailDrop}
+                          fileInputRef={requestEmailInputRef}
+                          onFileInputChange={handleRequestEmailFileInputChange}
+                          accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                          multiple={false}
+                          helperText=".msg, .eml, .pdf, .doc or .docx"
+                        />
                       </div>
-                    ) : null}
-                    {!crewLoading && crewEmpty ? (
-                      <div className="crew-pass-select-message crew-pass-select-message--empty">
-                        No crew found
-                      </div>
-                    ) : null}
-                  </FormField>
-
-                  <FormField label="Documents" className="cf-field-full">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={formValues.zawilPassDocuments || []}
-                        onAdd={() => {}}
-                        onRemove={handleDocumentsRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDragging}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={fileInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
-                      />
-                    </div>
-                  </FormField>
-
-                  <div className="zawilpass-remarks">
-                    <FormField label="Remarks">
-                      <ReactQuillEditor
-                        value={formValues?.zawilPassDescription || ""}
-                        onChange={handleChange("zawilPassDescription")}
-                        placeholder="Enter remarks..."
-                        name="zawilPassDescription"
-                      />
                     </FormField>
-                  </div>
+                  </FormGroup>
+
+                  <FormGroup icon="crew" label="Crew" accent="purple">
+                    <FormField label="Select Crew">
+                      <div className="cf-select react-select-container crew-multi-select">
+                        <Select
+                          isMulti
+                          value={selectedCrewValues}
+                          onChange={handleCrewChange}
+                          options={crewOptions}
+                          placeholder={crewPlaceholder}
+                          classNamePrefix="react-select"
+                          styles={customSelectStyles}
+                          formatOptionLabel={formatCrewOptionLabel}
+                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                          menuPosition="fixed"
+                          menuShouldBlockScroll={true}
+                          isClearable
+                          isSearchable
+                          closeMenuOnSelect={false}
+                          hideSelectedOptions={false}
+                          isLoading={crewLoading}
+                          isDisabled={crewLoading || crewLoadState === "missing_call_id"}
+                          noOptionsMessage={() =>
+                            crewLoading ? "Loading..." : "No crew found"
+                          }
+                        />
+                      </div>
+                      {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "api_error") ? (
+                        <div className="crew-pass-select-message crew-pass-select-message--error">
+                          {crewLoadState === "missing_call_id"
+                            ? "Call id is required"
+                            : "Unable to load crew"}
+                        </div>
+                      ) : null}
+                      {!crewLoading && crewEmpty ? (
+                        <div className="crew-pass-select-message crew-pass-select-message--empty">
+                          No crew found
+                        </div>
+                      ) : null}
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="folder" label="Documents" accent="blue">
+                    <FormField label="Documents" className="cf-field-full">
+                      <div className="transport-upload-box">
+                        <AttachmentsList
+                          attachments={formValues.zawilPassDocuments || []}
+                          onAdd={() => {}}
+                          onRemove={handleDocumentsRemoveAttachment}
+                          cardColor={cardColor}
+                          isDragging={isDragging}
+                          onDragEnter={handleDocumentsDragEnter}
+                          onDragLeave={handleDocumentsDragLeave}
+                          onDragOver={handleDocumentsDragOver}
+                          onDrop={handleDocumentsDrop}
+                          fileInputRef={fileInputRef}
+                          onFileInputChange={handleDocumentsFileInputChange}
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="notebook" label="Notes" accent="slate">
+                    <div className="zawilpass-remarks">
+                      <FormField label="Remarks">
+                        <ReactQuillEditor
+                          value={formValues?.zawilPassDescription || ""}
+                          onChange={handleChange("zawilPassDescription")}
+                          placeholder="Enter remarks..."
+                          name="zawilPassDescription"
+                        />
+                      </FormField>
+                    </div>
+                  </FormGroup>
 
                 </div>
                 <div className="form-save-button-wrapper zawilpass-save-footer">
@@ -294,7 +309,9 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
 
             <div className="general-info-right crew-pass-requests-sidebar">
               <CrewPassRequestsTable
-                title="Zawil Pass Requests"
+                title="Zawil Pass requests"
+                subtitle="All Zawil pass bookings for this job"
+                icon="list"
                 requests={passRequests?.zawil || []}
                 loading={passRequestsLoading}
                 passType="Zawil"

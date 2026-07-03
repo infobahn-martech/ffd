@@ -2,14 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
-import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import hospitalService from "../../../../../../../services/hospitalService";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 
 const MEDICAL_REQUEST_COLUMNS = [
-  { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
-  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name },
+  { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
+  { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name, type: "crew" },
   { key: "hospital_name", header: "Hospital", accessor: (r) => r?.hospital_name ?? r?.hospitalName },
   { key: "service_name", header: "Service", accessor: (r) => r?.service_name ?? r?.medical_service_name },
   { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
@@ -169,77 +169,90 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form medicalservice-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card">
-                <div className="crew-pass-request-details-card__header">
-                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
-                </div>
+              <div className="crew-pass-request-details-card husb-accent-rose">
+                <PremiumCardHeader
+                  icon="medicalService"
+                  title="New medical request"
+                  subtitle="Arrange hospital care for crew"
+                  headerClassName="crew-pass-request-details-card__header"
+                  titleClassName="crew-pass-request-details-card__title"
+                />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormField label="Select Crew">
-                  <div className="cf-select react-select-container crew-multi-select">
-                    <Select
-                      isMulti
-                      value={selectedCrewValues}
-                      onChange={handleCrewChange}
-                      options={crewOptions}
-                      placeholder="Select crew members..."
-                      classNamePrefix="react-select"
-                      styles={customSelectStyles}
-                      formatOptionLabel={formatCrewOptionLabel}
-                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                      menuPosition="fixed"
-                      menuShouldBlockScroll={true}
-                      isClearable
-                      isSearchable
-                      closeMenuOnSelect={false}
-                      hideSelectedOptions={false}
-                    />
-                  </div>
-                </FormField>
+                <FormGroup icon="crew" label="Crew" accent="purple">
+                  <FormField label="Select Crew">
+                    <div className="cf-select react-select-container crew-multi-select">
+                      <Select
+                        isMulti
+                        value={selectedCrewValues}
+                        onChange={handleCrewChange}
+                        options={crewOptions}
+                        placeholder="Select crew members..."
+                        classNamePrefix="react-select"
+                        styles={customSelectStyles}
+                        formatOptionLabel={formatCrewOptionLabel}
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        menuPosition="fixed"
+                        menuShouldBlockScroll={true}
+                        isClearable
+                        isSearchable
+                        closeMenuOnSelect={false}
+                        hideSelectedOptions={false}
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
 
-                <FormField label="Hospital">
-                  <FormSelect
-                    value={formValues.medicalServiceSelectedHospital || ""}
-                    onChange={handleHospitalChange}
-                    options={hospitalOptions}
-                    placeholder={loadingHospitals ? "Loading hospitals..." : "Select hospital..."}
-                    disabled={loadingHospitals}
-                  />
-                </FormField>
+                <FormGroup icon="medicalService" label="Care Details" accent="rose">
+                  <FieldRow>
+                    <FormField label="Hospital">
+                      <FormSelect
+                        value={formValues.medicalServiceSelectedHospital || ""}
+                        onChange={handleHospitalChange}
+                        options={hospitalOptions}
+                        placeholder={loadingHospitals ? "Loading hospitals..." : "Select hospital..."}
+                        disabled={loadingHospitals}
+                      />
+                    </FormField>
 
-                <FormField label="Medical Service">
-                  <FormSelect
-                    value={formValues.medicalServiceSelectedService || ""}
-                    onChange={handleChange("medicalServiceSelectedService")}
-                    options={medicalServiceOptions}
-                    placeholder={
-                      !formValues.medicalServiceSelectedHospital
-                        ? "Select a hospital first..."
-                        : loadingServices
-                          ? "Loading services..."
-                          : "Select medical service..."
-                    }
-                    disabled={!formValues.medicalServiceSelectedHospital || loadingServices}
-                  />
-                </FormField>
+                    <FormField label="Medical Service">
+                      <FormSelect
+                        value={formValues.medicalServiceSelectedService || ""}
+                        onChange={handleChange("medicalServiceSelectedService")}
+                        options={medicalServiceOptions}
+                        placeholder={
+                          !formValues.medicalServiceSelectedHospital
+                            ? "Select a hospital first..."
+                            : loadingServices
+                              ? "Loading services..."
+                              : "Select medical service..."
+                        }
+                        disabled={!formValues.medicalServiceSelectedHospital || loadingServices}
+                      />
+                    </FormField>
+                  </FieldRow>
+                </FormGroup>
 
-                <FormField label="Documents" className="cf-field-full">
-                  <div className="transport-upload-box">
-                    <AttachmentsList
-                      attachments={formValues.medicalServiceDocuments || []}
-                      onAdd={() => {}}
-                      onRemove={handleDocumentsRemoveAttachment}
-                      cardColor={cardColor}
-                      isDragging={isDragging}
-                      onDragEnter={handleDocumentsDragEnter}
-                      onDragLeave={handleDocumentsDragLeave}
-                      onDragOver={handleDocumentsDragOver}
-                      onDrop={handleDocumentsDrop}
-                      fileInputRef={fileInputRef}
-                      onFileInputChange={handleDocumentsFileInputChange}
-                    />
-                  </div>
-                </FormField>
+                <FormGroup icon="folder" label="Documents" accent="blue">
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.medicalServiceDocuments || []}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDragging}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={fileInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
 
+                <FormGroup icon="notebook" label="Notes" accent="slate">
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor
@@ -250,6 +263,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                       />
                     </FormField>
                   </div>
+                </FormGroup>
 
                 </div>
                 <div className="form-save-button-wrapper cgpass-save-footer">
@@ -262,7 +276,9 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="general-info-right crew-pass-requests-sidebar">
               <HusbandryServiceRequestsTable
-                title="Medical Requests"
+                title="Medical requests"
+                subtitle="All medical bookings for this job"
+                icon="list"
                 requests={formValues.medicalServiceRequests || []}
                 loading={false}
                 columns={MEDICAL_REQUEST_COLUMNS}

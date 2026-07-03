@@ -5,6 +5,7 @@ import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import NavTabButton from "../../../../../../../components/NavTabButton";
+import { getInitials } from "../../../../../../../shared/utils/utils";
 
 // Sub-components
 const CREW_DIRECT_NAV_SUBTABS = [
@@ -69,6 +70,154 @@ const TabIcon = ({ id }) => {
 
 TabIcon.propTypes = {
   id: PropTypes.string.isRequired,
+};
+
+// Premium redesign — small icon set for section headers/groups that aren't
+// already covered by TAB_ICON_PATHS (mail, calendar, folder, notebook, list).
+// Reuses TAB_ICON_PATHS for car/users/hotel/medical/cg-pass/zawil-pass so the
+// same glyph appears in both the left nav and the content-area headers.
+const HUSB_ICON_PATHS = {
+  mail: "M2 4h12v8H2V4zm0 0l6 5 6-5",
+  calendar: "M3 3h10v10H3V3zm0 3h10M6 2v2M10 2v2",
+  folder: "M2 4h4l1.5 2H14v7H2V4z",
+  notebook: "M4 2h8v12H4V2zm2 3h4M6 8h4M6 11h2",
+  list: "M2 4h12M2 8h12M2 12h8",
+};
+
+/** Section/card icon — `id` looks up TAB_ICON_PATHS first (shared with the left nav), then HUSB_ICON_PATHS. */
+export const HusbIcon = ({ id }) => {
+  const path = TAB_ICON_PATHS[id] || HUSB_ICON_PATHS[id];
+  if (!path) return null;
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d={path} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+HusbIcon.propTypes = {
+  id: PropTypes.string.isRequired,
+};
+
+/** Premium card header — tinted icon box + title + optional subtitle + optional count badge. Pair with a `husb-accent-*` class on the card wrapper. */
+export const PremiumCardHeader = ({ icon, title, subtitle, count, headerClassName, titleClassName }) => (
+  <div className={headerClassName}>
+    <div className="crew-pass-requests-table-card__header-main">
+      <span className="husb-icon-box">
+        <HusbIcon id={icon} />
+      </span>
+      <div className="husb-header-text">
+        <h3 className={titleClassName}>{title}</h3>
+        {subtitle && <p className="husb-header-subtitle">{subtitle}</p>}
+      </div>
+    </div>
+    {count != null && (
+      <span className="crew-pass-requests-table-card__count" aria-live="polite">
+        {count}
+      </span>
+    )}
+  </div>
+);
+
+PremiumCardHeader.propTypes = {
+  icon: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
+  count: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  headerClassName: PropTypes.string.isRequired,
+  titleClassName: PropTypes.string.isRequired,
+};
+
+/** Groups a related run of fields under a small colored icon + uppercase label + divider. Pass `accent` matching a `husb-accent-*` class. */
+export const FormGroup = ({ icon, label, accent = "slate", children }) => (
+  <div className={`husb-group husb-accent-${accent}`}>
+    <div className="husb-group__label">
+      <span className="husb-group__icon">
+        <HusbIcon id={icon} />
+      </span>
+      <span className="husb-group__label-text">{label}</span>
+    </div>
+    <div className="husb-group__body">{children}</div>
+  </div>
+);
+
+FormGroup.propTypes = {
+  icon: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate"]),
+  children: PropTypes.node.isRequired,
+};
+
+/** Places two fields side by side on wide viewports, stacking on narrow ones. */
+export const FieldRow = ({ children }) => <div className="husb-group__row">{children}</div>;
+
+FieldRow.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+const AVATAR_PALETTE = ["purple", "orange", "blue", "green"];
+
+/** Initials avatar for crew-name table cells — same palette/rotation as CrewContent's avatar chips, so both feel like one system. */
+export const CrewAvatar = ({ name, index = 0 }) => {
+  const initials = getInitials(name) || "?";
+  const palette = AVATAR_PALETTE[index % AVATAR_PALETTE.length];
+  return <span className={`husb-avatar husb-avatar--${palette}`}>{initials}</span>;
+};
+
+CrewAvatar.propTypes = {
+  name: PropTypes.string,
+  index: PropTypes.number,
+};
+
+/** Crew-name cell: avatar + name, or an em-dash when there's no name. */
+export const CrewCell = ({ name, index = 0 }) => {
+  if (!name || !String(name).trim()) {
+    return <span className="crew-pass-requests-table__empty-cell">—</span>;
+  }
+  return (
+    <span className="husb-crew-cell">
+      <CrewAvatar name={name} index={index} />
+      <span className="husb-crew-cell__name">{name}</span>
+    </span>
+  );
+};
+
+CrewCell.propTypes = {
+  name: PropTypes.string,
+  index: PropTypes.number,
+};
+
+/** Work-order number rendered as a tinted chip, or an em-dash when absent. */
+export const WorkOrderChip = ({ value }) => {
+  if (!value && value !== 0) {
+    return <span className="crew-pass-requests-table__empty-cell">—</span>;
+  }
+  return <span className="husb-wo-chip">{value}</span>;
+};
+
+WorkOrderChip.propTypes = {
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+/** From → To route cell. Renders exactly what the data provides — no fabricated secondary line. */
+export const RouteCell = ({ from, to }) => {
+  const hasFrom = from && String(from).trim() !== "";
+  const hasTo = to && String(to).trim() !== "";
+  if (!hasFrom && !hasTo) {
+    return <span className="crew-pass-requests-table__empty-cell">—</span>;
+  }
+  return (
+    <span className="husb-route">
+      <span className="husb-route__point">{hasFrom ? from : "—"}</span>
+      <span className="husb-route__arrow">→</span>
+      <span className="husb-route__point">{hasTo ? to : "—"}</span>
+    </span>
+  );
+};
+
+RouteCell.propTypes = {
+  from: PropTypes.string,
+  to: PropTypes.string,
 };
 
 export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, onNavigateToTab, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c", crewCount }) => {

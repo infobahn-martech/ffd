@@ -4,6 +4,7 @@ import { format, isValid, parseISO } from "date-fns";
 import { FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { PremiumCardHeader, CrewCell, WorkOrderChip, RouteCell } from "./Husbandry.components";
 
 const DEFAULT_PAGE_SIZE = 5;
 const EMPTY_LIST = [];
@@ -51,9 +52,14 @@ CellText.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-const renderCell = (column, row) => {
+const renderCell = (column, row, rowIndex) => {
   if (column.render) return column.render(row);
+  if (column.type === "route") {
+    return <RouteCell from={column.fromAccessor?.(row)} to={column.toAccessor?.(row)} />;
+  }
   const value = column.accessor ? column.accessor(row) : row?.[column.key];
+  if (column.type === "workorder") return <WorkOrderChip value={value} />;
+  if (column.type === "crew") return <CrewCell name={value} index={rowIndex} />;
   if (column.type === "status") {
     const rawStatus = value;
     const statusEmpty =
@@ -89,6 +95,8 @@ const renderCell = (column, row) => {
 
 const HusbandryServiceRequestsTable = ({
   title,
+  subtitle,
+  icon,
   requests,
   loading,
   columns,
@@ -133,17 +141,19 @@ const HusbandryServiceRequestsTable = ({
 
   return (
     <div
-      className="crew-pass-requests-table-card"
+      className="crew-pass-requests-table-card husb-accent-blue"
       data-service-type={serviceType}
       role="region"
       aria-label={title}
     >
-      <div className="crew-pass-requests-table-card__header">
-        <h3 className="crew-pass-requests-table-card__title">{title}</h3>
-        <span className="crew-pass-requests-table-card__count" aria-live="polite">
-          {loading ? "…" : count}
-        </span>
-      </div>
+      <PremiumCardHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        count={loading ? "…" : count}
+        headerClassName="crew-pass-requests-table-card__header"
+        titleClassName="crew-pass-requests-table-card__title"
+      />
 
       <div className="crew-pass-requests-table-card__body">
         {loading ? (
@@ -181,7 +191,7 @@ const HusbandryServiceRequestsTable = ({
                                 : undefined
                             }
                           >
-                            {renderCell(col, row)}
+                            {renderCell(col, row, (page - 1) * pageSize + idx)}
                           </td>
                         ))}
                       </tr>
@@ -225,6 +235,8 @@ const HusbandryServiceRequestsTable = ({
 
 HusbandryServiceRequestsTable.propTypes = {
   title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
+  icon: PropTypes.string,
   requests: PropTypes.array,
   loading: PropTypes.bool,
   columns: PropTypes.arrayOf(
@@ -232,7 +244,9 @@ HusbandryServiceRequestsTable.propTypes = {
       key: PropTypes.string.isRequired,
       header: PropTypes.string.isRequired,
       accessor: PropTypes.func,
-      type: PropTypes.oneOf(["status", "date", "document"]),
+      fromAccessor: PropTypes.func,
+      toAccessor: PropTypes.func,
+      type: PropTypes.oneOf(["status", "date", "document", "workorder", "crew", "route"]),
       render: PropTypes.func,
     })
   ).isRequired,
@@ -243,6 +257,7 @@ HusbandryServiceRequestsTable.propTypes = {
 
 
 HusbandryServiceRequestsTable.defaultProps = {
+  icon: "list",
   requests: [],
   loading: false,
   emptyMessage: "No requests found",
