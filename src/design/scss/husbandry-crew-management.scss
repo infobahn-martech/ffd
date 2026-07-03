@@ -340,9 +340,9 @@
   // near-empty card when there are only a few crew rows.
   background: #ffffff;
   border: 1px solid $border-color-default;
-  border-radius: $card-radius;
+  border-radius: $radius-xl;
   border-top: 3px solid var(--card-color, #{$colorPrimary});
-  box-shadow: $shadow-sm;
+  box-shadow: $shadow-lg;
   overflow: hidden;
 }
 
@@ -367,15 +367,16 @@
 }
 
 .crew-card__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: $radius-md;
+  width: 42px;
+  height: 42px;
+  border-radius: $radius-lg;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   color: var(--card-color, #{$colorPrimary});
   background: color-mix(in srgb, var(--card-color, #{$colorPrimary}) 12%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-color, #{$colorPrimary}) 16%, white);
 }
 
 .crew-card__heading {
@@ -511,7 +512,7 @@
   align-items: center;
   gap: $space-2;
   padding: $space-2 $space-4;
-  border-radius: $radius-md;
+  border-radius: $radius-pill;
   border: 1px solid #e2e6ff;
   background: #ffffff;
   color: #1a1a1a;
@@ -519,6 +520,7 @@
   font-weight: 600;
   cursor: pointer;
   min-width: 0;
+  box-shadow: $shadow-sm;
 }
 
 .crew-header-btn:hover {
@@ -536,6 +538,7 @@
   background: var(--card-color, #2A00FF);
   color: #ffffff;
   margin-right: $space-3;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--card-color, #2A00FF) 28%, transparent);
 }
 
 .crew-header-btn--launch-hire:hover {
@@ -569,7 +572,7 @@
 
 .crew-header-select {
   padding: $space-2 32px $space-2 $space-3;
-  border-radius: $radius-md;
+  border-radius: $radius-pill;
   border: 1px solid #e2e6ff;
   background-color: #ffffff;
   color: #1a1a1a;
@@ -582,6 +585,7 @@
   background-repeat: no-repeat;
   background-position: right 12px center;
   min-width: 140px;
+  box-shadow: $shadow-sm;
 }
 
 .crew-header-select:hover {
@@ -674,7 +678,7 @@
   min-width: 32px;
   height: 32px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: $radius-pill;
   border: 1px solid #e2e8f0;
   background: #ffffff;
   color: #64748b;
@@ -690,7 +694,7 @@
   min-width: 34px;
   height: 34px;
   padding: 0;
-  border-radius: 10px;
+  border-radius: $radius-pill;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1465,6 +1469,7 @@
   font-size: 12px;
   font-weight: 700;
   color: #ffffff;
+  box-shadow: 0 0 0 2px #ffffff, 0 1px 3px rgba(15, 23, 42, 0.18);
 }
 
 .crew-avatar--purple {
@@ -1543,11 +1548,16 @@
   width: 28px;
   height: 28px;
   padding: 0;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crew-doc-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: $shadow-sm;
 }
 
 .crew-doc-btn:focus-visible {
@@ -1619,20 +1629,12 @@
   color: $txtColor;
 }
 
-.crew-table tbody tr:nth-child(odd) {
-  background: #f8f9fc;
-}
-
-.crew-table tbody tr:nth-child(odd) td {
-  background: #f8f9fc;
-}
-
 .crew-table tbody tr:hover {
-  background: rgba(226, 230, 255, 0.5);
+  background: #f7f8fd;
 }
 
 .crew-table tbody tr:hover td {
-  background: rgba(226, 230, 255, 0.5);
+  background: #f7f8fd;
 }
 
 .crew-list-table tbody tr,
@@ -1775,6 +1777,48 @@
   padding: 60px 40px;
   color: #94a3b8;
   font-size: 13px;
+}
+
+// Crew List card — wrap the header/legend/pagination instead of clipping
+// or forcing horizontal overflow above the table on narrow viewports (the
+// table itself already scrolls horizontally via .crew-table-container).
+@media (max-width: 768px) {
+  .crew-list-header {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 0;
+    padding: $space-4;
+    gap: $space-3;
+  }
+
+  .crew-list-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .crew-list-header-actions.has-selection .crew-list-header-action-slot {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .crew-status-legend {
+    flex-wrap: wrap;
+    gap: $space-3;
+    padding: 0 $space-4 $space-3;
+  }
+
+  .crew-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+  }
+
+  .crew-pagination-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
 
 .crew-view-btn {
