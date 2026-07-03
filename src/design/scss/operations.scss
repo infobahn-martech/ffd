@@ -841,7 +841,7 @@ $send-report-optional: #80868b;
   min-height: 0;
   /* Allow flex child to shrink */
 
-  padding: 40px 20px;
+  padding: $space-8 $space-5;
   background: #ffffff;
 }
 
@@ -931,7 +931,7 @@ $send-report-optional: #80868b;
 .husbandry-service-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: $space-6;
   width: 100%;
 }
 
@@ -984,7 +984,7 @@ $send-report-optional: #80868b;
   padding: 26px 22px;
   background: #ffffff;
   border: 1.5px solid #dbe4ee;
-  border-radius: 16px;
+  border-radius: $radius-xl;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
@@ -1027,6 +1027,14 @@ $send-report-optional: #80868b;
 
 .husbandry-service-option:active {
   transform: translateY(-2px);
+}
+
+// Keyboard-navigation focus state — this card is a <button> with no
+// explicit focus style today (falls back to the browser default outline).
+.husbandry-service-option:focus-visible {
+  outline: none;
+  border: 1.5px solid var(--card-color, #{$colorPrimary});
+  box-shadow: $shadow-focus;
 }
 
 .husbandry-service-option-icon {
@@ -1125,29 +1133,48 @@ $send-report-optional: #80868b;
 }
 
 .booked-status-pending {
-  background: #fff3e0;
-  color: #f57c00;
+  background: $status-pending-bg;
+  color: $status-pending-text;
 }
 
 .booked-status-in-progress {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: $status-in-progress-bg;
+  color: $status-in-progress-text;
 }
 
 .booked-status-completed {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: $status-completed-bg;
+  color: $status-completed-text;
 }
 
 .booked-status-cancelled {
-  background: #ffebee;
-  color: #c62828;
+  background: $status-cancelled-bg;
+  color: $status-cancelled-text;
 }
 
 @media (max-width: 992px) {
   .husbandry-service-options {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+  }
+}
+
+// Gap in existing breakpoint ladder (992px -> 2 columns, 768px only
+// re-styles the hero/summary grid) — the service option cards themselves
+// (min-width 290-320px) never got a stacked single-column layout, so at
+// narrow widths (e.g. a Kanban card modal on a small screen) 2 columns of
+// ~290px cards can get cramped. Stacking to 1 column below 640px keeps
+// each card at full readable width.
+@media (max-width: 640px) {
+  .husbandry-service-options {
+    grid-template-columns: 1fr;
+    gap: $space-4;
+  }
+
+  .husbandry-service-option {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 
@@ -1532,20 +1559,114 @@ $send-report-optional: #80868b;
   box-shadow: none;
 }
 
-/* Husbandry/Material Management sidebar: active state reflects card color */
-.operation-wrapper.husbandry-wrapper .op-tab:hover {
-  background: #e2e6ff;
-  color: #333333;
+/* ==========================================================
+   HUSBANDRY SUB-NAVIGATION (HusbandryTabs) — modernized
+   Restrained left-accent-bar active state in place of the base
+   full-pill treatment (.op-tab's unscoped border-radius: 20px),
+   tokenized spacing/colors, explicit focus-visible state.
+
+   Scoped under .operation-wrapper.husbandry-wrapper — this is an
+   existing precedent (see rules below/above): .op-tab / .operation-left /
+   .op-submenu are shared, unscoped class names also used by the
+   Operation tab's own nav (OperationTabs.jsx) and the CallType builder
+   modal (CallTypeBuilderModal.jsx). Scoping keeps this redesign from
+   touching either of those.
+   ========================================================== */
+.operation-wrapper.husbandry-wrapper {
+  .operation-left {
+    background: $table-header-bg;
+    border-right: 1px solid $border-color-default;
+    padding: $space-5 $space-4;
+    gap: $space-1;
+  }
+
+  .op-tab-group {
+    margin-bottom: $space-1;
+  }
+
+  .op-tab {
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $txtColor;
+    padding: $space-3 $space-4;
+    border-left: 3px solid transparent;
+  }
+
+  .op-tab:hover {
+    background: rgba(0, 54, 140, 0.06);
+    color: var(--card-color, #{$colorPrimary});
+  }
+
+  .op-tab.active {
+    background: rgba(0, 54, 140, 0.08);
+    color: var(--card-color, #{$colorPrimary});
+    border-left-color: var(--card-color, #{$colorPrimary});
+    font-weight: 600;
+  }
+
+  .op-tab:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
+  }
+
+  .op-submenu {
+    margin-left: $space-3;
+    padding-left: $space-3;
+    border-left: 2px solid rgba(0, 54, 140, 0.15);
+    gap: $space-1;
+  }
+
+  .op-tab-sub {
+    border-radius: $radius-sm;
+    border-left: 2px solid transparent;
+    background: transparent;
+    color: $txtColor;
+  }
+
+  .op-tab-sub:hover {
+    background: rgba(0, 54, 140, 0.06);
+    color: var(--card-color, #{$colorPrimary});
+  }
+
+  .op-tab-sub.active {
+    background: rgba(0, 54, 140, 0.08);
+    color: var(--card-color, #{$colorPrimary});
+    border-left-color: var(--card-color, #{$colorPrimary});
+    font-weight: 600;
+  }
+
+  .op-tab-sub:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
+  }
+
+  // Back-to-service-selection link sits above the tab list — align its
+  // focus/radius treatment with the tabs below it.
+  .husbandry-back-link-small {
+    border-radius: $radius-sm;
+  }
+
+  .husbandry-back-link-small:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
+  }
 }
 
-.operation-wrapper.husbandry-wrapper .op-tab.active {
-  background: #e2e6ff;
-  color: #333333;
-  font-weight: 600;
-}
+// The existing unscoped @media (max-width: 768px) rule (further below)
+// wraps .operation-left into a horizontal row of pill-shaped chips for
+// narrow viewports. Re-express the same "wrapped horizontal nav" idea for
+// Husbandry using the new restrained language (bottom accent bar instead
+// of the vertical left accent bar, since tabs sit side-by-side here).
+@media (max-width: 768px) {
+  .operation-wrapper.husbandry-wrapper .op-tab {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+  }
 
-.operation-wrapper.husbandry-wrapper .op-submenu {
-  border-left-color: #e2e6ff;
+  .operation-wrapper.husbandry-wrapper .op-tab.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--card-color, #{$colorPrimary});
+  }
 }
 
 .operation-wrapper.husbandry-wrapper .op-tab-sub:hover {
@@ -4999,6 +5120,122 @@ $send-report-optional: #80868b;
 
 .cf-field-full {
   grid-column: 1 / -1;
+}
+
+/* ==========================================================
+   HUSBANDRY SHARED FORM PRIMITIVES — modern SaaS refresh
+   (FormSection / FormField / FormInput / FormSelect / FormTextarea
+   from Husbandry.components.jsx)
+
+   Scoped under .husbandry-wrapper (the root element rendered by
+   Husbandry.jsx) on purpose: .cf-field / .cf-input / .cf-select /
+   .cf-textarea / .cf-section-* are shared, unscoped class names also
+   used outside Husbandry (Arrival.jsx, General.jsx, Approval.jsx,
+   CallTypeBuilderModal.jsx, checklistFormPrimitives.jsx, etc.).
+   Scoping here means these updates only affect Husbandry's own tabs
+   (Crew Management and its sibling services) and never touch those
+   other screens.
+   ========================================================== */
+.husbandry-wrapper {
+  .cf-field {
+    margin-bottom: $space-4;
+
+    > label {
+      color: $txtColor;
+      letter-spacing: 0.1px;
+    }
+  }
+
+  .cf-input {
+    border-radius: $radius-md;
+    border-color: $border-color-default;
+    padding: $space-3 $space-4;
+  }
+
+  .cf-input:hover {
+    border-color: #c5c5d1;
+  }
+
+  // .cf-input has no focus-within state at all today (unlike .cf-textarea
+  // below, and unlike FormSelect's .cf-multi-select-email-input) — this
+  // brings it in line with its siblings.
+  .cf-input:focus-within {
+    border-color: $colorPrimary;
+    box-shadow: $shadow-focus;
+    background: #fafbff;
+  }
+
+  .cf-input.is-invalid {
+    border-color: $status-danger;
+  }
+
+  .cf-input.is-invalid:focus-within {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+  }
+
+  .cf-textarea {
+    border-radius: $radius-md;
+    border-color: $border-color-default;
+  }
+
+  .cf-textarea.is-invalid {
+    border-color: $status-danger;
+  }
+
+  .cf-textarea.is-invalid:focus-within {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+  }
+
+  // FormSection has no base layout today — .cf-section-header renders as
+  // an unstyled block (icon + title stack with default inline flow).
+  .cf-section-header {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-bottom: $space-3;
+
+    img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+  }
+
+  .cf-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: $txtColor;
+  }
+
+  .cf-section-body {
+    gap: $space-4;
+  }
+
+  // FormSelect's CustomSelect trigger (.cf-multi-select-email-input) has no
+  // unscoped base style either — only compact/preview-context overrides
+  // exist elsewhere. This gives it the same resting/hover/focus treatment
+  // as .cf-input for visual consistency across the module.
+  .cf-multi-select-email-input {
+    border-radius: $radius-md;
+    border: 1.5px solid $border-color-default;
+    transition: all 0.2s ease;
+  }
+
+  .cf-multi-select-email-input:hover {
+    border-color: #c5c5d1;
+  }
+
+  .cf-multi-select-email-input.disabled {
+    background: #f5f5f7;
+    border-color: #d1d5db;
+    opacity: 0.85;
+  }
+
+  // FormSelect passes its `className` prop (e.g. "is-invalid") onto the
+  // outer .cf-multi-select-email wrapper, not the inner trigger directly.
+  .cf-multi-select-email.is-invalid .cf-multi-select-email-input {
+    border-color: $status-danger;
+  }
 }
 
 /* Date and Time Row */
