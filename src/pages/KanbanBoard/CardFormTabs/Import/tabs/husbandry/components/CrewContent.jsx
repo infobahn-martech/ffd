@@ -5,7 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FiDownload, FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
+import { FiDownload, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../../components/CustomModal";
 import PremiumSelect from "../../../../../../../components/form/PremiumSelect";
@@ -31,74 +31,11 @@ const STATUS_LABELS = {
   pending: "Pending"
 };
 
-// Icon components for column headers
-const CrewNameIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
+// Deterministic per-row avatar color cycling (purple, orange, blue, green)
+const CREW_AVATAR_PALETTE = ["purple", "orange", "blue", "green"];
+const getCrewAvatarPalette = (index) => CREW_AVATAR_PALETTE[index % CREW_AVATAR_PALETTE.length];
 
-const NationalityIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <circle cx="12" cy="9" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-const RankIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M6 9L12 3L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M6 15L12 21L18 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-const PassportIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const IqamaIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M8 8H16M8 12H16M8 16H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="6" cy="6" r="1" fill="currentColor" />
-    <circle cx="18" cy="6" r="1" fill="currentColor" />
-  </svg>
-);
-
-const VisaIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M8 8H16M8 12H16M8 16H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="18" cy="6" r="1.5" fill="currentColor" />
-    <path d="M6 6H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-const CGPassIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M7 9H17M7 13H17M7 17H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M12 5V3C12 2.44772 11.5523 2 11 2H13C12.4477 2 12 2.44772 12 3V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="5" cy="7" r="0.5" fill="currentColor" />
-    <circle cx="19" cy="7" r="0.5" fill="currentColor" />
-  </svg>
-);
-
-const ZawilPassIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M9 9H15M9 13H15M9 17H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="6" cy="7" r="1" fill="currentColor" />
-    <circle cx="18" cy="7" r="1" fill="currentColor" />
-    <path d="M6 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
+// Icon components for status pills (Transport / Hotel / Medical)
 const CarIcon = ({ size = 20, color = "#666" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
     <path d="M5 17H4C3.46957 17 2.96086 16.7893 2.58579 16.4142C2.21071 16.0391 2 15.5304 2 15V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H5M5 17H19M5 17V19C5 19.5304 4.78929 20.0391 4.41421 20.4142C4.03914 20.7893 3.53043 21 3 21C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V17M19 17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V11C22 10.4696 21.7893 9.96086 21.4142 9.58579C21.0391 9.21071 20.5304 9 20 9H19M19 17V19C19 19.5304 19.2107 20.0391 19.5858 20.4142C19.9609 20.7893 20.4696 21 21 21C21.5304 21 22.0391 20.7893 22.4142 20.4142C22.7893 20.0391 23 19.5304 23 19V17M5 9L7 5H17L19 9M5 9H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -560,9 +497,7 @@ const CrewDocumentCell = ({
               role="status"
               aria-hidden="true"
             />
-          ) : hasUrl ? (
-            <FiEye size={20} strokeWidth={2.2} />
-          ) : isUploaded ? (
+          ) : hasUrl || isUploaded ? (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -2310,40 +2245,40 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       />
                     </th>
                     <th>
-                      <span className="crew-th"><CrewNameIcon size={14} /> Crew Name</span>
+                      <span className="crew-th">Crew Name</span>
                     </th>
                     <th>
-                      <span className="crew-th"><NationalityIcon size={14} /> Nationality</span>
+                      <span className="crew-th">Nationality</span>
                     </th>
                     <th>
-                      <span className="crew-th"><RankIcon size={14} /> Rank</span>
+                      <span className="crew-th">Rank</span>
                     </th>
                     <th>
                       <span className="crew-th">Movement Type</span>
                     </th>
                     <th>
-                      <span className="crew-th"><PassportIcon size={14} /> Passport</span>
+                      <span className="crew-th">Passport</span>
                     </th>
                     <th>
-                      <span className="crew-th"><IqamaIcon size={14} /> Iqama</span>
+                      <span className="crew-th">Iqama</span>
                     </th>
                     <th>
-                      <span className="crew-th"><VisaIcon size={14} /> Visa</span>
+                      <span className="crew-th">Visa</span>
                     </th>
                     <th>
-                      <span className="crew-th"><CGPassIcon size={14} /> CG Pass</span>
+                      <span className="crew-th">CG Pass</span>
                     </th>
                     <th>
-                      <span className="crew-th"><ZawilPassIcon size={14} /> Zawil Pass</span>
+                      <span className="crew-th">Zawil Pass</span>
                     </th>
                     <th>
-                      <span className="crew-th"><CarIcon size={14} /> Transport</span>
+                      <span className="crew-th">Transport</span>
                     </th>
                     <th>
-                      <span className="crew-th"><HotelIcon size={14} /> Hotel</span>
+                      <span className="crew-th">Hotel</span>
                     </th>
                     <th>
-                      <span className="crew-th"><MedicalIcon size={14} /> Medical</span>
+                      <span className="crew-th">Medical</span>
                     </th>
                     {/* <th>Actions</th> */}
                   </tr>
@@ -2362,7 +2297,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       </td>
                     </tr>
                   ) : (
-                    displayCrewList.map((crew) => (
+                    displayCrewList.map((crew, crewIndex) => (
                       <tr
                         key={crew.id}
                         className={
@@ -2387,15 +2322,20 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </td>
                         <td>
                           <div className="crew-table-cell crew-name-cell" title={crew.crewName || ""}>
-                            <span className="crew-avatar" aria-hidden="true">{getInitials(crew.crewName || "") || "?"}</span>
-                            <span className="crew-name-text">{crew.crewName || ""}</span>
+                            <span className={`crew-avatar crew-avatar--${getCrewAvatarPalette(crewIndex)}`} aria-hidden="true">{getInitials(crew.crewName || "") || "?"}</span>
+                            <span className="crew-name-info">
+                              <span className="crew-name-text">{crew.crewName || ""}</span>
+                              {crew.crew_id != null && String(crew.crew_id).trim() !== "" ? (
+                                <span className="crew-name-id">{`ID · ${String(crew.crew_id).padStart(5, "0")}`}</span>
+                              ) : null}
+                            </span>
                           </div>
                         </td>
                         <td>
-                          <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || "—"}</div>
+                          <div className={`crew-table-cell${crew.nationality ? "" : " crew-table-cell--muted"}`} title={crew.nationality || ""}>{crew.nationality || "—"}</div>
                         </td>
                         <td>
-                          <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || "—"}</div>
+                          <div className={`crew-table-cell${crew.rank ? "" : " crew-table-cell--muted"}`} title={crew.rank || ""}>{crew.rank || "—"}</div>
                         </td>
                         <td>
                           {(crew.movementType || crew.movement_type) ? (
@@ -2521,7 +2461,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             data-tooltip-id={`transport-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}
                           >
-                            <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
+                            <StatusIcon status={crew.transport} IconComponent={CarIcon} size={14} />
                             <span className="crew-status-count-badge">{crew.transportCount || 0}</span>
                           </div>
                           <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
@@ -2532,7 +2472,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             data-tooltip-id={`hotel-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}
                           >
-                            <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
+                            <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={14} />
                             <span className="crew-status-count-badge">{crew.hotelCount || 0}</span>
                           </div>
                           <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
@@ -2543,7 +2483,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             data-tooltip-id={`medical-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}
                           >
-                            <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
+                            <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={14} />
                             <span className="crew-status-count-badge">{crew.medicalServiceCount || 0}</span>
                           </div>
                           <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
@@ -2566,7 +2506,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             </div>
             <div className="crew-pagination">
               <div className="crew-pagination-info">
-                Showing {startCrewItem}-{endCrewItem} of {totalCrewItems}
+                Showing <strong>{startCrewItem}-{endCrewItem}</strong> of {totalCrewItems}
               </div>
               <div className="crew-pagination-actions">
                 <button

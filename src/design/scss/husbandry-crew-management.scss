@@ -655,8 +655,13 @@
 
 .crew-pagination-info {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #475569;
+
+  strong {
+    font-weight: 700;
+    color: #1a1a1a;
+  }
 }
 
 .crew-pagination-actions {
@@ -742,7 +747,7 @@
   // Sum of the 13 column widths below — below this the container scrolls
   // horizontally instead of squeezing columns illegible (see
   // .crew-table-container { overflow-x: auto } further up).
-  min-width: 1314px;
+  min-width: 1389px;
   background: #ffffff;
   border-collapse: separate;
   border-spacing: 0;
@@ -760,8 +765,8 @@
 /* Crew Name */
 .crew-table th:nth-child(2),
 .crew-table td:nth-child(2) {
-  width: 160px;
-  min-width: 160px;
+  width: 180px;
+  min-width: 180px;
 }
 
 /* Nationality */
@@ -1277,15 +1282,15 @@
 /* Movement Type */
 .crew-table th:nth-child(5),
 .crew-table td:nth-child(5) {
-  width: 110px;
-  min-width: 110px;
+  width: 130px;
+  min-width: 130px;
 }
 
 /* Passport */
 .crew-table th:nth-child(6),
 .crew-table td:nth-child(6) {
-  width: 90px;
-  min-width: 90px;
+  width: 100px;
+  min-width: 100px;
 }
 
 /* Iqama */
@@ -1312,15 +1317,15 @@
 /* Zawil Pass */
 .crew-table th:nth-child(10),
 .crew-table td:nth-child(10) {
-  width: 90px;
-  min-width: 90px;
+  width: 110px;
+  min-width: 110px;
 }
 
 /* Transport */
 .crew-table th:nth-child(11),
 .crew-table td:nth-child(11) {
-  width: 100px;
-  min-width: 100px;
+  width: 105px;
+  min-width: 105px;
 }
 
 /* Hotel */
@@ -1356,7 +1361,7 @@
   padding: 0 $space-4;
   font-size: 12px;
   font-weight: 700;
-  color: $txtColor !important;
+  color: $colorPrimary !important;
   letter-spacing: 0.2px;
   text-transform: uppercase !important;
   white-space: nowrap;
@@ -1382,7 +1387,7 @@
   padding: 0 $space-4;
   font-size: 12px;
   font-weight: 700;
-  color: $txtColor;
+  color: $colorPrimary;
   letter-spacing: 0.2px;
   text-transform: uppercase !important;
   white-space: nowrap;
@@ -1390,20 +1395,12 @@
   border-bottom: 1px solid $border-color-default;
 }
 
-// Header icon + label wrapper (icons reuse the previously-unused
-// CrewNameIcon/NationalityIcon/RankIcon/PassportIcon/IqamaIcon/VisaIcon/
-// CGPassIcon/ZawilPassIcon components already defined in CrewContent.jsx —
-// no new components created)
+// Header label wrapper — plain text only, no decorative icons (kept as a
+// class in case future column-specific alignment tweaks are needed).
 .crew-th {
   display: inline-flex;
   align-items: center;
-  gap: $space-2;
   color: inherit;
-
-  svg {
-    flex-shrink: 0;
-    opacity: 0.6;
-  }
 }
 
 // Identity/text columns read better left-aligned; document/status columns
@@ -1428,7 +1425,7 @@
 }
 
 .crew-table tbody td {
-  padding: 6px 12px;
+  padding: 13px 12px;
   font-size: 12px;
   vertical-align: middle;
   border-bottom: 1px solid #f0f0f0;
@@ -1441,6 +1438,10 @@
   line-height: 1.5;
 }
 
+.crew-table-cell--muted {
+  color: #94a3b8;
+}
+
 // Crew Name — avatar initials + name (Phase 2)
 .crew-name-cell {
   display: flex;
@@ -1450,23 +1451,44 @@
   overflow: hidden;
 }
 
-// NOTE: the <table> element itself sets --card-color to a near-white
-// lavender (see JSX) for unrelated legacy reasons, which would wash out
-// anything inside the table that reads var(--card-color). Using
-// $colorPrimary directly here (not var(--card-color)) avoids inheriting
-// that override so the avatar/pill colors render correctly.
+// Deterministic per-row avatar colors (purple/orange/blue/green cycle —
+// see getCrewAvatarPalette in CrewContent.jsx). Saturated background with
+// white initials for strong contrast, matching the target design.
 .crew-avatar {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: $colorPrimary;
-  background: color-mix(in srgb, $colorPrimary 15%, white);
+  color: #ffffff;
+}
+
+.crew-avatar--purple {
+  background: #7c3aed;
+}
+
+.crew-avatar--orange {
+  background: #f97316;
+}
+
+.crew-avatar--blue {
+  background: #2563eb;
+}
+
+.crew-avatar--green {
+  background: #16a34a;
+}
+
+.crew-name-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .crew-name-text {
@@ -1476,14 +1498,23 @@
   color: #1a1a1a;
 }
 
-// Movement Type — soft pill badge
+.crew-name-id {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Movement Type — soft purple/lavender pill badge
 .crew-movement-pill {
   display: inline-flex;
   align-items: center;
   font-size: 11px;
   font-weight: 700;
-  color: $colorPrimary;
-  background: color-mix(in srgb, $colorPrimary 12%, white);
+  color: #7c3aed;
+  background: color-mix(in srgb, #7c3aed 12%, white);
   border-radius: $radius-pill;
   padding: 4px $space-3;
   white-space: nowrap;
@@ -1571,11 +1602,11 @@
 .crew-status-icon {
   display: inline-flex;
   align-items: center;
-  gap: $space-2;
-  padding: 4px $space-3;
+  gap: 6px;
+  padding: 3px 10px;
   border-radius: $radius-pill;
   background: $table-header-bg;
-  border: 1px solid #dbe3ff;
+  border: 1px solid $border-color-default;
 }
 
 .crew-status-icon svg {
@@ -1588,11 +1619,11 @@
   color: $txtColor;
 }
 
-.crew-table tbody tr:nth-child(even) {
+.crew-table tbody tr:nth-child(odd) {
   background: #f8f9fc;
 }
 
-.crew-table tbody tr:nth-child(even) td {
+.crew-table tbody tr:nth-child(odd) td {
   background: #f8f9fc;
 }
 
