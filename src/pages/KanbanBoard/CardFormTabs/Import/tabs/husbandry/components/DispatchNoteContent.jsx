@@ -375,7 +375,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("delivered_to", formData.delivered_to || "");
     fd.append("remarks", (formData.remarks || "").replace(/<[^>]*>/g, "").trim());
     const newFiles = (formData.documents || []).filter((d) => d.file instanceof File);
-    if (newFiles.length > 0) fd.append("file", newFiles[0].file);
+    newFiles.forEach((d) => fd.append("file", d.file));
 
     const items = editItems.map((item) => {
       const obj = {
