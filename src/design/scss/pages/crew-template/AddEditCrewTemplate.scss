@@ -58,7 +58,7 @@
 
   .form-control,
   .form-select {
-    border: 1px solid #BCDEE2;
+    border: 1px solid #e2e2ea;
     border-radius: 10px;
     font-size: 14px;
     padding: 10px 14px;
@@ -124,11 +124,6 @@
       box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
     }
 
-    &.has-file {
-      min-height: 80px;
-      padding: 16px;
-    }
-
     &.is-invalid {
       border-color: #dc3545;
     }
@@ -175,25 +170,6 @@
     margin: 0;
   }
 
-  .upload-zone-file-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    width: 100%;
-    padding: 0 8px;
-  }
-
-  .upload-zone-file-info .file-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: $txtColor;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-  }
-
   .remove-file-btn {
     flex-shrink: 0;
     padding: 6px 12px;
@@ -208,6 +184,34 @@
 
     &:hover {
       background: rgba(220, 53, 69, 0.08);
+    }
+  }
+
+  .upload-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .upload-file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid #e2e2ea;
+    border-radius: 8px;
+    background: #fafcfd;
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: $txtColor;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
     }
   }
 
