@@ -337,7 +337,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                                     Description <span className="text-danger">*</span>
                                 </label>
                                 <textarea
-                                    className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                                    className={`form-control billing-instruction-description-input ${errors.description ? "is-invalid" : ""}`}
                                     placeholder="Enter instruction details..."
                                     rows={4}
                                     {...register("description")}
@@ -377,7 +377,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
     return (
         <CustomModal
             className="role-modal-sm"
-            dialgName="modal-dialog modal-dialog-centered"
+            dialgName="modal-dialog modal-dialog-centered modal-dialog-scrollable"
             show={!!showModal}
             closeModal={() => closeModal(null)}
             body={renderBody()}
