@@ -324,6 +324,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     signature: "",
     remarks: "",
     documents: [],
+    existingDocuments: [],
+    removedDocumentIds: [],
     items: [],
   });
   const [formErrors, setFormErrors] = useState({});
@@ -346,7 +348,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const emptyEditFormData = () => ({
     landing_date: "", landing_time: "", warehouse_id: "",
     inbound_id: "", received_from: "", location: "", signature: "",
-    remarks: "", documents: [], existingDocuments: [], items: [],
+    remarks: "", documents: [], existingDocuments: [], removedDocumentIds: [], items: [],
   });
 
   const populateFormFromDetail = (detail) => {
@@ -368,8 +370,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: transport?.pickup_location || "",
         toLocation: transport ? String(transport.to_location_id || "") : "",
         driverName: transport ? String(transport.driver_id || "") : "",
-        slot_no: item.slot_no || "",
-        reason: item.reason || item.reason_name || "",
+        slot_no: item.slot_no_id ?? item.slot_no ?? "",
+        reason: item.reason_id ?? item.reason ?? item.reason_name ?? "",
         dispatch_date: item.dispatch_date || "",
         dispatch_time: "",
       };
@@ -389,6 +391,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       remarks: (detail.remarks || "").replace(/<[^>]*>/g, "").trim(),
       documents: [],
       existingDocuments: Array.isArray(detail.documents) ? detail.documents : [],
+      removedDocumentIds: [],
       items,
     });
     setExpandedEditItems(exp);
@@ -469,14 +472,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       const file = doc?.file ?? doc;
       if (file) fd.append("file[]", file);
     });
+    (formData.removedDocumentIds || []).forEach((id) => fd.append("removed_document_ids[]", id));
 
     const items = formData.items.map((item) => {
       const result = {
         inbound_item_id: item.inbound_item_id || null,
         quantity: Number(item.quantity) || 0,
         transportation_required: item.transportation_required ? 1 : 0,
-        slot_no: item.slot_no || "",
-        reason: item.reason || "",
+        slot_no_id: item.slot_no || "",
+        reason_id: item.reason || "",
         dispatch_date: item.dispatch_date ? item.dispatch_date + (item.dispatch_time ? ` ${item.dispatch_time}` : "") : null,
       };
       if (item.transportation_required) {
@@ -785,6 +789,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
+  const handleEditExistingDocumentRemove = (index) => {
+    setFormData((prev) => {
+      const docs = prev.existingDocuments || [];
+      const removed = docs[index];
+      const docId = removed?.material_document_id ?? removed?.document_id ?? removed?.id;
+      return {
+        ...prev,
+        existingDocuments: docs.filter((_, i) => i !== index),
+        removedDocumentIds: docId != null ? [...(prev.removedDocumentIds || []), docId] : (prev.removedDocumentIds || []),
+      };
+    });
+  };
+
   const validateConvertForm = () => {
     const errors = {};
     if (!convertFormData.dispatch_date) errors.dispatch_date = "Date is required";
@@ -815,7 +832,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("remarks", (convertFormData.remarks || "").replace(/<[^>]*>/g, "").trim());
     (convertFormData.documents || []).forEach((doc) => {
       const file = doc?.file ?? doc;
-      if (file) fd.append("file", file);
+      if (file) fd.append("file[]", file);
     });
     const items = convertFormData.orders.map((order) => {
       const landingNoteItemId = order.landing_note_item_id || null;
@@ -1027,7 +1044,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
             <div className="row g-2">
               <div className="col-md-12">
-                <FormField label="Document">
+                <FormField label="Documents">
                   {formData.existingDocuments?.length > 0 && (
                     <div className="landing-doc-list mb-2">
                       {formData.existingDocuments.map((doc, i) => {
@@ -1050,6 +1067,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               <div className="landing-doc-name">{fileName}</div>
                             </div>
                             <a href={fileUrl} target="_blank" rel="noreferrer" className="landing-doc-view-btn">View</a>
+                            <button
+                              type="button"
+                              className="document-file-preview-remove"
+                              onClick={() => handleEditExistingDocumentRemove(i)}
+                              title="Remove file"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
                           </div>
                         );
                       })}

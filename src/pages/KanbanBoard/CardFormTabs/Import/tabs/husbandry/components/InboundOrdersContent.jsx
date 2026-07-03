@@ -1161,7 +1161,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("remarks", (convertFormData.remarks || "").replace(/<[^>]*>/g, "").trim());
     (convertFormData.documents || []).forEach((doc) => {
       const file = doc?.file ?? doc;
-      if (file) fd.append("file", file);
+      if (file) fd.append("file[]", file);
     });
     const items = convertFormData.orders.map((order) => ({
       inbound_item_id: order.inbound_item_id || null,
