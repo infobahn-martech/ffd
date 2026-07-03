@@ -203,7 +203,7 @@ export function ReportTemplatesModal({
             <div className="permInputs row g-3">
               {/* REPORT TYPE */}
               <div className="col-lg-4 col-md-4 col-sm-12">
-                <div className="phone-wrapper report-type-field">
+                <div className="phone-wrapper">
                   <label className="phone-label">
                     Report Type <span className="text-danger">*</span>
                   </label>

@@ -3,6 +3,10 @@
   .desig-inp textarea.form-control {
     border: 1px solid #e2e2ea;
 
+    &::placeholder {
+      color: #87ADB1;
+    }
+
     &:hover {
       border-color: #cfd4dc;
     }
@@ -10,6 +14,7 @@
     &:focus {
       border-color: #b8c0cc;
       box-shadow: none;
+      outline: none;
     }
 
     &.is-invalid {
@@ -17,9 +22,10 @@
     }
   }
 
-  /* Report Type: plain label above the field instead of the floating label
-     that overlaps the select box's border line */
-  .report-type-field .phone-label {
+  /* Report Type, Port, Call Type: plain label above the field instead of the
+     floating label that overlaps the select box's border line. Applied to
+     the whole row so all three fields stay aligned with each other. */
+  .permInputs .phone-label {
     position: static;
     display: block;
     background: transparent;
