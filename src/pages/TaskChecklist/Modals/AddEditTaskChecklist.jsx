@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
-import CommonSelect from "../../../components/CommonSelect";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 import useTaskChecklistReducer from "../../../store/TaskChecklistReducer";
 import "../../../design/scss/prospect-modal.scss";
@@ -108,8 +107,8 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="desig-inp document-checklist-select-wrap">
-                            <label className="mb-2 d-block">
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Select Task <span className="text-danger">*</span>
                             </label>
                             <Controller
@@ -120,31 +119,21 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
                                         (Array.isArray(value) && value.length > 0) ||
                                         "At least one task is required",
                                 }}
-                                render={({ field }) => {
-                                    const selectedTaskOptions = taskOptions.filter((option) =>
-                                        (field.value || []).map(String).includes(String(option.value)),
-                                    );
-
-                                    return (
-                                        <CommonSelect
-                                            isMulti
-                                            options={taskOptions}
-                                            value={selectedTaskOptions}
-                                            onChange={(selected) => {
-                                                const values = Array.isArray(selected)
-                                                    ? selected.map((item) => String(item.value))
-                                                    : [];
-                                                field.onChange(values);
-                                            }}
-                                            placeholder="Select Task(s)"
-                                            className={`document-checklist-select ${errors.task_ids ? "is-invalid" : ""}`}
-                                            classNamePrefix="react-select"
-                                            isDisabled={isBeingUpdated}
-                                            menuPosition="fixed"
-                                            maxheight={220}
-                                        />
-                                    );
-                                }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        isMulti
+                                        value={(field.value || []).map(String)}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={taskOptions.map((option) => ({
+                                            value: String(option.value),
+                                            label: String(option.label ?? ""),
+                                        }))}
+                                        placeholder="Select Task(s)"
+                                        searchPlaceholder="Search task..."
+                                        disabled={isBeingUpdated}
+                                        hasError={Boolean(errors.task_ids)}
+                                    />
+                                )}
                             />
                             {errors.task_ids && (
                                 <span className="error text-danger">
