@@ -17,6 +17,32 @@
       line-height: 18px;
     }
 
+    .billing-instruction-description-input {
+      border: 1px solid #e2e2ea;
+      font-size: 13px;
+
+      &:hover {
+        border-color: #cfd4dc;
+      }
+
+      &:focus {
+        border-color: #b8c0cc;
+        box-shadow: none;
+        outline: none;
+      }
+
+      &.is-invalid {
+        border-color: #dc3545;
+      }
+
+      &::placeholder {
+        color: #87adb1;
+        font-size: 13px;
+        font-weight: 400;
+        padding-left: 0;
+      }
+    }
+
     .billing-instruction-email-section {
       margin-top: 0;
     }
