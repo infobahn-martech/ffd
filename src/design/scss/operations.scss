@@ -3905,6 +3905,38 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Husbandry Transport: premium redesign overrides — full-width segmented
+   Provider control, hairline dividers between form-groups, and a route
+   connector line for the Route & Schedule From/To row. Scoped to
+   .transport-form only so CG Pass/Zawil Pass/Hotel/Medical are unaffected. */
+.transport-form {
+  .transport-type-radio-row {
+    display: flex;
+    width: 100%;
+  }
+
+  .crew-pass-form-fields .husb-group + .husb-group {
+    margin-top: 4px;
+    padding-top: 18px;
+    border-top: 1px solid #eef0f3;
+  }
+
+  .transport-route-row {
+    position: relative;
+    padding-left: 14px;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 6px;
+      bottom: 6px;
+      width: 0;
+      border-left: 1px dashed #cbd5e1;
+    }
+  }
+}
+
 /* Husbandry CG/Zawil pass: thin scrollbars (scroll regions only) */
 .crew-pass-thin-scrollbar {
   scrollbar-width: thin;
@@ -4543,7 +4575,7 @@ $send-report-optional: #80868b;
   gap: 8px;
   padding: 10px 16px;
   border-top: 1px solid #e5e7eb;
-  background: #fafafa;
+  background: #eef2ff;
 }
 
 .crew-pass-requests-pagination__info {
