@@ -242,7 +242,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
   );
 };
 
-ServiceSelection.propTypes = {
+ServiceSelection.propTypes = {                                                                                                                                                                                                                                                                                                                                                                                                                                                      
   onSelectService: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   bookedServices: PropTypes.array,

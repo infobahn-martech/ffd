@@ -466,6 +466,25 @@
   display: flex;
   align-items: center;
   gap: $space-2;
+  padding: 4px $space-3;
+  border-radius: $radius-pill;
+  background: #f8fafc;
+  border: 1px solid transparent;
+}
+
+.crew-status-legend__item--done {
+  background: color-mix(in srgb, $status-success 8%, white);
+  border-color: color-mix(in srgb, $status-success 20%, white);
+}
+
+.crew-status-legend__item--in-progress {
+  background: color-mix(in srgb, $status-warning 12%, white);
+  border-color: color-mix(in srgb, $status-warning 25%, white);
+}
+
+.crew-status-legend__item--pending {
+  background: color-mix(in srgb, $status-danger 8%, white);
+  border-color: color-mix(in srgb, $status-danger 20%, white);
 }
 
 .crew-status-legend__dot {
@@ -511,7 +530,8 @@
   display: flex;
   align-items: center;
   gap: $space-2;
-  padding: $space-2 $space-4;
+  height: 38px;
+  padding: 0 $space-4;
   border-radius: $radius-pill;
   border: 1px solid #e2e6ff;
   background: #ffffff;
@@ -520,6 +540,7 @@
   font-weight: 600;
   cursor: pointer;
   min-width: 0;
+  box-sizing: border-box;
   box-shadow: $shadow-sm;
 }
 
@@ -571,7 +592,8 @@
 }
 
 .crew-header-select {
-  padding: $space-2 32px $space-2 $space-3;
+  height: 38px;
+  padding: 0 32px 0 $space-3;
   border-radius: $radius-pill;
   border: 1px solid #e2e6ff;
   background-color: #ffffff;
@@ -581,6 +603,7 @@
   cursor: pointer;
   outline: none;
   appearance: none;
+  box-sizing: border-box;
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -1361,13 +1384,13 @@
 
 .crew-table-container .table.crew-table thead th {
   background: $table-header-bg !important;
-  height: 38px;
+  height: 40px;
   padding: 0 $space-4;
-  font-size: 12px;
-  font-weight: 700;
-  color: $colorPrimary !important;
-  letter-spacing: 0.2px;
-  text-transform: uppercase !important;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569 !important;
+  letter-spacing: 0.1px;
+  text-transform: none !important;
   white-space: nowrap;
   vertical-align: middle;
   border-bottom: 1px solid $border-color-default;
@@ -1377,7 +1400,7 @@
 .crew-list-table th,
 .crew-table-scroll th,
 .crew-table-wrapper th {
-  text-transform: uppercase !important;
+  text-transform: none !important;
 }
 
 .crew-list-table thead tr,
@@ -1387,13 +1410,13 @@
 
 .crew-list-table th,
 .crew-table-scroll th {
-  height: 38px;
+  height: 40px;
   padding: 0 $space-4;
-  font-size: 12px;
-  font-weight: 700;
-  color: $colorPrimary;
-  letter-spacing: 0.2px;
-  text-transform: uppercase !important;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.1px;
+  text-transform: none !important;
   white-space: nowrap;
   vertical-align: middle;
   border-bottom: 1px solid $border-color-default;
@@ -1429,7 +1452,7 @@
 }
 
 .crew-table tbody td {
-  padding: 13px 12px;
+  padding: 9px 12px;
   font-size: 12px;
   vertical-align: middle;
   border-bottom: 1px solid #f0f0f0;
@@ -1446,46 +1469,12 @@
   color: #94a3b8;
 }
 
-// Crew Name — avatar initials + name (Phase 2)
+// Crew Name — plain text hierarchy, no avatar (name + ID stacked)
 .crew-name-cell {
   display: flex;
   align-items: center;
-  gap: $space-2;
   white-space: nowrap;
   overflow: hidden;
-}
-
-// Deterministic per-row avatar colors (purple/orange/blue/green cycle —
-// see getCrewAvatarPalette in CrewContent.jsx). Saturated background with
-// white initials for strong contrast, matching the target design.
-.crew-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #ffffff;
-  box-shadow: 0 0 0 2px #ffffff, 0 1px 3px rgba(15, 23, 42, 0.18);
-}
-
-.crew-avatar--purple {
-  background: #7c3aed;
-}
-
-.crew-avatar--orange {
-  background: #f97316;
-}
-
-.crew-avatar--blue {
-  background: #2563eb;
-}
-
-.crew-avatar--green {
-  background: #16a34a;
 }
 
 .crew-name-info {
@@ -1540,10 +1529,10 @@
   gap: $space-1;
 }
 
-// Small dashed-square upload tiles (Phase 2) — replaces the earlier
-// circular icon-only treatment. Same three states/conditions as before
-// (missing / uploaded / preview / uploading), only the container shape and
-// border style changed.
+// Small premium icon tiles (Phase 3) — each document type carries its own
+// soft category color (see --doc-cat-color set by the .crew-doc-btn--cat-*
+// modifiers below); state (missing / uploaded / preview / uploading) still
+// drives the icon shown (upload / check / spinner) exactly as before.
 .crew-doc-btn {
   width: 28px;
   height: 28px;
@@ -1565,10 +1554,31 @@
   box-shadow: $shadow-focus;
 }
 
+// Category color tokens — soft, premium tints per document type.
+.crew-doc-btn--cat-passport {
+  --doc-cat-color: #2563eb;
+}
+
+.crew-doc-btn--cat-iqama {
+  --doc-cat-color: #0d9488;
+}
+
+.crew-doc-btn--cat-visa {
+  --doc-cat-color: #7c3aed;
+}
+
+.crew-doc-btn--cat-cg-pass {
+  --doc-cat-color: #4f46e5;
+}
+
+.crew-doc-btn--cat-zawil-pass {
+  --doc-cat-color: #d97706;
+}
+
 .crew-doc-btn--preview,
 .crew-doc-btn--uploaded {
-  background: $status-success;
-  border: 1.5px solid $status-success;
+  background: var(--doc-cat-color, #{$status-success});
+  border: 1.5px solid var(--doc-cat-color, #{$status-success});
   color: #ffffff;
   cursor: pointer;
 }
@@ -1583,14 +1593,14 @@
 }
 
 .crew-doc-btn--missing {
-  background: transparent;
-  border: 1.5px dashed $status-warning;
-  color: $status-warning;
+  background: color-mix(in srgb, var(--doc-cat-color, #{$status-warning}) 8%, white);
+  border: 1.5px dashed var(--doc-cat-color, #{$status-warning});
+  color: var(--doc-cat-color, #{$status-warning});
   cursor: pointer;
 }
 
 .crew-doc-btn--missing:hover {
-  background: color-mix(in srgb, $status-warning 10%, white);
+  background: color-mix(in srgb, var(--doc-cat-color, #{$status-warning}) 16%, white);
 }
 
 .crew-doc-btn--uploading {
@@ -1617,6 +1627,25 @@
   border-radius: $radius-pill;
   background: $table-header-bg;
   border: 1px solid $border-color-default;
+}
+
+// Transport / Hotel / Medical each get a distinct soft badge tint so the
+// three service columns read apart at a glance — the icon itself still
+// carries the actual workflow-state color (done/in progress/pending) via
+// StatusIcon's own `color` prop, independent of this container tint.
+.crew-status-icon--transport {
+  background: color-mix(in srgb, #0ea5e9 10%, white);
+  border-color: color-mix(in srgb, #0ea5e9 24%, white);
+}
+
+.crew-status-icon--hotel {
+  background: color-mix(in srgb, #9333ea 10%, white);
+  border-color: color-mix(in srgb, #9333ea 24%, white);
+}
+
+.crew-status-icon--medical {
+  background: color-mix(in srgb, #16a34a 10%, white);
+  border-color: color-mix(in srgb, #16a34a 24%, white);
 }
 
 .crew-status-icon svg {

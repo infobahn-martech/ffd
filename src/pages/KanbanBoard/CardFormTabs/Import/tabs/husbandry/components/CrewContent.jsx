@@ -12,7 +12,6 @@ import PremiumSelect from "../../../../../../../components/form/PremiumSelect";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import useCommonReducer from "../../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../../services/callFileService";
-import { getInitials } from "../../../../../../../shared/utils/utils";
 import "../../../../../../../design/scss/operations.scss";
 
 // Status colors
@@ -30,10 +29,6 @@ const STATUS_LABELS = {
   rejected: "Pending",
   pending: "Pending"
 };
-
-// Deterministic per-row avatar color cycling (purple, orange, blue, green)
-const CREW_AVATAR_PALETTE = ["purple", "orange", "blue", "green"];
-const getCrewAvatarPalette = (index) => CREW_AVATAR_PALETTE[index % CREW_AVATAR_PALETTE.length];
 
 // Icon components for status pills (Transport / Hotel / Medical)
 const CarIcon = ({ size = 20, color = "#666" }) => (
@@ -418,6 +413,7 @@ const CrewDocumentCell = ({
   fieldName,
   urlFieldName,
   label,
+  category,
   inputRef,
   onUpload,
   isUploading = false,
@@ -462,6 +458,7 @@ const CrewDocumentCell = ({
       : isUploaded
         ? "crew-doc-btn--uploaded"
         : "crew-doc-btn--missing";
+  const docBtnCategoryClass = category ? `crew-doc-btn--cat-${category}` : "";
 
   return (
     <div className="crew-table-cell crew-table-cell--doc-action">
@@ -489,7 +486,7 @@ const CrewDocumentCell = ({
           onClick={handleClick}
           data-tooltip-id={tooltipId}
           aria-label={tooltipContent}
-          className={`crew-doc-btn ${docBtnStateClass}`}
+          className={`crew-doc-btn ${docBtnStateClass} ${docBtnCategoryClass}`}
         >
           {isUploading ? (
             <span
@@ -518,6 +515,7 @@ CrewDocumentCell.propTypes = {
   fieldName: PropTypes.string.isRequired,
   urlFieldName: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
+  category: PropTypes.string,
   inputRef: PropTypes.func,
   onUpload: PropTypes.func.isRequired,
   isUploading: PropTypes.bool,
@@ -2212,19 +2210,19 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           </div>
           {/* Status Legend */}
           <div className="crew-status-legend">
-            <div className="crew-status-legend__item">
+            <div className="crew-status-legend__item crew-status-legend__item--done">
               <span className="crew-status-legend__dot crew-status-legend__dot--done" />
               <span className="crew-status-legend__label" title={STATUS_LABELS.done}>
                 {STATUS_LABELS.done}
               </span>
             </div>
-            <div className="crew-status-legend__item">
+            <div className="crew-status-legend__item crew-status-legend__item--in-progress">
               <span className="crew-status-legend__dot crew-status-legend__dot--in-progress" />
               <span className="crew-status-legend__label" title={STATUS_LABELS.inProgress}>
                 {STATUS_LABELS.inProgress}
               </span>
             </div>
-            <div className="crew-status-legend__item">
+            <div className="crew-status-legend__item crew-status-legend__item--pending">
               <span className="crew-status-legend__dot crew-status-legend__dot--pending" />
               <span className="crew-status-legend__label" title={STATUS_LABELS.rejected}>
                 {STATUS_LABELS.rejected}
@@ -2245,7 +2243,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       />
                     </th>
                     <th>
-                      <span className="crew-th">Crew Name</span>
+                      <span className="crew-th">Crew name</span>
                     </th>
                     <th>
                       <span className="crew-th">Nationality</span>
@@ -2254,7 +2252,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       <span className="crew-th">Rank</span>
                     </th>
                     <th>
-                      <span className="crew-th">Movement Type</span>
+                      <span className="crew-th">Movement type</span>
                     </th>
                     <th>
                       <span className="crew-th">Passport</span>
@@ -2297,7 +2295,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       </td>
                     </tr>
                   ) : (
-                    displayCrewList.map((crew, crewIndex) => (
+                    displayCrewList.map((crew) => (
                       <tr
                         key={crew.id}
                         className={
@@ -2322,7 +2320,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </td>
                         <td>
                           <div className="crew-table-cell crew-name-cell" title={crew.crewName || ""}>
-                            <span className={`crew-avatar crew-avatar--${getCrewAvatarPalette(crewIndex)}`} aria-hidden="true">{getInitials(crew.crewName || "") || "?"}</span>
                             <span className="crew-name-info">
                               <span className="crew-name-text">{crew.crewName || ""}</span>
                               {crew.crew_id != null && String(crew.crew_id).trim() !== "" ? (
@@ -2352,6 +2349,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fieldName="passport_copy"
                             urlFieldName="passport_copy_url"
                             label="Passport"
+                            category="passport"
                             inputRef={(el) => {
                               if (el) passportFileInputRefs.current[crew.id] = el;
                             }}
@@ -2367,6 +2365,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fieldName="iqama_copy"
                             urlFieldName="iqama_copy_url"
                             label="Iqama"
+                            category="iqama"
                             inputRef={(el) => {
                               if (el) iqamaFileInputRefs.current[crew.id] = el;
                             }}
@@ -2382,6 +2381,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fieldName="visa_copy"
                             urlFieldName="visa_copy_url"
                             label="Visa"
+                            category="visa"
                             inputRef={(el) => {
                               if (el) visaFileInputRefs.current[crew.id] = el;
                             }}
@@ -2413,7 +2413,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 type="button"
                                 onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
                                 data-tooltip-id={`cg-pass-upload-${crew.id}`}
-                                className={`crew-doc-btn ${(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
+                                className={`crew-doc-btn crew-doc-btn--cat-cg-pass ${(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
                               >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -2445,7 +2445,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 type="button"
                                 onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
                                 data-tooltip-id={`zawil-pass-upload-${crew.id}`}
-                                className={`crew-doc-btn ${(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
+                                className={`crew-doc-btn crew-doc-btn--cat-zawil-pass ${(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
                               >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -2457,7 +2457,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </td>
                         <td>
                           <div
-                            className="crew-table-cell crew-status-icon"
+                            className="crew-table-cell crew-status-icon crew-status-icon--transport"
                             data-tooltip-id={`transport-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}
                           >
@@ -2468,7 +2468,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </td>
                         <td>
                           <div
-                            className="crew-table-cell crew-status-icon"
+                            className="crew-table-cell crew-status-icon crew-status-icon--hotel"
                             data-tooltip-id={`hotel-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}
                           >
@@ -2479,7 +2479,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </td>
                         <td>
                           <div
-                            className="crew-table-cell crew-status-icon"
+                            className="crew-table-cell crew-status-icon crew-status-icon--medical"
                             data-tooltip-id={`medical-status-${crew.id}`}
                             data-tooltip-content={STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}
                           >
@@ -2506,7 +2506,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             </div>
             <div className="crew-pagination">
               <div className="crew-pagination-info">
-                Showing <strong>{startCrewItem}-{endCrewItem}</strong> of {totalCrewItems}
+                Showing <strong>{startCrewItem}–{endCrewItem}</strong> of {totalCrewItems} crew members
               </div>
               <div className="crew-pagination-actions">
                 <button
