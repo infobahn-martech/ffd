@@ -82,6 +82,7 @@ const HUSB_ICON_PATHS = {
   folder: "M2 4h4l1.5 2H14v7H2V4z",
   notebook: "M4 2h8v12H4V2zm2 3h4M6 8h4M6 11h2",
   list: "M2 4h12M2 8h12M2 12h8",
+  billing: "M4 2h8a1 1 0 011 1v11l-2-1.2-2 1.2-2-1.2-2 1.2V3a1 1 0 011-1z M6 6h4M6 9h2",
 };
 
 /** Section/card icon — `id` looks up TAB_ICON_PATHS first (shared with the left nav), then HUSB_ICON_PATHS. */

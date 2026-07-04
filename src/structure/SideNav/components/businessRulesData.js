@@ -76,6 +76,27 @@ export const LINK_ACTION_OPTIONS = [
   { key: 'successor', label: 'Link as successor' },
 ];
 
+export const UPDATE_ACTION_OPTIONS = [
+  { key: 'add_co_owners', label: 'Add co-owners' },
+  { key: 'add_stickers', label: 'Add stickers' },
+  { key: 'add_watcher', label: 'Add watcher' },
+  { key: 'remove_co_owners', label: 'Remove co-owners' },
+  { key: 'remove_milestones', label: 'Remove milestones' },
+  { key: 'remove_stickers', label: 'Remove stickers' },
+  { key: 'set_blocker', label: 'Set blocker' },
+  { key: 'set_color', label: 'Set color' },
+  { key: 'set_deadline', label: 'Set deadline' },
+  { key: 'set_description', label: 'Set description' },
+  { key: 'set_milestones', label: 'Set milestones' },
+  { key: 'set_owner', label: 'Set owner' },
+  { key: 'set_priority', label: 'Set priority' },
+  { key: 'set_size', label: 'Set size' },
+  { key: 'set_tags', label: 'Set tags' },
+  { key: 'set_title', label: 'Set title' },
+  { key: 'set_type', label: 'Set type' },
+  { key: 'unblock_card', label: 'Unblock card' },
+];
+
 // Dev-only fallback data for the "Card property match" modal, used when the
 // real business_rule field endpoints return nothing (e.g. local dev without
 // a live backend). Never shown in production builds.

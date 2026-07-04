@@ -647,16 +647,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     </FieldRow>
                   )}
 
-                  {transportType === "inhouse" && (
-                    <FormField label="Invoice Branch">
-                      <FormSelect
-                        value={formValues.invoiceBranch || ""}
-                        onChange={handleChange("invoiceBranch")}
-                        options={invoiceBranchOptions}
-                        placeholder="Select invoice branch..."
-                      />
-                    </FormField>
-                  )}
                 </FormGroup>
 
                 <FormGroup icon="calendar" label="Route & Schedule" accent="teal">
@@ -674,26 +664,41 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </FormField>
 
-                  <FieldRow>
-                    <FormField label="From">
-                      <LocationAutocomplete
-                        value={formValues.transportFrom || ""}
-                        onChange={handleChange("transportFrom")}
-                        placeholder="Search for a location..."
-                        onLocationSelect={() => {}}
-                      />
-                    </FormField>
+                  <div className="transport-route-row">
+                    <FieldRow>
+                      <FormField label="From">
+                        <LocationAutocomplete
+                          value={formValues.transportFrom || ""}
+                          onChange={handleChange("transportFrom")}
+                          placeholder="Search for a location..."
+                          onLocationSelect={() => {}}
+                        />
+                      </FormField>
 
-                    <FormField label="To">
-                      <LocationAutocomplete
-                        value={formValues.transportTo || ""}
-                        onChange={handleChange("transportTo")}
-                        placeholder="Search for a location..."
-                        onLocationSelect={() => {}}
+                      <FormField label="To">
+                        <LocationAutocomplete
+                          value={formValues.transportTo || ""}
+                          onChange={handleChange("transportTo")}
+                          placeholder="Search for a location..."
+                          onLocationSelect={() => {}}
+                        />
+                      </FormField>
+                    </FieldRow>
+                  </div>
+                </FormGroup>
+
+                {transportType === "inhouse" && (
+                  <FormGroup icon="billing" label="Billing" accent="rose">
+                    <FormField label="Invoice Branch">
+                      <FormSelect
+                        value={formValues.invoiceBranch || ""}
+                        onChange={handleChange("invoiceBranch")}
+                        options={invoiceBranchOptions}
+                        placeholder="Select invoice branch..."
                       />
                     </FormField>
-                  </FieldRow>
-                </FormGroup>
+                  </FormGroup>
+                )}
 
                 <FormGroup icon="notebook" label="Notes" accent="slate">
                   <div className="cgpass-remarks">
