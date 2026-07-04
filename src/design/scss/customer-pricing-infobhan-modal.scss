@@ -1,0 +1,277 @@
+@import "partials/partials";
+
+/*
+  Scoped to the Customer Pricing Infobhan "Add Customer Pricing" modal only.
+  Class is applied via CustomModal's `className` prop (react-bootstrap renders
+  it on the outer Modal wrapper), so every selector below is namespaced under
+  `.customer-pricing-infobhan-modal` and cannot leak into other modals/tables.
+*/
+
+body .customer-pricing-infobhan-modal {
+  z-index: 1300 !important;
+
+  .modal-dialog {
+    max-width: min(1080px, 94vw) !important;
+    width: 100%;
+  }
+
+  .modal-content {
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: $space-6 $space-7 $space-4;
+    border-bottom: 1px solid $border-color-default;
+  }
+
+  .modal-title {
+    margin-bottom: 2px;
+  }
+
+  .cpi-modal-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: #6c7a93;
+  }
+
+  .modal-body {
+    padding: $space-6 $space-7;
+    max-height: 60vh;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #c7cede;
+      border-radius: $radius-pill;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #a7b1c8;
+    }
+  }
+
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: $white;
+    border-top: 1px solid $border-color-default;
+    padding: $space-4 $space-7;
+    gap: $space-3;
+    z-index: 2;
+  }
+
+  /* Section cards ------------------------------------------------------- */
+
+  .cpi-section {
+    background: #f8f9fc;
+    border: 1px solid $border-color-default;
+    border-radius: $radius-md;
+    padding: $space-4 $space-5;
+    margin-bottom: $space-5;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .cpi-section-header {
+    margin-bottom: $space-4;
+  }
+
+  .cpi-section-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: $colorPrimary;
+  }
+
+  .cpi-section-helper {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #6c7a93;
+  }
+
+  /* Compact 2-column field grid ------------------------------------------ */
+
+  .cpi-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-4 $space-5;
+
+    @media (max-width: 767px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cpi-field {
+    .phone-wrapper,
+    .form-floating.desig-inp {
+      margin-bottom: 0;
+    }
+  }
+
+  /* Consistent, compact input sizing ------------------------------------- */
+
+  .phone-wrapper,
+  .form-floating.desig-inp {
+    min-height: 44px;
+  }
+
+  .form-control,
+  .premium-select .cf-multi-select-email-input {
+    min-height: 44px;
+    height: 44px;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    box-sizing: border-box;
+  }
+
+  .form-floating.desig-inp > .form-control {
+    padding-top: 0.7rem !important;
+  }
+
+  .error {
+    font-size: 11px;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* Client Price table ---------------------------------------------------- */
+
+  .cpi-table-wrapper {
+    border: 1px solid $table-border-color;
+    border-radius: $radius-md;
+    overflow: hidden;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .cpi-client-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: $colorPrimary;
+      color: $white;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+      text-align: left;
+      padding: $space-3 $space-4;
+      z-index: 1;
+    }
+
+    tbody tr {
+      height: 54px;
+      border-bottom: 1px solid $table-border-color;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: $table-row-hover-bg;
+      }
+    }
+
+    td {
+      padding: $space-2 $space-4;
+      color: $txtColor;
+      vertical-align: middle;
+    }
+  }
+
+  .cpi-td-entity {
+    text-align: left;
+    font-weight: 500;
+  }
+
+  .cpi-td-code {
+    text-align: left;
+  }
+
+  .cpi-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: $radius-pill;
+    background: $slider-color-active;
+    color: $colorPrimary;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .cpi-td-price {
+    width: 160px;
+
+    .cpi-price-input {
+      text-align: right;
+      min-height: 36px;
+      height: 36px;
+    }
+
+    .error {
+      text-align: right;
+    }
+  }
+
+  .cpi-td-checkbox {
+    width: 120px;
+    text-align: center;
+
+    .form-check-input {
+      margin: 0;
+    }
+  }
+
+  .cpi-empty-state,
+  .cpi-loading-state {
+    padding: $space-5;
+    text-align: center;
+    color: #6c7a93;
+    font-size: 13px;
+    border: 1px dashed $border-color-default;
+    border-radius: $radius-md;
+    background: #f8f9fc;
+  }
+
+  /* Footer buttons --------------------------------------------------------- */
+
+  .cpi-btn-outline,
+  .cpi-btn-primary {
+    min-width: 110px;
+    padding: 10px 20px;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .cpi-btn-outline {
+    background: $white;
+    border: 1px solid $border-color-default;
+    color: $txtColor;
+  }
+
+  .cpi-btn-primary {
+    background: $colorPrimary;
+    border: 1px solid $colorPrimary;
+    color: $white;
+
+    &:disabled {
+      opacity: 0.7;
+    }
+  }
+}
