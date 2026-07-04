@@ -11,18 +11,22 @@ body .customer-pricing-infobhan-modal {
   z-index: 1300 !important;
 
   .modal-dialog {
-    max-width: min(1080px, 94vw) !important;
+    max-width: min(1200px, 94vw) !important;
     width: 100%;
   }
 
   .modal-content {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     border-radius: $radius-lg;
     box-shadow: $shadow-lg;
     overflow: hidden;
   }
 
   .modal-header {
-    padding: $space-6 $space-7 $space-4;
+    flex: 0 0 auto;
+    padding: $space-4 $space-6 $space-3;
     border-bottom: 1px solid $border-color-default;
   }
 
@@ -37,8 +41,11 @@ body .customer-pricing-infobhan-modal {
   }
 
   .modal-body {
-    padding: $space-6 $space-7;
-    max-height: 60vh;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: $space-4 $space-6;
     overflow-y: auto;
 
     &::-webkit-scrollbar {
@@ -59,12 +66,27 @@ body .customer-pricing-infobhan-modal {
     }
   }
 
+  .lead-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    > form {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+  }
+
   .modal-footer {
+    flex: 0 0 auto;
     position: sticky;
     bottom: 0;
     background: $white;
     border-top: 1px solid $border-color-default;
-    padding: $space-4 $space-7;
+    padding: $space-3 $space-6;
     gap: $space-3;
     z-index: 2;
   }
@@ -75,16 +97,25 @@ body .customer-pricing-infobhan-modal {
     background: #f8f9fc;
     border: 1px solid $border-color-default;
     border-radius: $radius-md;
-    padding: $space-4 $space-5;
-    margin-bottom: $space-5;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-3;
+    flex: 0 0 auto;
 
     &:last-child {
       margin-bottom: 0;
     }
   }
 
+  .cpi-section--table {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
   .cpi-section-header {
-    margin-bottom: $space-4;
+    flex: 0 0 auto;
+    margin-bottom: $space-2;
   }
 
   .cpi-section-header--with-search {
@@ -134,7 +165,7 @@ body .customer-pricing-infobhan-modal {
   .cpi-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: $space-4 $space-5;
+    gap: $space-3 $space-4;
 
     @media (max-width: 767px) {
       grid-template-columns: 1fr;
@@ -177,11 +208,11 @@ body .customer-pricing-infobhan-modal {
   /* Client Price table ---------------------------------------------------- */
 
   .cpi-table-wrapper {
+    flex: 1 1 auto;
     border: 1px solid $table-border-color;
     border-radius: $radius-md;
-    overflow: hidden;
-    max-height: 320px;
     overflow-y: auto;
+    min-height: 480px;
   }
 
   .cpi-client-table {
@@ -199,12 +230,12 @@ body .customer-pricing-infobhan-modal {
       font-size: 12px;
       letter-spacing: 0.2px;
       text-align: left;
-      padding: $space-3 $space-4;
+      padding: $space-2 $space-4;
       z-index: 1;
     }
 
     tbody tr {
-      height: 54px;
+      height: 44px;
       border-bottom: 1px solid $table-border-color;
 
       &:last-child {
@@ -217,7 +248,7 @@ body .customer-pricing-infobhan-modal {
     }
 
     td {
-      padding: $space-2 $space-4;
+      padding: $space-1 $space-4;
       color: $txtColor;
       vertical-align: middle;
     }
@@ -232,7 +263,8 @@ body .customer-pricing-infobhan-modal {
   .cpi-entity-name {
     font-weight: 500;
     color: $txtColor;
-    margin-bottom: 3px;
+    line-height: 1.2;
+    margin-bottom: 1px;
   }
 
   .cpi-badge {
@@ -252,8 +284,8 @@ body .customer-pricing-infobhan-modal {
     .cpi-price-input {
       width: 100%;
       text-align: left;
-      min-height: 36px;
-      height: 36px;
+      min-height: 32px;
+      height: 32px;
       box-sizing: border-box;
     }
 
