@@ -13,9 +13,11 @@ body .customer-pricing-infobhan-modal {
   .modal-dialog {
     max-width: min(1200px, 94vw) !important;
     width: 100%;
+    height: 90vh;
   }
 
   .modal-content {
+    height: 100%;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -46,24 +48,7 @@ body .customer-pricing-infobhan-modal {
     flex-direction: column;
     min-height: 0;
     padding: $space-4 $space-6;
-    overflow-y: auto;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #c7cede;
-      border-radius: $radius-pill;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: #a7b1c8;
-    }
+    overflow: hidden;
   }
 
   .lead-form {
@@ -81,14 +66,11 @@ body .customer-pricing-infobhan-modal {
   }
 
   .modal-footer {
-    flex: 0 0 auto;
-    position: sticky;
-    bottom: 0;
+    flex-shrink: 0;
     background: $white;
     border-top: 1px solid $border-color-default;
     padding: $space-3 $space-6;
     gap: $space-3;
-    z-index: 2;
   }
 
   /* Section cards ------------------------------------------------------- */
@@ -111,6 +93,7 @@ body .customer-pricing-infobhan-modal {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    padding-bottom: $space-4;
   }
 
   .cpi-section-header {
@@ -209,10 +192,27 @@ body .customer-pricing-infobhan-modal {
 
   .cpi-table-wrapper {
     flex: 1 1 auto;
+    min-height: 0;
     border: 1px solid $table-border-color;
     border-radius: $radius-md;
     overflow-y: auto;
-    min-height: 480px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #c7cede;
+      border-radius: $radius-pill;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #a7b1c8;
+    }
   }
 
   .cpi-client-table {
