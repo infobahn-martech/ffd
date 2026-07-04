@@ -77,8 +77,9 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
 
     const clientTariffMap = useMemo(() => {
         const map = new Map();
-        (showModal?.client_tariffs ?? []).forEach((ct) => {
-            const key = ct.billing_entity_id ?? ct.entity_id;
+        const rawEntities = showModal?.entities ?? showModal?.client_tariffs ?? [];
+        rawEntities.forEach((ct) => {
+            const key = ct.entity_id ?? ct.billing_entity_id;
             if (key != null) map.set(String(key), ct);
         });
         return map;
@@ -91,12 +92,17 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
         replace(
             billingEntities.map((be) => {
                 const matchedTariff = clientTariffMap.get(String(be.entity_id));
+                const matchedPrice = matchedTariff?.custom_price ?? matchedTariff?.price;
+                const matchedDefaultLineItem =
+                    matchedTariff?.default_line_item === 1 ||
+                    matchedTariff?.default_line_item === "1" ||
+                    matchedTariff?.default_line_item === true;
                 return {
                     entity_id: be.entity_id,
                     billing_entity: be.billing_entity,
                     customer_code: be.customer_code,
-                    custom_price: matchedTariff?.price != null ? String(matchedTariff.price) : "",
-                    default_line_item: false,
+                    custom_price: matchedPrice != null ? String(matchedPrice) : "",
+                    default_line_item: matchedDefaultLineItem,
                     client_tariff_id: matchedTariff?.client_tariff_id ?? null,
                 };
             })
