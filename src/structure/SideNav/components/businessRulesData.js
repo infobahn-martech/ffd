@@ -68,6 +68,14 @@ export const CREATE_ACTION_OPTIONS = [
   { key: 'successor', label: 'Create successor' },
 ];
 
+export const LINK_ACTION_OPTIONS = [
+  { key: 'child', label: 'Link as child' },
+  { key: 'parent', label: 'Link as parent' },
+  { key: 'predecessor', label: 'Link as predecessor' },
+  { key: 'relative', label: 'Link as relative' },
+  { key: 'successor', label: 'Link as successor' },
+];
+
 export const UPDATE_ACTION_OPTIONS = [
   { key: 'add_co_owners', label: 'Add co-owners' },
   { key: 'add_stickers', label: 'Add stickers' },
