@@ -76,6 +76,10 @@ export const LINK_ACTION_OPTIONS = [
   { key: 'successor', label: 'Link as successor' },
 ];
 
+export const MOVE_ACTION_OPTIONS = [
+  { key: 'move_to', label: 'Move card to' },
+];
+
 export const UPDATE_ACTION_OPTIONS = [
   { key: 'add_co_owners', label: 'Add co-owners' },
   { key: 'add_stickers', label: 'Add stickers' },
@@ -113,6 +117,104 @@ export const DUMMY_REGULAR_FIELDS = [
 
 export const DUMMY_TIME_UNITS = ['Days', 'Hours', 'Minutes', 'Seconds']
   .map((label, idx) => ({ time_unit_id: idx + 1, unit_label: label, unit_key: label }));
+
+// Dev-only fallback title for the "Board Minimap" grid's top title bar.
+export const DUMMY_BOARD_TITLE = 'Tasks';
+
+// Dev-only fallback column structure for the "Board Minimap" grid header, used so the
+// walkthrough always shows this fixed layout regardless of the real board's columns.
+// WAREHOUSE AND LOGISTICS and DELIVERY STATUS each span 3 leaf columns (see
+// DUMMY_BOARD_LEAF_COLUMNS); the others span 1.
+export const DUMMY_BOARD_AREA_GROUPS = [
+  { area: null, color: '#9ca3af', span: 1 },
+  { area: 'SALES TEAM', color: '#1d4ed8', span: 1 },
+  { area: 'WAREHOUSE AND LOGISTICS', color: '#f97316', span: 3 },
+  { area: 'DELIVERY STATUS', color: '#16a34a', span: 3 },
+  { area: null, color: '#7c3aed', span: 1 },
+];
+
+// Header cells, each tagged with a gridArea matching the CSS grid-template-areas in
+// business-rules-modal.scss. PREPARE ORDER and ORDER COMPLETED occupy the top row and
+// span their child leaf columns below them.
+export const DUMMY_BOARD_HEADER_CELLS = [
+  { name: 'WEATHER FORECAST', gridArea: 'weather' },
+  { name: 'Create Job No', gridArea: 'create' },
+  { name: 'PREPARE ORDER', gridArea: 'prepare' },
+  { name: 'ORDER COMPLETED', gridArea: 'completed' },
+  { name: 'ORDER REQUESTED', gridArea: 'requested' },
+  { name: 'ORDER IN PROGRESS', gridArea: 'progress' },
+  { name: 'TRUCK DEPARTED', gridArea: 'departed' },
+  { name: 'TRUCK AT PORT', gridArea: 'port' },
+  { name: 'DELIVERY COMPLETED', gridArea: 'delivery' },
+  { name: 'UN DELIVERED', gridArea: 'undelivered' },
+  { name: 'Ready to Archive', gridArea: 'archive' },
+];
+
+// Flattened leaf columns (left to right) — one clickable cell per lane row, aligned
+// under the header grid above. `accent` is a fixed demo highlight (not tied to real
+// card counts) matching the walkthrough mockup's green/red cells on every lane.
+export const DUMMY_BOARD_LEAF_COLUMNS = [
+  { id: 'weather', name: 'WEATHER FORECAST' },
+  { id: 'create', name: 'Create Job No' },
+  { id: 'requested', name: 'ORDER REQUESTED' },
+  { id: 'progress', name: 'ORDER IN PROGRESS', accent: 'green' },
+  { id: 'departed', name: 'TRUCK DEPARTED' },
+  { id: 'port', name: 'TRUCK AT PORT' },
+  { id: 'delivery', name: 'DELIVERY COMPLETED' },
+  { id: 'undelivered', name: 'UN DELIVERED', accent: 'red' },
+  { id: 'archive', name: 'Ready to Archive' },
+];
+
+// Dev-only fallback swimlane list for the "Board Minimap" grid, shown for every board
+// regardless of the real board's actual lanes, per client-facing walkthrough requirements.
+export const DUMMY_BOARD_SWIMLANES = [
+  { id: 1, name: 'TANAJIB', colorCode: '#0d1b8c' },
+  { id: 2, name: 'RASTANURA', colorCode: '#2fab7d' },
+  { id: 3, name: 'JUBAIL', colorCode: '#6b7280' },
+  { id: 4, name: 'DAMMAM', colorCode: '#0e7ec4' },
+  { id: 5, name: 'ABU ALI', colorCode: '#f57c00' },
+  { id: 6, name: 'KHAFJI', colorCode: '#efe9d3' },
+  { id: 7, name: 'SAFFANIYA', colorCode: '#7c3aed' },
+  { id: 8, name: 'RAS AL KHAIR', colorCode: '#1b5e20' },
+  { id: 9, name: 'JUAYMAH', colorCode: '#fbc02d' },
+  { id: 10, name: 'TEST', colorCode: '#94a3b8' },
+  { id: 11, name: 'Default Swimlane', colorCode: '#cbd5e1' },
+  { id: 12, name: 'New Swimlane', colorCode: '#e2e8f0' },
+];
+
+// Dev-only fallback data for the "Board Minimap" board picker, used when the
+// real workspace/board endpoint returns nothing (e.g. local dev without a live backend).
+export const DUMMY_WORKSPACE_BOARDS = [
+  {
+    workspace_id: 1,
+    workspace_name: 'SEDRES - CHANDLING - WORK SPACE',
+    boards: [
+      { board_id: 1, board_name: 'CHANDLING OPERATIONS' },
+      { board_id: 2, board_name: 'FROZEN' },
+      { board_id: 3, board_name: 'LOGISTICS' },
+      { board_id: 4, board_name: 'DRY AND CABIN ITEMS' },
+      { board_id: 5, board_name: 'DN' },
+      { board_id: 6, board_name: 'CHILLER' },
+      { board_id: 7, board_name: 'SUPER MARKET MAIN BOARD' },
+    ],
+  },
+  {
+    workspace_id: 2,
+    workspace_name: 'New Offshore Marine Logistics',
+    boards: [
+      { board_id: 8, board_name: 'Rastanura/ Dammam Operations' },
+      { board_id: 9, board_name: 'Jubail Operations' },
+      { board_id: 10, board_name: 'Centralized DA DESK' },
+    ],
+  },
+  {
+    workspace_id: 3,
+    workspace_name: 'Limousine',
+    boards: [
+      { board_id: 11, board_name: 'Coordinator Transport' },
+    ],
+  },
+];
 
 export const DUMMY_CUSTOM_FIELDS = [
   '3rd Party Items', '3rd Party Launch hire (If any)', 'Additional Assignee', 'Airway bill no.',

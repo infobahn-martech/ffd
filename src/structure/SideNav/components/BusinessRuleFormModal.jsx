@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
-import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2 } from 'react-icons/fi';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
-  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
+  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_WORKSPACE_BOARDS, DUMMY_BOARD_TITLE,
+  DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
+import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
@@ -493,6 +495,234 @@ function LinkActionModal({ show, onClose, onSelect }) {
   );
 }
 
+function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
+  const [boardId, setBoardId] = useState('');
+  const [isBoardPickerOpen, setIsBoardPickerOpen] = useState(false);
+  const [boardFilterText, setBoardFilterText] = useState('');
+
+  const boardPickerTriggerRef = useRef(null);
+  const boardPickerPanelRef = useRef(null);
+
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  // Demo dataset shown as-is for now regardless of the live backend's workspaces,
+  // per client-facing walkthrough requirements.
+  const displayWorkspaces = useMemo(
+    () => (import.meta.env.DEV ? DUMMY_WORKSPACE_BOARDS : workspaces),
+    [workspaces]
+  );
+  const boards = (displayWorkspaces ?? []).flatMap((w) =>
+    (w.boards ?? []).map((b) => ({ ...b, workspace_name: w.workspace_name }))
+  );
+
+  const boardFilterQuery = boardFilterText.trim().toLowerCase();
+  const filteredWorkspaceGroups = (displayWorkspaces ?? [])
+    .map((w) => {
+      const wsMatch = w.workspace_name.toLowerCase().includes(boardFilterQuery);
+      const groupBoards = wsMatch
+        ? (w.boards ?? [])
+        : (w.boards ?? []).filter((b) => b.board_name.toLowerCase().includes(boardFilterQuery));
+      return { workspace_id: w.workspace_id, workspace_name: w.workspace_name, boards: groupBoards };
+    })
+    .filter((g) => g.boards.length > 0);
+
+  const selectedBoard = boards.find((b) => String(b.board_id) === String(boardId));
+
+  const handlePickBoard = (board) => {
+    setBoardId(board.board_id);
+    setIsBoardPickerOpen(false);
+    setBoardFilterText('');
+  };
+
+  useEffect(() => {
+    if (!show) return;
+    setBoardId(initialBoardId ?? '');
+    setIsBoardPickerOpen(false);
+    setBoardFilterText('');
+    if (workspaces.length === 0) listAllWorkspaces();
+  }, [show]);
+
+  useEffect(() => {
+    if (!show || boardId || initialBoardId) return;
+    const firstBoard = displayWorkspaces[0]?.boards?.[0];
+    if (firstBoard) setBoardId(firstBoard.board_id);
+  }, [show, boardId, initialBoardId, displayWorkspaces]);
+
+  useEffect(() => {
+    if (!isBoardPickerOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (boardPickerPanelRef.current?.contains(t)) return;
+      if (boardPickerTriggerRef.current?.contains(t)) return;
+      setIsBoardPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isBoardPickerOpen]);
+
+  // The swimlanes and the column/header layout below are a fixed demo dataset (see
+  // DUMMY_BOARD_* in businessRulesData.js) shown for every board regardless of its
+  // real structure, per client-facing walkthrough requirements.
+  const swimlanes = import.meta.env.DEV ? DUMMY_BOARD_SWIMLANES : [];
+  const areaGroups = import.meta.env.DEV ? DUMMY_BOARD_AREA_GROUPS : [];
+  const headerCells = import.meta.env.DEV ? DUMMY_BOARD_HEADER_CELLS : [];
+  const leafColumns = import.meta.env.DEV ? DUMMY_BOARD_LEAF_COLUMNS : [];
+
+  const handlePickCell = (swimlane, leafColumn) => {
+    onSave({
+      boardId,
+      boardName: boards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? '',
+      swimlaneId: swimlane.id,
+      swimlaneName: swimlane.name,
+      stageId: leafColumn.id,
+      stageName: leafColumn.name,
+    });
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal board-minimap-modal"
+      dialogClassName="card-property-match-modal-dialog board-minimap-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Board Minimap</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body board-minimap-body">
+          <div className="board-minimap-picker-wrap">
+            <button
+              type="button"
+              ref={boardPickerTriggerRef}
+              className="board-minimap-board-trigger"
+              onClick={() => setIsBoardPickerOpen((v) => !v)}
+              aria-haspopup="listbox"
+              aria-expanded={isBoardPickerOpen}
+            >
+              <span>
+                {selectedBoard ? `${selectedBoard.workspace_name} / ${selectedBoard.board_name}` : 'Select a board'}
+              </span>
+              <FiChevronDown aria-hidden />
+            </button>
+
+            {isBoardPickerOpen && (
+              <div className="board-minimap-picker-panel" ref={boardPickerPanelRef}>
+                <div className="board-minimap-picker-search">
+                  <FiFilter size={20} className="board-minimap-picker-search-icon" aria-hidden />
+                  <input
+                    type="text"
+                    placeholder="Filter"
+                    value={boardFilterText}
+                    onChange={(e) => setBoardFilterText(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="board-minimap-picker-scroll">
+                  {filteredWorkspaceGroups.length === 0 ? (
+                    <div className="br-property-picker-empty">No matches</div>
+                  ) : (
+                    filteredWorkspaceGroups.map((ws) => (
+                      <div key={ws.workspace_id} className="board-minimap-picker-group">
+                        <div className="board-minimap-picker-group-head">
+                          <FiUsers size={20} aria-hidden />
+                          <span>{ws.workspace_name}</span>
+                        </div>
+                        <div className="board-minimap-picker-grid">
+                          {ws.boards.map((board) => (
+                            <button
+                              type="button"
+                              key={board.board_id}
+                              className={`board-minimap-picker-tile${String(board.board_id) === String(boardId) ? ' board-minimap-picker-tile--selected' : ''}`}
+                              onClick={() => handlePickBoard(board)}
+                            >
+                              {board.board_name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {!boardId ? (
+            <div className="br-property-picker-empty">Select a board to view its structure</div>
+          ) : swimlanes.length === 0 ? (
+            <div className="br-property-picker-empty">No lanes found for this board</div>
+          ) : (
+            <div className="board-minimap-grid">
+              <div className="board-minimap-title-bar">{DUMMY_BOARD_TITLE}</div>
+
+              <div className="board-minimap-area-row">
+                {areaGroups.map((group, idx) => (
+                  <div
+                    key={`${group.area}-${idx}`}
+                    className="board-minimap-area-cell"
+                    style={{ flexGrow: group.span, backgroundColor: group.color }}
+                  >
+                    {group.area}
+                  </div>
+                ))}
+              </div>
+
+              <div className="board-minimap-header-grid">
+                {headerCells.map((cell) => (
+                  <div
+                    key={cell.gridArea}
+                    className={`board-minimap-header-cell board-minimap-header-cell--${cell.gridArea}`}
+                  >
+                    {cell.name}
+                  </div>
+                ))}
+              </div>
+
+              {swimlanes.map((swimlane) => (
+                <div key={swimlane.id} className="board-minimap-lane-row">
+                  <div
+                    className="board-minimap-lane-label"
+                    style={swimlane.colorCode
+                      ? { backgroundColor: swimlane.colorCode, color: pickForegroundOnSwimlaneBackground(swimlane.colorCode) }
+                      : undefined}
+                  >
+                    {swimlane.name}
+                  </div>
+                  <div className="board-minimap-lane-cells">
+                    {leafColumns.map((leafColumn) => (
+                      <button
+                        type="button"
+                        key={leafColumn.id}
+                        className={`board-minimap-cell${leafColumn.accent ? ` board-minimap-cell--${leafColumn.accent}` : ''}`}
+                        onClick={() => handlePickCell(swimlane, leafColumn)}
+                        aria-label={`Move to ${swimlane.name}, ${leafColumn.name}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels }) {
   const [selected, setSelected] = useState(null);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
@@ -711,6 +941,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
   const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
+  const [moveActions, setMoveActions] = useState([]);
+  const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
+  const [activeMoveActionId, setActiveMoveActionId] = useState(null);
   const [updateActions, setUpdateActions] = useState([]);
   const [showUpdateActionPicker, setShowUpdateActionPicker] = useState(false);
 
@@ -727,6 +960,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowCreateActionPicker(false);
     setLinkActions([]);
     setShowLinkActionPicker(false);
+    setMoveActions([]);
+    setShowMoveDestinationPicker(false);
+    setActiveMoveActionId(null);
     setUpdateActions([]);
     setShowUpdateActionPicker(false);
   }, [show, rule]);
@@ -744,6 +980,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       conditions,
       createActions,
       linkActions,
+      moveActions,
       updateActions,
     });
     onClose();
@@ -785,6 +1022,32 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleRemoveLinkAction = (id) => {
     setLinkActions((prev) => prev.filter((a) => a.id !== id));
   };
+
+  const handleAddMoveAction = () => {
+    const option = MOVE_ACTION_OPTIONS[0];
+    setMoveActions((prev) => [
+      ...prev,
+      {
+        id: Date.now(), key: option.key, label: option.label,
+        boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
+      },
+    ]);
+  };
+
+  const handleRemoveMoveAction = (id) => {
+    setMoveActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenMoveDestination = (id) => {
+    setActiveMoveActionId(id);
+    setShowMoveDestinationPicker(true);
+  };
+
+  const handleSaveMoveDestination = (destination) => {
+    setMoveActions((prev) => prev.map((a) => (a.id === activeMoveActionId ? { ...a, ...destination } : a)));
+  };
+
+  const activeMoveAction = moveActions.find((a) => a.id === activeMoveActionId);
 
   const handleSelectUpdateAction = (item, meta) => {
     if (meta.category_key === 'custom') {
@@ -1020,12 +1283,34 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'move' && moveActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveMoveAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-link"
+                          onClick={() => handleOpenMoveDestination(action.id)}
+                        >
+                          {action.stageName ? `${action.boardName} → ${action.swimlaneName} / ${action.stageName}` : 'Choose where to move'}
+                        </button>
+                      </div>
+                    ))}
+
                     <button
                       type="button"
                       className="business-rule-form-add-action"
                       onClick={() => {
                         if (section.id === 'create') setShowCreateActionPicker(true);
                         if (section.id === 'link') setShowLinkActionPicker(true);
+                        if (section.id === 'move') handleAddMoveAction();
                         if (section.id === 'update') setShowUpdateActionPicker(true);
                       }}
                     >
@@ -1067,6 +1352,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showLinkActionPicker}
       onClose={() => setShowLinkActionPicker(false)}
       onSelect={handleSelectLinkAction}
+    />
+
+    <BoardMinimapModal
+      show={showMoveDestinationPicker}
+      onClose={() => setShowMoveDestinationPicker(false)}
+      onSave={handleSaveMoveDestination}
+      initialBoardId={activeMoveAction?.boardId}
     />
 
     <RefineUpdateCriteriaModal
@@ -1120,6 +1412,13 @@ LinkActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+};
+
+BoardMinimapModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  initialBoardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
 };
 
 RefineUpdateCriteriaModal.propTypes = {
