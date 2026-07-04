@@ -107,10 +107,10 @@ const CustomerPricingInfobhan = () => {
             thclass: "tb-head",
             width: "180",
             cell: ({ row }) => (
-                <div>
-                    <div className="cpt-service-code-name">
+                <div className="cpt-service-code-cell">
+                    <span className="cpt-service-code-name">
                         {row.service_code_name || row.service_code || "—"}
-                    </div>
+                    </span>
                     {row.service_code_name && row.service_code && (
                         <span className="cpt-service-code-badge">{row.service_code}</span>
                     )}

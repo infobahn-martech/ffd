@@ -44,16 +44,28 @@
     font-style: italic;
 }
 
+.cpt-service-code-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
 .cpt-service-code-name {
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .cpt-service-code-badge {
+    flex-shrink: 0;
     display: inline-block;
-    margin-top: 2px;
     font-size: 11px;
     color: #00368c;
     background: #eaf1fb;
     border-radius: 999px;
     padding: 1px 8px;
+    white-space: nowrap;
 }
