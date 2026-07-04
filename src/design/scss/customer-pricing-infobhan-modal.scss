@@ -87,6 +87,33 @@ body .customer-pricing-infobhan-modal {
     margin-bottom: $space-4;
   }
 
+  .cpi-section-header--with-search {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $space-4;
+
+    @media (max-width: 767px) {
+      flex-direction: column;
+    }
+  }
+
+  .cpi-client-search {
+    width: 260px;
+    flex-shrink: 0;
+
+    @media (max-width: 767px) {
+      width: 100%;
+    }
+
+    .form-control {
+      height: 36px;
+      min-height: 36px;
+      font-size: 12px;
+      border-radius: $radius-sm;
+    }
+  }
+
   .cpi-section-title {
     margin: 0;
     font-size: 13px;
@@ -159,6 +186,7 @@ body .customer-pricing-infobhan-modal {
 
   .cpi-client-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: 13px;
 
@@ -195,13 +223,16 @@ body .customer-pricing-infobhan-modal {
     }
   }
 
+  .cpi-th-entity,
   .cpi-td-entity {
+    width: 45%;
     text-align: left;
-    font-weight: 500;
   }
 
-  .cpi-td-code {
-    text-align: left;
+  .cpi-entity-name {
+    font-weight: 500;
+    color: $txtColor;
+    margin-bottom: 3px;
   }
 
   .cpi-badge {
@@ -214,22 +245,26 @@ body .customer-pricing-infobhan-modal {
     font-weight: 600;
   }
 
+  .cpi-th-price,
   .cpi-td-price {
-    width: 160px;
+    width: 35%;
 
     .cpi-price-input {
-      text-align: right;
+      width: 100%;
+      text-align: left;
       min-height: 36px;
       height: 36px;
+      box-sizing: border-box;
     }
 
     .error {
-      text-align: right;
+      text-align: left;
     }
   }
 
+  .cpi-th-checkbox,
   .cpi-td-checkbox {
-    width: 120px;
+    width: 20%;
     text-align: center;
 
     .form-check-input {
@@ -246,6 +281,12 @@ body .customer-pricing-infobhan-modal {
     border: 1px dashed $border-color-default;
     border-radius: $radius-md;
     background: #f8f9fc;
+  }
+
+  .cpi-empty-state--row {
+    border: none;
+    border-radius: 0;
+    background: transparent;
   }
 
   /* Footer buttons --------------------------------------------------------- */

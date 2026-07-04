@@ -12,6 +12,8 @@ const useCustomerPricingInfobhanReducer = create((set) => ({
   serviceCodes: [],
 
   isSaving: false,
+  isLoadingPricingDetail: false,
+  isUpdating: false,
 
   getAllServiceCodes: async () => {
     try {
@@ -46,6 +48,43 @@ const useCustomerPricingInfobhanReducer = create((set) => ({
         error?.response?.data?.message ??
           error?.message ??
           'Failed to save customer pricing'
+      );
+    }
+  },
+
+  getPricingDetail: async ({ tariffId, cb }) => {
+    try {
+      set({ isLoadingPricingDetail: true });
+      const { data } = await customerPricingInfobhanService.getPricingByTariffId(tariffId);
+      const detail = data?.data ?? data ?? null;
+      set({ isLoadingPricingDetail: false });
+      cb && cb(detail);
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({ isLoadingPricingDetail: false });
+      showError(
+        error?.response?.data?.message ??
+          error?.message ??
+          'Failed to fetch pricing details'
+      );
+    }
+  },
+
+  updatePricing: async ({ payload, cb }) => {
+    try {
+      set({ isUpdating: true });
+      const { data } = await customerPricingInfobhanService.updatePricing(payload);
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Customer pricing updated successfully');
+      set({ isUpdating: false });
+      cb && cb();
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({ isUpdating: false });
+      showError(
+        error?.response?.data?.message ??
+          error?.message ??
+          'Failed to update customer pricing'
       );
     }
   },

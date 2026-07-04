@@ -23,6 +23,7 @@ const CustomerPricingInfobhan = () => {
         customerPriceList,
         totalCount,
         isLoading,
+        getPricingDetail,
     } = useCustomerPricingInfobhanReducer((state) => state);
 
     const fetchList = () => {
@@ -76,20 +77,28 @@ const CustomerPricingInfobhan = () => {
             thclass: "tb-head",
             width: "150",
         },
-        // {
-        //     name: "Actions",
-        //     selector: "linksInfo",
-        //     contentClass: "table-content",
-        //     thclass: "tb-head",
-        //     onEditClick: (row) => {
-        //         setShowCustomerPricingModal(row);
-        //     },
-        //     onDeleteClick: () => {
-        //         setShowDeleteModal(true);
-        //     },
-        //     cell: RenderAction,
-        //     width: "200",
-        // },
+        {
+            name: "Actions",
+            selector: "linksInfo",
+            contentClass: "table-content",
+            thclass: "tb-head",
+            onEditClick: (row) => {
+                getPricingDetail({
+                    tariffId: row.tariff_id,
+                    cb: (detail) => {
+                        setShowCustomerPricingModal({
+                            ...detail,
+                            tariff_id: detail?.tariff_id ?? row.tariff_id,
+                        });
+                    },
+                });
+            },
+            onDeleteClick: () => {
+                setShowDeleteModal(true);
+            },
+            cell: RenderAction,
+            width: "200",
+        },
     ];
 
     return (
