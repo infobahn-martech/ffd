@@ -177,7 +177,7 @@ export const CrewCell = ({ name, index = 0 }) => {
   }
   return (
     <span className="husb-crew-cell">
-      <CrewAvatar name={name} index={index} />
+      {/* <CrewAvatar name={name} index={index} /> */}
       <span className="husb-crew-cell__name">{name}</span>
     </span>
   );

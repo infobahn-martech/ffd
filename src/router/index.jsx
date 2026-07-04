@@ -25,6 +25,7 @@ import VesselType from "../pages/VesselType";
 import BillingEntity from "../pages/BillingEntity";
 import Vessel from "../pages/Vessel";
 import CustomerPricing from "../pages/CustomerPricing";
+import CustomerPricingInfobhan from "../pages/CustomerPricingInfobhan";
 import BargeType from "../pages/BargeType";
 import CustomInspection from "../pages/CustomInspection";
 import Crew from "../pages/Crew";
@@ -128,6 +129,7 @@ const router = createBrowserRouter(
                 { path: "/permissions", element: <Permission /> },
                 { path: "/users", element: <User /> },
                 { path: "/customer-pricing", element: <CustomerPricing /> },
+                { path: "/customer-pricing-infobhan", element: <CustomerPricingInfobhan /> },
                 { path: "/kanban-board/operator", element: <KanbanBoard /> },
                 { path: "/kanban-board/:id/analytics", element: <KanbanAnalytics /> },
                 { path: "/kanban-board/analytics", element: <KanbanAnalytics /> },
@@ -249,6 +251,8 @@ const router = createBrowserRouter(
                     { path: "/billing-entity", element: <RouteGuard><BillingEntity /></RouteGuard> },
                     // Customer Pricing
                     { path: "/customer-pricing", element: <RouteGuard><CustomerPricing /></RouteGuard> },
+                    // Customer Pricing Infobhan
+                    { path: "/customer-pricing-infobhan", element: <RouteGuard><CustomerPricingInfobhan /></RouteGuard> },
                     // Custom Inspection
                     { path: "/custom-inspection", element: <RouteGuard><CustomInspection /></RouteGuard> },
                     // Crew Management
