@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
@@ -391,6 +391,108 @@ function CreateActionModal({ show, onClose, onSelect }) {
   );
 }
 
+function LinkActionModal({ show, onClose, onSelect }) {
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [expandedActions, setExpandedActions] = useState(true);
+  const [filterText, setFilterText] = useState('');
+
+  useEffect(() => {
+    if (!show) return;
+    setSelectedKey(null);
+    setFilterText('');
+  }, [show]);
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredOptions = filterQuery
+    ? LINK_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : LINK_ACTION_OPTIONS;
+
+  const handleAdd = () => {
+    const option = LINK_ACTION_OPTIONS.find((opt) => opt.key === selectedKey);
+    if (!option) return;
+    onSelect(option);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Add new action</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedActions((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedActions ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Possible actions
+            </button>
+            {expandedActions && (
+              <div className="br-property-pill-grid">
+                {filteredOptions.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredOptions.map((option) => (
+                    <PropertyPill
+                      key={option.key}
+                      pillKey={option.key}
+                      label={option.label}
+                      selected={selectedKey === option.key}
+                      onClick={() => setSelectedKey(option.key)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selectedKey}
+            onClick={handleAdd}
+          >
+            Add
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
 function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels }) {
   const [selected, setSelected] = useState(null);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
@@ -607,6 +709,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [createActions, setCreateActions] = useState([]);
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
+  const [linkActions, setLinkActions] = useState([]);
+  const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
   const [updateActions, setUpdateActions] = useState([]);
   const [showUpdateActionPicker, setShowUpdateActionPicker] = useState(false);
 
@@ -621,6 +725,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowPropertyPicker(false);
     setCreateActions([]);
     setShowCreateActionPicker(false);
+    setLinkActions([]);
+    setShowLinkActionPicker(false);
     setUpdateActions([]);
     setShowUpdateActionPicker(false);
   }, [show, rule]);
@@ -637,6 +743,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       disallowTriggerChain,
       conditions,
       createActions,
+      linkActions,
       updateActions,
     });
     onClose();
@@ -669,6 +776,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveCreateAction = (id) => {
     setCreateActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleSelectLinkAction = (option) => {
+    setLinkActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+  };
+
+  const handleRemoveLinkAction = (id) => {
+    setLinkActions((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleSelectUpdateAction = (item, meta) => {
@@ -877,6 +992,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'link' && linkActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-chip">
+                        <span className="business-rule-form-action-chip-label">{action.label}</span>
+                        <button
+                          type="button"
+                          className="business-rule-form-condition-remove"
+                          onClick={() => handleRemoveLinkAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+
                     {section.id === 'update' && updateActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-chip">
                         <span className="business-rule-form-action-chip-label">{action.label}</span>
@@ -896,6 +1025,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       className="business-rule-form-add-action"
                       onClick={() => {
                         if (section.id === 'create') setShowCreateActionPicker(true);
+                        if (section.id === 'link') setShowLinkActionPicker(true);
                         if (section.id === 'update') setShowUpdateActionPicker(true);
                       }}
                     >
@@ -931,6 +1061,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showCreateActionPicker}
       onClose={() => setShowCreateActionPicker(false)}
       onSelect={handleSelectCreateAction}
+    />
+
+    <LinkActionModal
+      show={showLinkActionPicker}
+      onClose={() => setShowLinkActionPicker(false)}
+      onSelect={handleSelectLinkAction}
     />
 
     <RefineUpdateCriteriaModal
@@ -975,6 +1111,12 @@ CardPropertyMatchModal.propTypes = {
 };
 
 CreateActionModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+};
+
+LinkActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
