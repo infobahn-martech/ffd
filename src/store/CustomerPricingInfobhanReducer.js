@@ -1,11 +1,54 @@
 import { create } from 'zustand';
 import billingEntityService from '../services/billingEntityService';
+import customerPricingInfobhanService from '../services/customerPricingInfobhanService';
 import useAlertReducer from './AlertReducer';
 
 const useCustomerPricingInfobhanReducer = create((set) => ({
   isLoading: false,
   customerPriceList: [],
   totalCount: 0,
+
+  isLoadingServiceCodes: false,
+  serviceCodes: [],
+
+  isSaving: false,
+
+  getAllServiceCodes: async () => {
+    try {
+      set({ isLoadingServiceCodes: true });
+      const { data } = await customerPricingInfobhanService.getAllServiceCodes();
+      const raw = data?.data ?? data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+      set({ serviceCodes: list, isLoadingServiceCodes: false });
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({ isLoadingServiceCodes: false, serviceCodes: [] });
+      showError(
+        error?.response?.data?.message ??
+          error?.message ??
+          'Failed to fetch service codes'
+      );
+    }
+  },
+
+  savePricing: async ({ payload, cb }) => {
+    try {
+      set({ isSaving: true });
+      const { data } = await customerPricingInfobhanService.savePricing(payload);
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Customer pricing saved successfully');
+      set({ isSaving: false });
+      cb && cb();
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({ isSaving: false });
+      showError(
+        error?.response?.data?.message ??
+          error?.message ??
+          'Failed to save customer pricing'
+      );
+    }
+  },
 
   getCustomerPriceList: async ({ params }) => {
     try {
