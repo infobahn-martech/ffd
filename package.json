@@ -1,6 +1,6 @@
 {
   "name": "kanbanboardfe",
-"homepage": "https://infobahn-martech.github.io/sedres-fe/",
+ "homepage": "https://sedres-fe.github.io/kanbanBoardFE/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
