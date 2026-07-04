@@ -420,7 +420,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="notebook" label="Notes" accent="slate">
+                <FormGroup icon="notebook" label="Notes" accent="blue">
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor

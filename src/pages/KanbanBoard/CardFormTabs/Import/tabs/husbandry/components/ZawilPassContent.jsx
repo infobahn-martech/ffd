@@ -278,7 +278,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     </FormField>
                   </FormGroup>
 
-                  <FormGroup icon="notebook" label="Notes" accent="slate">
+                  <FormGroup icon="notebook" label="Notes" accent="blue">
                     <div className="zawilpass-remarks">
                       <FormField label="Remarks">
                         <ReactQuillEditor

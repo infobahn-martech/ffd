@@ -700,7 +700,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormGroup>
                 )}
 
-                <FormGroup icon="notebook" label="Notes" accent="slate">
+                <FormGroup icon="notebook" label="Notes" accent="blue">
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor
