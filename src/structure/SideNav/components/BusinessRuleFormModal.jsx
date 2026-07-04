@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS,
+  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
@@ -391,6 +391,212 @@ function CreateActionModal({ show, onClose, onSelect }) {
   );
 }
 
+function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels }) {
+  const [selected, setSelected] = useState(null);
+  const [expandedRegularFields, setExpandedRegularFields] = useState(true);
+  const [expandedCustomFields, setExpandedCustomFields] = useState(true);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [showDisabled, setShowDisabled] = useState(false);
+  const [filterText, setFilterText] = useState('');
+
+  const { customFields, isLoadingCustomFields, getCustomFields } = useBusinessRuleReducer((s) => s);
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
+
+  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+
+  const isFieldUsed = (field) =>
+    (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredRegularOptions = filterQuery
+    ? UPDATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : UPDATE_ACTION_OPTIONS;
+  const matchesFilter = (field) => getFieldLabel(field).toLowerCase().includes(filterQuery);
+  const filteredCustomFields = filterQuery ? displayCustomFields.filter(matchesFilter) : displayCustomFields;
+
+  useEffect(() => {
+    if (!show) return;
+    setSelected(null);
+    setFilterText('');
+    if (workspaces.length === 0) listAllWorkspaces();
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
+  }, [selectedBoardId, showDisabled]);
+
+  const handlePickAction = (option) => {
+    setSelected({ key: `action-${option.key}`, type: 'action', item: option });
+  };
+
+  const handlePickCustom = (field, idx) => {
+    setSelected({ key: `custom-${field.custom_field_id ?? idx}`, type: 'custom', item: field });
+  };
+
+  const handleAdd = () => {
+    if (!selected) return;
+    onSelect(selected.item, { category_key: selected.type });
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Refine Update Criteria</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedRegularFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedRegularFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expandedRegularFields && (
+              <div className="br-property-pill-grid">
+                {filteredRegularOptions.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredRegularOptions.map((option) => (
+                    <PropertyPill
+                      key={option.key}
+                      pillKey={option.key}
+                      label={option.label}
+                      selected={selected?.key === `action-${option.key}`}
+                      onClick={() => handlePickAction(option)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedCustomFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Custom fields
+            </button>
+            {expandedCustomFields && (
+              <>
+                <div className="br-property-board-filter">
+                  <span className="br-property-board-filter-label">Show fields from board:</span>
+                  <div className="br-property-board-filter-row">
+                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
+                      <select
+                        className="business-rule-form-select"
+                        value={selectedBoardId}
+                        onChange={(e) => setSelectedBoardId(e.target.value)}
+                      >
+                        <option value="">All Boards</option>
+                        {boards.map((b) => (
+                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
+                        ))}
+                      </select>
+                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                    </div>
+                    <button
+                      type="button"
+                      className="br-property-board-clear-btn"
+                      onClick={() => setSelectedBoardId('')}
+                      aria-label="Reset board filter"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="business-rule-form-toggle br-property-disabled-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showDisabled}
+                    onChange={(e) => setShowDisabled(e.target.checked)}
+                  />
+                  <span className="business-rule-form-toggle-track" aria-hidden />
+                  <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
+                </label>
+
+                <div className="br-property-pill-grid">
+                  {isLoadingCustomFields ? (
+                    <div className="br-property-picker-empty">Loading...</div>
+                  ) : filteredCustomFields.length === 0 ? (
+                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : (
+                    filteredCustomFields.map((field, idx) => {
+                      const key = `custom-${field.custom_field_id ?? idx}`;
+                      return (
+                        <PropertyPill
+                          key={key}
+                          pillKey={key}
+                          label={getFieldLabel(field)}
+                          selected={selected?.key === key}
+                          dotColor={getPropertyDotColor(idx)}
+                          disabled={isFieldUsed(field)}
+                          onClick={() => handlePickCustom(field, idx)}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selected}
+            onClick={handleAdd}
+          >
+            Add
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -401,6 +607,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [createActions, setCreateActions] = useState([]);
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
+  const [updateActions, setUpdateActions] = useState([]);
+  const [showUpdateActionPicker, setShowUpdateActionPicker] = useState(false);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -413,6 +621,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowPropertyPicker(false);
     setCreateActions([]);
     setShowCreateActionPicker(false);
+    setUpdateActions([]);
+    setShowUpdateActionPicker(false);
   }, [show, rule]);
 
   if (!rule) return null;
@@ -427,6 +637,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       disallowTriggerChain,
       conditions,
       createActions,
+      updateActions,
     });
     onClose();
   };
@@ -458,6 +669,22 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveCreateAction = (id) => {
     setCreateActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleSelectUpdateAction = (item, meta) => {
+    if (meta.category_key === 'custom') {
+      const rawLabel = getFieldLabel(item);
+      setUpdateActions((prev) => [
+        ...prev,
+        { id: Date.now(), category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel },
+      ]);
+    } else {
+      setUpdateActions((prev) => [...prev, { id: Date.now(), category: 'action', key: item.key, label: item.label }]);
+    }
+  };
+
+  const handleRemoveUpdateAction = (id) => {
+    setUpdateActions((prev) => prev.filter((a) => a.id !== id));
   };
 
   const boardLabel = boardName?.trim() || 'Current board';
@@ -650,10 +877,27 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'update' && updateActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-chip">
+                        <span className="business-rule-form-action-chip-label">{action.label}</span>
+                        <button
+                          type="button"
+                          className="business-rule-form-condition-remove"
+                          onClick={() => handleRemoveUpdateAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+
                     <button
                       type="button"
                       className="business-rule-form-add-action"
-                      onClick={section.id === 'create' ? () => setShowCreateActionPicker(true) : undefined}
+                      onClick={() => {
+                        if (section.id === 'create') setShowCreateActionPicker(true);
+                        if (section.id === 'update') setShowUpdateActionPicker(true);
+                      }}
                     >
                       <FiPlus size={14} aria-hidden />
                       Add new action
@@ -687,6 +931,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showCreateActionPicker}
       onClose={() => setShowCreateActionPicker(false)}
       onSelect={handleSelectCreateAction}
+    />
+
+    <RefineUpdateCriteriaModal
+      show={showUpdateActionPicker}
+      onClose={() => setShowUpdateActionPicker(false)}
+      onSelect={handleSelectUpdateAction}
+      existingFieldLabels={updateActions
+        .filter((a) => a.category === 'custom')
+        .map((a) => a.rawLabel.trim().toLowerCase())}
     />
     </>
   );
@@ -723,6 +976,13 @@ CardPropertyMatchModal.propTypes = {
 
 CreateActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+};
+
+RefineUpdateCriteriaModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
 };
