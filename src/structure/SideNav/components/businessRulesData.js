@@ -68,6 +68,14 @@ export const CREATE_ACTION_OPTIONS = [
   { key: 'successor', label: 'Create successor' },
 ];
 
+export const LINK_ACTION_OPTIONS = [
+  { key: 'child', label: 'Link as child' },
+  { key: 'parent', label: 'Link as parent' },
+  { key: 'predecessor', label: 'Link as predecessor' },
+  { key: 'relative', label: 'Link as relative' },
+  { key: 'successor', label: 'Link as successor' },
+];
+
 // Dev-only fallback data for the "Card property match" modal, used when the
 // real business_rule field endpoints return nothing (e.g. local dev without
 // a live backend). Never shown in production builds.
