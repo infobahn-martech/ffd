@@ -57,14 +57,16 @@ function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick })
   );
 }
 
-function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }) {
+function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
   const [selected, setSelected] = useState(null);
+  const [selectedRegularFields, setSelectedRegularFields] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [expandedTimeUnit, setExpandedTimeUnit] = useState(true);
   const [expandedCustomFields, setExpandedCustomFields] = useState(true);
   const [selectedBoardId, setSelectedBoardId] = useState('');
   const [showDisabled, setShowDisabled] = useState(false);
   const [filterText, setFilterText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const {
     regularFields, isLoadingRegularFields, getRegularFields,
@@ -85,15 +87,15 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }
 
   const filterQuery = filterText.trim().toLowerCase();
   const matchesFilter = (field) => getFieldLabel(field).toLowerCase().includes(filterQuery);
-  const filteredRegularFields = filterQuery ? displayRegularFields.filter(matchesFilter) : displayRegularFields;
   const filteredTimeUnits = filterQuery ? displayTimeUnits.filter(matchesFilter) : displayTimeUnits;
   const filteredCustomFields = filterQuery ? displayCustomFields.filter(matchesFilter) : displayCustomFields;
 
   useEffect(() => {
     if (!show) return;
     setSelected(null);
+    setSelectedRegularFields([]);
     setFilterText('');
-    if (regularFields.length === 0) getRegularFields();
+    setDebouncedSearch('');
     if (timeUnits.length === 0) getTimeUnits();
     if (workspaces.length === 0) listAllWorkspaces();
     getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
@@ -104,14 +106,35 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }
     getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
   }, [selectedBoardId, showDisabled]);
 
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(filterText.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [filterText]);
+
+  useEffect(() => {
+    if (!show) return;
+    getRegularFields({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
+  }, [show, debouncedSearch, triggerTypeId]);
+
   const handlePick = (type, field) => {
     const key = `${type}-${field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? getFieldLabel(field)}`;
     setSelected({ key, type, field });
   };
 
+  const handleToggleRegularField = (field, key) => {
+    setSelectedRegularFields((prev) =>
+      prev.some((item) => item.key === key)
+        ? prev.filter((item) => item.key !== key)
+        : [...prev, { key, field }]
+    );
+  };
+
   const handleAdd = () => {
-    if (!selected) return;
-    onSelect(selected.field, { category_key: selected.type });
+    if (selectedRegularFields.length === 0 && !selected) return;
+    selectedRegularFields.forEach(({ field }) => onSelect(field, { category_key: 'regular' }));
+    if (selected) onSelect(selected.field, { category_key: selected.type });
     onClose();
   };
 
@@ -163,19 +186,19 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }
               <div className="br-property-pill-grid">
                 {isLoadingRegularFields ? (
                   <div className="br-property-picker-empty">Loading...</div>
-                ) : filteredRegularFields.length === 0 ? (
+                ) : displayRegularFields.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
-                  filteredRegularFields.map((field, idx) => {
+                  displayRegularFields.map((field, idx) => {
                     const key = `regular-${field.regular_field_id ?? idx}`;
                     return (
                       <PropertyPill
                         key={key}
                         pillKey={key}
                         label={getFieldLabel(field)}
-                        selected={selected?.key === key}
+                        selected={selectedRegularFields.some((item) => item.key === key)}
                         disabled={isFieldUsed(field)}
-                        onClick={() => handlePick('regular', field)}
+                        onClick={() => handleToggleRegularField(field, key)}
                       />
                     );
                   })
@@ -300,7 +323,7 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={!selected}
+            disabled={selectedRegularFields.length === 0 && !selected}
             onClick={handleAdd}
           >
             Add
@@ -312,13 +335,13 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels }
 }
 
 function CreateActionModal({ show, onClose, onSelect }) {
-  const [selectedKey, setSelectedKey] = useState(null);
+  const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [filterText, setFilterText] = useState('');
 
   useEffect(() => {
     if (!show) return;
-    setSelectedKey(null);
+    setSelectedKeys([]);
     setFilterText('');
   }, [show]);
 
@@ -327,10 +350,17 @@ function CreateActionModal({ show, onClose, onSelect }) {
     ? CREATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
     : CREATE_ACTION_OPTIONS;
 
+  const handleToggleOption = (key) => {
+    setSelectedKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
   const handleAdd = () => {
-    const option = CREATE_ACTION_OPTIONS.find((opt) => opt.key === selectedKey);
-    if (!option) return;
-    onSelect(option);
+    if (selectedKeys.length === 0) return;
+    CREATE_ACTION_OPTIONS
+      .filter((opt) => selectedKeys.includes(opt.key))
+      .forEach((option) => onSelect(option));
     onClose();
   };
 
@@ -388,8 +418,8 @@ function CreateActionModal({ show, onClose, onSelect }) {
                       key={option.key}
                       pillKey={option.key}
                       label={option.label}
-                      selected={selectedKey === option.key}
-                      onClick={() => setSelectedKey(option.key)}
+                      selected={selectedKeys.includes(option.key)}
+                      onClick={() => handleToggleOption(option.key)}
                     />
                   ))
                 )}
@@ -402,7 +432,7 @@ function CreateActionModal({ show, onClose, onSelect }) {
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={!selectedKey}
+            disabled={selectedKeys.length === 0}
             onClick={handleAdd}
           >
             Add
@@ -1246,7 +1276,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setConditions((prev) => [
       ...prev,
       {
-        id: Date.now(),
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         fieldLabel: getFieldLabel(field),
         fieldKey: field.field_key ?? field.unit_key ?? String(field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? ''),
         category: category.category_key,
@@ -1260,7 +1290,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleSelectCreateAction = (option) => {
-    setCreateActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+    setCreateActions((prev) => [
+      ...prev,
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, key: option.key, label: option.label },
+    ]);
   };
 
   const handleRemoveCreateAction = (id) => {
@@ -1641,6 +1674,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowPropertyPicker(false)}
       onSelect={handleSelectProperty}
       existingFieldLabels={['board', ...conditions.map((c) => c.fieldLabel.trim().toLowerCase())]}
+      triggerTypeId={rule.id}
     />
 
     <CreateActionModal
@@ -1708,6 +1742,7 @@ CardPropertyMatchModal.propTypes = {
   existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.number,
 };
 
 CreateActionModal.propTypes = {
