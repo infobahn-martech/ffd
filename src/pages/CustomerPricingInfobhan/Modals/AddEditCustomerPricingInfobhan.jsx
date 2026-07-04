@@ -174,16 +174,6 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                                 </div>
                             </div>
 
-                        </div>
-                    </div>
-
-                    {/* Pricing */}
-                    <div className="cpi-section">
-                        <div className="cpi-section-header">
-                            <h6 className="cpi-section-title">Pricing</h6>
-                        </div>
-                        <div className="cpi-grid-2">
-
                             <div className="cpi-field">
                                 <div className="form-floating desig-inp">
                                     <input
@@ -245,7 +235,6 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                                                         inputMode="decimal"
                                                         className={`form-control form-control-sm cpi-price-input ${errors.entities?.[index]?.custom_price ? "is-invalid" : ""
                                                             }`}
-                                                        placeholder="Custom Price"
                                                         {...register(`entities.${index}.custom_price`, {
                                                             validate: (v) =>
                                                                 v === "" ||

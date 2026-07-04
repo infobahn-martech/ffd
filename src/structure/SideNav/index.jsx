@@ -402,7 +402,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         { menu: 'Group Email', to: '/group-email', hasPermission: true },
         { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
         { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
-        { menu: 'Customer Pricing Infobhan', to: '/customer-pricing-infobhan', hasPermission: true },
+        // { menu: 'Customer Pricing Infobhan', to: '/customer-pricing-infobhan', hasPermission: true },
+      
         { menu: 'Crew Management', to: '/crew-management', hasPermission: true },
         { menu: 'MWP History', to: "/mwp-history", hasPermission: true },
         // { menu: 'Job Status', to: '/job-status', hasPermission: true },
