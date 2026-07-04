@@ -2,16 +2,36 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import ReactQuill, { Quill } from 'react-quill';
+import QuillTableBetter from 'quill-table-better';
+import 'react-quill/dist/quill.snow.css';
+import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_WORKSPACE_BOARDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
+  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_INTERNAL_USERS,
+  DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+
+Quill.register({ 'modules/table-better': QuillTableBetter }, true);
+QuillTableBetter.register();
+
+// Custom inline format so the "field pill" tokens (e.g. Title, Author) in the
+// notification body survive Quill's HTML sanitization instead of collapsing to
+// plain text — Quill only preserves attributes tied to a registered format.
+const QuillInlineBlot = Quill.import('blots/inline');
+class NotificationPillBlot extends QuillInlineBlot {}
+NotificationPillBlot.blotName = 'pill';
+NotificationPillBlot.tagName = 'span';
+NotificationPillBlot.className = 'notification-pill';
+Quill.register(NotificationPillBlot);
+const QuillDelta = Quill.import('delta');
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
 
@@ -929,6 +949,231 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   );
 }
 
+function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
+  const [to, setTo] = useState('');
+  const [cc, setCc] = useState('');
+  const [subjectParts, setSubjectParts] = useState(DUMMY_NOTIFICATION_SUBJECT_PARTS);
+  const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const quillRef = useRef(null);
+
+  useEffect(() => {
+    if (!show) return;
+    setTo(initialSettings?.to ?? '');
+    setCc(initialSettings?.cc ?? '');
+    setSubjectParts(initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
+    setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
+    setOpenDropdown(null);
+  }, [show, initialSettings]);
+
+  useEffect(() => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill || quill._pillMatcherAdded) return;
+    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert(node.textContent, { pill: true }));
+    quill._pillMatcherAdded = true;
+  }, [show]);
+
+  const appendToken = (setter, current, value) => {
+    setter(current ? `${current}, ${value}` : value);
+  };
+
+  const handleAddSubjectField = (field) => {
+    setSubjectParts((prev) => [...prev, { type: 'pill', value: field }]);
+    setOpenDropdown(null);
+  };
+
+  const handleSave = () => {
+    onSave({ to, cc, subjectParts, bodyContent });
+    onClose();
+  };
+
+  const quillModules = useMemo(() => ({
+    table: false,
+    toolbar: [
+      [{ size: ['small', false, 'large', 'huge'] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      ['link'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['image', 'table-better'],
+      ['clean'],
+    ],
+    'table-better': {
+      language: 'en_US',
+      menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+      toolbarTable: true,
+    },
+    keyboard: { bindings: QuillTableBetter.keyboardBindings },
+  }), []);
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal notification-settings-modal"
+      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Notification Message Settings</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body notification-settings-body">
+          <div className="notification-field">
+            <label className="business-rule-form-label">From:</label>
+            <div className="business-rule-form-select-wrap">
+              <select className="business-rule-form-select" value={DUMMY_NOTIFICATION_FROM_EMAIL} disabled>
+                <option value={DUMMY_NOTIFICATION_FROM_EMAIL}>{DUMMY_NOTIFICATION_FROM_EMAIL}</option>
+              </select>
+              <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+            </div>
+          </div>
+
+          <div className="notification-field">
+            <div className="notification-field-head">
+              <label className="business-rule-form-label">To:</label>
+              <div className="notification-field-actions">
+                <div className="notification-dropdown-wrap">
+                  <button
+                    type="button"
+                    className="notification-dropdown-trigger"
+                    onClick={() => setOpenDropdown((v) => (v === 'to-users' ? null : 'to-users'))}
+                  >
+                    add internal users <FiChevronDown size={12} aria-hidden />
+                  </button>
+                  {openDropdown === 'to-users' && (
+                    <div className="notification-dropdown-panel">
+                      {DUMMY_INTERNAL_USERS.map((u) => (
+                        <button type="button" key={u} onClick={() => { appendToken(setTo, to, u); setOpenDropdown(null); }}>{u}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="notification-dropdown-wrap">
+                  <button
+                    type="button"
+                    className="notification-dropdown-trigger"
+                    onClick={() => setOpenDropdown((v) => (v === 'to-fields' ? null : 'to-fields'))}
+                  >
+                    add custom fields <FiChevronDown size={12} aria-hidden />
+                  </button>
+                  {openDropdown === 'to-fields' && (
+                    <div className="notification-dropdown-panel">
+                      {DUMMY_CUSTOM_FIELDS.slice(0, 8).map((f) => (
+                        <button type="button" key={f.custom_field_id} onClick={() => { appendToken(setTo, to, f.field_label); setOpenDropdown(null); }}>{f.field_label}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <input type="text" className="business-rule-form-input" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+
+          <div className="notification-field">
+            <div className="notification-field-head">
+              <label className="business-rule-form-label">Cc:</label>
+              <div className="notification-field-actions">
+                <div className="notification-dropdown-wrap">
+                  <button
+                    type="button"
+                    className="notification-dropdown-trigger"
+                    onClick={() => setOpenDropdown((v) => (v === 'cc-users' ? null : 'cc-users'))}
+                  >
+                    add internal users <FiChevronDown size={12} aria-hidden />
+                  </button>
+                  {openDropdown === 'cc-users' && (
+                    <div className="notification-dropdown-panel">
+                      {DUMMY_INTERNAL_USERS.map((u) => (
+                        <button type="button" key={u} onClick={() => { appendToken(setCc, cc, u); setOpenDropdown(null); }}>{u}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="notification-dropdown-wrap">
+                  <button
+                    type="button"
+                    className="notification-dropdown-trigger"
+                    onClick={() => setOpenDropdown((v) => (v === 'cc-fields' ? null : 'cc-fields'))}
+                  >
+                    add custom fields <FiChevronDown size={12} aria-hidden />
+                  </button>
+                  {openDropdown === 'cc-fields' && (
+                    <div className="notification-dropdown-panel">
+                      {DUMMY_CUSTOM_FIELDS.slice(0, 8).map((f) => (
+                        <button type="button" key={f.custom_field_id} onClick={() => { appendToken(setCc, cc, f.field_label); setOpenDropdown(null); }}>{f.field_label}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <input type="text" className="business-rule-form-input" value={cc} onChange={(e) => setCc(e.target.value)} />
+          </div>
+
+          <div className="notification-field">
+            <div className="notification-field-head">
+              <label className="business-rule-form-label">Subject:</label>
+              <div className="notification-field-actions">
+                <div className="notification-dropdown-wrap">
+                  <button
+                    type="button"
+                    className="notification-dropdown-trigger"
+                    onClick={() => setOpenDropdown((v) => (v === 'subject-fields' ? null : 'subject-fields'))}
+                  >
+                    add card fields <FiChevronDown size={12} aria-hidden />
+                  </button>
+                  {openDropdown === 'subject-fields' && (
+                    <div className="notification-dropdown-panel">
+                      {DUMMY_NOTIFICATION_FIELDS.map((f) => (
+                        <button type="button" key={f} onClick={() => handleAddSubjectField(f)}>{f}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="notification-subject-box">
+              {subjectParts.map((part, idx) => (
+                part.type === 'pill' ? (
+                  <span key={idx} className="notification-pill">{part.value}</span>
+                ) : (
+                  <span key={idx} className="notification-subject-text">{part.value}</span>
+                )
+              ))}
+            </div>
+          </div>
+
+          <div className="notification-field">
+            <label className="business-rule-form-label">Body:</label>
+            <div className="notification-quill-wrap">
+              <ReactQuill ref={quillRef} theme="snow" modules={quillModules} value={bodyContent} onChange={setBodyContent} />
+            </div>
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button type="button" className="br-property-add-btn" onClick={handleSave}>
+            Save
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -946,6 +1191,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
   const [updateActions, setUpdateActions] = useState([]);
   const [showUpdateActionPicker, setShowUpdateActionPicker] = useState(false);
+  const [notifyActions, setNotifyActions] = useState([]);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [activeNotifyActionId, setActiveNotifyActionId] = useState(null);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -965,6 +1213,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setActiveMoveActionId(null);
     setUpdateActions([]);
     setShowUpdateActionPicker(false);
+    setNotifyActions([]);
+    setShowNotificationSettings(false);
+    setActiveNotifyActionId(null);
   }, [show, rule]);
 
   if (!rule) return null;
@@ -982,6 +1233,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       linkActions,
       moveActions,
       updateActions,
+      notifyActions,
     });
     onClose();
   };
@@ -1054,16 +1306,39 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       const rawLabel = getFieldLabel(item);
       setUpdateActions((prev) => [
         ...prev,
-        { id: Date.now(), category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel },
+        { id: Date.now(), category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel, field: rawLabel },
       ]);
     } else {
-      setUpdateActions((prev) => [...prev, { id: Date.now(), category: 'action', key: item.key, label: item.label }]);
+      setUpdateActions((prev) => [
+        ...prev,
+        { id: Date.now(), category: 'action', key: item.key, label: item.label, field: item.field },
+      ]);
     }
   };
 
   const handleRemoveUpdateAction = (id) => {
     setUpdateActions((prev) => prev.filter((a) => a.id !== id));
   };
+
+  const handleAddNotifyAction = () => {
+    const option = NOTIFY_ACTION_OPTIONS[0];
+    setNotifyActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+  };
+
+  const handleRemoveNotifyAction = (id) => {
+    setNotifyActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenNotificationSettings = (id) => {
+    setActiveNotifyActionId(id);
+    setShowNotificationSettings(true);
+  };
+
+  const handleSaveNotificationSettings = (settings) => {
+    setNotifyActions((prev) => prev.map((a) => (a.id === activeNotifyActionId ? { ...a, ...settings, configured: true } : a)));
+  };
+
+  const activeNotifyAction = notifyActions.find((a) => a.id === activeNotifyActionId);
 
   const boardLabel = boardName?.trim() || 'Current board';
 
@@ -1271,7 +1546,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
                     {section.id === 'update' && updateActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-chip">
-                        <span className="business-rule-form-action-chip-label">{action.label}</span>
+                        <span className="business-rule-form-action-chip-label">
+                          {action.field ? (
+                            <>{action.field}: <span className="notification-pill">{action.field}</span></>
+                          ) : action.label}
+                        </span>
                         <button
                           type="button"
                           className="business-rule-form-condition-remove"
@@ -1304,6 +1583,27 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'notify' && notifyActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveNotifyAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-link"
+                          onClick={() => handleOpenNotificationSettings(action.id)}
+                        >
+                          {action.configured ? 'Configured' : 'Not Set'}
+                        </button>
+                      </div>
+                    ))}
+
                     <button
                       type="button"
                       className="business-rule-form-add-action"
@@ -1312,6 +1612,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                         if (section.id === 'link') setShowLinkActionPicker(true);
                         if (section.id === 'move') handleAddMoveAction();
                         if (section.id === 'update') setShowUpdateActionPicker(true);
+                        if (section.id === 'notify') handleAddNotifyAction();
                       }}
                     >
                       <FiPlus size={14} aria-hidden />
@@ -1368,6 +1669,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       existingFieldLabels={updateActions
         .filter((a) => a.category === 'custom')
         .map((a) => a.rawLabel.trim().toLowerCase())}
+    />
+
+    <NotificationSettingsModal
+      show={showNotificationSettings}
+      onClose={() => setShowNotificationSettings(false)}
+      onSave={handleSaveNotificationSettings}
+      initialSettings={activeNotifyAction}
     />
     </>
   );
@@ -1426,6 +1734,18 @@ RefineUpdateCriteriaModal.propTypes = {
   existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+};
+
+NotificationSettingsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  initialSettings: PropTypes.shape({
+    to: PropTypes.string,
+    cc: PropTypes.string,
+    subjectParts: PropTypes.array,
+    bodyContent: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+  }),
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
 };
 
 export default BusinessRuleFormModal;
