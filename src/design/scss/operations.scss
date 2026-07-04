@@ -1731,6 +1731,75 @@ $send-report-optional: #80868b;
   color: var(--card-color, #{$colorPrimary});
 }
 
+/* ==========================================================
+   OPERATION LEFT NAV (OperationTabs.jsx) — Pre Arrival / Arrival /
+   Departure / Check List. Copies the literal, cascade-resolved values from
+   the Husbandry Crew child sidebar (.op-submenu / .op-tab-sub, scoped
+   under .operation-wrapper.husbandry-wrapper above) so both navs render
+   identically. Scoped under .op-tab-nav--main, a modifier only
+   OperationTabs.jsx renders, so it never touches the Husbandry nav or the
+   CallType builder preview — both reuse the bare .operation-left / .op-tab
+   class names.
+
+   Colors here are hardcoded rather than var(--card-color): Crew's active/
+   hover background+text are hardcoded too (its var(--card-color) only ever
+   reaches border-left-color), so reusing the variable here would tint this
+   nav with whatever color the current card happens to have instead of
+   Crew's fixed blue/lavender look.
+
+   The guide line is a real border-left on .op-tab-list (a plain, non-
+   absolutely-positioned wrapper around just the 4 buttons), exactly like
+   .op-submenu — so its height is driven by that content only, never by the
+   full (flex-stretched) sidebar height.
+   ========================================================== */
+.operation-left.op-tab-nav--main {
+  background: $table-header-bg;
+  border-right: 1px solid $border-color-default;
+  padding: $space-5 $space-4;
+  gap: $space-1;
+
+  .op-tab-list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    margin-left: $space-3;
+    padding-left: $space-3;
+    padding-top: $space-1;
+    padding-bottom: $space-1;
+    border-left: 2px solid rgba(0, 54, 140, 0.15);
+  }
+
+  .op-tab {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 12px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: $radius-sm;
+    border-left: 2px solid transparent;
+    background: transparent;
+    color: $txtColor;
+  }
+
+  .op-tab:hover {
+    background: #e2e6ff;
+    color: #333333;
+  }
+
+  .op-tab.active {
+    background: #e2e6ff;
+    color: #333333;
+    border-left-color: $colorPrimary;
+    font-weight: 600;
+  }
+
+  .op-tab:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
+  }
+}
+
 .operation-right {
   flex: 1;
   display: flex;
