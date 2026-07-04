@@ -1,14 +1,11 @@
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
-import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
 import {
   FormSection,
   FormField,
   ReactQuillEditor,
-  getCrewMultiSelectStyles,
-  formatCrewOptionLabel,
   FormGroup,
   PremiumCardHeader,
 } from "./Husbandry.components";
@@ -26,11 +23,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
   const requestEmailInputRef = useRef(null);
 
   const {
-    crewOptions,
-    crewLoading,
-    crewLoadState,
-    crewEmpty,
-    crewPlaceholder,
     saving,
     handleSave,
     passRequests,
@@ -39,26 +31,10 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
     passType: "Zawil",
     formValues,
     card,
-    selectedCrewField: "zawilPassSelectedCrew",
     remarksField: "zawilPassDescription",
     documentsField: "zawilPassDocuments",
     requestEmailFileField: "zawilPassRequestEmailFile",
   });
-
-  const handleCrewChange = (selectedOptions) => {
-    const values = selectedOptions?.map((option) => option.value) || [];
-    const syntheticEvent = { target: { value: values } };
-    handleChange("zawilPassSelectedCrew")(syntheticEvent);
-  };
-
-  const selectedCrewValues =
-    (formValues.zawilPassSelectedCrew || [])
-      .map((crewId) =>
-        crewOptions.find((opt) => String(opt.value) === String(crewId))
-      )
-      .filter(Boolean);
-
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -214,47 +190,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                           helperText=".msg, .eml, .pdf, .doc or .docx"
                         />
                       </div>
-                    </FormField>
-                  </FormGroup>
-
-                  <FormGroup icon="crew" label="Crew" accent="purple">
-                    <FormField label="Select Crew">
-                      <div className="cf-select react-select-container crew-multi-select">
-                        <Select
-                          isMulti
-                          value={selectedCrewValues}
-                          onChange={handleCrewChange}
-                          options={crewOptions}
-                          placeholder={crewPlaceholder}
-                          classNamePrefix="react-select"
-                          styles={customSelectStyles}
-                          formatOptionLabel={formatCrewOptionLabel}
-                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                          menuPosition="fixed"
-                          menuShouldBlockScroll={true}
-                          isClearable
-                          isSearchable
-                          closeMenuOnSelect={false}
-                          hideSelectedOptions={false}
-                          isLoading={crewLoading}
-                          isDisabled={crewLoading || crewLoadState === "missing_call_id"}
-                          noOptionsMessage={() =>
-                            crewLoading ? "Loading..." : "No crew found"
-                          }
-                        />
-                      </div>
-                      {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "api_error") ? (
-                        <div className="crew-pass-select-message crew-pass-select-message--error">
-                          {crewLoadState === "missing_call_id"
-                            ? "Call id is required"
-                            : "Unable to load crew"}
-                        </div>
-                      ) : null}
-                      {!crewLoading && crewEmpty ? (
-                        <div className="crew-pass-select-message crew-pass-select-message--empty">
-                          No crew found
-                        </div>
-                      ) : null}
                     </FormField>
                   </FormGroup>
 

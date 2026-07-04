@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
-import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
+import { TRANSPORT_ROUTE_LOCATION_OPTIONS } from "./Husbandry.constants";
 import LocationAutocomplete from "./LocationAutocomplete";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import vehicleService from "../../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../../services/transportCompanyService";
-import crewService from "../../../../../../../services/crewService";
 import callFileService from "../../../../../../../services/callFileService";
 import transportContentService, {
   extractTransportRequestsFromEnvelope,
@@ -69,8 +68,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
 
-  const [crewList, setCrewList] = useState([]);
-  const [loadingCrew, setLoadingCrew] = useState(false);
   const [callDetails, setCallDetails] = useState(null);
 
   useEffect(() => {
@@ -95,41 +92,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       cancelled = true;
     };
   }, [callId]);
-
-  useEffect(() => {
-    if (!callId) {
-      setCrewList([]);
-      setLoadingCrew(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingCrew(true);
-
-    crewService
-      .getCrewByCall(callId)
-      .then(({ data }) => {
-        const list = Array.isArray(data?.data) ? data.data : [];
-        if (!cancelled) setCrewList(list);
-      })
-      .catch(() => {
-        if (!cancelled) setCrewList([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCrew(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [callId]);
-
-  const crewOptions = crewList.map((crew) => ({
-    value: String(crew.crew_change_id ?? ""),
-    label: crew.crew_name || `Crew ${crew.crew_id}`,
-    crewId: crew.crew_id,
-    crewChangeId: crew.crew_change_id,
-  }));
 
   const [transportVehicles, setTransportVehicles] = useState([]);
   const [inhouseDrivers, setInhouseDrivers] = useState([]);
@@ -333,20 +295,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("driverName")({ target: { value: row?.driver_name ?? "" } });
   };
 
-  // Handle multi-select crew change
-  const handleCrewChange = (selectedOptions) => {
-    const values = selectedOptions?.map((option) => option.value) || [];
-    const syntheticEvent = { target: { value: values } };
-    handleChange("selectedCrew")(syntheticEvent);
-  };
-
-  const selectedCrewValues =
-    formValues.selectedCrew
-      ?.map((crewChangeId) => crewOptions.find((opt) => String(opt.value) === String(crewChangeId)))
-      .filter(Boolean) || [];
-
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
-
   const fileToAttachment = (file) => ({
     name: file.name,
     file,
@@ -449,9 +397,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       from_location: formValues.transportFrom || "",
       to_location: formValues.transportTo || "",
       remarks: formValues.transportDescription || "",
-      crew: (formValues.selectedCrew || []).map((id) => ({
-        crew_change_id: Number(id),
-      })),
     };
 
     if (transportType === "inhouse") {
@@ -531,31 +476,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="crew" label="Crew & Provider" accent="purple">
-                  <FormField label="Select Crew">
-                    <div className="cf-select react-select-container crew-multi-select">
-                      <Select
-                        isMulti
-                        value={selectedCrewValues}
-                        onChange={handleCrewChange}
-                        options={crewOptions}
-                        placeholder={loadingCrew ? "Loading crew..." : "Select crew members..."}
-                        classNamePrefix="react-select"
-                        styles={customSelectStyles}
-                        formatOptionLabel={formatCrewOptionLabel}
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        menuPosition="fixed"
-                        menuShouldBlockScroll={true}
-                        isClearable
-                        isSearchable
-                        closeMenuOnSelect={false}
-                        hideSelectedOptions={false}
-                        isLoading={loadingCrew}
-                        isDisabled={loadingCrew || !callId}
-                      />
-                    </div>
-                  </FormField>
-
+                <FormGroup icon="transport" label="Provider" accent="purple">
                   <FormField label="Provider">
                     <div className="transport-type-radio-row">
                       <label className="transport-type-radio">
@@ -667,21 +588,37 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   <div className="transport-route-row">
                     <FieldRow>
                       <FormField label="From">
-                        <LocationAutocomplete
-                          value={formValues.transportFrom || ""}
-                          onChange={handleChange("transportFrom")}
-                          placeholder="Search for a location..."
-                          onLocationSelect={() => {}}
-                        />
+                        <div className="transport-route-select-stack">
+                          <FormSelect
+                            value={formValues.transportFromType || ""}
+                            onChange={handleChange("transportFromType")}
+                            options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
+                            placeholder="Select from..."
+                          />
+                          <LocationAutocomplete
+                            value={formValues.transportFrom || ""}
+                            onChange={handleChange("transportFrom")}
+                            placeholder="Search for a location..."
+                            onLocationSelect={() => {}}
+                          />
+                        </div>
                       </FormField>
 
                       <FormField label="To">
-                        <LocationAutocomplete
-                          value={formValues.transportTo || ""}
-                          onChange={handleChange("transportTo")}
-                          placeholder="Search for a location..."
-                          onLocationSelect={() => {}}
-                        />
+                        <div className="transport-route-select-stack">
+                          <FormSelect
+                            value={formValues.transportToType || ""}
+                            onChange={handleChange("transportToType")}
+                            options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
+                            placeholder="Select to..."
+                          />
+                          <LocationAutocomplete
+                            value={formValues.transportTo || ""}
+                            onChange={handleChange("transportTo")}
+                            placeholder="Search for a location..."
+                            onLocationSelect={() => {}}
+                          />
+                        </div>
                       </FormField>
                     </FieldRow>
                   </div>

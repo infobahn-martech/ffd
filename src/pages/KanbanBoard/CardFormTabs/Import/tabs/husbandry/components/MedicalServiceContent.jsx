@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
-import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
-import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import hospitalService from "../../../../../../../services/hospitalService";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
@@ -25,11 +24,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [hospitalServices, setHospitalServices] = useState([]);
   const [loadingHospitals, setLoadingHospitals] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
-
-  const crewOptions = formValues.crewList?.map((crew) => ({
-    value: crew.id?.toString() || crew.crewName,
-    label: crew.crewName || `Crew Member ${crew.id}`,
-  })) || [];
 
   useEffect(() => {
     let cancelled = false;
@@ -91,21 +85,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("medicalServiceSelectedHospital")(e);
     handleChange("medicalServiceSelectedService")({ target: { value: "" } });
   };
-
-  const handleCrewChange = (selectedOptions) => {
-    const values = selectedOptions?.map((option) => option.value) || [];
-    const syntheticEvent = { target: { value: values } };
-    handleChange("medicalServiceSelectedCrew")(syntheticEvent);
-  };
-
-  const selectedCrewValues =
-    formValues.medicalServiceSelectedCrew
-      ?.map((crewId) =>
-        crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
-      )
-      .filter(Boolean) || [];
-
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -178,30 +157,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="crew" label="Crew" accent="purple">
-                  <FormField label="Select Crew">
-                    <div className="cf-select react-select-container crew-multi-select">
-                      <Select
-                        isMulti
-                        value={selectedCrewValues}
-                        onChange={handleCrewChange}
-                        options={crewOptions}
-                        placeholder="Select crew members..."
-                        classNamePrefix="react-select"
-                        styles={customSelectStyles}
-                        formatOptionLabel={formatCrewOptionLabel}
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        menuPosition="fixed"
-                        menuShouldBlockScroll={true}
-                        isClearable
-                        isSearchable
-                        closeMenuOnSelect={false}
-                        hideSelectedOptions={false}
-                      />
-                    </div>
-                  </FormField>
-                </FormGroup>
-
                 <FormGroup icon="medicalService" label="Care Details" accent="rose">
                   <FieldRow>
                     <FormField label="Hospital">

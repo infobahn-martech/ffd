@@ -74,3 +74,10 @@ export const LAUNCH_HIRE_CREW_MOVEMENT_OPTIONS = [
   { value: "SIGN_OFF", label: "Sign Off" },
 ];
 
+// Transport - Route & Schedule From/To dropdowns.
+// TEMPORARY: no dedicated route-location API exists yet, so this reuses the
+// Launch Hire location list as placeholder data. Swap for an API-backed
+// options source once one is available; keep this isolated to this constant
+// so the swap is a one-line change.
+export const TRANSPORT_ROUTE_LOCATION_OPTIONS = LAUNCH_HIRE_LOCATION_OPTIONS;
+

@@ -4,9 +4,7 @@ import { notify } from "../../../../../../../components/Toaster";
 import {
   createPassRequest,
   extractPassRequestsFromEnvelope,
-  getCrewListForPass,
   getPassRequests,
-  mapAxiosResponseToCrewOptions,
 } from "../../../../../../../services/cgAndZwailpassService";
 
 export const resolvePassCallId = (formValues, card, routeParams) => {
@@ -42,22 +40,17 @@ const pickBackendErrorMessage = (error) => {
 };
 
 /**
- * Shared crew load + save for CG Pass and Zawil Pass tabs.
+ * Shared pass-request save + history fetch for CG Pass and Zawil Pass tabs.
  */
 export function useCrewPassTabApi({
   passType,
   formValues,
   card,
-  selectedCrewField,
   remarksField,
   documentsField,
   requestEmailFileField,
 }) {
   const routeParams = useParams();
-  const [crewOptions, setCrewOptions] = useState([]);
-  const [crewLoading, setCrewLoading] = useState(false);
-  const [crewLoadError, setCrewLoadError] = useState(null);
-  const [crewLoadState, setCrewLoadState] = useState("idle");
   const [saving, setSaving] = useState(false);
   const [passRequests, setPassRequests] = useState({ cg: [], zawil: [] });
   const [passRequestsLoading, setPassRequestsLoading] = useState(false);
@@ -85,54 +78,6 @@ export function useCrewPassTabApi({
     void fetchPassRequests();
   }, [fetchPassRequests, callId]);
 
-  useEffect(() => {
-    if (!callId) {
-      setCrewOptions([]);
-      setCrewLoadError(null);
-      setCrewLoadState("missing_call_id");
-      setCrewLoading(false);
-      return undefined;
-    }
-
-    let cancelled = false;
-    (async () => {
-      setCrewLoading(true);
-      setCrewLoadError(null);
-      setCrewLoadState("loading");
-      try {
-        const response = await getCrewListForPass(callId);
-        const mappedOptions = mapAxiosResponseToCrewOptions(response);
-        if (!cancelled) {
-          setCrewOptions(mappedOptions);
-          setCrewLoadState(mappedOptions.length > 0 ? "success" : "empty");
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setCrewOptions([]);
-          setCrewLoadError(pickBackendErrorMessage(err));
-          setCrewLoadState("api_error");
-        }
-      } finally {
-        if (!cancelled) setCrewLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [callId]);
-
-  const crewEmpty = !crewLoading && crewLoadState === "empty";
-
-  const crewPlaceholder = crewLoading
-    ? "Loading crew..."
-    : crewLoadState === "missing_call_id"
-      ? "Call id is required"
-      : crewLoadState === "api_error" || crewLoadError
-        ? "Unable to load crew"
-        : crewLoadState === "empty"
-          ? "No crew found"
-          : "Select crew members...";
-
   const handleSave = useCallback(async () => {
     const callId = resolvePassCallId(formValues, card, routeParams);
     if (!callId) {
@@ -154,12 +99,6 @@ export function useCrewPassTabApi({
       }
     }
 
-    const selectedCrewIds = formValues?.[selectedCrewField];
-    if (!Array.isArray(selectedCrewIds) || selectedCrewIds.length === 0) {
-      notify("Select at least one crew member.", "error", "top-center");
-      return;
-    }
-
     const remarksRaw = formValues?.[remarksField];
     const remarks =
       remarksRaw === undefined || remarksRaw === null
@@ -170,24 +109,11 @@ export function useCrewPassTabApi({
       ? formValues[documentsField]
       : [];
 
-    const normalizedCrewIds = selectedCrewIds
-      .map((id) => {
-        if (id === undefined || id === null) return null;
-        const trimmed = String(id).trim();
-        if (trimmed === "") return null;
-        const asNumber = Number(trimmed);
-        return Number.isFinite(asNumber) && String(asNumber) === trimmed
-          ? asNumber
-          : trimmed;
-      })
-      .filter((id) => id !== null);
-
     const formData = new FormData();
     formData.append("call_id", callId);
     if (requestEmailFileField && requestEmailFile) {
       formData.append("request_email", requestEmailFile);
     }
-    formData.append("crew_change_ids", JSON.stringify(normalizedCrewIds));
     formData.append("pass_type", passType);
     formData.append("remarks", remarks || "");
 
@@ -218,17 +144,10 @@ export function useCrewPassTabApi({
     remarksField,
     requestEmailFileField,
     routeParams,
-    selectedCrewField,
     fetchPassRequests,
   ]);
 
   return {
-    crewOptions,
-    crewLoading,
-    crewLoadError,
-    crewLoadState,
-    crewEmpty,
-    crewPlaceholder,
     saving,
     handleSave,
     passRequests,

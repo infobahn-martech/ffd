@@ -4004,6 +4004,14 @@ $send-report-optional: #80868b;
       border-left: 1px dashed #cbd5e1;
     }
   }
+
+  /* From/To: route-type dropdown stacked above the LocationAutocomplete
+     search field within the same column. */
+  .transport-route-select-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 }
 
 /* Husbandry CG/Zawil pass: thin scrollbars (scroll regions only) */

@@ -390,13 +390,6 @@ const getCrewSelectionId = (crew) =>
     ""
   );
 
-const getCrewPassSelectionId = (crew) =>
-  String(
-    crew?.crew_change_id ??
-    crew?.crewChangeId ??
-    ""
-  );
-
 /**
  * Reusable crew document cell for the Passport / Visa / Iqama columns.
  *
@@ -737,14 +730,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
   };
 
-  // Action dropdown options
+  // Action dropdown options.
+  // Transport/CG Pass/Zawil Pass/Hotel/Medical no longer have a "Select Crew"
+  // field to receive this push (crew selection was removed from those tabs),
+  // so only Launch Hire — which has its own dedicated push target — remains.
   const allActionOptions = [
-    { value: "transport", label: "Transport", tab: "transport", field: "selectedCrew" },
-    { value: "cgPass", label: "CG Pass", tab: "cgPass", field: "cgPassSelectedCrew" },
-    { value: "zawilPass", label: "Zawil Pass", tab: "zawilPass", field: "zawilPassSelectedCrew" },
     { value: "launchHire", label: "Launch Hire", tab: "launchHire", field: "launchHireSelectedCrew" },
-    { value: "hotel", label: "Hotel", tab: "hotel", field: "hotelSelectedCrew" },
-    { value: "medicalService", label: "Medical", tab: "medicalService", field: "medicalServiceSelectedCrew" },
   ];
 
   // Filter action options based on launchHireOnly prop
@@ -754,19 +745,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Handle action dropdown selection
   const handleActionSelect = (option) => {
-    const selectedRows = displayCrewList.filter((crew) =>
-      selectedCrewIds.some(
-        (selectedId) => String(selectedId) === String(getCrewSelectionId(crew))
-      )
-    );
-
-    // Pass selected crew ids using real crew_id values.
-    const crewIdStrings =
-      option.field === "cgPassSelectedCrew" || option.field === "zawilPassSelectedCrew"
-        ? selectedRows
-          .map((crew) => getCrewPassSelectionId(crew))
-          .filter((id) => id !== "")
-        : selectedCrewIds.map((id) => String(id));
+    const crewIdStrings = selectedCrewIds.map((id) => String(id));
 
     const syntheticEvent = { target: { value: crewIdStrings } };
     handleChange(option.field)(syntheticEvent);
@@ -2168,7 +2147,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       <span className="crew-header-btn__label">Launch Hire</span>
                     </button>
                   </>
-                ) : showActionDropdown && !launchHireOnly ? (
+                ) : showActionDropdown && !launchHireOnly && actionOptions.length > 0 ? (
                   <div className="crew-header-select-wrap crew-header-select-wrap--action">
                     <select
                       className="crew-header-select crew-header-select--action"

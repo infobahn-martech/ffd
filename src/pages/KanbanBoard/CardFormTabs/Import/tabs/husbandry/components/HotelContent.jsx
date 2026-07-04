@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
-import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import hotelService, {
   extractHotelRequestsFromEnvelope,
   flattenHotelRequestRows,
 } from "../../../../../../../services/hotelService";
-import crewService from "../../../../../../../services/crewService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 
@@ -54,48 +52,11 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const [hotels, setHotels] = useState([]);
   const [loadingHotels, setLoadingHotels] = useState(false);
-  const [crewList, setCrewList] = useState([]);
-  const [loadingCrew, setLoadingCrew] = useState(false);
   const [isSavingHotel, setIsSavingHotel] = useState(false);
   const [hotelRequests, setHotelRequests] = useState([]);
   const [loadingHotelRequests, setLoadingHotelRequests] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-
-  useEffect(() => {
-    if (!callId) {
-      setCrewList([]);
-      setLoadingCrew(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingCrew(true);
-
-    crewService
-      .getCrewByCall(callId)
-      .then(({ data }) => {
-        const list = Array.isArray(data?.data) ? data.data : [];
-        if (!cancelled) setCrewList(list);
-      })
-      .catch(() => {
-        if (!cancelled) setCrewList([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCrew(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [callId]);
-
-  const crewOptions = crewList.map((crew) => ({
-    value: String(crew.crew_change_id ?? ""),
-    label: crew.crew_name || `Crew ${crew.crew_id}`,
-    crewId: crew.crew_id,
-    crewChangeId: crew.crew_change_id,
-  }));
 
   const fetchHotelRequests = useCallback(async () => {
     if (!callId) {
@@ -150,21 +111,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     const row = hotels.find((h) => String(h.hotel_id ?? h._id) === id);
     handleChange("hotelName")({ target: { value: row?.hotel_name ?? "" } });
   };
-
-  const handleCrewChange = (selectedOptions) => {
-    const values = selectedOptions?.map((option) => option.value) || [];
-    const syntheticEvent = { target: { value: values } };
-    handleChange("hotelSelectedCrew")(syntheticEvent);
-  };
-
-  const selectedCrewValues =
-    formValues.hotelSelectedCrew
-      ?.map((crewChangeId) =>
-        crewOptions.find((opt) => String(opt.value) === String(crewChangeId))
-      )
-      .filter(Boolean) || [];
-
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -250,12 +196,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       return;
     }
 
-    const selectedCrew = formValues.hotelSelectedCrew || [];
-    if (selectedCrew.length === 0) {
-      notify("Select at least one crew member.", "error", "top-center");
-      return;
-    }
-
     const checkinDatetime = buildPickupDateTime(
       formValues.hotelCheckInDate,
       formValues.hotelCheckInTime
@@ -281,9 +221,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       checkin_datetime: checkinDatetime,
       checkout_datetime: checkoutDatetime,
       remarks: formValues.hotelDescription || "",
-      crew: selectedCrew.map((id) => ({
-        crew_change_id: Number(id),
-      })),
     };
 
     const formData = new FormData();
@@ -329,32 +266,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="crew" label="Crew" accent="purple">
-                  <FormField label="Select Crew">
-                    <div className="cf-select react-select-container crew-multi-select">
-                      <Select
-                        isMulti
-                        value={selectedCrewValues}
-                        onChange={handleCrewChange}
-                        options={crewOptions}
-                        placeholder={loadingCrew ? "Loading crew..." : "Select crew members..."}
-                        classNamePrefix="react-select"
-                        styles={customSelectStyles}
-                        formatOptionLabel={formatCrewOptionLabel}
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        menuPosition="fixed"
-                        menuShouldBlockScroll={true}
-                        isClearable
-                        isSearchable
-                        closeMenuOnSelect={false}
-                        hideSelectedOptions={false}
-                        isLoading={loadingCrew}
-                        isDisabled={loadingCrew || !callId}
-                      />
-                    </div>
-                  </FormField>
-                </FormGroup>
-
                 <FormGroup icon="calendar" label="Stay Details" accent="teal">
                   <FormField label="Hotel Name">
                     <FormSelect
