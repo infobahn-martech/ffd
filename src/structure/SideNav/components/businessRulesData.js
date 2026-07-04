@@ -80,25 +80,79 @@ export const MOVE_ACTION_OPTIONS = [
   { key: 'move_to', label: 'Move card to' },
 ];
 
+export const NOTIFY_ACTION_OPTIONS = [
+  { key: 'send_notification', label: 'Send notification' },
+];
+
+// Dev-only fallback data for the "Notification Message Settings" modal.
+export const DUMMY_NOTIFICATION_FROM_EMAIL = 'sedres_notifications@kanbanize.com';
+
+export const DUMMY_NOTIFICATION_FIELDS = ['Title', 'Board Name', 'Internal Card Id', 'Author', 'Card URL', 'Description'];
+
+export const DUMMY_INTERNAL_USERS = ['John Smith', 'Sarah Ahmed', 'Mohammed Al-Farsi'];
+
+export const DUMMY_NOTIFICATION_SUBJECT_PARTS = [
+  { type: 'pill', value: 'Title' },
+  { type: 'text', value: ' - {' },
+  { type: 'pill', value: 'Board Name' },
+  { type: 'text', value: '}{' },
+  { type: 'pill', value: 'Internal Card Id' },
+  { type: 'text', value: '} New card created' },
+];
+
+// Quill strips unrecognized classes/attributes when parsing raw HTML (it only keeps
+// known formats), so pill spans would render as plain text if passed to the editor as
+// an HTML string. Building the initial content as Quill Delta ops instead (with a
+// custom "pill" format registered in BusinessRuleFormModal.jsx) preserves them.
+function bulletPillLine(label, pillText) {
+  return [
+    { insert: `${label}: ` },
+    { insert: pillText, attributes: { pill: true } },
+    { insert: '\n', attributes: { list: 'bullet' } },
+  ];
+}
+
+export const DUMMY_NOTIFICATION_BODY_DELTA_OPS = [
+  { insert: 'New card has been created by ', attributes: { bold: true } },
+  { insert: 'Author', attributes: { pill: true } },
+  { insert: '\n\n' },
+  { insert: 'Card URL', attributes: { pill: true } },
+  { insert: '\n\n' },
+  { insert: 'Card details', attributes: { bold: true } },
+  { insert: '\n' },
+  ...bulletPillLine('Title', 'Title'),
+  ...bulletPillLine('Description', 'Description'),
+  ...bulletPillLine('Color', 'Color'),
+  ...bulletPillLine('Owner', 'Owner'),
+  ...bulletPillLine('Priority', 'Priority'),
+  ...bulletPillLine('Size', 'Size'),
+  ...bulletPillLine('Deadline', 'Deadline'),
+  ...bulletPillLine('Tags', 'Tags'),
+  ...bulletPillLine('Milestones', 'Milestones'),
+  ...bulletPillLine('Board', 'Board Name'),
+  ...bulletPillLine('Column', 'Column Name'),
+  ...bulletPillLine('Subtasks', 'Total Subtasks Count'),
+];
+
 export const UPDATE_ACTION_OPTIONS = [
-  { key: 'add_co_owners', label: 'Add co-owners' },
-  { key: 'add_stickers', label: 'Add stickers' },
-  { key: 'add_watcher', label: 'Add watcher' },
-  { key: 'remove_co_owners', label: 'Remove co-owners' },
-  { key: 'remove_milestones', label: 'Remove milestones' },
-  { key: 'remove_stickers', label: 'Remove stickers' },
-  { key: 'set_blocker', label: 'Set blocker' },
-  { key: 'set_color', label: 'Set color' },
-  { key: 'set_deadline', label: 'Set deadline' },
-  { key: 'set_description', label: 'Set description' },
-  { key: 'set_milestones', label: 'Set milestones' },
-  { key: 'set_owner', label: 'Set owner' },
-  { key: 'set_priority', label: 'Set priority' },
-  { key: 'set_size', label: 'Set size' },
-  { key: 'set_tags', label: 'Set tags' },
-  { key: 'set_title', label: 'Set title' },
-  { key: 'set_type', label: 'Set type' },
-  { key: 'unblock_card', label: 'Unblock card' },
+  { key: 'add_co_owners', label: 'Add co-owners', field: 'Co-owners' },
+  { key: 'add_stickers', label: 'Add stickers', field: 'Stickers' },
+  { key: 'add_watcher', label: 'Add watcher', field: 'Watcher' },
+  { key: 'remove_co_owners', label: 'Remove co-owners', field: 'Co-owners' },
+  { key: 'remove_milestones', label: 'Remove milestones', field: 'Milestones' },
+  { key: 'remove_stickers', label: 'Remove stickers', field: 'Stickers' },
+  { key: 'set_blocker', label: 'Set blocker', field: 'Blocker' },
+  { key: 'set_color', label: 'Set color', field: 'Color' },
+  { key: 'set_deadline', label: 'Set deadline', field: 'Deadline' },
+  { key: 'set_description', label: 'Set description', field: 'Description' },
+  { key: 'set_milestones', label: 'Set milestones', field: 'Milestones' },
+  { key: 'set_owner', label: 'Set owner', field: 'Owner' },
+  { key: 'set_priority', label: 'Set priority', field: 'Priority' },
+  { key: 'set_size', label: 'Set size', field: 'Size' },
+  { key: 'set_tags', label: 'Set tags', field: 'Tags' },
+  { key: 'set_title', label: 'Set title', field: 'Title' },
+  { key: 'set_type', label: 'Set type', field: 'Type' },
+  { key: 'unblock_card', label: 'Unblock card', field: 'Card' },
 ];
 
 // Dev-only fallback data for the "Card property match" modal, used when the
