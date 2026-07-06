@@ -9,6 +9,7 @@ import { FiDownload, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../../components/CustomModal";
 import PremiumSelect from "../../../../../../../components/form/PremiumSelect";
+import DatePickerField from "../../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import useCommonReducer from "../../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../../services/callFileService";
@@ -1830,11 +1831,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 position: "relative",
                                 overflow: "visible",
                               }}
-                              onClick={(e) => {
-                                if (col.type !== "datepicker") return;
-                                if (e.target.closest(".react-datepicker")) return;
-                                e.currentTarget.querySelector(".premium-date-trigger")?.click();
-                              }}
                             >
                               {col.type === "nationalitySelect" ? (
                                 <div
@@ -1883,33 +1879,17 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 </select>
                               ) : col.type === "datepicker" ? (
                                 <div
-                                  className="preview-date-cell"
+                                  className="crew-preview-select-cell crew-preview-date-field-wrap"
                                   style={{
                                     width: "100%",
-                                    backgroundColor: hasValue ? "#f0f7ff" : "transparent",
-                                    borderRadius: "4px",
-                                    padding: "0",
                                   }}
                                 >
-                                  <DatePicker
-                                    {...PREMIUM_DATEPICKER_PROPS}
-                                    wrapperClassName="crew-preview-datepicker-wrapper"
-                                    selected={parseISODate(row.passportExpiry)}
-                                    onChange={(date) => handlePreviewTableCellChange(rowIndex, "passportExpiry", toISODate(date))}
-                                    customInput={
-                                      <PreviewDateInput
-                                        hasValue={hasValue}
-                                        placeholder={PREVIEW_FIELD_PLACEHOLDERS[col.field] || ""}
-                                        onFocus={(e) => {
-                                          e.target.style.backgroundColor = "#ffffff";
-                                          e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
-                                        }}
-                                        onBlur={(e) => {
-                                          e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
-                                          e.target.style.boxShadow = "none";
-                                        }}
-                                      />
-                                    }
+                                  <DatePickerField
+                                    dateValue={row.passportExpiry || ""}
+                                    onDateChange={(e) => handlePreviewTableCellChange(rowIndex, "passportExpiry", e.target.value)}
+                                    dateFieldName="passportExpiry"
+                                    placeholder={PREVIEW_FIELD_PLACEHOLDERS[col.field] || "Passport Expiry"}
+                                    className="crew-preview-date-field"
                                   />
                                 </div>
                               ) : (
