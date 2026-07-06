@@ -157,6 +157,26 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
+                <FormGroup icon="folder" label="Documents" accent="blue">
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.medicalServiceDocuments || []}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDragging}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={fileInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+
                 <FormGroup icon="medicalService" label="Care Details" accent="rose">
                   <FieldRow>
                     <FormField label="Hospital">
@@ -185,26 +205,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                       />
                     </FormField>
                   </FieldRow>
-                </FormGroup>
-
-                <FormGroup icon="folder" label="Documents" accent="blue">
-                  <FormField label="Documents" className="cf-field-full">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={formValues.medicalServiceDocuments || []}
-                        onAdd={() => {}}
-                        onRemove={handleDocumentsRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDragging}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={fileInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
-                      />
-                    </div>
-                  </FormField>
                 </FormGroup>
 
                 <FormGroup icon="notebook" label="Notes" accent="blue">

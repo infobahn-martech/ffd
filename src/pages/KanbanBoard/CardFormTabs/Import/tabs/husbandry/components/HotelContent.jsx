@@ -266,6 +266,29 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
+                <FormGroup icon="folder" label="Documents" accent="blue">
+                  <FormField label="Documents">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.hotelRequestEmail || []}
+                        onAdd={() => {}}
+                        onRemove={handleRequestEmailRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingEmail}
+                        onDragEnter={handleRequestEmailDragEnter}
+                        onDragLeave={handleRequestEmailDragLeave}
+                        onDragOver={handleRequestEmailDragOver}
+                        onDrop={handleRequestEmailDrop}
+                        fileInputRef={requestEmailInputRef}
+                        onFileInputChange={handleRequestEmailFileInputChange}
+                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                        multiple={false}
+                        helperText=".msg, .eml, .pdf, .doc or .docx"
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+
                 <FormGroup icon="calendar" label="Stay Details" accent="teal">
                   <FormField label="Hotel Name">
                     <FormSelect
@@ -306,29 +329,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
                     </FormField>
                   </FieldRow>
-                </FormGroup>
-
-                <FormGroup icon="folder" label="Documents" accent="blue">
-                  <FormField label="Documents">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={formValues.hotelRequestEmail || []}
-                        onAdd={() => {}}
-                        onRemove={handleRequestEmailRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingEmail}
-                        onDragEnter={handleRequestEmailDragEnter}
-                        onDragLeave={handleRequestEmailDragLeave}
-                        onDragOver={handleRequestEmailDragOver}
-                        onDrop={handleRequestEmailDrop}
-                        fileInputRef={requestEmailInputRef}
-                        onFileInputChange={handleRequestEmailFileInputChange}
-                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                        multiple={false}
-                        helperText=".msg, .eml, .pdf, .doc or .docx"
-                      />
-                    </div>
-                  </FormField>
                 </FormGroup>
 
                 <FormGroup icon="notebook" label="Notes" accent="blue">

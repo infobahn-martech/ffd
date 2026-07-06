@@ -558,28 +558,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="folder" label="Attachments" accent="blue">
-                  <FormField label="Documents" className="cf-field-full">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={formValues.transportDocuments || []}
-                        onAdd={() => { }}
-                        onRemove={handleDocumentsRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingDocuments}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={documentsInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
-                        helperText="Drag files or click to browse"
-                        multiple={true}
-                      />
-                    </div>
-                  </FormField>
-                </FormGroup>
-
                 <FormGroup icon="transport" label="Provider" accent="purple">
                   <FormField label="Provider">
                     <div className="transport-type-radio-row">
@@ -719,6 +697,28 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     </FormField>
                   </FormGroup>
                 )}
+
+                <FormGroup icon="folder" label="Attachments" accent="blue">
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.transportDocuments || []}
+                        onAdd={() => { }}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingDocuments}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={documentsInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                        helperText="Drag files or click to browse"
+                        multiple={true}
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
 
                 <FormGroup icon="notebook" label="Notes" accent="blue">
                   <div className="cgpass-remarks">
