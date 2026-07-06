@@ -44,6 +44,25 @@ const getFieldLabel = (field) =>
 
 const getPropertyDotColor = (idx) => PROPERTY_DOT_COLORS[idx % PROPERTY_DOT_COLORS.length];
 
+// Shared by every picker that scopes custom fields to a trigger type (card property
+// match, refine update criteria, ...) so the trigger_type_id filtering logic lives in
+// one place instead of being duplicated per modal.
+function useCustomFieldsByTrigger({ show, triggerTypeId, boardId, showDisabled, search }) {
+  const { customFields, isLoadingCustomFields, getCustomFields } = useBusinessRuleReducer((s) => s);
+
+  useEffect(() => {
+    if (!show) return;
+    getCustomFields({ params: { board_id: boardId || undefined, trigger_type_id: triggerTypeId } });
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+    getCustomFields({ params: { board_id: boardId || undefined, search: search || undefined, trigger_type_id: triggerTypeId } });
+  }, [boardId, showDisabled, search, triggerTypeId]);
+
+  return { customFields, isLoadingCustomFields };
+}
+
 function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick }) {
   return (
     <button
@@ -73,8 +92,11 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   const {
     regularFields, isLoadingRegularFields, getRegularFields,
     timeUnits, isLoadingTimeUnits, getTimeUnits,
-    customFields, isLoadingCustomFields, getCustomFields,
   } = useBusinessRuleReducer((s) => s);
+
+  const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
+    show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
+  });
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
   const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
@@ -96,13 +118,7 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-    getCustomFields({ params: { board_id: selectedBoardId || undefined } });
   }, [show]);
-
-  useEffect(() => {
-    if (!show) return;
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined } });
-  }, [selectedBoardId, showDisabled, debouncedSearch]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -773,7 +789,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   );
 }
 
-function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels }) {
+function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
   const [selected, setSelected] = useState(null);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [expandedCustomFields, setExpandedCustomFields] = useState(true);
@@ -782,7 +798,9 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const [filterText, setFilterText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const { customFields, isLoadingCustomFields, getCustomFields } = useBusinessRuleReducer((s) => s);
+  const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
+    show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
+  });
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
   const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
 
@@ -803,13 +821,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-    getCustomFields({ params: { board_id: selectedBoardId || undefined } });
   }, [show]);
-
-  useEffect(() => {
-    if (!show) return;
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined } });
-  }, [selectedBoardId, showDisabled, debouncedSearch]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -1857,6 +1869,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       existingFieldLabels={updateActions
         .filter((a) => a.category === 'custom')
         .map((a) => a.rawLabel.trim().toLowerCase())}
+      triggerTypeId={rule.id}
     />
 
     <NotificationSettingsModal
@@ -1954,6 +1967,7 @@ RefineUpdateCriteriaModal.propTypes = {
   existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.number,
 };
 
 NotificationSettingsModal.propTypes = {
