@@ -722,9 +722,14 @@
 
 .business-rule-form-secondary-grid {
   display: grid;
-  grid-template-columns: 0.60fr 3.9fr;
+  grid-template-columns: minmax(200px, 0.85fr) 3.9fr;
   gap: 16px;
   align-items: stretch;
+
+  @media ($sm-991) {
+    grid-template-columns: minmax(180px, 1fr) 2fr;
+    gap: 14px;
+  }
 
   @media ($sm-767) {
     grid-template-columns: 1fr;
