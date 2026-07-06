@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers } from 'react-icons/fi';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import ReactQuill, { Quill } from 'react-quill';
@@ -35,7 +35,12 @@ Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
-const OWNER_OPTIONS = [DEFAULT_OWNER.name, ...DUMMY_INTERNAL_USERS];
+// Owner list reuses the same user directory as "Shared with" so the picker can show a
+// username note per row; DUMMY_INTERNAL_USERS has no username field to show there.
+const OWNER_USERS = [
+  { name: DEFAULT_OWNER.name, username: null },
+  ...DUMMY_SHARE_USERS.map((u) => ({ name: u.name, username: u.username })),
+];
 
 const PROPERTY_DOT_COLORS = [...PRIMARY_PRESET_COLORS, ...SECONDARY_PRESET_COLORS];
 
@@ -1335,6 +1340,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [owner, setOwner] = useState(DEFAULT_OWNER.name);
+  const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
+  const [ownerFilterText, setOwnerFilterText] = useState('');
+  const ownerPickerTriggerRef = useRef(null);
+  const ownerPickerPanelRef = useRef(null);
   const [sharePermissions, setSharePermissions] = useState({});
   const [showShareModal, setShowShareModal] = useState(false);
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
@@ -1363,6 +1372,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setDescription(rule.description ?? '');
     setTags('');
     setOwner(DEFAULT_OWNER.name);
+    setIsOwnerPickerOpen(false);
+    setOwnerFilterText('');
     setSharePermissions({});
     setShowShareModal(false);
     setDisallowTriggerChain(false);
@@ -1383,6 +1394,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowCancelConfirm(false);
   }, [show, rule]);
 
+  useEffect(() => {
+    if (!isOwnerPickerOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (ownerPickerPanelRef.current?.contains(t)) return;
+      if (ownerPickerTriggerRef.current?.contains(t)) return;
+      setIsOwnerPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isOwnerPickerOpen]);
+
   if (!rule) return null;
 
   const handleSave = () => {
@@ -1402,6 +1425,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       notifyActions,
     });
     onClose();
+  };
+
+  const ownerFilterQuery = ownerFilterText.trim().toLowerCase();
+  const filteredOwnerUsers = ownerFilterQuery
+    ? OWNER_USERS.filter((u) => u.name.toLowerCase().includes(ownerFilterQuery))
+    : OWNER_USERS;
+
+  const handlePickOwner = (user) => {
+    setOwner(user.name);
+    setIsOwnerPickerOpen(false);
+    setOwnerFilterText('');
   };
 
   const handleToggleSharePermission = (userId, type) => {
@@ -1562,7 +1596,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         <div className="business-rule-form-modal-body">
           <section className="business-rule-form-meta">
             <div className="business-rule-form-field">
-              <label htmlFor="br-form-name" className="business-rule-form-label">Name</label>
+              <label htmlFor="br-form-name" className="business-rule-form-label business-rule-form-label--hint">Name</label>
               <input
                 id="br-form-name"
                 type="text"
@@ -1573,7 +1607,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
             </div>
 
             <div className="business-rule-form-field">
-              <label htmlFor="br-form-description" className="business-rule-form-label">Description</label>
+              <label htmlFor="br-form-description" className="business-rule-form-label business-rule-form-label--hint">Description</label>
               <textarea
                 id="br-form-description"
                 className="business-rule-form-textarea"
@@ -1583,41 +1617,81 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               />
             </div>
 
-            <div className="business-rule-form-secondary-grid">
-              <div className="business-rule-form-field">
-                <label htmlFor="br-form-tags" className="business-rule-form-label">Tags</label>
-                <input
-                  id="br-form-tags"
-                  type="text"
-                  className="business-rule-form-input business-rule-form-control"
-                  placeholder="Add tags"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                />
-              </div>
+            <div className="business-rule-form-field">
+              <label htmlFor="br-form-tags" className="business-rule-form-label">Tags</label>
+              <input
+                id="br-form-tags"
+                type="text"
+                className="business-rule-form-input business-rule-form-control"
+                placeholder="Add tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+              />
+            </div>
 
-              <div className="business-rule-form-field">
-                <label htmlFor="br-form-owner" className="business-rule-form-label">Owner</label>
-                <div className="business-rule-form-select-wrap business-rule-form-select-wrap--owner business-rule-form-control">
+            <div className="business-rule-form-secondary-grid">
+              <div className="business-rule-form-field br-owner-picker-wrap">
+                <label htmlFor="br-form-owner" className="business-rule-form-label business-rule-form-label--hint">Owner</label>
+                <button
+                  type="button"
+                  id="br-form-owner"
+                  ref={ownerPickerTriggerRef}
+                  className="business-rule-form-select-wrap business-rule-form-select-wrap--owner business-rule-form-control br-owner-picker-trigger"
+                  onClick={() => setIsOwnerPickerOpen((v) => !v)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isOwnerPickerOpen}
+                >
                   <span className="business-rule-form-owner-avatar" aria-hidden>
                     {owner === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(owner)}
                   </span>
-                  <select
-                    id="br-form-owner"
-                    className="business-rule-form-select"
-                    value={owner}
-                    onChange={(e) => setOwner(e.target.value)}
-                  >
-                    {OWNER_OPTIONS.map((name) => (
-                      <option key={name} value={name}>{name}</option>
-                    ))}
-                  </select>
+                  <span className="br-owner-picker-trigger-name">{owner}</span>
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                </div>
+                </button>
+
+                {isOwnerPickerOpen && (
+                  <div className="br-owner-picker-panel" ref={ownerPickerPanelRef}>
+                    <div className="br-owner-picker-search">
+                      <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                      <input
+                        type="text"
+                        placeholder="Filter"
+                        value={ownerFilterText}
+                        onChange={(e) => setOwnerFilterText(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="br-owner-picker-list">
+                      {filteredOwnerUsers.length === 0 ? (
+                        <div className="br-property-picker-empty">No matches</div>
+                      ) : (
+                        filteredOwnerUsers.map((user) => (
+                          <div key={user.name} className="br-owner-picker-row">
+                            <button
+                              type="button"
+                              className={`br-owner-picker-row-btn${owner === user.name ? ' br-owner-picker-row-btn--selected' : ''}`}
+                              onClick={() => handlePickOwner(user)}
+                            >
+                              <span className="business-rule-form-owner-avatar" aria-hidden>
+                                {user.name === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(user.name)}
+                              </span>
+                              <span className="br-owner-picker-row-name">{user.name}</span>
+                            </button>
+                            <span className="br-owner-picker-info" tabIndex={0}>
+                              <FiInfo size={14} aria-hidden />
+                              <span className="br-owner-picker-tooltip" role="tooltip">
+                                {user.username ?? user.name}
+                              </span>
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="business-rule-form-field">
-                <label htmlFor="br-form-share" className="business-rule-form-label">Share with</label>
+                <label htmlFor="br-form-share" className="business-rule-form-label business-rule-form-label--hint">Share with</label>
                 <div className="business-rule-form-select-wrap business-rule-form-control">
                   <button
                     type="button"
@@ -1630,23 +1704,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
                 </div>
               </div>
+            </div>
 
-              <div className="business-rule-form-field business-rule-form-field--toggle">
-                <span className="business-rule-form-label business-rule-form-label--spacer" aria-hidden="true">Tags</span>
-                <div className="business-rule-form-toggle-box business-rule-form-control">
-                  <label className="business-rule-form-toggle">
-                    <input
-                      type="checkbox"
-                      checked={disallowTriggerChain}
-                      onChange={(e) => setDisallowTriggerChain(e.target.checked)}
-                    />
-                    <span className="business-rule-form-toggle-track" aria-hidden />
-                    <span className="business-rule-form-toggle-label">
-                      Disallow business rule actions to trigger this rule
-                    </span>
-                  </label>
-                </div>
-              </div>
+            <div className="business-rule-form-toggle-box business-rule-form-control">
+              <label className="business-rule-form-toggle">
+                <input
+                  type="checkbox"
+                  checked={disallowTriggerChain}
+                  onChange={(e) => setDisallowTriggerChain(e.target.checked)}
+                />
+                <span className="business-rule-form-toggle-track" aria-hidden />
+                <span className="business-rule-form-toggle-label">
+                  Disallow business rule actions to trigger this rule
+                </span>
+              </label>
             </div>
           </section>
 
