@@ -9,12 +9,70 @@ import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import transportCompanyService from "../../../../../../../services/transportCompanyService";
 import callFileService from "../../../../../../../services/callFileService";
-import transportContentService, {
-  extractTransportRequestsFromEnvelope,
-  flattenTransportRequestRows,
-} from "../../../../../../../services/transportContentService";
+import transportContentService from "../../../../../../../services/transportContentService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+
+// Helper functions to extract and flatten transport requests from API response
+const extractTransportRequestsFromEnvelope = (response) => {
+  const payload = response?.data ?? response;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
+
+const flattenTransportRequestRows = (requests) => {
+  if (!Array.isArray(requests)) return [];
+  
+  return requests.flatMap((request) => {
+    const crew = Array.isArray(request.crew) ? request.crew : [];
+    
+    // If no crew, create one row for the request itself
+    if (crew.length === 0) {
+      return [
+        {
+          transport_request_id: request.transport_request_id,
+          wo_id: request.wo_id,
+          crew_name: request.inhouse_driver_name || request.third_party_driver_name || "N/A",
+          crew_change_id: null,
+          pickup_status: request.status,
+          from_location: request.from_location,
+          to_location: request.to_location,
+          pickup_datetime: request.pickup_datetime,
+          request_type: request.request_type,
+          transport_company: request.transport_company,
+          third_party_driver_name: request.third_party_driver_name,
+          third_party_driver_contact: request.third_party_driver_contact,
+          inhouse_driver_name: request.inhouse_driver_name,
+          request_email: request.request_email,
+          remarks: request.remarks,
+          status: request.status,
+        },
+      ];
+    }
+    
+    // Create a row for each crew member
+    return crew.map((crewMember) => ({
+      transport_request_id: request.transport_request_id,
+      wo_id: request.wo_id,
+      crew_name: crewMember.crew_name,
+      crew_change_id: crewMember.crew_change_id,
+      pickup_status: crewMember.pickup_status,
+      rank: crewMember.rank,
+      from_location: request.from_location,
+      to_location: request.to_location,
+      pickup_datetime: request.pickup_datetime,
+      request_type: request.request_type,
+      transport_company: request.transport_company,
+      third_party_driver_name: request.third_party_driver_name,
+      third_party_driver_contact: request.third_party_driver_contact,
+      inhouse_driver_name: request.inhouse_driver_name,
+      request_email: request.request_email,
+      remarks: request.remarks,
+      status: request.status,
+    }));
+  });
+};
 
 const TRANSPORT_REQUEST_COLUMNS = [
   { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew" },
@@ -37,7 +95,12 @@ const TRANSPORT_REQUEST_COLUMNS = [
     accessor: (r) => r?.requested_date ?? r?.pickup_datetime,
     type: "date",
   },
-  { key: "document", header: "Document", type: "document" },
+  { 
+    key: "document", 
+    header: "Document", 
+    accessor: (r) => r?.request_email,
+    type: "document" 
+  },
 ];
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
