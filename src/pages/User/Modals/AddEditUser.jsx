@@ -12,6 +12,7 @@ import edit from "../../../assets/images/edit.svg";
 import useUserReducer from "../../../store/UserReducer";
 import useRoleReducer from "../../../store/RoleReducer";
 import usePortReducer from "../../../store/PortReducer";
+import Gateway from "../../../gateway/gateway";
 
 export function UserModal({ showModal, closeModal, onSuccess }) {
   const [profileImage, setProfileImage] = useState(null);
@@ -32,12 +33,15 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     defaultValues: {
       phone: "",
       name: "",
+      username: "",
       email: "",
       roleid: "",
       port_id: "",
       address: "",
     },
   });
+
+  const watchedName = watch("name");
 
   const { createUser, updateUser, addEditLoader } = useUserReducer(
     (state) => state
@@ -92,6 +96,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     if (showModal?.user_id) {
       reset({
         name: showModal?.name || "",
+        username: showModal?.username || "",
         email: showModal?.email || "",
         phone: showModal?.phone || "",
         address: showModal?.address || "",
@@ -105,6 +110,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       reset({
         phone: "",
         name: "",
+        username: "",
         email: "",
         roleid: "",
         port_id: "",
@@ -150,6 +156,39 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     }
   }, [showModal?.user_id, showModal?.port_id, isPortsReady, portOptions, setValue, getValues]);
 
+  useEffect(() => {
+    const fullName = (watchedName || "").trim();
+
+    if (!fullName) {
+      if (!showModal?.user_id) {
+        setValue("username", "", { shouldValidate: true });
+      }
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await Gateway.post("/users/suggest_username", {
+          name: fullName,
+        });
+
+        const suggestion = data?.suggestion || "";
+        if (!suggestion) return;
+
+        const currentUsername = String(getValues("username") || "");
+        const existingUsername = String(showModal?.username || "");
+
+        if (!currentUsername || currentUsername === existingUsername) {
+          setValue("username", suggestion, { shouldValidate: true });
+        }
+      } catch (error) {
+        void error;
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [watchedName, showModal?.user_id, showModal?.username, getValues, setValue]);
+
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -165,6 +204,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       const formData = new FormData();
 
       formData.append("name", data.name);
+      formData.append("username", data.username);
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("address", data.address || "");
@@ -197,6 +237,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         });
       }
     } catch (error) {
+      void error;
     }
   };
 
@@ -312,6 +353,32 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   {errors.email && (
                     <span className="error text-danger">
                       {errors.email.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ===== Username ===== */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="form-floating desig-inp">
+                  <input
+                    type="text"
+                    className={`form-control ${errors.username ? "is-invalid" : ""}`}
+                    placeholder="Username"
+                    {...register("username", {
+                      required: "Username is required",
+                    })}
+                  />
+                  <label>
+                    Username <span className="text-danger">*</span>
+                  </label>
+                  {errors.username && (
+                    <span className="error text-danger">
+                      {errors.username.message}
                     </span>
                   )}
                 </div>
