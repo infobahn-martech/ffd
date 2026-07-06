@@ -1524,10 +1524,9 @@
   gap: $space-1;
 }
 
-// Small premium icon tiles (Phase 3) — each document type carries its own
-// soft category color (see --doc-cat-color set by the .crew-doc-btn--cat-*
-// modifiers below); state (missing / uploaded / preview / uploading) still
-// drives the icon shown (upload / check / spinner) exactly as before.
+// Small premium icon tiles — color is driven purely by document status
+// (missing/uploading/uploaded/preview below), never by document type, so
+// Passport/Iqama/Visa/CG Pass/Zawil Pass all read the same way.
 .crew-doc-btn {
   width: 28px;
   height: 28px;
@@ -1549,32 +1548,16 @@
   box-shadow: $shadow-focus;
 }
 
-// Category color tokens — soft, premium tints per document type.
-.crew-doc-btn--cat-passport {
-  --doc-cat-color: #2563eb;
-}
-
-.crew-doc-btn--cat-iqama {
-  --doc-cat-color: #0d9488;
-}
-
-.crew-doc-btn--cat-visa {
-  --doc-cat-color: #7c3aed;
-}
-
-.crew-doc-btn--cat-cg-pass {
-  --doc-cat-color: #4f46e5;
-}
-
-.crew-doc-btn--cat-zawil-pass {
-  --doc-cat-color: #d97706;
-}
-
+// Semantic status colors — the same red/amber/green system used everywhere
+// else in the Crew List (legend, Transport/Hotel/Medical pills). Document
+// type is communicated by the column header + tooltip/aria-label, not by a
+// permanent per-document color, so Passport/Iqama/Visa/CG Pass/Zawil Pass
+// all share these exact rules.
 .crew-doc-btn--preview,
 .crew-doc-btn--uploaded {
-  background: var(--doc-cat-color, #{$status-success});
-  border: 1.5px solid var(--doc-cat-color, #{$status-success});
-  color: #ffffff;
+  background: color-mix(in srgb, $status-success 12%, white);
+  border: 1.5px solid color-mix(in srgb, $status-success 40%, white);
+  color: $status-success;
   cursor: pointer;
 }
 
@@ -1582,28 +1565,38 @@
   cursor: default;
 }
 
-.crew-doc-btn--preview:hover,
+.crew-doc-btn--preview:hover:not(:disabled),
 .crew-doc-btn--uploaded:hover:not(:disabled) {
-  opacity: 0.85;
+  background: color-mix(in srgb, $status-success 20%, white);
+  border-color: color-mix(in srgb, $status-success 60%, white);
 }
 
 .crew-doc-btn--missing {
-  background: color-mix(in srgb, var(--doc-cat-color, #{$status-warning}) 8%, white);
-  border: 1.5px dashed var(--doc-cat-color, #{$status-warning});
-  color: var(--doc-cat-color, #{$status-warning});
+  background: color-mix(in srgb, $status-danger 8%, white);
+  border: 1.5px solid color-mix(in srgb, $status-danger 32%, white);
+  color: $status-danger;
   cursor: pointer;
 }
 
-.crew-doc-btn--missing:hover {
-  background: color-mix(in srgb, var(--doc-cat-color, #{$status-warning}) 16%, white);
+.crew-doc-btn--missing:hover:not(:disabled) {
+  background: color-mix(in srgb, $status-danger 16%, white);
+  border-color: color-mix(in srgb, $status-danger 50%, white);
 }
 
+// Actively uploading is a genuine in-progress state (the one moment these
+// document controls have real transient status), so it takes the amber
+// treatment rather than a plain neutral disabled look.
 .crew-doc-btn--uploading {
-  background: transparent;
-  border: 1.5px dashed #cbd5e1;
-  color: #94a3b8;
-  opacity: 0.8;
+  background: color-mix(in srgb, $status-warning 14%, white);
+  border: 1.5px solid color-mix(in srgb, $status-warning 40%, white);
+  color: color-mix(in srgb, $status-warning 60%, black);
+  opacity: 1;
   cursor: not-allowed;
+}
+
+.crew-doc-btn:disabled {
+  cursor: default;
+  opacity: 0.9;
 }
 
 .crew-doc-btn__spinner {
@@ -1622,35 +1615,41 @@
   border-radius: $radius-pill;
   background: $table-header-bg;
   border: 1px solid $border-color-default;
+  color: $txtColor;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
-// Transport / Hotel / Medical each get a distinct soft badge tint so the
-// three service columns read apart at a glance — the icon itself still
-// carries the actual workflow-state color (done/in progress/pending) via
-// StatusIcon's own `color` prop, independent of this container tint.
-.crew-status-icon--transport {
-  background: color-mix(in srgb, #0ea5e9 10%, white);
-  border-color: color-mix(in srgb, #0ea5e9 24%, white);
+// Transport / Hotel / Medical share one semantic system — the category icon
+// (car/hotel/medical) says WHAT the service is, this modifier's color says
+// its STATUS. Background, border, icon color and count text all move
+// together via `color: inherit` below, so status is never a lone dot.
+.crew-status-icon--done {
+  background: color-mix(in srgb, $status-success 12%, white);
+  border-color: color-mix(in srgb, $status-success 35%, white);
+  color: $status-success;
 }
 
-.crew-status-icon--hotel {
-  background: color-mix(in srgb, #9333ea 10%, white);
-  border-color: color-mix(in srgb, #9333ea 24%, white);
+.crew-status-icon--in-progress {
+  background: color-mix(in srgb, $status-warning 16%, white);
+  border-color: color-mix(in srgb, $status-warning 40%, white);
+  color: color-mix(in srgb, $status-warning 60%, black);
 }
 
-.crew-status-icon--medical {
-  background: color-mix(in srgb, #16a34a 10%, white);
-  border-color: color-mix(in srgb, #16a34a 24%, white);
+.crew-status-icon--pending {
+  background: color-mix(in srgb, $status-danger 8%, white);
+  border-color: color-mix(in srgb, $status-danger 32%, white);
+  color: $status-danger;
 }
 
 .crew-status-icon svg {
   display: block;
+  color: inherit;
 }
 
 .crew-status-count-badge {
   font-size: 11px;
   font-weight: 700;
-  color: $txtColor;
+  color: inherit;
 }
 
 .crew-table tbody tr:hover {

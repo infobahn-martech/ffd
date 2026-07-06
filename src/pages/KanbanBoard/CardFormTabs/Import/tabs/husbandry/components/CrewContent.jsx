@@ -14,14 +14,6 @@ import useCommonReducer from "../../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import "../../../../../../../design/scss/operations.scss";
 
-// Status colors
-const STATUS_COLORS = {
-  done: "#28a745", // Green - Completed
-  inProgress: "#ffc107", // Yellow - In Progress
-  rejected: "#dc3545", // Red - Rejected
-  pending: "#6c757d" // Gray (default)
-};
-
 // Status labels
 const STATUS_LABELS = {
   done: "Done",
@@ -30,30 +22,42 @@ const STATUS_LABELS = {
   pending: "Pending"
 };
 
-// Icon components for status pills (Transport / Hotel / Medical)
-const CarIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+// Normalizes any workflow status value down to the 3 semantic variants the
+// UI actually renders (done / inProgress / pending) — keeps that mapping in
+// one place instead of repeating it per table cell.
+const getStatusVariant = (status) => {
+  if (status === "done") return "done";
+  if (status === "inProgress") return "inProgress";
+  return "pending";
+};
+
+const STATUS_VARIANT_CLASS = {
+  done: "done",
+  inProgress: "in-progress",
+  pending: "pending",
+};
+
+// Icon components for status pills (Transport / Hotel / Medical). Color is
+// intentionally not a prop — semantic status color is applied by the CSS
+// class on the pill wrapper (see crew-status-icon--* in
+// husbandry-crew-management.scss) so it never has to be inlined.
+const CarIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M5 17H4C3.46957 17 2.96086 16.7893 2.58579 16.4142C2.21071 16.0391 2 15.5304 2 15V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H5M5 17H19M5 17V19C5 19.5304 4.78929 20.0391 4.41421 20.4142C4.03914 20.7893 3.53043 21 3 21C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V17M19 17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V11C22 10.4696 21.7893 9.96086 21.4142 9.58579C21.0391 9.21071 20.5304 9 20 9H19M19 17V19C19 19.5304 19.2107 20.0391 19.5858 20.4142C19.9609 20.7893 20.4696 21 21 21C21.5304 21 22.0391 20.7893 22.4142 20.4142C22.7893 20.0391 23 19.5304 23 19V17M5 9L7 5H17L19 9M5 9H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
 
-const HotelIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+const HotelIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M3 21H21M5 21V7L12 3L19 7V21M5 21H9M19 21H15M9 21V13H15V21M9 21H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
 
-const MedicalIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+const MedicalIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 8V16M8 12H16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
-
-// Status icon component
-const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
-  const color = STATUS_COLORS[status] || STATUS_COLORS.pending;
-  return <IconComponent size={size} color={color} />;
-};
 
 const WIZARD_STEP_STATUS = {
   COMPLETED: "completed",
@@ -406,7 +410,6 @@ const CrewDocumentCell = ({
   fieldName,
   urlFieldName,
   label,
-  category,
   inputRef,
   onUpload,
   isUploading = false,
@@ -451,7 +454,6 @@ const CrewDocumentCell = ({
       : isUploaded
         ? "crew-doc-btn--uploaded"
         : "crew-doc-btn--missing";
-  const docBtnCategoryClass = category ? `crew-doc-btn--cat-${category}` : "";
 
   return (
     <div className="crew-table-cell crew-table-cell--doc-action">
@@ -479,7 +481,7 @@ const CrewDocumentCell = ({
           onClick={handleClick}
           data-tooltip-id={tooltipId}
           aria-label={tooltipContent}
-          className={`crew-doc-btn ${docBtnStateClass} ${docBtnCategoryClass}`}
+          className={`crew-doc-btn ${docBtnStateClass}`}
         >
           {isUploading ? (
             <span
@@ -508,7 +510,6 @@ CrewDocumentCell.propTypes = {
   fieldName: PropTypes.string.isRequired,
   urlFieldName: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
-  category: PropTypes.string,
   inputRef: PropTypes.func,
   onUpload: PropTypes.func.isRequired,
   isUploading: PropTypes.bool,
@@ -2328,7 +2329,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fieldName="passport_copy"
                             urlFieldName="passport_copy_url"
                             label="Passport"
-                            category="passport"
                             inputRef={(el) => {
                               if (el) passportFileInputRefs.current[crew.id] = el;
                             }}
@@ -2344,7 +2344,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fieldName="iqama_copy"
                             urlFieldName="iqama_copy_url"
                             label="Iqama"
-                            category="iqama"
                             inputRef={(el) => {
                               if (el) iqamaFileInputRefs.current[crew.id] = el;
                             }}
@@ -2360,7 +2359,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fieldName="visa_copy"
                             urlFieldName="visa_copy_url"
                             label="Visa"
-                            category="visa"
                             inputRef={(el) => {
                               if (el) visaFileInputRefs.current[crew.id] = el;
                             }}
@@ -2387,18 +2385,34 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }}
                             />
                             <div className="crew-doc-cell__inner">
-                              <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "Uploaded" : "Upload"} />
-                              <button
-                                type="button"
-                                onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
-                                data-tooltip-id={`cg-pass-upload-${crew.id}`}
-                                className={`crew-doc-btn crew-doc-btn--cat-cg-pass ${(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
-                              >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </button>
+                              {(() => {
+                                const cgPassUploaded = Boolean(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass));
+                                const cgPassTooltip = cgPassUploaded ? "CG Pass Uploaded" : "Upload CG Pass";
+                                const cgPassAriaLabel = `${cgPassTooltip}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
+                                return (
+                                  <>
+                                    <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={cgPassTooltip} />
+                                    <button
+                                      type="button"
+                                      onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
+                                      data-tooltip-id={`cg-pass-upload-${crew.id}`}
+                                      aria-label={cgPassAriaLabel}
+                                      className={`crew-doc-btn ${cgPassUploaded ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
+                                    >
+                                      {cgPassUploaded ? (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      ) : (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </td>
@@ -2419,53 +2433,96 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }}
                             />
                             <div className="crew-doc-cell__inner">
-                              <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "Uploaded" : "Upload"} />
-                              <button
-                                type="button"
-                                onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
-                                data-tooltip-id={`zawil-pass-upload-${crew.id}`}
-                                className={`crew-doc-btn crew-doc-btn--cat-zawil-pass ${(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
-                              >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </button>
+                              {(() => {
+                                const zawilPassUploaded = Boolean(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass));
+                                const zawilPassTooltip = zawilPassUploaded ? "Zawil Pass Uploaded" : "Upload Zawil Pass";
+                                const zawilPassAriaLabel = `${zawilPassTooltip}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
+                                return (
+                                  <>
+                                    <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={zawilPassTooltip} />
+                                    <button
+                                      type="button"
+                                      onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
+                                      data-tooltip-id={`zawil-pass-upload-${crew.id}`}
+                                      aria-label={zawilPassAriaLabel}
+                                      className={`crew-doc-btn ${zawilPassUploaded ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
+                                    >
+                                      {zawilPassUploaded ? (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      ) : (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </td>
                         <td>
-                          <div
-                            className="crew-table-cell crew-status-icon crew-status-icon--transport"
-                            data-tooltip-id={`transport-status-${crew.id}`}
-                            data-tooltip-content={STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}
-                          >
-                            <StatusIcon status={crew.transport} IconComponent={CarIcon} size={14} />
-                            <span className="crew-status-count-badge">{crew.transportCount || 0}</span>
-                          </div>
-                          <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                          {(() => {
+                            const variant = getStatusVariant(crew.transport);
+                            const tooltipText = `Transport ${STATUS_LABELS[variant]}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
+                            return (
+                              <>
+                                <div
+                                  className={`crew-table-cell crew-status-icon crew-status-icon--${STATUS_VARIANT_CLASS[variant]}`}
+                                  data-tooltip-id={`transport-status-${crew.id}`}
+                                  data-tooltip-content={tooltipText}
+                                  aria-label={tooltipText}
+                                >
+                                  <CarIcon size={14} />
+                                  <span className="crew-status-count-badge">{crew.transportCount || 0}</span>
+                                </div>
+                                <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                              </>
+                            );
+                          })()}
                         </td>
                         <td>
-                          <div
-                            className="crew-table-cell crew-status-icon crew-status-icon--hotel"
-                            data-tooltip-id={`hotel-status-${crew.id}`}
-                            data-tooltip-content={STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}
-                          >
-                            <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={14} />
-                            <span className="crew-status-count-badge">{crew.hotelCount || 0}</span>
-                          </div>
-                          <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                          {(() => {
+                            const variant = getStatusVariant(crew.hotel);
+                            const tooltipText = `Hotel ${STATUS_LABELS[variant]}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
+                            return (
+                              <>
+                                <div
+                                  className={`crew-table-cell crew-status-icon crew-status-icon--${STATUS_VARIANT_CLASS[variant]}`}
+                                  data-tooltip-id={`hotel-status-${crew.id}`}
+                                  data-tooltip-content={tooltipText}
+                                  aria-label={tooltipText}
+                                >
+                                  <HotelIcon size={14} />
+                                  <span className="crew-status-count-badge">{crew.hotelCount || 0}</span>
+                                </div>
+                                <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                              </>
+                            );
+                          })()}
                         </td>
                         <td>
-                          <div
-                            className="crew-table-cell crew-status-icon crew-status-icon--medical"
-                            data-tooltip-id={`medical-status-${crew.id}`}
-                            data-tooltip-content={STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}
-                          >
-                            <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={14} />
-                            <span className="crew-status-count-badge">{crew.medicalServiceCount || 0}</span>
-                          </div>
-                          <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                          {(() => {
+                            const variant = getStatusVariant(crew.medicalService);
+                            const tooltipText = `Medical ${STATUS_LABELS[variant]}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
+                            return (
+                              <>
+                                <div
+                                  className={`crew-table-cell crew-status-icon crew-status-icon--${STATUS_VARIANT_CLASS[variant]}`}
+                                  data-tooltip-id={`medical-status-${crew.id}`}
+                                  data-tooltip-content={tooltipText}
+                                  aria-label={tooltipText}
+                                >
+                                  <MedicalIcon size={14} />
+                                  <span className="crew-status-count-badge">{crew.medicalServiceCount || 0}</span>
+                                </div>
+                                <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                              </>
+                            );
+                          })()}
                         </td>
                         {/* <td>
                   <button
