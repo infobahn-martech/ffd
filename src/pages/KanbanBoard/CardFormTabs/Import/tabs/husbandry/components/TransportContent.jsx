@@ -52,6 +52,7 @@ const unwrapApiList = (axiosData) => {
 
 const TransportContent = ({ formValues, handleChange, cardColor }) => {
   const requestEmailInputRef = useRef(null);
+  const documentsInputRef = useRef(null);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
 
   // Radio button state - default to "inhouse" if not set
@@ -99,6 +100,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
   const [isSavingTransport, setIsSavingTransport] = useState(false);
   const [transportRequests, setTransportRequests] = useState([]);
   const [loadingTransportRequests, setLoadingTransportRequests] = useState(false);
+  const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
 
   const fetchTransportRequests = useCallback(async () => {
     if (!callId) {
@@ -297,6 +299,56 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("transportRequestEmail")({ target: { value: [] } });
   };
 
+  const handleDocumentsDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(true);
+  };
+
+  const handleDocumentsDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+  };
+
+  const handleDocumentsDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+    const raw = Array.from(e.dataTransfer.files || []);
+    if (raw.length === 0) return;
+    const current = formValues.transportDocuments || [];
+    const added = raw.map(fileToAttachment);
+    handleChange("transportDocuments")({ target: { value: [...current, ...added] } });
+  };
+
+  const handleDocumentsFileInputChange = (e) => {
+    const raw = Array.from(e.target.files || []);
+    if (raw.length === 0) {
+      if (requestEmailInputRef.current) {
+        requestEmailInputRef.current.value = "";
+      }
+      return;
+    }
+
+    const current = formValues.transportDocuments || [];
+    const added = raw.map(fileToAttachment);
+    handleChange("transportDocuments")({ target: { value: [...current, ...added] } });
+    if (requestEmailInputRef.current) {
+      requestEmailInputRef.current.value = "";
+    }
+  };
+
+  const handleDocumentsRemoveAttachment = (index) => {
+    const current = formValues.transportDocuments || [];
+    handleChange("transportDocuments")({ target: { value: current.filter((_, i) => i !== index) } });
+  };
+
   const handleSave = useCallback(async () => {
     if (!callId) {
       notify("Call is required to save a transport request.", "error", "top-center");
@@ -345,6 +397,16 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     if (requestEmailFile) {
       formData.append("request_email", requestEmailFile);
     }
+
+    const transportDocuments = Array.isArray(formValues.transportDocuments)
+      ? formValues.transportDocuments
+      : [];
+    transportDocuments.forEach((attachment, index) => {
+      const file = attachment?.file ?? attachment;
+      if (file instanceof File) {
+        formData.append(`documents[${index}]`, file);
+      }
+    });
 
     setIsSavingTransport(true);
     try {
@@ -405,6 +467,28 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                         accept={REQUEST_EMAIL_ACCEPT_ATTR}
                         multiple={false}
                         helperText=".msg, .eml, .pdf, .doc or .docx"
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+
+                <FormGroup icon="folder" label="Attachments" accent="blue">
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.transportDocuments || []}
+                        onAdd={() => { }}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingDocuments}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={documentsInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                        helperText="Drag files or click to browse"
+                        multiple={true}
                       />
                     </div>
                   </FormField>
