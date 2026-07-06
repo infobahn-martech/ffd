@@ -74,6 +74,7 @@ const MWPHistory = () => {
                 </div>
 
                 <CustomTable
+                    Sl
                     isLoading={isLoadingGet}
                     pagination={{ currentPage: 1, limit }}
                     tableClasses="px-start"
