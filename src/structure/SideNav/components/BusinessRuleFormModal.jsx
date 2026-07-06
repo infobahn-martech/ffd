@@ -84,8 +84,9 @@ function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick })
 }
 
 function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
-  const [selected, setSelected] = useState(null);
   const [selectedRegularFields, setSelectedRegularFields] = useState([]);
+  const [selectedTimeUnits, setSelectedTimeUnits] = useState([]);
+  const [selectedCustomFields, setSelectedCustomFields] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [expandedTimeUnit, setExpandedTimeUnit] = useState(true);
   const [expandedCustomFields, setExpandedCustomFields] = useState(true);
@@ -118,8 +119,9 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
 
   useEffect(() => {
     if (!show) return;
-    setSelected(null);
     setSelectedRegularFields([]);
+    setSelectedTimeUnits([]);
+    setSelectedCustomFields([]);
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
@@ -142,11 +144,6 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
     getTimeUnits({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
   }, [show, debouncedSearch, triggerTypeId]);
 
-  const handlePick = (type, field) => {
-    const key = `${type}-${field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? getFieldLabel(field)}`;
-    setSelected({ key, type, field });
-  };
-
   const handleToggleRegularField = (field, key) => {
     setSelectedRegularFields((prev) =>
       prev.some((item) => item.key === key)
@@ -155,10 +152,27 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
     );
   };
 
+  const handleToggleTimeUnit = (field, key) => {
+    setSelectedTimeUnits((prev) =>
+      prev.some((item) => item.key === key)
+        ? prev.filter((item) => item.key !== key)
+        : [...prev, { key, field }]
+    );
+  };
+
+  const handleToggleCustomField = (field, key) => {
+    setSelectedCustomFields((prev) =>
+      prev.some((item) => item.key === key)
+        ? prev.filter((item) => item.key !== key)
+        : [...prev, { key, field }]
+    );
+  };
+
   const handleAdd = () => {
-    if (selectedRegularFields.length === 0 && !selected) return;
+    if (selectedRegularFields.length === 0 && selectedTimeUnits.length === 0 && selectedCustomFields.length === 0) return;
     selectedRegularFields.forEach(({ field }) => onSelect(field, { category_key: 'regular' }));
-    if (selected) onSelect(selected.field, { category_key: selected.type });
+    selectedTimeUnits.forEach(({ field }) => onSelect(field, { category_key: 'time_unit' }));
+    selectedCustomFields.forEach(({ field }) => onSelect(field, { category_key: 'custom' }));
     onClose();
   };
 
@@ -256,8 +270,8 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
                         key={key}
                         pillKey={key}
                         label={getFieldLabel(field)}
-                        selected={selected?.key === key}
-                        onClick={() => handlePick('time_unit', field)}
+                        selected={selectedTimeUnits.some((item) => item.key === key)}
+                        onClick={() => handleToggleTimeUnit(field, key)}
                       />
                     );
                   })
@@ -329,10 +343,10 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
                           key={key}
                           pillKey={key}
                           label={getFieldLabel(field)}
-                          selected={selected?.key === key}
+                          selected={selectedCustomFields.some((item) => item.key === key)}
                           dotColor={getPropertyDotColor(idx)}
                           disabled={isFieldUsed(field)}
-                          onClick={() => handlePick('custom', field)}
+                          onClick={() => handleToggleCustomField(field, key)}
                         />
                       );
                     })
@@ -347,7 +361,7 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={selectedRegularFields.length === 0 && !selected}
+            disabled={selectedRegularFields.length === 0 && selectedTimeUnits.length === 0 && selectedCustomFields.length === 0}
             onClick={handleAdd}
           >
             Add
