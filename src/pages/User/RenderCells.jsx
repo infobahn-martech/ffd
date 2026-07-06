@@ -15,8 +15,7 @@ export const RenderAction = ({
   onPermissionClick,
   onUnarchiveClick,
 }) => {
-  const isActive = row?.status === "1";
-  console.log("isActive",isActive)
+  const isActive = row?.user_status === "Active";
   const isArchived = row?.user_status === "Archive";
 
   if (isArchived) {
@@ -39,15 +38,20 @@ export const RenderAction = ({
     );
   }
 
+  const toggleTipId = `toggle-user-${row?.user_id ?? 'row'}`;
+  const editTipId = `edit-user-${row?.user_id ?? 'row'}`;
+  const archiveTipId = `archive-user-${row?.user_id ?? 'row'}`;
+  const permissionTipId = `permission-user-${row?.user_id ?? 'row'}`;
+
   return (
     <>
-      <Tooltip id="toggle" place="bottom" content={isActive ? "Deactivate" : "Activate"} />
-      <Tooltip id="edit" place="bottom" content="Edit" />
-      <Tooltip id="archive" place="bottom" content="Archive" />
-      <Tooltip id="permission" place="bottom" content="Permission" />
+      <Tooltip id={toggleTipId} place="bottom" content={isActive ? "Deactivate" : "Activate"} />
+      <Tooltip id={editTipId} place="bottom" content="Edit" />
+      <Tooltip id={archiveTipId} place="bottom" content="Archive" />
+      <Tooltip id={permissionTipId} place="bottom" content="Permission" />
       <div className="actions">
         <span
-          data-tooltip-id="toggle"
+          data-tooltip-id={toggleTipId}
           type="button"
           className="toggle-action"
           style={{
@@ -109,7 +113,7 @@ export const RenderAction = ({
           </label>
         </span>
         <span
-          data-tooltip-id="edit"
+          data-tooltip-id={editTipId}
           type="button"
           onClick={() => onEditClick(row)}
           className="edit"
@@ -117,7 +121,7 @@ export const RenderAction = ({
           <img src={edit} alt="edit" />
         </span>
         <span
-          data-tooltip-id="permission"
+          data-tooltip-id={permissionTipId}
           type="button"
           onClick={() => onPermissionClick(row)}
           className="permission"
@@ -126,7 +130,7 @@ export const RenderAction = ({
           <img src={permissionIcon} alt="permission" />
         </span>
         <span
-          data-tooltip-id="archive"
+          data-tooltip-id={archiveTipId}
           type="button"
           className="delete"
           onClick={() => onDeleteClick(row)}
