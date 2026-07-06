@@ -70,6 +70,22 @@ const TransportCompany = () => {
             contentClass: "table-content",
             sort: true,
         },
+           {
+            name: "Email",
+            selector: "email",
+            width: "260",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+             {
+            name: "Contact No.",
+            selector: "contact_no",
+            width: "260",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
         {
             name: "Created At",
             selector: "created_date",
