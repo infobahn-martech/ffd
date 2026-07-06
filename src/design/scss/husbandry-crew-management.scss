@@ -1609,6 +1609,20 @@
   border-width: 2px;
 }
 
+// Ensure SVG icons inherit the button's semantic color so `currentColor` in
+// inline SVGs reflects the green/red states defined above. Some browsers
+// require explicit inheritance on the SVG element.
+.crew-doc-btn svg {
+  display: block;
+  color: inherit;
+}
+
+.crew-doc-btn svg path,
+.crew-doc-btn svg circle {
+  stroke: currentColor;
+  fill: none;
+}
+
 // Transport / Hotel / Medical — compact rounded counter pill (icon + count
 // side-by-side), replacing the earlier icon-with-overlapping-badge layout.
 .crew-service-cell {
