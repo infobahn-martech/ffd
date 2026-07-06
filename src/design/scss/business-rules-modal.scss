@@ -668,31 +668,15 @@
   min-height: 88px;
 }
 
-.business-rule-form-owner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #f9fafb;
-  height: 44px;
-}
-
 .business-rule-form-owner-avatar {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(135deg, #00368c, #2563eb);
   color: #ffffff;
-  font: normal normal 600 12px/36px $font-primary;
+  font: normal normal 600 11px/28px $font-primary;
   text-align: center;
   flex-shrink: 0;
-}
-
-.business-rule-form-owner-name {
-  font: normal normal 500 14px/1.4 $font-primary;
-  color: $txtColor;
 }
 
 .business-rule-form-select-wrap {
@@ -702,6 +686,19 @@
     appearance: none;
     padding-right: 40px;
     cursor: pointer;
+  }
+}
+
+.business-rule-form-field .business-rule-form-select-wrap.business-rule-form-select-wrap--owner.business-rule-form-control {
+  align-items: center;
+  gap: 8px;
+  padding-left: 10px;
+
+  .business-rule-form-select {
+    option {
+      padding: 10px 14px;
+      margin-block: 4px;
+    }
   }
 }
 

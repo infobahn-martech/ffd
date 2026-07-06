@@ -17,6 +17,7 @@ import {
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
+import { getInitials } from '../../../shared/utils/utils';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
@@ -34,6 +35,7 @@ Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
+const OWNER_OPTIONS = [DEFAULT_OWNER.name, ...DUMMY_INTERNAL_USERS];
 
 const PROPERTY_DOT_COLORS = [...PRIMARY_PRESET_COLORS, ...SECONDARY_PRESET_COLORS];
 
@@ -1217,6 +1219,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
+  const [owner, setOwner] = useState(DEFAULT_OWNER.name);
   const [shareWith, setShareWith] = useState(SHARE_WITH_OPTIONS[0].value);
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
   const [conditions, setConditions] = useState([]);
@@ -1239,6 +1242,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');
+    setOwner(DEFAULT_OWNER.name);
     setShareWith(SHARE_WITH_OPTIONS[0].value);
     setDisallowTriggerChain(false);
     setConditions([]);
@@ -1265,6 +1269,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       name: name.trim(),
       description: description.trim(),
       tags: tags.trim(),
+      owner,
       shareWith,
       disallowTriggerChain,
       conditions,
@@ -1447,10 +1452,22 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               </div>
 
               <div className="business-rule-form-field">
-                <span className="business-rule-form-label">Owner</span>
-                <div className="business-rule-form-owner business-rule-form-control">
-                  <span className="business-rule-form-owner-avatar" aria-hidden>{DEFAULT_OWNER.initials}</span>
-                  <span className="business-rule-form-owner-name">{DEFAULT_OWNER.name}</span>
+                <label htmlFor="br-form-owner" className="business-rule-form-label">Owner</label>
+                <div className="business-rule-form-select-wrap business-rule-form-select-wrap--owner business-rule-form-control">
+                  <span className="business-rule-form-owner-avatar" aria-hidden>
+                    {owner === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(owner)}
+                  </span>
+                  <select
+                    id="br-form-owner"
+                    className="business-rule-form-select"
+                    value={owner}
+                    onChange={(e) => setOwner(e.target.value)}
+                  >
+                    {OWNER_OPTIONS.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
                 </div>
               </div>
 
