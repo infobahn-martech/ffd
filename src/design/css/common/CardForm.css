@@ -343,31 +343,19 @@
   pointer-events: none;
 }
 
-/* Tab label with status indicator */
-.tab-label-with-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tab-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+/* Tab status indicator */
+.cardform-tabs .tab.tab-has-status {
+  position: relative;
 }
 
 .tab-status-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-
-.tab-status-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: #555;
-  white-space: nowrap;
 }
 
 /* Body layout */

@@ -1057,24 +1057,19 @@ const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
         return (
           <NavTabButton
             key={tab}
-            className={`tab ${!isEnabled ? "disabled" : ""}`}
+            className={`tab ${!isEnabled ? "disabled" : ""} ${tab === "Sales Order" ? "tab-has-status" : ""}`}
             active={tab === activeTab}
             locked={isEnabled && tab === activeTab}
             onClick={() => onTabChange(tab)}
             disabled={!isEnabled}
           >
-            <span className="tab-label-with-status">
-              {tab}
-              {tab === "Sales Order" && (
-                <span className="tab-status">
-                  <span
-                    className="tab-status-dot"
-                    style={{ backgroundColor: "#f0a020" }}
-                  />
-                  <span className="tab-status-text">Pending</span>
-                </span>
-              )}
-            </span>
+            {tab}
+            {tab === "Sales Order" && (
+              <span
+                className="tab-status-dot"
+                style={{ backgroundColor: "#e02020" }}
+              />
+            )}
           </NavTabButton>
         );
       })}
