@@ -42,6 +42,7 @@ const CrewSelectionField = ({ callId, selected, onChange }) => {
     <FormGroup icon="crew" label="Crew Selection" accent="purple">
       <FormField label="Select Crew" className="cf-field-full">
         <ChecklistMultiSelect
+          className="husb-crew-multiselect"
           value={selectedIds}
           onChange={(e) => onChange(e.target.value)}
           options={crewOptions}

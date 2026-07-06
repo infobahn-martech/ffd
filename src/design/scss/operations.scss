@@ -4752,6 +4752,28 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Husbandry: Crew Selection multi-select — purple tags matching the
+   section's accent, overriding the shared grey .cf-multiselect-tag. */
+.husb-crew-multiselect .cf-multiselect-tag {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+
+.husb-crew-multiselect .cf-multiselect-tag:hover {
+  background: #ddd6fe;
+  border-color: #7c3aed;
+}
+
+.husb-crew-multiselect .cf-multiselect-tag-remove {
+  color: #6d28d9;
+}
+
+.husb-crew-multiselect .cf-multiselect-tag-remove:hover {
+  background: rgba(124, 58, 237, 0.15);
+  color: #4c1d95;
+}
+
 /* Husbandry: work-order chip, crew avatar and route-arrow table cells —
    shared visual vocabulary reused by HusbandryServiceRequestsTable and
    CrewPassRequestsTable. */
