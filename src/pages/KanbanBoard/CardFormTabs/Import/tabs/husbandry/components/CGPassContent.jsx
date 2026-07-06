@@ -200,7 +200,6 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     callId={callId}
                     selected={formValues.cgPassSelectedCrew || []}
                     onChange={(ids) => handleChange("cgPassSelectedCrew")({ target: { value: ids } })}
-                    accent="blue"
                   />
 
                   <FormGroup icon="folder" label="Documents" accent="blue">

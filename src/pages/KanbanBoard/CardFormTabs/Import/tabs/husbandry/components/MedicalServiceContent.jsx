@@ -183,7 +183,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   callId={callId}
                   selected={formValues.medicalServiceSelectedCrew || []}
                   onChange={(ids) => handleChange("medicalServiceSelectedCrew")({ target: { value: ids } })}
-                  accent="rose"
                 />
 
                 <FormGroup icon="medicalService" label="Care Details" accent="rose">

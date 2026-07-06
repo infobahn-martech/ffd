@@ -563,7 +563,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   callId={callId}
                   selected={formValues.selectedCrew || []}
                   onChange={(ids) => handleChange("selectedCrew")({ target: { value: ids } })}
-                  accent="teal"
                 />
 
                 <FormGroup icon="transport" label="Provider" accent="purple">

@@ -5,9 +5,11 @@ import {
   mapAxiosResponseToCrewOptions,
 } from "../../../../../../../services/cgAndZwailpassService";
 import { FormGroup, FormField } from "./Husbandry.components";
+import ChecklistMultiSelect from "../../appointment/checklistTab/ChecklistMultiSelect";
+import "../../../../../../../design/scss/checklist.scss";
 
-/** Checkbox list of crew for a call, auto-populated from the crew roster. Reports checked crew_change_ids via onChange. */
-const CrewSelectionField = ({ callId, selected, onChange, accent }) => {
+/** Multi-select of crew for a call, auto-populated from the crew roster. Reports selected crew_change_ids via onChange. */
+const CrewSelectionField = ({ callId, selected, onChange }) => {
   const [crewOptions, setCrewOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -36,37 +38,22 @@ const CrewSelectionField = ({ callId, selected, onChange, accent }) => {
 
   const selectedIds = Array.isArray(selected) ? selected.map(String) : [];
 
-  const toggleCrew = (id) => {
-    const idStr = String(id);
-    const next = selectedIds.includes(idStr)
-      ? selectedIds.filter((v) => v !== idStr)
-      : [...selectedIds, idStr];
-    onChange(next);
-  };
-
   return (
-    <FormGroup icon="crew" label="Crew Selection" accent={accent}>
+    <FormGroup icon="crew" label="Crew Selection" accent="purple">
       <FormField label="Select Crew" className="cf-field-full">
-        <div className="husb-crew-select-list">
-          {loading ? (
-            <div className="husb-crew-select-empty">Loading crew...</div>
-          ) : crewOptions.length === 0 ? (
-            <div className="husb-crew-select-empty">No crew found for this call.</div>
-          ) : (
-            crewOptions.map((crew) => (
-              <label key={crew.value} className="husb-crew-select-row">
-                <input
-                  type="checkbox"
-                  className="crew-list-checkbox"
-                  checked={selectedIds.includes(crew.value)}
-                  onChange={() => toggleCrew(crew.value)}
-                />
-                <span className="husb-crew-select-name">{crew.label}</span>
-                {crew.rank && <span className="husb-crew-select-meta">{crew.rank}</span>}
-              </label>
-            ))
-          )}
-        </div>
+        <ChecklistMultiSelect
+          value={selectedIds}
+          onChange={(e) => onChange(e.target.value)}
+          options={crewOptions}
+          placeholder={
+            loading
+              ? "Loading crew..."
+              : crewOptions.length === 0
+                ? "No crew found for this call"
+                : "Select crew..."
+          }
+          disabled={loading || crewOptions.length === 0}
+        />
       </FormField>
     </FormGroup>
   );
@@ -76,7 +63,6 @@ CrewSelectionField.propTypes = {
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   selected: PropTypes.array,
   onChange: PropTypes.func.isRequired,
-  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate"]),
 };
 
 export default CrewSelectionField;

@@ -200,7 +200,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     callId={callId}
                     selected={formValues.zawilPassSelectedCrew || []}
                     onChange={(ids) => handleChange("zawilPassSelectedCrew")({ target: { value: ids } })}
-                    accent="purple"
                   />
 
                   <FormGroup icon="folder" label="Documents" accent="blue">

@@ -295,7 +295,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   callId={callId}
                   selected={formValues.hotelSelectedCrew || []}
                   onChange={(ids) => handleChange("hotelSelectedCrew")({ target: { value: ids } })}
-                  accent="amber"
                 />
 
                 <FormGroup icon="calendar" label="Stay Details" accent="teal">
