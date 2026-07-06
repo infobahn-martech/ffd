@@ -5,7 +5,7 @@ const useBusinessRuleReducer = create((set) => ({
     isLoadingGet: false,
     triggerTypes: [],
 
-    getTriggerTypes: async (params) => {
+    getTriggerTypes: async ({ params } = {}) => {
         try {
             set({ isLoadingGet: true });
             const { data } = await businessRuleService.getTriggerTypes({ params });
@@ -21,7 +21,7 @@ const useBusinessRuleReducer = create((set) => ({
     isLoadingFields: false,
     fields: [],
 
-    getFields: async (params) => {
+    getFields: async ({ params } = {}) => {
         try {
             set({ isLoadingFields: true });
             const { data } = await businessRuleService.getFields({ params });
@@ -53,7 +53,7 @@ const useBusinessRuleReducer = create((set) => ({
     isLoadingCustomFields: false,
     customFields: [],
 
-    getCustomFields: async (params) => {
+    getCustomFields: async ({ params } = {}) => {
         try {
             set({ isLoadingCustomFields: true });
             const { data } = await businessRuleService.getCustomFields({ params });
@@ -69,7 +69,7 @@ const useBusinessRuleReducer = create((set) => ({
     isLoadingRegularFields: false,
     regularFields: [],
 
-    getRegularFields: async (params) => {
+    getRegularFields: async ({ params } = {}) => {
         try {
             set({ isLoadingRegularFields: true });
             const { data } = await businessRuleService.getRegularFields({ params });
