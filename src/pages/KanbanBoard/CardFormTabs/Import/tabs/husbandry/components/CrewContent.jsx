@@ -2190,7 +2190,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             </div>
           </div>
           {/* Status Legend */}
-          <div className="crew-status-legend">
+          {/* <div className="crew-status-legend">
             <div className="crew-status-legend__item crew-status-legend__item--done">
               <span className="crew-status-legend__dot crew-status-legend__dot--done" />
               <span className="crew-status-legend__label" title={STATUS_LABELS.done}>
@@ -2209,7 +2209,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 {STATUS_LABELS.rejected}
               </span>
             </div>
-          </div>
+          </div> */}
           <div className="crew-table-wrapper">
             <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
               <table className="table table-striped crew-table crew-list-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
