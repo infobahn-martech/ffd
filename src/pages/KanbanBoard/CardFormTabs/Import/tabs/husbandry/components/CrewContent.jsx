@@ -394,6 +394,25 @@ const getCrewSelectionId = (crew) =>
     ""
   );
 
+const getStaticCrewServiceAvailability = (crew, index = 0) => {
+  const demoPatterns = [
+    { transport: false, hotel: false, medical: true, transportCount: 0, hotelCount: 0, medicalCount: 1 },
+    { transport: false, hotel: true, medical: false, transportCount: 0, hotelCount: 1, medicalCount: 0 },
+    { transport: true, hotel: false, medical: false, transportCount: 1, hotelCount: 0, medicalCount: 0 },
+  ];
+
+  const demoPattern = demoPatterns[index % demoPatterns.length];
+
+  return {
+    transport: demoPattern.transport,
+    hotel: demoPattern.hotel,
+    medical: demoPattern.medical,
+    transportCount: demoPattern.transportCount,
+    hotelCount: demoPattern.hotelCount,
+    medicalCount: demoPattern.medicalCount,
+  };
+};
+
 /**
  * Reusable crew document cell for the Passport / Visa / Iqama columns.
  *
@@ -415,6 +434,7 @@ const CrewDocumentCell = ({
   isUploading = false,
   hasLocalDoc = false,
   tooltipPlace = "right",
+  fallbackFieldName = "",
 }) => {
   const localFileInputRef = useRef(null);
   const setInputRef = (el) => {
@@ -424,7 +444,8 @@ const CrewDocumentCell = ({
 
   const url = crew?.[urlFieldName];
   const hasUrl = hasDocumentUrl(url);
-  const isUploaded = hasUrl || hasLocalDoc || hasDocCopy(crew?.[fieldName]);
+  const hasUploadedValue = hasDocCopy(crew?.[fieldName]) || (fallbackFieldName ? hasDocCopy(crew?.[fallbackFieldName]) : false);
+  const isUploaded = hasUrl || hasLocalDoc || hasUploadedValue;
 
   const tooltipId = `${fieldName}-${crew.id}`;
   const tooltipContent = isUploading
@@ -460,7 +481,7 @@ const CrewDocumentCell = ({
       <input
         type="file"
         ref={setInputRef}
-        style={{ display: "none" }}
+        className="crew-doc-input"
         accept="*/*"
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -516,6 +537,7 @@ CrewDocumentCell.propTypes = {
   isUploading: PropTypes.bool,
   hasLocalDoc: PropTypes.bool,
   tooltipPlace: PropTypes.string,
+  fallbackFieldName: PropTypes.string,
 };
 
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
@@ -2276,7 +2298,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       </td>
                     </tr>
                   ) : (
-                    displayCrewList.map((crew) => (
+                    displayCrewList.map((crew, index) => {
+                      const staticServiceAvailability = getStaticCrewServiceAvailability(crew, index);
+
+                      return (
                       <tr
                         key={crew.id}
                         className={
@@ -2370,162 +2395,72 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           />
                         </td>
                         <td>
-                          <div className="crew-table-cell crew-table-cell--doc-action">
-                            <input
-                              type="file"
-                              ref={(el) => {
-                                if (el) cgPassFileInputRefs.current[crew.id] = el;
-                              }}
-                              style={{ display: "none" }}
-                              accept="*/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleCgPassUpload(crew.id, file);
-                                }
-                              }}
-                            />
-                            <div className="crew-doc-cell__inner">
-                              {(() => {
-                                const cgPassUploaded = Boolean(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass));
-                                const cgPassTooltip = cgPassUploaded ? "CG Pass Uploaded" : "Upload CG Pass";
-                                const cgPassAriaLabel = `${cgPassTooltip}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
-                                return (
-                                  <>
-                                    <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={cgPassTooltip} />
-                                    <button
-                                      type="button"
-                                      onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
-                                      data-tooltip-id={`cg-pass-upload-${crew.id}`}
-                                      aria-label={cgPassAriaLabel}
-                                      className={`crew-doc-btn ${cgPassUploaded ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
-                                    >
-                                      {cgPassUploaded ? (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                                        </svg>
-                                      ) : (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      )}
-                                    </button>
-                                  </>
-                                );
-                              })()}
+                          <CrewDocumentCell
+                            crew={crew}
+                            fieldName="cg_pass_copy"
+                            urlFieldName="cg_pass_copy_url"
+                            label="CG Pass"
+                            inputRef={(el) => {
+                              if (el) cgPassFileInputRefs.current[crew.id] = el;
+                            }}
+                            onUpload={(file) => handleCgPassUpload(crew.id, file)}
+                            isUploading={Boolean(uploadingCrewDoc?.[crew.crew_id]?.cg_pass_copy)}
+                            hasLocalDoc={Boolean(cgPassDocuments[crew.id])}
+                            tooltipPlace="right"
+                            fallbackFieldName="cg_pass"
+                          />
+                        </td>
+                        <td>
+                          <CrewDocumentCell
+                            crew={crew}
+                            fieldName="zawil_pass_copy"
+                            urlFieldName="zawil_pass_copy_url"
+                            label="Zawil Pass"
+                            inputRef={(el) => {
+                              if (el) zawilPassFileInputRefs.current[crew.id] = el;
+                            }}
+                            onUpload={(file) => handleZawilPassUpload(crew.id, file)}
+                            isUploading={Boolean(uploadingCrewDoc?.[crew.crew_id]?.zawil_pass_copy)}
+                            hasLocalDoc={Boolean(zawilPassDocuments[crew.id])}
+                            tooltipPlace="left"
+                            fallbackFieldName="zawil_pass"
+                          />
+                        </td>
+                        <td>
+                          {staticServiceAvailability.transport ? (
+                            <div className="crew-table-cell crew-service-cell" aria-label={`Transport available for ${crew.crewName || "crew"}`}>
+                              <div className="crew-status-icon crew-status-icon--done">
+                                <CarIcon size={14} />
+                                <span className="crew-status-count-badge">{staticServiceAvailability.transportCount}</span>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="crew-table-cell crew-service-cell crew-service-cell--empty" aria-hidden="true" />
+                          )}
                         </td>
                         <td>
-                          <div className="crew-table-cell crew-table-cell--doc-action">
-                            <input
-                              type="file"
-                              ref={(el) => {
-                                if (el) zawilPassFileInputRefs.current[crew.id] = el;
-                              }}
-                              style={{ display: "none" }}
-                              accept="*/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleZawilPassUpload(crew.id, file);
-                                }
-                              }}
-                            />
-                            <div className="crew-doc-cell__inner">
-                              {(() => {
-                                const zawilPassUploaded = Boolean(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass));
-                                const zawilPassTooltip = zawilPassUploaded ? "Zawil Pass Uploaded" : "Upload Zawil Pass";
-                                const zawilPassAriaLabel = `${zawilPassTooltip}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
-                                return (
-                                  <>
-                                    <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={zawilPassTooltip} />
-                                    <button
-                                      type="button"
-                                      onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
-                                      data-tooltip-id={`zawil-pass-upload-${crew.id}`}
-                                      aria-label={zawilPassAriaLabel}
-                                      className={`crew-doc-btn ${zawilPassUploaded ? "crew-doc-btn--uploaded" : "crew-doc-btn--missing"}`}
-                                    >
-                                      {zawilPassUploaded ? (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                                        </svg>
-                                      ) : (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      )}
-                                    </button>
-                                  </>
-                                );
-                              })()}
+                          {staticServiceAvailability.hotel ? (
+                            <div className="crew-table-cell crew-service-cell" aria-label={`Hotel available for ${crew.crewName || "crew"}`}>
+                              <div className="crew-status-icon crew-status-icon--done">
+                                <HotelIcon size={14} />
+                                <span className="crew-status-count-badge">{staticServiceAvailability.hotelCount}</span>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="crew-table-cell crew-service-cell crew-service-cell--empty" aria-hidden="true" />
+                          )}
                         </td>
                         <td>
-                          {(() => {
-                            const variant = getStatusVariant(crew.transport);
-                            const tooltipText = `Transport ${STATUS_LABELS[variant]}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
-                            return (
-                              <>
-                                <div
-                                  className={`crew-table-cell crew-status-icon crew-status-icon--${STATUS_VARIANT_CLASS[variant]}`}
-                                  data-tooltip-id={`transport-status-${crew.id}`}
-                                  data-tooltip-content={tooltipText}
-                                  aria-label={tooltipText}
-                                >
-                                  <CarIcon size={14} />
-                                  <span className="crew-status-count-badge">{crew.transportCount || 0}</span>
-                                </div>
-                                <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
-                              </>
-                            );
-                          })()}
-                        </td>
-                        <td>
-                          {(() => {
-                            const variant = getStatusVariant(crew.hotel);
-                            const tooltipText = `Hotel ${STATUS_LABELS[variant]}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
-                            return (
-                              <>
-                                <div
-                                  className={`crew-table-cell crew-status-icon crew-status-icon--${STATUS_VARIANT_CLASS[variant]}`}
-                                  data-tooltip-id={`hotel-status-${crew.id}`}
-                                  data-tooltip-content={tooltipText}
-                                  aria-label={tooltipText}
-                                >
-                                  <HotelIcon size={14} />
-                                  <span className="crew-status-count-badge">{crew.hotelCount || 0}</span>
-                                </div>
-                                <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
-                              </>
-                            );
-                          })()}
-                        </td>
-                        <td>
-                          {(() => {
-                            const variant = getStatusVariant(crew.medicalService);
-                            const tooltipText = `Medical ${STATUS_LABELS[variant]}${crew.crewName ? ` for ${crew.crewName}` : ""}`;
-                            return (
-                              <>
-                                <div
-                                  className={`crew-table-cell crew-status-icon crew-status-icon--${STATUS_VARIANT_CLASS[variant]}`}
-                                  data-tooltip-id={`medical-status-${crew.id}`}
-                                  data-tooltip-content={tooltipText}
-                                  aria-label={tooltipText}
-                                >
-                                  <MedicalIcon size={14} />
-                                  <span className="crew-status-count-badge">{crew.medicalServiceCount || 0}</span>
-                                </div>
-                                <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
-                              </>
-                            );
-                          })()}
+                          {staticServiceAvailability.medical ? (
+                            <div className="crew-table-cell crew-service-cell" aria-label={`Medical available for ${crew.crewName || "crew"}`}>
+                              <div className="crew-status-icon crew-status-icon--done">
+                                <MedicalIcon size={14} />
+                                <span className="crew-status-count-badge">{staticServiceAvailability.medicalCount}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="crew-table-cell crew-service-cell crew-service-cell--empty" aria-hidden="true" />
+                          )}
                         </td>
                         {/* <td>
                   <button
@@ -2538,7 +2473,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   </button>
                 </td> */}
                       </tr>
-                    ))
+                      );
+                    })
                   )}
                 </tbody>
               </table>

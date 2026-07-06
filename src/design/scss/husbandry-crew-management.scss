@@ -1527,6 +1527,10 @@
 // Small premium icon tiles — color is driven purely by document status
 // (missing/uploading/uploaded/preview below), never by document type, so
 // Passport/Iqama/Visa/CG Pass/Zawil Pass all read the same way.
+.crew-doc-input {
+  display: none;
+}
+
 .crew-doc-btn {
   width: 28px;
   height: 28px;
@@ -1607,6 +1611,18 @@
 
 // Transport / Hotel / Medical — compact rounded counter pill (icon + count
 // side-by-side), replacing the earlier icon-with-overlapping-badge layout.
+.crew-service-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+}
+
+.crew-service-cell--empty {
+  min-height: 28px;
+  width: 100%;
+}
+
 .crew-status-icon {
   display: inline-flex;
   align-items: center;
