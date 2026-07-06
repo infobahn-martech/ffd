@@ -1555,8 +1555,8 @@
 // all share these exact rules.
 .crew-doc-btn--preview,
 .crew-doc-btn--uploaded {
-  background: color-mix(in srgb, $status-success 12%, white);
-  border: 1.5px solid color-mix(in srgb, $status-success 40%, white);
+  background: color-mix(in srgb, $status-success 22%, white);
+  border: 1.5px solid color-mix(in srgb, $status-success 65%, white);
   color: $status-success;
   cursor: pointer;
 }
@@ -1567,20 +1567,20 @@
 
 .crew-doc-btn--preview:hover:not(:disabled),
 .crew-doc-btn--uploaded:hover:not(:disabled) {
-  background: color-mix(in srgb, $status-success 20%, white);
-  border-color: color-mix(in srgb, $status-success 60%, white);
+  background: color-mix(in srgb, $status-success 32%, white);
+  border-color: color-mix(in srgb, $status-success 80%, white);
 }
 
 .crew-doc-btn--missing {
-  background: color-mix(in srgb, $status-danger 8%, white);
-  border: 1.5px solid color-mix(in srgb, $status-danger 32%, white);
+  background: color-mix(in srgb, $status-danger 16%, white);
+  border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
   color: $status-danger;
   cursor: pointer;
 }
 
 .crew-doc-btn--missing:hover:not(:disabled) {
-  background: color-mix(in srgb, $status-danger 16%, white);
-  border-color: color-mix(in srgb, $status-danger 50%, white);
+  background: color-mix(in srgb, $status-danger 26%, white);
+  border-color: color-mix(in srgb, $status-danger 70%, white);
 }
 
 // Actively uploading is a genuine in-progress state (the one moment these
