@@ -8,10 +8,10 @@ import 'react-quill/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  SHARE_WITH_OPTIONS, THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_WORKSPACE_BOARDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
-  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_INTERNAL_USERS,
+  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_INTERNAL_USERS, DUMMY_SHARE_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
@@ -1215,12 +1215,119 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
   );
 }
 
+function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
+  const [filterText, setFilterText] = useState('');
+
+  useEffect(() => {
+    if (!show) return;
+    setFilterText('');
+  }, [show]);
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredUsers = filterQuery
+    ? DUMMY_SHARE_USERS.filter((user) =>
+        user.name.toLowerCase().includes(filterQuery) || user.username.toLowerCase().includes(filterQuery)
+      )
+    : DUMMY_SHARE_USERS;
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Shared with</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <div className="share-with-filter-row">
+            <span className="share-with-filter-icon" aria-hidden>
+              <FiFilter size={14} />
+            </span>
+            <input
+              type="text"
+              className="share-with-filter-input"
+              placeholder="Filter"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          <div className="share-with-table">
+            <div className="share-with-table-head">
+              <span>Name</span>
+              <span>Username</span>
+              <span>Viewer</span>
+              <span>Editor</span>
+            </div>
+            {filteredUsers.length === 0 ? (
+              <div className="br-property-picker-empty">No users found</div>
+            ) : (
+              filteredUsers.map((user) => {
+                const perm = permissions[user.id] ?? { viewer: false, editor: false };
+                return (
+                  <div key={user.id} className="share-with-row">
+                    <span className="share-with-name">{user.name}</span>
+                    <span className="share-with-username">
+                      <span className="share-with-avatar" aria-hidden>{getInitials(user.name)}</span>
+                      {user.username}
+                    </span>
+                    <label className="business-rule-form-toggle share-with-toggle">
+                      <input
+                        type="checkbox"
+                        checked={perm.viewer}
+                        onChange={() => onTogglePermission(user.id, 'viewer')}
+                      />
+                      <span className="business-rule-form-toggle-track" aria-hidden />
+                    </label>
+                    <label className="business-rule-form-toggle share-with-toggle">
+                      <input
+                        type="checkbox"
+                        checked={perm.editor}
+                        onChange={() => onTogglePermission(user.id, 'editor')}
+                      />
+                      <span className="business-rule-form-toggle-track" aria-hidden />
+                    </label>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+ShareWithModal.propTypes = {
+  show: PropTypes.bool,
+  onClose: PropTypes.func,
+  permissions: PropTypes.object,
+  onTogglePermission: PropTypes.func,
+};
+
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [owner, setOwner] = useState(DEFAULT_OWNER.name);
-  const [shareWith, setShareWith] = useState(SHARE_WITH_OPTIONS[0].value);
+  const [sharePermissions, setSharePermissions] = useState({});
+  const [showShareModal, setShowShareModal] = useState(false);
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
   const [conditions, setConditions] = useState([]);
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
@@ -1243,7 +1350,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setDescription(rule.description ?? '');
     setTags('');
     setOwner(DEFAULT_OWNER.name);
-    setShareWith(SHARE_WITH_OPTIONS[0].value);
+    setSharePermissions({});
+    setShowShareModal(false);
     setDisallowTriggerChain(false);
     setConditions([]);
     setShowPropertyPicker(false);
@@ -1270,7 +1378,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       description: description.trim(),
       tags: tags.trim(),
       owner,
-      shareWith,
+      sharePermissions,
       disallowTriggerChain,
       conditions,
       createActions,
@@ -1281,6 +1389,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     });
     onClose();
   };
+
+  const handleToggleSharePermission = (userId, type) => {
+    setSharePermissions((prev) => {
+      const current = prev[userId] ?? { viewer: false, editor: false };
+      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
+    });
+  };
+
+  const sharedUserCount = Object.values(sharePermissions).filter((p) => p.viewer || p.editor).length;
+  const shareWithLabel = sharedUserCount === 0 ? 'Just me' : `${sharedUserCount} ${sharedUserCount === 1 ? 'person' : 'people'}`;
 
   const handleOpenPropertyPicker = () => {
     setShowPropertyPicker(true);
@@ -1474,16 +1592,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               <div className="business-rule-form-field">
                 <label htmlFor="br-form-share" className="business-rule-form-label">Share with</label>
                 <div className="business-rule-form-select-wrap business-rule-form-control">
-                  <select
+                  <button
+                    type="button"
                     id="br-form-share"
-                    className="business-rule-form-select"
-                    value={shareWith}
-                    onChange={(e) => setShareWith(e.target.value)}
+                    className="business-rule-form-select business-rule-form-share-trigger"
+                    onClick={() => setShowShareModal(true)}
                   >
-                    {SHARE_WITH_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                    {shareWithLabel}
+                  </button>
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
                 </div>
               </div>
@@ -1736,6 +1852,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowNotificationSettings(false)}
       onSave={handleSaveNotificationSettings}
       initialSettings={activeNotifyAction}
+    />
+
+    <ShareWithModal
+      show={showShareModal}
+      onClose={() => setShowShareModal(false)}
+      permissions={sharePermissions}
+      onTogglePermission={handleToggleSharePermission}
     />
     </>
   );
