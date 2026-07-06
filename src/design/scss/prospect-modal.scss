@@ -377,7 +377,7 @@ span.error.text-danger {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   flex: 1 1 100%;
   gap: 0.45rem 0.5rem;
   min-width: 0;
@@ -386,11 +386,15 @@ span.error.text-danger {
 .transport-company-driver-field {
   flex: 1 1 140px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .transport-company-driver-field--vehicle {
   flex: 1.25 1 180px;
   min-width: min(160px, 100%);
+  display: flex;
+  flex-direction: column;
 }
 
 .transport-company-modal-body,
@@ -428,14 +432,15 @@ span.error.text-danger {
   }
 
   /* Phone Input Styling for Transport Company Drivers */
-  .transport-company-drivers .phone-wrapper {
+  .transport-company-drivers .transport-company-driver-field .phone-wrapper {
     margin-bottom: 0;
-    padding-bottom: 0;
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
   }
 
-  .transport-company-drivers .phone-wrapper .phone-label {
+  .transport-company-drivers .transport-company-driver-field .phone-wrapper .phone-label {
     margin-bottom: 0.35rem;
     font-size: 12px;
     font-weight: 600;
@@ -443,20 +448,23 @@ span.error.text-danger {
     letter-spacing: 0.02em;
   }
 
-  .transport-company-drivers .phone-wrapper .phone-input {
+  .transport-company-drivers .transport-company-driver-field .phone-wrapper .phone-input {
     min-height: 42px !important;
     height: 42px !important;
     padding-top: 0.45rem !important;
     padding-bottom: 0.45rem !important;
     font-size: 13px !important;
+    width: 100%;
   }
 
-  .transport-company-drivers .phone-wrapper span.error.text-danger {
+  .transport-company-drivers .transport-company-driver-field .phone-wrapper span.error.text-danger {
     position: static;
     display: block;
     margin-top: 0.2rem;
     font-size: 11px;
     line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
   }
 }
 
@@ -464,9 +472,9 @@ span.error.text-danger {
   flex: 0 0 auto;
   display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
-  align-self: flex-end;
+  align-self: flex-start;
   gap: 0.35rem;
   min-height: 42px;
   padding-bottom: 1px;
@@ -497,4 +505,83 @@ span.error.text-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Transport Field - Stable Layout with Reserved Error Space */
+.transport-field {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: auto;
+
+  .form-floating.desig-inp {
+    margin-bottom: 0;
+  }
+
+  .form-floating.desig-inp .form-control,
+  .form-floating.desig-inp .form-select {
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .phone-wrapper {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    .phone-input {
+      height: 42px;
+      min-height: 42px !important;
+    }
+  }
+}
+
+.transport-field__error {
+  height: 24px;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+}
+
+/* Transport Company Modal - Driver Row Layout Updates */
+.transport-company-modal {
+  .transport-company-driver-row__fields {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .transport-company-driver-field {
+    flex: 1;
+    min-width: 120px;
+
+    &.transport-company-driver-field--vehicle {
+      flex: 0.8;
+      min-width: 100px;
+    }
+
+    .transport-field {
+      height: 100%;
+    }
+  }
+
+  /* Main form field spacing */
+  .lead-form .transport-field {
+    margin-bottom: 0.5rem;
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
 }

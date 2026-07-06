@@ -169,81 +169,85 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
           {loadError && <div className="alert alert-danger mb-3">{loadError}</div>}
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <input
-                type="text"
-                className={`form-control ${errors.transport_company ? 'is-invalid' : ''}`}
-                placeholder=" "
-                disabled={isEdit && isLoadingDetail}
-                {...register('transport_company', { required: 'Company name is required' })}
-              />
-              <label>
-                Transport company <span className="text-danger">*</span>
-              </label>
-              {errors.transport_company && (
-                <span className="error text-danger">{errors.transport_company.message}</span>
-              )}
+            <div className="transport-field">
+              <div className="form-floating desig-inp">
+                <input
+                  type="text"
+                  className={`form-control ${errors.transport_company ? 'is-invalid' : ''}`}
+                  placeholder=" "
+                  disabled={isEdit && isLoadingDetail}
+                  {...register('transport_company', { required: 'Company name is required' })}
+                />
+                <label>
+                  Transport company <span className="text-danger">*</span>
+                </label>
+              </div>
+              <div className="transport-field__error">
+                {errors.transport_company?.message}
+              </div>
             </div>
           </div>
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="phone-wrapper">
-              <label className="phone-label">
-                Contact no <span className="text-danger">*</span>
-              </label>
-              <Controller
-                name="contact_no"
-                control={control}
-                rules={{
-                  required: 'Contact number is required',
-                  validate: (value) => {
-                    const digits = (value || '').replace(/\D/g, '');
-                    return (
-                      digits.length >= 7 ||
-                      'Enter a valid phone number'
-                    );
-                  },
-                }}
-                render={({ field }) => (
-                  <PhoneInput
-                    {...field}
-                    country="sa"
-                    enableSearch
-                    inputClass="phone-input"
-                    buttonClass="phone-flag"
-                    disabled={isEdit && isLoadingDetail}
-                  />
-                )}
-              />
-              {errors.contact_no && (
-                <span className="error text-danger">
-                  {errors.contact_no.message}
-                </span>
-              )}
+            <div className="transport-field">
+              <div className="phone-wrapper">
+                <label className="phone-label">
+                  Contact no <span className="text-danger">*</span>
+                </label>
+                <Controller
+                  name="contact_no"
+                  control={control}
+                  rules={{
+                    required: 'Contact number is required',
+                    validate: (value) => {
+                      const digits = (value || '').replace(/\D/g, '');
+                      return (
+                        digits.length >= 7 ||
+                        'Enter a valid phone number'
+                      );
+                    },
+                  }}
+                  render={({ field }) => (
+                    <PhoneInput
+                      {...field}
+                      country="sa"
+                      enableSearch
+                      inputClass="phone-input"
+                      buttonClass="phone-flag"
+                      disabled={isEdit && isLoadingDetail}
+                    />
+                  )}
+                />
+              </div>
+              <div className="transport-field__error">
+                {errors.contact_no?.message}
+              </div>
             </div>
           </div>
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <input
-                type="email"
-                className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                placeholder=" "
-                disabled={isEdit && isLoadingDetail}
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Enter a valid email address',
-                  },
-                })}
-              />
-              <label>
-                Email <span className="text-danger">*</span>
-              </label>
-              {errors.email && (
-                <span className="error text-danger">{errors.email.message}</span>
-              )}
+            <div className="transport-field">
+              <div className="form-floating desig-inp">
+                <input
+                  type="email"
+                  className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                  placeholder=" "
+                  disabled={isEdit && isLoadingDetail}
+                  {...register('email', {
+                    required: 'Email is required',
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: 'Enter a valid email address',
+                    },
+                  })}
+                />
+                <label>
+                  Email <span className="text-danger">*</span>
+                </label>
+              </div>
+              <div className="transport-field__error">
+                {errors.email?.message}
+              </div>
             </div>
           </div>
 
@@ -265,85 +269,95 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                   <input type="hidden" {...register(`drivers.${index}.transport_driver_id`)} />
                   <div className="transport-company-driver-row__fields">
                     <div className="transport-company-driver-field">
-                      <div className="form-floating desig-inp">
-                        <input
-                          type="text"
-                          className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
-                          placeholder=" "
-                          disabled={isEdit && isLoadingDetail}
-                          {...register(`drivers.${index}.driver_name`, {
-                            required: 'Driver name is required',
-                          })}
-                        />
-                        <label>
-                          Driver name <span className="text-danger">*</span>
-                        </label>
+                      <div className="transport-field">
+                        <div className="form-floating desig-inp">
+                          <input
+                            type="text"
+                            className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
+                            placeholder=" "
+                            disabled={isEdit && isLoadingDetail}
+                            {...register(`drivers.${index}.driver_name`, {
+                              required: 'Driver name is required',
+                            })}
+                          />
+                          <label>
+                            Driver name <span className="text-danger">*</span>
+                          </label>
+                        </div>
+                        <div className="transport-field__error">
+                          {errors.drivers?.[index]?.driver_name?.message}
+                        </div>
                       </div>
                     </div>
                     <div className="transport-company-driver-field">
-                      <div className="phone-wrapper">
-                        <label className="phone-label">
-                          Contact no <span className="text-danger">*</span>
-                        </label>
-                        <Controller
-                          name={`drivers.${index}.contact_no`}
-                          control={control}
-                          rules={{
-                            required: 'Contact number is required',
-                            validate: (value) => {
-                              const digits = (value || '').replace(/\D/g, '');
-                              return (
-                                digits.length >= 7 ||
-                                'Enter a valid phone number'
-                              );
-                            },
-                          }}
-                          render={({ field }) => (
-                            <PhoneInput
-                              {...field}
-                              country="sa"
-                              enableSearch
-                              inputClass="phone-input"
-                              buttonClass="phone-flag"
-                              disabled={isEdit && isLoadingDetail}
-                            />
-                          )}
-                        />
-                        {errors.drivers?.[index]?.contact_no && (
-                          <span className="error text-danger">
-                            {errors.drivers?.[index]?.contact_no?.message}
-                          </span>
-                        )}
+                      <div className="transport-field">
+                        <div className="phone-wrapper">
+                          <label className="phone-label">
+                            Contact no <span className="text-danger">*</span>
+                          </label>
+                          <Controller
+                            name={`drivers.${index}.contact_no`}
+                            control={control}
+                            rules={{
+                              required: 'Contact number is required',
+                              validate: (value) => {
+                                const digits = (value || '').replace(/\D/g, '');
+                                return (
+                                  digits.length >= 7 ||
+                                  'Enter a valid phone number'
+                                );
+                              },
+                            }}
+                            render={({ field }) => (
+                              <PhoneInput
+                                {...field}
+                                country="sa"
+                                enableSearch
+                                inputClass="phone-input"
+                                buttonClass="phone-flag"
+                                disabled={isEdit && isLoadingDetail}
+                              />
+                            )}
+                          />
+                        </div>
+                        <div className="transport-field__error">
+                          {errors.drivers?.[index]?.contact_no?.message}
+                        </div>
                       </div>
                     </div>
                     <div className="transport-company-driver-field transport-company-driver-field--vehicle">
-                      <div className="transport-company-driver-field--select">
-                        <Controller
-                          name={`drivers.${index}.vehicle_type_id`}
-                          control={control}
-                          rules={{ required: 'Vehicle type is required' }}
-                          render={({ field }) => (
-                            <PremiumSelect
-                              value={field.value != null ? String(field.value) : ''}
-                              onChange={(e) => field.onChange(e.target.value)}
-                              options={(vehicles || []).map((v) => {
-                                const id = v.vehicle_type_id ?? v._id;
-                                return {
-                                  value: String(id ?? ''),
-                                  label: String(
-                                    v.vehicle_type ??
-                                      v.name ??
-                                      `Vehicle ${v.vehicle_type_id ?? v._id ?? ''}`,
-                                  ),
-                                };
-                              })}
-                              placeholder="Select vehicle type"
-                              searchPlaceholder="Search vehicle type..."
-                              disabled={isEdit && isLoadingDetail}
-                              hasError={Boolean(errors.drivers?.[index]?.vehicle_type_id)}
-                            />
-                          )}
-                        />
+                      <div className="transport-field">
+                        <div className="transport-company-driver-field--select">
+                          <Controller
+                            name={`drivers.${index}.vehicle_type_id`}
+                            control={control}
+                            rules={{ required: 'Vehicle type is required' }}
+                            render={({ field }) => (
+                              <PremiumSelect
+                                value={field.value != null ? String(field.value) : ''}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                options={(vehicles || []).map((v) => {
+                                  const id = v.vehicle_type_id ?? v._id;
+                                  return {
+                                    value: String(id ?? ''),
+                                    label: String(
+                                      v.vehicle_type ??
+                                        v.name ??
+                                        `Vehicle ${v.vehicle_type_id ?? v._id ?? ''}`,
+                                    ),
+                                  };
+                                })}
+                                placeholder="Select vehicle type"
+                                searchPlaceholder="Search vehicle type..."
+                                disabled={isEdit && isLoadingDetail}
+                                hasError={Boolean(errors.drivers?.[index]?.vehicle_type_id)}
+                              />
+                            )}
+                          />
+                        </div>
+                        <div className="transport-field__error">
+                          {errors.drivers?.[index]?.vehicle_type_id?.message}
+                        </div>
                       </div>
                     </div>
                     <div className="transport-company-driver-row__actions">
