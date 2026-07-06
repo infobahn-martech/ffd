@@ -96,13 +96,13 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-    getCustomFields({ params: { board_id: selectedBoardId || undefined } });
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, trigger_type_id: triggerTypeId } });
   }, [show]);
 
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined } });
-  }, [selectedBoardId, showDisabled, debouncedSearch]);
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined, trigger_type_id: triggerTypeId } });
+  }, [selectedBoardId, showDisabled, debouncedSearch, triggerTypeId]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -773,7 +773,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   );
 }
 
-function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels }) {
+function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
   const [selected, setSelected] = useState(null);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [expandedCustomFields, setExpandedCustomFields] = useState(true);
@@ -803,13 +803,13 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-    getCustomFields({ params: { board_id: selectedBoardId || undefined } });
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, trigger_type_id: triggerTypeId } });
   }, [show]);
 
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined } });
-  }, [selectedBoardId, showDisabled, debouncedSearch]);
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined, trigger_type_id: triggerTypeId } });
+  }, [selectedBoardId, showDisabled, debouncedSearch, triggerTypeId]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -1857,6 +1857,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       existingFieldLabels={updateActions
         .filter((a) => a.category === 'custom')
         .map((a) => a.rawLabel.trim().toLowerCase())}
+      triggerTypeId={rule.id}
     />
 
     <NotificationSettingsModal
@@ -1954,6 +1955,7 @@ RefineUpdateCriteriaModal.propTypes = {
   existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.number,
 };
 
 NotificationSettingsModal.propTypes = {
