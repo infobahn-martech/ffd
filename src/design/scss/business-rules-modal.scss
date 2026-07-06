@@ -100,6 +100,140 @@
   }
 }
 
+.br-picker-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin: 24px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  max-height: 580px; 
+}
+
+.br-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 0 20px;
+}
+
+.br-picker-search-input {
+  width: 250px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font: normal normal 400 13px/1.5 $font-primary;
+  color: #374151;
+  outline: none;
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+  
+  &:focus {
+    border-color: #00368c;
+    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.08);
+  }
+}
+
+.br-picker-cancel-btn {
+  background: transparent;
+  border: none;
+  color: #0056b3;
+  font: normal normal 500 13px/1.5 $font-primary;
+  cursor: pointer;
+  padding: 0;
+  
+  &:hover {
+    text-decoration: underline;
+    color: #00368c;
+  }
+}
+
+.br-picker-grid-wrapper {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.br-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  
+  @media ($sm-991) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media ($sm-767) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media ($sm-579) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.br-picker-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 120px;
+  justify-content: flex-start;
+  width: 100%;
+  
+  &:hover {
+    border-color: #00368c;
+    box-shadow: 0 4px 12px rgba(0, 54, 140, 0.08);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.br-picker-card-title {
+  font: normal normal 400 13px/1.4 $font-primary;
+  color: #4b5563;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.br-picker-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  
+  svg {
+    width: auto;
+    height: 48px; 
+  }
+}
+
+.business-rules-picker-cancel-btn {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: normal normal 500 14px/1.5 $font-primary;
+  color: #00368c;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #002a6e;
+    text-decoration: underline;
+  }
+}
+
 .business-rules-search-wrapper {
   position: relative;
   display: flex;
@@ -1851,3 +1985,102 @@
     min-height: 220px;
   }
 }
+
+.br-cancel-confirm-modal {
+  z-index: 1060;
+
+  .modal-content {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.br-cancel-confirm-dialog {
+  max-width: 360px;
+  margin: 1.75rem auto;
+}
+
+.br-cancel-confirm-backdrop {
+  background-color: rgba(15, 23, 42, 0.7);
+}
+
+.br-cancel-confirm-content {
+  background: #ffffff;
+  border-radius: 4px;
+  position: relative;
+  padding: 14px 18px;
+  width: 40%;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.br-cancel-confirm-close-btn {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  z-index: 10;
+  padding: 0;
+  
+  &:hover {
+    background: #f9fafb;
+    color: #111827;
+  }
+}
+
+.br-cancel-confirm-text {
+  font: normal normal 400 13px/1.5 $font-primary;
+  color: #4b5563;
+  margin: 0 0 20px 0;
+  text-align: left;
+}
+
+.br-cancel-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.br-cancel-confirm-btn {
+  padding: 6px 28px;
+  border-radius: 20px;
+  font: normal normal 500 14px/1.5 $font-primary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  
+  &--no {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #2563eb;
+    
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+  
+  &--yes {
+    background: #2563eb;
+    border: 1px solid #2563eb;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px #bfdbfe; 
+    
+    &:hover {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+  }
+}
+

@@ -28,12 +28,6 @@ const TRIGGER_CODE_TO_ICON = {
   task_card_updated: 'task-updated',
 };
 
-const FILTER_OPTIONS = [
-  { label: 'All', value: 'all' },
-  { label: 'Enabled', value: 'enabled' },
-  { label: 'Disabled', value: 'disabled' },
-];
-
 const OwnerCell = ({ owner }) => {
   if (!owner) return <span className="br-table-deleted-user">Deleted user</span>;
   const name = typeof owner === 'object' ? (owner?.name ?? owner?.username ?? '') : owner;
@@ -54,7 +48,6 @@ const OwnerCell = ({ owner }) => {
 const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [searchValue, setSearchValue] = useState('');
   const [triggerSearch, setTriggerSearch] = useState('');
-  const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -72,15 +65,14 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     if (!show) {
       setSearchValue('');
       setTriggerSearch('');
-      setFilter('all');
       setPage(1);
       setView('table');
       setSelectedRule(null);
       setShowFormModal(false);
       return;
     }
-    getBusinessRules({ params: { page, limit, searchTerm: searchValue, filter } });
-  }, [show, page, searchValue, filter]);
+    getBusinessRules({ params: { page, limit, searchTerm: searchValue } });
+  }, [show, page, searchValue]);
 
   useEffect(() => {
     if (view === 'picker') {
@@ -106,10 +98,16 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     setShowFormModal(true);
   };
 
-  const handleCloseFormModal = () => {
+  const handleSaveFormModal = () => {
     setShowFormModal(false);
     setSelectedRule(null);
     setView('table');
+  };
+
+  const handleCancelFormModal = () => {
+    setShowFormModal(false);
+    setSelectedRule(null);
+    setView('picker');
   };
 
   const handleAddNewRule = () => {
@@ -162,30 +160,6 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
             <>
               <div className="br-table-toolbar">
                 <div className="br-table-toolbar-left">
-                  <div className="dropdown">
-                    <button
-                      className="btn btn-primary dropdown-toggle br-table-filter-btn"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      {FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? 'All'}
-                    </button>
-                    <ul className="dropdown-menu">
-                      {FILTER_OPTIONS.map((opt) => (
-                        <li key={opt.value}>
-                          <button
-                            className="dropdown-item"
-                            type="button"
-                            onClick={() => { setFilter(opt.value); setPage(1); }}
-                          >
-                            {opt.label}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
                   <div className="business-rules-search-wrapper br-table-search-wrap">
                     <FiSearch className="business-rules-search-icon" />
                     <input
@@ -319,33 +293,40 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
             </>
           ) : (
             <>
-              <div className="business-rules-search-section">
-                <div className="business-rules-search-wrapper">
-                  <FiSearch className="business-rules-search-icon" />
-                  <input
-                    type="text"
-                    className="business-rules-search-input"
-                    placeholder="Filter by business rule name"
-                    value={triggerSearch}
-                    onChange={(e) => setTriggerSearch(e.target.value)}
-                  />
-                </div>
+            <div className="br-picker-container">
+              <div className="br-picker-header">
+                <input
+                  type="text"
+                  className="br-picker-search-input"
+                  placeholder="Filter by business rule name."
+                  value={triggerSearch}
+                  onChange={(e) => setTriggerSearch(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="br-picker-cancel-btn"
+                  onClick={handleBackToTable}
+                >
+                  Cancel
+                </button>
               </div>
 
-              <div className="business-rules-grid-wrapper">
+              <div className="br-picker-grid-wrapper">
                 {isLoadingGet ? (
                   <div className="business-rules-empty-state">Loading...</div>
                 ) : filteredTriggers.length > 0 ? (
-                  <div className="business-rules-grid">
+                  <div className="br-picker-grid">
                     {filteredTriggers.map((trigger) => (
                       <button
                         key={trigger.id}
                         type="button"
-                        className="business-rules-card"
+                        className="br-picker-card"
                         onClick={() => handleTriggerCardClick(trigger)}
                       >
-                        <BusinessRuleIcon iconType={trigger.icon} />
-                        <span className="business-rules-card-title">{trigger.name}</span>
+                        <span className="br-picker-card-title">{trigger.name}</span>
+                        <div className="br-picker-card-icon">
+                          <BusinessRuleIcon iconType={trigger.icon} />
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -353,6 +334,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                   <div className="business-rules-empty-state">No rule types found</div>
                 )}
               </div>
+            </div>
             </>
           )}
         </Modal.Body>
@@ -362,8 +344,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         show={show && showFormModal}
         rule={selectedRule}
         boardName={boardName}
-        onClose={handleCloseFormModal}
-        onSave={handleCloseFormModal}
+        onClose={handleCancelFormModal}
+        onSave={handleSaveFormModal}
       />
     </>
   );
