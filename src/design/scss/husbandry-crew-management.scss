@@ -1502,7 +1502,7 @@
   align-items: center;
   font-size: 11px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #686868;
   background: color-mix(in srgb, #7c3aed 12%, white);
   border-radius: $radius-pill;
   padding: 4px $space-3;
@@ -1624,18 +1624,17 @@
 }
 
 // More specific rules to force icon color when other styles interfere
+// Note: removed !important from stroke to allow inline styles to override
 .crew-doc-btn svg,
 .crew-doc-btn svg * {
-  color: inherit !important;
-  stroke: currentColor !important;
-  fill: none !important;
+  color: inherit;
+  fill: none;
 }
 
 .crew-doc-btn .crew-doc-icon,
 .crew-doc-btn .crew-doc-icon * {
-  color: inherit !important;
-  stroke: currentColor !important;
-  fill: none !important;
+  color: inherit;
+  fill: none;
 }
 
 // Transport / Hotel / Medical — compact rounded counter pill (icon + count
