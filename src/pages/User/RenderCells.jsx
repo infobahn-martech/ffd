@@ -15,7 +15,8 @@ export const RenderAction = ({
   onPermissionClick,
   onUnarchiveClick,
 }) => {
-  const isActive = row?.user_status === "Active";
+  const isActive = row?.status === "1";
+  console.log("isActive",isActive)
   const isArchived = row?.user_status === "Archive";
 
   if (isArchived) {

@@ -756,10 +756,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   };
 
   // Action dropdown options.
-  // Transport/CG Pass/Zawil Pass/Hotel/Medical no longer have a "Select Crew"
-  // field to receive this push (crew selection was removed from those tabs),
-  // so only Launch Hire — which has its own dedicated push target — remains.
+  // CG Pass/Zawil Pass/Hotel/Medical still don't have a "Select Crew" field to
+  // receive this push (crew selection was removed from those tabs); Transport
+  // and Launch Hire each have their own dedicated push target.
   const allActionOptions = [
+    { value: "transport", label: "Transport", tab: "transport", field: "selectedCrew" },
     { value: "launchHire", label: "Launch Hire", tab: "launchHire", field: "launchHireSelectedCrew" },
   ];
 

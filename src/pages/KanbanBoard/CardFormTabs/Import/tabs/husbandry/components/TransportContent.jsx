@@ -459,9 +459,12 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       vessel_id: Number(callDetails?.vessel_id || ""),
       request_type: transportType === "thirdparty" ? "Third Party" : "Inhouse",
       pickup_datetime: pickupDateTime,
-      from_location: formValues.transportFrom || "",
-      to_location: formValues.transportTo || "",
+      from_location: formValues.transportFromType || "",
+      from_location_det: formValues.transportFrom || "",
+      to_location: formValues.transportToType || "",
+      to_location_det: formValues.transportTo || "",
       remarks: formValues.transportDescription || "",
+      crew: (formValues.selectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
     };
 
     if (transportType === "inhouse") {
