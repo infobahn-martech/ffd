@@ -1340,6 +1340,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [notifyActions, setNotifyActions] = useState([]);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [activeNotifyActionId, setActiveNotifyActionId] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -1364,6 +1365,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setNotifyActions([]);
     setShowNotificationSettings(false);
     setActiveNotifyActionId(null);
+    setShowCancelConfirm(false);
   }, [show, rule]);
 
   if (!rule) return null;
@@ -1504,11 +1506,24 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const boardLabel = boardName?.trim() || 'Current board';
 
+  const handleCloseAttempt = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const handleConfirmClose = () => {
+    setShowCancelConfirm(false);
+    onClose();
+  };
+
+  const handleCancelClose = () => {
+    setShowCancelConfirm(false);
+  };
+
   return (
     <>
     <Modal
       show={show}
-      onHide={onClose}
+      onHide={handleCloseAttempt}
       className="business-rule-form-modal"
       dialogClassName="business-rule-form-modal-dialog"
       backdropClassName="business-rule-form-modal-backdrop"
@@ -1522,7 +1537,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
           <button
             type="button"
             className="business-rule-form-modal-close"
-            onClick={onClose}
+            onClick={handleCloseAttempt}
             aria-label="Close"
           >
             <FiX size={20} />
@@ -1857,6 +1872,30 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       permissions={sharePermissions}
       onTogglePermission={handleToggleSharePermission}
     />
+
+    <Modal
+      show={showCancelConfirm}
+      onHide={handleCancelClose}
+      className="br-cancel-confirm-modal"
+      dialogClassName="br-cancel-confirm-dialog"
+      backdropClassName="br-cancel-confirm-backdrop"
+      backdrop="static"
+    >
+      <div className="br-cancel-confirm-content">
+        <button type="button" className="br-cancel-confirm-close-btn" onClick={handleCancelClose}>
+          <FiX size={16} />
+        </button>
+        <p className="br-cancel-confirm-text">Are you sure you want to cancel creating a new business rule?</p>
+        <div className="br-cancel-confirm-actions">
+          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--no" onClick={handleCancelClose}>
+            No
+          </button>
+          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--yes" onClick={handleConfirmClose}>
+            Yes
+          </button>
+        </div>
+      </div>
+    </Modal>
     </>
   );
 }
