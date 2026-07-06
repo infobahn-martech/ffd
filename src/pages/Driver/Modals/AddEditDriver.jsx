@@ -61,6 +61,18 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
     useEffect(() => {
         if (showModal && isEdit && !isLoadingCountries && countries) {
+            // Handle port_id: split comma-separated string or convert array
+            let portIds = [];
+            if (showModal?.port_ids && Array.isArray(showModal.port_ids)) {
+                portIds = showModal.port_ids.map(String);
+            } else if (showModal?.port_id) {
+                if (typeof showModal.port_id === 'string') {
+                    portIds = showModal.port_id.split(',').map(id => id.trim());
+                } else {
+                    portIds = [String(showModal.port_id)];
+                }
+            }
+
             reset({
                 driver_name: showModal?.driver_name || "",
                 employee_no: showModal?.employee_no || "",
@@ -69,7 +81,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 email: showModal?.email || "",
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
-                port_id: showModal?.port_ids?.map(String) || (showModal?.port_id ? [String(showModal.port_id)] : []),
+                port_id: portIds,
                 nationality: showModal?.nationality ?? showModal?.country_id ?? "",
                 driver_for: normalizeDriverFor(showModal?.driver_for),
             });
