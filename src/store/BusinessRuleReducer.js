@@ -99,6 +99,22 @@ const useBusinessRuleReducer = create((set) => ({
             set({ businessRules: [], businessRulesCount: 0, isLoadingBusinessRules: false });
         }
     },
+
+    isLoadingTriggerConfig: false,
+    triggerConfig: null,
+
+    getTriggerConfig: async (triggerTypeId) => {
+        try {
+            set({ isLoadingTriggerConfig: true });
+            const { data } = await businessRuleService.getTriggerConfig(triggerTypeId);
+            set({
+                triggerConfig: data?.data ?? null,
+                isLoadingTriggerConfig: false,
+            });
+        } catch (err) {
+            set({ triggerConfig: null, isLoadingTriggerConfig: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;

@@ -1342,8 +1342,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [activeNotifyActionId, setActiveNotifyActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  const { getTriggerConfig } = useBusinessRuleReducer((s) => s);
+
   useEffect(() => {
     if (!show || !rule) return;
+    getTriggerConfig(rule.id);
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');

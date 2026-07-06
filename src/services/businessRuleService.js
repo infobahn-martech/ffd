@@ -18,4 +18,9 @@ const getRegularFields = ({ params } = {}) =>
 const getBusinessRules = ({ params } = {}) =>
   Gateway.get('/business_rule/get_business_rules', { params });
 
-export default { getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getBusinessRules };
+const getTriggerConfig = (triggerTypeId) =>
+  Gateway.get(`/business_rule/get_trigger_config/${triggerTypeId}`);
+
+export default {
+  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getBusinessRules, getTriggerConfig,
+};
