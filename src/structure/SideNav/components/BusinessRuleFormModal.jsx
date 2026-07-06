@@ -87,7 +87,6 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
 
   const filterQuery = filterText.trim().toLowerCase();
   const matchesFilter = (field) => getFieldLabel(field).toLowerCase().includes(filterQuery);
-  const filteredTimeUnits = filterQuery ? displayTimeUnits.filter(matchesFilter) : displayTimeUnits;
   const filteredCustomFields = filterQuery ? displayCustomFields.filter(matchesFilter) : displayCustomFields;
 
   useEffect(() => {
@@ -96,7 +95,6 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
     setSelectedRegularFields([]);
     setFilterText('');
     setDebouncedSearch('');
-    if (timeUnits.length === 0) getTimeUnits();
     if (workspaces.length === 0) listAllWorkspaces();
     getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
   }, [show]);
@@ -116,6 +114,11 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   useEffect(() => {
     if (!show) return;
     getRegularFields({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
+  }, [show, debouncedSearch, triggerTypeId]);
+
+  useEffect(() => {
+    if (!show) return;
+    getTimeUnits({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
   }, [show, debouncedSearch, triggerTypeId]);
 
   const handlePick = (type, field) => {
@@ -222,10 +225,10 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
               <div className="br-property-pill-grid">
                 {isLoadingTimeUnits ? (
                   <div className="br-property-picker-empty">Loading...</div>
-                ) : filteredTimeUnits.length === 0 ? (
+                ) : displayTimeUnits.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
-                  filteredTimeUnits.map((field, idx) => {
+                  displayTimeUnits.map((field, idx) => {
                     const key = `time_unit-${field.time_unit_id ?? idx}`;
                     return (
                       <PropertyPill
