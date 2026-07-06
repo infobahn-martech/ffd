@@ -1623,6 +1623,21 @@
   fill: none;
 }
 
+// More specific rules to force icon color when other styles interfere
+.crew-doc-btn svg,
+.crew-doc-btn svg * {
+  color: inherit !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+.crew-doc-btn .crew-doc-icon,
+.crew-doc-btn .crew-doc-icon * {
+  color: inherit !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
 // Transport / Hotel / Medical — compact rounded counter pill (icon + count
 // side-by-side), replacing the earlier icon-with-overlapping-badge layout.
 .crew-service-cell {

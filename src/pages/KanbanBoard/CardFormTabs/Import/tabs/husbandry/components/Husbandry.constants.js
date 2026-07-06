@@ -35,6 +35,29 @@ export const LAUNCH_HIRE_LOCATION_OPTIONS = [
   { value: "JUAYMAH", label: "Juaymah" },
 ];
 
+export const TRANSPORT_ROUTE_LOCATION_OPTIONS = [
+  { value: "Dammam airport", label: "Dammam airport" },
+  { value: "Dammam", label: "Dammam" },
+  { value: "Khobar", label: "Khobar" },
+  { value: "Dhahran", label: "Dhahran" },
+  { value: "Rastanura", label: "Rastanura" },
+  { value: "Jubail", label: "Jubail" },
+  { value: "Abu Ali pier", label: "Abu Ali pier" },
+  { value: "Ras Abu Ali", label: "Ras Abu Ali" },
+  { value: "Manifa", label: "Manifa" },
+  { value: "Tanajib", label: "Tanajib" },
+  { value: "Safaniya", label: "Safaniya" },
+  { value: "Ras Al Khair", label: "Ras Al Khair" },
+  { value: "Bahrain", label: "Bahrain" },
+  { value: "Tanajib pier", label: "Tanajib pier" },
+  { value: "Safaniya pier", label: "Safaniya pier" },
+  { value: "Khafji", label: "Khafji" },
+  { value: "Abu Ali", label: "Abu Ali" },
+  { value: "Shedgum", label: "Shedgum" },
+  { value: "Mubarrz", label: "Mubarrz" },
+  { value: "Manifa port", label: "Manifa port" },
+];
+
 export const LAUNCH_HIRE_SERVICE_TYPES = {
   CREW_CHANGE: "CREW_CHANGE",
   MATERIAL_DELIVERY: "MATERIAL_DELIVERY",
@@ -74,10 +97,4 @@ export const LAUNCH_HIRE_CREW_MOVEMENT_OPTIONS = [
   { value: "SIGN_OFF", label: "Sign Off" },
 ];
 
-// Transport - Route & Schedule From/To dropdowns.
-// TEMPORARY: no dedicated route-location API exists yet, so this reuses the
-// Launch Hire location list as placeholder data. Swap for an API-backed
-// options source once one is available; keep this isolated to this constant
-// so the swap is a one-line change.
-export const TRANSPORT_ROUTE_LOCATION_OPTIONS = LAUNCH_HIRE_LOCATION_OPTIONS;
 

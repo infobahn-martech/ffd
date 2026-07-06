@@ -7,7 +7,6 @@ import { TRANSPORT_ROUTE_LOCATION_OPTIONS } from "./Husbandry.constants";
 import LocationAutocomplete from "./LocationAutocomplete";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
-import vehicleService from "../../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../../services/transportCompanyService";
 import callFileService from "../../../../../../../services/callFileService";
 import transportContentService, {
@@ -18,7 +17,6 @@ import { buildPickupDateTime } from "../../../../../../../store/TransportContent
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 
 const TRANSPORT_REQUEST_COLUMNS = [
-  { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
   { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew" },
   {
     key: "route",
@@ -93,13 +91,9 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     };
   }, [callId]);
 
-  const [transportVehicles, setTransportVehicles] = useState([]);
-  const [inhouseDrivers, setInhouseDrivers] = useState([]);
   const [transportCompanies, setTransportCompanies] = useState([]);
   const [thirdPartyDrivers, setThirdPartyDrivers] = useState([]);
 
-  const [loadingVehicles, setLoadingVehicles] = useState(false);
-  const [loadingInhouseDrivers, setLoadingInhouseDrivers] = useState(false);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [loadingThirdPartyDrivers, setLoadingThirdPartyDrivers] = useState(false);
   const [isSavingTransport, setIsSavingTransport] = useState(false);
@@ -141,25 +135,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     let cancelled = false;
     (async () => {
       try {
-        setLoadingVehicles(true);
-        const { data } = await vehicleService.getAllTransportVehicles();
-        const list = unwrapApiList(data);
-        if (!cancelled) setTransportVehicles(list);
-      } catch {
-        if (!cancelled) setTransportVehicles([]);
-      } finally {
-        if (!cancelled) setLoadingVehicles(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
         setLoadingCompanies(true);
         const { data } = await transportCompanyService.getTransportCompanyData();
         const list = unwrapApiList(data);
@@ -174,30 +149,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    const vehicleTypeId = formValues.transportVehicleTypeId;
-    if (!vehicleTypeId || transportType !== "inhouse") {
-      setInhouseDrivers([]);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoadingInhouseDrivers(true);
-        const { data } = await vehicleService.getDriversByVehicleType(vehicleTypeId);
-        const list = unwrapApiList(data);
-        if (!cancelled) setInhouseDrivers(list);
-      } catch {
-        if (!cancelled) setInhouseDrivers([]);
-      } finally {
-        if (!cancelled) setLoadingInhouseDrivers(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [formValues.transportVehicleTypeId, transportType]);
 
   useEffect(() => {
     const companyId = formValues.transportCompanyId;
@@ -225,16 +176,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     };
   }, [formValues.transportCompanyId, transportType]);
 
-  const vehicleOptions = transportVehicles.map((v) => ({
-    value: String(v.vehicle_type_id ?? ""),
-    label: v.vehicle_name || `Vehicle ${v.vehicle_type_id}`,
-  }));
-
-  const inhouseDriverOptions = inhouseDrivers.map((d) => ({
-    value: String(d.driver_id ?? ""),
-    label: d.driver_name ?? "",
-  }));
-
   const companyOptions = transportCompanies.map((c) => ({
     value: String(c.transport_company_id ?? ""),
     label: c.transport_company || `Company ${c.transport_company_id}`,
@@ -255,6 +196,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
   const clearTransportSelections = useCallback(() => {
     handleChange("transportVehicleTypeId")({ target: { value: "" } });
     handleChange("transportDriverId")({ target: { value: "" } });
+    handleChange("transportCoordinatorId")({ target: { value: "" } });
     handleChange("transportCompanyId")({ target: { value: "" } });
     handleChange("transportThirdPartyDriverId")({ target: { value: "" } });
     handleChange("driverName")({ target: { value: "" } });
@@ -267,19 +209,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     const syntheticEvent = { target: { value: value } };
     handleChange("transportType")(syntheticEvent);
     clearTransportSelections();
-  };
-
-  const handleVehicleChange = (e) => {
-    handleChange("transportVehicleTypeId")(e);
-    handleChange("transportDriverId")({ target: { value: "" } });
-    handleChange("driverName")({ target: { value: "" } });
-  };
-
-  const handleInhouseDriverChange = (e) => {
-    handleChange("transportDriverId")(e);
-    const id = e.target.value;
-    const row = inhouseDrivers.find((d) => String(d.driver_id) === id);
-    handleChange("driverName")({ target: { value: row?.driver_name ?? "" } });
   };
 
   const handleCompanyChange = (e) => {
@@ -400,8 +329,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     };
 
     if (transportType === "inhouse") {
-      payload.vehicle_id = Number(formValues.transportVehicleTypeId || "");
-      payload.driver_id = Number(formValues.transportDriverId || "");
+      payload.transport_coordinator_id = formValues.transportCoordinatorId || "";
       payload.invoice_branch = formValues.invoiceBranch || "";
     }
 
@@ -437,6 +365,12 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       setIsSavingTransport(false);
     }
   }, [callId, callDetails, formValues, transportType, fetchTransportRequests]);
+
+  const transportCoordinatorOptions = [
+    { value: "1", label: "Transport Coordinator 1" },
+    { value: "2", label: "Transport Coordinator 2" },
+    { value: "3", label: "Transport Coordinator 3" },
+  ];
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -503,37 +437,16 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="transport" label="Vehicle & Driver" accent="amber">
+                <FormGroup icon="transport" label={transportType === "inhouse" ? "Transport Coordinator" : "Vehicle & Driver"} accent="amber">
                   {transportType === "inhouse" && (
-                    <FieldRow>
-                      <FormField label="Vehicle">
-                        <FormSelect
-                          value={formValues.transportVehicleTypeId || ""}
-                          onChange={handleVehicleChange}
-                          options={vehicleOptions}
-                          placeholder={
-                            loadingVehicles ? "Loading vehicles..." : "Select vehicle..."
-                          }
-                          disabled={loadingVehicles}
-                        />
-                      </FormField>
-
-                      <FormField label="Driver Name">
-                        <FormSelect
-                          value={formValues.transportDriverId || ""}
-                          onChange={handleInhouseDriverChange}
-                          options={inhouseDriverOptions}
-                          placeholder={
-                            !formValues.transportVehicleTypeId
-                              ? "Select a vehicle first..."
-                              : loadingInhouseDrivers
-                                ? "Loading drivers..."
-                                : "Select driver name..."
-                          }
-                          disabled={!formValues.transportVehicleTypeId || loadingInhouseDrivers}
-                        />
-                      </FormField>
-                    </FieldRow>
+                    <FormField label="Transport Coordinator">
+                      <FormSelect
+                        value={formValues.transportCoordinatorId || ""}
+                        onChange={handleChange("transportCoordinatorId")}
+                        options={transportCoordinatorOptions}
+                        placeholder="Select transport coordinator..."
+                      />
+                    </FormField>
                   )}
 
                   {transportType === "thirdparty" && (
