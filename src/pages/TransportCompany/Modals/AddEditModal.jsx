@@ -1,5 +1,7 @@
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import PremiumSelect from '../../../components/form/PremiumSelect';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/bootstrap.css';
 import { useEffect, useState } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import CustomModal from '../../../components/CustomModal';
@@ -185,19 +187,38 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
           </div>
 
           <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <input
-                type="text"
-                className={`form-control ${errors.contact_no ? 'is-invalid' : ''}`}
-                placeholder=" "
-                disabled={isEdit && isLoadingDetail}
-                {...register('contact_no', { required: 'Contact number is required' })}
-              />
-              <label>
+            <div className="phone-wrapper">
+              <label className="phone-label">
                 Contact no <span className="text-danger">*</span>
               </label>
+              <Controller
+                name="contact_no"
+                control={control}
+                rules={{
+                  required: 'Contact number is required',
+                  validate: (value) => {
+                    const digits = (value || '').replace(/\D/g, '');
+                    return (
+                      digits.length >= 7 ||
+                      'Enter a valid phone number'
+                    );
+                  },
+                }}
+                render={({ field }) => (
+                  <PhoneInput
+                    {...field}
+                    country="sa"
+                    enableSearch
+                    inputClass="phone-input"
+                    buttonClass="phone-flag"
+                    disabled={isEdit && isLoadingDetail}
+                  />
+                )}
+              />
               {errors.contact_no && (
-                <span className="error text-danger">{errors.contact_no.message}</span>
+                <span className="error text-danger">
+                  {errors.contact_no.message}
+                </span>
               )}
             </div>
           </div>
@@ -260,19 +281,39 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                       </div>
                     </div>
                     <div className="transport-company-driver-field">
-                      <div className="form-floating desig-inp">
-                        <input
-                          type="text"
-                          className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
-                          placeholder=" "
-                          disabled={isEdit && isLoadingDetail}
-                          {...register(`drivers.${index}.contact_no`, {
-                            required: 'Contact number is required',
-                          })}
-                        />
-                        <label>
+                      <div className="phone-wrapper">
+                        <label className="phone-label">
                           Contact no <span className="text-danger">*</span>
                         </label>
+                        <Controller
+                          name={`drivers.${index}.contact_no`}
+                          control={control}
+                          rules={{
+                            required: 'Contact number is required',
+                            validate: (value) => {
+                              const digits = (value || '').replace(/\D/g, '');
+                              return (
+                                digits.length >= 7 ||
+                                'Enter a valid phone number'
+                              );
+                            },
+                          }}
+                          render={({ field }) => (
+                            <PhoneInput
+                              {...field}
+                              country="sa"
+                              enableSearch
+                              inputClass="phone-input"
+                              buttonClass="phone-flag"
+                              disabled={isEdit && isLoadingDetail}
+                            />
+                          )}
+                        />
+                        {errors.drivers?.[index]?.contact_no && (
+                          <span className="error text-danger">
+                            {errors.drivers?.[index]?.contact_no?.message}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="transport-company-driver-field transport-company-driver-field--vehicle">
