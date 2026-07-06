@@ -103,6 +103,7 @@ const HusbandryServiceRequestsTable = ({
   emptyMessage,
   serviceType,
   pageSize,
+  accent,
 }) => {
   const safeList = useMemo(
     () => (Array.isArray(requests) ? requests : EMPTY_LIST),
@@ -141,7 +142,7 @@ const HusbandryServiceRequestsTable = ({
 
   return (
     <div
-      className="crew-pass-requests-table-card husb-accent-blue"
+      className={`crew-pass-requests-table-card husb-accent-${accent}`}
       data-service-type={serviceType}
       role="region"
       aria-label={title}
@@ -253,6 +254,7 @@ HusbandryServiceRequestsTable.propTypes = {
   emptyMessage: PropTypes.string,
   serviceType: PropTypes.string,
   pageSize: PropTypes.number,
+  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate", "green", "pink"]),
 };
 
 
@@ -263,6 +265,7 @@ HusbandryServiceRequestsTable.defaultProps = {
   emptyMessage: "No requests found",
   serviceType: "",
   pageSize: DEFAULT_PAGE_SIZE,
+  accent: "blue",
 };
 
 export default HusbandryServiceRequestsTable;

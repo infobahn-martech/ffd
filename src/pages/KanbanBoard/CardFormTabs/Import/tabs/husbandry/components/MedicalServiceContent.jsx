@@ -6,6 +6,9 @@ import AttachmentsList from "../../appointment/AttachmentsList";
 import hospitalService from "../../../../../../../services/hospitalService";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
+import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
+
+const MEDICAL_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE];
 
 const MEDICAL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
@@ -150,7 +153,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form medicalservice-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card husb-accent-rose">
+              <div className={`crew-pass-request-details-card husb-accent-${MEDICAL_ACCENT}`}>
                 <PremiumCardHeader
                   icon="medicalService"
                   title="New medical request"
@@ -159,7 +162,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="folder" label="Documents" accent="blue">
+                <FormGroup icon="folder" label="Documents" accent={MEDICAL_ACCENT}>
                   <FormField label="Documents" className="cf-field-full">
                     <div className="transport-upload-box">
                       <AttachmentsList
@@ -183,9 +186,10 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   callId={callId}
                   selected={formValues.medicalServiceSelectedCrew || []}
                   onChange={(ids) => handleChange("medicalServiceSelectedCrew")({ target: { value: ids } })}
+                  accent={MEDICAL_ACCENT}
                 />
 
-                <FormGroup icon="medicalService" label="Care Details" accent="rose">
+                <FormGroup icon="medicalService" label="Care Details" accent={MEDICAL_ACCENT}>
                   <FieldRow>
                     <FormField label="Hospital">
                       <FormSelect
@@ -215,7 +219,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   </FieldRow>
                 </FormGroup>
 
-                <FormGroup icon="notebook" label="Notes" accent="blue">
+                <FormGroup icon="notebook" label="Notes" accent={MEDICAL_ACCENT}>
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor
@@ -247,6 +251,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                 columns={MEDICAL_REQUEST_COLUMNS}
                 emptyMessage="No medical requests found"
                 serviceType="medical"
+                accent={MEDICAL_ACCENT}
               />
             </div>
           </div>

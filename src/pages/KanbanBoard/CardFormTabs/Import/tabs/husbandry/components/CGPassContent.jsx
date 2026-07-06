@@ -13,9 +13,11 @@ import AttachmentsList from "../../appointment/AttachmentsList";
 import CrewPassRequestsTable from "./CrewPassRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
+import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
+const CG_PASS_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.CG_PASS];
 
 const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -164,7 +166,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
         <div className="pre-arrival-form cgpass-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card husb-accent-blue">
+              <div className={`crew-pass-request-details-card husb-accent-${CG_PASS_ACCENT}`}>
                 <PremiumCardHeader
                   icon="cgPass"
                   title="New CG pass request"
@@ -173,7 +175,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormGroup icon="mail" label="Request" accent="blue">
+                  <FormGroup icon="mail" label="Request" accent={CG_PASS_ACCENT}>
                     <FormField label="Request Email">
                       <div className="transport-upload-box">
                         <AttachmentsList
@@ -200,9 +202,10 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     callId={callId}
                     selected={formValues.cgPassSelectedCrew || []}
                     onChange={(ids) => handleChange("cgPassSelectedCrew")({ target: { value: ids } })}
+                    accent={CG_PASS_ACCENT}
                   />
 
-                  <FormGroup icon="folder" label="Documents" accent="blue">
+                  <FormGroup icon="folder" label="Documents" accent={CG_PASS_ACCENT}>
                     <FormField label="Documents" className="cf-field-full">
                       <div className="transport-upload-box">
                         <AttachmentsList
@@ -222,7 +225,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     </FormField>
                   </FormGroup>
 
-                  <FormGroup icon="notebook" label="Notes" accent="blue">
+                  <FormGroup icon="notebook" label="Notes" accent={CG_PASS_ACCENT}>
                     <div className="cgpass-remarks">
                       <FormField label="Remarks">
                         <ReactQuillEditor
@@ -259,6 +262,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                 requests={passRequests?.cg || []}
                 loading={passRequestsLoading}
                 passType="CG"
+                accent={CG_PASS_ACCENT}
               />
             </div>
           </div>

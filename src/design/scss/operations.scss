@@ -4036,13 +4036,21 @@ $send-report-optional: #80868b;
 
 /* Husbandry premium accent tokens — bounded semantic palette reused for
    card top-accents, icon tints, section-group labels and avatars across
-   Transport / CG Pass / Zawil Pass / Hotel / Medical. */
+   Transport / CG Pass / Zawil Pass / Hotel / Medical.
+
+   Each --accent value is kept identical to the matching sidebar tab's icon
+   color in TAB_ICON_COLORS (Husbandry.components.jsx) so a page's section
+   headers/icons always match its left-nav tab. Add a new block here (and a
+   matching SERVICE_ACCENT entry) when a new husbandry tab needs its own
+   theme color. */
 .husb-accent-blue {
-  --accent: #4f46e5;
-  --accent-tint: #eef2ff;
+  /* CG Pass — TAB_ICON_COLORS.CG_PASS */
+  --accent: #2563eb;
+  --accent-tint: #e8f0fe;
 }
 
 .husb-accent-teal {
+  /* Transport — TAB_ICON_COLORS.TRANSPORT */
   --accent: #0d9488;
   --accent-tint: #e6f7f5;
 }
@@ -4053,6 +4061,7 @@ $send-report-optional: #80868b;
 }
 
 .husb-accent-amber {
+  /* Zawil Pass — TAB_ICON_COLORS.ZAWIL_PASS */
   --accent: #d97706;
   --accent-tint: #fef3e2;
 }
@@ -4065,6 +4074,18 @@ $send-report-optional: #80868b;
 .husb-accent-slate {
   --accent: #64748b;
   --accent-tint: #f1f5f9;
+}
+
+.husb-accent-green {
+  /* Medical — TAB_ICON_COLORS.MEDICAL_SERVICE */
+  --accent: #16a34a;
+  --accent-tint: #e8f8ee;
+}
+
+.husb-accent-pink {
+  /* Hotel — TAB_ICON_COLORS.HOTEL */
+  --accent: #db2777;
+  --accent-tint: #fde8f2;
 }
 
 .husb-icon-box {

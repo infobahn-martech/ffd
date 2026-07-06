@@ -9,7 +9,7 @@ import ChecklistMultiSelect from "../../appointment/checklistTab/ChecklistMultiS
 import "../../../../../../../design/scss/checklist.scss";
 
 /** Multi-select of crew for a call, auto-populated from the crew roster. Reports selected crew_change_ids via onChange. */
-const CrewSelectionField = ({ callId, selected, onChange }) => {
+const CrewSelectionField = ({ callId, selected, onChange, accent = "purple" }) => {
   const [crewOptions, setCrewOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -39,7 +39,7 @@ const CrewSelectionField = ({ callId, selected, onChange }) => {
   const selectedIds = Array.isArray(selected) ? selected.map(String) : [];
 
   return (
-    <FormGroup icon="crew" label="Crew Selection" accent="purple">
+    <FormGroup icon="crew" label="Crew Selection" accent={accent}>
       <FormField label="Select Crew" className="cf-field-full">
         <ChecklistMultiSelect
           className="husb-crew-multiselect"
@@ -64,6 +64,7 @@ CrewSelectionField.propTypes = {
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   selected: PropTypes.array,
   onChange: PropTypes.func.isRequired,
+  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate", "green", "pink"]),
 };
 
 export default CrewSelectionField;

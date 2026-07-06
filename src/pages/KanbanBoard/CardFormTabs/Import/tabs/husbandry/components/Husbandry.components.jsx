@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
-import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
+import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS, TAB_ICON_COLORS } from "./Husbandry.constants";
 import NavTabButton from "../../../../../../../components/NavTabButton";
 import { getInitials } from "../../../../../../../shared/utils/utils";
 
@@ -35,24 +35,6 @@ const TAB_ICON_PATHS = {
   [MAIN_TABS.MWP_RENEWAL]: "M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10 2 11.5 2.8 12.5 4M12.5 4V1.5M12.5 4H10",
   [MAIN_TABS.THIRD_PARTY_SERVICES]: "M2 5H14V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V5ZM4 5V3.5C4 2.67157 4.67157 2 5.5 2H10.5C11.3284 2 12 2.67157 12 3.5V5",
   LAUNCH_HIRE: "M2 10H14L12.5 13H3.5L2 10ZM8 2V10M6 4L8 2L10 4M1 10C3 8.5 5 8 8 8C11 8 13 8.5 15 10",
-};
-
-const TAB_ICON_COLORS = {
-  [MAIN_TABS.CREW_MANAGEMENT]: "#7C3AED",
-  [CREW_MANAGEMENT_SUBTABS.CREW]: "#7C3AED",
-  [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: "#0D9488",
-  [CREW_MANAGEMENT_SUBTABS.CG_PASS]: "#2563EB",
-  [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: "#D97706",
-  [CREW_MANAGEMENT_SUBTABS.HOTEL]: "#DB2777",
-  [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "#16A34A",
-  [MAIN_TABS.WAREHOUSE]: "#0D9488",
-  [MAIN_TABS.ON_OFF_HIRE_SURVEY]: "#2563EB",
-  [MAIN_TABS.ON_STATION]: "#DB2777",
-  [MAIN_TABS.MATERIAL_MANAGEMENT]: "#0D9488",
-  [MAIN_TABS.WASTE_DISPOSAL]: "#D97706",
-  [MAIN_TABS.MWP_RENEWAL]: "#16A34A",
-  [MAIN_TABS.THIRD_PARTY_SERVICES]: "#2563EB",
-  LAUNCH_HIRE: "#0D9488",
 };
 
 const TabIcon = ({ id }) => {
@@ -145,7 +127,7 @@ export const FormGroup = ({ icon, label, accent = "slate", children }) => (
 FormGroup.propTypes = {
   icon: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
-  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate"]),
+  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate", "green", "pink"]),
   children: PropTypes.node.isRequired,
 };
 

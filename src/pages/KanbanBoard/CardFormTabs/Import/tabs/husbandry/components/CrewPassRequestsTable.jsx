@@ -62,6 +62,7 @@ const CrewPassRequestsTable = ({
   passType,
   pageSize,
   emptyMessage = "No pass requests found",
+  accent = "blue",
 }) => {
   const safeList = useMemo(() => {
     const source = Array.isArray(requests) ? requests : EMPTY_LIST;
@@ -106,7 +107,7 @@ const CrewPassRequestsTable = ({
 
   return (
     <div
-      className="crew-pass-requests-table-card husb-accent-blue"
+      className={`crew-pass-requests-table-card husb-accent-${accent}`}
       data-pass-type={passType}
       role="region"
       aria-label={title}
@@ -244,6 +245,7 @@ CrewPassRequestsTable.propTypes = {
   passType: PropTypes.string,
   pageSize: PropTypes.number,
   emptyMessage: PropTypes.string,
+  accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate", "green", "pink"]),
 };
 
 CrewPassRequestsTable.defaultProps = {

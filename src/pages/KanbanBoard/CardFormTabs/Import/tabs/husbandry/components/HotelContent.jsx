@@ -12,6 +12,7 @@ import hotelService, {
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
+import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
 
 const HOTEL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
@@ -40,6 +41,8 @@ const HOTEL_REQUEST_COLUMNS = [
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
+
+const HOTEL_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.HOTEL];
 
 const unwrapApiList = (axiosData) => {
   const payload = axiosData?.data ?? axiosData;
@@ -259,7 +262,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form hotel-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card husb-accent-amber">
+              <div className={`crew-pass-request-details-card husb-accent-${HOTEL_ACCENT}`}>
                 <PremiumCardHeader
                   icon="hotel"
                   title="New hotel request"
@@ -268,7 +271,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="folder" label="Documents" accent="blue">
+                <FormGroup icon="folder" label="Documents" accent={HOTEL_ACCENT}>
                   <FormField label="Documents">
                     <div className="transport-upload-box">
                       <AttachmentsList
@@ -295,9 +298,10 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   callId={callId}
                   selected={formValues.hotelSelectedCrew || []}
                   onChange={(ids) => handleChange("hotelSelectedCrew")({ target: { value: ids } })}
+                  accent={HOTEL_ACCENT}
                 />
 
-                <FormGroup icon="calendar" label="Stay Details" accent="teal">
+                <FormGroup icon="calendar" label="Stay Details" accent={HOTEL_ACCENT}>
                   <FormField label="Hotel Name">
                     <FormSelect
                       value={formValues.hotelId || ""}
@@ -339,7 +343,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </FieldRow>
                 </FormGroup>
 
-                <FormGroup icon="notebook" label="Notes" accent="blue">
+                <FormGroup icon="notebook" label="Notes" accent={HOTEL_ACCENT}>
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor
@@ -376,6 +380,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                 columns={HOTEL_REQUEST_COLUMNS}
                 emptyMessage="No hotel requests found"
                 serviceType="hotel"
+                accent={HOTEL_ACCENT}
               />
             </div>
           </div>

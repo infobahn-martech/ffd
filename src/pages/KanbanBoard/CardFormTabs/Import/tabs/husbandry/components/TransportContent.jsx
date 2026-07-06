@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
-import { TRANSPORT_ROUTE_LOCATION_OPTIONS } from "./Husbandry.constants";
+import { TRANSPORT_ROUTE_LOCATION_OPTIONS, CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
 import LocationAutocomplete from "./LocationAutocomplete";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
@@ -113,6 +113,8 @@ const unwrapApiList = (axiosData) => {
   if (Array.isArray(payload?.data)) return payload.data;
   return [];
 };
+
+const TRANSPORT_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.TRANSPORT];
 
 const TransportContent = ({ formValues, handleChange, cardColor }) => {
   const requestEmailInputRef = useRef(null);
@@ -527,7 +529,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form transport-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card husb-accent-teal">
+              <div className={`crew-pass-request-details-card husb-accent-${TRANSPORT_ACCENT}`}>
                 <PremiumCardHeader
                   icon="transport"
                   title="New transport request"
@@ -536,7 +538,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="mail" label="Request" accent="blue">
+                <FormGroup icon="mail" label="Request" accent={TRANSPORT_ACCENT}>
                   <FormField label="Request Email">
                     <div className="transport-upload-box">
                       <AttachmentsList
@@ -563,9 +565,10 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   callId={callId}
                   selected={formValues.selectedCrew || []}
                   onChange={(ids) => handleChange("selectedCrew")({ target: { value: ids } })}
+                  accent={TRANSPORT_ACCENT}
                 />
 
-                <FormGroup icon="transport" label="Provider" accent="purple">
+                <FormGroup icon="transport" label="Provider" accent={TRANSPORT_ACCENT}>
                   <FormField label="Provider">
                     <div className="transport-type-radio-row">
                       <label className="transport-type-radio">
@@ -592,7 +595,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="transport" label={transportType === "inhouse" ? "Transport Coordinator" : "Vehicle & Driver"} accent="amber">
+                <FormGroup icon="transport" label={transportType === "inhouse" ? "Transport Coordinator" : "Vehicle & Driver"} accent={TRANSPORT_ACCENT}>
                   {transportType === "inhouse" && (
                     <FormField label="Transport Coordinator">
                       <FormSelect
@@ -638,7 +641,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
                 </FormGroup>
 
-                <FormGroup icon="calendar" label="Route & Schedule" accent="teal">
+                <FormGroup icon="calendar" label="Route & Schedule" accent={TRANSPORT_ACCENT}>
                   <FormField label="Pickup Date Time">
                     <div className="transport-date-time-field">
                       <DateTimePickerField
@@ -693,7 +696,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 </FormGroup>
 
                 {transportType === "inhouse" && (
-                  <FormGroup icon="billing" label="Billing" accent="rose">
+                  <FormGroup icon="billing" label="Billing" accent={TRANSPORT_ACCENT}>
                     <FormField label="Invoice Branch">
                       <FormSelect
                         value={formValues.invoiceBranch || ""}
@@ -705,7 +708,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormGroup>
                 )}
 
-                <FormGroup icon="folder" label="Attachments" accent="blue">
+                <FormGroup icon="folder" label="Attachments" accent={TRANSPORT_ACCENT}>
                   <FormField label="Documents" className="cf-field-full">
                     <div className="transport-upload-box">
                       <AttachmentsList
@@ -727,7 +730,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="notebook" label="Notes" accent="blue">
+                <FormGroup icon="notebook" label="Notes" accent={TRANSPORT_ACCENT}>
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
                       <ReactQuillEditor
@@ -764,6 +767,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 columns={TRANSPORT_REQUEST_COLUMNS}
                 emptyMessage="No transport requests found"
                 serviceType="transport"
+                accent={TRANSPORT_ACCENT}
               />
             </div>
           </div>
