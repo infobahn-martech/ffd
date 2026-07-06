@@ -559,10 +559,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
   // Demo dataset shown as-is for now regardless of the live backend's workspaces,
   // per client-facing walkthrough requirements.
-  const displayWorkspaces = useMemo(
-    () => (import.meta.env.DEV ? DUMMY_WORKSPACE_BOARDS : workspaces),
-    [workspaces]
-  );
+  const displayWorkspaces = useMemo(() => DUMMY_WORKSPACE_BOARDS, []);
   const boards = (displayWorkspaces ?? []).flatMap((w) =>
     (w.boards ?? []).map((b) => ({ ...b, workspace_name: w.workspace_name }))
   );
@@ -615,10 +612,10 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   // The swimlanes and the column/header layout below are a fixed demo dataset (see
   // DUMMY_BOARD_* in businessRulesData.js) shown for every board regardless of its
   // real structure, per client-facing walkthrough requirements.
-  const swimlanes = import.meta.env.DEV ? DUMMY_BOARD_SWIMLANES : [];
-  const areaGroups = import.meta.env.DEV ? DUMMY_BOARD_AREA_GROUPS : [];
-  const headerCells = import.meta.env.DEV ? DUMMY_BOARD_HEADER_CELLS : [];
-  const leafColumns = import.meta.env.DEV ? DUMMY_BOARD_LEAF_COLUMNS : [];
+  const swimlanes = DUMMY_BOARD_SWIMLANES;
+  const areaGroups = DUMMY_BOARD_AREA_GROUPS;
+  const headerCells = DUMMY_BOARD_HEADER_CELLS;
+  const leafColumns = DUMMY_BOARD_LEAF_COLUMNS;
 
   const handlePickCell = (swimlane, leafColumn) => {
     onSave({
