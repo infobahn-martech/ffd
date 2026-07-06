@@ -9,7 +9,7 @@ import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
   THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
-  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_WORKSPACE_BOARDS, DUMMY_BOARD_TITLE,
+  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_INTERNAL_USERS, DUMMY_SHARE_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS,
@@ -578,15 +578,13 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const boardPickerPanelRef = useRef(null);
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
-  // Demo dataset shown as-is for now regardless of the live backend's workspaces,
-  // per client-facing walkthrough requirements.
-  const displayWorkspaces = useMemo(() => DUMMY_WORKSPACE_BOARDS, []);
-  const boards = (displayWorkspaces ?? []).flatMap((w) =>
+  const displayWorkspaces = useMemo(() => workspaces ?? [], [workspaces]);
+  const boards = displayWorkspaces.flatMap((w) =>
     (w.boards ?? []).map((b) => ({ ...b, workspace_name: w.workspace_name }))
   );
 
   const boardFilterQuery = boardFilterText.trim().toLowerCase();
-  const filteredWorkspaceGroups = (displayWorkspaces ?? [])
+  const filteredWorkspaceGroups = displayWorkspaces
     .map((w) => {
       const wsMatch = w.workspace_name.toLowerCase().includes(boardFilterQuery);
       const groupBoards = wsMatch
