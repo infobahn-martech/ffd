@@ -11,6 +11,7 @@ import {
 } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import CrewPassRequestsTable from "./CrewPassRequestsTable";
+import CrewSelectionField from "./CrewSelectionField";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
@@ -27,6 +28,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     handleSave,
     passRequests,
     passRequestsLoading,
+    callId,
   } = useCrewPassTabApi({
     passType: "CG",
     formValues,
@@ -34,6 +36,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     remarksField: "cgPassDescription",
     documentsField: "cgPassDocuments",
     requestEmailFileField: "cgPassRequestEmailFile",
+    crewField: "cgPassSelectedCrew",
   });
 
   const fileToAttachment = (file) => ({
@@ -192,6 +195,13 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                       </div>
                     </FormField>
                   </FormGroup>
+
+                  <CrewSelectionField
+                    callId={callId}
+                    selected={formValues.cgPassSelectedCrew || []}
+                    onChange={(ids) => handleChange("cgPassSelectedCrew")({ target: { value: ids } })}
+                    accent="blue"
+                  />
 
                   <FormGroup icon="folder" label="Documents" accent="blue">
                     <FormField label="Documents" className="cf-field-full">

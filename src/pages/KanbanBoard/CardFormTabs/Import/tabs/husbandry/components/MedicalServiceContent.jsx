@@ -5,6 +5,7 @@ import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldR
 import AttachmentsList from "../../appointment/AttachmentsList";
 import hospitalService from "../../../../../../../services/hospitalService";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+import CrewSelectionField from "./CrewSelectionField";
 
 const MEDICAL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
@@ -19,6 +20,7 @@ const MEDICAL_REQUEST_COLUMNS = [
 const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+  const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
 
   const [hospitals, setHospitals] = useState([]);
   const [hospitalServices, setHospitalServices] = useState([]);
@@ -176,6 +178,13 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </FormField>
                 </FormGroup>
+
+                <CrewSelectionField
+                  callId={callId}
+                  selected={formValues.medicalServiceSelectedCrew || []}
+                  onChange={(ids) => handleChange("medicalServiceSelectedCrew")({ target: { value: ids } })}
+                  accent="rose"
+                />
 
                 <FormGroup icon="medicalService" label="Care Details" accent="rose">
                   <FieldRow>

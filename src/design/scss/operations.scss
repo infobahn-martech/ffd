@@ -4752,6 +4752,54 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Husbandry: compact crew checkbox list embedded in a request form's
+   "Crew Selection" section (auto-populated from the call's crew roster). */
+.husb-crew-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.husb-crew-select-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f7f8fd;
+  }
+}
+
+.husb-crew-select-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.husb-crew-select-meta {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.husb-crew-select-empty {
+  padding: 10px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
 /* Husbandry: work-order chip, crew avatar and route-arrow table cells —
    shared visual vocabulary reused by HusbandryServiceRequestsTable and
    CrewPassRequestsTable. */

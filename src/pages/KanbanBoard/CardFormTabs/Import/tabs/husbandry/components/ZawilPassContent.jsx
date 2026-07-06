@@ -11,6 +11,7 @@ import {
 } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import CrewPassRequestsTable from "./CrewPassRequestsTable";
+import CrewSelectionField from "./CrewSelectionField";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
@@ -27,6 +28,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
     handleSave,
     passRequests,
     passRequestsLoading,
+    callId,
   } = useCrewPassTabApi({
     passType: "Zawil",
     formValues,
@@ -34,6 +36,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
     remarksField: "zawilPassDescription",
     documentsField: "zawilPassDocuments",
     requestEmailFileField: "zawilPassRequestEmailFile",
+    crewField: "zawilPassSelectedCrew",
   });
 
   const fileToAttachment = (file) => ({
@@ -192,6 +195,13 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                       </div>
                     </FormField>
                   </FormGroup>
+
+                  <CrewSelectionField
+                    callId={callId}
+                    selected={formValues.zawilPassSelectedCrew || []}
+                    onChange={(ids) => handleChange("zawilPassSelectedCrew")({ target: { value: ids } })}
+                    accent="purple"
+                  />
 
                   <FormGroup icon="folder" label="Documents" accent="blue">
                     <FormField label="Documents" className="cf-field-full">

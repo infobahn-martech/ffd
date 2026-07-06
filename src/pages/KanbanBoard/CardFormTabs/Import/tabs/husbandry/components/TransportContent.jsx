@@ -12,6 +12,7 @@ import callFileService from "../../../../../../../services/callFileService";
 import transportContentService from "../../../../../../../services/transportContentService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+import CrewSelectionField from "./CrewSelectionField";
 
 // Helper functions to extract and flatten transport requests from API response
 const extractTransportRequestsFromEnvelope = (response) => {
@@ -557,6 +558,13 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </FormField>
                 </FormGroup>
+
+                <CrewSelectionField
+                  callId={callId}
+                  selected={formValues.selectedCrew || []}
+                  onChange={(ids) => handleChange("selectedCrew")({ target: { value: ids } })}
+                  accent="teal"
+                />
 
                 <FormGroup icon="transport" label="Provider" accent="purple">
                   <FormField label="Provider">

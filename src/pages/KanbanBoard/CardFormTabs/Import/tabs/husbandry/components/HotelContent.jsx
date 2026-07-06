@@ -11,6 +11,7 @@ import hotelService, {
 } from "../../../../../../../services/hotelService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+import CrewSelectionField from "./CrewSelectionField";
 
 const HOTEL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
@@ -221,6 +222,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       checkin_datetime: checkinDatetime,
       checkout_datetime: checkoutDatetime,
       remarks: formValues.hotelDescription || "",
+      crew: (formValues.hotelSelectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
     };
 
     const formData = new FormData();
@@ -288,6 +290,13 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </FormField>
                 </FormGroup>
+
+                <CrewSelectionField
+                  callId={callId}
+                  selected={formValues.hotelSelectedCrew || []}
+                  onChange={(ids) => handleChange("hotelSelectedCrew")({ target: { value: ids } })}
+                  accent="amber"
+                />
 
                 <FormGroup icon="calendar" label="Stay Details" accent="teal">
                   <FormField label="Hotel Name">

@@ -49,6 +49,7 @@ export function useCrewPassTabApi({
   remarksField,
   documentsField,
   requestEmailFileField,
+  crewField,
 }) {
   const routeParams = useParams();
   const [saving, setSaving] = useState(false);
@@ -117,6 +118,11 @@ export function useCrewPassTabApi({
     formData.append("pass_type", passType);
     formData.append("remarks", remarks || "");
 
+    if (crewField) {
+      const crewIds = Array.isArray(formValues?.[crewField]) ? formValues[crewField] : [];
+      formData.append("crew_change_ids", JSON.stringify(crewIds.map(Number)));
+    }
+
     let docIndex = 0;
     documents.forEach((attachment) => {
       const file = attachment?.file ?? attachment;
@@ -138,6 +144,7 @@ export function useCrewPassTabApi({
     }
   }, [
     card,
+    crewField,
     documentsField,
     formValues,
     passType,
@@ -153,5 +160,6 @@ export function useCrewPassTabApi({
     passRequests,
     passRequestsLoading,
     refetchPassRequests: fetchPassRequests,
+    callId,
   };
 }
