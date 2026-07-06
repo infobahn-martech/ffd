@@ -41,7 +41,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     },
   });
 
-  const watchedName = watch("name");
+  const watchedUsername = watch("username");
 
   const { createUser, updateUser, addEditLoader } = useUserReducer(
     (state) => state
@@ -157,9 +157,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   }, [showModal?.user_id, showModal?.port_id, isPortsReady, portOptions, setValue, getValues]);
 
   useEffect(() => {
-    const fullName = (watchedName || "").trim();
+    const usernameInput = (watchedUsername || "").trim();
 
-    if (!fullName) {
+    if (!usernameInput) {
       if (!showModal?.user_id) {
         setValue("username", "", { shouldValidate: true });
       }
@@ -169,7 +169,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     const timer = setTimeout(async () => {
       try {
         const { data } = await Gateway.post("/users/suggest_username", {
-          name: fullName,
+          name: usernameInput,
         });
 
         const suggestion = data?.suggestion || "";
@@ -187,7 +187,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [watchedName, showModal?.user_id, showModal?.username, getValues, setValue]);
+  }, [watchedUsername, showModal?.user_id, showModal?.username, getValues, setValue]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -360,10 +360,10 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             </div>
           </div>
 
-          {/* ===== Username ===== */}
+          {/* ===== Username + Role ===== */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="row g-3">
-              <div className="col-12">
+              <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <input
                     type="text"
@@ -383,13 +383,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* ===== Role + Phone ===== */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="row g-3">
-              {/* ROLE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
@@ -426,8 +420,12 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* PHONE */}
+          {/* ===== Phone + Port ===== */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
@@ -462,12 +460,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* ===== Port ===== */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
                   <label className="phone-label">
@@ -504,7 +496,13 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   )}
                 </div>
               </div>
-              <div className="col-lg-6 col-sm-12">
+            </div>
+          </div>
+
+          {/* ===== Address ===== */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="row g-3">
+              <div className="col-12">
                 <div className="form-floating desig-inp">
                   <textarea
                     className="form-control address-textarea"
