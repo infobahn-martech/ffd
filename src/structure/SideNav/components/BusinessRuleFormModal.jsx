@@ -88,7 +88,7 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   const filterQuery = filterText.trim().toLowerCase();
   const matchesFilter = (field) => getFieldLabel(field).toLowerCase().includes(filterQuery);
   const filteredTimeUnits = filterQuery ? displayTimeUnits.filter(matchesFilter) : displayTimeUnits;
-  const filteredCustomFields = filterQuery ? displayCustomFields.filter(matchesFilter) : displayCustomFields;
+  const filteredCustomFields = displayCustomFields;
 
   useEffect(() => {
     if (!show) return;
@@ -98,13 +98,13 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
     setDebouncedSearch('');
     if (timeUnits.length === 0) getTimeUnits();
     if (workspaces.length === 0) listAllWorkspaces();
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
+    getCustomFields({ params: { board_id: selectedBoardId || undefined } });
   }, [show]);
 
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
-  }, [selectedBoardId, showDisabled]);
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined } });
+  }, [selectedBoardId, showDisabled, debouncedSearch]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -780,6 +780,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const [selectedBoardId, setSelectedBoardId] = useState('');
   const [showDisabled, setShowDisabled] = useState(false);
   const [filterText, setFilterText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const { customFields, isLoadingCustomFields, getCustomFields } = useBusinessRuleReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -794,21 +795,28 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const filteredRegularOptions = filterQuery
     ? UPDATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
     : UPDATE_ACTION_OPTIONS;
-  const matchesFilter = (field) => getFieldLabel(field).toLowerCase().includes(filterQuery);
-  const filteredCustomFields = filterQuery ? displayCustomFields.filter(matchesFilter) : displayCustomFields;
+  const filteredCustomFields = displayCustomFields;
 
   useEffect(() => {
     if (!show) return;
     setSelected(null);
     setFilterText('');
+    setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
+    getCustomFields({ params: { board_id: selectedBoardId || undefined } });
   }, [show]);
 
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: selectedBoardId || undefined, show_disabled: showDisabled } });
-  }, [selectedBoardId, showDisabled]);
+    getCustomFields({ params: { board_id: selectedBoardId || undefined, search: debouncedSearch || undefined } });
+  }, [selectedBoardId, showDisabled, debouncedSearch]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(filterText.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [filterText]);
 
   const handlePickAction = (option) => {
     setSelected({ key: `action-${option.key}`, type: 'action', item: option });
