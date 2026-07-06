@@ -208,6 +208,7 @@ const ActivityLog = () => {
           </div>
 
           <CustomTable
+            Sl
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
             count={activityLogs.length}
