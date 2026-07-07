@@ -1249,12 +1249,18 @@
 }
 
 .so-wo-btn-generate {
-  background: var(--card-color, #2A00FF);
+  background: #00368c;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 54, 140, 0.32);
 
   &:hover:not(:disabled) {
-    filter: brightness(1.08);
+    background: #002a6e;
+  }
+
+  &:disabled {
+    background: #7d97bf;
+    box-shadow: none;
+    opacity: 1;
   }
 }
 
