@@ -2002,6 +2002,10 @@
   &--delivery { grid-area: delivery; }
   &--undelivered { grid-area: undelivered; }
   &--archive { grid-area: archive; }
+
+  &--clickable {
+    cursor: pointer;
+  }
 }
 
 .board-minimap-lane-row {
@@ -2023,6 +2027,8 @@
   letter-spacing: 0.3px;
   text-transform: uppercase;
   text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .board-minimap-lane-cells {
@@ -2041,8 +2047,8 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 
   &:hover {
-    background: #e0e7ff;
-    border-color: #00368c;
+    background: #1d4ed8;
+    border-color: #1d4ed8;
   }
 
   &--green {
@@ -2063,6 +2069,12 @@
       background: #b3232f;
       border-color: #b3232f;
     }
+  }
+
+  &--col-active,
+  &--row-active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
   }
 }
 

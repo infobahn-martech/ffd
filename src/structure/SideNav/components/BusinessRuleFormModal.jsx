@@ -670,6 +670,8 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const [boardId, setBoardId] = useState('');
   const [isBoardPickerOpen, setIsBoardPickerOpen] = useState(false);
   const [boardFilterText, setBoardFilterText] = useState('');
+  const [hoveredLeafColumnId, setHoveredLeafColumnId] = useState(null);
+  const [hoveredSwimlaneId, setHoveredSwimlaneId] = useState(null);
 
   const boardPickerTriggerRef = useRef(null);
   const boardPickerPanelRef = useRef(null);
@@ -736,11 +738,37 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const handlePickCell = (swimlane, leafColumn) => {
     onSave({
       boardId,
-      boardName: boards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? '',
+      boardName: selectedBoard?.board_name ?? '',
       swimlaneId: swimlane.id,
       swimlaneName: swimlane.name,
       stageId: leafColumn.id,
       stageName: leafColumn.name,
+    });
+    onClose();
+  };
+
+  // Column header pick: matches this stage in any swimlane (row left blank).
+  const handlePickColumn = (leafColumn) => {
+    onSave({
+      boardId,
+      boardName: selectedBoard?.board_name ?? '',
+      swimlaneId: '',
+      swimlaneName: '',
+      stageId: leafColumn.id,
+      stageName: leafColumn.name,
+    });
+    onClose();
+  };
+
+  // Row header pick: matches any stage within this swimlane (column left blank).
+  const handlePickRow = (swimlane) => {
+    onSave({
+      boardId,
+      boardName: selectedBoard?.board_name ?? '',
+      swimlaneId: swimlane.id,
+      swimlaneName: swimlane.name,
+      stageId: '',
+      stageName: '',
     });
     onClose();
   };
@@ -848,14 +876,27 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
               </div>
 
               <div className="board-minimap-header-grid">
-                {headerCells.map((cell) => (
-                  <div
-                    key={cell.gridArea}
-                    className={`board-minimap-header-cell board-minimap-header-cell--${cell.gridArea}`}
-                  >
-                    {cell.name}
-                  </div>
-                ))}
+                {headerCells.map((cell) => {
+                  // Only cells that map 1:1 to a real leaf column (e.g. not the
+                  // PREPARE ORDER / ORDER COMPLETED group labels, which span
+                  // several leaf columns and have no single stageId of their own)
+                  // are selectable as "whole column".
+                  const leafColumn = leafColumns.find((lc) => lc.id === cell.gridArea);
+                  const isClickable = Boolean(leafColumn);
+                  return (
+                    <div
+                      key={cell.gridArea}
+                      className={`board-minimap-header-cell board-minimap-header-cell--${cell.gridArea}${isClickable ? ' board-minimap-header-cell--clickable' : ''}`}
+                      role={isClickable ? 'button' : undefined}
+                      tabIndex={isClickable ? 0 : undefined}
+                      onMouseEnter={isClickable ? () => setHoveredLeafColumnId(leafColumn.id) : undefined}
+                      onMouseLeave={isClickable ? () => setHoveredLeafColumnId(null) : undefined}
+                      onClick={isClickable ? () => handlePickColumn(leafColumn) : undefined}
+                    >
+                      {cell.name}
+                    </div>
+                  );
+                })}
               </div>
 
               {swimlanes.map((swimlane) => (
@@ -865,6 +906,11 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                     style={swimlane.colorCode
                       ? { backgroundColor: swimlane.colorCode, color: pickForegroundOnSwimlaneBackground(swimlane.colorCode) }
                       : undefined}
+                    role="button"
+                    tabIndex={0}
+                    onMouseEnter={() => setHoveredSwimlaneId(swimlane.id)}
+                    onMouseLeave={() => setHoveredSwimlaneId(null)}
+                    onClick={() => handlePickRow(swimlane)}
                   >
                     {swimlane.name}
                   </div>
@@ -873,7 +919,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                       <button
                         type="button"
                         key={leafColumn.id}
-                        className={`board-minimap-cell${leafColumn.accent ? ` board-minimap-cell--${leafColumn.accent}` : ''}`}
+                        className={`board-minimap-cell${leafColumn.accent ? ` board-minimap-cell--${leafColumn.accent}` : ''}${hoveredLeafColumnId === leafColumn.id ? ' board-minimap-cell--col-active' : ''}${hoveredSwimlaneId === swimlane.id ? ' board-minimap-cell--row-active' : ''}`}
                         onClick={() => handlePickCell(swimlane, leafColumn)}
                         aria-label={`Move to ${swimlane.name}, ${leafColumn.name}`}
                       />
@@ -2463,7 +2509,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           className="business-rule-form-action-detail-link"
                           onClick={() => handleOpenMoveDestination(action.id)}
                         >
-                          {action.stageName ? `${action.boardName} → ${action.swimlaneName} / ${action.stageName}` : 'Choose where to move'}
+                          {action.boardName
+                            ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            : 'Choose where to move'}
                         </button>
                       </div>
                     ))}
