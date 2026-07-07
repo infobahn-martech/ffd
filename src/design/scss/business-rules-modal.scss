@@ -2166,11 +2166,14 @@
 }
 
 // Shared floating circular close button used by modals that place the close
-// action overlapping the top-right corner instead of inline in the header.
+// action in the top-right corner instead of inline in the header. Kept within
+// the modal's own bounds (not a negative offset) because the parent
+// `.card-property-match-modal .modal-content` sets `overflow: hidden`, which
+// would otherwise clip a button positioned outside the box.
 .br-floating-modal-close {
   position: absolute;
-  top: -14px;
-  right: -14px;
+  top: 16px;
+  right: 16px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -2191,8 +2194,9 @@
   }
 }
 
-.br-invoke-modal-header {
+.br-floating-close-header {
   justify-content: flex-start;
+  padding-right: 56px;
 }
 
 .br-invoke-field-label {

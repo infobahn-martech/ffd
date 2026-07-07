@@ -1341,7 +1341,7 @@ function SelectFieldModal({ show, onClose, onSelect, fields }) {
           <FiX size={16} />
         </button>
 
-        <header className="card-property-match-modal-header">
+        <header className="card-property-match-modal-header br-floating-close-header">
           <h2 className="card-property-match-modal-title">Select a field</h2>
         </header>
 
@@ -1492,7 +1492,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
           <FiX size={16} />
         </button>
 
-        <header className="card-property-match-modal-header br-invoke-modal-header">
+        <header className="card-property-match-modal-header br-floating-close-header">
           <h2 className="card-property-match-modal-title">Service Invoke Settings</h2>
         </header>
 
