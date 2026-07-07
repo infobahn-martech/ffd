@@ -559,7 +559,6 @@ const SalesOrderList = ({
   // State for Generate PO modal
   const [showGeneratePOPopup, setShowGeneratePOPopup] = useState(false);
   const [isGeneratingPO, setIsGeneratingPO] = useState(false);
-  const [generatePOResult, setGeneratePOResult] = useState(null);
   const [generatePOError, setGeneratePOError] = useState(null);
   const [generatePOItemIds, setGeneratePOItemIds] = useState([]);
 
@@ -912,7 +911,6 @@ const SalesOrderList = ({
   const handleGeneratePO = () => {
     if (selectedItems.size === 0) return;
     setGeneratePOItemIds(Array.from(selectedItems));
-    setGeneratePOResult(null);
     setGeneratePOError(null);
     setShowGeneratePOPopup(true);
   };
@@ -925,15 +923,16 @@ const SalesOrderList = ({
   const handleConfirmGeneratePO = async () => {
     if (generatePOItemIds.length === 0 || isGeneratingPO) return;
 
-    const soItemIds = generatePOItemIds;
     setIsGeneratingPO(true);
     setGeneratePOError(null);
     try {
-      const response = await salesOrderService.generatePO(soItemIds);
+      const response = await salesOrderService.generatePO(generatePOItemIds);
       const body = response?.data;
-      const results = Array.isArray(body?.data) ? body.data : [];
-      setGeneratePOResult(results);
+      if (body?.status !== "success") {
+        throw new Error(body?.message || "Failed to generate purchase order.");
+      }
 
+      const results = Array.isArray(body?.data) ? body.data : [];
       const successCount = results.filter((r) => r.status === "success").length;
       const skippedCount = results.length - successCount;
       if (successCount > 0) {
@@ -945,12 +944,11 @@ const SalesOrderList = ({
             }.`
           );
       } else {
-        useAlertReducer.getState().error("No purchase orders were generated. See details below.");
+        useAlertReducer.getState().error(`No purchase orders were generated${skippedCount > 0 ? ` — ${skippedCount} item${skippedCount > 1 ? "s" : ""} skipped` : ""}.`);
       }
 
-      if (body?.status === "success") {
-        setSelectedItems(new Set());
-      }
+      setShowGeneratePOPopup(false);
+      setSelectedItems(new Set());
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -1960,11 +1958,9 @@ const SalesOrderList = ({
           onClose={handleCloseGeneratePOPopup}
           onGenerate={handleConfirmGeneratePO}
           isSubmitting={isGeneratingPO}
-          result={generatePOResult}
           error={generatePOError}
           selectedItems={generatePOItemIds}
           salesOrderList={displayOrderList}
-          cardColor={cardColor}
           soNumber={soSoNo}
           documentDate={soDocumentDate}
           customerCode={soCustomerCode}
