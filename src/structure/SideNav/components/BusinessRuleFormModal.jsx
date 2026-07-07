@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -9,6 +10,7 @@ import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
   THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_NOTIFICATION_BODY_FIELDS, DUMMY_INTERNAL_USERS,
@@ -72,6 +74,74 @@ function useCustomFieldsByTrigger({ show, triggerTypeId, boardId, showDisabled, 
   }, [boardId, showDisabled, search, triggerTypeId]);
 
   return { customFields, isLoadingCustomFields };
+}
+
+// Rendered via portal to document.body so the tooltip can escape the scrollable
+// owner list's overflow clipping instead of being cut off mid-content.
+function OwnerInfoTooltip({ user }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, placement: 'top' });
+  const triggerRef = useRef(null);
+
+  const updatePosition = () => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 8;
+    const placeAbove = r.top > 160;
+    setCoords({
+      top: placeAbove ? r.top - gap : r.bottom + gap,
+      left: r.left + r.width / 2,
+      placement: placeAbove ? 'top' : 'bottom',
+    });
+  };
+
+  const handleShow = () => {
+    updatePosition();
+    setIsVisible(true);
+  };
+  const handleHide = () => setIsVisible(false);
+
+  return (
+    <span
+      ref={triggerRef}
+      className="br-owner-picker-info"
+      tabIndex={0}
+      onMouseEnter={handleShow}
+      onMouseLeave={handleHide}
+      onFocus={handleShow}
+      onBlur={handleHide}
+    >
+      <FiInfo size={14} aria-hidden />
+      {isVisible && createPortal(
+        <span
+          className={`br-owner-picker-tooltip br-owner-picker-tooltip--${coords.placement}`}
+          role="tooltip"
+          style={{ top: coords.top, left: coords.left }}
+        >
+          <span className="br-owner-picker-tooltip-line"><strong>Full name:</strong> {user.name}</span>
+          {user.email && (
+            <span className="br-owner-picker-tooltip-line"><strong>Email:</strong> {user.email}</span>
+          )}
+          {user.role && (
+            <span className="br-owner-picker-tooltip-line"><strong>Role:</strong> {user.role}</span>
+          )}
+          {(user.port || user.phone) && (
+            <>
+              <span className="br-owner-picker-tooltip-divider">User attributes</span>
+              {user.port && (
+                <span className="br-owner-picker-tooltip-line"><strong>Port:</strong> {user.port}</span>
+              )}
+              {user.phone && (
+                <span className="br-owner-picker-tooltip-line"><strong>Phone:</strong> {user.phone}</span>
+              )}
+            </>
+          )}
+        </span>,
+        document.body
+      )}
+    </span>
+  );
 }
 
 function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick }) {
@@ -600,6 +670,8 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const [boardId, setBoardId] = useState('');
   const [isBoardPickerOpen, setIsBoardPickerOpen] = useState(false);
   const [boardFilterText, setBoardFilterText] = useState('');
+  const [hoveredLeafColumnId, setHoveredLeafColumnId] = useState(null);
+  const [hoveredSwimlaneId, setHoveredSwimlaneId] = useState(null);
 
   const boardPickerTriggerRef = useRef(null);
   const boardPickerPanelRef = useRef(null);
@@ -666,11 +738,37 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const handlePickCell = (swimlane, leafColumn) => {
     onSave({
       boardId,
-      boardName: boards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? '',
+      boardName: selectedBoard?.board_name ?? '',
       swimlaneId: swimlane.id,
       swimlaneName: swimlane.name,
       stageId: leafColumn.id,
       stageName: leafColumn.name,
+    });
+    onClose();
+  };
+
+  // Column header pick: matches this stage in any swimlane (row left blank).
+  const handlePickColumn = (leafColumn) => {
+    onSave({
+      boardId,
+      boardName: selectedBoard?.board_name ?? '',
+      swimlaneId: '',
+      swimlaneName: '',
+      stageId: leafColumn.id,
+      stageName: leafColumn.name,
+    });
+    onClose();
+  };
+
+  // Row header pick: matches any stage within this swimlane (column left blank).
+  const handlePickRow = (swimlane) => {
+    onSave({
+      boardId,
+      boardName: selectedBoard?.board_name ?? '',
+      swimlaneId: swimlane.id,
+      swimlaneName: swimlane.name,
+      stageId: '',
+      stageName: '',
     });
     onClose();
   };
@@ -778,14 +876,27 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
               </div>
 
               <div className="board-minimap-header-grid">
-                {headerCells.map((cell) => (
-                  <div
-                    key={cell.gridArea}
-                    className={`board-minimap-header-cell board-minimap-header-cell--${cell.gridArea}`}
-                  >
-                    {cell.name}
-                  </div>
-                ))}
+                {headerCells.map((cell) => {
+                  // Only cells that map 1:1 to a real leaf column (e.g. not the
+                  // PREPARE ORDER / ORDER COMPLETED group labels, which span
+                  // several leaf columns and have no single stageId of their own)
+                  // are selectable as "whole column".
+                  const leafColumn = leafColumns.find((lc) => lc.id === cell.gridArea);
+                  const isClickable = Boolean(leafColumn);
+                  return (
+                    <div
+                      key={cell.gridArea}
+                      className={`board-minimap-header-cell board-minimap-header-cell--${cell.gridArea}${isClickable ? ' board-minimap-header-cell--clickable' : ''}`}
+                      role={isClickable ? 'button' : undefined}
+                      tabIndex={isClickable ? 0 : undefined}
+                      onMouseEnter={isClickable ? () => setHoveredLeafColumnId(leafColumn.id) : undefined}
+                      onMouseLeave={isClickable ? () => setHoveredLeafColumnId(null) : undefined}
+                      onClick={isClickable ? () => handlePickColumn(leafColumn) : undefined}
+                    >
+                      {cell.name}
+                    </div>
+                  );
+                })}
               </div>
 
               {swimlanes.map((swimlane) => (
@@ -795,6 +906,11 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                     style={swimlane.colorCode
                       ? { backgroundColor: swimlane.colorCode, color: pickForegroundOnSwimlaneBackground(swimlane.colorCode) }
                       : undefined}
+                    role="button"
+                    tabIndex={0}
+                    onMouseEnter={() => setHoveredSwimlaneId(swimlane.id)}
+                    onMouseLeave={() => setHoveredSwimlaneId(null)}
+                    onClick={() => handlePickRow(swimlane)}
                   >
                     {swimlane.name}
                   </div>
@@ -803,7 +919,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                       <button
                         type="button"
                         key={leafColumn.id}
-                        className={`board-minimap-cell${leafColumn.accent ? ` board-minimap-cell--${leafColumn.accent}` : ''}`}
+                        className={`board-minimap-cell${leafColumn.accent ? ` board-minimap-cell--${leafColumn.accent}` : ''}${hoveredLeafColumnId === leafColumn.id ? ' board-minimap-cell--col-active' : ''}${hoveredSwimlaneId === swimlane.id ? ' board-minimap-cell--row-active' : ''}`}
                         onClick={() => handlePickCell(swimlane, leafColumn)}
                         aria-label={`Move to ${swimlane.name}, ${leafColumn.name}`}
                       />
@@ -1297,6 +1413,442 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
   );
 }
 
+function SelectFieldModal({ show, onClose, onSelect, fields }) {
+  const [filterText, setFilterText] = useState('');
+  const [expanded, setExpanded] = useState(true);
+  const [selectedField, setSelectedField] = useState(null);
+
+  useEffect(() => {
+    if (!show) return;
+    setFilterText('');
+    setExpanded(true);
+    setSelectedField(null);
+  }, [show]);
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredFields = filterQuery
+    ? fields.filter((f) => f.toLowerCase().includes(filterQuery))
+    : fields;
+
+  const handleApply = () => {
+    if (!selectedField) return;
+    onSelect(selectedField);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-floating-close-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Select a field</h2>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expanded && (
+              <div className="br-property-pill-grid">
+                {filteredFields.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredFields.map((field) => (
+                    <PropertyPill
+                      key={field}
+                      pillKey={field}
+                      label={field}
+                      selected={selectedField === field}
+                      onClick={() => setSelectedField(field)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selectedField}
+            onClick={handleApply}
+          >
+            Apply
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+SelectFieldModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+  fields: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
+
+function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
+  const [serviceName, setServiceName] = useState('');
+  const [url, setUrl] = useState('');
+  const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
+  const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
+  const [sendParamsInBody, setSendParamsInBody] = useState(false);
+  const [expandedHeaders, setExpandedHeaders] = useState(true);
+  const [expandedParams, setExpandedParams] = useState(true);
+  const [headers, setHeaders] = useState([]);
+  const [params, setParams] = useState([]);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [showSelectFieldModal, setShowSelectFieldModal] = useState(false);
+
+  useEffect(() => {
+    if (!show) return;
+    setServiceName(initialSettings?.serviceName ?? '');
+    setUrl(initialSettings?.url ?? '');
+    setMethod(initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1]);
+    setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
+    setSendParamsInBody(initialSettings?.sendParamsInBody ?? false);
+    setHeaders(initialSettings?.headers ?? []);
+    setParams(initialSettings?.params ?? []);
+    setExpandedHeaders(true);
+    setExpandedParams(true);
+    setOpenDropdown(null);
+    setShowSelectFieldModal(false);
+  }, [show, initialSettings]);
+
+  const makeRowId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const handleAddUrlField = (field) => {
+    setUrl((prev) => `${prev}{${field}}`);
+  };
+
+  const handleAddHeader = () => {
+    setHeaders((prev) => [...prev, { id: makeRowId(), key: '', value: '' }]);
+  };
+  const handleRemoveHeader = (id) => {
+    setHeaders((prev) => prev.filter((h) => h.id !== id));
+  };
+  const handleHeaderChange = (id, field, value) => {
+    setHeaders((prev) => prev.map((h) => (h.id === id ? { ...h, [field]: value } : h)));
+  };
+
+  const handleAddParam = () => {
+    setParams((prev) => [...prev, { id: makeRowId(), key: '', value: '' }]);
+  };
+  const handleRemoveParam = (id) => {
+    setParams((prev) => prev.filter((p) => p.id !== id));
+  };
+  const handleParamChange = (id, field, value) => {
+    setParams((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+  };
+  const handlePickParamValueField = (id, field) => {
+    setParams((prev) => prev.map((p) => (p.id === id ? { ...p, value: field } : p)));
+    setOpenDropdown(null);
+  };
+
+  const handleSave = () => {
+    onSave({ serviceName, url, method, authentication, sendParamsInBody, headers, params });
+    onClose();
+  };
+
+  return (
+    <>
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal notification-settings-modal"
+      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-invoke-modal-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Service Invoke Settings</h2>
+        </header>
+
+        <div className="card-property-match-modal-body notification-settings-body">
+          <div className="notification-field">
+            <label className="business-rule-form-label br-invoke-field-label">Name</label>
+            <input
+              type="text"
+              className="business-rule-form-input"
+              placeholder="Enter name"
+              value={serviceName}
+              onChange={(e) => setServiceName(e.target.value)}
+            />
+          </div>
+
+          <div className="notification-field">
+            <div className="notification-field-head">
+              <label className="business-rule-form-label br-invoke-field-label">Url</label>
+              <div className="notification-field-actions">
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => setShowSelectFieldModal(true)}
+                >
+                  add card fields <FiChevronDown size={12} aria-hidden />
+                </button>
+              </div>
+            </div>
+            <input
+              type="text"
+              className="business-rule-form-input"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </div>
+
+          <div className="br-invoke-two-col">
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Method</label>
+              <div className="business-rule-form-select-wrap">
+                <select className="business-rule-form-select" value={method} onChange={(e) => setMethod(e.target.value)}>
+                  {DUMMY_INVOKE_METHOD_OPTIONS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+              </div>
+            </div>
+
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Authentication</label>
+              <div className="business-rule-form-select-wrap">
+                <select className="business-rule-form-select" value={authentication} onChange={(e) => setAuthentication(e.target.value)}>
+                  {DUMMY_INVOKE_AUTH_OPTIONS.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+              </div>
+            </div>
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedHeaders((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedHeaders ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Headers
+            </button>
+            {expandedHeaders && (
+              <>
+                {headers.length > 0 && (
+                  <div className="br-invoke-kv-columns">
+                    <span>Header</span>
+                    <span>Value</span>
+                  </div>
+                )}
+                <div className="br-invoke-kv-list">
+                  {headers.map((h) => (
+                    <div key={h.id} className="br-invoke-kv-row">
+                      <input
+                        type="text"
+                        className="business-rule-form-input"
+                        value={h.key}
+                        onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="business-rule-form-input"
+                        value={h.value}
+                        onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="br-invoke-row-delete"
+                        onClick={() => handleRemoveHeader(h.id)}
+                        aria-label="Remove header"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" className="business-rule-form-add-link" onClick={handleAddHeader}>
+                  <FiPlus size={14} aria-hidden />
+                  Add header
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedParams((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedParams ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Parameters
+            </button>
+            {expandedParams && (
+              <>
+                <label className="business-rule-form-toggle br-invoke-body-toggle">
+                  <input
+                    type="checkbox"
+                    checked={sendParamsInBody}
+                    onChange={(e) => setSendParamsInBody(e.target.checked)}
+                  />
+                  <span className="business-rule-form-toggle-track" aria-hidden />
+                  <span className="business-rule-form-toggle-label">Send the parameters in the body of the web service call</span>
+                </label>
+
+                {params.length > 0 && (
+                  <div className="br-invoke-kv-columns">
+                    <span>Key</span>
+                    <span>Value</span>
+                  </div>
+                )}
+                <div className="br-invoke-kv-list">
+                  {params.map((p) => {
+                    const isPillValue = DUMMY_INVOKE_PAYLOAD_FIELDS.includes(p.value);
+                    return (
+                      <div key={p.id} className="br-invoke-kv-row">
+                        <input
+                          type="text"
+                          className="business-rule-form-input"
+                          value={p.key}
+                          onChange={(e) => handleParamChange(p.id, 'key', e.target.value)}
+                        />
+                        <div className="br-invoke-value-box">
+                          {isPillValue ? (
+                            <span className="notification-pill">{p.value}</span>
+                          ) : (
+                            <input
+                              type="text"
+                              className="br-invoke-value-input"
+                              value={p.value}
+                              onChange={(e) => handleParamChange(p.id, 'value', e.target.value)}
+                            />
+                          )}
+                          <div className="notification-dropdown-wrap">
+                            <button
+                              type="button"
+                              className="br-invoke-value-add-btn"
+                              onClick={() => setOpenDropdown((v) => (v === `param-${p.id}` ? null : `param-${p.id}`))}
+                              aria-label="Insert payload field"
+                            >
+                              <FiPlus size={14} aria-hidden />
+                            </button>
+                            {openDropdown === `param-${p.id}` && (
+                              <div className="notification-dropdown-panel">
+                                {DUMMY_INVOKE_PAYLOAD_FIELDS.map((f) => (
+                                  <button type="button" key={f} onClick={() => handlePickParamValueField(p.id, f)}>{f}</button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="br-invoke-row-delete"
+                          onClick={() => handleRemoveParam(p.id)}
+                          aria-label="Remove param"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button type="button" className="business-rule-form-add-link" onClick={handleAddParam}>
+                  <FiPlus size={14} aria-hidden />
+                  Add param
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer br-invoke-modal-footer">
+          <button type="button" className="br-invoke-test-btn">
+            Test Settings
+          </button>
+          <button type="button" className="br-property-add-btn" onClick={handleSave}>
+            Save Service
+          </button>
+        </footer>
+      </div>
+    </Modal>
+
+    <SelectFieldModal
+      show={showSelectFieldModal}
+      onClose={() => setShowSelectFieldModal(false)}
+      onSelect={handleAddUrlField}
+      fields={DUMMY_URL_FIELD_OPTIONS}
+    />
+    </>
+  );
+}
+
+WebInvokeSettingsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  initialSettings: PropTypes.shape({
+    serviceName: PropTypes.string,
+    url: PropTypes.string,
+    method: PropTypes.string,
+    authentication: PropTypes.string,
+    sendParamsInBody: PropTypes.bool,
+    headers: PropTypes.array,
+    params: PropTypes.array,
+  }),
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+};
+
 function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
   const [filterText, setFilterText] = useState('');
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -1433,15 +1985,28 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [notifyActions, setNotifyActions] = useState([]);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [activeNotifyActionId, setActiveNotifyActionId] = useState(null);
+  const [invokeActions, setInvokeActions] = useState([]);
+  const [showWebInvokeSettings, setShowWebInvokeSettings] = useState(false);
+  const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '' }]);
+  const [openBoardConditionRowId, setOpenBoardConditionRowId] = useState(null);
+  const [boardConditionFilterText, setBoardConditionFilterText] = useState('');
+  const boardConditionTriggerRef = useRef(null);
+  const boardConditionPanelRef = useRef(null);
 
   const { getTriggerConfig } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
   useEffect(() => {
     if (!show || !rule) return;
     getTriggerConfig(rule.id);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
+    if (workspaces.length === 0) listAllWorkspaces();
+    setBoardConditionRows([{ id: 'board-0', boardId: '' }]);
+    setOpenBoardConditionRowId(null);
+    setBoardConditionFilterText('');
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');
@@ -1465,6 +2030,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setNotifyActions([]);
     setShowNotificationSettings(false);
     setActiveNotifyActionId(null);
+    setInvokeActions([]);
+    setShowWebInvokeSettings(false);
+    setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
   }, [show, rule]);
 
@@ -1480,6 +2048,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [isOwnerPickerOpen]);
 
+  useEffect(() => {
+    if (openBoardConditionRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (boardConditionPanelRef.current?.contains(t)) return;
+      if (boardConditionTriggerRef.current?.contains(t)) return;
+      setOpenBoardConditionRowId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openBoardConditionRowId]);
+
   if (!rule) return null;
 
   const handleSave = () => {
@@ -1488,6 +2068,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       name: name.trim(),
       description: description.trim(),
       tags: tags.trim(),
+      boardIds: boardConditionRows.map((row) => row.boardId || null),
       owner,
       sharePermissions,
       disallowTriggerChain,
@@ -1497,13 +2078,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       moveActions,
       updateActions,
       notifyActions,
+      invokeActions,
     });
     onClose();
   };
 
   const ownerUsers = [
-    { user_id: null, name: DEFAULT_OWNER.name, username: null },
-    ...users.map((u) => ({ user_id: u.user_id, name: u.name, username: u.username })),
+    { user_id: null, name: DEFAULT_OWNER.name, username: null, email: null, role: null, port: null, phone: null },
+    ...users.map((u) => ({
+      user_id: u.user_id, name: u.name, username: u.username, email: u.email, role: u.role, port: u.port, phone: u.phone,
+    })),
   ];
   const ownerFilterQuery = ownerFilterText.trim().toLowerCase();
   const filteredOwnerUsers = ownerFilterQuery
@@ -1633,7 +2217,67 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const activeNotifyAction = notifyActions.find((a) => a.id === activeNotifyActionId);
 
-  const boardLabel = boardName?.trim() || 'Current board';
+  const handleAddInvokeAction = () => {
+    const option = INVOKE_ACTION_OPTIONS[0];
+    setInvokeActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+  };
+
+  const handleRemoveInvokeAction = (id) => {
+    setInvokeActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenWebInvokeSettings = (id) => {
+    setActiveInvokeActionId(id);
+    setShowWebInvokeSettings(true);
+  };
+
+  const handleSaveWebInvokeSettings = (settings) => {
+    setInvokeActions((prev) => prev.map((a) => (a.id === activeInvokeActionId ? { ...a, ...settings, configured: true } : a)));
+  };
+
+  const activeInvokeAction = invokeActions.find((a) => a.id === activeInvokeActionId);
+
+  const displayWorkspaces = workspaces ?? [];
+  const conditionBoardFilterQuery = boardConditionFilterText.trim().toLowerCase();
+  const filteredBoardConditionGroups = displayWorkspaces
+    .map((w) => {
+      const wsMatch = w.workspace_name.toLowerCase().includes(conditionBoardFilterQuery);
+      const groupBoards = wsMatch
+        ? (w.boards ?? [])
+        : (w.boards ?? []).filter((b) => b.board_name.toLowerCase().includes(conditionBoardFilterQuery));
+      return { workspace_id: w.workspace_id, workspace_name: w.workspace_name, boards: groupBoards };
+    })
+    .filter((g) => g.boards.length > 0);
+
+  const allConditionBoards = displayWorkspaces.flatMap((w) => w.boards ?? []);
+
+  const getBoardConditionLabel = (boardId) => {
+    if (!boardId) return boardName?.trim() || 'Current board';
+    return allConditionBoards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? 'Current board';
+  };
+
+  const handlePickConditionBoard = (rowId, board) => {
+    setBoardConditionRows((prev) =>
+      prev.map((row) => (row.id === rowId ? { ...row, boardId: board?.board_id ?? '' } : row))
+    );
+    setOpenBoardConditionRowId(null);
+    setBoardConditionFilterText('');
+  };
+
+  const handleAddBoardConditionRow = (rowId) => {
+    setBoardConditionRows((prev) => {
+      const idx = prev.findIndex((row) => row.id === rowId);
+      if (idx === -1) return prev;
+      const newRow = { id: `board-${Date.now()}`, boardId: prev[idx].boardId };
+      const next = [...prev];
+      next.splice(idx + 1, 0, newRow);
+      return next;
+    });
+  };
+
+  const handleRemoveBoardConditionRow = (rowId) => {
+    setBoardConditionRows((prev) => prev.filter((row) => row.id !== rowId));
+  };
 
   const handleCloseAttempt = () => {
     setShowCancelConfirm(true);
@@ -1758,12 +2402,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                               </span>
                               <span className="br-owner-picker-row-name">{user.name}</span>
                             </button>
-                            <span className="br-owner-picker-info" tabIndex={0}>
-                              <FiInfo size={14} aria-hidden />
-                              <span className="br-owner-picker-tooltip" role="tooltip">
-                                {user.username ?? user.name}
-                              </span>
-                            </span>
+                            <OwnerInfoTooltip user={user} />
                           </div>
                         ))
                       )}
@@ -1815,18 +2454,113 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
             <div className="business-rule-form-column">
               <h3 className="business-rule-form-column-title">AND</h3>
               <div className="business-rule-form-column-card">
-                <div className="business-rule-form-condition">
-                  <span className="business-rule-form-condition-label">Board is</span>
-                  <button type="button" className="business-rule-form-condition-value">
-                    {boardLabel}
-                    <FiChevronDown size={16} aria-hidden />
-                  </button>
-                </div>
+                <p className="business-rule-form-filter-hint">the created card matches this filter</p>
+
+                {boardConditionRows.length > 0 && (
+                  <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
+                    <span className="business-rule-form-condition-label">Board is</span>
+                    {boardConditionRows.map((row) => {
+                      const isOpen = openBoardConditionRowId === row.id;
+                      return (
+                        <div key={row.id} className="br-board-condition-value-row">
+                          <div className="board-minimap-picker-wrap br-board-condition-wrap">
+                            <button
+                              type="button"
+                              ref={isOpen ? boardConditionTriggerRef : undefined}
+                              className="business-rule-form-condition-value"
+                              onClick={() => {
+                                setBoardConditionFilterText('');
+                                setOpenBoardConditionRowId((prev) => (prev === row.id ? null : row.id));
+                              }}
+                              aria-haspopup="listbox"
+                              aria-expanded={isOpen}
+                            >
+                              {getBoardConditionLabel(row.boardId)}
+                              <FiChevronDown size={16} aria-hidden />
+                            </button>
+
+                            {isOpen && (
+                              <div className="board-minimap-picker-panel br-board-condition-panel" ref={boardConditionPanelRef}>
+                                <div className="board-minimap-picker-search">
+                                  <FiFilter size={20} className="board-minimap-picker-search-icon" aria-hidden />
+                                  <input
+                                    type="text"
+                                    placeholder="Filter"
+                                    value={boardConditionFilterText}
+                                    onChange={(e) => setBoardConditionFilterText(e.target.value)}
+                                    autoFocus
+                                  />
+                                </div>
+
+                                <div className="board-minimap-picker-scroll">
+                                  {'current board'.includes(conditionBoardFilterQuery) && (
+                                    <button
+                                      type="button"
+                                      className={`board-minimap-picker-tile br-board-condition-current${!row.boardId ? ' board-minimap-picker-tile--selected' : ''}`}
+                                      onClick={() => handlePickConditionBoard(row.id, null)}
+                                    >
+                                      Current board
+                                    </button>
+                                  )}
+
+                                  {filteredBoardConditionGroups.length === 0 ? (
+                                    conditionBoardFilterQuery && (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    )
+                                  ) : (
+                                    filteredBoardConditionGroups.map((ws) => (
+                                      <div key={ws.workspace_id} className="board-minimap-picker-group">
+                                        <div className="board-minimap-picker-group-head">
+                                          <FiUsers size={20} aria-hidden />
+                                          <span>{ws.workspace_name}</span>
+                                        </div>
+                                        <div className="board-minimap-picker-grid">
+                                          {ws.boards.map((board) => (
+                                            <button
+                                              key={board.board_id}
+                                              type="button"
+                                              className={`board-minimap-picker-tile${String(board.board_id) === String(row.boardId) ? ' board-minimap-picker-tile--selected' : ''}`}
+                                              onClick={() => handlePickConditionBoard(row.id, board)}
+                                            >
+                                              {board.board_name}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="business-rule-form-filter-row-actions">
+                            <button
+                              type="button"
+                              className="business-rule-form-or-btn"
+                              onClick={() => handleAddBoardConditionRow(row.id)}
+                            >
+                              OR
+                            </button>
+                            <button
+                              type="button"
+                              className="business-rule-form-filter-row-delete"
+                              onClick={() => handleRemoveBoardConditionRow(row.id)}
+                              aria-label="Remove filter"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {conditions.map((cond) => (
-                  <div key={cond.id} className="business-rule-form-condition">
-                    <span className="business-rule-form-condition-label">{cond.fieldLabel}</span>
-                    <div className="business-rule-form-condition-row">
+                  <div key={cond.id} className="business-rule-form-filter-row">
+                    <div className="business-rule-form-filter-row-main">
+                      <span className="business-rule-form-condition-label">{cond.fieldLabel}</span>
                       <input
                         type="text"
                         className="business-rule-form-condition-input"
@@ -1839,9 +2573,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           );
                         }}
                       />
+                    </div>
+
+                    <div className="business-rule-form-filter-row-actions">
+                      <button type="button" className="business-rule-form-or-btn">OR</button>
                       <button
                         type="button"
-                        className="business-rule-form-condition-remove"
+                        className="business-rule-form-filter-row-delete"
                         onClick={() => handleRemoveCondition(cond.id)}
                         aria-label="Remove condition"
                       >
@@ -1933,7 +2671,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           className="business-rule-form-action-detail-link"
                           onClick={() => handleOpenMoveDestination(action.id)}
                         >
-                          {action.stageName ? `${action.boardName} → ${action.swimlaneName} / ${action.stageName}` : 'Choose where to move'}
+                          {action.boardName
+                            ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            : 'Choose where to move'}
                         </button>
                       </div>
                     ))}
@@ -1959,6 +2699,27 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'invoke' && invokeActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveInvokeAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-link"
+                          onClick={() => handleOpenWebInvokeSettings(action.id)}
+                        >
+                          {action.configured ? 'Configured' : 'Not Set'}
+                        </button>
+                      </div>
+                    ))}
+
                     <button
                       type="button"
                       className="business-rule-form-add-action"
@@ -1968,6 +2729,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                         if (section.id === 'move') handleAddMoveAction();
                         if (section.id === 'update') setShowUpdateActionPicker(true);
                         if (section.id === 'notify') handleAddNotifyAction();
+                        if (section.id === 'invoke') handleAddInvokeAction();
                       }}
                     >
                       <FiPlus size={14} aria-hidden />
@@ -2033,6 +2795,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowNotificationSettings(false)}
       onSave={handleSaveNotificationSettings}
       initialSettings={activeNotifyAction}
+    />
+
+    <WebInvokeSettingsModal
+      show={showWebInvokeSettings}
+      onClose={() => setShowWebInvokeSettings(false)}
+      onSave={handleSaveWebInvokeSettings}
+      initialSettings={activeInvokeAction}
     />
 
     <ShareWithModal
