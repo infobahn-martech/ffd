@@ -195,10 +195,11 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
   // Invoice Branch options
   const invoiceBranchOptions = [
-    { value: "Branch 1", label: "Branch 1" },
-    { value: "Branch 2", label: "Branch 2" },
-    { value: "Branch 3", label: "Branch 3" },
-    { value: "Main Office", label: "Main Office" },
+    { value: "Sedres Dammam", label: "Sedres Dammam" },
+    { value: "Sedres Rastanura", label: "Sedres Rastanura" },
+    { value: "Sedres Jubail", label: "Sedres Jubail" },
+    { value: "Sedres Khafji", label: "Sedres Khafji" },
+    { value: "Sedres Saffaniya", label: "Sedres Saffaniya" },
   ];
 
   useEffect(() => {
