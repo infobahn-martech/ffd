@@ -16,6 +16,7 @@ import {
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
+import useCommonReducer from '../../../store/CommonReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials } from '../../../shared/utils/utils';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
@@ -1304,18 +1305,20 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
 
 function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
   const [filterText, setFilterText] = useState('');
+  const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
     setFilterText('');
+    if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
   }, [show]);
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredUsers = filterQuery
-    ? DUMMY_SHARE_USERS.filter((user) =>
-        user.name.toLowerCase().includes(filterQuery) || user.username.toLowerCase().includes(filterQuery)
+    ? users.filter((user) =>
+        (user.name ?? '').toLowerCase().includes(filterQuery) || (user.username ?? '').toLowerCase().includes(filterQuery)
       )
-    : DUMMY_SHARE_USERS;
+    : users;
 
   return (
     <Modal
@@ -1362,13 +1365,15 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
               <span>Viewer</span>
               <span>Editor</span>
             </div>
-            {filteredUsers.length === 0 ? (
+            {usersLoading ? (
+              <div className="br-property-picker-empty">Loading...</div>
+            ) : filteredUsers.length === 0 ? (
               <div className="br-property-picker-empty">No users found</div>
             ) : (
               filteredUsers.map((user) => {
-                const perm = permissions[user.id] ?? { viewer: false, editor: false };
+                const perm = permissions[user.user_id] ?? { viewer: false, editor: false };
                 return (
-                  <div key={user.id} className="share-with-row">
+                  <div key={user.user_id} className="share-with-row">
                     <span className="share-with-name">{user.name}</span>
                     <span className="share-with-username">
                       <span className="share-with-avatar" aria-hidden>{getInitials(user.name)}</span>
@@ -1378,7 +1383,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
                       <input
                         type="checkbox"
                         checked={perm.viewer}
-                        onChange={() => onTogglePermission(user.id, 'viewer')}
+                        onChange={() => onTogglePermission(user.user_id, 'viewer')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
                     </label>
@@ -1386,7 +1391,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
                       <input
                         type="checkbox"
                         checked={perm.editor}
-                        onChange={() => onTogglePermission(user.id, 'editor')}
+                        onChange={() => onTogglePermission(user.user_id, 'editor')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
                     </label>
