@@ -1,11 +1,15 @@
-import { FiTruck, FiSettings, FiClock, FiCheckCircle, FiList } from 'react-icons/fi';
+import { FiTruck, FiClock, FiRefreshCw, FiCheckCircle, FiUsers, FiFileText, FiList } from 'react-icons/fi';
 import PortalDashboard from '../../../components/PortalDashboard';
 
 const summaryCards = [
     { title: 'Total Trips', value: '47', icon: <FiTruck />, color: '#00368c' },
-    { title: 'Active Vehicles', value: '12', icon: <FiSettings />, color: '#3b82f6' },
-    { title: 'Pending Bookings', value: '9', icon: <FiClock />, color: '#f59e0b' },
-    { title: 'Completed Today', value: '8', icon: <FiCheckCircle />, color: '#10b981' },
+    { title: 'Pending Trips', value: '9', icon: <FiClock />, color: '#f59e0b' },
+    { title: 'On Process Trips', value: '14', icon: <FiRefreshCw />, color: '#3b82f6' },
+    { title: 'Completed Trips', value: '24', icon: <FiCheckCircle />, color: '#10b981' },
+    { title: 'Drivers', value: '16', icon: <FiUsers />, color: '#6366f1' },
+    { title: 'Submitted Invoices', value: '20', icon: <FiFileText />, color: '#3b82f6' },
+    { title: 'Pending Invoices', value: '6', icon: <FiClock />, color: '#f59e0b' },
+    { title: 'Completed Invoices', value: '14', icon: <FiCheckCircle />, color: '#10b981' },
 ];
 
 const statusCards = [

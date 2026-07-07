@@ -87,14 +87,17 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
 
   const medicalMenus = [
     { menu: 'Dashboard', isDefaultMenu: true, to: '/medical-portal/dashboard', icon: dashboardIcon, hasPermission: true },
+    { menu: 'Invoice Management', isDefaultMenu: true, to: '/medical-portal/invoices', icon: materialIcon, hasPermission: true },
   ];
 
   const transportMenus = [
     { menu: 'Dashboard', isDefaultMenu: true, to: '/transport-portal/dashboard', icon: dashboardIcon, hasPermission: true },
+    { menu: 'Invoice Management', isDefaultMenu: true, to: '/transport-portal/invoices', icon: materialIcon, hasPermission: true },
   ];
 
   const inhouseDriverMenus = [
     { menu: 'Dashboard', isDefaultMenu: true, to: '/inhouse-driver/dashboard', icon: dashboardIcon, hasPermission: true },
+    { menu: 'Invoice Management', isDefaultMenu: true, to: '/inhouse-driver/invoices', icon: materialIcon, hasPermission: true },
   ];
 
   const portalMenuMap = {

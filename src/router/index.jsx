@@ -74,8 +74,11 @@ import VendorPortalDashboard from "../pages/VendorPortal/Dashboard";
 import VendorPortalInvoices from "../pages/VendorPortal/Invoices";
 import VendorPortalOrders from "../pages/VendorPortal/Orders";
 import MedicalDashboard from "../pages/MedicalPortal/Dashboard";
+import MedicalPortalInvoices from "../pages/MedicalPortal/Invoices";
 import TransportDashboard from "../pages/TransportPortal/Dashboard";
+import TransportPortalInvoices from "../pages/TransportPortal/Invoices";
 import InhouseDriverDashboard from "../pages/InhouseDriverPortal/Dashboard";
+import InhouseDriverPortalInvoices from "../pages/InhouseDriverPortal/Invoices";
 import TransportCompany from "../pages/TransportCompany";
 import Hospital from "../pages/Hospital";
 import MedicalServices from "../pages/MedicalServices";
@@ -174,6 +177,12 @@ const router = createBrowserRouter(
                 { path: "/vendor-portal/dashboard", element: <VendorPortalDashboard /> },
                 { path: "/vendor-portal/invoices", element: <VendorPortalInvoices /> },
                 { path: "/vendor-portal/orders", element: <VendorPortalOrders /> },
+                { path: "/medical-portal/dashboard", element: <MedicalDashboard /> },
+                { path: "/medical-portal/invoices", element: <MedicalPortalInvoices /> },
+                { path: "/transport-portal/dashboard", element: <TransportDashboard /> },
+                { path: "/transport-portal/invoices", element: <TransportPortalInvoices /> },
+                { path: "/inhouse-driver/dashboard", element: <InhouseDriverDashboard /> },
+                { path: "/inhouse-driver/invoices", element: <InhouseDriverPortalInvoices /> },
                 { path: "/transport-company", element: <TransportCompany /> },
                 { path: "/kpi-tasks", element: <KPITasks /> },
                 { path: "/kpi-users", element: <KPIUsers /> },
@@ -325,10 +334,13 @@ const router = createBrowserRouter(
                     { path: "/vendor-portal/orders", element: <RouteGuard><VendorPortalOrders /></RouteGuard> },
                     // Medical Portal
                     { path: "/medical-portal/dashboard", element: <RouteGuard><MedicalDashboard /></RouteGuard> },
+                    { path: "/medical-portal/invoices", element: <RouteGuard><MedicalPortalInvoices /></RouteGuard> },
                     // Transport Company Portal
                     { path: "/transport-portal/dashboard", element: <RouteGuard><TransportDashboard /></RouteGuard> },
+                    { path: "/transport-portal/invoices", element: <RouteGuard><TransportPortalInvoices /></RouteGuard> },
                     // Inhouse Driver Portal
                     { path: "/inhouse-driver/dashboard", element: <RouteGuard><InhouseDriverDashboard /></RouteGuard> },
+                    { path: "/inhouse-driver/invoices", element: <RouteGuard><InhouseDriverPortalInvoices /></RouteGuard> },
                     // Transport Company
                     { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                     { path: "/hospital-management", element: <RouteGuard><Hospital /></RouteGuard> },

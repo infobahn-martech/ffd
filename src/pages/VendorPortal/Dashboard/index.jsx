@@ -2,12 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FiShoppingCart,
-    FiFileText,
+    FiCheckCircle,
     FiClock,
-    FiDollarSign,
-    FiPlusCircle,
     FiList,
-    FiPackage,
     FiUpload,
     FiChevronRight,
 } from 'react-icons/fi';
@@ -20,17 +17,15 @@ import CustomModal from '../../../components/CustomModal';
 
 // Mock data – replace with API later
 const MOCK_SUMMARY = {
-    totalOrders: 24,
-    invoicesSubmitted: 18,
-    pendingInvoices: 5,
-    paidAmount: '42,750 SAR',
+    totalBookings: 24,
+    completedBookings: 16,
+    pendingBookings: 8,
 };
 
 const MOCK_INVOICE_STATUS = {
+    submitted: 18,
     pending: 5,
-    approved: 4,
-    rejected: 2,
-    paid: 7,
+    completed: 7,
 };
 
 const MOCK_RECENT_INVOICES = [
@@ -383,28 +378,22 @@ const Dashboard = () => {
 
     const summaryCards = [
         {
-            title: 'Total Orders',
-            value: String(MOCK_SUMMARY.totalOrders),
+            title: 'Total Bookings',
+            value: String(MOCK_SUMMARY.totalBookings),
             icon: <FiShoppingCart />,
             color: '#00368c',
         },
         {
-            title: 'Invoices Submitted',
-            value: String(MOCK_SUMMARY.invoicesSubmitted),
-            icon: <FiFileText />,
-            color: '#3b82f6',
+            title: 'Completed Bookings',
+            value: String(MOCK_SUMMARY.completedBookings),
+            icon: <FiCheckCircle />,
+            color: '#10b981',
         },
         {
-            title: 'Pending Invoices',
-            value: String(MOCK_SUMMARY.pendingInvoices),
+            title: 'Pending Bookings',
+            value: String(MOCK_SUMMARY.pendingBookings),
             icon: <FiClock />,
             color: '#f59e0b',
-        },
-        {
-            title: 'Paid Amount',
-            value: MOCK_SUMMARY.paidAmount,
-            icon: <FiDollarSign />,
-            color: '#10b981',
         },
     ];
 
@@ -489,21 +478,17 @@ const Dashboard = () => {
             <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">Invoice Status Overview</h3>
                 <div className="vendor-invoice-status-cards">
+                    <div className="vendor-status-card status-approved">
+                        <p className="vendor-status-label">Submitted</p>
+                        <p className="vendor-status-value">{MOCK_INVOICE_STATUS.submitted}</p>
+                    </div>
                     <div className="vendor-status-card status-pending">
                         <p className="vendor-status-label">Pending</p>
                         <p className="vendor-status-value">{MOCK_INVOICE_STATUS.pending}</p>
                     </div>
-                    <div className="vendor-status-card status-approved">
-                        <p className="vendor-status-label">Approved</p>
-                        <p className="vendor-status-value">{MOCK_INVOICE_STATUS.approved}</p>
-                    </div>
-                    <div className="vendor-status-card status-rejected">
-                        <p className="vendor-status-label">Rejected</p>
-                        <p className="vendor-status-value">{MOCK_INVOICE_STATUS.rejected}</p>
-                    </div>
-                    <div className="vendor-status-card status-paid">
-                        <p className="vendor-status-label">Paid</p>
-                        <p className="vendor-status-value">{MOCK_INVOICE_STATUS.paid}</p>
+                    <div className="vendor-status-card status-completed">
+                        <p className="vendor-status-label">Completed</p>
+                        <p className="vendor-status-value">{MOCK_INVOICE_STATUS.completed}</p>
                     </div>
                 </div>
             </div>
