@@ -2160,6 +2160,160 @@
   }
 }
 
+.br-invoke-modal-shell,
+.br-floating-close-shell {
+  position: relative;
+}
+
+// Shared floating circular close button used by modals that place the close
+// action overlapping the top-right corner instead of inline in the header.
+.br-floating-modal-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  padding: 0;
+
+  &:hover {
+    background: #f9fafb;
+    color: #111827;
+  }
+}
+
+.br-invoke-modal-header {
+  justify-content: flex-start;
+}
+
+.br-invoke-field-label {
+  display: inline-block;
+  border-bottom: 1px dashed #cbd5e1;
+  padding-bottom: 2px;
+}
+
+.br-invoke-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.br-invoke-body-toggle.business-rule-form-toggle {
+  width: auto;
+  min-height: auto;
+  margin: 4px 0 14px;
+}
+
+.br-invoke-kv-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+  font: normal normal 500 12px/1.4 $font-primary;
+  color: #6b7280;
+}
+
+.br-invoke-kv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.br-invoke-kv-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.br-invoke-value-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  min-height: 44px;
+}
+
+.br-invoke-value-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  padding: 0;
+  font: normal normal 400 14px/1.4 $font-primary;
+  color: $txtColor;
+}
+
+.br-invoke-value-add-btn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: #eef1f6;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background: #e5e9f0;
+  }
+}
+
+.br-invoke-row-delete {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+}
+
+.br-invoke-modal-footer {
+  gap: 12px;
+}
+
+.br-invoke-test-btn {
+  border: 1px solid #00368c;
+  border-radius: 999px;
+  padding: 10px 32px;
+  min-width: 100px;
+  font: normal normal 600 14px/1.4 $font-primary;
+  color: #00368c;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #eef1f6;
+  }
+}
+
 .br-cancel-confirm-modal {
   z-index: 1060;
 
