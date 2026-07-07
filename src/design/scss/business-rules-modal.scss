@@ -2203,6 +2203,25 @@
   max-width: 900px;
 }
 
+.internal-users-picker-modal-dialog {
+  max-width: 900px;
+}
+
+.br-user-pill {
+  padding-left: 10px;
+}
+
+.br-user-pill-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #4b5563;
+  font: normal normal 600 11px/24px $font-primary;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .notification-settings-body {
   display: flex;
   flex-direction: column;

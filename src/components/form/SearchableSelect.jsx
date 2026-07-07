@@ -186,6 +186,26 @@ const SearchableSelect = ({
     [onChange, value]
   );
 
+  const selectedTagsList = (
+    <div className="cf-ms-tags-list">
+      {selectedOptions.map((opt) => (
+        <span key={getOptionValue(opt)} className="cf-ms-tag">
+          {getOptionLabel(opt)}
+          <span
+            className="cf-ms-tag-remove"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleRemoveTag(getOptionValue(opt));
+            }}
+          >
+            ×
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+
   const handleTriggerAreaClick = () => {
     if (disabled) return;
     if (!isOpen) {
@@ -330,38 +350,25 @@ const SearchableSelect = ({
         >
           <div className="cf-multi-select-email-tags">
             {isOpen ? (
-              <input
-                ref={inputRef}
-                type="text"
-                className="cf-searchable-select-input"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onKeyDown={handleInputKeyDown}
-                onClick={(e) => e.stopPropagation()}
-                placeholder={searchPlaceholder}
-                disabled={disabled}
-                aria-autocomplete="list"
-                aria-expanded={isOpen}
-                autoComplete="off"
-              />
+              <>
+                {isMulti && selectedOptions.length > 0 && selectedTagsList}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="cf-searchable-select-input"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleInputKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder={searchPlaceholder}
+                  disabled={disabled}
+                  aria-autocomplete="list"
+                  aria-expanded={isOpen}
+                  autoComplete="off"
+                />
+              </>
             ) : isMulti && selectedOptions.length > 0 ? (
-              <div className="cf-ms-tags-list">
-                {selectedOptions.map((opt) => (
-                  <span key={getOptionValue(opt)} className="cf-ms-tag">
-                    {getOptionLabel(opt)}
-                    <span
-                      className="cf-ms-tag-remove"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleRemoveTag(getOptionValue(opt));
-                      }}
-                    >
-                      ×
-                    </span>
-                  </span>
-                ))}
-              </div>
+              selectedTagsList
             ) : displayLabel ? (
               <span className="cf-multi-select-selected-value">{displayLabel}</span>
             ) : (
