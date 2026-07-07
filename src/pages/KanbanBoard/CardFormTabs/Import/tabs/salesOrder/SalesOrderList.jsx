@@ -8,6 +8,7 @@ import { PORT_OPTIONS } from "../../../../../../shared/constants/ports";
 import salesOrderService from "../../../../../../services/salesOrderService";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
+import GeneratePOModal from "./GeneratePOModal";
 
 const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
 const USD_TO_SAR_RATE = 3.75;
@@ -555,8 +556,12 @@ const SalesOrderList = ({
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewModalType, setPreviewModalType] = useState(null);
 
-  // State for Generate PO loading popup
+  // State for Generate PO modal
   const [showGeneratePOPopup, setShowGeneratePOPopup] = useState(false);
+  const [isGeneratingPO, setIsGeneratingPO] = useState(false);
+  const [generatePOResult, setGeneratePOResult] = useState(null);
+  const [generatePOError, setGeneratePOError] = useState(null);
+  const [generatePOItemIds, setGeneratePOItemIds] = useState([]);
 
   // State for vendor modal (row-level supplier picker)
   const [vendorModalTarget, setVendorModalTarget] = useState(null); // orderId or "new"
@@ -906,12 +911,57 @@ const SalesOrderList = ({
 
   const handleGeneratePO = () => {
     if (selectedItems.size === 0) return;
+    setGeneratePOItemIds(Array.from(selectedItems));
+    setGeneratePOResult(null);
+    setGeneratePOError(null);
     setShowGeneratePOPopup(true);
-    // TODO: Implement actual Generate PO API call - for now just show loading popup
   };
 
   const handleCloseGeneratePOPopup = () => {
+    if (isGeneratingPO) return;
     setShowGeneratePOPopup(false);
+  };
+
+  const handleConfirmGeneratePO = async () => {
+    if (generatePOItemIds.length === 0 || isGeneratingPO) return;
+
+    const soItemIds = generatePOItemIds;
+    setIsGeneratingPO(true);
+    setGeneratePOError(null);
+    try {
+      const response = await salesOrderService.generatePO(soItemIds);
+      const body = response?.data;
+      const results = Array.isArray(body?.data) ? body.data : [];
+      setGeneratePOResult(results);
+
+      const successCount = results.filter((r) => r.status === "success").length;
+      const skippedCount = results.length - successCount;
+      if (successCount > 0) {
+        useAlertReducer
+          .getState()
+          .success(
+            `${successCount} purchase order${successCount > 1 ? "s" : ""} generated successfully${
+              skippedCount > 0 ? `, ${skippedCount} skipped` : ""
+            }.`
+          );
+      } else {
+        useAlertReducer.getState().error("No purchase orders were generated. See details below.");
+      }
+
+      if (body?.status === "success") {
+        setSelectedItems(new Set());
+      }
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to generate purchase order.";
+      setGeneratePOError(msg);
+      useAlertReducer.getState().error(msg);
+    } finally {
+      setIsGeneratingPO(false);
+    }
   };
 
   const handleSendPreview = () => {
@@ -1903,66 +1953,26 @@ const SalesOrderList = ({
         />
       )}
 
-      {/* Generate PO Loading Popup */}
+      {/* Generate PO Modal */}
       {showGeneratePOPopup && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1100,
-          }}
-          onClick={(e) => e.target === e.currentTarget && handleCloseGeneratePOPopup()}
-        >
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              borderRadius: "8px",
-              padding: "32px 48px",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "20px",
-              minWidth: "280px",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                border: "4px solid #e0e0e0",
-                borderTopColor: cardColor || "#2A00FF",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }}
-            />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <span style={{ fontSize: "16px", fontWeight: "600", color: "#1a1a1a" }}>Generating PO...</span>
-            <button
-              type="button"
-              onClick={handleCloseGeneratePOPopup}
-              style={{
-                padding: "8px 20px",
-                backgroundColor: "#f5f5f5",
-                color: "#333",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <GeneratePOModal
+          show={showGeneratePOPopup}
+          onClose={handleCloseGeneratePOPopup}
+          onGenerate={handleConfirmGeneratePO}
+          isSubmitting={isGeneratingPO}
+          result={generatePOResult}
+          error={generatePOError}
+          selectedItems={generatePOItemIds}
+          salesOrderList={displayOrderList}
+          cardColor={cardColor}
+          soNumber={soSoNo}
+          documentDate={soDocumentDate}
+          customerCode={soCustomerCode}
+          customerName={soCustomerName}
+          vesselName={soShipName}
+          portName={soPort}
+          branch={branch}
+        />
       )}
 
       {/* Vendor List Modal */}

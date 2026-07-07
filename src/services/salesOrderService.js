@@ -12,7 +12,14 @@ const getSoItemsByCall = (callId) =>
 const generateWorkOrder = (soItemIds) =>
   Gateway.post("sales_order/generate_work_order", { so_item_ids: soItemIds });
 
+/**
+ * @param {Array<number>} soItemIds
+ */
+const generatePO = (soItemIds) =>
+  Gateway.post("sales_order/generate_po", { so_item_ids: soItemIds });
+
 export default {
   getSoItemsByCall,
   generateWorkOrder,
+  generatePO,
 };
