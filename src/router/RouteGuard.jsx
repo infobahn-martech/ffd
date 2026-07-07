@@ -7,6 +7,12 @@ import {
   isRestrictedUserAllowedPath,
   RESTRICTED_BOARD_HOME_PATH,
 } from '../shared/helpers/restrictedBoardUser';
+import {
+  isVendorRole,
+  isVendorRoleAllowedPath,
+  getVendorDashboardByRole,
+  getRoleId,
+} from '../shared/helpers/vendorDashboardRoles';
 
 function RouteGuard({ children }) {
   const location = useLocation();
@@ -36,6 +42,14 @@ function RouteGuard({ children }) {
   if (isRestrictedBoardUser(userProfile)) {
     if (!isRestrictedUserAllowedPath(currentPath)) {
       return <Navigate to={RESTRICTED_BOARD_HOME_PATH} replace />;
+    }
+    return children;
+  }
+
+  const vendorRoleId = getRoleId();
+  if (isVendorRole(vendorRoleId)) {
+    if (!isVendorRoleAllowedPath(vendorRoleId, currentPath)) {
+      return <Navigate to={getVendorDashboardByRole(vendorRoleId).dashboardPath} replace />;
     }
     return children;
   }

@@ -78,6 +78,8 @@ import TransportDashboard from "../pages/TransportPortal/Dashboard";
 import TransportPortalInvoices from "../pages/TransportPortal/Invoices";
 import InhouseDriverDashboard from "../pages/InhouseDriverPortal/Dashboard";
 import InhouseDriverPortalInvoices from "../pages/InhouseDriverPortal/Invoices";
+import HotelPortalDashboard from "../pages/HotelPortal/Dashboard";
+import HotelPortalInvoices from "../pages/HotelPortal/Invoices";
 import TransportCompany from "../pages/TransportCompany";
 import Hospital from "../pages/Hospital";
 import MedicalServices from "../pages/MedicalServices";
@@ -268,6 +270,9 @@ const router = createBrowserRouter(
                 // Inhouse Driver Portal
                 { path: "/inhouse-driver/dashboard", element: <RouteGuard><InhouseDriverDashboard /></RouteGuard> },
                 { path: "/inhouse-driver/invoices", element: <RouteGuard><InhouseDriverPortalInvoices /></RouteGuard> },
+                // Hotel Portal
+                { path: "/hotel-portal/dashboard", element: <RouteGuard><HotelPortalDashboard /></RouteGuard> },
+                { path: "/hotel-portal/invoices", element: <RouteGuard><HotelPortalInvoices /></RouteGuard> },
                 // Transport Company
                 { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                 { path: "/hospital-management", element: <RouteGuard><Hospital /></RouteGuard> },

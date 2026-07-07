@@ -100,11 +100,17 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     { menu: 'Invoice Management', isDefaultMenu: true, to: '/inhouse-driver/invoices', icon: materialIcon, hasPermission: true },
   ];
 
+  const hotelPortalMenus = [
+    { menu: 'Dashboard', isDefaultMenu: true, to: '/hotel-portal/dashboard', icon: dashboardIcon, hasPermission: true },
+    { menu: 'Invoice Management', isDefaultMenu: true, to: '/hotel-portal/invoices', icon: materialIcon, hasPermission: true },
+  ];
+
   const portalMenuMap = {
     vendor: vendorMenus,
     medical: medicalMenus,
     transport: transportMenus,
     'inhouse-driver': inhouseDriverMenus,
+    hotel: hotelPortalMenus,
   };
   const isMobile = width <= 991;
   const { layoutView } = useLayoutView();

@@ -31,6 +31,7 @@ import DocumentsModal from './DocumentsModal';
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import NavTabButton from '../../components/NavTabButton';
 import { isRestrictedBoardUser, isPortOperatorUser } from '../../shared/helpers/restrictedBoardUser';
+import { isVendorRole, getRoleId } from '../../shared/helpers/vendorDashboardRoles';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePortal = null }) {
   const { pathname } = useLocation();
@@ -54,6 +55,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedBoardUser = isRestrictedBoardUser(userProfile);
   const portOperatorUser = isPortOperatorUser(userProfile);
+  const vendorDashboardUser = isVendorRole(getRoleId());
 
   const getLoggedInUser = () => {
     let parsedLocalProfile = {};
@@ -273,9 +275,9 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
 
       </div>
 
-      {/* RIGHT — User + Icons (GRO / Custom Clearance skip module shortcuts; still show help, alerts, profile) */}
+      {/* RIGHT — User + Icons (GRO / Custom Clearance / vendor-dashboard roles skip module shortcuts; still show help, alerts, profile) */}
       <div className="right-section">
-        {!restrictedBoardUser && (
+        {!restrictedBoardUser && !vendorDashboardUser && (
           <>
             {!portOperatorUser && (
               <>

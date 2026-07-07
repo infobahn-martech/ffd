@@ -35,11 +35,13 @@ function Layout() {
   const isMedicalPortal = pathname.startsWith('/medical-portal');
   const isTransportPortal = pathname.startsWith('/transport-portal');
   const isInhouseDriverPortal = pathname.startsWith('/inhouse-driver');
+  const isHotelPortal = pathname.startsWith('/hotel-portal');
 
   const activePortal = isVendorPortal ? 'vendor'
     : isMedicalPortal ? 'medical'
     : isTransportPortal ? 'transport'
     : isInhouseDriverPortal ? 'inhouse-driver'
+    : isHotelPortal ? 'hotel'
     : null;
 
   const handleMenuToggle = (isOpen) => {
