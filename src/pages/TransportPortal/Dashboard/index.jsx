@@ -2,10 +2,10 @@ import { FiTruck, FiClock, FiRefreshCw, FiCheckCircle, FiUsers, FiFileText, FiLi
 import PortalDashboard from '../../../components/PortalDashboard';
 
 const summaryCards = [
-    { title: 'Total Trips', value: '47', icon: <FiTruck />, color: '#00368c' },
-    { title: 'Pending Trips', value: '9', icon: <FiClock />, color: '#f59e0b' },
-    { title: 'On Process Trips', value: '14', icon: <FiRefreshCw />, color: '#3b82f6' },
-    { title: 'Completed Trips', value: '24', icon: <FiCheckCircle />, color: '#10b981' },
+    // { title: 'Total Trips', value: '47', icon: <FiTruck />, color: '#00368c' },
+    // { title: 'Pending Trips', value: '9', icon: <FiClock />, color: '#f59e0b' },
+    // { title: 'On Process Trips', value: '14', icon: <FiRefreshCw />, color: '#3b82f6' },
+    // { title: 'Completed Trips', value: '24', icon: <FiCheckCircle />, color: '#10b981' },
     { title: 'Drivers', value: '16', icon: <FiUsers />, color: '#6366f1' },
     { title: 'Submitted Invoices', value: '20', icon: <FiFileText />, color: '#3b82f6' },
     { title: 'Pending Invoices', value: '6', icon: <FiClock />, color: '#f59e0b' },
@@ -13,9 +13,9 @@ const summaryCards = [
 ];
 
 const statusCards = [
+    { label: 'Total', value: 15, statusClass: 'status-open' },
     { label: 'Pending', value: 9, statusClass: 'status-pending' },
-    { label: 'Assigned', value: 15, statusClass: 'status-approved' },
-    { label: 'In Progress', value: 14, statusClass: 'status-open' },
+    { label: 'On Process', value: 14, statusClass: 'status-open' },
     { label: 'Completed', value: 9, statusClass: 'status-completed' },
 ];
 
