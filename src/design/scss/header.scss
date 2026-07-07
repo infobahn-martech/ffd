@@ -68,8 +68,6 @@
       height: 55px;
       object-fit: contain;
       flex-shrink: 0;
-      // No dedicated white logo asset exists yet; render the navy logo as white via filter.
-      filter: brightness(0) invert(1);
       transition: opacity 0.2s ease, transform 0.2s ease;
 
       &:hover {
