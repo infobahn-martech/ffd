@@ -96,15 +96,11 @@ export const DUMMY_INVOKE_PAYLOAD_FIELDS = ['Kanbanize Payload', 'Card ID', 'Car
 // Dev-only fallback data for the "Notification Message Settings" modal.
 export const DUMMY_NOTIFICATION_FROM_EMAIL = 'sedres_notifications@kanbanize.com';
 
-export const DUMMY_NOTIFICATION_FIELDS = ['Title', 'Board Name', 'Internal Card Id', 'Author', 'Card URL', 'Description'];
-
-// Fields insertable as pills into the notification Body via its "add card fields" dropdown.
-export const DUMMY_NOTIFICATION_BODY_FIELDS = [
-  'Author', 'Card URL', 'Title', 'Description', 'Color', 'Owner', 'Priority', 'Size',
-  'Deadline', 'Tags', 'Milestones', 'Board Name', 'Column Name', 'Total Subtasks Count',
-];
-
 export const DUMMY_INTERNAL_USERS = ['John Smith', 'Sarah Ahmed', 'Mohammed Al-Farsi'];
+
+// Static role/group pills shown alongside individual users in the "Select
+// Internal Users" modal.
+export const INTERNAL_USER_ROLE_OPTIONS = ['Self', 'Owner', 'Owners', 'Watchers', 'Contributors', 'Reporter', 'Co-owners'];
 
 // Dev-only fallback data for the "Shared with" permissions modal.
 export const DUMMY_SHARE_USERS = [

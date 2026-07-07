@@ -13,8 +13,8 @@ import {
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
-  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_NOTIFICATION_BODY_FIELDS, DUMMY_INTERNAL_USERS,
-  DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS,
+  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_INTERNAL_USERS,
+  DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS, INTERNAL_USER_ROLE_OPTIONS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
@@ -1158,12 +1158,622 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   );
 }
 
-function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
+function UserPill({ pillKey, label, selected, onClick }) {
+  return (
+    <button
+      type="button"
+      key={pillKey}
+      className={`br-property-pill br-user-pill${selected ? ' br-property-pill--selected' : ''}`}
+      onClick={onClick}
+    >
+      <span className="br-user-pill-avatar" aria-hidden>{label.charAt(0).toUpperCase()}</span>
+      {label}
+    </button>
+  );
+}
+
+function InternalUsersPickerModal({ show, onClose, onApply }) {
+  const [filterText, setFilterText] = useState('');
+  const [expanded, setExpanded] = useState(true);
+  const [selectedNames, setSelectedNames] = useState([]);
+
+  const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
+
+  useEffect(() => {
+    if (!show) return;
+    setFilterText('');
+    setExpanded(true);
+    setSelectedNames([]);
+    if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
+  }, [show]);
+
+  const realUserNames = users.map((u) => u.name).filter(Boolean);
+  const displayUserNames = realUserNames.length > 0 ? realUserNames : (import.meta.env.DEV ? DUMMY_INTERNAL_USERS : []);
+  const allOptions = [...INTERNAL_USER_ROLE_OPTIONS, ...displayUserNames];
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredOptions = filterQuery
+    ? allOptions.filter((name) => name.toLowerCase().includes(filterQuery))
+    : allOptions;
+
+  const handleToggle = (name) => {
+    setSelectedNames((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
+
+  const handleApply = () => {
+    if (selectedNames.length === 0) return;
+    onApply(selectedNames);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal internal-users-picker-modal"
+      dialogClassName="card-property-match-modal-dialog internal-users-picker-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-floating-close-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Select Internal Users</h2>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="John or john@doe.com"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Users
+            </button>
+            {expanded && (
+              <div className="br-property-pill-grid">
+                {usersLoading ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredOptions.length === 0 ? (
+                  <div className="br-property-picker-empty">No users found</div>
+                ) : (
+                  filteredOptions.map((name) => (
+                    <UserPill
+                      key={name}
+                      pillKey={name}
+                      label={name}
+                      selected={selectedNames.includes(name)}
+                      onClick={() => handleToggle(name)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={selectedNames.length === 0}
+            onClick={handleApply}
+          >
+            Apply
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+InternalUsersPickerModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onApply: PropTypes.func.isRequired,
+};
+
+function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
+  const [expanded, setExpanded] = useState(true);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [showDisabled, setShowDisabled] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedFieldKeys, setSelectedFieldKeys] = useState([]);
+
+  const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
+    show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
+  });
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
+
+  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+
+  useEffect(() => {
+    if (!show) return;
+    setExpanded(true);
+    setSelectedBoardId('');
+    setShowDisabled(false);
+    setFilterText('');
+    setDebouncedSearch('');
+    setSelectedFieldKeys([]);
+    if (workspaces.length === 0) listAllWorkspaces();
+  }, [show]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(filterText.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [filterText]);
+
+  const handleToggleField = (key) => {
+    setSelectedFieldKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const handleApply = () => {
+    const labels = selectedFieldKeys
+      .map((key) => displayCustomFields.find((f, idx) => `custom-${f.custom_field_id ?? idx}` === key))
+      .filter(Boolean)
+      .map((field) => getFieldLabel(field));
+    if (labels.length === 0) return;
+    onApply(labels);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-floating-close-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Select a field</h2>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Custom fields
+            </button>
+            {expanded && (
+              <>
+                <div className="br-property-board-filter">
+                  <span className="br-property-board-filter-label">Show fields from board:</span>
+                  <div className="br-property-board-filter-row">
+                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
+                      <select
+                        className="business-rule-form-select"
+                        value={selectedBoardId}
+                        onChange={(e) => setSelectedBoardId(e.target.value)}
+                      >
+                        <option value="">All Boards</option>
+                        {boards.map((b) => (
+                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
+                        ))}
+                      </select>
+                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                    </div>
+                    <button
+                      type="button"
+                      className="br-property-board-clear-btn"
+                      onClick={() => setSelectedBoardId('')}
+                      aria-label="Reset board filter"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="business-rule-form-toggle br-property-disabled-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showDisabled}
+                    onChange={(e) => setShowDisabled(e.target.checked)}
+                  />
+                  <span className="business-rule-form-toggle-track" aria-hidden />
+                  <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
+                </label>
+
+                <div className="br-property-pill-grid">
+                  {isLoadingCustomFields ? (
+                    <div className="br-property-picker-empty">Loading...</div>
+                  ) : displayCustomFields.length === 0 ? (
+                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : (
+                    displayCustomFields.map((field, idx) => {
+                      const key = `custom-${field.custom_field_id ?? idx}`;
+                      return (
+                        <PropertyPill
+                          key={key}
+                          pillKey={key}
+                          label={getFieldLabel(field)}
+                          selected={selectedFieldKeys.includes(key)}
+                          dotColor={getPropertyDotColor(idx)}
+                          onClick={() => handleToggleField(key)}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={selectedFieldKeys.length === 0}
+            onClick={handleApply}
+          >
+            Apply
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+CustomFieldPickerModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onApply: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+// Single-select "Select a field" picker covering Regular fields, Time unit and
+// Custom fields together, used by the notification Subject/Body "add card
+// fields" triggers so any card field (not just a fixed shortlist) can be
+// inserted as a pill.
+function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
+  const [selectedKeys, setSelectedKeys] = useState([]);
+  const [expandedRegularFields, setExpandedRegularFields] = useState(true);
+  const [expandedTimeUnit, setExpandedTimeUnit] = useState(true);
+  const [expandedCustomFields, setExpandedCustomFields] = useState(true);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [showDisabled, setShowDisabled] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const {
+    regularFields, isLoadingRegularFields, getRegularFields,
+    timeUnits, isLoadingTimeUnits, getTimeUnits,
+  } = useBusinessRuleReducer((s) => s);
+
+  const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
+    show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
+  });
+
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
+
+  const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
+  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
+  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+
+  useEffect(() => {
+    if (!show) return;
+    setSelectedKeys([]);
+    setFilterText('');
+    setDebouncedSearch('');
+    setSelectedBoardId('');
+    setShowDisabled(false);
+    if (workspaces.length === 0) listAllWorkspaces();
+  }, [show]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(filterText.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [filterText]);
+
+  useEffect(() => {
+    if (!show) return;
+    getRegularFields({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
+  }, [show, debouncedSearch, triggerTypeId]);
+
+  useEffect(() => {
+    if (!show) return;
+    getTimeUnits({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
+  }, [show, debouncedSearch, triggerTypeId]);
+
+  const handleToggleKey = (key) => {
+    setSelectedKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const findLabelForKey = (key) => {
+    if (key.startsWith('regular-')) {
+      const field = displayRegularFields.find((f, idx) => `regular-${f.regular_field_id ?? idx}` === key);
+      return field ? getFieldLabel(field) : null;
+    }
+    if (key.startsWith('time_unit-')) {
+      const field = displayTimeUnits.find((f, idx) => `time_unit-${f.time_unit_id ?? idx}` === key);
+      return field ? getFieldLabel(field) : null;
+    }
+    const field = displayCustomFields.find((f, idx) => `custom-${f.custom_field_id ?? idx}` === key);
+    return field ? getFieldLabel(field) : null;
+  };
+
+  const handleApply = () => {
+    const labels = selectedKeys.map(findLabelForKey).filter(Boolean);
+    if (labels.length === 0) return;
+    onApply(labels);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-floating-close-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Select a field</h2>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedRegularFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedRegularFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expandedRegularFields && (
+              <div className="br-property-pill-grid">
+                {isLoadingRegularFields ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : displayRegularFields.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  displayRegularFields.map((field, idx) => {
+                    const key = `regular-${field.regular_field_id ?? idx}`;
+                    return (
+                      <PropertyPill
+                        key={key}
+                        pillKey={key}
+                        label={getFieldLabel(field)}
+                        selected={selectedKeys.includes(key)}
+                        onClick={() => handleToggleKey(key)}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedTimeUnit((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedTimeUnit ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Time unit
+            </button>
+            {expandedTimeUnit && (
+              <div className="br-property-pill-grid">
+                {isLoadingTimeUnits ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : displayTimeUnits.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  displayTimeUnits.map((field, idx) => {
+                    const key = `time_unit-${field.time_unit_id ?? idx}`;
+                    return (
+                      <PropertyPill
+                        key={key}
+                        pillKey={key}
+                        label={getFieldLabel(field)}
+                        selected={selectedKeys.includes(key)}
+                        onClick={() => handleToggleKey(key)}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedCustomFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Custom fields
+            </button>
+            {expandedCustomFields && (
+              <>
+                <div className="br-property-board-filter">
+                  <span className="br-property-board-filter-label">Show fields from board:</span>
+                  <div className="br-property-board-filter-row">
+                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
+                      <select
+                        className="business-rule-form-select"
+                        value={selectedBoardId}
+                        onChange={(e) => setSelectedBoardId(e.target.value)}
+                      >
+                        <option value="">All Boards</option>
+                        {boards.map((b) => (
+                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
+                        ))}
+                      </select>
+                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                    </div>
+                    <button
+                      type="button"
+                      className="br-property-board-clear-btn"
+                      onClick={() => setSelectedBoardId('')}
+                      aria-label="Reset board filter"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="business-rule-form-toggle br-property-disabled-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showDisabled}
+                    onChange={(e) => setShowDisabled(e.target.checked)}
+                  />
+                  <span className="business-rule-form-toggle-track" aria-hidden />
+                  <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
+                </label>
+
+                <div className="br-property-pill-grid">
+                  {isLoadingCustomFields ? (
+                    <div className="br-property-picker-empty">Loading...</div>
+                  ) : displayCustomFields.length === 0 ? (
+                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : (
+                    displayCustomFields.map((field, idx) => {
+                      const key = `custom-${field.custom_field_id ?? idx}`;
+                      return (
+                        <PropertyPill
+                          key={key}
+                          pillKey={key}
+                          label={getFieldLabel(field)}
+                          selected={selectedKeys.includes(key)}
+                          dotColor={getPropertyDotColor(idx)}
+                          onClick={() => handleToggleKey(key)}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={selectedKeys.length === 0}
+            onClick={handleApply}
+          >
+            Apply
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+CardFieldPickerModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onApply: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+function NotificationSettingsModal({ show, onClose, onSave, initialSettings, triggerTypeId }) {
   const [to, setTo] = useState('');
   const [cc, setCc] = useState('');
   const [subjectParts, setSubjectParts] = useState(DUMMY_NOTIFICATION_SUBJECT_PARTS);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
-  const [openDropdown, setOpenDropdown] = useState(null);
+  const [showInternalUsersModal, setShowInternalUsersModal] = useState(false);
+  const [internalUsersTarget, setInternalUsersTarget] = useState(null);
+  const [showCustomFieldModal, setShowCustomFieldModal] = useState(false);
+  const [customFieldTarget, setCustomFieldTarget] = useState(null);
+  const [showCardFieldModal, setShowCardFieldModal] = useState(false);
+  const [cardFieldTarget, setCardFieldTarget] = useState(null);
   const quillRef = useRef(null);
 
   useEffect(() => {
@@ -1172,7 +1782,12 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
     setCc(initialSettings?.cc ?? '');
     setSubjectParts(initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
     setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
-    setOpenDropdown(null);
+    setShowInternalUsersModal(false);
+    setInternalUsersTarget(null);
+    setShowCustomFieldModal(false);
+    setCustomFieldTarget(null);
+    setShowCardFieldModal(false);
+    setCardFieldTarget(null);
   }, [show, initialSettings]);
 
   useEffect(() => {
@@ -1186,19 +1801,61 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
     setter(current ? `${current}, ${value}` : value);
   };
 
+  const handleOpenInternalUsersModal = (target) => {
+    setInternalUsersTarget(target);
+    setShowInternalUsersModal(true);
+  };
+
+  const handleApplyInternalUsers = (names) => {
+    if (internalUsersTarget === 'cc') {
+      appendToken(setCc, cc, names.join(', '));
+    } else {
+      appendToken(setTo, to, names.join(', '));
+    }
+    setInternalUsersTarget(null);
+  };
+
+  const handleOpenCustomFieldModal = (target) => {
+    setCustomFieldTarget(target);
+    setShowCustomFieldModal(true);
+  };
+
+  const handleApplyCustomField = (fieldLabels) => {
+    if (customFieldTarget === 'cc') {
+      appendToken(setCc, cc, fieldLabels.join(', '));
+    } else {
+      appendToken(setTo, to, fieldLabels.join(', '));
+    }
+    setCustomFieldTarget(null);
+  };
+
   const handleAddSubjectField = (field) => {
     setSubjectParts((prev) => [...prev, { type: 'pill', value: field }]);
-    setOpenDropdown(null);
   };
 
   const handleAddBodyField = (field) => {
     const quill = quillRef.current?.getEditor();
-    setOpenDropdown(null);
     if (!quill) return;
     const index = quill.getSelection(true)?.index ?? quill.getLength();
     quill.insertText(index, field, { pill: true });
     quill.insertText(index + field.length, ' ', { pill: false });
     quill.setSelection(index + field.length + 1, 0);
+  };
+
+  const handleOpenCardFieldModal = (target) => {
+    setCardFieldTarget(target);
+    setShowCardFieldModal(true);
+  };
+
+  const handleApplyCardField = (fieldLabels) => {
+    fieldLabels.forEach((label) => {
+      if (cardFieldTarget === 'body') {
+        handleAddBodyField(label);
+      } else {
+        handleAddSubjectField(label);
+      }
+    });
+    setCardFieldTarget(null);
   };
 
   const handleSave = () => {
@@ -1227,6 +1884,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
   }), []);
 
   return (
+    <>
     <Modal
       show={show}
       onHide={onClose}
@@ -1264,38 +1922,20 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
             <div className="notification-field-head">
               <label className="business-rule-form-label">To:</label>
               <div className="notification-field-actions">
-                <div className="notification-dropdown-wrap">
-                  <button
-                    type="button"
-                    className="notification-dropdown-trigger"
-                    onClick={() => setOpenDropdown((v) => (v === 'to-users' ? null : 'to-users'))}
-                  >
-                    add internal users <FiChevronDown size={12} aria-hidden />
-                  </button>
-                  {openDropdown === 'to-users' && (
-                    <div className="notification-dropdown-panel">
-                      {DUMMY_INTERNAL_USERS.map((u) => (
-                        <button type="button" key={u} onClick={() => { appendToken(setTo, to, u); setOpenDropdown(null); }}>{u}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="notification-dropdown-wrap">
-                  <button
-                    type="button"
-                    className="notification-dropdown-trigger"
-                    onClick={() => setOpenDropdown((v) => (v === 'to-fields' ? null : 'to-fields'))}
-                  >
-                    add custom fields <FiChevronDown size={12} aria-hidden />
-                  </button>
-                  {openDropdown === 'to-fields' && (
-                    <div className="notification-dropdown-panel">
-                      {DUMMY_CUSTOM_FIELDS.slice(0, 8).map((f) => (
-                        <button type="button" key={f.custom_field_id} onClick={() => { appendToken(setTo, to, f.field_label); setOpenDropdown(null); }}>{f.field_label}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => handleOpenInternalUsersModal('to')}
+                >
+                  add internal users <FiChevronDown size={12} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => handleOpenCustomFieldModal('to')}
+                >
+                  add custom fields <FiChevronDown size={12} aria-hidden />
+                </button>
               </div>
             </div>
             <input type="text" className="business-rule-form-input" value={to} onChange={(e) => setTo(e.target.value)} />
@@ -1305,38 +1945,20 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
             <div className="notification-field-head">
               <label className="business-rule-form-label">Cc:</label>
               <div className="notification-field-actions">
-                <div className="notification-dropdown-wrap">
-                  <button
-                    type="button"
-                    className="notification-dropdown-trigger"
-                    onClick={() => setOpenDropdown((v) => (v === 'cc-users' ? null : 'cc-users'))}
-                  >
-                    add internal users <FiChevronDown size={12} aria-hidden />
-                  </button>
-                  {openDropdown === 'cc-users' && (
-                    <div className="notification-dropdown-panel">
-                      {DUMMY_INTERNAL_USERS.map((u) => (
-                        <button type="button" key={u} onClick={() => { appendToken(setCc, cc, u); setOpenDropdown(null); }}>{u}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="notification-dropdown-wrap">
-                  <button
-                    type="button"
-                    className="notification-dropdown-trigger"
-                    onClick={() => setOpenDropdown((v) => (v === 'cc-fields' ? null : 'cc-fields'))}
-                  >
-                    add custom fields <FiChevronDown size={12} aria-hidden />
-                  </button>
-                  {openDropdown === 'cc-fields' && (
-                    <div className="notification-dropdown-panel">
-                      {DUMMY_CUSTOM_FIELDS.slice(0, 8).map((f) => (
-                        <button type="button" key={f.custom_field_id} onClick={() => { appendToken(setCc, cc, f.field_label); setOpenDropdown(null); }}>{f.field_label}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => handleOpenInternalUsersModal('cc')}
+                >
+                  add internal users <FiChevronDown size={12} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => handleOpenCustomFieldModal('cc')}
+                >
+                  add custom fields <FiChevronDown size={12} aria-hidden />
+                </button>
               </div>
             </div>
             <input type="text" className="business-rule-form-input" value={cc} onChange={(e) => setCc(e.target.value)} />
@@ -1346,22 +1968,13 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
             <div className="notification-field-head">
               <label className="business-rule-form-label">Subject:</label>
               <div className="notification-field-actions">
-                <div className="notification-dropdown-wrap">
-                  <button
-                    type="button"
-                    className="notification-dropdown-trigger"
-                    onClick={() => setOpenDropdown((v) => (v === 'subject-fields' ? null : 'subject-fields'))}
-                  >
-                    add card fields <FiChevronDown size={12} aria-hidden />
-                  </button>
-                  {openDropdown === 'subject-fields' && (
-                    <div className="notification-dropdown-panel">
-                      {DUMMY_NOTIFICATION_FIELDS.map((f) => (
-                        <button type="button" key={f} onClick={() => handleAddSubjectField(f)}>{f}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => handleOpenCardFieldModal('subject')}
+                >
+                  add card fields <FiChevronDown size={12} aria-hidden />
+                </button>
               </div>
             </div>
             <div className="notification-subject-box">
@@ -1379,22 +1992,13 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
             <div className="notification-field-head">
               <label className="business-rule-form-label">Body:</label>
               <div className="notification-field-actions">
-                <div className="notification-dropdown-wrap">
-                  <button
-                    type="button"
-                    className="notification-dropdown-trigger"
-                    onClick={() => setOpenDropdown((v) => (v === 'body-fields' ? null : 'body-fields'))}
-                  >
-                    add card fields <FiChevronDown size={12} aria-hidden />
-                  </button>
-                  {openDropdown === 'body-fields' && (
-                    <div className="notification-dropdown-panel">
-                      {DUMMY_NOTIFICATION_BODY_FIELDS.map((f) => (
-                        <button type="button" key={f} onClick={() => handleAddBodyField(f)}>{f}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => handleOpenCardFieldModal('body')}
+                >
+                  add card fields <FiChevronDown size={12} aria-hidden />
+                </button>
               </div>
             </div>
             <div className="notification-quill-wrap">
@@ -1410,6 +2014,27 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
         </footer>
       </div>
     </Modal>
+
+    <InternalUsersPickerModal
+      show={showInternalUsersModal}
+      onClose={() => setShowInternalUsersModal(false)}
+      onApply={handleApplyInternalUsers}
+    />
+
+    <CustomFieldPickerModal
+      show={showCustomFieldModal}
+      onClose={() => setShowCustomFieldModal(false)}
+      onApply={handleApplyCustomField}
+      triggerTypeId={triggerTypeId}
+    />
+
+    <CardFieldPickerModal
+      show={showCardFieldModal}
+      onClose={() => setShowCardFieldModal(false)}
+      onApply={handleApplyCardField}
+      triggerTypeId={triggerTypeId}
+    />
+    </>
   );
 }
 
@@ -2795,6 +3420,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowNotificationSettings(false)}
       onSave={handleSaveNotificationSettings}
       initialSettings={activeNotifyAction}
+      triggerTypeId={rule.id}
     />
 
     <WebInvokeSettingsModal
@@ -2905,6 +3531,7 @@ NotificationSettingsModal.propTypes = {
   }),
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default BusinessRuleFormModal;
