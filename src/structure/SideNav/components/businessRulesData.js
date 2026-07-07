@@ -49,6 +49,7 @@ export const THEN_ACTION_SECTIONS = [
   { id: 'link', title: 'Link the card' },
   { id: 'move', title: 'Move the card' },
   { id: 'notify', title: 'Send notifications' },
+  { id: 'invoke', title: 'Create the UI Invoke web service' },
 ];
 
 export const CREATE_ACTION_OPTIONS = [
@@ -76,6 +77,21 @@ export const MOVE_ACTION_OPTIONS = [
 export const NOTIFY_ACTION_OPTIONS = [
   { key: 'send_notification', label: 'Send notification' },
 ];
+
+export const INVOKE_ACTION_OPTIONS = [
+  { key: 'invoke_web_service', label: 'Invoke web service' },
+];
+
+// Dev-only fallback data for the "Web Service Invoke Settings" modal.
+export const DUMMY_INVOKE_METHOD_OPTIONS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+
+export const DUMMY_INVOKE_AUTH_OPTIONS = ['NONE', 'BASIC', 'TOKEN', 'API_KEY'];
+
+// Regular-field options offered by the "Select a field" modal (Url's "add card fields" trigger).
+export const DUMMY_URL_FIELD_OPTIONS = ['Card ID', 'Custom card ID', 'Internal card id'];
+
+// Fields insertable as a pill into a Params row's value (the payload sent to the service).
+export const DUMMY_INVOKE_PAYLOAD_FIELDS = ['Kanbanize Payload', 'Card ID', 'Card Title', 'Board ID'];
 
 // Dev-only fallback data for the "Notification Message Settings" modal.
 export const DUMMY_NOTIFICATION_FROM_EMAIL = 'sedres_notifications@kanbanize.com';

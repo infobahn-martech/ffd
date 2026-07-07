@@ -10,6 +10,7 @@ import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
   THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_NOTIFICATION_BODY_FIELDS, DUMMY_INTERNAL_USERS,
@@ -1366,6 +1367,442 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
   );
 }
 
+function SelectFieldModal({ show, onClose, onSelect, fields }) {
+  const [filterText, setFilterText] = useState('');
+  const [expanded, setExpanded] = useState(true);
+  const [selectedField, setSelectedField] = useState(null);
+
+  useEffect(() => {
+    if (!show) return;
+    setFilterText('');
+    setExpanded(true);
+    setSelectedField(null);
+  }, [show]);
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredFields = filterQuery
+    ? fields.filter((f) => f.toLowerCase().includes(filterQuery))
+    : fields;
+
+  const handleApply = () => {
+    if (!selectedField) return;
+    onSelect(selectedField);
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-floating-close-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Select a field</h2>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <input
+            type="text"
+            className="br-property-filter-input"
+            placeholder="Filter"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            autoFocus
+          />
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expanded && (
+              <div className="br-property-pill-grid">
+                {filteredFields.length === 0 ? (
+                  <div className="br-property-picker-empty">No fields found</div>
+                ) : (
+                  filteredFields.map((field) => (
+                    <PropertyPill
+                      key={field}
+                      pillKey={field}
+                      label={field}
+                      selected={selectedField === field}
+                      onClick={() => setSelectedField(field)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selectedField}
+            onClick={handleApply}
+          >
+            Apply
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+SelectFieldModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+  fields: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
+
+function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
+  const [serviceName, setServiceName] = useState('');
+  const [url, setUrl] = useState('');
+  const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
+  const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
+  const [sendParamsInBody, setSendParamsInBody] = useState(false);
+  const [expandedHeaders, setExpandedHeaders] = useState(true);
+  const [expandedParams, setExpandedParams] = useState(true);
+  const [headers, setHeaders] = useState([]);
+  const [params, setParams] = useState([]);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [showSelectFieldModal, setShowSelectFieldModal] = useState(false);
+
+  useEffect(() => {
+    if (!show) return;
+    setServiceName(initialSettings?.serviceName ?? '');
+    setUrl(initialSettings?.url ?? '');
+    setMethod(initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1]);
+    setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
+    setSendParamsInBody(initialSettings?.sendParamsInBody ?? false);
+    setHeaders(initialSettings?.headers ?? []);
+    setParams(initialSettings?.params ?? []);
+    setExpandedHeaders(true);
+    setExpandedParams(true);
+    setOpenDropdown(null);
+    setShowSelectFieldModal(false);
+  }, [show, initialSettings]);
+
+  const makeRowId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const handleAddUrlField = (field) => {
+    setUrl((prev) => `${prev}{${field}}`);
+  };
+
+  const handleAddHeader = () => {
+    setHeaders((prev) => [...prev, { id: makeRowId(), key: '', value: '' }]);
+  };
+  const handleRemoveHeader = (id) => {
+    setHeaders((prev) => prev.filter((h) => h.id !== id));
+  };
+  const handleHeaderChange = (id, field, value) => {
+    setHeaders((prev) => prev.map((h) => (h.id === id ? { ...h, [field]: value } : h)));
+  };
+
+  const handleAddParam = () => {
+    setParams((prev) => [...prev, { id: makeRowId(), key: '', value: '' }]);
+  };
+  const handleRemoveParam = (id) => {
+    setParams((prev) => prev.filter((p) => p.id !== id));
+  };
+  const handleParamChange = (id, field, value) => {
+    setParams((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+  };
+  const handlePickParamValueField = (id, field) => {
+    setParams((prev) => prev.map((p) => (p.id === id ? { ...p, value: field } : p)));
+    setOpenDropdown(null);
+  };
+
+  const handleSave = () => {
+    onSave({ serviceName, url, method, authentication, sendParamsInBody, headers, params });
+    onClose();
+  };
+
+  return (
+    <>
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal notification-settings-modal"
+      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-invoke-modal-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Service Invoke Settings</h2>
+        </header>
+
+        <div className="card-property-match-modal-body notification-settings-body">
+          <div className="notification-field">
+            <label className="business-rule-form-label br-invoke-field-label">Name</label>
+            <input
+              type="text"
+              className="business-rule-form-input"
+              placeholder="Enter name"
+              value={serviceName}
+              onChange={(e) => setServiceName(e.target.value)}
+            />
+          </div>
+
+          <div className="notification-field">
+            <div className="notification-field-head">
+              <label className="business-rule-form-label br-invoke-field-label">Url</label>
+              <div className="notification-field-actions">
+                <button
+                  type="button"
+                  className="notification-dropdown-trigger"
+                  onClick={() => setShowSelectFieldModal(true)}
+                >
+                  add card fields <FiChevronDown size={12} aria-hidden />
+                </button>
+              </div>
+            </div>
+            <input
+              type="text"
+              className="business-rule-form-input"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </div>
+
+          <div className="br-invoke-two-col">
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Method</label>
+              <div className="business-rule-form-select-wrap">
+                <select className="business-rule-form-select" value={method} onChange={(e) => setMethod(e.target.value)}>
+                  {DUMMY_INVOKE_METHOD_OPTIONS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+              </div>
+            </div>
+
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Authentication</label>
+              <div className="business-rule-form-select-wrap">
+                <select className="business-rule-form-select" value={authentication} onChange={(e) => setAuthentication(e.target.value)}>
+                  {DUMMY_INVOKE_AUTH_OPTIONS.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+              </div>
+            </div>
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedHeaders((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedHeaders ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Headers
+            </button>
+            {expandedHeaders && (
+              <>
+                {headers.length > 0 && (
+                  <div className="br-invoke-kv-columns">
+                    <span>Header</span>
+                    <span>Value</span>
+                  </div>
+                )}
+                <div className="br-invoke-kv-list">
+                  {headers.map((h) => (
+                    <div key={h.id} className="br-invoke-kv-row">
+                      <input
+                        type="text"
+                        className="business-rule-form-input"
+                        value={h.key}
+                        onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="business-rule-form-input"
+                        value={h.value}
+                        onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="br-invoke-row-delete"
+                        onClick={() => handleRemoveHeader(h.id)}
+                        aria-label="Remove header"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" className="business-rule-form-add-link" onClick={handleAddHeader}>
+                  <FiPlus size={14} aria-hidden />
+                  Add header
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedParams((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedParams ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Parameters
+            </button>
+            {expandedParams && (
+              <>
+                <label className="business-rule-form-toggle br-invoke-body-toggle">
+                  <input
+                    type="checkbox"
+                    checked={sendParamsInBody}
+                    onChange={(e) => setSendParamsInBody(e.target.checked)}
+                  />
+                  <span className="business-rule-form-toggle-track" aria-hidden />
+                  <span className="business-rule-form-toggle-label">Send the parameters in the body of the web service call</span>
+                </label>
+
+                {params.length > 0 && (
+                  <div className="br-invoke-kv-columns">
+                    <span>Key</span>
+                    <span>Value</span>
+                  </div>
+                )}
+                <div className="br-invoke-kv-list">
+                  {params.map((p) => {
+                    const isPillValue = DUMMY_INVOKE_PAYLOAD_FIELDS.includes(p.value);
+                    return (
+                      <div key={p.id} className="br-invoke-kv-row">
+                        <input
+                          type="text"
+                          className="business-rule-form-input"
+                          value={p.key}
+                          onChange={(e) => handleParamChange(p.id, 'key', e.target.value)}
+                        />
+                        <div className="br-invoke-value-box">
+                          {isPillValue ? (
+                            <span className="notification-pill">{p.value}</span>
+                          ) : (
+                            <input
+                              type="text"
+                              className="br-invoke-value-input"
+                              value={p.value}
+                              onChange={(e) => handleParamChange(p.id, 'value', e.target.value)}
+                            />
+                          )}
+                          <div className="notification-dropdown-wrap">
+                            <button
+                              type="button"
+                              className="br-invoke-value-add-btn"
+                              onClick={() => setOpenDropdown((v) => (v === `param-${p.id}` ? null : `param-${p.id}`))}
+                              aria-label="Insert payload field"
+                            >
+                              <FiPlus size={14} aria-hidden />
+                            </button>
+                            {openDropdown === `param-${p.id}` && (
+                              <div className="notification-dropdown-panel">
+                                {DUMMY_INVOKE_PAYLOAD_FIELDS.map((f) => (
+                                  <button type="button" key={f} onClick={() => handlePickParamValueField(p.id, f)}>{f}</button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="br-invoke-row-delete"
+                          onClick={() => handleRemoveParam(p.id)}
+                          aria-label="Remove param"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button type="button" className="business-rule-form-add-link" onClick={handleAddParam}>
+                  <FiPlus size={14} aria-hidden />
+                  Add param
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer br-invoke-modal-footer">
+          <button type="button" className="br-invoke-test-btn">
+            Test Settings
+          </button>
+          <button type="button" className="br-property-add-btn" onClick={handleSave}>
+            Save Service
+          </button>
+        </footer>
+      </div>
+    </Modal>
+
+    <SelectFieldModal
+      show={showSelectFieldModal}
+      onClose={() => setShowSelectFieldModal(false)}
+      onSelect={handleAddUrlField}
+      fields={DUMMY_URL_FIELD_OPTIONS}
+    />
+    </>
+  );
+}
+
+WebInvokeSettingsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  initialSettings: PropTypes.shape({
+    serviceName: PropTypes.string,
+    url: PropTypes.string,
+    method: PropTypes.string,
+    authentication: PropTypes.string,
+    sendParamsInBody: PropTypes.bool,
+    headers: PropTypes.array,
+    params: PropTypes.array,
+  }),
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+};
+
 function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
   const [filterText, setFilterText] = useState('');
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -1502,6 +1939,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [notifyActions, setNotifyActions] = useState([]);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [activeNotifyActionId, setActiveNotifyActionId] = useState(null);
+  const [invokeActions, setInvokeActions] = useState([]);
+  const [showWebInvokeSettings, setShowWebInvokeSettings] = useState(false);
+  const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const { getTriggerConfig } = useBusinessRuleReducer((s) => s);
@@ -1534,6 +1974,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setNotifyActions([]);
     setShowNotificationSettings(false);
     setActiveNotifyActionId(null);
+    setInvokeActions([]);
+    setShowWebInvokeSettings(false);
+    setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
   }, [show, rule]);
 
@@ -1566,6 +2009,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       moveActions,
       updateActions,
       notifyActions,
+      invokeActions,
     });
     onClose();
   };
@@ -1703,6 +2147,26 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const activeNotifyAction = notifyActions.find((a) => a.id === activeNotifyActionId);
+
+  const handleAddInvokeAction = () => {
+    const option = INVOKE_ACTION_OPTIONS[0];
+    setInvokeActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+  };
+
+  const handleRemoveInvokeAction = (id) => {
+    setInvokeActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenWebInvokeSettings = (id) => {
+    setActiveInvokeActionId(id);
+    setShowWebInvokeSettings(true);
+  };
+
+  const handleSaveWebInvokeSettings = (settings) => {
+    setInvokeActions((prev) => prev.map((a) => (a.id === activeInvokeActionId ? { ...a, ...settings, configured: true } : a)));
+  };
+
+  const activeInvokeAction = invokeActions.find((a) => a.id === activeInvokeActionId);
 
   const boardLabel = boardName?.trim() || 'Current board';
 
@@ -2025,6 +2489,27 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'invoke' && invokeActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveInvokeAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-link"
+                          onClick={() => handleOpenWebInvokeSettings(action.id)}
+                        >
+                          {action.configured ? 'Configured' : 'Not Set'}
+                        </button>
+                      </div>
+                    ))}
+
                     <button
                       type="button"
                       className="business-rule-form-add-action"
@@ -2034,6 +2519,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                         if (section.id === 'move') handleAddMoveAction();
                         if (section.id === 'update') setShowUpdateActionPicker(true);
                         if (section.id === 'notify') handleAddNotifyAction();
+                        if (section.id === 'invoke') handleAddInvokeAction();
                       }}
                     >
                       <FiPlus size={14} aria-hidden />
@@ -2099,6 +2585,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowNotificationSettings(false)}
       onSave={handleSaveNotificationSettings}
       initialSettings={activeNotifyAction}
+    />
+
+    <WebInvokeSettingsModal
+      show={showWebInvokeSettings}
+      onClose={() => setShowWebInvokeSettings(false)}
+      onSave={handleSaveWebInvokeSettings}
+      initialSettings={activeInvokeAction}
     />
 
     <ShareWithModal
