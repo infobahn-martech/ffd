@@ -11,7 +11,7 @@ import {
   THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
-  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_INTERNAL_USERS, DUMMY_SHARE_USERS,
+  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_NOTIFICATION_BODY_FIELDS, DUMMY_INTERNAL_USERS, DUMMY_SHARE_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
@@ -31,6 +31,17 @@ class NotificationPillBlot extends QuillInlineBlot {}
 NotificationPillBlot.blotName = 'pill';
 NotificationPillBlot.tagName = 'span';
 NotificationPillBlot.className = 'notification-pill';
+// Quill's Inline.compare() (used to decide DOM nesting order for overlapping
+// formats) only recognizes names listed in Inline.order — an unlisted name makes
+// the comparison always resolve as "don't wrap", so the pill format would never
+// actually apply. Registering it here is required, not optional.
+QuillInlineBlot.order.push('pill');
+// Our tagName ('span') is identical to Quill's own generic Inline wrapper tag, so
+// the inherited static formats() (which special-cases that tag to mean "no format,
+// just a bare wrapper") reports empty formats for us too — Quill's optimizer then
+// unwraps/removes the span right after creating it. Overriding formats() to always
+// report true stops it from being treated as an empty wrapper.
+NotificationPillBlot.formats = () => true;
 Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
 
@@ -482,13 +493,13 @@ function CreateActionModal({ show, onClose, onSelect }) {
 }
 
 function LinkActionModal({ show, onClose, onSelect }) {
-  const [selectedKey, setSelectedKey] = useState(null);
+  const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedActions, setExpandedActions] = useState(true);
   const [filterText, setFilterText] = useState('');
 
   useEffect(() => {
     if (!show) return;
-    setSelectedKey(null);
+    setSelectedKeys([]);
     setFilterText('');
   }, [show]);
 
@@ -497,10 +508,17 @@ function LinkActionModal({ show, onClose, onSelect }) {
     ? LINK_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
     : LINK_ACTION_OPTIONS;
 
+  const handleToggleOption = (key) => {
+    setSelectedKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
   const handleAdd = () => {
-    const option = LINK_ACTION_OPTIONS.find((opt) => opt.key === selectedKey);
-    if (!option) return;
-    onSelect(option);
+    if (selectedKeys.length === 0) return;
+    LINK_ACTION_OPTIONS
+      .filter((opt) => selectedKeys.includes(opt.key))
+      .forEach((option) => onSelect(option));
     onClose();
   };
 
@@ -558,8 +576,8 @@ function LinkActionModal({ show, onClose, onSelect }) {
                       key={option.key}
                       pillKey={option.key}
                       label={option.label}
-                      selected={selectedKey === option.key}
-                      onClick={() => setSelectedKey(option.key)}
+                      selected={selectedKeys.includes(option.key)}
+                      onClick={() => handleToggleOption(option.key)}
                     />
                   ))
                 )}
@@ -572,7 +590,7 @@ function LinkActionModal({ show, onClose, onSelect }) {
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={!selectedKey}
+            disabled={selectedKeys.length === 0}
             onClick={handleAdd}
           >
             Add
@@ -807,7 +825,8 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
 }
 
 function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
-  const [selected, setSelected] = useState(null);
+  const [selectedActions, setSelectedActions] = useState([]);
+  const [selectedCustomFields, setSelectedCustomFields] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [expandedCustomFields, setExpandedCustomFields] = useState(true);
   const [selectedBoardId, setSelectedBoardId] = useState('');
@@ -834,7 +853,8 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
 
   useEffect(() => {
     if (!show) return;
-    setSelected(null);
+    setSelectedActions([]);
+    setSelectedCustomFields([]);
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
@@ -848,16 +868,27 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   }, [filterText]);
 
   const handlePickAction = (option) => {
-    setSelected({ key: `action-${option.key}`, type: 'action', item: option });
+    const key = `action-${option.key}`;
+    setSelectedActions((prev) =>
+      prev.some((item) => item.key === key)
+        ? prev.filter((item) => item.key !== key)
+        : [...prev, { key, item: option }]
+    );
   };
 
   const handlePickCustom = (field, idx) => {
-    setSelected({ key: `custom-${field.custom_field_id ?? idx}`, type: 'custom', item: field });
+    const key = `custom-${field.custom_field_id ?? idx}`;
+    setSelectedCustomFields((prev) =>
+      prev.some((item) => item.key === key)
+        ? prev.filter((item) => item.key !== key)
+        : [...prev, { key, item: field }]
+    );
   };
 
   const handleAdd = () => {
-    if (!selected) return;
-    onSelect(selected.item, { category_key: selected.type });
+    if (selectedActions.length === 0 && selectedCustomFields.length === 0) return;
+    selectedActions.forEach(({ item }) => onSelect(item, { category_key: 'action' }));
+    selectedCustomFields.forEach(({ item }) => onSelect(item, { category_key: 'custom' }));
     onClose();
   };
 
@@ -915,7 +946,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
                       key={option.key}
                       pillKey={option.key}
                       label={option.label}
-                      selected={selected?.key === `action-${option.key}`}
+                      selected={selectedActions.some((item) => item.key === `action-${option.key}`)}
                       onClick={() => handlePickAction(option)}
                     />
                   ))
@@ -987,7 +1018,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
                           key={key}
                           pillKey={key}
                           label={getFieldLabel(field)}
-                          selected={selected?.key === key}
+                          selected={selectedCustomFields.some((item) => item.key === key)}
                           dotColor={getPropertyDotColor(idx)}
                           disabled={isFieldUsed(field)}
                           onClick={() => handlePickCustom(field, idx)}
@@ -1005,7 +1036,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={!selected}
+            disabled={selectedActions.length === 0 && selectedCustomFields.length === 0}
             onClick={handleAdd}
           >
             Add
@@ -1047,6 +1078,16 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
   const handleAddSubjectField = (field) => {
     setSubjectParts((prev) => [...prev, { type: 'pill', value: field }]);
     setOpenDropdown(null);
+  };
+
+  const handleAddBodyField = (field) => {
+    const quill = quillRef.current?.getEditor();
+    setOpenDropdown(null);
+    if (!quill) return;
+    const index = quill.getSelection(true)?.index ?? quill.getLength();
+    quill.insertText(index, field, { pill: true });
+    quill.insertText(index + field.length, ' ', { pill: false });
+    quill.setSelection(index + field.length + 1, 0);
   };
 
   const handleSave = () => {
@@ -1224,7 +1265,27 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings }) {
           </div>
 
           <div className="notification-field">
-            <label className="business-rule-form-label">Body:</label>
+            <div className="notification-field-head">
+              <label className="business-rule-form-label">Body:</label>
+              <div className="notification-field-actions">
+                <div className="notification-dropdown-wrap">
+                  <button
+                    type="button"
+                    className="notification-dropdown-trigger"
+                    onClick={() => setOpenDropdown((v) => (v === 'body-fields' ? null : 'body-fields'))}
+                  >
+                    add card fields <FiChevronDown size={12} aria-hidden />
+                  </button>
+                  {openDropdown === 'body-fields' && (
+                    <div className="notification-dropdown-panel">
+                      {DUMMY_NOTIFICATION_BODY_FIELDS.map((f) => (
+                        <button type="button" key={f} onClick={() => handleAddBodyField(f)}>{f}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
             <div className="notification-quill-wrap">
               <ReactQuill ref={quillRef} theme="snow" modules={quillModules} value={bodyContent} onChange={setBodyContent} />
             </div>
@@ -1493,7 +1554,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleSelectLinkAction = (option) => {
-    setLinkActions((prev) => [...prev, { id: Date.now(), key: option.key, label: option.label }]);
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setLinkActions((prev) => [...prev, { id, key: option.key, label: option.label }]);
   };
 
   const handleRemoveLinkAction = (id) => {
@@ -1527,16 +1589,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const activeMoveAction = moveActions.find((a) => a.id === activeMoveActionId);
 
   const handleSelectUpdateAction = (item, meta) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     if (meta.category_key === 'custom') {
       const rawLabel = getFieldLabel(item);
       setUpdateActions((prev) => [
         ...prev,
-        { id: Date.now(), category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel, field: rawLabel },
+        { id, category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel, field: rawLabel },
       ]);
     } else {
       setUpdateActions((prev) => [
         ...prev,
-        { id: Date.now(), category: 'action', key: item.key, label: item.label, field: item.field },
+        { id, category: 'action', key: item.key, label: item.label, field: item.field },
       ]);
     }
   };

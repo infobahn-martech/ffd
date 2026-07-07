@@ -82,6 +82,12 @@ export const DUMMY_NOTIFICATION_FROM_EMAIL = 'sedres_notifications@kanbanize.com
 
 export const DUMMY_NOTIFICATION_FIELDS = ['Title', 'Board Name', 'Internal Card Id', 'Author', 'Card URL', 'Description'];
 
+// Fields insertable as pills into the notification Body via its "add card fields" dropdown.
+export const DUMMY_NOTIFICATION_BODY_FIELDS = [
+  'Author', 'Card URL', 'Title', 'Description', 'Color', 'Owner', 'Priority', 'Size',
+  'Deadline', 'Tags', 'Milestones', 'Board Name', 'Column Name', 'Total Subtasks Count',
+];
+
 export const DUMMY_INTERNAL_USERS = ['John Smith', 'Sarah Ahmed', 'Mohammed Al-Farsi'];
 
 // Dev-only fallback data for the "Shared with" permissions modal.
