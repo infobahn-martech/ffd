@@ -59,6 +59,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
     triggerTypes, isLoadingGet, getTriggerTypes,
+    getBusinessRuleStats, businessRuleStats,
   } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
@@ -73,6 +74,11 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     }
     getBusinessRules({ params: { page, limit, searchTerm: searchValue } });
   }, [show, page, searchValue]);
+
+  useEffect(() => {
+    if (!show) return;
+    getBusinessRuleStats();
+  }, [show]);
 
   useEffect(() => {
     if (view === 'picker') {
@@ -287,7 +293,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                   </button>
                 </div>
                 <span className="br-table-count">
-                  Available business rules {businessRulesCount}
+                  Available business rules {businessRuleStats.available} / Created business rules {businessRuleStats.created} / Enabled business rules {businessRuleStats.enabled} / Visible business rules {businessRuleStats.visible}
                 </span>
               </div>
             </>

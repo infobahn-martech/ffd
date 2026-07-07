@@ -115,6 +115,27 @@ const useBusinessRuleReducer = create((set) => ({
             set({ triggerConfig: null, isLoadingTriggerConfig: false });
         }
     },
+
+    isLoadingBusinessRuleStats: false,
+    businessRuleStats: { available: 0, created: 0, enabled: 0, visible: 0 },
+
+    getBusinessRuleStats: async () => {
+        try {
+            set({ isLoadingBusinessRuleStats: true });
+            const { data } = await businessRuleService.getBusinessRuleStats();
+            set({
+                businessRuleStats: {
+                    available: data?.data?.available ?? 0,
+                    created: data?.data?.created ?? 0,
+                    enabled: data?.data?.enabled ?? 0,
+                    visible: data?.data?.visible ?? 0,
+                },
+                isLoadingBusinessRuleStats: false,
+            });
+        } catch (err) {
+            set({ businessRuleStats: { available: 0, created: 0, enabled: 0, visible: 0 }, isLoadingBusinessRuleStats: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;
