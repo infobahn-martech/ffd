@@ -11,7 +11,7 @@ import {
   THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
-  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_NOTIFICATION_BODY_FIELDS, DUMMY_INTERNAL_USERS, DUMMY_SHARE_USERS,
+  DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_NOTIFICATION_FIELDS, DUMMY_NOTIFICATION_BODY_FIELDS, DUMMY_INTERNAL_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
@@ -47,12 +47,6 @@ Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
 
 const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
-// Owner list reuses the same user directory as "Shared with" so the picker can show a
-// username note per row; DUMMY_INTERNAL_USERS has no username field to show there.
-const OWNER_USERS = [
-  { name: DEFAULT_OWNER.name, username: null },
-  ...DUMMY_SHARE_USERS.map((u) => ({ name: u.name, username: u.username })),
-];
 
 const PROPERTY_DOT_COLORS = [...PRIMARY_PRESET_COLORS, ...SECONDARY_PRESET_COLORS];
 
@@ -1442,10 +1436,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const { getTriggerConfig } = useBusinessRuleReducer((s) => s);
+  const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
 
   useEffect(() => {
     if (!show || !rule) return;
     getTriggerConfig(rule.id);
+    if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');
@@ -1505,10 +1501,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     onClose();
   };
 
+  const ownerUsers = [
+    { user_id: null, name: DEFAULT_OWNER.name, username: null },
+    ...users.map((u) => ({ user_id: u.user_id, name: u.name, username: u.username })),
+  ];
   const ownerFilterQuery = ownerFilterText.trim().toLowerCase();
   const filteredOwnerUsers = ownerFilterQuery
-    ? OWNER_USERS.filter((u) => u.name.toLowerCase().includes(ownerFilterQuery))
-    : OWNER_USERS;
+    ? ownerUsers.filter((u) => u.name.toLowerCase().includes(ownerFilterQuery))
+    : ownerUsers;
 
   const handlePickOwner = (user) => {
     setOwner(user.name);
@@ -1741,11 +1741,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       />
                     </div>
                     <div className="br-owner-picker-list">
-                      {filteredOwnerUsers.length === 0 ? (
+                      {usersLoading ? (
+                        <div className="br-property-picker-empty">Loading...</div>
+                      ) : filteredOwnerUsers.length === 0 ? (
                         <div className="br-property-picker-empty">No matches</div>
                       ) : (
                         filteredOwnerUsers.map((user) => (
-                          <div key={user.name} className="br-owner-picker-row">
+                          <div key={user.user_id ?? user.name} className="br-owner-picker-row">
                             <button
                               type="button"
                               className={`br-owner-picker-row-btn${owner === user.name ? ' br-owner-picker-row-btn--selected' : ''}`}
