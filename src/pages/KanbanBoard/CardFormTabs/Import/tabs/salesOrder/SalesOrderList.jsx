@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
-import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../../design/scss/salesOrder.scss";
 import { PORT_OPTIONS } from "../../../../../../shared/constants/ports";
+import salesOrderService from "../../../../../../services/salesOrderService";
+import useAlertReducer from "../../../../../../store/AlertReducer";
+import WorkOrderCreationModal from "./WorkOrderCreationModal";
 
 const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
 const USD_TO_SAR_RATE = 3.75;
@@ -41,431 +43,6 @@ GroupCheckbox.propTypes = {
   indeterminate: PropTypes.bool.isRequired,
   onChange: PropTypes.func.isRequired,
   onClick: PropTypes.func.isRequired,
-};
-
-// Work Order Creation Modal Component - Premium UI
-const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesOrderList, cardColor, vesselName = "", portName = "" }) => {
-  const accentColor = cardColor || "#2A00FF";
-  const [formData, setFormData] = useState({
-    workOrderName: "",
-    relatedCallFile: "",
-    assignedTo: "",
-    vesselName: "",
-    portName: "",
-    startDate: "",
-    endDate: "",
-    remarks: "",
-    createAs: "Draft",
-  });
-
-  // Get selected line items details
-  const selectedLineItems = salesOrderList.filter((item) => selectedItems.includes(item.id));
-
-  // Get unique call files from selected items
-  const relatedCallFiles = [...new Set(selectedLineItems.map((item) => item.callFile).filter(Boolean))];
-  const callFileDisplay = relatedCallFiles.length === 1 ? relatedCallFiles[0] : relatedCallFiles.join(", ");
-
-  // Auto-generate work order name and pre-fill vessel/port
-  useEffect(() => {
-    if (show && selectedLineItems.length > 0) {
-      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      const itemNames = selectedLineItems.slice(0, 2).map((item) => item.itemDescription || item.itemNo || "").join(", ");
-      const generatedName = `WO-${timestamp}-${itemNames.substring(0, 30)}${itemNames.length > 30 ? "..." : ""}`;
-      setFormData((prev) => ({
-        ...prev,
-        workOrderName: generatedName,
-        relatedCallFile: callFileDisplay,
-        vesselName: vesselName || prev.vesselName,
-        portName: portName || prev.portName,
-      }));
-    }
-  }, [show, selectedLineItems, callFileDisplay, vesselName, portName]);
-
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const buildPayload = () => ({
-    ...formData,
-    assignedDepartment: formData.assignedTo,
-    dueDate: formData.endDate,
-    internalNotes: formData.remarks,
-    selectedLineItems: selectedLineItems,
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onCreate(buildPayload());
-  };
-
-  const handleShare = (channel) => {
-    const payload = buildPayload();
-    onCreate({ ...payload, shareVia: channel });
-    onClose();
-  };
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  if (!show) return null;
-
-  const headerGradient = `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}99 100%)`;
-  const inputBase = {
-    width: "100%",
-    padding: "12px 14px",
-    border: "1px solid #e2e8f0",
-    borderRadius: "8px",
-    fontSize: "14px",
-    transition: "border-color 0.2s, box-shadow 0.2s",
-    outline: "none",
-  };
-  const inputFocus = { borderColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}20` };
-  const labelStyle = { display: "block", marginBottom: "8px", fontWeight: "600", color: "#334155", fontSize: "13px" };
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-      onClick={handleBackdropClick}
-    >
-      <div
-        style={{
-          backgroundColor: "#ffffff",
-          borderRadius: "16px",
-          width: "90%",
-          maxWidth: "720px",
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Premium Modal Header - Sticky, always visible */}
-        <div
-          style={{
-            flexShrink: 0,
-            padding: "24px 28px",
-            background: headerGradient,
-            borderRadius: "16px 16px 0 0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#0rgb(51, 65, 85)", letterSpacing: "-0.02em", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
-            Work Order Creation
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: "rgba(255,255,255,0.2)",
-              border: "none",
-              fontSize: "20px",
-              cursor: "pointer",
-              color: "#ffffff",
-              padding: "6px",
-              width: "36px",
-              height: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "8px",
-              transition: "background 0.2s",
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.3)"; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Modal Body - Header and footer stay fixed, only content scrolls */}
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <div style={{ overflowY: "auto", flex: 1, padding: "28px" }}>
-            {/* Work Order Name */}
-            <div style={{ marginBottom: "20px" }}>
-              <label style={labelStyle}>Work Order Name</label>
-              <input
-                type="text"
-                value={formData.workOrderName}
-                onChange={(e) => handleInputChange("workOrderName", e.target.value)}
-                style={inputBase}
-                onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-                required
-              />
-            </div>
-
-            {/* Call File */}
-            <div style={{ marginBottom: "20px" }}>
-              <label style={labelStyle}>Call File</label>
-              <input
-                type="text"
-                value={formData.relatedCallFile || callFileDisplay}
-                readOnly
-                style={{ ...inputBase, backgroundColor: "#f8fafc", color: "#64748b", cursor: "not-allowed" }}
-              />
-            </div>
-
-            {/* Vessel Name & Port Name - Single Row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-              <div>
-                <label style={labelStyle}>Vessel Name</label>
-                <input
-                  type="text"
-                  value={formData.vesselName}
-                  onChange={(e) => handleInputChange("vesselName", e.target.value)}
-                  placeholder="Enter vessel name"
-                  style={inputBase}
-                  onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                  onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Port Name</label>
-                <input
-                  type="text"
-                  value={formData.portName}
-                  onChange={(e) => handleInputChange("portName", e.target.value)}
-                  placeholder="Enter port name"
-                  style={inputBase}
-                  onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                  onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-                />
-              </div>
-            </div>
-
-            {/* Selected Line */}
-            <div style={{ marginBottom: "20px" }}>
-              <label style={labelStyle}>Selected Line ({selectedLineItems.length})</label>
-              <div
-                style={{
-                  maxHeight: "160px",
-                  overflowY: "auto",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "10px",
-                  padding: "14px",
-                  backgroundColor: "#f8fafc",
-                }}
-              >
-                {selectedLineItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    style={{
-                      padding: "12px 14px",
-                      marginBottom: index < selectedLineItems.length - 1 ? "10px" : 0,
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      border: "1px solid #e2e8f0",
-                      display: "grid",
-                      gridTemplateColumns: "120px 1fr 80px",
-                      gap: "16px",
-                      alignItems: "center",
-                      fontSize: "14px",
-                    }}
-                  >
-                    <div>
-                      <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Internal Code</span>
-                      <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemNo || "—"}</div>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Job Description</span>
-                      <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemDescription || "—"}</div>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Quantity</span>
-                      <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.qty ?? "—"}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Assigned To */}
-            <div style={{ marginBottom: "20px" }}>
-              <label style={labelStyle}>Assigned To</label>
-              <select
-                value={formData.assignedTo}
-                onChange={(e) => handleInputChange("assignedTo", e.target.value)}
-                style={inputBase}
-                required
-              >
-                <option value="">Select department or team...</option>
-                <option value="Operations">Operations</option>
-                <option value="Logistics">Logistics</option>
-                <option value="Warehouse">Warehouse</option>
-                <option value="Customs">Customs</option>
-                <option value="Documentation">Documentation</option>
-              </select>
-            </div>
-
-            {/* Start Date & End Date */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-              <div>
-                <label style={labelStyle}>Start Date</label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange("startDate", e.target.value)}
-                  style={inputBase}
-                  required
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>End Date</label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange("endDate", e.target.value)}
-                  style={inputBase}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* remarks */}
-            <div style={{ marginBottom: "24px" }}>
-              <label style={labelStyle}>Remarks</label>
-              <textarea
-                value={formData.remarks}
-                onChange={(e) => handleInputChange("remarks", e.target.value)}
-                rows={4}
-                style={{ ...inputBase, resize: "vertical" }}
-                placeholder="Enter any internal notes or instructions..."
-                onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-              />
-            </div>
-
-            {/* Create as */}
-            <div style={{ marginBottom: "24px" }}>
-              <label style={labelStyle}>Create as</label>
-              <select
-                value={formData.createAs}
-                onChange={(e) => handleInputChange("createAs", e.target.value)}
-                style={inputBase}
-              >
-                <option value="Draft">Draft</option>
-                <option value="Active">Active</option>
-                <option value="Pending">Pending</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Modal Footer - Create Work & Share Buttons - Single Row */}
-          <div
-            style={{
-              flexShrink: 0,
-              display: "flex",
-              flexWrap: "nowrap",
-              justifyContent: "flex-end",
-              gap: "10px",
-              padding: "20px 28px",
-              borderTop: "1px solid #e2e8f0",
-              backgroundColor: "#fafbfc",
-            }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: "12px 22px",
-                backgroundColor: "#f1f5f9",
-                color: "#475569",
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => handleShare("whatsapp")}
-              style={{
-                padding: "12px 20px",
-                backgroundColor: "#25D366",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <FaWhatsapp size={18} />
-              Share
-            </button>
-            <button
-              type="button"
-              onClick={() => handleShare("email")}
-              style={{
-                padding: "12px 20px",
-                backgroundColor: "#6366f1",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <FaEnvelope size={16} />
-              Share
-            </button>
-            <button
-              type="submit"
-              style={{
-                padding: "12px 24px",
-                backgroundColor: accentColor,
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-                boxShadow: `0 4px 14px ${accentColor}40`,
-              }}
-            >
-              Generate
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-WorkOrderCreationModal.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onCreate: PropTypes.func.isRequired,
-  selectedItems: PropTypes.arrayOf(PropTypes.number).isRequired,
-  salesOrderList: PropTypes.array.isRequired,
-  cardColor: PropTypes.string,
-  vesselName: PropTypes.string,
-  portName: PropTypes.string,
 };
 
 // Preview Modal Component for Generate Invoice and Create Purchase Order
@@ -971,6 +548,7 @@ const SalesOrderList = ({
   // State for checkbox selection (exclude DA module)
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
+  const [isGeneratingWorkOrder, setIsGeneratingWorkOrder] = useState(false);
   const bulkActionBarRef = useRef(null);
 
   // State for preview modal (DA module only)
@@ -1293,21 +871,26 @@ const SalesOrderList = ({
     setShowWorkOrderModal(false);
   };
 
-  const handleCreateWorkOrder = (workOrderData) => {
-    const shareVia = workOrderData.shareVia;
-    if (shareVia === "whatsapp") {
-      // TODO: Implement WhatsApp share (e.g. open wa.me link with work order summary)
-      const text = encodeURIComponent(`Work Order: ${workOrderData.workOrderName}\nCall File: ${workOrderData.relatedCallFile}`);
-      window.open(`https://wa.me/?text=${text}`, "_blank");
-    } else if (shareVia === "email") {
-      // TODO: Implement Email share (e.g. open mailto: link)
-      const subject = encodeURIComponent(`Work Order: ${workOrderData.workOrderName}`);
-      const body = encodeURIComponent(`Work Order: ${workOrderData.workOrderName}\nCall File: ${workOrderData.relatedCallFile}\nAssigned To: ${workOrderData.assignedDepartment || workOrderData.assignedTo}`);
-      window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+  const handleCreateWorkOrder = async () => {
+    if (selectedItems.size === 0 || isGeneratingWorkOrder) return;
+
+    const payload = { so_item_ids: Array.from(selectedItems) };
+    setIsGeneratingWorkOrder(true);
+    try {
+      await salesOrderService.generateWorkOrder(payload.so_item_ids);
+      useAlertReducer.getState().success("Work order generated successfully.");
+      setShowWorkOrderModal(false);
+      setSelectedItems(new Set());
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to generate work order.";
+      useAlertReducer.getState().error(msg);
+    } finally {
+      setIsGeneratingWorkOrder(false);
     }
-    // TODO: Implement API call to create work order (when not sharing)
-    setShowWorkOrderModal(false);
-    setSelectedItems(new Set());
   };
 
   // Handlers for preview modal (DA module only)
@@ -2300,7 +1883,8 @@ const SalesOrderList = ({
         <WorkOrderCreationModal
           show={showWorkOrderModal}
           onClose={handleCloseWorkOrderModal}
-          onCreate={handleCreateWorkOrder}
+          onGenerate={handleCreateWorkOrder}
+          isSubmitting={isGeneratingWorkOrder}
           selectedItems={Array.from(selectedItems)}
           salesOrderList={displayOrderList}
           cardColor={cardColor}
