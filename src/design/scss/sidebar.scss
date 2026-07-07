@@ -470,7 +470,7 @@
 .kanban-sidebar:not(.kanban-sidebar--workspaces) {
     width: 80px;
     height: 100vh;
-    background: #ffffff;
+    background: #00368c;
     border-right: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
@@ -501,12 +501,13 @@
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    color: #6b7280;
+    color: #ffffff;
+    background: transparent;
     position: relative;
 
     &:hover {
-        background: #f3f4f6;
-        color: #00368c;
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
         transform: translateY(-2px);
     }
 
@@ -518,9 +519,8 @@
     }
 
     &.active {
-        background: #eef2ff;
+        background: #ffffff;
         color: #00368c;
-        box-shadow: inset 3px 0 0 0 #00368c;
         font-weight: 600;
 
         svg {
