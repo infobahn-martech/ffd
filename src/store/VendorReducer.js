@@ -45,6 +45,50 @@ const useVendorReducer = create((set) => ({
       });
     }
   },
+
+  isHotelDashboardLoading: false,
+  hotelDashboardError: '',
+  hotelDashboardData: null,
+
+  isHotelOrdersLoading: false,
+  hotelOrdersError: '',
+  hotelOrdersData: [],
+
+  // GET_HOTEL_DASHBOARD_REQUEST / SUCCESS / FAILURE
+  getHotelDashboard: async () => {
+    try {
+      set({ isHotelDashboardLoading: true, hotelDashboardError: '' });
+      const { data } = await vendorService.getHotelDashboard();
+      set({
+        hotelDashboardData: data?.data ?? data ?? null,
+        isHotelDashboardLoading: false,
+      });
+    } catch (error) {
+      set({
+        hotelDashboardError: error?.response?.data?.message ?? error.message,
+        isHotelDashboardLoading: false,
+        hotelDashboardData: null,
+      });
+    }
+  },
+
+  // GET_HOTEL_ORDERS_REQUEST / SUCCESS / FAILURE
+  getHotelOrders: async () => {
+    try {
+      set({ isHotelOrdersLoading: true, hotelOrdersError: '' });
+      const { data } = await vendorService.getHotelOrders();
+      set({
+        hotelOrdersData: data?.data ?? [],
+        isHotelOrdersLoading: false,
+      });
+    } catch (error) {
+      set({
+        hotelOrdersError: error?.response?.data?.message ?? error.message,
+        isHotelOrdersLoading: false,
+        hotelOrdersData: [],
+      });
+    }
+  },
 }));
 
 export default useVendorReducer;
