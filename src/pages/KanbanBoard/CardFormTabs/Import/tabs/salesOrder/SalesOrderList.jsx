@@ -932,20 +932,7 @@ const SalesOrderList = ({
         throw new Error(body?.message || "Failed to generate purchase order.");
       }
 
-      const results = Array.isArray(body?.data) ? body.data : [];
-      const successCount = results.filter((r) => r.status === "success").length;
-      const skippedCount = results.length - successCount;
-      if (successCount > 0) {
-        useAlertReducer
-          .getState()
-          .success(
-            `${successCount} purchase order${successCount > 1 ? "s" : ""} generated successfully${
-              skippedCount > 0 ? `, ${skippedCount} skipped` : ""
-            }.`
-          );
-      } else {
-        useAlertReducer.getState().error(`No purchase orders were generated${skippedCount > 0 ? ` — ${skippedCount} item${skippedCount > 1 ? "s" : ""} skipped` : ""}.`);
-      }
+      useAlertReducer.getState().success("Purchase order generated successfully.");
 
       setShowGeneratePOPopup(false);
       setSelectedItems(new Set());
