@@ -1,4 +1,53 @@
-.appointment-acceptance-modal-lg {
+// Scoped to .report-template-modal, NOT the shared .appointment-acceptance-modal-lg —
+// the CG Pass Template and Vessel Registration Template modals reuse that same shared
+// class name and set `direction: rtl` on their own .ql-editor under it (intentionally,
+// for Arabic content). This modal used to carry that shared class too (for its generic
+// phone-wrapper/lead-form sizing below, ported in from modal-designs.scss), which meant
+// the RTL rule kept matching it regardless of import order. It no longer carries that
+// class at all, so there is nothing left for the other modals' rules to match.
+.report-template-modal {
+  /* Body (ReactQuill): force left-to-right — this modal is not an Arabic-content field. */
+  .react-quill-wrapper .ql-editor {
+    direction: ltr;
+    text-align: left;
+  }
+
+  .ql-editor.ql-blank::before {
+    font-size: 13px;
+  }
+
+  /* Ported from modal-designs.scss's .appointment-acceptance-modal-lg (meant for the
+     CG Pass / Vessel Registration modals) — this modal still needs the same field sizing
+     for its own .phone-wrapper/.lead-form controls, now isolated under our own class. */
+  .phone-wrapper .form-control {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e2e2ea;
+    font-size: 13px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: #cfd4dc;
+    }
+
+    &:focus {
+      border-color: #b8c0cc;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.is-invalid {
+      border-color: #dc3545;
+    }
+  }
+
+  .lead-form .form-control,
+  .lead-form .form-control::placeholder {
+    font-size: 13px;
+  }
+
   /* Subject field: plain neutral border, no teal highlight */
   .desig-inp textarea.form-control {
     border: 1px solid #e2e2ea;
