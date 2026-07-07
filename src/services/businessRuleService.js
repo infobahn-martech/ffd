@@ -24,7 +24,13 @@ const getTriggerConfig = (triggerTypeId) =>
 const getBusinessRuleStats = () =>
   Gateway.get('/business_rule/get_business_rule_stats');
 
+const getLinkCardPossibleActions = ({ params } = {}) =>
+  Gateway.get('/business_rule/get_link_card_possible_actions', { params });
+
+const getLinkCardPossibleActionOperators = ({ params } = {}) =>
+  Gateway.get('/business_rule/get_link_card_possible_action_operators', { params });
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getBusinessRules, getTriggerConfig,
-  getBusinessRuleStats,
+  getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators,
 };
