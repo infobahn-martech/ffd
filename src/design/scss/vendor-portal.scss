@@ -160,6 +160,64 @@
     max-width: 100%;
 }
 
+.vendor-table .vendor-crew-datetime-input--readonly {
+    background: #f3f4f6;
+    color: #4b5563;
+    border-color: #e5e7eb;
+    pointer-events: none;
+}
+
+/* Horizontal scroll container for wide tables */
+.vendor-table-scroll {
+    overflow-x: auto;
+}
+
+/* Expandable rows */
+.vendor-table__expand-col {
+    width: 46px;
+}
+
+.vendor-table__expand-icon {
+    transition: transform 0.2s ease;
+
+    &.is-open {
+        transform: rotate(90deg);
+    }
+}
+
+.vendor-table__row--expandable {
+    cursor: pointer;
+}
+
+.vendor-table__expanded-row td {
+    padding: 0;
+}
+
+.vendor-table__expanded-content {
+    padding: 14px 20px;
+    background: #f8f9fc;
+    animation: vendorAccordionIn 0.18s ease-out both;
+}
+
+@keyframes vendorAccordionIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.vendor-table__state {
+    text-align: center;
+    padding: 28px 20px;
+    color: #6b7280;
+    font: normal normal 400 14px/1.5 $font-primary;
+}
+
 /* Status badges in tables */
 .vendor-status-badge {
     display: inline-block;

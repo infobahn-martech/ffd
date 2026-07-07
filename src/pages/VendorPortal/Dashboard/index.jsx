@@ -451,7 +451,7 @@ const Dashboard = () => {
                 }
             `}</style>
             <div className="dashboard-header">
-                <h2 className="dashboard-title">Vendor Dashboard</h2>
+                <h2 className="dashboard-title">Hotel Dashboard</h2>
                 <p className="dashboard-subtitle">
                     Overview of your orders and invoices.
                 </p>

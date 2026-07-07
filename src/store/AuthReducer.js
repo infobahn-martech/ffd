@@ -59,6 +59,8 @@ const useAuthReducer = create((set) => ({
       // Store user name and email for fallback profile on refresh
       if (data?.name) setItem("userName", data.name);
       if (data?.email) setItem("userEmail", data.email);
+      // Store vendor_id for vendor/company portal dashboards (e.g. Transport Company)
+      if (data?.vendor_id != null) setItem("vendor_id", data.vendor_id);
 
       set({
         authData,
@@ -127,6 +129,7 @@ const useAuthReducer = create((set) => ({
     removeItem('userName');
     removeItem('userEmail');
     removeItem('role_id');
+    removeItem('vendor_id');
   },
   getUserProfile: async (userId = null, skipApiCall = false) => {
     try {

@@ -1,3 +1,5 @@
+import { Fragment, useState } from 'react';
+import { FiChevronRight } from 'react-icons/fi';
 import '../../design/scss/pages/dashboard/dashboard-content.scss';
 import '../../design/scss/vendor-portal.scss';
 
@@ -24,9 +26,24 @@ function PortalDashboard({
     tableTitle,
     tableColumns,
     tableRows,
+    isTableLoading = false,
+    emptyMessage = 'No records found',
+    expandable = false,
+    rowKey,
+    renderExpandedRow,
 }) {
+    const [expandedRowId, setExpandedRowId] = useState(null);
+
     const getStatusClass = (status) =>
         STATUS_CLASS_MAP[(status || '').toLowerCase()] || '';
+
+    const getRowKey = (row, index) => (rowKey ? rowKey(row) : index);
+
+    const toggleRow = (key) => {
+        setExpandedRowId((prev) => (prev === key ? null : key));
+    };
+
+    const colSpan = tableColumns.length + (expandable ? 1 : 0);
 
     return (
         <div className="dashboard-container">
@@ -82,31 +99,84 @@ function PortalDashboard({
             <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">{tableTitle}</h3>
                 <div className="vendor-table-wrapper">
-                    <div style={{ overflowX: 'auto' }}>
+                    <div className="vendor-table-scroll">
                         <table className="vendor-table">
                             <thead>
                                 <tr>
+                                    {expandable && (
+                                        <th className="vendor-table__expand-col" aria-label="Expand row" />
+                                    )}
                                     {tableColumns.map((col, i) => (
                                         <th key={i}>{col.label}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {tableRows.map((row, rowIdx) => (
-                                    <tr key={rowIdx}>
-                                        {tableColumns.map((col, colIdx) => (
-                                            <td key={colIdx}>
-                                                {col.isStatus ? (
-                                                    <span className={`vendor-status-badge ${getStatusClass(row[col.key])}`}>
-                                                        {row[col.key]}
-                                                    </span>
-                                                ) : (
-                                                    row[col.key]
-                                                )}
-                                            </td>
-                                        ))}
+                                {isTableLoading ? (
+                                    <tr>
+                                        <td colSpan={colSpan} className="vendor-table__state">
+                                            Loading...
+                                        </td>
                                     </tr>
-                                ))}
+                                ) : !tableRows.length ? (
+                                    <tr>
+                                        <td colSpan={colSpan} className="vendor-table__state">
+                                            {emptyMessage}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    tableRows.map((row, rowIdx) => {
+                                        const key = getRowKey(row, rowIdx);
+                                        const isExpanded = expandable && expandedRowId === key;
+
+                                        return (
+                                            <Fragment key={key}>
+                                                <tr
+                                                    className={expandable ? 'vendor-table__row--expandable' : ''}
+                                                    onClick={expandable ? () => toggleRow(key) : undefined}
+                                                >
+                                                    {expandable && (
+                                                        <td
+                                                            className="vendor-table__expand-col"
+                                                            aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                                                        >
+                                                            <FiChevronRight
+                                                                className={`vendor-table__expand-icon ${isExpanded ? 'is-open' : ''}`}
+                                                            />
+                                                        </td>
+                                                    )}
+                                                    {tableColumns.map((col, colIdx) => (
+                                                        <td key={colIdx}>
+                                                            {col.render ? (
+                                                                col.render(row)
+                                                            ) : col.isStatus ? (
+                                                                <span className={`vendor-status-badge ${getStatusClass(row[col.key])}`}>
+                                                                    {row[col.key]}
+                                                                </span>
+                                                            ) : (
+                                                                row[col.key]
+                                                            )}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+
+                                                {isExpanded && (
+                                                    <tr className="vendor-table__expanded-row">
+                                                        <td colSpan={colSpan}>
+                                                            <div
+                                                                className="vendor-table__expanded-content"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                role="presentation"
+                                                            >
+                                                                {renderExpandedRow?.(row)}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </Fragment>
+                                        );
+                                    })
+                                )}
                             </tbody>
                         </table>
                     </div>
