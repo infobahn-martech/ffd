@@ -978,32 +978,61 @@
   color: #9ca3af;
   cursor: help;
   outline: none;
-
-  &:hover .br-owner-picker-tooltip,
-  &:focus-visible .br-owner-picker-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -4px);
-  }
 }
 
+// Positioned via inline top/left (computed from the trigger icon's
+// getBoundingClientRect) and rendered through a portal to document.body, so it
+// escapes the owner list's overflow clipping instead of being cut off.
 .br-owner-picker-tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translate(-50%, 0);
-  margin-bottom: 6px;
-  padding: 6px 10px;
+  position: fixed;
+  padding: 10px 12px;
   border-radius: 6px;
   background: #111827;
   color: #ffffff;
-  font: normal normal 400 12px/1.4 $font-primary;
+  font: normal normal 400 12px/1.5 $font-primary;
   white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
+  text-align: left;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 30;
+  z-index: 2000;
+
+  &--top {
+    transform: translate(-50%, -100%);
+  }
+
+  &--bottom {
+    transform: translate(-50%, 0);
+  }
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.br-owner-picker-tooltip-line {
+  display: block;
+
+  & + & {
+    margin-top: 4px;
+  }
+}
+
+.br-owner-picker-tooltip-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  color: #9ca3af;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+  }
 }
 
 .business-rule-form-select-icon {

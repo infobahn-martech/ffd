@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -72,6 +73,74 @@ function useCustomFieldsByTrigger({ show, triggerTypeId, boardId, showDisabled, 
   }, [boardId, showDisabled, search, triggerTypeId]);
 
   return { customFields, isLoadingCustomFields };
+}
+
+// Rendered via portal to document.body so the tooltip can escape the scrollable
+// owner list's overflow clipping instead of being cut off mid-content.
+function OwnerInfoTooltip({ user }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, placement: 'top' });
+  const triggerRef = useRef(null);
+
+  const updatePosition = () => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 8;
+    const placeAbove = r.top > 160;
+    setCoords({
+      top: placeAbove ? r.top - gap : r.bottom + gap,
+      left: r.left + r.width / 2,
+      placement: placeAbove ? 'top' : 'bottom',
+    });
+  };
+
+  const handleShow = () => {
+    updatePosition();
+    setIsVisible(true);
+  };
+  const handleHide = () => setIsVisible(false);
+
+  return (
+    <span
+      ref={triggerRef}
+      className="br-owner-picker-info"
+      tabIndex={0}
+      onMouseEnter={handleShow}
+      onMouseLeave={handleHide}
+      onFocus={handleShow}
+      onBlur={handleHide}
+    >
+      <FiInfo size={14} aria-hidden />
+      {isVisible && createPortal(
+        <span
+          className={`br-owner-picker-tooltip br-owner-picker-tooltip--${coords.placement}`}
+          role="tooltip"
+          style={{ top: coords.top, left: coords.left }}
+        >
+          <span className="br-owner-picker-tooltip-line"><strong>Full name:</strong> {user.name}</span>
+          {user.email && (
+            <span className="br-owner-picker-tooltip-line"><strong>Email:</strong> {user.email}</span>
+          )}
+          {user.role && (
+            <span className="br-owner-picker-tooltip-line"><strong>Role:</strong> {user.role}</span>
+          )}
+          {(user.port || user.phone) && (
+            <>
+              <span className="br-owner-picker-tooltip-divider">User attributes</span>
+              {user.port && (
+                <span className="br-owner-picker-tooltip-line"><strong>Port:</strong> {user.port}</span>
+              )}
+              {user.phone && (
+                <span className="br-owner-picker-tooltip-line"><strong>Phone:</strong> {user.phone}</span>
+              )}
+            </>
+          )}
+        </span>,
+        document.body
+      )}
+    </span>
+  );
 }
 
 function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick }) {
@@ -1502,8 +1571,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const ownerUsers = [
-    { user_id: null, name: DEFAULT_OWNER.name, username: null },
-    ...users.map((u) => ({ user_id: u.user_id, name: u.name, username: u.username })),
+    { user_id: null, name: DEFAULT_OWNER.name, username: null, email: null, role: null, port: null, phone: null },
+    ...users.map((u) => ({
+      user_id: u.user_id, name: u.name, username: u.username, email: u.email, role: u.role, port: u.port, phone: u.phone,
+    })),
   ];
   const ownerFilterQuery = ownerFilterText.trim().toLowerCase();
   const filteredOwnerUsers = ownerFilterQuery
@@ -1758,12 +1829,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                               </span>
                               <span className="br-owner-picker-row-name">{user.name}</span>
                             </button>
-                            <span className="br-owner-picker-info" tabIndex={0}>
-                              <FiInfo size={14} aria-hidden />
-                              <span className="br-owner-picker-tooltip" role="tooltip">
-                                {user.username ?? user.name}
-                              </span>
-                            </span>
+                            <OwnerInfoTooltip user={user} />
                           </div>
                         ))
                       )}
