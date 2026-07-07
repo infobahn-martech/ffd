@@ -116,6 +116,26 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isLoadingFieldDetails: {},
+    fieldDetailsByKey: {},
+
+    getFieldDetails: async (fieldType, fieldId) => {
+        const key = `${fieldType}-${fieldId}`;
+        try {
+            set((state) => ({ isLoadingFieldDetails: { ...state.isLoadingFieldDetails, [key]: true } }));
+            const { data } = await businessRuleService.getFieldDetails(fieldType, fieldId);
+            set((state) => ({
+                fieldDetailsByKey: { ...state.fieldDetailsByKey, [key]: data?.data ?? null },
+                isLoadingFieldDetails: { ...state.isLoadingFieldDetails, [key]: false },
+            }));
+        } catch (err) {
+            set((state) => ({
+                fieldDetailsByKey: { ...state.fieldDetailsByKey, [key]: null },
+                isLoadingFieldDetails: { ...state.isLoadingFieldDetails, [key]: false },
+            }));
+        }
+    },
+
     isLoadingBusinessRuleStats: false,
     businessRuleStats: { available: 0, created: 0, enabled: 0, visible: 0 },
 
