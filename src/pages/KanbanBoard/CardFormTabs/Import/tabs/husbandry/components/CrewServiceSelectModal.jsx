@@ -1,40 +1,25 @@
-import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "../../../../../../../components/CustomModal";
+import ChecklistMultiSelect from "../../appointment/checklistTab/ChecklistMultiSelect";
+import "../../../../../../../design/scss/checklist.scss";
 
-const getCrewRowId = (crew, index) => String(crew?.crew_id ?? crew?.id ?? index);
-const getCrewRowName = (crew, index) =>
-  crew?.crewName || crew?.crew_name || crew?.name || `Crew Member ${index + 1}`;
-
-// Lightweight "assign crew to a service" popup used by the Crew Management
-// dashboard cards. Selection-only — the receiving service form is out of scope here.
-const CrewServiceSelectModal = ({ show, service, crewList = [], cardColor, onClose, onSubmit }) => {
-  const [selectedIds, setSelectedIds] = useState([]);
-
-  useEffect(() => {
-    if (show) setSelectedIds([]);
-  }, [show, service?.tabName]);
-
+// "Select Crew" popup opened from a Crew Management service card. Fully
+// controlled — crew options come from the dashboard's already-uploaded crew
+// list, selection state lives in the parent (selectedCrewIds).
+const CrewServiceSelectModal = ({
+  show,
+  service,
+  crewOptions = [],
+  selectedCrewIds = [],
+  onChangeSelected,
+  cardColor,
+  onClose,
+  onSubmit,
+}) => {
   if (!service) return null;
 
-  const toggleCrew = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === crewList.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(crewList.map((crew, index) => getCrewRowId(crew, index)));
-    }
-  };
-
-  const handleSubmit = () => {
-    if (selectedIds.length === 0) return;
-    onSubmit(selectedIds, service);
-  };
+  const hasCrew = crewOptions.length > 0;
+  const canSubmit = hasCrew && selectedCrewIds.length > 0;
 
   return (
     <CustomModal
@@ -61,44 +46,28 @@ const CrewServiceSelectModal = ({ show, service, crewList = [], cardColor, onClo
         </div>
       }
       body={
-        crewList.length === 0 ? (
+        hasCrew ? (
+          <>
+            <label className="crew-service-select-modal__field-label">Crew Members</label>
+            <ChecklistMultiSelect
+              className="husb-crew-multiselect"
+              value={selectedCrewIds}
+              onChange={(e) => onChangeSelected(e.target.value)}
+              options={crewOptions}
+              placeholder="Select crew..."
+              cardColor={cardColor}
+            />
+          </>
+        ) : (
           <p className="crew-service-select-modal__empty">
             No crew available yet. Upload a crew list first.
           </p>
-        ) : (
-          <>
-            <label className="crew-service-select-modal__row crew-service-select-modal__row--all">
-              <input
-                type="checkbox"
-                className="crew-list-checkbox"
-                checked={selectedIds.length === crewList.length && crewList.length > 0}
-                onChange={toggleSelectAll}
-              />
-              <span>Select All</span>
-            </label>
-            <div className="crew-service-select-modal__list">
-              {crewList.map((crew, index) => {
-                const id = getCrewRowId(crew, index);
-                return (
-                  <label key={id} className="crew-service-select-modal__row">
-                    <input
-                      type="checkbox"
-                      className="crew-list-checkbox"
-                      checked={selectedIds.includes(id)}
-                      onChange={() => toggleCrew(id)}
-                    />
-                    <span className="crew-name-text">{getCrewRowName(crew, index)}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </>
         )
       }
       footer={
         <div className="crew-service-select-modal__footer">
           <span className="crew-service-select-modal__count">
-            {selectedIds.length} crew selected
+            {selectedCrewIds.length} crew selected
           </span>
           <div className="crew-service-select-modal__footer-actions">
             <button type="button" className="crew-service-select-modal__cancel-btn" onClick={onClose}>
@@ -108,8 +77,8 @@ const CrewServiceSelectModal = ({ show, service, crewList = [], cardColor, onClo
               type="button"
               className="crew-service-select-modal__submit-btn"
               style={{ "--card-color": cardColor }}
-              onClick={handleSubmit}
-              disabled={selectedIds.length === 0}
+              onClick={onSubmit}
+              disabled={!canSubmit}
             >
               Submit
             </button>
@@ -126,7 +95,9 @@ CrewServiceSelectModal.propTypes = {
     tabName: PropTypes.string,
     label: PropTypes.string,
   }),
-  crewList: PropTypes.array,
+  crewOptions: PropTypes.array,
+  selectedCrewIds: PropTypes.array,
+  onChangeSelected: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,

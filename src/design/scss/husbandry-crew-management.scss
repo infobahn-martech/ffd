@@ -2061,13 +2061,14 @@
    ========================================================== */
 
 .crew-service-select-modal-dialog {
-  max-width: 480px;
+  max-width: 460px;
   width: calc(100% - 32px);
 }
 
 .crew-service-select-modal-dialog .modal-content {
   border-radius: 20px;
-  overflow: hidden;
+  /* No overflow:hidden here — the multi-select dropdown must be able to
+     escape the rounded box below the field instead of being clipped. */
   border: 1px solid #e7ebf4;
   background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
   box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16), 0 10px 24px rgba(16, 24, 40, 0.1);
@@ -2080,6 +2081,8 @@
   gap: 16px;
   padding: 20px 24px 16px;
   border-bottom: 1px solid #edf1f7;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
   background: linear-gradient(160deg, rgba(255, 255, 255, 1) 0%, rgba(246, 249, 255, 0.8) 100%);
 }
 
@@ -2122,9 +2125,19 @@
 }
 
 .crew-service-select-modal__body {
-  padding: 18px 24px;
-  max-height: 360px;
-  overflow-y: auto;
+  padding: 20px 24px 24px;
+  /* No max-height/overflow-y — the body only ever holds one field, and a
+     scroll container here would clip the multi-select dropdown. */
+}
+
+.crew-service-select-modal__field-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #667085;
 }
 
 .crew-service-select-modal__empty {
@@ -2135,36 +2148,6 @@
   padding: 20px 0;
 }
 
-.crew-service-select-modal__row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 8px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.crew-service-select-modal__row:hover {
-  background: rgba(0, 54, 140, 0.05);
-}
-
-.crew-service-select-modal__row--all {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #667085;
-  border-bottom: 1px solid #edf1f7;
-  border-radius: 0;
-  margin-bottom: 4px;
-}
-
-.crew-service-select-modal__list {
-  display: flex;
-  flex-direction: column;
-}
-
 .crew-service-select-modal__footer {
   display: flex;
   align-items: center;
@@ -2172,6 +2155,9 @@
   gap: 12px;
   padding: 16px 24px;
   border-top: 1px solid #edf1f7;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  background: #ffffff;
 }
 
 .crew-service-select-modal__count {
@@ -2238,6 +2224,307 @@
 
   .crew-service-select-modal__footer-actions {
     justify-content: flex-end;
+  }
+}
+
+/* ==========================================================
+   CREW UPLOAD — COMPACT (hero-right, replaces the old "Upload Crew List" CTA)
+   ========================================================== */
+
+.crew-mgmt-hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.crew-mgmt-hero-text {
+  flex: 1;
+  min-width: 240px;
+}
+
+.crew-upload-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  width: 240px;
+  padding: 10px 14px;
+  border: 1.5px dashed #b7c4dc;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--card-color, #00368c);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crew-upload-compact:hover,
+.crew-upload-compact--active {
+  border-color: var(--card-color, #00368c);
+  background: rgba(0, 54, 140, 0.05);
+}
+
+.crew-upload-compact--uploading {
+  cursor: default;
+  border-style: solid;
+}
+
+.crew-upload-compact--success {
+  border-style: solid;
+  border-color: #16a34a;
+  background: rgba(22, 163, 74, 0.06);
+}
+
+.crew-upload-compact--error {
+  border-style: solid;
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.crew-upload-compact__input {
+  display: none;
+}
+
+.crew-upload-compact__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.crew-upload-compact__status-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.crew-upload-compact__status-icon--success {
+  background: #16a34a;
+}
+
+.crew-upload-compact__status-icon--error {
+  background: #dc2626;
+}
+
+.crew-upload-compact__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.crew-upload-compact__text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crew-upload-compact__browse {
+  color: var(--card-color, #00368c);
+  text-decoration: underline;
+}
+
+.crew-upload-compact__accept {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.crew-upload-compact__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 54, 140, 0.15);
+  border-top-color: var(--card-color, #00368c);
+  animation: crewUploadSpin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes crewUploadSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .crew-upload-compact {
+    width: 100%;
+  }
+}
+
+/* ==========================================================
+   CREW SERVICE LISTING (post-"Select Crew" table, before the
+   existing service form opens)
+   ========================================================== */
+
+.crew-listing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 4px 0 20px;
+}
+
+.crew-listing-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.crew-listing-subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.crew-listing-request-btn {
+  flex-shrink: 0;
+  padding: 11px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--card-color, #00368c);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 54, 140, 0.25);
+  transition: all 0.2s ease;
+}
+
+.crew-listing-request-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(0, 54, 140, 0.32);
+}
+
+.crew-listing-request-btn:active {
+  transform: translateY(0);
+}
+
+.crew-listing-empty {
+  padding: 48px 20px;
+  text-align: center;
+  border-radius: 16px;
+  border: 1px dashed #dbe4ee;
+  background: #f9fafb;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.crew-listing-empty p {
+  margin: 0;
+}
+
+.crew-listing-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 54, 140, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.crew-listing-table {
+  width: 100%;
+  min-width: 940px;
+  border-collapse: collapse;
+}
+
+.crew-listing-table thead {
+  background: #e2e6ff;
+}
+
+.crew-listing-table thead th {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 14px 16px;
+  border: none;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.crew-listing-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f4f8;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.crew-listing-table tbody td:first-child {
+  font-weight: 600;
+  color: #0f172a;
+  white-space: normal;
+}
+
+.crew-listing-table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.crew-listing-table tbody tr:hover td {
+  background: rgba(0, 54, 140, 0.06);
+}
+
+.crew-listing-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.crew-listing-status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.crew-listing-remove-btn {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crew-listing-remove-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+@media (max-width: 640px) {
+  .crew-listing-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crew-listing-request-btn {
+    width: 100%;
   }
 }
 
