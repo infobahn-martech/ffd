@@ -2739,12 +2739,14 @@ WebInvokeSettingsModal.propTypes = {
 function ShareWithModal({ show, onClose, permissions, onSave }) {
   const [filterText, setFilterText] = useState('');
   const [draftPermissions, setDraftPermissions] = useState(permissions);
+  const [isSharedFilterActive, setIsSharedFilterActive] = useState(false);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
     setFilterText('');
     setDraftPermissions(permissions);
+    setIsSharedFilterActive(Object.values(permissions).some((p) => p.viewer || p.editor));
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
   }, [show]);
 
@@ -2754,6 +2756,8 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
       return { ...prev, [userId]: { ...current, [type]: !current[type] } };
     });
   };
+
+  const handleClearSharedFilter = () => setIsSharedFilterActive(false);
 
   const handleCancel = () => {
     setDraftPermissions(permissions);
@@ -2766,11 +2770,17 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
   };
 
   const filterQuery = filterText.trim().toLowerCase();
+  const baseUsers = isSharedFilterActive
+    ? users.filter((user) => {
+        const perm = draftPermissions[user.user_id];
+        return perm && (perm.viewer || perm.editor);
+      })
+    : users;
   const filteredUsers = filterQuery
-    ? users.filter((user) =>
+    ? baseUsers.filter((user) =>
         (user.name ?? '').toLowerCase().includes(filterQuery) || (user.username ?? '').toLowerCase().includes(filterQuery)
       )
-    : users;
+    : baseUsers;
 
   return (
     <Modal
@@ -2800,6 +2810,19 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
             <span className="share-with-filter-icon" aria-hidden>
               <FiFilter size={14} />
             </span>
+            {isSharedFilterActive && (
+              <span className="share-with-filter-chip">
+                Shared with
+                <button
+                  type="button"
+                  className="share-with-filter-chip-remove"
+                  onClick={handleClearSharedFilter}
+                  aria-label="Clear shared with filter"
+                >
+                  <FiX size={12} />
+                </button>
+              </span>
+            )}
             <input
               type="text"
               className="share-with-filter-input"
@@ -3067,8 +3090,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setSharePermissions(nextPermissions);
   };
 
-  const sharedUserCount = Object.values(sharePermissions).filter((p) => p.viewer || p.editor).length;
-  const shareWithLabel = sharedUserCount === 0 ? loggedInUserName : `${sharedUserCount} ${sharedUserCount === 1 ? 'person' : 'people'}`;
+  const sharedUsers = users.filter((u) => {
+    const perm = sharePermissions[u.user_id];
+    return perm && (perm.viewer || perm.editor);
+  });
 
   const handleOpenPropertyPicker = () => {
     setShowPropertyPicker(true);
@@ -3434,17 +3459,26 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
               <div className="business-rule-form-field">
                 <label htmlFor="br-form-share" className="business-rule-form-label business-rule-form-label--hint">Share with</label>
-                <div className="business-rule-form-select-wrap business-rule-form-control">
-                  <button
-                    type="button"
-                    id="br-form-share"
-                    className="business-rule-form-select business-rule-form-share-trigger"
-                    onClick={() => setShowShareModal(true)}
-                  >
-                    {shareWithLabel}
-                  </button>
+                <button
+                  type="button"
+                  id="br-form-share"
+                  className="business-rule-form-select-wrap business-rule-form-control business-rule-form-share-trigger"
+                  onClick={() => setShowShareModal(true)}
+                >
+                  {sharedUsers.length === 0 ? (
+                    <span className="business-rule-form-share-placeholder">Add people</span>
+                  ) : (
+                    <span className="business-rule-form-share-pills">
+                      {sharedUsers.map((u) => (
+                        <span key={u.user_id} className="business-rule-form-share-pill">
+                          <span className="business-rule-form-share-pill-avatar" aria-hidden>{getInitials(u.name)}</span>
+                          {u.name}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                </div>
+                </button>
               </div>
             </div>
 
