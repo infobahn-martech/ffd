@@ -70,6 +70,16 @@ export const LINK_ACTION_OPTIONS = [
   { key: 'successor', label: 'Link as successor' },
 ];
 
+// Dev-only fallback data for the Linked Card action operator dropdown, used when the
+// real business_rule/get_link_card_possible_action_operators endpoint returns nothing.
+export const DUMMY_LINK_ACTION_OPERATORS = [
+  { operator_id: '1', operator_key: 'card_id', operator_label: 'to card with id', has_input_value: '1', is_dynamic: '0', display_order: '1' },
+  { operator_id: '2', operator_key: 'card_custom_id', operator_label: 'to card with custom id', has_input_value: '1', is_dynamic: '0', display_order: '2' },
+  { operator_id: '3', operator_key: 'dynamic_1', operator_label: 'Dynamic Picker 1', has_input_value: '0', is_dynamic: '1', display_order: '3' },
+  { operator_id: '4', operator_key: 'dynamic_2', operator_label: 'Dynamic Picker 2', has_input_value: '0', is_dynamic: '1', display_order: '4' },
+  { operator_id: '5', operator_key: 'dynamic_3', operator_label: 'Dynamic Picker 3', has_input_value: '0', is_dynamic: '1', display_order: '5' },
+];
+
 export const MOVE_ACTION_OPTIONS = [
   { key: 'move_to', label: 'Move card to' },
 ];
