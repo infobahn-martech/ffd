@@ -136,6 +136,22 @@ const useBusinessRuleReducer = create((set) => ({
             set({ businessRuleStats: { available: 0, created: 0, enabled: 0, visible: 0 }, isLoadingBusinessRuleStats: false });
         }
     },
+
+    isLoadingLinkCardActions: false,
+    linkCardActions: [],
+
+    getLinkCardPossibleActions: async ({ params } = {}) => {
+        try {
+            set({ isLoadingLinkCardActions: true });
+            const { data } = await businessRuleService.getLinkCardPossibleActions({ params });
+            set({
+                linkCardActions: data?.data ?? [],
+                isLoadingLinkCardActions: false,
+            });
+        } catch (err) {
+            set({ linkCardActions: [], isLoadingLinkCardActions: false });
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;

@@ -562,16 +562,27 @@ function LinkActionModal({ show, onClose, onSelect }) {
   const [expandedActions, setExpandedActions] = useState(true);
   const [filterText, setFilterText] = useState('');
 
+  const { linkCardActions, isLoadingLinkCardActions, getLinkCardPossibleActions } = useBusinessRuleReducer((s) => s);
+
   useEffect(() => {
     if (!show) return;
     setSelectedKeys([]);
     setFilterText('');
+    getLinkCardPossibleActions();
   }, [show]);
+
+  const mappedActions = linkCardActions.map((action) => ({
+    key: action.relation_key,
+    label: action.relation_label,
+  }));
+
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const linkActionOptions = mappedActions.length > 0 ? mappedActions : (import.meta.env.DEV ? LINK_ACTION_OPTIONS : []);
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredOptions = filterQuery
-    ? LINK_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
-    : LINK_ACTION_OPTIONS;
+    ? linkActionOptions.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : linkActionOptions;
 
   const handleToggleOption = (key) => {
     setSelectedKeys((prev) =>
@@ -581,7 +592,7 @@ function LinkActionModal({ show, onClose, onSelect }) {
 
   const handleAdd = () => {
     if (selectedKeys.length === 0) return;
-    LINK_ACTION_OPTIONS
+    linkActionOptions
       .filter((opt) => selectedKeys.includes(opt.key))
       .forEach((option) => onSelect(option));
     onClose();
@@ -633,7 +644,9 @@ function LinkActionModal({ show, onClose, onSelect }) {
             </button>
             {expandedActions && (
               <div className="br-property-pill-grid">
-                {filteredOptions.length === 0 ? (
+                {isLoadingLinkCardActions ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredOptions.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
                   filteredOptions.map((option) => (
