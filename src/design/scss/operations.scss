@@ -1152,6 +1152,99 @@ $send-report-optional: #80868b;
   color: $status-cancelled-text;
 }
 
+/* ==========================================================
+   CREW MANAGEMENT DASHBOARD
+   ========================================================== */
+
+.crew-mgmt-hero-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.crew-mgmt-hero-text {
+  flex: 1;
+  min-width: 260px;
+}
+
+.crew-mgmt-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--card-color, #00368c);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 54, 140, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.crew-mgmt-hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(0, 54, 140, 0.32);
+  opacity: 0.95;
+}
+
+.crew-mgmt-hero-cta:active {
+  transform: translateY(0);
+}
+
+.crew-mgmt-summary-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.crew-mgmt-upload-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.crew-mgmt-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--card-color, #00368c);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 4px;
+  transition: all 0.2s ease;
+}
+
+.crew-mgmt-back-link:hover {
+  opacity: 0.75;
+}
+
+.crew-mgmt-back-link svg {
+  transition: transform 0.2s ease;
+}
+
+.crew-mgmt-back-link:hover svg {
+  transform: translateX(-2px);
+}
+
+@media (max-width: 992px) {
+  .crew-mgmt-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crew-mgmt-hero-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 992px) {
   .husbandry-service-options {
     grid-template-columns: repeat(2, 1fr);

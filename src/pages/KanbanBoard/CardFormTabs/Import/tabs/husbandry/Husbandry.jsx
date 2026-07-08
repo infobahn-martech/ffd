@@ -15,7 +15,7 @@ import {
 import { HusbandryTabs } from "./components/Husbandry.components";
 
 // Import content components
-import CrewContent from "./components/CrewContent";
+import CrewManagementDashboard from "./components/CrewManagementDashboard";
 import TransportContent from "./components/TransportContent";
 import CGPassContent from "./components/CGPassContent";
 import ZawilPassContent from "./components/ZawilPassContent";
@@ -472,7 +472,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     switch (activeSubTab) {
       case CREW_MANAGEMENT_SUBTABS.CREW:
         return (
-          <CrewContent
+          <CrewManagementDashboard
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
@@ -534,7 +534,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
         );
       default:
         return (
-          <CrewContent
+          <CrewManagementDashboard
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
