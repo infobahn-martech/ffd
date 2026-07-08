@@ -15,6 +15,7 @@ import {
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_INTERNAL_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS, INTERNAL_USER_ROLE_OPTIONS,
+  DUMMY_LINK_ACTION_OPERATORS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
@@ -672,6 +673,114 @@ function LinkActionModal({ show, onClose, onSelect }) {
             onClick={handleAdd}
           >
             Add
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+function LinkOperatorSettingsModal({ show, onClose, onSave, initialSettings }) {
+  const [operatorKey, setOperatorKey] = useState('');
+  const [value, setValue] = useState('');
+
+  const {
+    linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
+  } = useBusinessRuleReducer((s) => s);
+
+  useEffect(() => {
+    if (!show) return;
+    setOperatorKey(initialSettings?.operatorKey ?? '');
+    setValue(initialSettings?.value ?? '');
+    getLinkCardPossibleActionOperators();
+  }, [show, initialSettings]);
+
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const operators = linkCardActionOperators.length > 0
+    ? linkCardActionOperators
+    : (import.meta.env.DEV ? DUMMY_LINK_ACTION_OPERATORS : []);
+
+  const selectedOperator = operators.find((op) => op.operator_key === operatorKey);
+  const needsValue = selectedOperator?.has_input_value === '1' || selectedOperator?.has_input_value === 1;
+
+  const handleSave = () => {
+    if (!selectedOperator) return;
+    onSave({
+      operatorKey: selectedOperator.operator_key,
+      operatorLabel: selectedOperator.operator_label,
+      isDynamic: selectedOperator.is_dynamic === '1' || selectedOperator.is_dynamic === 1,
+      value: needsValue ? value : '',
+    });
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal notification-settings-modal"
+      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-invoke-modal-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Link Card Settings</h2>
+        </header>
+
+        <div className="card-property-match-modal-body notification-settings-body">
+          <div className="notification-field">
+            <label className="business-rule-form-label br-invoke-field-label">Link the card</label>
+            <div className="business-rule-form-select-wrap">
+              <select
+                className="business-rule-form-select"
+                value={operatorKey}
+                onChange={(e) => { setOperatorKey(e.target.value); setValue(''); }}
+                disabled={isLoadingLinkCardActionOperators}
+              >
+                <option value="" disabled>
+                  {isLoadingLinkCardActionOperators ? 'Loading...' : 'Select an option'}
+                </option>
+                {operators.map((op) => (
+                  <option key={op.operator_id} value={op.operator_key}>{op.operator_label}</option>
+                ))}
+              </select>
+              <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+            </div>
+          </div>
+
+          {needsValue && (
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Value</label>
+              <input
+                type="text"
+                className="business-rule-form-input"
+                placeholder="Enter value"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            disabled={!selectedOperator || (needsValue && !value.trim())}
+            onClick={handleSave}
+          >
+            Save
           </button>
         </footer>
       </div>
@@ -2615,6 +2724,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
   const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
+  const [showLinkOperatorSettings, setShowLinkOperatorSettings] = useState(false);
+  const [activeLinkActionId, setActiveLinkActionId] = useState(null);
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
@@ -2660,6 +2771,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowCreateActionPicker(false);
     setLinkActions([]);
     setShowLinkActionPicker(false);
+    setShowLinkOperatorSettings(false);
+    setActiveLinkActionId(null);
     setMoveActions([]);
     setShowMoveDestinationPicker(false);
     setActiveMoveActionId(null);
@@ -2788,6 +2901,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleRemoveLinkAction = (id) => {
     setLinkActions((prev) => prev.filter((a) => a.id !== id));
   };
+
+  const handleOpenLinkOperatorSettings = (id) => {
+    setActiveLinkActionId(id);
+    setShowLinkOperatorSettings(true);
+  };
+
+  const handleSaveLinkOperatorSettings = (settings) => {
+    setLinkActions((prev) => prev.map((a) => (a.id === activeLinkActionId ? { ...a, ...settings, configured: true } : a)));
+  };
+
+  const activeLinkAction = linkActions.find((a) => a.id === activeLinkActionId);
 
   const handleAddMoveAction = () => {
     const option = MOVE_ACTION_OPTIONS[0];
@@ -3262,15 +3386,22 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                     ))}
 
                     {section.id === 'link' && linkActions.map((action) => (
-                      <div key={action.id} className="business-rule-form-action-chip">
-                        <span className="business-rule-form-action-chip-label">{action.label}</span>
+                      <div key={action.id} className="business-rule-form-action-detail-card">
                         <button
                           type="button"
-                          className="business-rule-form-condition-remove"
+                          className="business-rule-form-action-detail-close"
                           onClick={() => handleRemoveLinkAction(action.id)}
                           aria-label="Remove action"
                         >
-                          <FiTrash2 size={14} />
+                          <FiX size={14} />
+                        </button>
+                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-link"
+                          onClick={() => handleOpenLinkOperatorSettings(action.id)}
+                        >
+                          {action.operatorLabel ?? 'Choose how to link'}
                         </button>
                       </div>
                     ))}
@@ -3411,6 +3542,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onSelect={handleSelectLinkAction}
     />
 
+    <LinkOperatorSettingsModal
+      show={showLinkOperatorSettings}
+      onClose={() => setShowLinkOperatorSettings(false)}
+      onSave={handleSaveLinkOperatorSettings}
+      initialSettings={activeLinkAction}
+    />
+
     <BoardMinimapModal
       show={showMoveDestinationPicker}
       onClose={() => setShowMoveDestinationPicker(false)}
@@ -3517,6 +3655,16 @@ LinkActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+};
+
+LinkOperatorSettingsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  initialSettings: PropTypes.shape({
+    operatorKey: PropTypes.string,
+    value: PropTypes.string,
+  }),
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
 };
 
 BoardMinimapModal.propTypes = {
