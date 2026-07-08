@@ -2827,6 +2827,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [openBoardConditionRowId]);
 
+  useEffect(() => {
+    if (!show) return;
+    const firstBoard = (workspaces ?? []).flatMap((w) => w.boards ?? [])[0];
+    if (!firstBoard) return;
+    setBoardConditionRows((prev) =>
+      prev.length === 1 && !prev[0].boardId ? [{ ...prev[0], boardId: firstBoard.board_id }] : prev
+    );
+  }, [show, workspaces]);
+
   if (!rule) return null;
 
   const handleSave = () => {
@@ -3040,8 +3049,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const allConditionBoards = displayWorkspaces.flatMap((w) => w.boards ?? []);
 
   const getBoardConditionLabel = (boardId) => {
-    if (!boardId) return boardName?.trim() || 'Current board';
-    return allConditionBoards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? 'Current board';
+    if (!boardId) return boardName?.trim() || 'Select board';
+    return allConditionBoards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? 'Select board';
   };
 
   const handlePickConditionBoard = (rowId, board) => {
@@ -3281,16 +3290,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                                 </div>
 
                                 <div className="board-minimap-picker-scroll">
-                                  {'current board'.includes(conditionBoardFilterQuery) && (
-                                    <button
-                                      type="button"
-                                      className={`board-minimap-picker-tile br-board-condition-current${!row.boardId ? ' board-minimap-picker-tile--selected' : ''}`}
-                                      onClick={() => handlePickConditionBoard(row.id, null)}
-                                    >
-                                      Current board
-                                    </button>
-                                  )}
-
                                   {filteredBoardConditionGroups.length === 0 ? (
                                     conditionBoardFilterQuery && (
                                       <div className="br-property-picker-empty">No matches</div>
