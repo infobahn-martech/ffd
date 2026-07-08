@@ -16,6 +16,7 @@ import { HusbandryTabs } from "./components/Husbandry.components";
 
 // Import content components
 import CrewManagementDashboard from "./components/CrewManagementDashboard";
+import CrewServiceListing from "./components/CrewServiceListing";
 import TransportContent from "./components/TransportContent";
 import CGPassContent from "./components/CGPassContent";
 import ZawilPassContent from "./components/ZawilPassContent";
@@ -31,6 +32,23 @@ import OrderHistoryContent from "./components/OrderHistoryContent";
 import MWPRenewalContent from "./components/MWPRenewalContent";
 import OnStationContent from "./components/OnStationContent";
 import ThirdPartyServicesContent from "./components/ThirdPartyServicesContent";
+import { notify } from "../../../../../../components/Toaster";
+
+// Left-nav services that show a crew listing + Request gate before the real
+// content, instead of navigating straight to the form. CG Pass/Zawil Pass are
+// intentionally NOT here — they keep navigating straight to their form via
+// handleNavigateToTab. Crew Change/Port Pass have no existing form at all, so
+// they always gate (Request just confirms and returns to the dashboard).
+const GATED_SIDEBAR_TABS = {
+  transport: { subTab: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport", crewField: "selectedCrew", hasServiceForm: true },
+  hotel: { subTab: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel", crewField: "hotelSelectedCrew", hasServiceForm: true },
+  medicalService: { subTab: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical", crewField: "medicalServiceSelectedCrew", hasServiceForm: true },
+  crewChange: { subTab: "crewChange", label: "Crew Change", crewField: "crewChangeSelectedCrew", hasServiceForm: false },
+  portPass: { subTab: "portPass", label: "Port Pass", crewField: "portPassSelectedCrew", hasServiceForm: false },
+};
+
+const getGatedCrewOptionId = (crew, index) =>
+  String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
 // Service Selection Component
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
@@ -272,6 +290,9 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   );
   const [selectedActionTab, setSelectedActionTab] = useState(null);
   const [isLaunchHireMode, setIsLaunchHireMode] = useState(false);
+  // Which gated sidebar subtab (see GATED_SIDEBAR_TABS) is currently showing
+  // its crew-listing gate instead of its real form/dashboard.
+  const [pendingListingSubTab, setPendingListingSubTab] = useState(null);
   // Initialize with dummy booked services for view-only mode (only for DA routes)
   const [bookedServices, setBookedServices] = useState(isDAModule ? [
     { id: MAIN_TABS.CREW_MANAGEMENT, status: "In Progress", subService: "Transport" },
@@ -439,6 +460,40 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     }
   }, [activeMainTab]);
 
+  // Sidebar-initiated navigation for the "gated" services (see
+  // GATED_SIDEBAR_TABS) — shows the crew listing + Request gate instead of
+  // jumping straight to the form. CG Pass/Zawil Pass are not gated and keep
+  // going straight to their form via handleNavigateToTab.
+  const handleSidebarSubTabNavigate = useCallback((tabName) => {
+    const gated = GATED_SIDEBAR_TABS[tabName];
+    if (gated) {
+      setActiveMainTab(MAIN_TABS.CREW_MANAGEMENT);
+      setActiveSubTab(gated.subTab);
+      setSelectedActionTab(gated.subTab);
+      setPendingListingSubTab(gated.subTab);
+      return;
+    }
+    setPendingListingSubTab(null);
+    handleNavigateToTab(tabName);
+  }, [handleNavigateToTab]);
+
+  const handleBackFromSidebarListing = useCallback(() => {
+    setPendingListingSubTab(null);
+    setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+    setSelectedActionTab(null);
+  }, []);
+
+  const handleSidebarListingRequest = useCallback((gatedKey) => {
+    const gated = GATED_SIDEBAR_TABS[gatedKey];
+    setPendingListingSubTab(null);
+    if (!gated?.hasServiceForm) {
+      // No existing form for this service yet — just confirm the request.
+      notify(`${gated?.label} request submitted.`, "success");
+      setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+      setSelectedActionTab(null);
+    }
+  }, []);
+
   // Mark the Launch Hire booked service as Completed once its booking form is saved
   const handleLaunchHireSaved = useCallback(() => {
     setBookedServices((prev) => {
@@ -469,6 +524,31 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   }, []);
 
   const renderCrewManagementContent = () => {
+    const gatedKey = Object.keys(GATED_SIDEBAR_TABS).find(
+      (key) => GATED_SIDEBAR_TABS[key].subTab === activeSubTab
+    );
+    if (gatedKey && pendingListingSubTab === activeSubTab) {
+      const gated = GATED_SIDEBAR_TABS[gatedKey];
+      const crewList = Array.isArray(formValues?.crewList) ? formValues.crewList : [];
+      const selectedIds = Array.isArray(formValues?.[gated.crewField])
+        ? formValues[gated.crewField].map(String)
+        : [];
+      const crewRows = crewList
+        .map((crew, index) => ({ crew, id: getGatedCrewOptionId(crew, index) }))
+        .filter(({ id }) => selectedIds.includes(id));
+
+      return (
+        <CrewServiceListing
+          service={{ label: gated.label }}
+          crewRows={crewRows}
+          cardColor={cardColor}
+          backLabel="Back to Crew Management"
+          onBack={handleBackFromSidebarListing}
+          onRequest={() => handleSidebarListingRequest(gatedKey)}
+        />
+      );
+    }
+
     switch (activeSubTab) {
       case CREW_MANAGEMENT_SUBTABS.CREW:
         return (
@@ -530,6 +610,19 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+          />
+        );
+      case "crewChange":
+      case "portPass":
+        // No existing form for these yet — the gate above handles them while
+        // pending; if reached with nothing pending, just show the dashboard.
+        return (
+          <CrewManagementDashboard
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+            onNavigateToTab={handleNavigateToTab}
+            launchHireOnly={isLaunchHireMode}
           />
         );
       default:
@@ -653,7 +746,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           activeSubTab={activeSubTab}
           onMainTabChange={handleMainTabChange}
           onSubTabChange={handleSubTabChange}
-          onNavigateToTab={handleNavigateToTab}
+          onNavigateToTab={handleSidebarSubTabNavigate}
           selectedActionTab={selectedActionTab}
           selectedServices={selectedServices}
           onBackToServiceSelection={handleBackToServiceSelection}

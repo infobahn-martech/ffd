@@ -14,7 +14,7 @@ const getField = (crew, ...keys) => {
 
 // Read-only table of the crew already selected for one service — shown
 // right after "Select Crew" submit, before the existing service form opens.
-const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest }) => {
+const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, backLabel = "Back to Crew Dashboard" }) => {
   const [page, setPage] = useState(1);
 
   const totalItems = crewRows.length;
@@ -50,7 +50,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest })
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span>Back to Crew Dashboard</span>
+          <span>{backLabel}</span>
         </button>
 
         <div className="crew-listing-header">
@@ -161,6 +161,7 @@ CrewServiceListing.propTypes = {
   cardColor: PropTypes.string,
   onBack: PropTypes.func.isRequired,
   onRequest: PropTypes.func.isRequired,
+  backLabel: PropTypes.string,
 };
 
 export default CrewServiceListing;
