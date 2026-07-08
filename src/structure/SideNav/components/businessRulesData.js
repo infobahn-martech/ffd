@@ -93,9 +93,9 @@ export const INVOKE_ACTION_OPTIONS = [
 ];
 
 // Dev-only fallback data for the "Web Service Invoke Settings" modal.
-export const DUMMY_INVOKE_METHOD_OPTIONS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+export const DUMMY_INVOKE_METHOD_OPTIONS = ['GET', 'POST', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'];
 
-export const DUMMY_INVOKE_AUTH_OPTIONS = ['NONE', 'BASIC', 'TOKEN', 'API_KEY'];
+export const DUMMY_INVOKE_AUTH_OPTIONS = ['NONE', 'BASIC', 'API_KEY'];
 
 // HTTP methods that carry a request body, and so support the "send parameters
 // in body" toggle and the default 'kanbanize_payload' parameter. GET requests

@@ -21,6 +21,7 @@ import {
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import useCommonReducer from '../../../store/CommonReducer';
+import useAuthReducer from '../../../store/AuthReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials } from '../../../shared/utils/utils';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
@@ -49,8 +50,6 @@ QuillInlineBlot.order.push('pill');
 NotificationPillBlot.formats = () => true;
 Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
-
-const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
 
 // Swimlanes at the bottom of the "Board Minimap" grid that use the DUMMY_BOARD_BOTTOM_STAGES
 // column set (Backlog/Requested/In Progress/Done/Ready to Archive) instead of the main
@@ -2219,12 +2218,34 @@ const withDefaultPayloadRow = (list, supportsBody) => {
   return list;
 };
 
-const buildInitialInvokeParams = (initialParams, supportsBody) =>
-  withTrailingBlankParam(withDefaultPayloadRow(initialParams ?? [], supportsBody));
+// The default payload row is only auto-seeded the first time an invoke action
+// is configured. Once the action has been saved at least once (its params were
+// persisted, e.g. the user deliberately deleted the default row), that choice
+// is respected instead of silently re-adding the row on every reopen/re-save.
+const buildInitialInvokeParams = (initialParams, supportsBody, hasSavedParams) =>
+  withTrailingBlankParam(
+    hasSavedParams ? (initialParams ?? []) : withDefaultPayloadRow(initialParams ?? [], supportsBody)
+  );
+
+// Card fields inserted into the Url are stored inline as "{Field Name}" tokens
+// in the saved url string (so the shape stays a plain string on the wire), but
+// shown in the editor as removable pills like the Params value box — this pulls
+// the tokens back out into a pill list on load.
+const URL_FIELD_TOKEN_RE = /\{([^}]+)\}/g;
+const splitUrlFields = (rawUrl) => {
+  const fields = [];
+  const base = (rawUrl ?? '').replace(URL_FIELD_TOKEN_RE, (_, name) => {
+    fields.push(name);
+    return '';
+  });
+  return { base, fields };
+};
+const joinUrlFields = (base, fields) => base + fields.map((f) => `{${f}}`).join('');
 
 function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   const [serviceName, setServiceName] = useState('');
   const [url, setUrl] = useState('');
+  const [urlFields, setUrlFields] = useState([]);
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
   const [authUsername, setAuthUsername] = useState('');
@@ -2247,7 +2268,9 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     const initialMethod = initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1];
     const supportsBody = INVOKE_METHODS_WITH_BODY.includes(initialMethod);
     setServiceName(initialSettings?.serviceName ?? '');
-    setUrl(initialSettings?.url ?? '');
+    const { base: initialUrlBase, fields: initialUrlFields } = splitUrlFields(initialSettings?.url);
+    setUrl(initialUrlBase);
+    setUrlFields(initialUrlFields);
     setMethod(initialMethod);
     setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
     setAuthUsername(initialSettings?.authUsername ?? '');
@@ -2258,7 +2281,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     setAuthApiKeyLocation(initialSettings?.authApiKeyLocation ?? INVOKE_API_KEY_LOCATIONS[0]);
     setSendParamsInBody(supportsBody ? (initialSettings?.sendParamsInBody ?? false) : false);
     setHeaders(withTrailingBlankHeader(initialSettings?.headers ?? []));
-    setParams(buildInitialInvokeParams(initialSettings?.params, supportsBody));
+    setParams(buildInitialInvokeParams(initialSettings?.params, supportsBody, initialSettings?.params !== undefined));
     setExpandedHeaders(true);
     setExpandedParams(true);
     setFieldPickerTarget(null);
@@ -2272,21 +2295,56 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   };
 
   const handleAddUrlFields = (fields) => {
-    setUrl((prev) => prev + fields.map((f) => `{${f}}`).join(''));
+    setUrlFields((prev) => Array.from(new Set([...prev, ...fields])));
+  };
+  const handleRemoveUrlField = (field) => {
+    setUrlFields((prev) => prev.filter((f) => f !== field));
   };
 
+  // Only re-seed a blank row when the list would otherwise be completely
+  // empty (so there's still something to click into) — deleting the blank
+  // trailing row while another row remains above it should actually remove
+  // it, not get silently replaced by an identical one.
   const handleRemoveHeader = (id) => {
-    setHeaders((prev) => withTrailingBlankHeader(prev.filter((h) => h.id !== id)));
+    setHeaders((prev) => {
+      const next = prev.filter((h) => h.id !== id);
+      return next.length === 0 ? withTrailingBlankHeader(next) : next;
+    });
   };
   const handleHeaderChange = (id, field, value) => {
     setHeaders((prev) => withTrailingBlankHeader(prev.map((h) => (h.id === id ? { ...h, [field]: value } : h))));
   };
+  // Clicking into the last row's Header/Value box opens the next blank row
+  // immediately, rather than waiting for the user to type a character first.
+  const handleHeaderFocus = (id) => {
+    setHeaders((prev) =>
+      prev[prev.length - 1]?.id === id
+        ? [...prev, { id: makeInvokeRowId(), key: '', value: '' }]
+        : prev
+    );
+  };
 
+  // Only re-seed a blank row when the list would otherwise be completely
+  // empty (so there's still something to click into) — deleting the blank
+  // trailing row while another row remains above it should actually remove
+  // it, not get silently replaced by an identical one.
   const handleRemoveParam = (id) => {
-    setParams((prev) => withTrailingBlankParam(prev.filter((p) => p.id !== id)));
+    setParams((prev) => {
+      const next = prev.filter((p) => p.id !== id);
+      return next.length === 0 ? withTrailingBlankParam(next) : next;
+    });
   };
   const handleParamChange = (id, field, value) => {
     setParams((prev) => withTrailingBlankParam(prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))));
+  };
+  // Clicking into the last row's Key/Value box opens the next blank row
+  // immediately, rather than waiting for the user to type a character first.
+  const handleParamFocus = (id) => {
+    setParams((prev) =>
+      prev[prev.length - 1]?.id === id
+        ? [...prev, { id: makeInvokeRowId(), key: '', value: '', fields: [] }]
+        : prev
+    );
   };
   const handleAddParamFields = (paramId, fields) => {
     setParams((prev) =>
@@ -2313,7 +2371,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
 
   const handleSave = () => {
     onSave({
-      serviceName, url, method, authentication,
+      serviceName, url: joinUrlFields(url, urlFields), method, authentication,
       authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
       sendParamsInBody, headers, params,
     });
@@ -2370,12 +2428,32 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                 </button>
               </div>
             </div>
-            <input
-              type="text"
-              className="business-rule-form-input"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
+            <div className="br-invoke-value-box">
+              {urlFields.length > 0 ? (
+                <div className="br-invoke-value-pills">
+                  {urlFields.map((f) => (
+                    <span key={f} className="notification-pill br-invoke-value-pill">
+                      {f}
+                      <button
+                        type="button"
+                        className="br-invoke-value-pill-remove"
+                        onClick={() => handleRemoveUrlField(f)}
+                        aria-label={`Remove ${f}`}
+                      >
+                        <FiX size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  className="br-invoke-value-input"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                />
+              )}
+            </div>
           </div>
 
           <div className="br-invoke-two-col">
@@ -2396,7 +2474,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
               <div className="business-rule-form-select-wrap">
                 <select className="business-rule-form-select" value={authentication} onChange={(e) => setAuthentication(e.target.value)}>
                   {DUMMY_INVOKE_AUTH_OPTIONS.map((a) => (
-                    <option key={a} value={a}>{a}</option>
+                    <option key={a} value={a}>{a.replace('_', ' ')}</option>
                   ))}
                 </select>
                 <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
@@ -2503,12 +2581,14 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                         className="business-rule-form-input"
                         value={h.key}
                         onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
+                        onFocus={() => handleHeaderFocus(h.id)}
                       />
                       <input
                         type="text"
                         className="business-rule-form-input"
                         value={h.value}
                         onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
+                        onFocus={() => handleHeaderFocus(h.id)}
                       />
                       <button
                         type="button"
@@ -2539,14 +2619,13 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
             {expandedParams && (
               <>
                 {methodSupportsBody && (
-                  <label className="business-rule-form-toggle br-invoke-body-toggle">
+                  <label className="br-link-checkbox-row br-invoke-body-checkbox">
                     <input
                       type="checkbox"
                       checked={sendParamsInBody}
                       onChange={(e) => setSendParamsInBody(e.target.checked)}
                     />
-                    <span className="business-rule-form-toggle-track" aria-hidden />
-                    <span className="business-rule-form-toggle-label">Send the parameters in the body of the web service call</span>
+                    Send the parameters in the body of the web service call
                   </label>
                 )}
 
@@ -2562,6 +2641,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                         className="business-rule-form-input"
                         value={p.key}
                         onChange={(e) => handleParamChange(p.id, 'key', e.target.value)}
+                        onFocus={() => handleParamFocus(p.id)}
                       />
                       <div className="br-invoke-value-box">
                         {p.fields.length > 0 ? (
@@ -2586,6 +2666,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                             className="br-invoke-value-input"
                             value={p.value}
                             onChange={(e) => handleParamChange(p.id, 'value', e.target.value)}
+                            onFocus={() => handleParamFocus(p.id)}
                           />
                         )}
                         <button
@@ -2655,15 +2736,34 @@ WebInvokeSettingsModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
+function ShareWithModal({ show, onClose, permissions, onSave }) {
   const [filterText, setFilterText] = useState('');
+  const [draftPermissions, setDraftPermissions] = useState(permissions);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
     setFilterText('');
+    setDraftPermissions(permissions);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
   }, [show]);
+
+  const handleToggleDraftPermission = (userId, type) => {
+    setDraftPermissions((prev) => {
+      const current = prev[userId] ?? { viewer: false, editor: false };
+      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
+    });
+  };
+
+  const handleCancel = () => {
+    setDraftPermissions(permissions);
+    onClose();
+  };
+
+  const handleSave = () => {
+    onSave?.(draftPermissions);
+    onClose();
+  };
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredUsers = filterQuery
@@ -2675,7 +2775,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
   return (
     <Modal
       show={show}
-      onHide={onClose}
+      onHide={handleCancel}
       className="card-property-match-modal"
       dialogClassName="card-property-match-modal-dialog"
       backdropClassName="card-property-match-modal-backdrop"
@@ -2688,7 +2788,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
           <button
             type="button"
             className="business-rule-form-modal-close"
-            onClick={onClose}
+            onClick={handleCancel}
             aria-label="Close"
           >
             <FiX size={20} />
@@ -2723,7 +2823,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
               <div className="br-property-picker-empty">No users found</div>
             ) : (
               filteredUsers.map((user) => {
-                const perm = permissions[user.user_id] ?? { viewer: false, editor: false };
+                const perm = draftPermissions[user.user_id] ?? { viewer: false, editor: false };
                 return (
                   <div key={user.user_id} className="share-with-row">
                     <span className="share-with-name">{user.name}</span>
@@ -2735,7 +2835,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
                       <input
                         type="checkbox"
                         checked={perm.viewer}
-                        onChange={() => onTogglePermission(user.user_id, 'viewer')}
+                        onChange={() => handleToggleDraftPermission(user.user_id, 'viewer')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
                     </label>
@@ -2743,7 +2843,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
                       <input
                         type="checkbox"
                         checked={perm.editor}
-                        onChange={() => onTogglePermission(user.user_id, 'editor')}
+                        onChange={() => handleToggleDraftPermission(user.user_id, 'editor')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
                     </label>
@@ -2753,6 +2853,15 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
             )}
           </div>
         </div>
+
+        <footer className="card-property-match-modal-footer share-with-modal-footer">
+          <button type="button" className="share-with-cancel-btn" onClick={handleCancel}>
+            Cancel
+          </button>
+          <button type="button" className="br-property-add-btn" onClick={handleSave}>
+            Save
+          </button>
+        </footer>
       </div>
     </Modal>
   );
@@ -2762,14 +2871,14 @@ ShareWithModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func,
   permissions: PropTypes.object,
-  onTogglePermission: PropTypes.func,
+  onSave: PropTypes.func,
 };
 
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const [owner, setOwner] = useState(DEFAULT_OWNER.name);
+  const [owner, setOwner] = useState('');
   const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
   const [ownerFilterText, setOwnerFilterText] = useState('');
   const ownerPickerTriggerRef = useRef(null);
@@ -2815,6 +2924,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const userProfile = useAuthReducer((s) => s.userProfile);
+  const loggedInUserId = userProfile?.user_id ?? userProfile?.userid ?? null;
+  const loggedInUserName = userProfile?.name || userProfile?.username || 'You';
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -2827,7 +2939,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');
-    setOwner(DEFAULT_OWNER.name);
+    setOwner(loggedInUserName);
     setIsOwnerPickerOpen(false);
     setOwnerFilterText('');
     setSharePermissions({});
@@ -2857,7 +2969,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowWebInvokeSettings(false);
     setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
-  }, [show, rule]);
+  }, [show, rule, loggedInUserName]);
 
   useEffect(() => {
     if (!isOwnerPickerOpen) return undefined;
@@ -2930,9 +3042,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     onClose();
   };
 
+  const otherOwnerUsers = users.filter((u) => String(u.user_id) !== String(loggedInUserId));
   const ownerUsers = [
-    { user_id: null, name: DEFAULT_OWNER.name, username: null, email: null, role: null, port: null, phone: null },
-    ...users.map((u) => ({
+    {
+      user_id: loggedInUserId, name: loggedInUserName, username: userProfile?.username ?? null,
+      email: userProfile?.email ?? null, role: userProfile?.role ?? null, port: userProfile?.port ?? null, phone: userProfile?.phone ?? null,
+    },
+    ...otherOwnerUsers.map((u) => ({
       user_id: u.user_id, name: u.name, username: u.username, email: u.email, role: u.role, port: u.port, phone: u.phone,
     })),
   ];
@@ -2947,15 +3063,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setOwnerFilterText('');
   };
 
-  const handleToggleSharePermission = (userId, type) => {
-    setSharePermissions((prev) => {
-      const current = prev[userId] ?? { viewer: false, editor: false };
-      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
-    });
+  const handleSaveSharePermissions = (nextPermissions) => {
+    setSharePermissions(nextPermissions);
   };
 
   const sharedUserCount = Object.values(sharePermissions).filter((p) => p.viewer || p.editor).length;
-  const shareWithLabel = sharedUserCount === 0 ? 'Just me' : `${sharedUserCount} ${sharedUserCount === 1 ? 'person' : 'people'}`;
+  const shareWithLabel = sharedUserCount === 0 ? loggedInUserName : `${sharedUserCount} ${sharedUserCount === 1 ? 'person' : 'people'}`;
 
   const handleOpenPropertyPicker = () => {
     setShowPropertyPicker(true);
@@ -3274,7 +3387,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   aria-expanded={isOwnerPickerOpen}
                 >
                   <span className="business-rule-form-owner-avatar" aria-hidden>
-                    {owner === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(owner)}
+                    {getInitials(owner)}
                   </span>
                   <span className="br-owner-picker-trigger-name">{owner}</span>
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
@@ -3306,7 +3419,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                               onClick={() => handlePickOwner(user)}
                             >
                               <span className="business-rule-form-owner-avatar" aria-hidden>
-                                {user.name === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(user.name)}
+                                {getInitials(user.name)}
                               </span>
                               <span className="br-owner-picker-row-name">{user.name}</span>
                             </button>
@@ -3868,7 +3981,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showShareModal}
       onClose={() => setShowShareModal(false)}
       permissions={sharePermissions}
-      onTogglePermission={handleToggleSharePermission}
+      onSave={handleSaveSharePermissions}
     />
 
     <Modal
