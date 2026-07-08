@@ -1,12 +1,19 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectModal from "./CrewServiceSelectModal";
 import CrewServiceListing from "./CrewServiceListing";
+import CrewUploadSteps from "./CrewUploadSteps";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
+
+const INITIAL_UPLOAD_STEPS = {
+  crewList: { status: "pending", files: [], progress: 0 },
+  passportIqama: { status: "pending", files: [], progress: 0 },
+  visa: { status: "pending", files: [], progress: 0 },
+};
 
 // `hasServiceForm: false` means there's no existing content component to
 // navigate to yet — Request just confirms the submission and returns to the
@@ -69,11 +76,12 @@ const getCrewOptionLabel = (crew, index) => {
   return parts.join(" - ");
 };
 
-// Crew Management landing view — hero, counters, an inline drag-and-drop
-// crew upload card (auto-uploads on file select, no separate modal), and
-// service cards. Each card opens a "Select Crew" popup fed by the crew list
-// already uploaded here; on submit the selection is saved to the matching
-// service field and the existing service form is opened via onNavigateToTab.
+// Crew Management landing view — hero (with a compact 3-step crew document
+// upload widget on the right: crew list, passport/iqama, visa), counters,
+// and service cards. Each card opens a "Select Crew" popup fed by the crew
+// list already uploaded here; on submit the selection is saved to the
+// matching service field and the existing service form is opened via
+// onNavigateToTab.
 const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNavigateToTab }) => {
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
@@ -81,10 +89,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
   );
-  const [isUploadingCrew, setIsUploadingCrew] = useState(false);
-  const [uploadMessage, setUploadMessage] = useState(null); // { type: 'success' | 'error', text }
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
+  const [uploadSteps, setUploadSteps] = useState(INITIAL_UPLOAD_STEPS);
 
   const [selectedServiceForCrew, setSelectedServiceForCrew] = useState(null);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
@@ -161,15 +166,14 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     { label: "Completed Services", value: completedServicesCount },
   ];
 
-  const uploadCrewFile = async (file) => {
-    if (!file || isUploadingCrew) return;
-    setIsUploadingCrew(true);
-    setUploadMessage(null);
+  const handleCrewListFile = async (file) => {
+    if (!file || uploadSteps.crewList.status === "uploading") return;
+    setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "uploading" } }));
 
     const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
     if (!resolvedCallId || !resolvedVesselId) {
-      setUploadMessage({ type: "error", text: "Unable to upload: missing call or vessel information." });
-      setIsUploadingCrew(false);
+      setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
+      notify("Unable to upload: missing call or vessel information.", "error");
       return;
     }
 
@@ -187,42 +191,38 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       setUploadedCrewList(refreshedList);
       handleChange("crewList")({ target: { value: refreshedList } });
       handleChange("crewCount")({ target: { value: refreshedList.length } });
-      setUploadMessage({ type: "success", text: `Crew list uploaded — ${refreshedList.length} crew member(s) loaded.` });
+      setUploadSteps((prev) => ({
+        ...prev,
+        crewList: { status: "completed", files: [{ name: file.name }], progress: 100 },
+      }));
+      notify(`Crew list uploaded — ${refreshedList.length} crew member(s) loaded.`, "success");
     } catch {
-      setUploadMessage({ type: "error", text: "Failed to upload crew list. Please try again." });
-    } finally {
-      setIsUploadingCrew(false);
+      setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
+      notify("Failed to upload crew list. Please try again.", "error");
     }
   };
 
-  const handleFileSelect = (file) => {
-    if (!file) return;
-    uploadCrewFile(file);
+  // No bulk backend endpoint exists yet for passport/iqama or visa files, so
+  // these two steps are local-only — files are kept in formValues to be
+  // submitted with the rest of the card, same as CrewContent's own wizard.
+  const handlePassportIqamaFiles = (fileList) => {
+    if (uploadSteps.crewList.status !== "completed") return;
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+    handleChange("crewPassportIqamaFiles")({
+      target: { value: files.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type })) },
+    });
+    setUploadSteps((prev) => ({ ...prev, passportIqama: { status: "completed", files, progress: 100 } }));
   };
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isUploadingCrew) setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    if (isUploadingCrew) return;
-    handleFileSelect(e.dataTransfer.files?.[0]);
+  const handleVisaFiles = (fileList) => {
+    if (uploadSteps.crewList.status !== "completed") return;
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+    handleChange("crewVisaFiles")({
+      target: { value: files.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type })) },
+    });
+    setUploadSteps((prev) => ({ ...prev, visa: { status: "completed", files, progress: 100 } }));
   };
 
   const handleServiceCardClick = (card) => {
@@ -276,14 +276,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     label: getCrewOptionLabel(crew, index),
   }));
 
-  const compactStateClass = isUploadingCrew
-    ? "crew-upload-compact--uploading"
-    : uploadMessage
-      ? `crew-upload-compact--${uploadMessage.type}`
-      : isDragging
-        ? "crew-upload-compact--active"
-        : "";
-
   if (showCrewListingView && activeCrewListingService) {
     const activeServiceCrewIds = selectedServiceCrewMap[activeCrewListingService.tabName] || [];
     const activeServiceCrewRows = crewWithIds.filter(({ id }) => activeServiceCrewIds.includes(id));
@@ -312,59 +304,12 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               </p>
             </div>
 
-            <div
-              className={`crew-upload-compact ${compactStateClass}`}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onClick={() => !isUploadingCrew && fileInputRef.current?.click()}
-              role="button"
-              tabIndex={0}
-              title={uploadMessage?.text}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                className="crew-upload-compact__input"
-                onChange={(e) => handleFileSelect(e.target.files?.[0])}
-              />
-              {isUploadingCrew ? (
-                <>
-                  <span className="crew-upload-compact__spinner" aria-hidden="true" />
-                  <span className="crew-upload-compact__text">Uploading…</span>
-                </>
-              ) : uploadMessage ? (
-                <>
-                  <span
-                    className={`crew-upload-compact__status-icon crew-upload-compact__status-icon--${uploadMessage.type}`}
-                    aria-hidden="true"
-                  >
-                    {uploadMessage.type === "success" ? "✓" : "!"}
-                  </span>
-                  <span className="crew-upload-compact__body">
-                    <span className="crew-upload-compact__text">
-                      {uploadMessage.type === "success" ? "Crew list uploaded" : "Upload failed"}
-                    </span>
-                    <span className="crew-upload-compact__accept">Tap to upload another</span>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <svg className="crew-upload-compact__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M4 15V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="crew-upload-compact__body">
-                    <span className="crew-upload-compact__text">
-                      Drop crew file or <span className="crew-upload-compact__browse">browse</span>
-                    </span>
-                    <span className="crew-upload-compact__accept">.xlsx, .xls, .csv</span>
-                  </span>
-                </>
-              )}
-            </div>
+            <CrewUploadSteps
+              steps={uploadSteps}
+              onSelectCrewListFile={handleCrewListFile}
+              onSelectPassportIqamaFiles={handlePassportIqamaFiles}
+              onSelectVisaFiles={handleVisaFiles}
+            />
           </div>
         </div>
 
