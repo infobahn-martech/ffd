@@ -66,16 +66,6 @@ const normalizeMovement = (value) => String(value || "").toLowerCase().replace(/
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
-// e.g. "Ahmed Al-Rashid - Chief Officer - Saudi Arabia" — rank/nationality
-// are appended only when present on the record.
-const getCrewOptionLabel = (crew, index) => {
-  const name = crew?.crew_name || crew?.crewName || crew?.name || `Crew Member ${index + 1}`;
-  const parts = [name];
-  if (crew?.rank) parts.push(crew.rank);
-  if (crew?.nationality) parts.push(crew.nationality);
-  return parts.join(" - ");
-};
-
 // Crew Management landing view — hero (with a compact 3-step crew document
 // upload widget on the right: crew list, passport/iqama, visa), counters,
 // and service cards. Each card opens a "Select Crew" popup fed by the crew
@@ -227,7 +217,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleServiceCardClick = (card) => {
     setSelectedServiceForCrew(card);
-    setSelectedCrewIds(selectedServiceCrewMap[card.tabName] || []);
+    // Default to "all crew selected" the first time a service is opened;
+    // re-opening it later restores whatever was picked last.
+    const existingSelection = selectedServiceCrewMap[card.tabName];
+    setSelectedCrewIds(existingSelection || crewWithIds.map(({ id }) => id));
     setIsCrewSelectModalOpen(true);
   };
 
@@ -269,11 +262,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     crew,
     index,
     id: getCrewOptionId(crew, index),
-  }));
-
-  const crewOptions = crewWithIds.map(({ crew, index, id }) => ({
-    value: id,
-    label: getCrewOptionLabel(crew, index),
   }));
 
   if (showCrewListingView && activeCrewListingService) {
@@ -364,7 +352,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       <CrewServiceSelectModal
         show={isCrewSelectModalOpen}
         service={selectedServiceForCrew}
-        crewOptions={crewOptions}
+        crewRows={crewWithIds}
         selectedCrewIds={selectedCrewIds}
         onChangeSelected={setSelectedCrewIds}
         cardColor={cardColor}

@@ -1,15 +1,21 @@
 import PropTypes from "prop-types";
 import CustomModal from "../../../../../../../components/CustomModal";
-import ChecklistMultiSelect from "../../appointment/checklistTab/ChecklistMultiSelect";
-import "../../../../../../../design/scss/checklist.scss";
+
+const getField = (crew, ...keys) => {
+  for (const key of keys) {
+    const value = crew?.[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return "—";
+};
 
 // "Select Crew" popup opened from a Crew Management service card. Fully
-// controlled — crew options come from the dashboard's already-uploaded crew
+// controlled — crew rows come from the dashboard's already-uploaded crew
 // list, selection state lives in the parent (selectedCrewIds).
 const CrewServiceSelectModal = ({
   show,
   service,
-  crewOptions = [],
+  crewRows = [],
   selectedCrewIds = [],
   onChangeSelected,
   cardColor,
@@ -18,8 +24,21 @@ const CrewServiceSelectModal = ({
 }) => {
   if (!service) return null;
 
-  const hasCrew = crewOptions.length > 0;
+  const hasCrew = crewRows.length > 0;
   const canSubmit = hasCrew && selectedCrewIds.length > 0;
+  const allSelected = hasCrew && selectedCrewIds.length === crewRows.length;
+
+  const toggleAll = () => {
+    onChangeSelected(allSelected ? [] : crewRows.map(({ id }) => id));
+  };
+
+  const toggleOne = (id) => {
+    onChangeSelected(
+      selectedCrewIds.includes(id)
+        ? selectedCrewIds.filter((existing) => existing !== id)
+        : [...selectedCrewIds, id]
+    );
+  };
 
   return (
     <CustomModal
@@ -47,17 +66,52 @@ const CrewServiceSelectModal = ({
       }
       body={
         hasCrew ? (
-          <>
-            <label className="crew-service-select-modal__field-label">Crew Members</label>
-            <ChecklistMultiSelect
-              className="husb-crew-multiselect"
-              value={selectedCrewIds}
-              onChange={(e) => onChangeSelected(e.target.value)}
-              options={crewOptions}
-              placeholder="Select crew..."
-              cardColor={cardColor}
-            />
-          </>
+          <div className="crew-select-table-wrapper">
+            <table className="table crew-select-table">
+              <thead>
+                <tr>
+                  <th className="crew-select-table__checkbox-col">
+                    <input
+                      type="checkbox"
+                      className="crew-select-table__checkbox"
+                      checked={allSelected}
+                      onChange={toggleAll}
+                      aria-label="Select all crew"
+                    />
+                  </th>
+                  <th>Crew Name</th>
+                  <th>Rank</th>
+                  <th>Nationality</th>
+                </tr>
+              </thead>
+              <tbody>
+                {crewRows.map(({ id, crew }) => {
+                  const isSelected = selectedCrewIds.includes(id);
+                  return (
+                    <tr
+                      key={id}
+                      className={isSelected ? "crew-select-table__row--selected" : ""}
+                      onClick={() => toggleOne(id)}
+                    >
+                      <td className="crew-select-table__checkbox-col">
+                        <input
+                          type="checkbox"
+                          className="crew-select-table__checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleOne(id)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select ${getField(crew, "crew_name", "crewName", "name")}`}
+                        />
+                      </td>
+                      <td>{getField(crew, "crew_name", "crewName", "name")}</td>
+                      <td>{getField(crew, "rank")}</td>
+                      <td>{getField(crew, "nationality")}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <p className="crew-service-select-modal__empty">
             No crew available yet. Upload a crew list first.
@@ -95,7 +149,12 @@ CrewServiceSelectModal.propTypes = {
     tabName: PropTypes.string,
     label: PropTypes.string,
   }),
-  crewOptions: PropTypes.array,
+  crewRows: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      crew: PropTypes.object,
+    })
+  ),
   selectedCrewIds: PropTypes.array,
   onChangeSelected: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
