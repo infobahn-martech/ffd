@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "../../../../../../../components/CustomModal";
+
+const PAGE_SIZE = 5;
 
 const getField = (crew, ...keys) => {
   for (const key of keys) {
@@ -11,7 +14,9 @@ const getField = (crew, ...keys) => {
 
 // "Select Crew" popup opened from a Crew Management service card. Fully
 // controlled — crew rows come from the dashboard's already-uploaded crew
-// list, selection state lives in the parent (selectedCrewIds).
+// list, selection state lives in the parent (selectedCrewIds). The table is
+// paginated for display only; selection tracks crew ids, not page position,
+// so it survives paging.
 const CrewServiceSelectModal = ({
   show,
   service,
@@ -22,14 +27,37 @@ const CrewServiceSelectModal = ({
   onClose,
   onSubmit,
 }) => {
+  const [page, setPage] = useState(1);
+  const [signOnCount, setSignOnCount] = useState("");
+  const [signOffCount, setSignOffCount] = useState("");
+
+  useEffect(() => {
+    if (show) {
+      setPage(1);
+      setSignOnCount("");
+      setSignOffCount("");
+    }
+  }, [show, service?.tabName]);
+
   if (!service) return null;
 
+  const isCrewChange = service.tabName === "crewChange";
   const hasCrew = crewRows.length > 0;
   const canSubmit = hasCrew && selectedCrewIds.length > 0;
-  const allSelected = hasCrew && selectedCrewIds.length === crewRows.length;
+  const totalPages = Math.max(1, Math.ceil(crewRows.length / PAGE_SIZE));
+  const effectivePage = Math.min(page, totalPages);
+  const pagedRows = crewRows.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE);
+  const pageIds = pagedRows.map(({ id }) => id);
+  const isPageFullySelected = pageIds.length > 0 && pageIds.every((id) => selectedCrewIds.includes(id));
 
-  const toggleAll = () => {
-    onChangeSelected(allSelected ? [] : crewRows.map(({ id }) => id));
+  // Header checkbox selects/clears only the crew shown on the current page —
+  // total selection count (all pages) is shown in the footer.
+  const togglePage = () => {
+    onChangeSelected(
+      isPageFullySelected
+        ? selectedCrewIds.filter((id) => !pageIds.includes(id))
+        : [...new Set([...selectedCrewIds, ...pageIds])]
+    );
   };
 
   const toggleOne = (id) => {
@@ -50,9 +78,9 @@ const CrewServiceSelectModal = ({
       bodyClassname="crew-service-select-modal__body"
       header={
         <div className="crew-service-select-modal__header" style={{ "--card-color": cardColor }}>
-          <div>
+          <div className="crew-service-select-modal__header-main">
             <h5 className="crew-service-select-modal__title">Select Crew</h5>
-            <p className="crew-service-select-modal__subtitle">{service.label}</p>
+            <span className="crew-service-select-modal__service-badge">{service.label}</span>
           </div>
           <button
             type="button"
@@ -66,52 +94,102 @@ const CrewServiceSelectModal = ({
       }
       body={
         hasCrew ? (
-          <div className="crew-select-table-wrapper">
-            <table className="table crew-select-table">
-              <thead>
-                <tr>
-                  <th className="crew-select-table__checkbox-col">
-                    <input
-                      type="checkbox"
-                      className="crew-select-table__checkbox"
-                      checked={allSelected}
-                      onChange={toggleAll}
-                      aria-label="Select all crew"
-                    />
-                  </th>
-                  <th>Crew Name</th>
-                  <th>Rank</th>
-                  <th>Nationality</th>
-                </tr>
-              </thead>
-              <tbody>
-                {crewRows.map(({ id, crew }) => {
-                  const isSelected = selectedCrewIds.includes(id);
-                  return (
-                    <tr
-                      key={id}
-                      className={isSelected ? "crew-select-table__row--selected" : ""}
-                      onClick={() => toggleOne(id)}
-                    >
-                      <td className="crew-select-table__checkbox-col">
-                        <input
-                          type="checkbox"
-                          className="crew-select-table__checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleOne(id)}
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Select ${getField(crew, "crew_name", "crewName", "name")}`}
-                        />
-                      </td>
-                      <td>{getField(crew, "crew_name", "crewName", "name")}</td>
-                      <td>{getField(crew, "rank")}</td>
-                      <td>{getField(crew, "nationality")}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {isCrewChange && (
+              <div className="crew-select-signcount-row">
+                <label className="crew-select-signcount-field">
+                  <span className="crew-select-signcount-label">No. of Sign On</span>
+                  <input
+                    type="number"
+                    min="0"
+                    className="crew-select-signcount-input"
+                    value={signOnCount}
+                    onChange={(e) => setSignOnCount(e.target.value)}
+                    placeholder="0"
+                  />
+                </label>
+                <label className="crew-select-signcount-field">
+                  <span className="crew-select-signcount-label">No. of Sign Off</span>
+                  <input
+                    type="number"
+                    min="0"
+                    className="crew-select-signcount-input"
+                    value={signOffCount}
+                    onChange={(e) => setSignOffCount(e.target.value)}
+                    placeholder="0"
+                  />
+                </label>
+              </div>
+            )}
+            <div className="crew-select-table-wrapper">
+              <table className="table crew-select-table">
+                <thead>
+                  <tr>
+                    <th className="crew-select-table__checkbox-col">
+                      <input
+                        type="checkbox"
+                        className="crew-select-table__checkbox"
+                        checked={isPageFullySelected}
+                        onChange={togglePage}
+                        aria-label="Select all on this page"
+                      />
+                    </th>
+                    <th>Crew Name</th>
+                    <th>Rank</th>
+                    <th>Nationality</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagedRows.map(({ id, crew }) => {
+                    const isSelected = selectedCrewIds.includes(id);
+                    return (
+                      <tr
+                        key={id}
+                        className={isSelected ? "crew-select-table__row--selected" : ""}
+                        onClick={() => toggleOne(id)}
+                      >
+                        <td className="crew-select-table__checkbox-col">
+                          <input
+                            type="checkbox"
+                            className="crew-select-table__checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleOne(id)}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Select ${getField(crew, "crew_name", "crewName", "name")}`}
+                          />
+                        </td>
+                        <td>{getField(crew, "crew_name", "crewName", "name")}</td>
+                        <td>{getField(crew, "rank")}</td>
+                        <td>{getField(crew, "nationality")}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="crew-select-pagination">
+              <button
+                type="button"
+                className="crew-select-pagination__btn"
+                disabled={effectivePage <= 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              <span className="crew-select-pagination__info">
+                Page {effectivePage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                className="crew-select-pagination__btn"
+                disabled={effectivePage >= totalPages}
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              >
+                Next
+              </button>
+            </div>
+          </>
         ) : (
           <p className="crew-service-select-modal__empty">
             No crew available yet. Upload a crew list first.
@@ -131,7 +209,7 @@ const CrewServiceSelectModal = ({
               type="button"
               className="crew-service-select-modal__submit-btn"
               style={{ "--card-color": cardColor }}
-              onClick={onSubmit}
+              onClick={() => onSubmit({ signOnCount, signOffCount })}
               disabled={!canSubmit}
             >
               Submit

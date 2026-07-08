@@ -230,9 +230,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setSelectedCrewIds([]);
   };
 
-  const handleSubmitCrewSelection = () => {
+  const handleSubmitCrewSelection = ({ signOnCount, signOffCount } = {}) => {
     if (!selectedServiceForCrew || selectedCrewIds.length === 0) return;
     handleChange(selectedServiceForCrew.crewField)({ target: { value: selectedCrewIds } });
+    if (selectedServiceForCrew.tabName === "crewChange") {
+      handleChange("crewChangeSignOnCount")({ target: { value: signOnCount } });
+      handleChange("crewChangeSignOffCount")({ target: { value: signOffCount } });
+    }
     setSelectedServiceCrewMap((prev) => ({ ...prev, [selectedServiceForCrew.tabName]: selectedCrewIds }));
     setActiveCrewListingService(selectedServiceForCrew);
     setShowCrewListingView(true);

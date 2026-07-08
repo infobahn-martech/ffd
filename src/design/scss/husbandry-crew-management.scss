@@ -2074,45 +2074,67 @@
   box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16), 0 10px 24px rgba(16, 24, 40, 0.1);
 }
 
+/* Compact header — single row, minimum spacing: title + service badge on
+   the left, close icon top-right.
+   width:100% is required here: react-bootstrap renders this div one level
+   inside Bootstrap's own .modal-header (a row flex container), so without
+   an explicit width this div shrinks to its content instead of stretching
+   to match the body/table/footer below it. */
 .crew-service-select-modal__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px 16px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
   border-bottom: 1px solid #edf1f7;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   background: linear-gradient(160deg, rgba(255, 255, 255, 1) 0%, rgba(246, 249, 255, 0.8) 100%);
 }
 
+.crew-service-select-modal__header-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .crew-service-select-modal__title {
   margin: 0;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #111827;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
-.crew-service-select-modal__subtitle {
-  margin: 4px 0 0;
-  font-size: 13px;
-  font-weight: 600;
+.crew-service-select-modal__service-badge {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--card-color, #00368c);
+  background: rgba(0, 54, 140, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .crew-service-select-modal__close-btn {
   border: 1px solid #e4e7ec;
   background: #fff;
   color: #667085;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   transition: all 0.2s ease;
   flex-shrink: 0;
@@ -2125,7 +2147,7 @@
 }
 
 .crew-service-select-modal__body {
-  padding: 20px 24px 24px;
+  padding: 16px 20px 20px;
 }
 
 .crew-service-select-modal__empty {
@@ -2136,13 +2158,51 @@
   padding: 20px 0;
 }
 
-/* Crew checkbox table — its own scroll region (rather than the modal body)
-   so the header/footer/dialog corners never get clipped. */
+/* Crew Change only — sign on/off counts alongside the crew list. */
+.crew-select-signcount-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.crew-select-signcount-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crew-select-signcount-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #64748b;
+}
+
+.crew-select-signcount-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #0f172a;
+  transition: border-color 0.2s ease;
+}
+
+.crew-select-signcount-input:focus {
+  outline: none;
+  border-color: var(--card-color, #00368c);
+  box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.12);
+}
+
+/* Paginated to 5 rows, so the table never needs its own scroll region —
+   the modal body can never overflow. */
 .crew-select-table-wrapper {
-  max-height: 320px;
-  overflow-y: auto;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
+  overflow: hidden;
 }
 
 .crew-select-table {
@@ -2236,12 +2296,51 @@
   border-bottom: none !important;
 }
 
+.crew-select-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.crew-select-pagination__info {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.crew-select-pagination__btn {
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crew-select-pagination__btn:hover:not(:disabled) {
+  border-color: var(--card-color, #00368c);
+  color: var(--card-color, #00368c);
+  background: rgba(0, 54, 140, 0.04);
+}
+
+.crew-select-pagination__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .crew-service-select-modal__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 24px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 20px;
   border-top: 1px solid #edf1f7;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
