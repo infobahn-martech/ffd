@@ -10,7 +10,8 @@ import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
   THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
-  INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
+  INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
+  INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES, DUMMY_BOARD_BOTTOM_STAGES,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_INTERNAL_USERS,
@@ -2179,13 +2180,13 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
 function SelectFieldModal({ show, onClose, onSelect, fields }) {
   const [filterText, setFilterText] = useState('');
   const [expanded, setExpanded] = useState(true);
-  const [selectedField, setSelectedField] = useState(null);
+  const [selectedFields, setSelectedFields] = useState([]);
 
   useEffect(() => {
     if (!show) return;
     setFilterText('');
     setExpanded(true);
-    setSelectedField(null);
+    setSelectedFields([]);
   }, [show]);
 
   const filterQuery = filterText.trim().toLowerCase();
@@ -2193,9 +2194,15 @@ function SelectFieldModal({ show, onClose, onSelect, fields }) {
     ? fields.filter((f) => f.toLowerCase().includes(filterQuery))
     : fields;
 
+  const toggleField = (field) => {
+    setSelectedFields((prev) =>
+      prev.includes(field) ? prev.filter((f) => f !== field) : [...prev, field]
+    );
+  };
+
   const handleApply = () => {
-    if (!selectedField) return;
-    onSelect(selectedField);
+    if (selectedFields.length === 0) return;
+    onSelect(selectedFields);
     onClose();
   };
 
@@ -2220,7 +2227,7 @@ function SelectFieldModal({ show, onClose, onSelect, fields }) {
         </button>
 
         <header className="card-property-match-modal-header br-floating-close-header">
-          <h2 className="card-property-match-modal-title">Select a field</h2>
+          <h2 className="card-property-match-modal-title">Select fields</h2>
         </header>
 
         <div className="card-property-match-modal-body">
@@ -2254,8 +2261,8 @@ function SelectFieldModal({ show, onClose, onSelect, fields }) {
                       key={field}
                       pillKey={field}
                       label={field}
-                      selected={selectedField === field}
-                      onClick={() => setSelectedField(field)}
+                      selected={selectedFields.includes(field)}
+                      onClick={() => toggleField(field)}
                     />
                   ))
                 )}
@@ -2268,10 +2275,10 @@ function SelectFieldModal({ show, onClose, onSelect, fields }) {
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={!selectedField}
+            disabled={selectedFields.length === 0}
             onClick={handleApply}
           >
-            Apply
+            Apply{selectedFields.length > 0 ? ` (${selectedFields.length})` : ''}
           </button>
         </footer>
       </div>
@@ -2286,66 +2293,138 @@ SelectFieldModal.propTypes = {
   fields: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
+const makeInvokeRowId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+// The service invoke rows always keep one blank trailing row so the user can
+// start typing directly into it, instead of clicking a separate "Add" link.
+const isBlankHeaderRow = (row) => !row.key.trim() && !row.value.trim();
+const isBlankParamRow = (row) => !row.key.trim() && !row.value.trim() && row.fields.length === 0;
+
+const withTrailingBlankHeader = (list) =>
+  (list.length === 0 || !isBlankHeaderRow(list[list.length - 1]))
+    ? [...list, { id: makeInvokeRowId(), key: '', value: '' }]
+    : list;
+
+const withTrailingBlankParam = (list) =>
+  (list.length === 0 || !isBlankParamRow(list[list.length - 1]))
+    ? [...list, { id: makeInvokeRowId(), key: '', value: '', fields: [] }]
+    : list;
+
+// POST/PUT/PATCH/DELETE requests automatically carry a default parameter with
+// the triggering card's information; GET requests have no body to carry it in.
+const DEFAULT_PAYLOAD_KEY = 'kanbanize_payload';
+const DEFAULT_PAYLOAD_FIELD = 'Kanbanize Payload';
+const isDefaultPayloadRow = (row) => row.key === DEFAULT_PAYLOAD_KEY && row.fields.length === 1 && row.fields[0] === DEFAULT_PAYLOAD_FIELD;
+
+const withDefaultPayloadRow = (list, supportsBody) => {
+  const hasDefault = list.some(isDefaultPayloadRow);
+  if (supportsBody && !hasDefault) {
+    return [{ id: makeInvokeRowId(), key: DEFAULT_PAYLOAD_KEY, value: '', fields: [DEFAULT_PAYLOAD_FIELD] }, ...list];
+  }
+  if (!supportsBody && hasDefault) {
+    return list.filter((row) => !isDefaultPayloadRow(row));
+  }
+  return list;
+};
+
+const buildInitialInvokeParams = (initialParams, supportsBody) =>
+  withTrailingBlankParam(withDefaultPayloadRow(initialParams ?? [], supportsBody));
+
 function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   const [serviceName, setServiceName] = useState('');
   const [url, setUrl] = useState('');
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
+  const [authUsername, setAuthUsername] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authToken, setAuthToken] = useState('');
+  const [authApiKeyName, setAuthApiKeyName] = useState('');
+  const [authApiKeyValue, setAuthApiKeyValue] = useState('');
+  const [authApiKeyLocation, setAuthApiKeyLocation] = useState(INVOKE_API_KEY_LOCATIONS[0]);
   const [sendParamsInBody, setSendParamsInBody] = useState(false);
   const [expandedHeaders, setExpandedHeaders] = useState(true);
   const [expandedParams, setExpandedParams] = useState(true);
   const [headers, setHeaders] = useState([]);
   const [params, setParams] = useState([]);
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [showSelectFieldModal, setShowSelectFieldModal] = useState(false);
+  const [fieldPickerTarget, setFieldPickerTarget] = useState(null);
+
+  const methodSupportsBody = INVOKE_METHODS_WITH_BODY.includes(method);
 
   useEffect(() => {
     if (!show) return;
+    const initialMethod = initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1];
+    const supportsBody = INVOKE_METHODS_WITH_BODY.includes(initialMethod);
     setServiceName(initialSettings?.serviceName ?? '');
     setUrl(initialSettings?.url ?? '');
-    setMethod(initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1]);
+    setMethod(initialMethod);
     setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
-    setSendParamsInBody(initialSettings?.sendParamsInBody ?? false);
-    setHeaders(initialSettings?.headers ?? []);
-    setParams(initialSettings?.params ?? []);
+    setAuthUsername(initialSettings?.authUsername ?? '');
+    setAuthPassword(initialSettings?.authPassword ?? '');
+    setAuthToken(initialSettings?.authToken ?? '');
+    setAuthApiKeyName(initialSettings?.authApiKeyName ?? '');
+    setAuthApiKeyValue(initialSettings?.authApiKeyValue ?? '');
+    setAuthApiKeyLocation(initialSettings?.authApiKeyLocation ?? INVOKE_API_KEY_LOCATIONS[0]);
+    setSendParamsInBody(supportsBody ? (initialSettings?.sendParamsInBody ?? false) : false);
+    setHeaders(withTrailingBlankHeader(initialSettings?.headers ?? []));
+    setParams(buildInitialInvokeParams(initialSettings?.params, supportsBody));
     setExpandedHeaders(true);
     setExpandedParams(true);
-    setOpenDropdown(null);
-    setShowSelectFieldModal(false);
+    setFieldPickerTarget(null);
   }, [show, initialSettings]);
 
-  const makeRowId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-  const handleAddUrlField = (field) => {
-    setUrl((prev) => `${prev}{${field}}`);
+  const handleMethodChange = (newMethod) => {
+    const supportsBody = INVOKE_METHODS_WITH_BODY.includes(newMethod);
+    setMethod(newMethod);
+    if (!supportsBody) setSendParamsInBody(false);
+    setParams((prev) => withTrailingBlankParam(withDefaultPayloadRow(prev, supportsBody)));
   };
 
-  const handleAddHeader = () => {
-    setHeaders((prev) => [...prev, { id: makeRowId(), key: '', value: '' }]);
+  const handleAddUrlFields = (fields) => {
+    setUrl((prev) => prev + fields.map((f) => `{${f}}`).join(''));
   };
+
   const handleRemoveHeader = (id) => {
-    setHeaders((prev) => prev.filter((h) => h.id !== id));
+    setHeaders((prev) => withTrailingBlankHeader(prev.filter((h) => h.id !== id)));
   };
   const handleHeaderChange = (id, field, value) => {
-    setHeaders((prev) => prev.map((h) => (h.id === id ? { ...h, [field]: value } : h)));
+    setHeaders((prev) => withTrailingBlankHeader(prev.map((h) => (h.id === id ? { ...h, [field]: value } : h))));
   };
 
-  const handleAddParam = () => {
-    setParams((prev) => [...prev, { id: makeRowId(), key: '', value: '' }]);
-  };
   const handleRemoveParam = (id) => {
-    setParams((prev) => prev.filter((p) => p.id !== id));
+    setParams((prev) => withTrailingBlankParam(prev.filter((p) => p.id !== id)));
   };
   const handleParamChange = (id, field, value) => {
-    setParams((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+    setParams((prev) => withTrailingBlankParam(prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))));
   };
-  const handlePickParamValueField = (id, field) => {
-    setParams((prev) => prev.map((p) => (p.id === id ? { ...p, value: field } : p)));
-    setOpenDropdown(null);
+  const handleAddParamFields = (paramId, fields) => {
+    setParams((prev) =>
+      withTrailingBlankParam(
+        prev.map((p) => (p.id === paramId ? { ...p, fields: Array.from(new Set([...p.fields, ...fields])) } : p))
+      )
+    );
+  };
+  const handleRemoveParamField = (paramId, field) => {
+    setParams((prev) =>
+      withTrailingBlankParam(
+        prev.map((p) => (p.id === paramId ? { ...p, fields: p.fields.filter((f) => f !== field) } : p))
+      )
+    );
+  };
+
+  const handleApplyFieldPicker = (fields) => {
+    if (fieldPickerTarget === 'url') {
+      handleAddUrlFields(fields);
+    } else if (fieldPickerTarget?.paramId != null) {
+      handleAddParamFields(fieldPickerTarget.paramId, fields);
+    }
   };
 
   const handleSave = () => {
-    onSave({ serviceName, url, method, authentication, sendParamsInBody, headers, params });
+    onSave({
+      serviceName, url, method, authentication,
+      authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
+      sendParamsInBody, headers, params,
+    });
     onClose();
   };
 
@@ -2393,7 +2472,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                 <button
                   type="button"
                   className="notification-dropdown-trigger"
-                  onClick={() => setShowSelectFieldModal(true)}
+                  onClick={() => setFieldPickerTarget('url')}
                 >
                   add card fields <FiChevronDown size={12} aria-hidden />
                 </button>
@@ -2411,7 +2490,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
             <div className="notification-field">
               <label className="business-rule-form-label br-invoke-field-label">Method</label>
               <div className="business-rule-form-select-wrap">
-                <select className="business-rule-form-select" value={method} onChange={(e) => setMethod(e.target.value)}>
+                <select className="business-rule-form-select" value={method} onChange={(e) => handleMethodChange(e.target.value)}>
                   {DUMMY_INVOKE_METHOD_OPTIONS.map((m) => (
                     <option key={m} value={m}>{m}</option>
                   ))}
@@ -2433,6 +2512,80 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
             </div>
           </div>
 
+          {authentication === 'BASIC' && (
+            <div className="br-invoke-two-col">
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">Username</label>
+                <input
+                  type="text"
+                  className="business-rule-form-input"
+                  value={authUsername}
+                  onChange={(e) => setAuthUsername(e.target.value)}
+                />
+              </div>
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">Password</label>
+                <input
+                  type="password"
+                  className="business-rule-form-input"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {authentication === 'TOKEN' && (
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Token</label>
+              <input
+                type="password"
+                className="business-rule-form-input"
+                placeholder="Bearer token"
+                value={authToken}
+                onChange={(e) => setAuthToken(e.target.value)}
+              />
+            </div>
+          )}
+
+          {authentication === 'API_KEY' && (
+            <div className="br-invoke-three-col">
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">Key name</label>
+                <input
+                  type="text"
+                  className="business-rule-form-input"
+                  value={authApiKeyName}
+                  onChange={(e) => setAuthApiKeyName(e.target.value)}
+                />
+              </div>
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">Key value</label>
+                <input
+                  type="password"
+                  className="business-rule-form-input"
+                  value={authApiKeyValue}
+                  onChange={(e) => setAuthApiKeyValue(e.target.value)}
+                />
+              </div>
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">Add to</label>
+                <div className="business-rule-form-select-wrap">
+                  <select
+                    className="business-rule-form-select"
+                    value={authApiKeyLocation}
+                    onChange={(e) => setAuthApiKeyLocation(e.target.value)}
+                  >
+                    {INVOKE_API_KEY_LOCATIONS.map((loc) => (
+                      <option key={loc} value={loc}>{INVOKE_API_KEY_LOCATION_LABELS[loc]}</option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="br-property-section">
             <button
               type="button"
@@ -2446,12 +2599,10 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
             </button>
             {expandedHeaders && (
               <>
-                {headers.length > 0 && (
-                  <div className="br-invoke-kv-columns">
-                    <span>Header</span>
-                    <span>Value</span>
-                  </div>
-                )}
+                <div className="br-invoke-kv-columns">
+                  <span>Header</span>
+                  <span>Value</span>
+                </div>
                 <div className="br-invoke-kv-list">
                   {headers.map((h) => (
                     <div key={h.id} className="br-invoke-kv-row">
@@ -2478,10 +2629,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                     </div>
                   ))}
                 </div>
-                <button type="button" className="business-rule-form-add-link" onClick={handleAddHeader}>
-                  <FiPlus size={14} aria-hidden />
-                  Add header
-                </button>
               </>
             )}
           </div>
@@ -2499,78 +2646,76 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
             </button>
             {expandedParams && (
               <>
-                <label className="business-rule-form-toggle br-invoke-body-toggle">
-                  <input
-                    type="checkbox"
-                    checked={sendParamsInBody}
-                    onChange={(e) => setSendParamsInBody(e.target.checked)}
-                  />
-                  <span className="business-rule-form-toggle-track" aria-hidden />
-                  <span className="business-rule-form-toggle-label">Send the parameters in the body of the web service call</span>
-                </label>
-
-                {params.length > 0 && (
-                  <div className="br-invoke-kv-columns">
-                    <span>Key</span>
-                    <span>Value</span>
-                  </div>
+                {methodSupportsBody && (
+                  <label className="business-rule-form-toggle br-invoke-body-toggle">
+                    <input
+                      type="checkbox"
+                      checked={sendParamsInBody}
+                      onChange={(e) => setSendParamsInBody(e.target.checked)}
+                    />
+                    <span className="business-rule-form-toggle-track" aria-hidden />
+                    <span className="business-rule-form-toggle-label">Send the parameters in the body of the web service call</span>
+                  </label>
                 )}
+
+                <div className="br-invoke-kv-columns">
+                  <span>Key</span>
+                  <span>Value</span>
+                </div>
                 <div className="br-invoke-kv-list">
-                  {params.map((p) => {
-                    const isPillValue = DUMMY_INVOKE_PAYLOAD_FIELDS.includes(p.value);
-                    return (
-                      <div key={p.id} className="br-invoke-kv-row">
-                        <input
-                          type="text"
-                          className="business-rule-form-input"
-                          value={p.key}
-                          onChange={(e) => handleParamChange(p.id, 'key', e.target.value)}
-                        />
-                        <div className="br-invoke-value-box">
-                          {isPillValue ? (
-                            <span className="notification-pill">{p.value}</span>
-                          ) : (
-                            <input
-                              type="text"
-                              className="br-invoke-value-input"
-                              value={p.value}
-                              onChange={(e) => handleParamChange(p.id, 'value', e.target.value)}
-                            />
-                          )}
-                          <div className="notification-dropdown-wrap">
-                            <button
-                              type="button"
-                              className="br-invoke-value-add-btn"
-                              onClick={() => setOpenDropdown((v) => (v === `param-${p.id}` ? null : `param-${p.id}`))}
-                              aria-label="Insert payload field"
-                            >
-                              <FiPlus size={14} aria-hidden />
-                            </button>
-                            {openDropdown === `param-${p.id}` && (
-                              <div className="notification-dropdown-panel">
-                                {DUMMY_INVOKE_PAYLOAD_FIELDS.map((f) => (
-                                  <button type="button" key={f} onClick={() => handlePickParamValueField(p.id, f)}>{f}</button>
-                                ))}
-                              </div>
-                            )}
+                  {params.map((p) => (
+                    <div key={p.id} className="br-invoke-kv-row">
+                      <input
+                        type="text"
+                        className="business-rule-form-input"
+                        value={p.key}
+                        onChange={(e) => handleParamChange(p.id, 'key', e.target.value)}
+                      />
+                      <div className="br-invoke-value-box">
+                        {p.fields.length > 0 ? (
+                          <div className="br-invoke-value-pills">
+                            {p.fields.map((f) => (
+                              <span key={f} className="notification-pill br-invoke-value-pill">
+                                {f}
+                                <button
+                                  type="button"
+                                  className="br-invoke-value-pill-remove"
+                                  onClick={() => handleRemoveParamField(p.id, f)}
+                                  aria-label={`Remove ${f}`}
+                                >
+                                  <FiX size={10} />
+                                </button>
+                              </span>
+                            ))}
                           </div>
-                        </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className="br-invoke-value-input"
+                            value={p.value}
+                            onChange={(e) => handleParamChange(p.id, 'value', e.target.value)}
+                          />
+                        )}
                         <button
                           type="button"
-                          className="br-invoke-row-delete"
-                          onClick={() => handleRemoveParam(p.id)}
-                          aria-label="Remove param"
+                          className="br-invoke-value-add-btn"
+                          onClick={() => setFieldPickerTarget({ paramId: p.id })}
+                          aria-label="Insert card fields"
                         >
-                          <FiTrash2 size={14} />
+                          <FiPlus size={14} aria-hidden />
                         </button>
                       </div>
-                    );
-                  })}
+                      <button
+                        type="button"
+                        className="br-invoke-row-delete"
+                        onClick={() => handleRemoveParam(p.id)}
+                        aria-label="Remove param"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <button type="button" className="business-rule-form-add-link" onClick={handleAddParam}>
-                  <FiPlus size={14} aria-hidden />
-                  Add param
-                </button>
               </>
             )}
           </div>
@@ -2588,10 +2733,10 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     </Modal>
 
     <SelectFieldModal
-      show={showSelectFieldModal}
-      onClose={() => setShowSelectFieldModal(false)}
-      onSelect={handleAddUrlField}
-      fields={DUMMY_URL_FIELD_OPTIONS}
+      show={fieldPickerTarget != null}
+      onClose={() => setFieldPickerTarget(null)}
+      onSelect={handleApplyFieldPicker}
+      fields={fieldPickerTarget === 'url' ? DUMMY_URL_FIELD_OPTIONS : DUMMY_INVOKE_PAYLOAD_FIELDS}
     />
     </>
   );
@@ -2604,6 +2749,12 @@ WebInvokeSettingsModal.propTypes = {
     url: PropTypes.string,
     method: PropTypes.string,
     authentication: PropTypes.string,
+    authUsername: PropTypes.string,
+    authPassword: PropTypes.string,
+    authToken: PropTypes.string,
+    authApiKeyName: PropTypes.string,
+    authApiKeyValue: PropTypes.string,
+    authApiKeyLocation: PropTypes.string,
     sendParamsInBody: PropTypes.bool,
     headers: PropTypes.array,
     params: PropTypes.array,

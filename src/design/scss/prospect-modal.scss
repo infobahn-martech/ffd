@@ -304,8 +304,8 @@ span.error.text-danger {
     padding: 0;
     z-index: auto;
     margin-bottom: 0.35rem;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 400;
     color: #35475e;
   }
 
@@ -316,7 +316,21 @@ span.error.text-danger {
     padding-bottom: 0.5rem !important;
     font-size: 13px !important;
     font-family: $primary-font !important;
+    border: 1px solid #e2e2ea !important;
     border-radius: 6px;
+    box-shadow: none !important;
+  }
+
+  .phone-wrapper .phone-input:focus,
+  .phone-wrapper .phone-input:hover {
+    border-color: #e2e2ea !important;
+    box-shadow: none !important;
+  }
+
+  .phone-wrapper .selected-flag:focus:before,
+  .phone-wrapper .selected-flag.open:before {
+    border-color: #e2e2ea !important;
+    box-shadow: none !important;
   }
 
   .phone-wrapper span.error.text-danger {

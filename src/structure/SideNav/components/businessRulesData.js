@@ -97,10 +97,23 @@ export const DUMMY_INVOKE_METHOD_OPTIONS = ['GET', 'POST', 'PUT', 'PATCH', 'DELE
 
 export const DUMMY_INVOKE_AUTH_OPTIONS = ['NONE', 'BASIC', 'TOKEN', 'API_KEY'];
 
+// HTTP methods that carry a request body, and so support the "send parameters
+// in body" toggle and the default 'kanbanize_payload' parameter. GET requests
+// only ever send parameters as a URL query string.
+export const INVOKE_METHODS_WITH_BODY = ['POST', 'PUT', 'PATCH', 'DELETE'];
+
+// Where an API key credential can be placed on the outgoing request.
+export const INVOKE_API_KEY_LOCATIONS = ['HEADER', 'QUERY_PARAM'];
+
+export const INVOKE_API_KEY_LOCATION_LABELS = {
+  HEADER: 'Header',
+  QUERY_PARAM: 'Query param',
+};
+
 // Regular-field options offered by the "Select a field" modal (Url's "add card fields" trigger).
 export const DUMMY_URL_FIELD_OPTIONS = ['Card ID', 'Custom card ID', 'Internal card id'];
 
-// Fields insertable as a pill into a Params row's value (the payload sent to the service).
+// Fields insertable into a Params row's value (the payload sent to the service).
 export const DUMMY_INVOKE_PAYLOAD_FIELDS = ['Kanbanize Payload', 'Card ID', 'Card Title', 'Board ID'];
 
 // Dev-only fallback data for the "Notification Message Settings" modal.
