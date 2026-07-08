@@ -24,7 +24,8 @@ import useCommonReducer from '../../../store/CommonReducer';
 import useAuthReducer from '../../../store/AuthReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials } from '../../../shared/utils/utils';
-import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
+import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
@@ -71,12 +72,12 @@ function useCustomFieldsByTrigger({ show, triggerTypeId, boardId, showDisabled, 
 
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: boardId || undefined, trigger_type_id: triggerTypeId } });
+    getCustomFields({ params: { board_id: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, trigger_type_id: triggerTypeId } });
   }, [show]);
 
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: boardId || undefined, search: search || undefined, trigger_type_id: triggerTypeId } });
+    getCustomFields({ params: { board_id: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, search: search || undefined, trigger_type_id: triggerTypeId } });
   }, [boardId, showDisabled, search, triggerTypeId]);
 
   return { customFields, isLoadingCustomFields };
@@ -2917,6 +2918,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [boardConditionFilterText, setBoardConditionFilterText] = useState('');
   const boardConditionTriggerRef = useRef(null);
   const boardConditionPanelRef = useRef(null);
+  const [openColorConditionId, setOpenColorConditionId] = useState(null);
+  const colorConditionTriggerRef = useRef(null);
+  const colorConditionPanelRef = useRef(null);
 
   const {
     getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
@@ -2994,6 +2998,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [openBoardConditionRowId]);
+
+  useEffect(() => {
+    if (openColorConditionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (colorConditionPanelRef.current?.contains(t)) return;
+      if (colorConditionTriggerRef.current?.contains(t)) return;
+      setOpenColorConditionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openColorConditionId]);
 
   useEffect(() => {
     if (openLinkOperatorRowId == null) return undefined;
@@ -3087,6 +3103,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         category: category.category_key,
         fieldType,
         fieldId,
+        valueType: category.category_key === 'custom' ? (field.field_type ?? null) : null,
         operatorId: '',
         value: '',
       },
@@ -3099,6 +3116,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveCondition = (id) => {
     setConditions((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleClearConditions = () => {
+    setConditions([]);
+    setBoardConditionRows([{ id: 'board-0', boardId: '' }]);
+    setOpenBoardConditionRowId(null);
+  };
+
+  const handleApplyConditionColor = (id, hex) => {
+    const normalized = normalizeHexColor(hex);
+    setConditions((prev) => prev.map((c) => (c.id === id ? { ...c, value: normalized } : c)));
+    setOpenColorConditionId(null);
   };
 
   const handleSelectCreateAction = (option) => {
@@ -3601,18 +3630,53 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                         )}
                         {detailsLoading && <span className="business-rule-form-condition-loading">Loading...</span>}
                         {showValueInput && (
-                          <input
-                            type="text"
-                            className="business-rule-form-condition-input"
-                            placeholder="Enter value"
-                            value={cond.value}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setConditions((prev) =>
-                                prev.map((c) => c.id === cond.id ? { ...c, value: val } : c)
-                              );
-                            }}
-                          />
+                          cond.valueType === 'color' ? (
+                            <div className="board-minimap-picker-wrap br-color-condition-wrap">
+                              <button
+                                type="button"
+                                ref={openColorConditionId === cond.id ? colorConditionTriggerRef : undefined}
+                                className="br-color-condition-trigger"
+                                onClick={() => setOpenColorConditionId((prev) => (prev === cond.id ? null : cond.id))}
+                                aria-haspopup="dialog"
+                                aria-expanded={openColorConditionId === cond.id}
+                              >
+                                <span
+                                  className="br-color-condition-swatch"
+                                  style={{ backgroundColor: cond.value ? normalizeHexColor(cond.value) : '#e5e7eb' }}
+                                  aria-hidden
+                                />
+                                <span className="br-color-condition-hex">
+                                  {cond.value ? normalizeHexColor(cond.value) : 'Select color'}
+                                </span>
+                                <FiChevronDown size={14} aria-hidden />
+                              </button>
+
+                              {openColorConditionId === cond.id && (
+                                <div className="board-minimap-picker-panel br-color-condition-panel">
+                                  <SedresColorPicker
+                                    popoverRef={colorConditionPanelRef}
+                                    initialHex={cond.value || undefined}
+                                    onApply={(hex) => handleApplyConditionColor(cond.id, hex)}
+                                    onCancel={() => setOpenColorConditionId(null)}
+                                    ariaLabel={`Pick ${cond.fieldLabel} color`}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className="business-rule-form-condition-input"
+                              placeholder="Enter value"
+                              value={cond.value}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setConditions((prev) =>
+                                  prev.map((c) => c.id === cond.id ? { ...c, value: val } : c)
+                                );
+                              }}
+                            />
+                          )
                         )}
                       </div>
 
@@ -3640,6 +3704,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                     <FiPlus size={14} aria-hidden />
                     Add new property
                   </button>
+                  {(conditions.length > 0 || boardConditionRows.some((row) => row.boardId)) && (
+                    <button
+                      type="button"
+                      className="business-rule-form-add-link"
+                      onClick={handleClearConditions}
+                    >
+                      Clear all
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
