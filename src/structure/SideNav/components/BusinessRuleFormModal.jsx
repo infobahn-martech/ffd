@@ -21,6 +21,7 @@ import {
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import useCommonReducer from '../../../store/CommonReducer';
+import useAuthReducer from '../../../store/AuthReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials } from '../../../shared/utils/utils';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
@@ -49,8 +50,6 @@ QuillInlineBlot.order.push('pill');
 NotificationPillBlot.formats = () => true;
 Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
-
-const DEFAULT_OWNER = { name: 'You', initials: 'YO' };
 
 // Swimlanes at the bottom of the "Board Minimap" grid that use the DUMMY_BOARD_BOTTOM_STAGES
 // column set (Backlog/Requested/In Progress/Done/Ready to Archive) instead of the main
@@ -2655,15 +2654,34 @@ WebInvokeSettingsModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
+function ShareWithModal({ show, onClose, permissions, onSave }) {
   const [filterText, setFilterText] = useState('');
+  const [draftPermissions, setDraftPermissions] = useState(permissions);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
     setFilterText('');
+    setDraftPermissions(permissions);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
   }, [show]);
+
+  const handleToggleDraftPermission = (userId, type) => {
+    setDraftPermissions((prev) => {
+      const current = prev[userId] ?? { viewer: false, editor: false };
+      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
+    });
+  };
+
+  const handleCancel = () => {
+    setDraftPermissions(permissions);
+    onClose();
+  };
+
+  const handleSave = () => {
+    onSave?.(draftPermissions);
+    onClose();
+  };
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredUsers = filterQuery
@@ -2675,7 +2693,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
   return (
     <Modal
       show={show}
-      onHide={onClose}
+      onHide={handleCancel}
       className="card-property-match-modal"
       dialogClassName="card-property-match-modal-dialog"
       backdropClassName="card-property-match-modal-backdrop"
@@ -2688,7 +2706,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
           <button
             type="button"
             className="business-rule-form-modal-close"
-            onClick={onClose}
+            onClick={handleCancel}
             aria-label="Close"
           >
             <FiX size={20} />
@@ -2723,7 +2741,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
               <div className="br-property-picker-empty">No users found</div>
             ) : (
               filteredUsers.map((user) => {
-                const perm = permissions[user.user_id] ?? { viewer: false, editor: false };
+                const perm = draftPermissions[user.user_id] ?? { viewer: false, editor: false };
                 return (
                   <div key={user.user_id} className="share-with-row">
                     <span className="share-with-name">{user.name}</span>
@@ -2735,7 +2753,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
                       <input
                         type="checkbox"
                         checked={perm.viewer}
-                        onChange={() => onTogglePermission(user.user_id, 'viewer')}
+                        onChange={() => handleToggleDraftPermission(user.user_id, 'viewer')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
                     </label>
@@ -2743,7 +2761,7 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
                       <input
                         type="checkbox"
                         checked={perm.editor}
-                        onChange={() => onTogglePermission(user.user_id, 'editor')}
+                        onChange={() => handleToggleDraftPermission(user.user_id, 'editor')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
                     </label>
@@ -2753,6 +2771,15 @@ function ShareWithModal({ show, onClose, permissions, onTogglePermission }) {
             )}
           </div>
         </div>
+
+        <footer className="card-property-match-modal-footer share-with-modal-footer">
+          <button type="button" className="share-with-cancel-btn" onClick={handleCancel}>
+            Cancel
+          </button>
+          <button type="button" className="br-property-add-btn" onClick={handleSave}>
+            Save
+          </button>
+        </footer>
       </div>
     </Modal>
   );
@@ -2762,14 +2789,14 @@ ShareWithModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func,
   permissions: PropTypes.object,
-  onTogglePermission: PropTypes.func,
+  onSave: PropTypes.func,
 };
 
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const [owner, setOwner] = useState(DEFAULT_OWNER.name);
+  const [owner, setOwner] = useState('');
   const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
   const [ownerFilterText, setOwnerFilterText] = useState('');
   const ownerPickerTriggerRef = useRef(null);
@@ -2815,6 +2842,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const userProfile = useAuthReducer((s) => s.userProfile);
+  const loggedInUserId = userProfile?.user_id ?? userProfile?.userid ?? null;
+  const loggedInUserName = userProfile?.name || userProfile?.username || 'You';
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -2827,7 +2857,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');
-    setOwner(DEFAULT_OWNER.name);
+    setOwner(loggedInUserName);
     setIsOwnerPickerOpen(false);
     setOwnerFilterText('');
     setSharePermissions({});
@@ -2857,7 +2887,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowWebInvokeSettings(false);
     setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
-  }, [show, rule]);
+  }, [show, rule, loggedInUserName]);
 
   useEffect(() => {
     if (!isOwnerPickerOpen) return undefined;
@@ -2930,9 +2960,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     onClose();
   };
 
+  const otherOwnerUsers = users.filter((u) => String(u.user_id) !== String(loggedInUserId));
   const ownerUsers = [
-    { user_id: null, name: DEFAULT_OWNER.name, username: null, email: null, role: null, port: null, phone: null },
-    ...users.map((u) => ({
+    {
+      user_id: loggedInUserId, name: loggedInUserName, username: userProfile?.username ?? null,
+      email: userProfile?.email ?? null, role: userProfile?.role ?? null, port: userProfile?.port ?? null, phone: userProfile?.phone ?? null,
+    },
+    ...otherOwnerUsers.map((u) => ({
       user_id: u.user_id, name: u.name, username: u.username, email: u.email, role: u.role, port: u.port, phone: u.phone,
     })),
   ];
@@ -2947,15 +2981,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setOwnerFilterText('');
   };
 
-  const handleToggleSharePermission = (userId, type) => {
-    setSharePermissions((prev) => {
-      const current = prev[userId] ?? { viewer: false, editor: false };
-      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
-    });
+  const handleSaveSharePermissions = (nextPermissions) => {
+    setSharePermissions(nextPermissions);
   };
 
   const sharedUserCount = Object.values(sharePermissions).filter((p) => p.viewer || p.editor).length;
-  const shareWithLabel = sharedUserCount === 0 ? 'Just me' : `${sharedUserCount} ${sharedUserCount === 1 ? 'person' : 'people'}`;
+  const shareWithLabel = sharedUserCount === 0 ? loggedInUserName : `${sharedUserCount} ${sharedUserCount === 1 ? 'person' : 'people'}`;
 
   const handleOpenPropertyPicker = () => {
     setShowPropertyPicker(true);
@@ -3274,7 +3305,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   aria-expanded={isOwnerPickerOpen}
                 >
                   <span className="business-rule-form-owner-avatar" aria-hidden>
-                    {owner === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(owner)}
+                    {getInitials(owner)}
                   </span>
                   <span className="br-owner-picker-trigger-name">{owner}</span>
                   <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
@@ -3306,7 +3337,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                               onClick={() => handlePickOwner(user)}
                             >
                               <span className="business-rule-form-owner-avatar" aria-hidden>
-                                {user.name === DEFAULT_OWNER.name ? DEFAULT_OWNER.initials : getInitials(user.name)}
+                                {getInitials(user.name)}
                               </span>
                               <span className="br-owner-picker-row-name">{user.name}</span>
                             </button>
@@ -3868,7 +3899,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showShareModal}
       onClose={() => setShowShareModal(false)}
       permissions={sharePermissions}
-      onTogglePermission={handleToggleSharePermission}
+      onSave={handleSaveSharePermissions}
     />
 
     <Modal
