@@ -58,7 +58,7 @@
         height: 100vh;
     }
 
-    min-height: 100vh;
+    height: 100%;
     padding-top:48px;
 
     // Mobile state
@@ -469,7 +469,7 @@
 
 .kanban-sidebar:not(.kanban-sidebar--workspaces) {
     width: 80px;
-    height: 100vh;
+    height: calc(100vh - 74px);
     background: #00368c;
     border-right: 1px solid #e5e7eb;
     display: flex;
@@ -482,7 +482,7 @@
     top: 0;
     left: 0;
     border-top-right-radius: 18px;
-    border-bottom-right-radius: 40px;
+    border-bottom-right-radius: 18px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     // Must sit above Kanban card/column content (card type badge uses z-index: 10)
     // so the floating settings menu/submenus aren't covered by board elements.
@@ -649,8 +649,8 @@
     padding: 16px 16px 20px;
     margin-top: 74px; // Match .sedres-header min-height so there's no gap below the header
     height: calc(100vh - 74px);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    border-top-right-radius: 18px;
+    border-bottom-right-radius: 18px;
     box-shadow: 2px 0 12px rgba(15, 23, 42, 0.06);
     position: fixed;
     top: 0;

@@ -272,7 +272,8 @@ textarea:disabled,
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
-  margin-left: 80px; // Account for kanban-sidebar width (80px on desktop)
+  margin-left: 74px; // Account for kanban-sidebar width (80px on desktop)
+   border-radius:4px;
 
   &:hover {
     background-color: #EAF1FB;
