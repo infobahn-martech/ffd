@@ -1,6 +1,6 @@
-/** Sedres desk roles: GRO User (4), CC User (9), MWP User (10), GRO Supervisor (6), MWP Supervisor (8), CC Supervisor (5). */
+/** Sedres desk roles: GRO User (4), CC User (9), MWP User (10), GRO Supervisor (6), MWP Supervisor (8), CC Supervisor (5), Coordinator Transport (19). */
 
-const DESK_START_TASK_ROLE_IDS = new Set([4, 5, 6, 8, 9, 10]);
+const DESK_START_TASK_ROLE_IDS = new Set([4, 5, 6, 8, 9, 10, 19]);
 
 export function normalizeRoleId(roleId) {
   if (roleId === undefined || roleId === null) return null;

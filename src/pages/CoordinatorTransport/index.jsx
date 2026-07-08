@@ -801,6 +801,7 @@ export default function CoordinatorTransport() {
                     columnOrder={columnOrderForCardForm}
                     currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
                     isAddMode={isAddMode}
+                    variant="gro"
                 />
             )}
 
