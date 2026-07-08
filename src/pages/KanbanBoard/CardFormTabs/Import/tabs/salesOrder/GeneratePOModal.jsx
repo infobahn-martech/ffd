@@ -19,7 +19,7 @@ const calcLineAmounts = (item) => {
   return { subtotal, tax, total };
 };
 
-const TABS = ["Contents", "Logistics", "Accounting", "Attachments"];
+const TABS = ["Contents"];
 
 // Generate PO Modal - printable PO preview only; submission result is reported via toast
 const GeneratePOModal = ({
@@ -151,6 +151,14 @@ const GeneratePOModal = ({
                 </div>
               )}
             </div>
+            <button
+              type="button"
+              className="so-po-toolbar-btn so-po-toolbar-btn-submit"
+              onClick={onGenerate}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </button>
           </div>
         </div>
 
@@ -350,15 +358,6 @@ const GeneratePOModal = ({
 
             {error && <div className="so-po-doc-error">{error}</div>}
           </div>
-        </div>
-
-        <div className="so-po-modal-footer">
-          <button type="button" className="so-po-btn so-po-btn-cancel" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </button>
-          <button type="button" className="so-po-btn so-po-btn-generate" onClick={onGenerate} disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit"}
-          </button>
         </div>
       </div>
     </div>
