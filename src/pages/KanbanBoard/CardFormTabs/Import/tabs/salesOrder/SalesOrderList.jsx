@@ -9,6 +9,7 @@ import salesOrderService from "../../../../../../services/salesOrderService";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
 import GeneratePOModal from "./GeneratePOModal";
+import GoodsReceiptPOModal from "./GoodsReceiptPOModal";
 
 const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
 const USD_TO_SAR_RATE = 3.75;
@@ -562,6 +563,10 @@ const SalesOrderList = ({
   const [generatePOError, setGeneratePOError] = useState(null);
   const [generatePOItemIds, setGeneratePOItemIds] = useState([]);
 
+  // State for Goods Receipt PO (GRN) modal - opened via "Copy To" on the Generate PO modal
+  const [showGRNModal, setShowGRNModal] = useState(false);
+  const [grnDetails, setGrnDetails] = useState(null);
+
   // State for vendor modal (row-level supplier picker)
   const [vendorModalTarget, setVendorModalTarget] = useState(null); // orderId or "new"
 
@@ -918,6 +923,17 @@ const SalesOrderList = ({
   const handleCloseGeneratePOPopup = () => {
     if (isGeneratingPO) return;
     setShowGeneratePOPopup(false);
+  };
+
+  const handleCopyToGoodsReceipt = (poDetails) => {
+    setGrnDetails(poDetails);
+    setShowGRNModal(true);
+    setShowGeneratePOPopup(false);
+  };
+
+  const handleCloseGRNModal = () => {
+    setShowGRNModal(false);
+    setGrnDetails(null);
   };
 
   const handleConfirmGeneratePO = async () => {
@@ -1958,7 +1974,13 @@ const SalesOrderList = ({
           localCurrency={soBpCurrency}
           owner={formValues.soOwner || ""}
           remarks={formValues.soRemarks || ""}
+          onCopyToGoodsReceipt={handleCopyToGoodsReceipt}
         />
+      )}
+
+      {/* Goods Receipt PO (GRN) Modal - opened via Copy To on the Generate PO modal */}
+      {showGRNModal && (
+        <GoodsReceiptPOModal show={showGRNModal} onClose={handleCloseGRNModal} poDetails={grnDetails} />
       )}
 
       {/* Vendor List Modal */}

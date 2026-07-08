@@ -85,8 +85,32 @@ const GeneratePOModal = ({
 
   const handleCopyToGoodsReceipt = () => {
     setCopyToOpen(false);
-    // Integration point: wire to the GRN/Goods Receipt PO creation flow once its API is available.
-    onCopyToGoodsReceipt?.({ selectedLineItems, soNumber, branch, documentDate, subtotal, tax, grandTotal });
+    // Integration point: wire to the GRN/Goods Receipt PO creation API once it is available.
+    onCopyToGoodsReceipt?.({
+      vendor: vendorCodeLabel,
+      name: vendorNameLabel,
+      contactPerson,
+      currency: localCurrency,
+      branch,
+      branchRegNo,
+      poNo: soNumber,
+      postingDate,
+      documentDate,
+      items: lineAmounts.map(({ item, tax: lineTax, total }) => ({
+        itemNo: item.itemNo,
+        itemDescription: item.itemDescription,
+        qty: item.qty,
+        unitPrice: item.unitPrice,
+        discount: item.discount,
+        taxCode: item.taxCode,
+        taxAmount: lineTax,
+        totalAmount: total,
+      })),
+      totalBeforeDiscount,
+      discountPct,
+      tax,
+      totalPaymentDue: grandTotal,
+    });
   };
 
   if (!show) return null;
@@ -98,235 +122,233 @@ const GeneratePOModal = ({
           ×
         </button>
 
-        <div className="so-po-modal-body">
-          <div className="so-po-doc">
-            <div className="so-po-doc-topbar">
-              <h3 className="so-po-doc-title">PURCHASE ORDER</h3>
+        <div className="so-po-modal-header">
+          <h3 className="so-po-doc-title">PURCHASE ORDER</h3>
 
-              <div className="so-po-toolbar">
-                <button type="button" className="so-po-toolbar-btn" onClick={() => onAddNew?.()} disabled={isSubmitting}>
-                  Add &amp; New
-                </button>
-                <button type="button" className="so-po-toolbar-btn" onClick={onClose} disabled={isSubmitting}>
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={`so-po-toolbar-btn${showItemDetails ? " so-po-toolbar-btn-active" : ""}`}
-                  onClick={() => setShowItemDetails((v) => !v)}
-                >
-                  Item Details
-                </button>
-                <div className="so-po-copyto" ref={copyToRef}>
-                  <button type="button" className="so-po-toolbar-btn" onClick={() => setCopyToOpen((v) => !v)}>
-                    Copy To ▾
+          <div className="so-po-modal-actions">
+            <button type="button" className="so-po-toolbar-btn" onClick={() => onAddNew?.()} disabled={isSubmitting}>
+              Add &amp; New
+            </button>
+            <button type="button" className="so-po-toolbar-btn" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={`so-po-toolbar-btn${showItemDetails ? " so-po-toolbar-btn-active" : ""}`}
+              onClick={() => setShowItemDetails((v) => !v)}
+            >
+              Item Details
+            </button>
+            <div className="so-po-copyto" ref={copyToRef}>
+              <button type="button" className="so-po-toolbar-btn" onClick={() => setCopyToOpen((v) => !v)}>
+                Copy To ▾
+              </button>
+              {copyToOpen && (
+                <div className="so-po-copyto-menu">
+                  <button type="button" className="so-po-copyto-item" onClick={handleCopyToGoodsReceipt}>
+                    Goods Receipt PO
                   </button>
-                  {copyToOpen && (
-                    <div className="so-po-copyto-menu">
-                      <button type="button" className="so-po-copyto-item" onClick={handleCopyToGoodsReceipt}>
-                        Goods Receipt PO
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="so-po-doc-content">
-              {showItemDetails && (
-                <div className="so-po-quickview">
-                  <div className="so-po-quickview-title">Item Details — Quick View</div>
-                  <table className="so-po-quickview-table">
-                    <thead>
-                      <tr>
-                        <th>Item</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        <th>Tax Amount</th>
-                        <th>Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lineAmounts.map(({ item, tax: lineTax, total }) => (
-                        <tr key={item.id}>
-                          <td>{item.itemDescription || "—"}</td>
-                          <td>{item.qty ?? 0}</td>
-                          <td>{formatCurrencySAR(item.unitPrice)}</td>
-                          <td>{formatCurrencySAR(lineTax)}</td>
-                          <td>{formatCurrencySAR(total)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
 
-              <div className="so-po-fields">
-                <div className="so-po-fields-col">
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Vendor</span>
-                    <span className="so-po-field-value" title={vendorCodeLabel}>
-                      {vendorCodeLabel}
-                    </span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Name</span>
-                    <span className="so-po-field-value" title={vendorNameLabel}>
-                      {vendorNameLabel}
-                    </span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Contact Person</span>
-                    <span className="so-po-field-value">{contactPerson || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Vendor Ref. No.</span>
-                    <span className="so-po-field-value">—</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Local Currency</span>
-                    <span className="so-po-field-value">{localCurrency || "—"}</span>
-                  </div>
-                </div>
-
-                <div className="so-po-fields-col">
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">No.</span>
-                    <span className="so-po-field-value">{soNumber || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Status</span>
-                    <span className="so-po-field-value">{status || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Posting Date</span>
-                    <span className="so-po-field-value">{postingDate || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Delivery Date</span>
-                    <span className="so-po-field-value">{deliveryDate || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Document Date</span>
-                    <span className="so-po-field-value">{documentDate || "—"}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="so-po-branch-row">
-                <div className="so-po-field-row">
-                  <span className="so-po-field-label">Branch</span>
-                  <span className="so-po-field-value">{branch || "—"}</span>
-                </div>
-                <div className="so-po-field-row">
-                  <span className="so-po-field-label">Branch Reg. No.</span>
-                  <span className="so-po-field-value">{branchRegNo || "—"}</span>
-                </div>
-              </div>
-
-              <div className="so-po-tabs">
-                {TABS.map((tab) => (
-                  <span key={tab} className={`so-po-tab${tab === "Contents" ? " so-po-tab-active" : ""}`}>
-                    {tab}
-                  </span>
-                ))}
-              </div>
-
-              <div className="so-po-item-type-row">
-                <span className="so-po-field-label">Item/Service Type</span>
-                <span className="so-po-field-value so-po-field-value-compact">Item</span>
-              </div>
-
-              <div className="so-po-table-scroll">
-                <table className="so-po-doc-table">
+        <div className="so-po-modal-body">
+          <div className="so-po-doc">
+            {showItemDetails && (
+              <div className="so-po-quickview">
+                <div className="so-po-quickview-title">Item Details — Quick View</div>
+                <table className="so-po-quickview-table">
                   <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Item No.</th>
-                      <th>Item Description</th>
-                      <th>Quantity</th>
+                      <th>Item</th>
+                      <th>Qty</th>
                       <th>Unit Price</th>
-                      <th>Discount %</th>
-                      <th>Tax Code</th>
-                      <th>Total (LC)</th>
-                      <th>UoM Code</th>
+                      <th>Tax Amount</th>
+                      <th>Total Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {lineAmounts.map(({ item, total }, index) => (
+                    {lineAmounts.map(({ item, tax: lineTax, total }) => (
                       <tr key={item.id}>
-                        <td>{index + 1}</td>
-                        <td className="so-po-doc-item-no">{item.itemNo || "—"}</td>
-                        <td className="so-po-doc-item-desc" title={item.itemDescription || ""}>
-                          {item.itemDescription || "—"}
-                        </td>
+                        <td>{item.itemDescription || "—"}</td>
                         <td>{item.qty ?? 0}</td>
                         <td>{formatCurrencySAR(item.unitPrice)}</td>
-                        <td>{item.discount ?? 0}</td>
-                        <td>{item.taxCode || "—"}</td>
+                        <td>{formatCurrencySAR(lineTax)}</td>
                         <td>{formatCurrencySAR(total)}</td>
-                        <td>{item.uomCode || "—"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            )}
 
-              <div className="so-po-bottom">
-                <div className="so-po-bottom-left">
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Buyer</span>
-                    <span className="so-po-field-value">{buyer || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row">
-                    <span className="so-po-field-label">Owner</span>
-                    <span className="so-po-field-value">{owner || "—"}</span>
-                  </div>
-                  <div className="so-po-field-row so-po-field-row-textarea">
-                    <span className="so-po-field-label">Remarks</span>
-                    <textarea className="so-po-field-textarea" value={remarks || ""} readOnly />
-                  </div>
+            <div className="so-po-fields">
+              <div className="so-po-fields-col">
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Vendor</span>
+                  <span className="so-po-field-value" title={vendorCodeLabel}>
+                    {vendorCodeLabel}
+                  </span>
                 </div>
-
-                <div className="so-po-doc-totals">
-                  <div className="so-po-doc-totals-row">
-                    <span>Total Before Discount</span>
-                    <span>{formatCurrencySAR(totalBeforeDiscount)}</span>
-                  </div>
-                  <div className="so-po-doc-totals-row">
-                    <span>Discount %</span>
-                    <span>{discountPct.toFixed(2)}%</span>
-                  </div>
-                  <div className="so-po-doc-totals-row">
-                    <span>Rounding</span>
-                    <span>{formatCurrencySAR(0)}</span>
-                  </div>
-                  <div className="so-po-doc-totals-row">
-                    <span>Tax</span>
-                    <span>{formatCurrencySAR(tax)}</span>
-                  </div>
-                  {parseFloat(shippingFee) > 0 && (
-                    <div className="so-po-doc-totals-row">
-                      <span>Shipping Fee</span>
-                      <span>{formatCurrencySAR(shippingFee)}</span>
-                    </div>
-                  )}
-                  <div className="so-po-doc-totals-row so-po-doc-totals-grand">
-                    <span>Total Payment Due</span>
-                    <span>{formatCurrencySAR(grandTotal)}</span>
-                  </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Name</span>
+                  <span className="so-po-field-value" title={vendorNameLabel}>
+                    {vendorNameLabel}
+                  </span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Contact Person</span>
+                  <span className="so-po-field-value">{contactPerson || "—"}</span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Vendor Ref. No.</span>
+                  <span className="so-po-field-value">—</span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Local Currency</span>
+                  <span className="so-po-field-value">{localCurrency || "—"}</span>
                 </div>
               </div>
 
-              {termsAndConditions && (
-                <div className="so-po-terms">
-                  <div className="so-po-terms-title">Terms &amp; Conditions</div>
-                  <div className="so-po-terms-body">{termsAndConditions}</div>
+              <div className="so-po-fields-col">
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">No.</span>
+                  <span className="so-po-field-value">{soNumber || "—"}</span>
                 </div>
-              )}
-
-              {error && <div className="so-po-doc-error">{error}</div>}
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Status</span>
+                  <span className="so-po-field-value">{status || "—"}</span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Posting Date</span>
+                  <span className="so-po-field-value">{postingDate || "—"}</span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Delivery Date</span>
+                  <span className="so-po-field-value">{deliveryDate || "—"}</span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Document Date</span>
+                  <span className="so-po-field-value">{documentDate || "—"}</span>
+                </div>
+              </div>
             </div>
+
+            <div className="so-po-branch-row">
+              <div className="so-po-field-row">
+                <span className="so-po-field-label">Branch</span>
+                <span className="so-po-field-value">{branch || "—"}</span>
+              </div>
+              <div className="so-po-field-row">
+                <span className="so-po-field-label">Branch Reg. No.</span>
+                <span className="so-po-field-value">{branchRegNo || "—"}</span>
+              </div>
+            </div>
+
+            <div className="so-po-tabs">
+              {TABS.map((tab) => (
+                <span key={tab} className={`so-po-tab${tab === "Contents" ? " so-po-tab-active" : ""}`}>
+                  {tab}
+                </span>
+              ))}
+            </div>
+
+            <div className="so-po-item-type-row">
+              <span className="so-po-field-label">Item/Service Type</span>
+              <span className="so-po-field-value so-po-field-value-compact">Item</span>
+            </div>
+
+            <div className="so-po-table-scroll">
+              <table className="so-po-doc-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Item No.</th>
+                    <th>Item Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Discount %</th>
+                    <th>Tax Code</th>
+                    <th>Total (LC)</th>
+                    <th>UoM Code</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineAmounts.map(({ item, total }, index) => (
+                    <tr key={item.id}>
+                      <td>{index + 1}</td>
+                      <td className="so-po-doc-item-no">{item.itemNo || "—"}</td>
+                      <td className="so-po-doc-item-desc" title={item.itemDescription || ""}>
+                        {item.itemDescription || "—"}
+                      </td>
+                      <td>{item.qty ?? 0}</td>
+                      <td>{formatCurrencySAR(item.unitPrice)}</td>
+                      <td>{item.discount ?? 0}</td>
+                      <td>{item.taxCode || "—"}</td>
+                      <td>{formatCurrencySAR(total)}</td>
+                      <td>{item.uomCode || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="so-po-bottom">
+              <div className="so-po-bottom-left">
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Buyer</span>
+                  <span className="so-po-field-value">{buyer || "—"}</span>
+                </div>
+                <div className="so-po-field-row">
+                  <span className="so-po-field-label">Owner</span>
+                  <span className="so-po-field-value">{owner || "—"}</span>
+                </div>
+                <div className="so-po-field-row so-po-field-row-textarea">
+                  <span className="so-po-field-label">Remarks</span>
+                  <textarea className="so-po-field-textarea" value={remarks || ""} readOnly />
+                </div>
+              </div>
+
+              <div className="so-po-doc-totals">
+                <div className="so-po-doc-totals-row">
+                  <span>Total Before Discount</span>
+                  <span>{formatCurrencySAR(totalBeforeDiscount)}</span>
+                </div>
+                <div className="so-po-doc-totals-row">
+                  <span>Discount %</span>
+                  <span>{discountPct.toFixed(2)}%</span>
+                </div>
+                <div className="so-po-doc-totals-row">
+                  <span>Rounding</span>
+                  <span>{formatCurrencySAR(0)}</span>
+                </div>
+                <div className="so-po-doc-totals-row">
+                  <span>Tax</span>
+                  <span>{formatCurrencySAR(tax)}</span>
+                </div>
+                {parseFloat(shippingFee) > 0 && (
+                  <div className="so-po-doc-totals-row">
+                    <span>Shipping Fee</span>
+                    <span>{formatCurrencySAR(shippingFee)}</span>
+                  </div>
+                )}
+                <div className="so-po-doc-totals-row so-po-doc-totals-grand">
+                  <span>Total Payment Due</span>
+                  <span>{formatCurrencySAR(grandTotal)}</span>
+                </div>
+              </div>
+            </div>
+
+            {termsAndConditions && (
+              <div className="so-po-terms">
+                <div className="so-po-terms-title">Terms &amp; Conditions</div>
+                <div className="so-po-terms-body">{termsAndConditions}</div>
+              </div>
+            )}
+
+            {error && <div className="so-po-doc-error">{error}</div>}
           </div>
         </div>
 
