@@ -1,0 +1,27 @@
+@import "partials/partials";
+
+$primary-font: "Open Sans", sans-serif;
+
+.transport-company-modal {
+  .phone-wrapper .phone-label {
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  .phone-wrapper .phone-input {
+    border: 1px solid #e2e2ea !important;
+    box-shadow: none !important;
+  }
+
+  .phone-wrapper .phone-input:focus,
+  .phone-wrapper .phone-input:hover {
+    border-color: #e2e2ea !important;
+    box-shadow: none !important;
+  }
+
+  .phone-wrapper .selected-flag:focus:before,
+  .phone-wrapper .selected-flag.open:before {
+    border-color: #e2e2ea !important;
+    box-shadow: none !important;
+  }
+}
