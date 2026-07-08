@@ -685,114 +685,6 @@ function LinkActionModal({ show, onClose, onSelect }) {
   );
 }
 
-function LinkOperatorSettingsModal({ show, onClose, onSave, initialSettings }) {
-  const [operatorKey, setOperatorKey] = useState('');
-  const [value, setValue] = useState('');
-
-  const {
-    linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
-  } = useBusinessRuleReducer((s) => s);
-
-  useEffect(() => {
-    if (!show) return;
-    setOperatorKey(initialSettings?.operatorKey ?? '');
-    setValue(initialSettings?.value ?? '');
-    getLinkCardPossibleActionOperators();
-  }, [show, initialSettings]);
-
-  // Dev-only fallback so the modal can be visually tested without a live backend.
-  const operators = linkCardActionOperators.length > 0
-    ? linkCardActionOperators
-    : (import.meta.env.DEV ? DUMMY_LINK_ACTION_OPERATORS : []);
-
-  const selectedOperator = operators.find((op) => op.operator_key === operatorKey);
-  const needsValue = selectedOperator?.has_input_value === '1' || selectedOperator?.has_input_value === 1;
-
-  const handleSave = () => {
-    if (!selectedOperator) return;
-    onSave({
-      operatorKey: selectedOperator.operator_key,
-      operatorLabel: selectedOperator.operator_label,
-      isDynamic: selectedOperator.is_dynamic === '1' || selectedOperator.is_dynamic === 1,
-      value: needsValue ? value : '',
-    });
-    onClose();
-  };
-
-  return (
-    <Modal
-      show={show}
-      onHide={onClose}
-      className="card-property-match-modal notification-settings-modal"
-      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
-      backdropClassName="card-property-match-modal-backdrop"
-      centered
-      scrollable
-    >
-      <div className="card-property-match-modal-shell br-invoke-modal-shell">
-        <button
-          type="button"
-          className="br-floating-modal-close"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          <FiX size={16} />
-        </button>
-
-        <header className="card-property-match-modal-header br-floating-close-header">
-          <h2 className="card-property-match-modal-title">Link Card Settings</h2>
-        </header>
-
-        <div className="card-property-match-modal-body notification-settings-body">
-          <div className="notification-field">
-            <label className="business-rule-form-label br-invoke-field-label">Link the card</label>
-            <div className="business-rule-form-select-wrap">
-              <select
-                className="business-rule-form-select"
-                value={operatorKey}
-                onChange={(e) => { setOperatorKey(e.target.value); setValue(''); }}
-                disabled={isLoadingLinkCardActionOperators}
-              >
-                <option value="" disabled>
-                  {isLoadingLinkCardActionOperators ? 'Loading...' : 'Select an option'}
-                </option>
-                {operators.map((op) => (
-                  <option key={op.operator_id} value={op.operator_key}>{op.operator_label}</option>
-                ))}
-              </select>
-              <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-            </div>
-          </div>
-
-          {needsValue && (
-            <div className="notification-field">
-              <label className="business-rule-form-label br-invoke-field-label">Value</label>
-              <input
-                type="text"
-                className="business-rule-form-input"
-                placeholder="Enter value"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-            </div>
-          )}
-        </div>
-
-        <footer className="card-property-match-modal-footer">
-          <button
-            type="button"
-            className="br-property-add-btn"
-            disabled={!selectedOperator || (needsValue && !value.trim())}
-            onClick={handleSave}
-          >
-            Save
-          </button>
-        </footer>
-      </div>
-    </Modal>
-  );
-}
-
 function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const [boardId, setBoardId] = useState('');
   const [isBoardPickerOpen, setIsBoardPickerOpen] = useState(false);
@@ -2740,8 +2632,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
   const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
-  const [showLinkOperatorSettings, setShowLinkOperatorSettings] = useState(false);
-  const [activeLinkActionId, setActiveLinkActionId] = useState(null);
+  const editingLinkActionIdRef = useRef(null);
+  const [openLinkOperatorRowId, setOpenLinkOperatorRowId] = useState(null);
+  const [linkOperatorFilterText, setLinkOperatorFilterText] = useState('');
+  const linkOperatorTriggerRef = useRef(null);
+  const linkOperatorPanelRef = useRef(null);
+  const [removeOtherChildLinks, setRemoveOtherChildLinks] = useState(false);
+  const [removeOtherParentLinks, setRemoveOtherParentLinks] = useState(false);
+  const [removeOtherRelativeLinks, setRemoveOtherRelativeLinks] = useState(false);
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
@@ -2760,7 +2658,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const boardConditionTriggerRef = useRef(null);
   const boardConditionPanelRef = useRef(null);
 
-  const { getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails } = useBusinessRuleReducer((s) => s);
+  const {
+    getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
+    linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
+  } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
@@ -2787,8 +2688,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowCreateActionPicker(false);
     setLinkActions([]);
     setShowLinkActionPicker(false);
-    setShowLinkOperatorSettings(false);
-    setActiveLinkActionId(null);
+    editingLinkActionIdRef.current = null;
+    setOpenLinkOperatorRowId(null);
+    setLinkOperatorFilterText('');
+    setRemoveOtherChildLinks(false);
+    setRemoveOtherParentLinks(false);
+    setRemoveOtherRelativeLinks(false);
     setMoveActions([]);
     setShowMoveDestinationPicker(false);
     setActiveMoveActionId(null);
@@ -2828,6 +2733,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   }, [openBoardConditionRowId]);
 
   useEffect(() => {
+    if (openLinkOperatorRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (linkOperatorPanelRef.current?.contains(t)) return;
+      if (linkOperatorTriggerRef.current?.contains(t)) return;
+      setOpenLinkOperatorRowId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openLinkOperatorRowId]);
+
+  useEffect(() => {
     if (!show) return;
     const firstBoard = (workspaces ?? []).flatMap((w) => w.boards ?? [])[0];
     if (!firstBoard) return;
@@ -2851,6 +2768,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       conditions,
       createActions,
       linkActions,
+      removeOtherChildLinks,
+      removeOtherParentLinks,
+      removeOtherRelativeLinks,
       moveActions,
       updateActions,
       notifyActions,
@@ -2929,24 +2849,64 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleSelectLinkAction = (option) => {
+    const editingId = editingLinkActionIdRef.current;
+    if (editingId) {
+      editingLinkActionIdRef.current = null;
+      setLinkActions((prev) => prev.map((a) => (a.id === editingId ? { ...a, key: option.key, label: option.label } : a)));
+      return;
+    }
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    setLinkActions((prev) => [...prev, { id, key: option.key, label: option.label }]);
+    setLinkActions((prev) => [
+      ...prev,
+      { id, key: option.key, label: option.label, operatorKey: '', operatorLabel: 'to card with id', value: '' },
+    ]);
+  };
+
+  const handleOpenLinkActionPickerForRow = (id) => {
+    editingLinkActionIdRef.current = id;
+    setShowLinkActionPicker(true);
   };
 
   const handleRemoveLinkAction = (id) => {
     setLinkActions((prev) => prev.filter((a) => a.id !== id));
+    setOpenLinkOperatorRowId((prev) => (prev === id ? null : prev));
   };
 
-  const handleOpenLinkOperatorSettings = (id) => {
-    setActiveLinkActionId(id);
-    setShowLinkOperatorSettings(true);
+  const handleClearLinkActions = () => {
+    setLinkActions([]);
+    setOpenLinkOperatorRowId(null);
   };
 
-  const handleSaveLinkOperatorSettings = (settings) => {
-    setLinkActions((prev) => prev.map((a) => (a.id === activeLinkActionId ? { ...a, ...settings, configured: true } : a)));
+  const handleToggleLinkOperator = (id) => {
+    setLinkOperatorFilterText('');
+    setOpenLinkOperatorRowId((prev) => (prev === id ? null : id));
+    if (linkCardActionOperators.length === 0) getLinkCardPossibleActionOperators();
   };
 
-  const activeLinkAction = linkActions.find((a) => a.id === activeLinkActionId);
+  const handleSelectLinkOperator = (id, operator) => {
+    setLinkActions((prev) => prev.map((a) => (a.id === id
+      ? {
+        ...a,
+        operatorKey: operator.operator_key,
+        operatorLabel: operator.operator_label,
+        isDynamic: operator.is_dynamic === '1' || operator.is_dynamic === 1,
+      }
+      : a)));
+    setOpenLinkOperatorRowId(null);
+  };
+
+  const handleChangeLinkActionValue = (id, value) => {
+    setLinkActions((prev) => prev.map((a) => (a.id === id ? { ...a, value } : a)));
+  };
+
+  // Dev-only fallback so the operator dropdown can be visually tested without a live backend.
+  const linkOperatorOptions = linkCardActionOperators.length > 0
+    ? linkCardActionOperators
+    : (import.meta.env.DEV ? DUMMY_LINK_ACTION_OPERATORS : []);
+  const linkOperatorFilterQuery = linkOperatorFilterText.trim().toLowerCase();
+  const filteredLinkOperators = linkOperatorFilterQuery
+    ? linkOperatorOptions.filter((op) => op.operator_label.toLowerCase().includes(linkOperatorFilterQuery))
+    : linkOperatorOptions;
 
   const handleAddMoveAction = () => {
     const option = MOVE_ACTION_OPTIONS[0];
@@ -3441,26 +3401,147 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
-                    {section.id === 'link' && linkActions.map((action) => (
-                      <div key={action.id} className="business-rule-form-action-detail-card">
-                        <button
-                          type="button"
-                          className="business-rule-form-action-detail-close"
-                          onClick={() => handleRemoveLinkAction(action.id)}
-                          aria-label="Remove action"
-                        >
-                          <FiX size={14} />
-                        </button>
-                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
-                        <button
-                          type="button"
-                          className="business-rule-form-action-detail-link"
-                          onClick={() => handleOpenLinkOperatorSettings(action.id)}
-                        >
-                          {action.operatorLabel ?? 'Choose how to link'}
-                        </button>
+                    {section.id === 'link' && linkActions.length > 0 && (
+                      <div className="br-link-card-list">
+                        {linkActions.map((action) => {
+                          const isOperatorOpen = openLinkOperatorRowId === action.id;
+                          return (
+                            <div key={action.id} className="br-link-card">
+                              <button
+                                type="button"
+                                className="business-rule-form-action-detail-close"
+                                onClick={() => handleRemoveLinkAction(action.id)}
+                                aria-label="Remove action"
+                              >
+                                <FiX size={14} />
+                              </button>
+
+                              <div className="br-link-card-header">
+                                <button
+                                  type="button"
+                                  className="br-link-card-as-label"
+                                  onClick={() => handleOpenLinkActionPickerForRow(action.id)}
+                                >
+                                  {action.label}
+                                </button>
+                                <div className="board-minimap-picker-wrap br-link-operator-wrap">
+                                  <button
+                                    type="button"
+                                    ref={isOperatorOpen ? linkOperatorTriggerRef : undefined}
+                                    className="br-link-operator-trigger"
+                                    onClick={() => handleToggleLinkOperator(action.id)}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={isOperatorOpen}
+                                  >
+                                    {action.operatorLabel || 'to card with id'}
+                                    <FiChevronDown size={14} aria-hidden />
+                                  </button>
+
+                                  {isOperatorOpen && (
+                                    <div className="board-minimap-picker-panel br-link-operator-panel" ref={linkOperatorPanelRef}>
+                                      <div className="board-minimap-picker-search br-link-operator-search">
+                                        <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                        <input
+                                          type="text"
+                                          placeholder="Filter"
+                                          value={linkOperatorFilterText}
+                                          onChange={(e) => setLinkOperatorFilterText(e.target.value)}
+                                          autoFocus
+                                        />
+                                      </div>
+                                      <div className="board-minimap-picker-scroll br-link-operator-scroll">
+                                        {isLoadingLinkCardActionOperators ? (
+                                          <div className="br-property-picker-empty">Loading...</div>
+                                        ) : filteredLinkOperators.length === 0 ? (
+                                          <div className="br-property-picker-empty">No matches</div>
+                                        ) : (
+                                          filteredLinkOperators.map((op) => (
+                                            <button
+                                              type="button"
+                                              key={op.operator_id}
+                                              className="br-link-operator-option"
+                                              onClick={() => handleSelectLinkOperator(action.id, op)}
+                                            >
+                                              {op.operator_label}
+                                            </button>
+                                          ))
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="br-link-card-value-row">
+                                <input
+                                  type="text"
+                                  className="br-link-card-value-input"
+                                  placeholder="Enter card id"
+                                  value={action.value ?? ''}
+                                  onChange={(e) => handleChangeLinkActionValue(action.id, e.target.value)}
+                                />
+                                <div className="business-rule-form-filter-row-actions">
+                                  <span className="business-rule-form-or-btn">AND</span>
+                                  <button
+                                    type="button"
+                                    className="business-rule-form-filter-row-delete"
+                                    onClick={() => handleRemoveLinkAction(action.id)}
+                                    aria-label="Remove action"
+                                  >
+                                    <FiTrash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <div className="br-link-remove-others-box">
+                          <label className="br-link-checkbox-row">
+                            <input
+                              type="checkbox"
+                              checked={removeOtherChildLinks}
+                              onChange={(e) => setRemoveOtherChildLinks(e.target.checked)}
+                            />
+                            Remove all other child links
+                          </label>
+                          <label className="br-link-checkbox-row">
+                            <input
+                              type="checkbox"
+                              checked={removeOtherParentLinks}
+                              onChange={(e) => setRemoveOtherParentLinks(e.target.checked)}
+                            />
+                            Remove all other parent links
+                          </label>
+                          <label className="br-link-checkbox-row">
+                            <input
+                              type="checkbox"
+                              checked={removeOtherRelativeLinks}
+                              onChange={(e) => setRemoveOtherRelativeLinks(e.target.checked)}
+                            />
+                            Remove all other relative links
+                          </label>
+                        </div>
+
+                        <div className="br-link-footer-actions">
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={() => { editingLinkActionIdRef.current = null; setShowLinkActionPicker(true); }}
+                          >
+                            <FiPlus size={14} aria-hidden />
+                            Add new action
+                          </button>
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={handleClearLinkActions}
+                          >
+                            Clear all
+                          </button>
+                        </div>
                       </div>
-                    ))}
+                    )}
 
                     {section.id === 'update' && updateActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-chip">
@@ -3545,21 +3626,23 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
-                    <button
-                      type="button"
-                      className="business-rule-form-add-action"
-                      onClick={() => {
-                        if (section.id === 'create') setShowCreateActionPicker(true);
-                        if (section.id === 'link') setShowLinkActionPicker(true);
-                        if (section.id === 'move') handleAddMoveAction();
-                        if (section.id === 'update') setShowUpdateActionPicker(true);
-                        if (section.id === 'notify') handleAddNotifyAction();
-                        if (section.id === 'invoke') handleAddInvokeAction();
-                      }}
-                    >
-                      <FiPlus size={14} aria-hidden />
-                      Add new action
-                    </button>
+                    {!(section.id === 'link' && linkActions.length > 0) && (
+                      <button
+                        type="button"
+                        className="business-rule-form-add-action"
+                        onClick={() => {
+                          if (section.id === 'create') setShowCreateActionPicker(true);
+                          if (section.id === 'link') setShowLinkActionPicker(true);
+                          if (section.id === 'move') handleAddMoveAction();
+                          if (section.id === 'update') setShowUpdateActionPicker(true);
+                          if (section.id === 'notify') handleAddNotifyAction();
+                          if (section.id === 'invoke') handleAddInvokeAction();
+                        }}
+                      >
+                        <FiPlus size={14} aria-hidden />
+                        Add new action
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -3594,15 +3677,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
     <LinkActionModal
       show={showLinkActionPicker}
-      onClose={() => setShowLinkActionPicker(false)}
+      onClose={() => { setShowLinkActionPicker(false); editingLinkActionIdRef.current = null; }}
       onSelect={handleSelectLinkAction}
-    />
-
-    <LinkOperatorSettingsModal
-      show={showLinkOperatorSettings}
-      onClose={() => setShowLinkOperatorSettings(false)}
-      onSave={handleSaveLinkOperatorSettings}
-      initialSettings={activeLinkAction}
     />
 
     <BoardMinimapModal
@@ -3711,16 +3787,6 @@ LinkActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
-};
-
-LinkOperatorSettingsModal.propTypes = {
-  show: PropTypes.bool.isRequired,
-  initialSettings: PropTypes.shape({
-    operatorKey: PropTypes.string,
-    value: PropTypes.string,
-  }),
-  onClose: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired,
 };
 
 BoardMinimapModal.propTypes = {
