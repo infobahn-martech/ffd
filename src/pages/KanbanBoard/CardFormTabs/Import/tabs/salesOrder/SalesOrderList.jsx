@@ -1949,12 +1949,15 @@ const SalesOrderList = ({
           selectedItems={generatePOItemIds}
           salesOrderList={displayOrderList}
           soNumber={soSoNo}
+          status={formValues.soStatus || ""}
+          postingDate={soPostingDate}
+          deliveryDate={soDeliveryDate}
           documentDate={soDocumentDate}
-          customerCode={soCustomerCode}
-          customerName={soCustomerName}
-          vesselName={soShipName}
-          portName={soPort}
           branch={branch}
+          contactPerson={soContactPerson}
+          localCurrency={soBpCurrency}
+          owner={formValues.soOwner || ""}
+          remarks={formValues.soRemarks || ""}
         />
       )}
 
