@@ -48,6 +48,7 @@ const OwnerCell = ({ owner }) => {
 const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [searchValue, setSearchValue] = useState('');
   const [triggerSearch, setTriggerSearch] = useState('');
+  const [debouncedTriggerSearch, setDebouncedTriggerSearch] = useState('');
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -66,6 +67,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     if (!show) {
       setSearchValue('');
       setTriggerSearch('');
+      setDebouncedTriggerSearch('');
       setPage(1);
       setView('table');
       setSelectedRule(null);
@@ -81,10 +83,16 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   }, [show]);
 
   useEffect(() => {
-    if (view === 'picker') {
-      getTriggerTypes();
-    }
-  }, [view]);
+    const timeoutId = setTimeout(() => {
+      setDebouncedTriggerSearch(triggerSearch.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [triggerSearch]);
+
+  useEffect(() => {
+    if (view !== 'picker') return;
+    getTriggerTypes({ params: { search: debouncedTriggerSearch || undefined } });
+  }, [view, debouncedTriggerSearch]);
 
   const totalPages = Math.max(1, Math.ceil(businessRulesCount / limit));
 
@@ -94,10 +102,6 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     icon: TRIGGER_CODE_TO_ICON[item.trigger_code] ?? item.trigger_code,
     description: item.description,
   }));
-
-  const filteredTriggers = mappedTriggers.filter((t) =>
-    t.name.toLowerCase().includes(triggerSearch.toLowerCase().trim())
-  );
 
   const handleTriggerCardClick = (trigger) => {
     setSelectedRule(trigger);
@@ -320,9 +324,9 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
               <div className="br-picker-grid-wrapper">
                 {isLoadingGet ? (
                   <div className="business-rules-empty-state">Loading...</div>
-                ) : filteredTriggers.length > 0 ? (
+                ) : mappedTriggers.length > 0 ? (
                   <div className="br-picker-grid">
-                    {filteredTriggers.map((trigger) => (
+                    {mappedTriggers.map((trigger) => (
                       <button
                         key={trigger.id}
                         type="button"
