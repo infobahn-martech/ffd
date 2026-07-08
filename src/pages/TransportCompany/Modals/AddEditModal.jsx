@@ -10,6 +10,7 @@ import useVehicleReducer from '../../../store/VehicleReducer';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
+import '../../../design/scss/transport-company-modal.scss';
 
 const emptyDriver = () => ({
   transport_driver_id: '',
