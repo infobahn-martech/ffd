@@ -2744,7 +2744,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const boardConditionTriggerRef = useRef(null);
   const boardConditionPanelRef = useRef(null);
 
-  const { getTriggerConfig } = useBusinessRuleReducer((s) => s);
+  const { getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
@@ -2866,6 +2866,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleSelectProperty = (field, category) => {
+    const fieldType = category.category_key === 'custom' ? 'custom' : category.category_key === 'regular' ? 'regular' : null;
+    const fieldId = field.regular_field_id ?? field.custom_field_id ?? null;
+
     setConditions((prev) => [
       ...prev,
       {
@@ -2873,9 +2876,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         fieldLabel: getFieldLabel(field),
         fieldKey: field.field_key ?? field.unit_key ?? String(field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? ''),
         category: category.category_key,
+        fieldType,
+        fieldId,
+        operatorId: '',
         value: '',
       },
     ]);
+
+    if (fieldType && fieldId != null) {
+      getFieldDetails(fieldType, fieldId);
+    }
   };
 
   const handleRemoveCondition = (id) => {
@@ -3319,37 +3329,68 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   </div>
                 )}
 
-                {conditions.map((cond) => (
-                  <div key={cond.id} className="business-rule-form-filter-row">
-                    <div className="business-rule-form-filter-row-main">
-                      <span className="business-rule-form-condition-label">{cond.fieldLabel}</span>
-                      <input
-                        type="text"
-                        className="business-rule-form-condition-input"
-                        placeholder="Enter value"
-                        value={cond.value}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setConditions((prev) =>
-                            prev.map((c) => c.id === cond.id ? { ...c, value: val } : c)
-                          );
-                        }}
-                      />
-                    </div>
+                {conditions.map((cond) => {
+                  const detailsKey = cond.fieldType && cond.fieldId != null ? `${cond.fieldType}-${cond.fieldId}` : null;
+                  const details = detailsKey ? fieldDetailsByKey[detailsKey] : null;
+                  const detailsLoading = detailsKey ? Boolean(isLoadingFieldDetails[detailsKey]) : false;
+                  const operators = details?.operators ?? [];
+                  const showOperator = operators.length > 0 && details?.has_operator !== '0';
+                  const showValueInput = !details || details?.has_input_value !== '0';
 
-                    <div className="business-rule-form-filter-row-actions">
-                      <button type="button" className="business-rule-form-or-btn">OR</button>
-                      <button
-                        type="button"
-                        className="business-rule-form-filter-row-delete"
-                        onClick={() => handleRemoveCondition(cond.id)}
-                        aria-label="Remove condition"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
+                  return (
+                    <div key={cond.id} className="business-rule-form-filter-row">
+                      <div className="business-rule-form-filter-row-main">
+                        <span className="business-rule-form-condition-label">{cond.fieldLabel}</span>
+                        {showOperator && (
+                          <select
+                            className="business-rule-form-condition-operator"
+                            value={cond.operatorId}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setConditions((prev) =>
+                                prev.map((c) => c.id === cond.id ? { ...c, operatorId: val } : c)
+                              );
+                            }}
+                          >
+                            <option value="">Select operator</option>
+                            {operators.map((op) => (
+                              <option key={op.field_operator_id} value={op.field_operator_id}>
+                                {op.operator_label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {detailsLoading && <span className="business-rule-form-condition-loading">Loading...</span>}
+                        {showValueInput && (
+                          <input
+                            type="text"
+                            className="business-rule-form-condition-input"
+                            placeholder="Enter value"
+                            value={cond.value}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setConditions((prev) =>
+                                prev.map((c) => c.id === cond.id ? { ...c, value: val } : c)
+                              );
+                            }}
+                          />
+                        )}
+                      </div>
+
+                      <div className="business-rule-form-filter-row-actions">
+                        <button type="button" className="business-rule-form-or-btn">OR</button>
+                        <button
+                          type="button"
+                          className="business-rule-form-filter-row-delete"
+                          onClick={() => handleRemoveCondition(cond.id)}
+                          aria-label="Remove condition"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="br-add-property-wrap">
                   <button

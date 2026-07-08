@@ -1848,6 +1848,26 @@
   }
 }
 
+.business-rule-form-condition-operator {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  outline: none;
+  background: #ffffff;
+
+  &:focus {
+    border-color: #00368c;
+    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.08);
+  }
+}
+
+.business-rule-form-condition-loading {
+  font: normal normal 500 12px/1.3 $font-primary;
+  color: #9ca3af;
+}
+
 .business-rule-form-condition-remove {
   background: none;
   border: none;

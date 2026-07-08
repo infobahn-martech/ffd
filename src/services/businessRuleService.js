@@ -30,7 +30,10 @@ const getLinkCardPossibleActions = ({ params } = {}) =>
 const getLinkCardPossibleActionOperators = ({ params } = {}) =>
   Gateway.get('/business_rule/get_link_card_possible_action_operators', { params });
 
+const getFieldDetails = (fieldType, fieldId) =>
+  Gateway.get(`/business_rule/get_field_details/${fieldType}/${fieldId}`);
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getBusinessRules, getTriggerConfig,
-  getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators,
+  getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
 };

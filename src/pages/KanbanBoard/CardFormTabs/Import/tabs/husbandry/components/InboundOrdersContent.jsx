@@ -1265,13 +1265,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           <div>
             <div className="dispatch-section-header">
               <h3 className="dispatch-edit-section-title">Order Details</h3>
-              <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                Add New Order
-              </button>
             </div>
 
             {formData.orders.map((order, index) => (
@@ -1279,13 +1272,25 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <div className="dispatch-edit-item-header" onClick={() => toggleOrderExpand(order.id)}>
                   <span className="dispatch-edit-item-label">Order {index + 1}</span>
                   <div className="dispatch-item-actions">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleAddNewOrder(); }}
+                      className="dispatch-order-icon-btn"
+                      title="Add order"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </button>
                     {formData.orders.length > 1 && (
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handleRemoveOrder(order.id); }}
-                        className="dispatch-remove-order-btn"
+                        className="dispatch-order-icon-btn dispatch-order-icon-btn--delete"
+                        title="Remove order"
                       >
-                        Remove
+                        <img src={deleteIcon} alt="delete" />
                       </button>
                     )}
                     <svg
@@ -1498,17 +1503,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
 
-                    {!editingOrder && (
-                      <div className="dispatch-item-footer">
-                        <button type="button" onClick={handleAddNewOrder} className="dispatch-add-order-btn--sm">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                          Add Order
-                        </button>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
