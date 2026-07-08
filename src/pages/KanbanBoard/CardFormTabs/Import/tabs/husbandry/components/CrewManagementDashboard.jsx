@@ -6,14 +6,27 @@ import CrewServiceSelectModal from "./CrewServiceSelectModal";
 import CrewServiceListing from "./CrewServiceListing";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import callFileService from "../../../../../../../services/callFileService";
+import { notify } from "../../../../../../../components/Toaster";
 
+// `hasServiceForm: false` means there's no existing content component to
+// navigate to yet — Request just confirms the submission and returns to the
+// dashboard instead of calling onNavigateToTab (see handleRequestService).
 const CREW_SERVICE_CARDS = [
+  {
+    id: "crewChange",
+    tabName: "crewChange",
+    label: "Crew Change",
+    description: "Request and track crew change movements for sign on/off.",
+    crewField: "crewChangeSelectedCrew",
+    hasServiceForm: false,
+  },
   {
     id: CREW_MANAGEMENT_SUBTABS.TRANSPORT,
     tabName: "transport",
     label: "Transport",
     description: "Arrange crew pickup and drop-off transport for sign on/off movements.",
     crewField: "selectedCrew",
+    hasServiceForm: true,
   },
   {
     id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE,
@@ -21,6 +34,7 @@ const CREW_SERVICE_CARDS = [
     label: "Medical",
     description: "Coordinate medical checks, clinic visits and health clearance for crew.",
     crewField: "medicalServiceSelectedCrew",
+    hasServiceForm: true,
   },
   {
     id: CREW_MANAGEMENT_SUBTABS.HOTEL,
@@ -28,27 +42,15 @@ const CREW_SERVICE_CARDS = [
     label: "Hotel",
     description: "Book crew accommodation and manage hotel stay arrangements.",
     crewField: "hotelSelectedCrew",
+    hasServiceForm: true,
   },
   {
-    id: CREW_MANAGEMENT_SUBTABS.CG_PASS,
-    tabName: "cgPass",
-    label: "CG Pass",
-    description: "Raise and track Coast Guard pass requests for crew movement.",
-    crewField: "cgPassSelectedCrew",
-  },
-  {
-    id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS,
-    tabName: "zawilPass",
-    label: "Zawil Pass",
-    description: "Raise and track Zawil pass requests for crew movement.",
-    crewField: "zawilPassSelectedCrew",
-  },
-  {
-    id: "LAUNCH_HIRE",
-    tabName: "launchHire",
-    label: "Launch Hire",
-    description: "Book launch transfers for crew change and related movements.",
-    crewField: "launchHireSelectedCrew",
+    id: "portPass",
+    tabName: "portPass",
+    label: "Port Pass",
+    description: "Raise and track port pass requests for crew movement.",
+    crewField: "portPassSelectedCrew",
+    hasServiceForm: false,
   },
 ];
 
@@ -248,7 +250,12 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleRequestService = () => {
     if (!activeCrewListingService) return;
-    onNavigateToTab?.(activeCrewListingService.tabName);
+    if (activeCrewListingService.hasServiceForm) {
+      onNavigateToTab?.(activeCrewListingService.tabName);
+    } else {
+      // No existing form for this service yet — just confirm the request.
+      notify(`${activeCrewListingService.label} request submitted.`, "success");
+    }
     setShowCrewListingView(false);
     setActiveCrewListingService(null);
   };
@@ -256,14 +263,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const handleBackToDashboardFromListing = () => {
     setShowCrewListingView(false);
     setActiveCrewListingService(null);
-  };
-
-  const handleRemoveCrewFromListing = (crewId) => {
-    if (!activeCrewListingService) return;
-    const tabName = activeCrewListingService.tabName;
-    const updatedIds = (selectedServiceCrewMap[tabName] || []).filter((id) => id !== crewId);
-    setSelectedServiceCrewMap((prev) => ({ ...prev, [tabName]: updatedIds }));
-    handleChange(activeCrewListingService.crewField)({ target: { value: updatedIds } });
   };
 
   const crewWithIds = uploadedCrewList.map((crew, index) => ({
@@ -296,7 +295,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         cardColor={cardColor}
         onBack={handleBackToDashboardFromListing}
         onRequest={handleRequestService}
-        onRemoveCrew={handleRemoveCrewFromListing}
       />
     );
   }

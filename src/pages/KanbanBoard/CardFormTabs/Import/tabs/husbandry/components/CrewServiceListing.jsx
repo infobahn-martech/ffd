@@ -14,7 +14,7 @@ const getField = (crew, ...keys) => {
 
 // Read-only table of the crew already selected for one service — shown
 // right after "Select Crew" submit, before the existing service form opens.
-const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, onRemoveCrew }) => {
+const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest }) => {
   const [page, setPage] = useState(1);
 
   const totalItems = crewRows.length;
@@ -84,9 +84,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, o
                     <th>Passport Number</th>
                     <th>Iqama</th>
                     <th>Visa Number</th>
-                    <th>Service</th>
                     <th>Status</th>
-                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -98,18 +96,8 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, o
                       <td>{getField(crew, "passport_no", "passportNo")}</td>
                       <td>{getField(crew, "iqama_no", "iqamaNumber")}</td>
                       <td>{getField(crew, "visa_no", "visaNumber")}</td>
-                      <td>{service.label}</td>
                       <td>
                         <span className="crew-listing-status-badge booked-status-pending">Pending</span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="crew-listing-remove-btn"
-                          onClick={() => onRemoveCrew(id)}
-                        >
-                          Remove
-                        </button>
                       </td>
                     </tr>
                   ))}
@@ -173,7 +161,6 @@ CrewServiceListing.propTypes = {
   cardColor: PropTypes.string,
   onBack: PropTypes.func.isRequired,
   onRequest: PropTypes.func.isRequired,
-  onRemoveCrew: PropTypes.func.isRequired,
 };
 
 export default CrewServiceListing;
