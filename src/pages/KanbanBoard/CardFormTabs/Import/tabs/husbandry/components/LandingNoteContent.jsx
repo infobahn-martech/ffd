@@ -136,6 +136,9 @@ const emptyConvertItem = () => ({
   orderNo: "",
   poDo: "",
   quantity: "",
+  maxQty: null,
+  dispatchedQty: null,
+  dispatchStatus: "",
   packageType: "",
   description: "",
   slot: "",
@@ -184,6 +187,9 @@ const buildDispatchConvertOrders = (note, vehicleOpts = [], locationOpts = [], d
     const repackingPallets = toNonNegativeIntegerString(item.repacking_pallets ?? item.repacking?.pallets);
     const repackingRolls = toNonNegativeIntegerString(item.repacking_rolls ?? item.repacking?.rolls);
     const transportation = getTransportation(item);
+    const remainingQtyRaw = item.remaining_qty;
+    const hasRemainingQty = remainingQtyRaw !== undefined && remainingQtyRaw !== null && remainingQtyRaw !== "";
+    const maxQty = hasRemainingQty ? Number(remainingQtyRaw) : (item.quantity ? Number(item.quantity) : null);
     const hasTransportData = Boolean(transportation) && Boolean(
       transportation.vehicle_type_id || transportation.vehicle_type_name ||
       transportation.from_location_id || transportation.from_location_name ||
@@ -196,7 +202,10 @@ const buildDispatchConvertOrders = (note, vehicleOpts = [], locationOpts = [], d
       landing_note_item_id: getLandingNoteItemId(item),
       orderNo: item.order_no || note?.landingNoteNo || note?.landing_note_no || "",
       poDo: item.po_no || note?.poDo || "",
-      quantity: item.quantity ? String(item.quantity) : "",
+      quantity: hasRemainingQty ? String(remainingQtyRaw) : (item.quantity ? String(item.quantity) : ""),
+      maxQty,
+      dispatchedQty: item.dispatched_qty ?? null,
+      dispatchStatus: item.status ?? "",
       packageType: String(item.package_type_id || ""),
       description: item.description || "",
       slot: normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id),
@@ -823,7 +832,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!convertFormData.delivery_location) errors.delivery_location = "Delivery location is required";
     if (!convertFormData.delivered_to) errors.delivered_to = "Deliver to is required";
     convertFormData.orders.forEach((order, idx) => {
-      if (!order.quantity) errors[`co${idx}_quantity`] = "Quantity is required";
+      if (!order.quantity) {
+        errors[`co${idx}_quantity`] = "Quantity is required";
+      } else if (order.maxQty != null && Number(order.quantity) > order.maxQty) {
+        errors[`co${idx}_quantity`] = `Quantity cannot exceed available quantity (${order.maxQty})`;
+      }
     });
     setConvertFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1389,25 +1402,30 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   <div className="landing-convert-order-body">
                     {/* Order Info */}
                     <div className="row g-2 mb-2">
-                      <div className="col-md-4">
+                      <div className="col-md-6">
                         <FormField label="Order No">
                           <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." />
                         </FormField>
                       </div>
-                      <div className="col-md-4">
+                      <div className="col-md-6">
                         <FormField label="PO/DO">
                           <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." />
                         </FormField>
                       </div>
-                      <div className="col-md-4">
-                        <FormField label="Quantity *">
-                          <FormInput type="text" inputMode="numeric" value={order.quantity} onChange={(e) => { const val = e.target.value; if (val === "" || /^\d+$/.test(val)) { handleConvertOrderChange(order.id, "quantity", val); setConvertFormErrors((p) => { const n = { ...p }; delete n[`co${index}_quantity`]; return n; }); } }} placeholder="Quantity..." className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""} />
-                          {convertFormErrors[`co${index}_quantity`] && <span className="landing-convert-error">{convertFormErrors[`co${index}_quantity`]}</span>}
-                        </FormField>
-                      </div>
-                      <div className="col-md-6">
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-8">
                         <FormField label="Description">
                           <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." />
+                        </FormField>
+                      </div>
+                      <div className="col-md-4">
+                        <FormField label="Dispatch Quantity *">
+                          <FormInput type="text" inputMode="numeric" value={order.quantity} onChange={(e) => { const val = e.target.value; if (val === "" || /^\d+$/.test(val)) { handleConvertOrderChange(order.id, "quantity", val); setConvertFormErrors((p) => { const n = { ...p }; delete n[`co${index}_quantity`]; return n; }); } }} placeholder="Quantity..." className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""} />
+                          {order.maxQty != null && (
+                            <div className="landing-convert-qty-max text-end">Max: {order.maxQty}</div>
+                          )}
+                          {convertFormErrors[`co${index}_quantity`] && <span className="landing-convert-error">{convertFormErrors[`co${index}_quantity`]}</span>}
                         </FormField>
                       </div>
                     </div>
