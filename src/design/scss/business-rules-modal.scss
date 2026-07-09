@@ -1913,13 +1913,18 @@
   gap: 10px;
 }
 
-.br-property-board-select-wrap {
+.br-property-board-picker-wrap {
   flex: 1;
+}
 
-  .business-rule-form-select {
-    height: 40px;
-    padding: 8px 40px 8px 14px;
-  }
+.br-property-board-trigger {
+  height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.br-property-board-picker-panel {
+  width: 100%;
 }
 
 .br-property-board-clear-btn {

@@ -308,36 +308,54 @@ export const DUMMY_BOARD_SWIMLANES = [
   { id: 12, name: 'New Swimlane', colorCode: '#e2e8f0' },
 ];
 
-// Dev-only fallback data for the "Board Minimap" board picker, used when the
-// real workspace/board endpoint returns nothing (e.g. local dev without a live backend).
+// Dev-only sample workspace/board groups appended after the real API results in the
+// board picker, so the picker has enough groups/tiles to test scrolling and layout
+// even when the connected backend only has a couple of real workspaces set up.
+// IDs are namespaced ('dummy-...') so they can never collide with a real workspace/board id.
 export const DUMMY_WORKSPACE_BOARDS = [
   {
-    workspace_id: 1,
+    workspace_id: 'dummy-ws-1',
     workspace_name: 'SEDRES - CHANDLING - WORK SPACE',
     boards: [
-      { board_id: 1, board_name: 'CHANDLING OPERATIONS' },
-      { board_id: 2, board_name: 'FROZEN' },
-      { board_id: 3, board_name: 'LOGISTICS' },
-      { board_id: 4, board_name: 'DRY AND CABIN ITEMS' },
-      { board_id: 5, board_name: 'DN' },
-      { board_id: 6, board_name: 'CHILLER' },
-      { board_id: 7, board_name: 'SUPER MARKET MAIN BOARD' },
+      { board_id: 'dummy-board-1', board_name: 'CHANDLING OPERATIONS' },
+      { board_id: 'dummy-board-2', board_name: 'FROZEN' },
+      { board_id: 'dummy-board-3', board_name: 'LOGISTICS' },
+      { board_id: 'dummy-board-4', board_name: 'DRY AND CABIN ITEMS' },
+      { board_id: 'dummy-board-5', board_name: 'DN' },
+      { board_id: 'dummy-board-6', board_name: 'CHILLER' },
+      { board_id: 'dummy-board-7', board_name: 'SUPER MARKET MAIN BOARD' },
     ],
   },
   {
-    workspace_id: 2,
+    workspace_id: 'dummy-ws-2',
     workspace_name: 'New Offshore Marine Logistics',
     boards: [
-      { board_id: 8, board_name: 'Rastanura/ Dammam Operations' },
-      { board_id: 9, board_name: 'Jubail Operations' },
-      { board_id: 10, board_name: 'Centralized DA DESK' },
+      { board_id: 'dummy-board-8', board_name: 'Rastanura/ Dammam Operations' },
+      { board_id: 'dummy-board-9', board_name: 'Jubail Operations' },
+      { board_id: 'dummy-board-10', board_name: 'Centralized DA DESK' },
     ],
   },
   {
-    workspace_id: 3,
+    workspace_id: 'dummy-ws-3',
     workspace_name: 'Limousine',
     boards: [
-      { board_id: 11, board_name: 'Coordinator Transport' },
+      { board_id: 'dummy-board-11', board_name: 'Coordinator Transport' },
+    ],
+  },
+  {
+    workspace_id: 'dummy-ws-4',
+    workspace_name: 'Bunkering Services',
+    boards: [
+      { board_id: 'dummy-board-12', board_name: 'Bunker Operations' },
+      { board_id: 'dummy-board-13', board_name: 'Fuel Delivery' },
+    ],
+  },
+  {
+    workspace_id: 'dummy-ws-5',
+    workspace_name: 'Documentation',
+    boards: [
+      { board_id: 'dummy-board-14', board_name: 'Customs Clearance' },
+      { board_id: 'dummy-board-15', board_name: 'Port Documentation' },
     ],
   },
 ];
