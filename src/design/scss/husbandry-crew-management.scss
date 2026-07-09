@@ -2065,7 +2065,19 @@
   width: calc(100% - 32px);
 }
 
+/* Overrides the global, unscoped `.modal-header { margin-right: 21px }`
+   from prospect-modal.scss — this modal's header already spans full width
+   via .crew-service-select-modal__header, so the inherited margin just
+   pushed it off-center. */
+.crew-service-select-modal-dialog .modal-header {
+  margin-right: 0;
+}
+
 .crew-service-select-modal-dialog .modal-content {
+  /* Overrides the global, unscoped `.modal-content { padding: 46px }` from
+     prospect-modal.scss — this modal's header/body/footer already carry
+     their own padding, so the inherited 46px doubled it up. */
+  padding: 0;
   border-radius: 20px;
   /* No overflow:hidden here — the multi-select dropdown must be able to
      escape the rounded box below the field instead of being clipped. */
@@ -2091,7 +2103,6 @@
   border-bottom: 1px solid #edf1f7;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 1) 0%, rgba(246, 249, 255, 0.8) 100%);
 }
 
 .crew-service-select-modal__header-main {
@@ -2238,9 +2249,8 @@
 .crew-select-table thead th {
   background: #eef2ff !important;
   color: #4338ca !important;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 10px 12px !important;
   border: none !important;
