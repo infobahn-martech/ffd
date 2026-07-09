@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import businessRuleService from '../services/businessRuleService';
 
+// Guards getCustomFields against out-of-order responses: if the board/disabled/search
+// filters change again before an in-flight request resolves, an older response landing
+// after the newer one would otherwise silently overwrite the store with stale data.
+let customFieldsRequestId = 0;
+
 const useBusinessRuleReducer = create((set) => ({
     isLoadingGet: false,
     triggerTypes: [],
@@ -54,14 +59,17 @@ const useBusinessRuleReducer = create((set) => ({
     customFields: [],
 
     getCustomFields: async ({ params } = {}) => {
+        const requestId = ++customFieldsRequestId;
         try {
             set({ isLoadingCustomFields: true });
             const { data } = await businessRuleService.getCustomFields({ params });
+            if (requestId !== customFieldsRequestId) return;
             set({
                 customFields: data?.data ?? [],
                 isLoadingCustomFields: false,
             });
         } catch (err) {
+            if (requestId !== customFieldsRequestId) return;
             set({ customFields: [], isLoadingCustomFields: false });
         }
     },

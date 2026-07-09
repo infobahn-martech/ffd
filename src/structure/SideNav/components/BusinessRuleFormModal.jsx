@@ -71,19 +71,21 @@ const getPropertyDotColor = (idx) => PROPERTY_DOT_COLORS[idx % PROPERTY_DOT_COLO
 function useCustomFieldsByTrigger({ show, triggerTypeId, boardId, showDisabled, search }) {
   const { customFields, isLoadingCustomFields, getCustomFields } = useBusinessRuleReducer((s) => s);
 
-  useEffect(() => {
-    if (!show) return;
-    getCustomFields({ params: { board_ids: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, trigger_type_id: triggerTypeId } });
-  }, [show]);
-
+  // A single effect (instead of a separate "on open" + "on filter change" pair) so
+  // toggling the board/disabled/search filters right after opening can't race an
+  // in-flight initial fetch and have a stale, unfiltered response win.
   useEffect(() => {
     if (!show) return;
     getCustomFields({ params: { board_ids: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, search: search || undefined, trigger_type_id: triggerTypeId } });
-  }, [boardId, showDisabled, search, triggerTypeId]);
+  }, [show, boardId, showDisabled, search, triggerTypeId]);
 
-  // The backend returns enabled+disabled fields together when show_disabled=1
-  // (it doesn't filter down to disabled-only), so narrow to disabled fields here.
-  const scopedCustomFields = showDisabled
+  // Some backend responses include a per-field `disabled` flag and return
+  // enabled+disabled together for show_disabled=1 (needs narrowing here); others
+  // scope the response to disabled-only server-side and never send that flag at all.
+  // Only narrow when the flag is actually present, so we don't zero out an already
+  // correctly-scoped response.
+  const hasDisabledFlag = customFields.some((field) => Object.prototype.hasOwnProperty.call(field, 'disabled'));
+  const scopedCustomFields = showDisabled && hasDisabledFlag
     ? customFields.filter((field) => Number(field.disabled) === 1)
     : customFields;
 
@@ -176,7 +178,7 @@ function BoardFilterPicker({ workspaces, value, onChange, wrapClassName, trigger
                     {ws.boards.map((board) => (
                       <button
                         type="button"
-                        key={board.board_id}
+                        key={`${ws.workspace_id}-${board.board_id}`}
                         className={`board-minimap-picker-tile${String(board.board_id) === String(value) ? ' board-minimap-picker-tile--selected' : ''}`}
                         onClick={() => handlePick(board)}
                       >
@@ -303,7 +305,14 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   // Dev-only fallback so the modal can be visually tested without a live backend.
   const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
   const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
@@ -1083,7 +1092,14 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   });
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
@@ -1433,7 +1449,14 @@ function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   });
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   useEffect(() => {
     if (!show) return;
@@ -1620,7 +1643,14 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
 
   const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
   const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   useEffect(() => {
     if (!show) return;
