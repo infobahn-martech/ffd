@@ -191,9 +191,9 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
 
           <div className="mb-lg-3 mb-sm-0">
             <div className="transport-field">
-              <div className="phone-wrapper">
+              <div className="phone-wrapper phone-wrapper--notched">
                 <label className="phone-label">
-                  Contact no <span className="text-danger">*</span>
+                  Contact Number <span className="text-danger">*</span>
                 </label>
                 <Controller
                   name="contact_no"

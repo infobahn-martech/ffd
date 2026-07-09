@@ -8,20 +8,57 @@ $primary-font: "Manrope", sans-serif;
     font-weight: 400;
   }
 
+  /* Company-level Contact Number — label sits on the border like the
+     Transport company / Email floating labels, instead of stacked above
+     the field. */
+  .phone-wrapper--notched {
+    position: relative;
+    margin-top: 0px;
+  }
+
+  .phone-wrapper--notched .phone-label {
+    position: absolute;
+    top: -9px;
+    left: 12px;
+    margin: 0;
+    padding: 0 6px;
+    background: $white;
+    color: $txtColor;
+    z-index: 1;
+  }
+
   .phone-wrapper .phone-input {
-    border: 1px solid #e2e2ea !important;
+    border: 1px solid $borderLight !important;
+    border-radius: 6px !important;
     box-shadow: none !important;
   }
 
   .phone-wrapper .phone-input:focus,
   .phone-wrapper .phone-input:hover {
-    border-color: #e2e2ea !important;
+    border-color: $borderLight !important;
     box-shadow: none !important;
   }
 
   .phone-wrapper .selected-flag:focus:before,
   .phone-wrapper .selected-flag.open:before {
-    border-color: #e2e2ea !important;
+    border-color: $borderLight !important;
     box-shadow: none !important;
+  }
+
+  /* Contact Number — match the Email/Transport company field's actual
+     border (role-modal-sm overrides desig-inp to #e2e2ea) and radius. */
+  .phone-wrapper--notched .phone-input {
+    border-color: #e2e2ea !important;
+    border-radius: 12px !important;
+  }
+
+  .phone-wrapper--notched .phone-input:focus,
+  .phone-wrapper--notched .phone-input:hover {
+    border-color: #e2e2ea !important;
+  }
+
+  .phone-wrapper--notched .selected-flag:focus:before,
+  .phone-wrapper--notched .selected-flag.open:before {
+    border-color: #e2e2ea !important;
   }
 }
