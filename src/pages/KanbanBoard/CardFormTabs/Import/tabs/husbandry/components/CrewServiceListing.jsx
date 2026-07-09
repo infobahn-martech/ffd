@@ -97,8 +97,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, b
                   <th>Crew Name</th>
                   <th>Rank</th>
                   <th>Nationality</th>
-                  <th>Passport Number</th>
-                  <th>Iqama</th>
+                  <th>Passport / Iqama</th>
                   <th>Visa Number</th>
                   <th>Status</th>
                 </tr>
@@ -109,8 +108,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, b
                     <td>{getField(crew, "crew_name", "crewName", "name")}</td>
                     <td>{getField(crew, "rank")}</td>
                     <td>{getField(crew, "nationality")}</td>
-                    <td>{getField(crew, "passport_no", "passportNo")}</td>
-                    <td>{getField(crew, "iqama_no", "iqamaNumber")}</td>
+                    <td>{`${getField(crew, "passport_no", "passportNo")} / ${getField(crew, "iqama_no", "iqamaNumber")}`}</td>
                     <td>{getField(crew, "visa_no", "visaNumber")}</td>
                     <td>
                       <span className="crew-listing-status-badge booked-status-pending">Pending</span>
