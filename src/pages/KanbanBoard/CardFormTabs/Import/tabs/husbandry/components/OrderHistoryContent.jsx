@@ -16,8 +16,6 @@ const formatDate = (dateStr) => {
   });
 };
 
-const stripHtml = (value) => (value ? String(value).replace(/<[^>]*>/g, "").trim() : "");
-
 const FieldRow = ({ label, value }) => (
   <div className="order-history-field">
     <span className="order-history-field-label">{label}</span>
@@ -121,7 +119,7 @@ const OrderHistoryContent = ({ formValues, cardColor }) => {
               <FieldRow label="Document No" value={dispatchNote.document_no} />
               <FieldRow label="Date" value={formatDate(dispatchNote.dispatch_date || dispatchNote.date)} />
               <FieldRow label="Delivered To" value={dispatchNote.delivered_to} />
-              <FieldRow label="Remarks" value={stripHtml(dispatchNote.remarks)} />
+              <FieldRow label="Quantity" value={dispatchNote.quantity} />
             </div>
           ) : (
             <p className="order-history-not-created">Not created yet.</p>
