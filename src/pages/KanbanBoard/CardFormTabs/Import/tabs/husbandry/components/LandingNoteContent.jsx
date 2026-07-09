@@ -13,6 +13,7 @@ import editIcon from "../../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../../assets/images/eye.svg";
 import useLandingNoteReducer from "../../../../../../../store/LandingNoteReducer";
+import useDispatchNoteReducer from "../../../../../../../store/DispatchNoteReducer";
 import useAlertReducer from "../../../../../../../store/AlertReducer";
 import logisticsWarehouseService from "../../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../../services/vehicleService";
@@ -244,6 +245,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     convertLandingNote,
     getAllLandingNotes,
+    getLandingNotesTotal,
     getLandingNoteById,
     updateLandingNote,
     landingNotes,
@@ -524,7 +526,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       data: fd,
       cb: () => {
         handleCloseModal();
-        if (callId) getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+        if (callId) {
+          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+          getLandingNotesTotal({ call_id: callId });
+        }
       },
     });
   };
@@ -891,7 +896,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       data: fd,
       cb: () => {
         handleCloseConvertModal();
-        if (callId) getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+        if (callId) {
+          getAllLandingNotes({ call_id: callId, page: landingPage, limit: LANDING_LIMIT });
+          getLandingNotesTotal({ call_id: callId });
+          useDispatchNoteReducer.getState().getDispatchNotesTotal({ call_id: callId });
+        }
       },
     });
   };

@@ -126,6 +126,7 @@ AttachmentsList.propTypes = {
 const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const {
     getAllDispatchNotes,
+    getDispatchNotesTotal,
     getDispatchNoteById,
     updateDispatchNote,
     printDispatchNote,
@@ -433,7 +434,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       data: fd,
       cb: () => {
         handleCloseModal();
-        if (callId) getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
+        if (callId) {
+          getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
+          getDispatchNotesTotal({ call_id: callId });
+        }
       },
     });
   };
@@ -451,7 +455,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       cb: () => {
         setShowDeleteModal(false);
         setDeletingNote(null);
-        if (callId) getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
+        if (callId) {
+          getAllDispatchNotes({ call_id: callId, page: dispatchPage, limit: DISPATCH_LIMIT });
+          getDispatchNotesTotal({ call_id: callId });
+        }
       },
     });
   };
