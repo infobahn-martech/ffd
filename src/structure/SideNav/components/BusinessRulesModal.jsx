@@ -344,6 +344,10 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                   <div className="business-rules-empty-state">No rule types found</div>
                 )}
               </div>
+
+              <div className="br-picker-footer">
+                Available business rules {businessRuleStats.available} / Created business rules {businessRuleStats.created} / Enabled business rules {businessRuleStats.enabled} / Visible business rules {businessRuleStats.visible}
+              </div>
             </div>
             </>
           )}
