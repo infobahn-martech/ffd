@@ -1,17 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import PropTypes from "prop-types";
-import CustomModal from "../../../../../../../components/CustomModal";
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
-import eyeIcon from "../../../../../../../assets/images/eye.svg";
 import inboundOrderService from "../../../../../../../services/inboundOrderService";
 import orderHistoryService from "../../../../../../../services/orderHistoryService";
+import "../../../../../../../design/scss/order-history.scss";
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const stripHtml = (value) => (value ? String(value).replace(/<[^>]*>/g, "").trim() : "");
+
+const FieldRow = ({ label, value }) => (
+  <div className="order-history-field">
+    <span className="order-history-field-label">{label}</span>
+    <span className="order-history-field-value">
+      {value !== null && value !== undefined && value !== "" ? value : "—"}
+    </span>
+  </div>
+);
+
+FieldRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
 
 const OrderHistoryContent = ({ formValues, cardColor }) => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [viewingChain, setViewingChain] = useState(null);
-  const [chainLoading, setChainLoading] = useState(false);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const [chainLoadingIds, setChainLoadingIds] = useState(() => new Set());
+  const [chainCache, setChainCache] = useState({});
 
   const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
 
@@ -27,163 +53,83 @@ const OrderHistoryContent = ({ formValues, cardColor }) => {
       .finally(() => setIsLoading(false));
   }, [callId]);
 
-  const handleViewOrder = async (order) => {
-    setViewingChain(null);
-    setChainLoading(true);
-    setShowViewModal(true);
+  const fetchChain = async (inboundId) => {
+    setChainLoadingIds((prev) => new Set(prev).add(inboundId));
     try {
-      const res = await orderHistoryService.getOrderHistory("inbound", order.inbound_id);
-      setViewingChain(res?.data?.data ?? null);
+      const res = await orderHistoryService.getOrderHistory("inbound", inboundId);
+      setChainCache((prev) => ({ ...prev, [inboundId]: res?.data?.data ?? null }));
     } catch {
-      setViewingChain(null);
+      setChainCache((prev) => ({ ...prev, [inboundId]: null }));
     } finally {
-      setChainLoading(false);
+      setChainLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(inboundId);
+        return next;
+      });
     }
   };
 
-  const handleCloseViewModal = () => {
-    setShowViewModal(false);
-    setViewingChain(null);
-  };
+  const toggleExpand = (order) => {
+    const id = order.inbound_id;
+    const isExpanding = !expandedIds.has(id);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "—";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
+
+    if (isExpanding && chainCache[id] === undefined) {
+      fetchChain(id);
+    }
   };
 
-  const renderViewHeader = () => (
-    <h1 className="modal-title">Order History Details</h1>
-  );
-
-  const renderViewBody = () => {
-    if (chainLoading) {
-      return (
-        <div className="modal-body">
-          <CardTabListLoading />
-        </div>
-      );
-    }
-    if (!viewingChain) {
-      return (
-        <div className="modal-body">
-          <p className="note-empty-td">No data available.</p>
-        </div>
-      );
+  const renderChainSections = (order) => {
+    const id = order.inbound_id;
+    if (chainLoadingIds.has(id)) {
+      return <CardTabListLoading message="Loading details..." cardColor={cardColor} />;
     }
 
-    const { inbound, landing_note, dispatch_note } = viewingChain;
+    const chain = chainCache[id];
+    if (!chain) {
+      return <p className="note-empty-td order-history-empty">No details available.</p>;
+    }
+
+    const { landing_note: landingNote, dispatch_note: dispatchNote } = chain;
 
     return (
-      <div className="modal-body">
-        <div className="lead-form">
-          <div className="permInputs row mb-lg-3">
-            <div className="col-12 mb-2">
-              <strong>Inbound Order</strong>
+      <div className="order-history-sections">
+        <div className="order-history-section">
+          <div className="order-history-section-title">Landing Note</div>
+          {landingNote ? (
+            <div className="order-history-fields">
+              <FieldRow label="Document No" value={landingNote.document_no} />
+              <FieldRow label="Date" value={formatDate(landingNote.landing_date || landingNote.date)} />
+              <FieldRow label="Received From" value={landingNote.received_from} />
+              <FieldRow label="Quantity" value={landingNote.quantity} />
             </div>
-            <div className="col-12 mb-3">
-              <div className="cf-field">
-                <label>Document No</label>
-                <div className="cf-input">
-                  <input type="text" value={inbound?.document_no || "—"} readOnly />
-                </div>
-              </div>
-            </div>
-            <div className="col-12 mb-3">
-              <div className="cf-field">
-                <label>Date</label>
-                <div className="cf-input">
-                  <input type="text" value={formatDate(inbound?.date)} readOnly />
-                </div>
-              </div>
-            </div>
-            <div className="col-12 mb-3">
-              <div className="cf-field">
-                <label>Quantity</label>
-                <div className="cf-input">
-                  <input type="text" value={inbound?.quantity ?? "—"} readOnly />
-                </div>
-              </div>
-            </div>
+          ) : (
+            <p className="order-history-not-created">Not created yet.</p>
+          )}
+        </div>
 
-            <div className="col-12 mb-2 mt-2">
-              <strong>Landing Note</strong>
+        <div className="order-history-section">
+          <div className="order-history-section-title">Dispatch Note</div>
+          {dispatchNote ? (
+            <div className="order-history-fields">
+              <FieldRow label="Document No" value={dispatchNote.document_no} />
+              <FieldRow label="Date" value={formatDate(dispatchNote.dispatch_date || dispatchNote.date)} />
+              <FieldRow label="Delivered To" value={dispatchNote.delivered_to} />
+              <FieldRow label="Remarks" value={stripHtml(dispatchNote.remarks)} />
             </div>
-            {landing_note ? (
-              <>
-                <div className="col-12 mb-3">
-                  <div className="cf-field">
-                    <label>Document No</label>
-                    <div className="cf-input">
-                      <input type="text" value={landing_note.document_no || "—"} readOnly />
-                    </div>
-                  </div>
-                </div>
-                <div className="col-12 mb-3">
-                  <div className="cf-field">
-                    <label>Date</label>
-                    <div className="cf-input">
-                      <input type="text" value={formatDate(landing_note.date)} readOnly />
-                    </div>
-                  </div>
-                </div>
-                <div className="col-12 mb-3">
-                  <div className="cf-field">
-                    <label>Received From</label>
-                    <div className="cf-input">
-                      <input type="text" value={landing_note.received_from || "—"} readOnly />
-                    </div>
-                  </div>
-                </div>
-                <div className="col-12 mb-3">
-                  <div className="cf-field">
-                    <label>Quantity</label>
-                    <div className="cf-input">
-                      <input type="text" value={landing_note.quantity ?? "—"} readOnly />
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="col-12 mb-3">
-                <p className="text-muted small">Not created yet.</p>
-              </div>
-            )}
-
-            <div className="col-12 mb-2 mt-2">
-              <strong>Dispatch Note</strong>
-            </div>
-            {dispatch_note ? (
-              <div className="col-12 mb-3">
-                <div className="cf-field">
-                  <label>Document No</label>
-                  <div className="cf-input">
-                    <input type="text" value={dispatch_note.document_no || "—"} readOnly />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="col-12 mb-3">
-                <p className="text-muted small">Not created yet.</p>
-              </div>
-            )}
-          </div>
+          ) : (
+            <p className="order-history-not-created">Not created yet.</p>
+          )}
         </div>
       </div>
     );
   };
-
-  const renderViewFooter = () => (
-    <div className="modal-footer">
-      <button type="button" className="btn btn-secondary" onClick={handleCloseViewModal}>
-        Close
-      </button>
-    </div>
-  );
 
   return (
     <div className="cardform-left-full material-management-content-wrapper" style={{ "--card-color": cardColor }}>
@@ -196,43 +142,57 @@ const OrderHistoryContent = ({ formValues, cardColor }) => {
       <div className="table-wrapper table-responsive material-table-container note-table-container">
         <div className="note-table-scroll">
           {isLoading ? (
-            <CardTabListLoading />
+            <CardTabListLoading message="Loading orders..." cardColor={cardColor} />
           ) : (
             <table className="table table-striped material-table inbound-table note-table">
               <thead className="note-thead">
                 <tr>
+                  <th width="44" className="custom-table-expand-header" aria-label="Expand row" />
                   <th>Inbound Order No</th>
                   <th>Date</th>
                   <th>Status</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length > 0 ? (
-                  orders.map((order) => (
-                    <tr key={order.inbound_id}>
-                      <td>
-                        <div className="material-table-cell">{order.inbound_no || "—"}</div>
-                      </td>
-                      <td>
-                        <div className="material-table-cell">{formatDate(order.inbound_date)}</div>
-                      </td>
-                      <td>
-                        <div className="material-table-cell">{order.status || "—"}</div>
-                      </td>
-                      <td className="note-actions-td">
-                        <div className="material-table-cell note-actions-cell">
-                          <button
-                            type="button"
-                            onClick={() => handleViewOrder(order)}
-                            className="note-action-btn"
-                          >
-                            <img src={eyeIcon} alt="view" className="note-action-icon" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  orders.map((order) => {
+                    const isExpanded = expandedIds.has(order.inbound_id);
+                    return (
+                      <Fragment key={order.inbound_id}>
+                        <tr className="order-history-row">
+                          <td className="custom-table-expand-cell">
+                            <button
+                              type="button"
+                              className="order-history-expand-toggle"
+                              aria-expanded={isExpanded}
+                              aria-label={isExpanded ? "Collapse row" : "Expand row"}
+                              onClick={() => toggleExpand(order)}
+                            >
+                              <span className={`custom-table-expand-chevron${isExpanded ? " is-open" : ""}`} />
+                            </button>
+                          </td>
+                          <td>
+                            <div className="material-table-cell">{order.inbound_no || "—"}</div>
+                          </td>
+                          <td>
+                            <div className="material-table-cell">{formatDate(order.inbound_date)}</div>
+                          </td>
+                          <td>
+                            <div className="material-table-cell">{order.status || "—"}</div>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr className="custom-table-expanded-row">
+                            <td colSpan={4} className="p-0">
+                              <div className="custom-table-expanded-inner">
+                                {renderChainSections(order)}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan="4" className="note-empty-td">
@@ -245,15 +205,6 @@ const OrderHistoryContent = ({ formValues, cardColor }) => {
           )}
         </div>
       </div>
-
-      <CustomModal
-        className="material-management-modal"
-        show={showViewModal}
-        closeModal={handleCloseViewModal}
-        header={renderViewHeader()}
-        body={renderViewBody()}
-        footer={renderViewFooter()}
-      />
     </div>
   );
 };
