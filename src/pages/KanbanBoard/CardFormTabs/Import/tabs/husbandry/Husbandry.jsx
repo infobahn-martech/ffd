@@ -53,6 +53,29 @@ const GATED_SIDEBAR_TABS = {
 const getGatedCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
+// Small back link shown at the top of a gated service's form (Transport /
+// Hotel / Medical) — returns to that service's crew listing table instead of
+// the Crew Management dashboard, by re-arming the same pendingListingSubTab
+// gate used on first entry into the listing.
+const BackToCrewListingLink = ({ cardColor, onClick }) => (
+  <button
+    type="button"
+    className="husbandry-back-link-small"
+    onClick={onClick}
+    style={{ "--card-color": cardColor }}
+  >
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+    <span>Back to Crew Listing</span>
+  </button>
+);
+
+BackToCrewListingLink.propTypes = {
+  cardColor: PropTypes.string,
+  onClick: PropTypes.func.isRequired,
+};
+
 // Service Selection Component
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
   const services = [
@@ -504,12 +527,6 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     handleNavigateToTab(tabName);
   }, [handleNavigateToTab]);
 
-  const handleBackFromSidebarListing = useCallback(() => {
-    setPendingListingSubTab(null);
-    setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
-    setSelectedActionTab(null);
-  }, []);
-
   const handleSidebarListingRequest = useCallback((gatedKey) => {
     const gated = GATED_SIDEBAR_TABS[gatedKey];
     setPendingListingSubTab(null);
@@ -566,11 +583,9 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
 
       return (
         <CrewServiceListing
-          service={{ label: gated.label }}
+          service={{ label: gated.label, tabName: gatedKey }}
           crewRows={crewRows}
           cardColor={cardColor}
-          backLabel="Back to Crew Management"
-          onBack={handleBackFromSidebarListing}
           onRequest={() => handleSidebarListingRequest(gatedKey)}
         />
       );
@@ -589,11 +604,17 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
         );
       case CREW_MANAGEMENT_SUBTABS.TRANSPORT:
         return (
-          <TransportContent
-            formValues={formValues}
-            handleChange={handleChange}
-            cardColor={cardColor}
-          />
+          <>
+            <BackToCrewListingLink
+              cardColor={cardColor}
+              onClick={() => setPendingListingSubTab(CREW_MANAGEMENT_SUBTABS.TRANSPORT)}
+            />
+            <TransportContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
+          </>
         );
       case CREW_MANAGEMENT_SUBTABS.CG_PASS:
         return (
@@ -625,19 +646,31 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
         );
       case CREW_MANAGEMENT_SUBTABS.HOTEL:
         return (
-          <HotelContent
-            formValues={formValues}
-            handleChange={handleChange}
-            cardColor={cardColor}
-          />
+          <>
+            <BackToCrewListingLink
+              cardColor={cardColor}
+              onClick={() => setPendingListingSubTab(CREW_MANAGEMENT_SUBTABS.HOTEL)}
+            />
+            <HotelContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
+          </>
         );
       case CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE:
         return (
-          <MedicalServiceContent
-            formValues={formValues}
-            handleChange={handleChange}
-            cardColor={cardColor}
-          />
+          <>
+            <BackToCrewListingLink
+              cardColor={cardColor}
+              onClick={() => setPendingListingSubTab(CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE)}
+            />
+            <MedicalServiceContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
+          </>
         );
       case "crewChange":
       case "portPass":

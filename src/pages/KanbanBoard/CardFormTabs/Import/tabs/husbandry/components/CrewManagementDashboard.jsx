@@ -333,11 +333,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setActiveCrewListingService(null);
   };
 
-  const handleBackToDashboardFromListing = () => {
-    setShowCrewListingView(false);
-    setActiveCrewListingService(null);
-  };
-
   const crewWithIds = uploadedCrewList.map((crew, index) => ({
     crew,
     index,
@@ -381,7 +376,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         service={activeCrewListingService}
         crewRows={activeServiceCrewRows}
         cardColor={cardColor}
-        onBack={handleBackToDashboardFromListing}
         onRequest={handleRequestService}
       />
     );

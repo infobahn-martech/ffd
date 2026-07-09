@@ -30,7 +30,7 @@ const STATIC_CREW_ROWS = [
 
 // Read-only table of the crew already selected for one service — shown
 // right after "Select Crew" submit, before the existing service form opens.
-const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, backLabel = "Back to Crew Dashboard" }) => {
+const CrewServiceListing = ({ service, crewRows, cardColor, onRequest }) => {
   const [page, setPage] = useState(1);
 
   const displayRows = crewRows.length > 0 ? crewRows : STATIC_CREW_ROWS;
@@ -60,18 +60,6 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onBack, onRequest, b
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
       <div className="husbandry-service-selection-content">
-        <button
-          type="button"
-          className="husbandry-back-link-small"
-          onClick={onBack}
-          style={{ "--card-color": cardColor }}
-        >
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>{backLabel}</span>
-        </button>
-
         <div className="crew-listing-header">
           <div>
             <h2 className="crew-listing-title">{service.label} Crew</h2>
@@ -172,9 +160,7 @@ CrewServiceListing.propTypes = {
     })
   ).isRequired,
   cardColor: PropTypes.string,
-  onBack: PropTypes.func.isRequired,
   onRequest: PropTypes.func.isRequired,
-  backLabel: PropTypes.string,
 };
 
 export default CrewServiceListing;
