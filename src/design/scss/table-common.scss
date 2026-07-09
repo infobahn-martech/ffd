@@ -284,9 +284,10 @@ body {
 .table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 0.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
     overflow: hidden;
     margin-top: 0px;
+    margin-bottom: 0px;
 
     @media($sm-1199) {
         width: 1200px;
@@ -427,6 +428,8 @@ body {
     justify-content: space-between;
     align-items: center;
     background-color: $table-bg-even;
+    border-radius: 0 0 0.5rem 0.5rem;
+    overflow: hidden;
     padding: 5px 24px 4px 54px;
 
     @media($sm-1679) {
