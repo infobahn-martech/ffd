@@ -28,7 +28,7 @@
 
 .tag .text-wrapper {
   color: #ffffff;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   font-size: 8px;
   font-weight: 400;
   left: 0;
@@ -49,7 +49,7 @@
 
 .tag .text-wrapper-2 {
   color: var(--kanban-color-base-black);
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   font-size: 12px;
   font-weight: 400;
   left: 43px;

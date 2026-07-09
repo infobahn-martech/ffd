@@ -86,7 +86,7 @@ const PREVIEW_TABLE_INPUT_STYLE = {
   border: "none",
   outline: "none",
   fontSize: "13px",
-  fontFamily: "\"Open Sans\", sans-serif",
+  fontFamily: "\"Manrope\", sans-serif",
   padding: "6px 10px",
   borderRadius: "4px",
   transition: "all 0.2s ease",
@@ -1680,7 +1680,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   width: "100%",
                   minWidth: "1360px",
                   borderCollapse: "collapse",
-                  fontFamily: "\"Open Sans\", sans-serif",
+                  fontFamily: "\"Manrope\", sans-serif",
                   fontSize: "13px",
                   tableLayout: "fixed"
                 }}>
@@ -1946,7 +1946,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontSize: "13px",
                   color: "#1a1a1a",
                   margin: "0 0 4px 0",
-                  fontFamily: "\"Open Sans\", sans-serif",
+                  fontFamily: "\"Manrope\", sans-serif",
                   fontWeight: "600"
                 }}>
                   Quick Entry Guide
@@ -1955,7 +1955,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontSize: "12px",
                   color: "#666",
                   margin: "0",
-                  fontFamily: "\"Open Sans\", sans-serif",
+                  fontFamily: "\"Manrope\", sans-serif",
                   lineHeight: "1.6"
                 }}>
                   You can type directly into the cells or copy and paste data from Excel (tab-separated). Maximum 5 rows. At least one crew member's name is required.
@@ -1984,7 +1984,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontWeight: "600",
                   cursor: isBeingUpdated ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
-                  fontFamily: "\"Open Sans\", sans-serif",
+                  fontFamily: "\"Manrope\", sans-serif",
                   display: "flex",
                   alignItems: "center",
                   gap: "6px"
@@ -2023,7 +2023,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   cursor: isBeingUpdated ? "not-allowed" : "pointer",
                   opacity: isBeingUpdated ? 0.8 : 1,
                   transition: "all 0.3s ease",
-                  fontFamily: "\"Open Sans\", sans-serif",
+                  fontFamily: "\"Manrope\", sans-serif",
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
