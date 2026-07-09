@@ -8,16 +8,16 @@ const PAGE_SIZE = 5;
 // Management dashboard (same columns/fields) until this modal is wired back
 // up to the real uploaded crew list.
 const STATIC_CREW_ROWS = [
-  { id: "1", crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false, transportCount: 2, hotelCount: 0, medicalCount: 0 },
-  { id: "2", crewId: 2, crewName: "John Smith", nationality: "United Kingdom", rank: "Master", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: true, transportCount: 0, hotelCount: 1, medicalCount: 0 },
-  { id: "3", crewId: 3, crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", movementType: "Sign On", passport: false, iqama: true, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 1 },
-  { id: "4", crewId: 4, crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", movementType: "Sign Off", passport: true, iqama: true, visa: true, cgPass: true, zawilPass: true, transportCount: 1, hotelCount: 1, medicalCount: 0 },
-  { id: "5", crewId: 5, crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", movementType: "Sign On", passport: false, iqama: false, visa: false, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
-  { id: "6", crewId: 6, crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 3, hotelCount: 0, medicalCount: 0 },
-  { id: "7", crewId: 7, crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 2, medicalCount: 0 },
-  { id: "8", crewId: 8, crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", movementType: "Sign Off", passport: false, iqama: true, visa: true, cgPass: true, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 2 },
-  { id: "9", crewId: 9, crewName: "Fatima Al-Sayed", nationality: "Egypt", rank: "Bosun", movementType: "Sign On", passport: true, iqama: true, visa: true, cgPass: false, zawilPass: true, transportCount: 1, hotelCount: 0, medicalCount: 0 },
-  { id: "10", crewId: 10, crewName: "Lucas Silva", nationality: "Brazil", rank: "Oiler", movementType: "Sign Off", passport: false, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
+  { id: "1", crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false },
+  { id: "2", crewId: 2, crewName: "John Smith", nationality: "United Kingdom", rank: "Master", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: true },
+  { id: "3", crewId: 3, crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", movementType: "Sign On", passport: false, iqama: true, visa: true, cgPass: false, zawilPass: false },
+  { id: "4", crewId: 4, crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", movementType: "Sign Off", passport: true, iqama: true, visa: true, cgPass: true, zawilPass: true },
+  { id: "5", crewId: 5, crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", movementType: "Sign On", passport: false, iqama: false, visa: false, cgPass: false, zawilPass: false },
+  { id: "6", crewId: 6, crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: false },
+  { id: "7", crewId: 7, crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: false, zawilPass: false },
+  { id: "8", crewId: 8, crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", movementType: "Sign Off", passport: false, iqama: true, visa: true, cgPass: true, zawilPass: false },
+  { id: "9", crewId: 9, crewName: "Fatima Al-Sayed", nationality: "Egypt", rank: "Bosun", movementType: "Sign On", passport: true, iqama: true, visa: true, cgPass: false, zawilPass: true },
+  { id: "10", crewId: 10, crewName: "Lucas Silva", nationality: "Brazil", rank: "Oiler", movementType: "Sign Off", passport: false, iqama: false, visa: true, cgPass: false, zawilPass: false },
 ];
 
 // Read-only doc status icon — green preview icon when available, blank cell
@@ -46,54 +46,6 @@ const DocStatusIcon = ({ available, label }) => {
 
 DocStatusIcon.propTypes = {
   available: PropTypes.bool,
-  label: PropTypes.string.isRequired,
-};
-
-const CarIcon = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M5 17H4C3.46957 17 2.96086 16.7893 2.58579 16.4142C2.21071 16.0391 2 15.5304 2 15V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H5M5 17H19M5 17V19C5 19.5304 4.78929 20.0391 4.41421 20.4142C4.03914 20.7893 3.53043 21 3 21C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V17M19 17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V11C22 10.4696 21.7893 9.96086 21.4142 9.58579C21.0391 9.21071 20.5304 9 20 9H19M19 17V19C19 19.5304 19.2107 20.0391 19.5858 20.4142C19.9609 20.7893 20.4696 21 21 21C21.5304 21 22.0391 20.7893 22.4142 20.4142C22.7893 20.0391 23 19.5304 23 19V17M5 9L7 5H17L19 9M5 9H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-CarIcon.propTypes = { size: PropTypes.number };
-
-const HotelIcon = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 21H21M5 21V7L12 3L19 7V21M5 21H9M19 21H15M9 21V13H15V21M9 21H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-HotelIcon.propTypes = { size: PropTypes.number };
-
-const MedicalIcon = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 8V16M8 12H16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-MedicalIcon.propTypes = { size: PropTypes.number };
-
-const SERVICE_ICONS = { transport: CarIcon, hotel: HotelIcon, medical: MedicalIcon };
-
-// Transport / Hotel / Medical column cell — green service icon when active,
-// blank otherwise. Same visual language as the Crew Summary table.
-const ServiceStatusIcon = ({ type, active, label }) => {
-  if (!active) {
-    return <div className="crew-table-cell crew-service-cell crew-service-cell--empty" aria-hidden="true" />;
-  }
-  const Icon = SERVICE_ICONS[type];
-  return (
-    <div className="crew-table-cell crew-service-cell" aria-label={`${label} assigned`}>
-      <div className="crew-status-icon crew-status-icon--done">
-        <Icon size={14} />
-      </div>
-    </div>
-  );
-};
-
-ServiceStatusIcon.propTypes = {
-  type: PropTypes.oneOf(["transport", "hotel", "medical"]).isRequired,
-  active: PropTypes.bool,
   label: PropTypes.string.isRequired,
 };
 
@@ -230,9 +182,6 @@ const CrewServiceSelectModal = ({
                       <th><span className="crew-th">Visa</span></th>
                       <th><span className="crew-th">CG Pass</span></th>
                       <th><span className="crew-th">Zawil Pass</span></th>
-                      <th><span className="crew-th">Transport</span></th>
-                      <th><span className="crew-th">Hotel</span></th>
-                      <th><span className="crew-th">Medical</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -276,9 +225,6 @@ const CrewServiceSelectModal = ({
                           <td><DocStatusIcon available={row.visa} label="Visa" /></td>
                           <td><DocStatusIcon available={row.cgPass} label="CG Pass" /></td>
                           <td><DocStatusIcon available={row.zawilPass} label="Zawil Pass" /></td>
-                          <td><ServiceStatusIcon type="transport" active={row.transportCount > 0} label="Transport" /></td>
-                          <td><ServiceStatusIcon type="hotel" active={row.hotelCount > 0} label="Hotel" /></td>
-                          <td><ServiceStatusIcon type="medical" active={row.medicalCount > 0} label="Medical" /></td>
                         </tr>
                       );
                     })}
