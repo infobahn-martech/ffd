@@ -369,13 +369,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     type="text"
                     className={`form-control ${errors.username ? "is-invalid" : ""}`}
                     placeholder="Username"
-                    {...register("username", {
-                      required: "Username is required",
-                    })}
+                    {...register("username")}
                   />
-                  <label>
-                    Username <span className="text-danger">*</span>
-                  </label>
+                  <label>Username</label>
                   {errors.username && (
                     <span className="error text-danger">
                       {errors.username.message}
@@ -428,16 +424,14 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Phone <span className="text-danger">*</span>
-                  </label>
+                  <label className="phone-label">Phone</label>
 
                   <Controller
                     name="phone"
                     control={control}
                     rules={{
-                      required: "Phone is required",
                       validate: (value) => {
+                        if (!value) return true;
                         const digits = (value || "").replace(/\D/g, "");
                         return digits.length >= 7 || "Enter a valid phone number";
                       },
@@ -462,13 +456,10 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
               </div>
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Port <span className="text-danger">*</span>
-                  </label>
+                  <label className="phone-label">Port</label>
                   <Controller
                     name="port_id"
                     control={control}
-                    rules={{ required: "Port is required" }}
                     render={({ field }) => (
                       <PremiumSelect
                         value={field.value != null ? String(field.value) : ""}
