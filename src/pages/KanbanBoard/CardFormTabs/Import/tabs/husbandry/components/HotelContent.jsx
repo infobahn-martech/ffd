@@ -53,7 +53,9 @@ const unwrapApiList = (axiosData) => {
 
 const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const requestEmailInputRef = useRef(null);
+  const documentsInputRef = useRef(null);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
+  const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const [hotels, setHotels] = useState([]);
   const [loadingHotels, setLoadingHotels] = useState(false);
   const [isSavingHotel, setIsSavingHotel] = useState(false);
@@ -189,6 +191,52 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("hotelRequestEmail")({ target: { value: [] } });
   };
 
+  const handleDocumentsDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(true);
+  };
+
+  const handleDocumentsDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+  };
+
+  const handleDocumentsDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const current = formValues.hotelDocuments || [];
+      const added = files.map(fileToAttachment);
+      handleChange("hotelDocuments")({ target: { value: [...current, ...added] } });
+    }
+  };
+
+  const handleDocumentsFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const current = formValues.hotelDocuments || [];
+      const added = files.map(fileToAttachment);
+      handleChange("hotelDocuments")({ target: { value: [...current, ...added] } });
+    }
+    if (documentsInputRef.current) {
+      documentsInputRef.current.value = "";
+    }
+  };
+
+  const handleDocumentsRemoveAttachment = (index) => {
+    const current = formValues.hotelDocuments || [];
+    handleChange("hotelDocuments")({ target: { value: current.filter((_, i) => i !== index) } });
+  };
+
   const handleSave = useCallback(async () => {
     if (!callId) {
       notify("Call is required to save a hotel request.", "error", "top-center");
@@ -236,6 +284,16 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       formData.append("request_email", requestEmailFile);
     }
 
+    const documents = formValues.hotelDocuments || [];
+    let docIndex = 0;
+    documents.forEach((attachment) => {
+      const file = attachment?.file ?? attachment;
+      if (file instanceof File) {
+        formData.append(`documents[${docIndex}]`, file);
+        docIndex += 1;
+      }
+    });
+
     setIsSavingHotel(true);
     try {
       const response = await hotelService.createHotelRequest(formData);
@@ -271,8 +329,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="folder" label="Documents" accent={HOTEL_ACCENT}>
-                  <FormField label="Documents">
+                <FormGroup icon="mail" label="Request" accent={HOTEL_ACCENT}>
+                  <FormField label="Request Email">
                     <div className="transport-upload-box">
                       <AttachmentsList
                         attachments={formValues.hotelRequestEmail || []}
@@ -341,6 +399,26 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
                     </FormField>
                   </FieldRow>
+                </FormGroup>
+
+                <FormGroup icon="folder" label="Documents" accent={HOTEL_ACCENT}>
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.hotelDocuments || []}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingDocuments}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={documentsInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                      />
+                    </div>
+                  </FormField>
                 </FormGroup>
 
                 <FormGroup icon="notebook" label="Notes" accent={HOTEL_ACCENT}>
