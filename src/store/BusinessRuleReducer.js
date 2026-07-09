@@ -105,7 +105,7 @@ const useBusinessRuleReducer = create((set) => ({
 
     getTriggerConfig: async (triggerTypeId) => {
         try {
-            set({ isLoadingTriggerConfig: true });
+            set({ isLoadingTriggerConfig: true, triggerConfig: null });
             const { data } = await businessRuleService.getTriggerConfig(triggerTypeId);
             set({
                 triggerConfig: data?.data ?? null,

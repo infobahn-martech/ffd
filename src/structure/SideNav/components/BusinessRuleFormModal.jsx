@@ -3012,7 +3012,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const conditionOperatorPanelRef = useRef(null);
 
   const {
-    getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
+    getTriggerConfig, triggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -3020,6 +3020,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const userProfile = useAuthReducer((s) => s.userProfile);
   const loggedInUserId = userProfile?.user_id ?? userProfile?.userid ?? null;
   const loggedInUserName = userProfile?.name || userProfile?.username || 'You';
+
+  // Drives the AND section from the selected trigger type's own config instead of
+  // always showing the "Card is created" (trigger_type_id 1) layout.
+  const andHeaderText = triggerConfig?.and_header || 'the created card matches this filter';
+  const hasBoardDefaultCondition = (triggerConfig?.default_conditions ?? [])
+    .some((c) => String(c.field_label ?? '').trim().toLowerCase() === 'board');
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -3628,9 +3634,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
             <div className="business-rule-form-column">
               <h3 className="business-rule-form-column-title">AND</h3>
               <div className="business-rule-form-column-card">
-                <p className="business-rule-form-filter-hint">the created card matches this filter</p>
+                <p className="business-rule-form-filter-hint">{andHeaderText}</p>
 
-                {boardConditionRows.length > 0 && (
+                {hasBoardDefaultCondition && boardConditionRows.length > 0 && (
                   <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
                     <span className="business-rule-form-condition-label">Board is</span>
                     {boardConditionRows.map((row) => {
