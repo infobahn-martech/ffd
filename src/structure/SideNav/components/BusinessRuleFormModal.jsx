@@ -14,6 +14,7 @@ import {
   INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES, DUMMY_BOARD_BOTTOM_STAGES,
+  DUMMY_WORKSPACE_BOARDS,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_INTERNAL_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS, INTERNAL_USER_ROLE_OPTIONS,
   DUMMY_LINK_ACTION_OPERATORS, DUMMY_FIELD_OPERATORS,
@@ -70,17 +71,129 @@ const getPropertyDotColor = (idx) => PROPERTY_DOT_COLORS[idx % PROPERTY_DOT_COLO
 function useCustomFieldsByTrigger({ show, triggerTypeId, boardId, showDisabled, search }) {
   const { customFields, isLoadingCustomFields, getCustomFields } = useBusinessRuleReducer((s) => s);
 
+  // A single effect (instead of a separate "on open" + "on filter change" pair) so
+  // toggling the board/disabled/search filters right after opening can't race an
+  // in-flight initial fetch and have a stale, unfiltered response win.
   useEffect(() => {
     if (!show) return;
-    getCustomFields({ params: { board_id: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, trigger_type_id: triggerTypeId } });
-  }, [show]);
+    getCustomFields({ params: { board_ids: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, search: search || undefined, trigger_type_id: triggerTypeId } });
+  }, [show, boardId, showDisabled, search, triggerTypeId]);
+
+  // Some backend responses include a per-field `disabled` flag and return
+  // enabled+disabled together for show_disabled=1 (needs narrowing here); others
+  // scope the response to disabled-only server-side and never send that flag at all.
+  // Only narrow when the flag is actually present, so we don't zero out an already
+  // correctly-scoped response.
+  const hasDisabledFlag = customFields.some((field) => Object.prototype.hasOwnProperty.call(field, 'disabled'));
+  const scopedCustomFields = showDisabled && hasDisabledFlag
+    ? customFields.filter((field) => Number(field.disabled) === 1)
+    : customFields;
+
+  return { customFields: scopedCustomFields, isLoadingCustomFields };
+}
+
+// Anchored, workspace-grouped board picker used everywhere a "board is ..." filter
+// appears (custom field board filter, "Board is" rule condition, ...) — matches the
+// Board Minimap picker's design instead of a plain <select>, which doesn't scale once
+// a workspace has more than a handful of boards.
+function BoardFilterPicker({ workspaces, value, onChange, wrapClassName, triggerClassName, triggerIconSize, panelClassName, placeholder }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+
+  // Dev-only sample groups appended after the real workspaces so the picker has
+  // enough content to test scrolling/layout even with a sparsely-populated backend.
+  const displayWorkspaces = import.meta.env.DEV ? [...workspaces, ...DUMMY_WORKSPACE_BOARDS] : workspaces;
+  const boards = displayWorkspaces.flatMap((w) => w.boards ?? []);
+  const selectedBoard = boards.find((b) => String(b.board_id) === String(value));
+
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredGroups = displayWorkspaces
+    .map((w) => {
+      const wsMatch = w.workspace_name.toLowerCase().includes(filterQuery);
+      const groupBoards = wsMatch
+        ? (w.boards ?? [])
+        : (w.boards ?? []).filter((b) => b.board_name.toLowerCase().includes(filterQuery));
+      return { workspace_id: w.workspace_id, workspace_name: w.workspace_name, boards: groupBoards };
+    })
+    .filter((g) => g.boards.length > 0);
 
   useEffect(() => {
-    if (!show) return;
-    getCustomFields({ params: { board_id: boardId || undefined, show_disabled: showDisabled ? 1 : undefined, search: search || undefined, trigger_type_id: triggerTypeId } });
-  }, [boardId, showDisabled, search, triggerTypeId]);
+    if (!isOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (panelRef.current?.contains(t)) return;
+      if (triggerRef.current?.contains(t)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isOpen]);
 
-  return { customFields, isLoadingCustomFields };
+  const handlePick = (board) => {
+    onChange(board.board_id);
+    setIsOpen(false);
+    setFilterText('');
+  };
+
+  return (
+    <div className={`board-minimap-picker-wrap ${wrapClassName || 'br-property-board-picker-wrap'}`}>
+      <button
+        type="button"
+        ref={triggerRef}
+        className={triggerClassName || 'board-minimap-board-trigger br-property-board-trigger'}
+        onClick={() => setIsOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span>{selectedBoard ? selectedBoard.board_name : (placeholder || 'All Boards')}</span>
+        <FiChevronDown size={triggerIconSize} aria-hidden />
+      </button>
+
+      {isOpen && (
+        <div className={`board-minimap-picker-panel ${panelClassName || 'br-property-board-picker-panel'}`} ref={panelRef}>
+          <div className="board-minimap-picker-search">
+            <FiFilter size={20} className="board-minimap-picker-search-icon" aria-hidden />
+            <input
+              type="text"
+              placeholder="Filter"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          <div className="board-minimap-picker-scroll">
+            {filteredGroups.length === 0 ? (
+              <div className="br-property-picker-empty">No matches</div>
+            ) : (
+              filteredGroups.map((ws) => (
+                <div key={ws.workspace_id} className="board-minimap-picker-group">
+                  <div className="board-minimap-picker-group-head">
+                    <FiUsers size={20} aria-hidden />
+                    <span>{ws.workspace_name}</span>
+                  </div>
+                  <div className="board-minimap-picker-grid">
+                    {ws.boards.map((board) => (
+                      <button
+                        type="button"
+                        key={`${ws.workspace_id}-${board.board_id}`}
+                        className={`board-minimap-picker-tile${String(board.board_id) === String(value) ? ' board-minimap-picker-tile--selected' : ''}`}
+                        onClick={() => handlePick(board)}
+                      >
+                        {board.board_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Rendered via portal to document.body so the tooltip can escape the scrollable
@@ -188,12 +301,18 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   });
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
-  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
 
   // Dev-only fallback so the modal can be visually tested without a live backend.
   const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
   const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
@@ -379,19 +498,11 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
                 <div className="br-property-board-filter">
                   <span className="br-property-board-filter-label">Show fields from board:</span>
                   <div className="br-property-board-filter-row">
-                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
-                      <select
-                        className="business-rule-form-select"
-                        value={selectedBoardId}
-                        onChange={(e) => setSelectedBoardId(e.target.value)}
-                      >
-                        <option value="">All Boards</option>
-                        {boards.map((b) => (
-                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
-                        ))}
-                      </select>
-                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                    </div>
+                    <BoardFilterPicker
+                      workspaces={workspaces ?? []}
+                      value={selectedBoardId}
+                      onChange={setSelectedBoardId}
+                    />
                     <button
                       type="button"
                       className="br-property-board-clear-btn"
@@ -980,9 +1091,15 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
     show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
   });
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
-  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
 
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
@@ -1113,19 +1230,11 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
                 <div className="br-property-board-filter">
                   <span className="br-property-board-filter-label">Show fields from board:</span>
                   <div className="br-property-board-filter-row">
-                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
-                      <select
-                        className="business-rule-form-select"
-                        value={selectedBoardId}
-                        onChange={(e) => setSelectedBoardId(e.target.value)}
-                      >
-                        <option value="">All Boards</option>
-                        {boards.map((b) => (
-                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
-                        ))}
-                      </select>
-                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                    </div>
+                    <BoardFilterPicker
+                      workspaces={workspaces ?? []}
+                      value={selectedBoardId}
+                      onChange={setSelectedBoardId}
+                    />
                     <button
                       type="button"
                       className="br-property-board-clear-btn"
@@ -1339,9 +1448,15 @@ function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
     show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
   });
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
-  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
 
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   useEffect(() => {
     if (!show) return;
@@ -1427,19 +1542,11 @@ function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
                 <div className="br-property-board-filter">
                   <span className="br-property-board-filter-label">Show fields from board:</span>
                   <div className="br-property-board-filter-row">
-                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
-                      <select
-                        className="business-rule-form-select"
-                        value={selectedBoardId}
-                        onChange={(e) => setSelectedBoardId(e.target.value)}
-                      >
-                        <option value="">All Boards</option>
-                        {boards.map((b) => (
-                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
-                        ))}
-                      </select>
-                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                    </div>
+                    <BoardFilterPicker
+                      workspaces={workspaces ?? []}
+                      value={selectedBoardId}
+                      onChange={setSelectedBoardId}
+                    />
                     <button
                       type="button"
                       className="br-property-board-clear-btn"
@@ -1533,11 +1640,17 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   });
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
-  const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
 
   const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
   const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
-  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+  // Only fall back to dummy data in the untouched/no-filter state — once a board,
+  // the disabled toggle, or a search term narrows the results, an empty response is a
+  // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
+  // not masked by an unrelated generic dummy list.
+  const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
+  const displayCustomFields = customFields.length > 0
+    ? customFields
+    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   useEffect(() => {
     if (!show) return;
@@ -1712,19 +1825,11 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
                 <div className="br-property-board-filter">
                   <span className="br-property-board-filter-label">Show fields from board:</span>
                   <div className="br-property-board-filter-row">
-                    <div className="business-rule-form-select-wrap br-property-board-select-wrap">
-                      <select
-                        className="business-rule-form-select"
-                        value={selectedBoardId}
-                        onChange={(e) => setSelectedBoardId(e.target.value)}
-                      >
-                        <option value="">All Boards</option>
-                        {boards.map((b) => (
-                          <option key={b.board_id} value={b.board_id}>{b.board_name}</option>
-                        ))}
-                      </select>
-                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                    </div>
+                    <BoardFilterPicker
+                      workspaces={workspaces ?? []}
+                      value={selectedBoardId}
+                      onChange={setSelectedBoardId}
+                    />
                     <button
                       type="button"
                       className="br-property-board-clear-btn"
@@ -2938,10 +3043,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
-  const [openBoardConditionRowId, setOpenBoardConditionRowId] = useState(null);
-  const [boardConditionFilterText, setBoardConditionFilterText] = useState('');
-  const boardConditionTriggerRef = useRef(null);
-  const boardConditionPanelRef = useRef(null);
   const [openColorConditionId, setOpenColorConditionId] = useState(null);
   const colorConditionTriggerRef = useRef(null);
   const colorConditionPanelRef = useRef(null);
@@ -2966,8 +3067,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
     if (workspaces.length === 0) listAllWorkspaces();
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
-    setOpenBoardConditionRowId(null);
-    setBoardConditionFilterText('');
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags('');
@@ -3014,18 +3113,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [isOwnerPickerOpen]);
-
-  useEffect(() => {
-    if (openBoardConditionRowId == null) return undefined;
-    const onDocMouseDown = (event) => {
-      const t = event.target;
-      if (boardConditionPanelRef.current?.contains(t)) return;
-      if (boardConditionTriggerRef.current?.contains(t)) return;
-      setOpenBoardConditionRowId(null);
-    };
-    document.addEventListener('mousedown', onDocMouseDown);
-    return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [openBoardConditionRowId]);
 
   useEffect(() => {
     if (openColorConditionId == null) return undefined;
@@ -3196,7 +3283,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleClearConditions = () => {
     setConditions([]);
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
-    setOpenBoardConditionRowId(null);
   };
 
   const handleApplyConditionColor = (id, hex) => {
@@ -3379,31 +3465,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const activeInvokeAction = invokeActions.find((a) => a.id === activeInvokeActionId);
 
-  const displayWorkspaces = workspaces ?? [];
-  const conditionBoardFilterQuery = boardConditionFilterText.trim().toLowerCase();
-  const filteredBoardConditionGroups = displayWorkspaces
-    .map((w) => {
-      const wsMatch = w.workspace_name.toLowerCase().includes(conditionBoardFilterQuery);
-      const groupBoards = wsMatch
-        ? (w.boards ?? [])
-        : (w.boards ?? []).filter((b) => b.board_name.toLowerCase().includes(conditionBoardFilterQuery));
-      return { workspace_id: w.workspace_id, workspace_name: w.workspace_name, boards: groupBoards };
-    })
-    .filter((g) => g.boards.length > 0);
-
-  const allConditionBoards = displayWorkspaces.flatMap((w) => w.boards ?? []);
-
-  const getBoardConditionLabel = (boardId) => {
-    if (!boardId) return boardName?.trim() || 'Select board';
-    return allConditionBoards.find((b) => String(b.board_id) === String(boardId))?.board_name ?? 'Select board';
-  };
-
   const handlePickConditionBoard = (rowId, board) => {
     setBoardConditionRows((prev) =>
       prev.map((row) => (row.id === rowId ? { ...row, boardId: board?.board_id ?? '' } : row))
     );
-    setOpenBoardConditionRowId(null);
-    setBoardConditionFilterText('');
   };
 
   const handleRemoveBoardConditionRow = (rowId) => {
@@ -3609,69 +3674,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
                     <span className="business-rule-form-condition-label">Board is</span>
                     {boardConditionRows.map((row) => {
-                      const isOpen = openBoardConditionRowId === row.id;
                       return (
                         <div key={row.id} className="br-board-condition-value-row">
-                          <div className="board-minimap-picker-wrap br-board-condition-wrap">
-                            <button
-                              type="button"
-                              ref={isOpen ? boardConditionTriggerRef : undefined}
-                              className="business-rule-form-condition-value"
-                              onClick={() => {
-                                setBoardConditionFilterText('');
-                                setOpenBoardConditionRowId((prev) => (prev === row.id ? null : row.id));
-                              }}
-                              aria-haspopup="listbox"
-                              aria-expanded={isOpen}
-                            >
-                              {getBoardConditionLabel(row.boardId)}
-                              <FiChevronDown size={16} aria-hidden />
-                            </button>
-
-                            {isOpen && (
-                              <div className="board-minimap-picker-panel br-board-condition-panel" ref={boardConditionPanelRef}>
-                                <div className="board-minimap-picker-search">
-                                  <FiFilter size={20} className="board-minimap-picker-search-icon" aria-hidden />
-                                  <input
-                                    type="text"
-                                    placeholder="Filter"
-                                    value={boardConditionFilterText}
-                                    onChange={(e) => setBoardConditionFilterText(e.target.value)}
-                                    autoFocus
-                                  />
-                                </div>
-
-                                <div className="board-minimap-picker-scroll">
-                                  {filteredBoardConditionGroups.length === 0 ? (
-                                    conditionBoardFilterQuery && (
-                                      <div className="br-property-picker-empty">No matches</div>
-                                    )
-                                  ) : (
-                                    filteredBoardConditionGroups.map((ws) => (
-                                      <div key={ws.workspace_id} className="board-minimap-picker-group">
-                                        <div className="board-minimap-picker-group-head">
-                                          <FiUsers size={20} aria-hidden />
-                                          <span>{ws.workspace_name}</span>
-                                        </div>
-                                        <div className="board-minimap-picker-grid">
-                                          {ws.boards.map((board) => (
-                                            <button
-                                              key={board.board_id}
-                                              type="button"
-                                              className={`board-minimap-picker-tile${String(board.board_id) === String(row.boardId) ? ' board-minimap-picker-tile--selected' : ''}`}
-                                              onClick={() => handlePickConditionBoard(row.id, board)}
-                                            >
-                                              {board.board_name}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ))
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          <BoardFilterPicker
+                            workspaces={workspaces ?? []}
+                            value={row.boardId}
+                            onChange={(boardId) => handlePickConditionBoard(row.id, { board_id: boardId })}
+                            wrapClassName="br-board-condition-wrap"
+                            triggerClassName="business-rule-form-condition-value"
+                            triggerIconSize={16}
+                            panelClassName="br-board-condition-panel"
+                            placeholder={boardName?.trim() || 'Select board'}
+                          />
 
                           <div className="business-rule-form-filter-row-actions">
                             <button
