@@ -5,6 +5,7 @@ import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectModal from "./CrewServiceSelectModal";
 import CrewServiceListing from "./CrewServiceListing";
 import CrewUploadSteps from "./CrewUploadSteps";
+import CrewUploadDropzones from "./CrewUploadDropzones";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
@@ -399,12 +400,15 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               </p>
             </div>
 
-            <CrewUploadSteps
-              steps={uploadSteps}
-              onSelectCrewListFile={handleCrewListFile}
-              onSelectPassportIqamaFiles={handlePassportIqamaFiles}
-              onSelectVisaFiles={handleVisaFiles}
-            />
+            <div className="crew-mgmt-hero-uploads">
+              <CrewUploadDropzones
+                steps={uploadSteps}
+                onSelectCrewListFile={handleCrewListFile}
+                onSelectPassportIqamaFiles={handlePassportIqamaFiles}
+                onSelectVisaFiles={handleVisaFiles}
+              />
+              <CrewUploadSteps steps={uploadSteps} />
+            </div>
           </div>
         </div>
 
