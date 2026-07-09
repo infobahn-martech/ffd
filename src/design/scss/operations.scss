@@ -1248,6 +1248,13 @@ $send-report-optional: #80868b;
   text-align: left;
 }
 
+.crew-summary-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 992px) {
   .husbandry-service-options {
     grid-template-columns: repeat(2, 1fr);
