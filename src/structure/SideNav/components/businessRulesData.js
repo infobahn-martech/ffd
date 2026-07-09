@@ -80,6 +80,15 @@ export const DUMMY_LINK_ACTION_OPERATORS = [
   { operator_id: '5', operator_key: 'dynamic_3', operator_label: 'Dynamic Picker 3', has_input_value: '0', is_dynamic: '1', display_order: '5' },
 ];
 
+// Dev-only fallback operators for a condition row's field-details fetch (business_rule/get_field_details),
+// used when that endpoint returns nothing, e.g. local dev without a live backend. Never shown in production.
+export const DUMMY_FIELD_OPERATORS = [
+  { field_operator_id: '1', operator_label: 'is' },
+  { field_operator_id: '2', operator_label: 'is not' },
+  { field_operator_id: '3', operator_label: 'contains' },
+  { field_operator_id: '4', operator_label: 'does not contain' },
+];
+
 export const MOVE_ACTION_OPTIONS = [
   { key: 'move_to', label: 'Move card to' },
 ];

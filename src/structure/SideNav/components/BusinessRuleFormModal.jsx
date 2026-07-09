@@ -16,7 +16,7 @@ import {
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES, DUMMY_BOARD_BOTTOM_STAGES,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_INTERNAL_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS, INTERNAL_USER_ROLE_OPTIONS,
-  DUMMY_LINK_ACTION_OPERATORS,
+  DUMMY_LINK_ACTION_OPERATORS, DUMMY_FIELD_OPERATORS,
 } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
@@ -2912,6 +2912,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [disallowTriggerChain, setDisallowTriggerChain] = useState(false);
   const [conditions, setConditions] = useState([]);
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
+  const editingConditionIdRef = useRef(null);
   const [createActions, setCreateActions] = useState([]);
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
@@ -2936,7 +2937,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showWebInvokeSettings, setShowWebInvokeSettings] = useState(false);
   const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '' }]);
+  const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
   const [openBoardConditionRowId, setOpenBoardConditionRowId] = useState(null);
   const [boardConditionFilterText, setBoardConditionFilterText] = useState('');
   const boardConditionTriggerRef = useRef(null);
@@ -2944,6 +2945,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [openColorConditionId, setOpenColorConditionId] = useState(null);
   const colorConditionTriggerRef = useRef(null);
   const colorConditionPanelRef = useRef(null);
+  const [openConditionOperatorId, setOpenConditionOperatorId] = useState(null);
+  const [conditionOperatorFilterText, setConditionOperatorFilterText] = useState('');
+  const conditionOperatorTriggerRef = useRef(null);
+  const conditionOperatorPanelRef = useRef(null);
 
   const {
     getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
@@ -2960,7 +2965,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     getTriggerConfig(rule.id);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
     if (workspaces.length === 0) listAllWorkspaces();
-    setBoardConditionRows([{ id: 'board-0', boardId: '' }]);
+    setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
     setOpenBoardConditionRowId(null);
     setBoardConditionFilterText('');
     setName(rule.name ?? '');
@@ -3035,6 +3040,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   }, [openColorConditionId]);
 
   useEffect(() => {
+    if (openConditionOperatorId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (conditionOperatorPanelRef.current?.contains(t)) return;
+      if (conditionOperatorTriggerRef.current?.contains(t)) return;
+      setOpenConditionOperatorId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openConditionOperatorId]);
+
+  useEffect(() => {
     if (openLinkOperatorRowId == null) return undefined;
     const onDocMouseDown = (event) => {
       const t = event.target;
@@ -3054,6 +3071,23 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       prev.length === 1 && !prev[0].boardId ? [{ ...prev[0], boardId: firstBoard.board_id }] : prev
     );
   }, [show, workspaces]);
+
+  // Default each condition's operator to the first option (usually "is") as soon as its
+  // field details load, so the row reads "Label is" instead of a blank "Select operator".
+  useEffect(() => {
+    setConditions((prev) => {
+      let changed = false;
+      const next = prev.map((cond) => {
+        if (cond.operatorId) return cond;
+        const detailsKey = cond.fieldType && cond.fieldId != null ? `${cond.fieldType}-${cond.fieldId}` : null;
+        const operators = detailsKey ? fieldDetailsByKey[detailsKey]?.operators : null;
+        if (!operators || operators.length === 0) return cond;
+        changed = true;
+        return { ...cond, operatorId: operators[0].field_operator_id };
+      });
+      return changed ? next : prev;
+    });
+  }, [fieldDetailsByKey]);
 
   if (!rule) return null;
 
@@ -3112,27 +3146,37 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   });
 
   const handleOpenPropertyPicker = () => {
+    editingConditionIdRef.current = null;
+    setShowPropertyPicker(true);
+  };
+
+  const handleOpenPropertyPickerForRow = (id) => {
+    editingConditionIdRef.current = id;
     setShowPropertyPicker(true);
   };
 
   const handleSelectProperty = (field, category) => {
     const fieldType = category.category_key === 'custom' ? 'custom' : category.category_key === 'regular' ? 'regular' : null;
     const fieldId = field.regular_field_id ?? field.custom_field_id ?? null;
+    const isRegularColorField = category.category_key === 'regular' && getFieldLabel(field).trim().toLowerCase() === 'color';
+    const fieldProps = {
+      fieldLabel: getFieldLabel(field),
+      fieldKey: field.field_key ?? field.unit_key ?? String(field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? ''),
+      category: category.category_key,
+      fieldType,
+      fieldId,
+      valueType: category.category_key === 'custom' ? (field.field_type ?? null) : (isRegularColorField ? 'color' : null),
+      operatorId: '',
+      value: '',
+    };
 
-    setConditions((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        fieldLabel: getFieldLabel(field),
-        fieldKey: field.field_key ?? field.unit_key ?? String(field.regular_field_id ?? field.time_unit_id ?? field.custom_field_id ?? ''),
-        category: category.category_key,
-        fieldType,
-        fieldId,
-        valueType: category.category_key === 'custom' ? (field.field_type ?? null) : null,
-        operatorId: '',
-        value: '',
-      },
-    ]);
+    const editingId = editingConditionIdRef.current;
+    if (editingId) {
+      editingConditionIdRef.current = null;
+      setConditions((prev) => prev.map((c) => (c.id === editingId ? { ...c, ...fieldProps } : c)));
+    } else {
+      setConditions((prev) => [...prev, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, joinWord: 'OR', ...fieldProps }]);
+    }
 
     if (fieldType && fieldId != null) {
       getFieldDetails(fieldType, fieldId);
@@ -3143,9 +3187,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const handleToggleConditionJoinWord = (id) => {
+    setConditions((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, joinWord: c.joinWord === 'AND' ? 'OR' : 'AND' } : c))
+    );
+  };
+
   const handleClearConditions = () => {
     setConditions([]);
-    setBoardConditionRows([{ id: 'board-0', boardId: '' }]);
+    setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
     setOpenBoardConditionRowId(null);
   };
 
@@ -3153,6 +3203,23 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     const normalized = normalizeHexColor(hex);
     setConditions((prev) => prev.map((c) => (c.id === id ? { ...c, value: normalized } : c)));
     setOpenColorConditionId(null);
+  };
+
+  const handleToggleConditionOperator = (id) => {
+    setConditionOperatorFilterText('');
+    setOpenConditionOperatorId((prev) => (prev === id ? null : id));
+  };
+
+  const handleSelectConditionOperator = (id, operator) => {
+    const isNegation = (operator.operator_label || '').trim().toLowerCase() === 'is not';
+    setConditions((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, operatorId: operator.field_operator_id, joinWord: isNegation ? 'AND' : c.joinWord }
+          : c
+      )
+    );
+    setOpenConditionOperatorId(null);
   };
 
   const handleSelectCreateAction = (option) => {
@@ -3339,19 +3406,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setBoardConditionFilterText('');
   };
 
-  const handleAddBoardConditionRow = (rowId) => {
+  const handleRemoveBoardConditionRow = (rowId) => {
     setBoardConditionRows((prev) => {
-      const idx = prev.findIndex((row) => row.id === rowId);
-      if (idx === -1) return prev;
-      const newRow = { id: `board-${Date.now()}`, boardId: prev[idx].boardId };
-      const next = [...prev];
-      next.splice(idx + 1, 0, newRow);
-      return next;
+      if (prev.length <= 1) return [{ id: 'board-0', boardId: '', joinWord: 'OR' }];
+      return prev.filter((row) => row.id !== rowId);
     });
   };
 
-  const handleRemoveBoardConditionRow = (rowId) => {
-    setBoardConditionRows((prev) => prev.filter((row) => row.id !== rowId));
+  const handleToggleBoardConditionJoinWord = (rowId) => {
+    setBoardConditionRows((prev) =>
+      prev.map((row) => (row.id === rowId ? { ...row, joinWord: row.joinWord === 'AND' ? 'OR' : 'AND' } : row))
+    );
   };
 
   const handleCloseAttempt = () => {
@@ -3612,9 +3677,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                             <button
                               type="button"
                               className="business-rule-form-or-btn"
-                              onClick={() => handleAddBoardConditionRow(row.id)}
+                              onClick={() => handleToggleBoardConditionJoinWord(row.id)}
                             >
-                              OR
+                              {row.joinWord || 'OR'}
                             </button>
                             <button
                               type="button"
@@ -3635,33 +3700,90 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   const detailsKey = cond.fieldType && cond.fieldId != null ? `${cond.fieldType}-${cond.fieldId}` : null;
                   const details = detailsKey ? fieldDetailsByKey[detailsKey] : null;
                   const detailsLoading = detailsKey ? Boolean(isLoadingFieldDetails[detailsKey]) : false;
-                  const operators = details?.operators ?? [];
+                  const rawOperators = details?.operators ?? [];
+                  // Dev-only fallback so the operator dropdown can be visually tested for every
+                  // field (regular or custom) without a live get_field_details backend response.
+                  // Shown immediately (not gated on detailsLoading) since a real request that
+                  // never resolves would otherwise leave the dropdown permanently hidden.
+                  const operators = rawOperators.length > 0
+                    ? rawOperators
+                    : (import.meta.env.DEV ? DUMMY_FIELD_OPERATORS : []);
                   const showOperator = operators.length > 0 && details?.has_operator !== '0';
                   const showValueInput = !details || details?.has_input_value !== '0';
+                  const isOperatorOpen = openConditionOperatorId === cond.id;
+                  const selectedOperator = operators.find((op) => op.field_operator_id === cond.operatorId);
+                  const operatorFilterQuery = conditionOperatorFilterText.trim().toLowerCase();
+                  const filteredConditionOperators = operatorFilterQuery
+                    ? operators.filter((op) => op.operator_label.toLowerCase().includes(operatorFilterQuery))
+                    : operators;
 
                   return (
                     <div key={cond.id} className="business-rule-form-filter-row">
+                      <button
+                        type="button"
+                        className="business-rule-form-filter-row-close"
+                        onClick={() => handleRemoveCondition(cond.id)}
+                        aria-label="Remove condition"
+                      >
+                        <FiX size={14} />
+                      </button>
+
                       <div className="business-rule-form-filter-row-main">
-                        <span className="business-rule-form-condition-label">{cond.fieldLabel}</span>
-                        {showOperator && (
-                          <select
-                            className="business-rule-form-condition-operator"
-                            value={cond.operatorId}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setConditions((prev) =>
-                                prev.map((c) => c.id === cond.id ? { ...c, operatorId: val } : c)
-                              );
-                            }}
+                        <div className="business-rule-form-condition-operator-group">
+                          <button
+                            type="button"
+                            className="business-rule-form-condition-label business-rule-form-condition-label-btn"
+                            onClick={() => handleOpenPropertyPickerForRow(cond.id)}
                           >
-                            <option value="">Select operator</option>
-                            {operators.map((op) => (
-                              <option key={op.field_operator_id} value={op.field_operator_id}>
-                                {op.operator_label}
-                              </option>
-                            ))}
-                          </select>
-                        )}
+                            {cond.fieldLabel}
+                          </button>
+                          {showOperator && (
+                            <div className="board-minimap-picker-wrap br-condition-operator-wrap">
+                              <button
+                                type="button"
+                                ref={isOperatorOpen ? conditionOperatorTriggerRef : undefined}
+                                className="br-condition-operator-trigger"
+                                onClick={() => handleToggleConditionOperator(cond.id)}
+                                aria-haspopup="listbox"
+                                aria-expanded={isOperatorOpen}
+                              >
+                                {selectedOperator?.operator_label || 'Select operator'}
+                                <FiChevronDown size={14} aria-hidden />
+                              </button>
+
+                              {isOperatorOpen && (
+                                <div className="board-minimap-picker-panel br-condition-operator-panel" ref={conditionOperatorPanelRef}>
+                                  <div className="board-minimap-picker-search">
+                                    <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                    <input
+                                      type="text"
+                                      placeholder="Filter"
+                                      value={conditionOperatorFilterText}
+                                      onChange={(e) => setConditionOperatorFilterText(e.target.value)}
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="board-minimap-picker-scroll">
+                                    {filteredConditionOperators.length === 0 ? (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    ) : (
+                                      filteredConditionOperators.map((op) => (
+                                        <button
+                                          type="button"
+                                          key={op.field_operator_id}
+                                          className="br-condition-operator-option"
+                                          onClick={() => handleSelectConditionOperator(cond.id, op)}
+                                        >
+                                          {op.operator_label}
+                                        </button>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         {detailsLoading && <span className="business-rule-form-condition-loading">Loading...</span>}
                         {showValueInput && (
                           cond.valueType === 'color' ? (
@@ -3715,7 +3837,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
 
                       <div className="business-rule-form-filter-row-actions">
-                        <button type="button" className="business-rule-form-or-btn">OR</button>
+                        <button
+                          type="button"
+                          className="business-rule-form-or-btn"
+                          onClick={() => handleToggleConditionJoinWord(cond.id)}
+                        >
+                          {cond.joinWord || 'OR'}
+                        </button>
                         <button
                           type="button"
                           className="business-rule-form-filter-row-delete"
@@ -4034,9 +4162,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
     <CardPropertyMatchModal
       show={showPropertyPicker}
-      onClose={() => setShowPropertyPicker(false)}
+      onClose={() => { setShowPropertyPicker(false); editingConditionIdRef.current = null; }}
       onSelect={handleSelectProperty}
-      existingFieldLabels={['board', ...conditions.map((c) => c.fieldLabel.trim().toLowerCase())]}
+      existingFieldLabels={[
+        'board',
+        ...conditions
+          .filter((c) => c.id !== editingConditionIdRef.current)
+          .map((c) => c.fieldLabel.trim().toLowerCase()),
+      ]}
       triggerTypeId={rule.id}
     />
 
