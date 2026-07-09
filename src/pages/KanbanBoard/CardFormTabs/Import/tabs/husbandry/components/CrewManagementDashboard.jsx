@@ -66,6 +66,24 @@ const normalizeMovement = (value) => String(value || "").toLowerCase().replace(/
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
+// Safely reads the first present value across possible API field-name
+// variants (backend responses have used both snake_case and camelCase).
+const getField = (crew, ...keys) => {
+  for (const key of keys) {
+    const value = crew?.[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return "-";
+};
+
+const formatMovementType = (crew) => {
+  const raw = getField(crew, "movementType", "movement_type", "signOnOff");
+  const normalized = normalizeMovement(raw);
+  if (normalized === "signon") return "Sign On";
+  if (normalized === "signoff") return "Sign Off";
+  return raw === "-" ? "-" : raw;
+};
+
 // Crew Management landing view — hero (with a compact 3-step crew document
 // upload widget on the right: crew list, passport/iqama, visa), counters,
 // and service cards. Each card opens a "Select Crew" popup fed by the crew
@@ -134,27 +152,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       cancelled = true;
     };
   }, [resolveCallAndVesselIds, fetchCallCrewList]);
-
-  const totalCrew = uploadedCrewList.length;
-  const signOnCount = uploadedCrewList.filter(
-    (row) => normalizeMovement(row?.movementType || row?.movement_type || row?.signOnOff) === "signon"
-  ).length;
-  const signOffCount = uploadedCrewList.filter(
-    (row) => normalizeMovement(row?.movementType || row?.movement_type || row?.signOnOff) === "signoff"
-  ).length;
-
-  const completedServicesCount = CREW_SERVICE_CARDS.filter(
-    (card) => (selectedServiceCrewMap[card.tabName]?.length || 0) > 0
-  ).length;
-  const pendingServicesCount = CREW_SERVICE_CARDS.length - completedServicesCount;
-
-  const summaryCards = [
-    { label: "Total Crew", value: totalCrew },
-    { label: "Sign On", value: signOnCount },
-    { label: "Sign Off", value: signOffCount },
-    { label: "Pending Services", value: pendingServicesCount },
-    { label: "Completed Services", value: completedServicesCount },
-  ];
 
   const handleCrewListFile = async (file) => {
     if (!file || uploadSteps.crewList.status === "uploading") return;
@@ -268,6 +265,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     id: getCrewOptionId(crew, index),
   }));
 
+  const getAssignedServices = (crewId) => {
+    const labels = CREW_SERVICE_CARDS.filter((card) =>
+      selectedServiceCrewMap[card.tabName]?.includes(crewId)
+    ).map((card) => card.label);
+    return labels.length > 0 ? labels.join(", ") : "-";
+  };
+
   if (showCrewListingView && activeCrewListingService) {
     const activeServiceCrewIds = selectedServiceCrewMap[activeCrewListingService.tabName] || [];
     const activeServiceCrewRows = crewWithIds.filter(({ id }) => activeServiceCrewIds.includes(id));
@@ -305,16 +309,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           </div>
         </div>
 
-        <div className="husbandry-service-summary-grid crew-mgmt-summary-grid">
-          {summaryCards.map((card) => (
-            <div key={card.label} className="husbandry-service-summary-card">
-              <span className="husbandry-service-summary-label">{card.label}</span>
-              <span className="husbandry-service-summary-value">{card.value}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="husbandry-service-options">
+        <div className="crew-mgmt-service-grid">
           {CREW_SERVICE_CARDS.map((card) => {
             const assignedCount = selectedServiceCrewMap[card.tabName]?.length || 0;
             const isAssigned = assignedCount > 0;
@@ -323,33 +318,88 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               <button
                 key={card.id}
                 type="button"
-                className="husbandry-service-option"
+                className="crew-mgmt-service-box"
                 onClick={() => handleServiceCardClick(card)}
                 style={{ "--card-color": cardColor }}
               >
                 {isAssigned && (
                   <span
-                    className="husbandry-service-option-status booked-status-completed"
+                    className="crew-mgmt-service-box-badge booked-status-completed"
                     aria-label={`${card.label} status: Completed`}
                   >
                     Completed
                   </span>
                 )}
-                <div className="husbandry-service-option-icon">
+                <div className="crew-mgmt-service-box-icon">
                   <HusbIcon id={card.id} />
                 </div>
-                <div className="husbandry-service-option-content">
-                  <span className="husbandry-service-option-label">{card.label}</span>
-                  <p className="husbandry-service-option-summary">{card.description}</p>
+                <div className="crew-mgmt-service-box-content">
+                  <span className="crew-mgmt-service-box-label">{card.label}</span>
+                  <span className="crew-mgmt-service-box-count">{assignedCount} Crew Assigned</span>
                 </div>
-                {isAssigned && (
-                  <div className="husbandry-service-option-footer">
-                    <span className="husbandry-service-option-meta">{assignedCount} Crew Assigned</span>
-                  </div>
-                )}
               </button>
             );
           })}
+        </div>
+
+        <div className="crew-mgmt-summary-section">
+          <div className="crew-listing-header">
+            <div>
+              <h2 className="crew-listing-title">Crew Summary</h2>
+              <p className="crew-listing-subtitle">Overview of uploaded crew and their assigned services.</p>
+            </div>
+          </div>
+
+          {uploadedCrewList.length === 0 ? (
+            <div className="crew-listing-empty">
+              <p>Upload crew list to view crew summary.</p>
+            </div>
+          ) : (
+            <div className="crew-listing-table-wrapper">
+              <div className="crew-listing-table-scroll">
+                <table className="table crew-listing-table">
+                  <thead>
+                    <tr>
+                      <th>Sl No</th>
+                      <th>Crew Name</th>
+                      <th>Rank / Designation</th>
+                      <th>Nationality</th>
+                      <th>Passport No</th>
+                      <th>Iqama No</th>
+                      <th>Movement Type</th>
+                      <th>Sign On / Sign Off Date</th>
+                      <th>Assigned Services</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {crewWithIds.map(({ crew, id }, rowIndex) => (
+                      <tr key={id}>
+                        <td>{rowIndex + 1}</td>
+                        <td>{getField(crew, "crew_name", "crewName", "name")}</td>
+                        <td>{getField(crew, "rank", "designation", "rank_designation")}</td>
+                        <td>{getField(crew, "nationality")}</td>
+                        <td>{getField(crew, "passport_no", "passportNo")}</td>
+                        <td>{getField(crew, "iqama_no", "iqamaNumber", "iqamaNo")}</td>
+                        <td>{formatMovementType(crew)}</td>
+                        <td>
+                          {getField(
+                            crew,
+                            "sign_on_date",
+                            "signOnDate",
+                            "sign_off_date",
+                            "signOffDate",
+                            "movement_date",
+                            "movementDate"
+                          )}
+                        </td>
+                        <td>{getAssignedServices(id)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
