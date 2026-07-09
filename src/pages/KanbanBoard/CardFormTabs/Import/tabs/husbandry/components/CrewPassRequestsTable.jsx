@@ -7,7 +7,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { flattenPassRequestRows } from "../../../../../../../services/cgAndZwailpassService";
 import { PremiumCardHeader, CrewCell, WorkOrderChip } from "./Husbandry.components";
 
-const DEFAULT_PAGE_SIZE = 5;
+const DEFAULT_PAGE_SIZE = 10;
 const EMPTY_LIST = [];
 
 const parseRequestedDate = (value) => {

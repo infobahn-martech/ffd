@@ -6,7 +6,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { PremiumCardHeader, CrewCell, WorkOrderChip, RouteCell } from "./Husbandry.components";
 
-const DEFAULT_PAGE_SIZE = 5;
+const DEFAULT_PAGE_SIZE = 10;
 const EMPTY_LIST = [];
 
 const parseRequestedDate = (value) => {
