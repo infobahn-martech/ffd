@@ -2848,6 +2848,13 @@
   letter-spacing: 0.3px;
 }
 
+// Red "Pending" badge on the crew service listing page only — overrides the
+// shared .booked-status-pending (amber) look used elsewhere in the app.
+.crew-listing-status-badge.booked-status-pending {
+  background: $status-cancelled-bg;
+  color: $status-cancelled-text;
+}
+
 @media (max-width: 640px) {
   .crew-listing-header {
     flex-direction: column;
