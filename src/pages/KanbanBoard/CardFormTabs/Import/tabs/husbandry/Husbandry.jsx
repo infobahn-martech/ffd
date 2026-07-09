@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../../../../../../design/scss/operations.scss";
 import "../../../../../../design/scss/table-common.scss";
@@ -33,6 +33,9 @@ import MWPRenewalContent from "./components/MWPRenewalContent";
 import OnStationContent from "./components/OnStationContent";
 import ThirdPartyServicesContent from "./components/ThirdPartyServicesContent";
 import { notify } from "../../../../../../components/Toaster";
+import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
+import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
+import useDispatchNoteReducer from "../../../../../../store/DispatchNoteReducer";
 
 // Left-nav services that show a crew listing + Request gate before the real
 // content, instead of navigating straight to the form. CG Pass/Zawil Pass are
@@ -303,6 +306,30 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   ] : []);
   const cardColor = "#00368c"; // Fixed color for all buttons, effects, and backgrounds
 
+  const inboundOrdersCount = useInboundOrderReducer((state) => state.inboundOrdersCount);
+  const getInboundOrdersTotal = useInboundOrderReducer((state) => state.getInboundOrdersTotal);
+  const landingNotesCount = useLandingNoteReducer((state) => state.landingNotesCount);
+  const getLandingNotesTotal = useLandingNoteReducer((state) => state.getLandingNotesTotal);
+  const dispatchNotesCount = useDispatchNoteReducer((state) => state.dispatchNotesCount);
+  const getDispatchNotesTotal = useDispatchNoteReducer((state) => state.getDispatchNotesTotal);
+
+  useEffect(() => {
+    if (activeMainTab !== MAIN_TABS.MATERIAL_MANAGEMENT) return;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!callId) return;
+    getInboundOrdersTotal({ call_id: callId });
+    getLandingNotesTotal({ call_id: callId });
+    getDispatchNotesTotal({ call_id: callId });
+  }, [
+    activeMainTab,
+    activeSubTab,
+    formValues?.call_id,
+    formValues?.callId,
+    formValues?.card_call_id,
+    getInboundOrdersTotal,
+    getLandingNotesTotal,
+    getDispatchNotesTotal,
+  ]);
 
   const handleServiceSelect = useCallback((tab) => {
     setServiceSelected(true);
@@ -752,6 +779,11 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           onBackToServiceSelection={handleBackToServiceSelection}
           cardColor={cardColor}
           crewCount={formValues?.crewCount}
+          subTabCounts={{
+            [MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS]: inboundOrdersCount,
+            [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: landingNotesCount,
+            [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: dispatchNotesCount,
+          }}
         />
         <div className="operation-right">
           {activeMainTab === "LAUNCH_HIRE" && (

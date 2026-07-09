@@ -209,7 +209,7 @@ RouteCell.propTypes = {
   to: PropTypes.string,
 };
 
-export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, onNavigateToTab, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c", crewCount }) => {
+export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, onNavigateToTab, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c", crewCount, subTabCounts = {} }) => {
   const hasCrewCount = typeof crewCount === "number";
 
   // Filter main tabs based on selected services
@@ -316,6 +316,9 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
                     onSubTabChange(subTab.id);
                   };
 
+                  const subTabCount = subTabCounts?.[subTab.id];
+                  const hasSubTabCount = typeof subTabCount === "number";
+
                   return (
                     <NavTabButton
                       key={subTab.id}
@@ -325,7 +328,11 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
                     >
                       <TabIcon id={subTab.id} />
                       <span className="op-tab-label">{subTab.label}</span>
-                      {hasCrewCount && <span className="op-tab-count">{crewCount}</span>}
+                      {hasSubTabCount ? (
+                        <span className="op-tab-count">{subTabCount}</span>
+                      ) : (
+                        hasCrewCount && <span className="op-tab-count">{crewCount}</span>
+                      )}
                     </NavTabButton>
                   );
                 })}
@@ -349,6 +356,7 @@ HusbandryTabs.propTypes = {
   onBackToServiceSelection: PropTypes.func,
   cardColor: PropTypes.string,
   crewCount: PropTypes.number,
+  subTabCounts: PropTypes.object,
 };
 
 export const FormSection = ({ icon, title, children }) => {
