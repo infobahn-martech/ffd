@@ -2170,6 +2170,22 @@
   overflow-y: auto;
 }
 
+// Left-align the doc status icons in this modal's crew table only — scoped
+// to this modal so the shared .crew-table classes stay centered everywhere
+// else they're reused (live Crew List, Crew Summary table).
+.crew-service-select-modal__body .crew-list-table th:nth-child(n + 6),
+.crew-service-select-modal__body .crew-list-table td:nth-child(n + 6) {
+  text-align: left;
+}
+
+.crew-service-select-modal__body .crew-table-cell--doc-action {
+  justify-content: flex-start;
+}
+
+.crew-service-select-modal__body .crew-doc-cell__inner {
+  align-items: flex-start;
+}
+
 .crew-service-select-modal__empty {
   margin: 0;
   font-size: 13px;

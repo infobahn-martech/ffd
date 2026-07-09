@@ -1248,6 +1248,23 @@ $send-report-optional: #80868b;
   text-align: left;
 }
 
+// Left-align the doc/service status icons in the Crew Summary table only —
+// scoped to this section so the shared .crew-table classes stay centered
+// everywhere else they're reused (live Crew List, Select Crew modal).
+.crew-mgmt-summary-section .crew-list-table th:nth-child(n + 6),
+.crew-mgmt-summary-section .crew-list-table td:nth-child(n + 6) {
+  text-align: left;
+}
+
+.crew-mgmt-summary-section .crew-table-cell--doc-action,
+.crew-mgmt-summary-section .crew-service-cell {
+  justify-content: flex-start;
+}
+
+.crew-mgmt-summary-section .crew-doc-cell__inner {
+  align-items: flex-start;
+}
+
 .crew-summary-bulk-actions {
   display: flex;
   align-items: center;
