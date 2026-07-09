@@ -221,6 +221,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [convertFormErrors, setConvertFormErrors] = useState({});
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
+  const [editOrderMinDate, setEditOrderMinDate] = useState(undefined);
   const [convertingOrder, setConvertingOrder] = useState(null);
   const [convertMinDate, setConvertMinDate] = useState(undefined);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -443,6 +444,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: order.remarks || "",
       orders: orderItems,
     });
+    if (editDate) setEditOrderMinDate(editDate);
 
     const expandedState = {};
     orderItems.forEach((item) => {
@@ -471,6 +473,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }
 
     setEditingOrder(null);
+    setEditOrderMinDate(undefined);
     setFormData({
       date: "",
       time: "",
@@ -508,6 +511,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingOrder(null);
+    setEditOrderMinDate(undefined);
     setFormErrors({});
     setFormData({
       date: "",
@@ -1238,6 +1242,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     dateFieldName="date"
                     timeFieldName="time"
                     placeholder="YYYY-MM-DD hh:mm"
+                    minDate={editingOrder ? editOrderMinDate : undefined}
                   />
                 </FormField>
                 {formErrors.date && <span className="dispatch-edit-error">{formErrors.date}</span>}
