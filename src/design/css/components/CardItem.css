@@ -5,7 +5,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   border: 1px solid #eee;
   transition: all 0.2s ease;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   position: relative;
   overflow: hidden;
@@ -123,7 +123,7 @@
   color: #666;
   margin-left: auto;
   padding: 0 8px;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   position: relative;
   z-index: 1;
 }
@@ -143,7 +143,7 @@
   color: #111;
   margin: 4px 0;
   cursor: pointer;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -203,7 +203,7 @@
   background: #f5f5f5;
   border-radius: 4px;
   display: inline-block;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
 }
 
 
@@ -283,7 +283,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   padding-top: 6px;
 }
 
@@ -297,7 +297,7 @@
 
 .card-time-left {
   font-weight: 600;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   font-size: 11px;
   color: #111;
 }

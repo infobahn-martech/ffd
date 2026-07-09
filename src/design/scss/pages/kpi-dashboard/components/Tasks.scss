@@ -12,14 +12,14 @@
     font-weight: 600;
     color: #ffffff;
     margin: 0 0 8px 0;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
   }
 
   &__subtitle {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
   }
 
   &__filters {
@@ -58,7 +58,7 @@
       border-radius: 8px;
       color: #ffffff;
       font-size: 14px;
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
       transition: all 0.3s ease;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
@@ -89,7 +89,7 @@
     border-radius: 8px;
     color: #ffffff;
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -136,7 +136,7 @@
     font-size: 12px;
     color: rgba(255, 255, 255, 0.7);
     font-weight: 500;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
   }
 
   &__filter-select {
@@ -146,7 +146,7 @@
     border-radius: 6px;
     color: #ffffff;
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
     cursor: pointer;
     transition: all 0.3s ease;
 
@@ -183,7 +183,7 @@
     &-text {
       font-size: 14px;
       color: rgba(255, 255, 255, 0.6);
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
     }
   }
 
@@ -225,7 +225,7 @@
   &__pagination-text {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.6);
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
   }
 }
 
@@ -243,7 +243,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
     background: rgba(5, 11, 39, 0.5);
 
     &--sortable {
@@ -287,7 +287,7 @@
     padding: 16px 20px;
     font-size: 14px;
     color: #ffffff;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
 
     &--name {
       font-weight: 500;
@@ -301,7 +301,7 @@
     border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
     text-transform: capitalize;
 
     &--completed {
@@ -328,7 +328,7 @@
     text-align: center;
     color: rgba(255, 255, 255, 0.5);
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
   }
 }
 

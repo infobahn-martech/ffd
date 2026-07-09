@@ -48,7 +48,7 @@
       font-weight: 700;
       margin: 0;
       letter-spacing: -0.5px;
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
 
       @media (max-width: 768px) {
         font-size: 20px;
@@ -77,7 +77,7 @@
       padding: 8px 12px;
       border-radius: 6px;
       transition: all 0.2s ease;
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
 
       svg {
         width: 18px;
@@ -182,7 +182,7 @@
       font-size: 16px;
       font-weight: 600;
       margin: 0 0 16px 0;
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
     }
 
     .notifications-list {
@@ -253,7 +253,7 @@
           font-weight: 700;
           margin: 0;
           flex: 1;
-          font-family: 'Open Sans', sans-serif;
+          font-family: 'Manrope', sans-serif;
         }
 
         .notification-timestamp {
@@ -261,7 +261,7 @@
           font-size: 14px;
           font-weight: 400;
           white-space: nowrap;
-          font-family: 'Open Sans', sans-serif;
+          font-family: 'Manrope', sans-serif;
         }
       }
 
@@ -270,7 +270,7 @@
         font-size: 14px;
         line-height: 1.6;
         margin: 0;
-        font-family: 'Open Sans', sans-serif;
+        font-family: 'Manrope', sans-serif;
 
         strong {
           font-weight: 700;
@@ -294,7 +294,7 @@
       cursor: pointer;
       padding: 0;
       transition: color 0.2s ease;
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
 
       &:hover {
         color: #00368c;

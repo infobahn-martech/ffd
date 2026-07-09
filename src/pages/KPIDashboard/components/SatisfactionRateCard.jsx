@@ -66,7 +66,7 @@ const SatisfactionRateCard = () => {
               y={centerY + radius + 20}
               fill="rgba(255, 255, 255, 0.7)"
               fontSize="12"
-              fontFamily="'Open Sans', sans-serif"
+              fontFamily="'Manrope', sans-serif"
               textAnchor="middle"
             >
               0%
@@ -77,7 +77,7 @@ const SatisfactionRateCard = () => {
               y={centerY + radius + 20}
               fill="rgba(255, 255, 255, 0.7)"
               fontSize="12"
-              fontFamily="'Open Sans', sans-serif"
+              fontFamily="'Manrope', sans-serif"
               textAnchor="middle"
             >
               100%

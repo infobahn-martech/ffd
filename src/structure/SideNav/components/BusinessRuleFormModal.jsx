@@ -2396,6 +2396,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   const handleMethodChange = (newMethod) => {
     const supportsBody = INVOKE_METHODS_WITH_BODY.includes(newMethod);
     setMethod(newMethod);
+    setAuthentication('NONE');
     if (!supportsBody) setSendParamsInBody(false);
     setParams((prev) => withTrailingBlankParam(withDefaultPayloadRow(prev, supportsBody)));
   };
@@ -2625,91 +2626,80 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
           )}
 
           {authentication === 'API_KEY' && (
-            <div className="br-invoke-three-col">
+            <div className="br-invoke-two-col">
               <div className="notification-field">
-                <label className="business-rule-form-label br-invoke-field-label">Key name</label>
+                <label className="business-rule-form-label br-invoke-field-label">API KEY header name</label>
                 <input
                   type="text"
                   className="business-rule-form-input"
+                  placeholder="Enter header name"
                   value={authApiKeyName}
                   onChange={(e) => setAuthApiKeyName(e.target.value)}
                 />
               </div>
               <div className="notification-field">
-                <label className="business-rule-form-label br-invoke-field-label">Key value</label>
+                <label className="business-rule-form-label br-invoke-field-label">API KEY header value</label>
                 <input
                   type="password"
                   className="business-rule-form-input"
+                  placeholder="Enter header value"
                   value={authApiKeyValue}
                   onChange={(e) => setAuthApiKeyValue(e.target.value)}
                 />
               </div>
-              <div className="notification-field">
-                <label className="business-rule-form-label br-invoke-field-label">Add to</label>
-                <div className="business-rule-form-select-wrap">
-                  <select
-                    className="business-rule-form-select"
-                    value={authApiKeyLocation}
-                    onChange={(e) => setAuthApiKeyLocation(e.target.value)}
-                  >
-                    {INVOKE_API_KEY_LOCATIONS.map((loc) => (
-                      <option key={loc} value={loc}>{INVOKE_API_KEY_LOCATION_LABELS[loc]}</option>
-                    ))}
-                  </select>
-                  <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-                </div>
-              </div>
             </div>
           )}
 
-          <div className="br-property-section">
-            <button
-              type="button"
-              className="br-property-section-toggle"
-              onClick={() => setExpandedHeaders((v) => !v)}
-            >
-              <span className="br-property-section-toggle-icon">
-                {expandedHeaders ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
-              </span>
-              Headers
-            </button>
-            {expandedHeaders && (
-              <>
-                <div className="br-invoke-kv-columns">
-                  <span>Header</span>
-                  <span>Value</span>
-                </div>
-                <div className="br-invoke-kv-list">
-                  {headers.map((h) => (
-                    <div key={h.id} className="br-invoke-kv-row">
-                      <input
-                        type="text"
-                        className="business-rule-form-input"
-                        value={h.key}
-                        onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
-                        onFocus={() => handleHeaderFocus(h.id)}
-                      />
-                      <input
-                        type="text"
-                        className="business-rule-form-input"
-                        value={h.value}
-                        onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
-                        onFocus={() => handleHeaderFocus(h.id)}
-                      />
-                      <button
-                        type="button"
-                        className="br-invoke-row-delete"
-                        onClick={() => handleRemoveHeader(h.id)}
-                        aria-label="Remove header"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          {methodSupportsBody && (
+            <div className="br-property-section">
+              <button
+                type="button"
+                className="br-property-section-toggle"
+                onClick={() => setExpandedHeaders((v) => !v)}
+              >
+                <span className="br-property-section-toggle-icon">
+                  {expandedHeaders ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                </span>
+                Headers
+              </button>
+              {expandedHeaders && (
+                <>
+                  <div className="br-invoke-kv-columns">
+                    <span>Header</span>
+                    <span>Value</span>
+                  </div>
+                  <div className="br-invoke-kv-list">
+                    {headers.map((h) => (
+                      <div key={h.id} className="br-invoke-kv-row">
+                        <input
+                          type="text"
+                          className="business-rule-form-input"
+                          value={h.key}
+                          onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
+                          onFocus={() => handleHeaderFocus(h.id)}
+                        />
+                        <input
+                          type="text"
+                          className="business-rule-form-input"
+                          value={h.value}
+                          onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
+                          onFocus={() => handleHeaderFocus(h.id)}
+                        />
+                        <button
+                          type="button"
+                          className="br-invoke-row-delete"
+                          onClick={() => handleRemoveHeader(h.id)}
+                          aria-label="Remove header"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="br-property-section">
             <button
@@ -3052,7 +3042,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const conditionOperatorPanelRef = useRef(null);
 
   const {
-    getTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
+    getTriggerConfig, triggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -3060,6 +3050,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const userProfile = useAuthReducer((s) => s.userProfile);
   const loggedInUserId = userProfile?.user_id ?? userProfile?.userid ?? null;
   const loggedInUserName = userProfile?.name || userProfile?.username || 'You';
+
+  // Drives the AND section from the selected trigger type's own config instead of
+  // always showing the "Card is created" (trigger_type_id 1) layout.
+  const andHeaderText = triggerConfig?.and_header || 'the created card matches this filter';
+  const hasBoardDefaultCondition = (triggerConfig?.default_conditions ?? [])
+    .some((c) => String(c.field_label ?? '').trim().toLowerCase() === 'board');
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -3668,9 +3664,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
             <div className="business-rule-form-column">
               <h3 className="business-rule-form-column-title">AND</h3>
               <div className="business-rule-form-column-card">
-                <p className="business-rule-form-filter-hint">the created card matches this filter</p>
+                <p className="business-rule-form-filter-hint">{andHeaderText}</p>
 
-                {boardConditionRows.length > 0 && (
+                {hasBoardDefaultCondition && boardConditionRows.length > 0 && (
                   <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
                     <span className="business-rule-form-condition-label">Board is</span>
                     {boardConditionRows.map((row) => {

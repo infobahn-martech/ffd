@@ -109,7 +109,7 @@
   font-size: 18px;
   font-weight: 700;
   color: #1a1a1a;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   line-height: 1.25;
 }
 
@@ -162,7 +162,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -288,7 +288,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #28a745;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
 }
 
 .crew-excel-upload-zone--compact__uploaded-name {
@@ -296,7 +296,7 @@
   min-width: 0;
   font-size: 12px;
   color: #444;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -306,7 +306,7 @@
   flex-shrink: 0;
   font-size: 11px;
   color: #999;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
 }
 
 .crew-excel-upload-zone:hover .upload-icon-wrapper svg {
@@ -1820,7 +1820,7 @@
   min-width: 100px;
   transition: all 0.2s ease;
   background: #ffffff;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Manrope", sans-serif;
 }
 
 .crew-table-input:hover {
@@ -2007,7 +2007,7 @@
     max-height: 32px;
     padding: 6px 10px;
     font-size: 13px;
-    font-family: "Open Sans", sans-serif;
+    font-family: "Manrope", sans-serif;
     border-radius: 4px;
     align-items: center;
     gap: 6px;
@@ -2168,6 +2168,22 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+}
+
+// Left-align the doc status icons in this modal's crew table only — scoped
+// to this modal so the shared .crew-table classes stay centered everywhere
+// else they're reused (live Crew List, Crew Summary table).
+.crew-service-select-modal__body .crew-list-table th:nth-child(n + 6),
+.crew-service-select-modal__body .crew-list-table td:nth-child(n + 6) {
+  text-align: left;
+}
+
+.crew-service-select-modal__body .crew-table-cell--doc-action {
+  justify-content: flex-start;
+}
+
+.crew-service-select-modal__body .crew-doc-cell__inner {
+  align-items: flex-start;
 }
 
 .crew-service-select-modal__empty {
@@ -2830,6 +2846,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+
+// Red "Pending" badge on the crew service listing page only — overrides the
+// shared .booked-status-pending (amber) look used elsewhere in the app.
+.crew-listing-status-badge.booked-status-pending {
+  background: $status-cancelled-bg;
+  color: $status-cancelled-text;
 }
 
 @media (max-width: 640px) {
