@@ -2061,8 +2061,8 @@
    ========================================================== */
 
 .crew-service-select-modal-dialog {
-  max-width: 600px;
-  width: calc(100% - 32px);
+  max-width: 1100px;
+  width: 90vw;
 }
 
 /* Overrides the global, unscoped `.modal-header { margin-right: 21px }`
@@ -2071,6 +2071,7 @@
    pushed it off-center. */
 .crew-service-select-modal-dialog .modal-header {
   margin-right: 0;
+  flex-shrink: 0;
 }
 
 .crew-service-select-modal-dialog .modal-content {
@@ -2079,11 +2080,16 @@
      their own padding, so the inherited 46px doubled it up. */
   padding: 0;
   border-radius: 20px;
-  /* No overflow:hidden here — the multi-select dropdown must be able to
-     escape the rounded box below the field instead of being clipped. */
   border: 1px solid #e7ebf4;
   background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
   box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16), 0 10px 24px rgba(16, 24, 40, 0.1);
+  /* Caps overall modal height — the body (below) is the flex item that
+     scrolls once content exceeds the remaining space, header/footer stay
+     put. No overflow:hidden here, matching the rest of this file's modals —
+     avoids clipping any future portaled dropdown inside the body. */
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Compact header — single row, minimum spacing: title + service badge on
@@ -2159,6 +2165,9 @@
 
 .crew-service-select-modal__body {
   padding: 16px 20px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .crew-service-select-modal__empty {
@@ -2208,103 +2217,11 @@
   box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.12);
 }
 
-/* Paginated to 5 rows, so the table never needs its own scroll region —
-   the modal body can never overflow. */
-.crew-select-table-wrapper {
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-}
-
-.crew-select-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-/* Fixed layout + explicit column widths so the header cells span the same
-   proportions as the body cells and the table fills the modal edge to edge,
-   instead of auto-sizing raggedly to each column's content. */
-.crew-select-table th:nth-child(2),
-.crew-select-table td:nth-child(2) {
-  width: 42%;
-}
-
-.crew-select-table th:nth-child(3),
-.crew-select-table td:nth-child(3) {
-  width: 26%;
-}
-
-.crew-select-table th:nth-child(4),
-.crew-select-table td:nth-child(4) {
-  width: 32%;
-}
-
-.crew-select-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.crew-select-table thead th {
-  background: #eef2ff !important;
-  color: #4338ca !important;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 10px 12px !important;
-  border: none !important;
-  text-align: left !important;
-  white-space: nowrap;
-}
-
-.crew-select-table__checkbox-col {
-  width: 40px;
-  text-align: center !important;
-}
-
-.crew-select-table__checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--card-color, #00368c);
-  cursor: pointer;
-}
-
-.crew-select-table tbody tr {
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.crew-select-table tbody td {
-  padding: 9px 12px !important;
-  font-size: 13px;
-  color: #1e293b !important;
-  border-bottom: 1px solid #f0f4f8 !important;
-  text-align: left !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.crew-select-table tbody tr:nth-child(odd) td {
-  background: #ffffff !important;
-}
-
-.crew-select-table tbody tr:nth-child(even) td {
-  background: #f8fafc !important;
-}
-
-.crew-select-table tbody tr:hover td {
-  background: rgba(0, 54, 140, 0.05) !important;
-}
-
-.crew-select-table__row--selected td {
-  background: rgba(0, 54, 140, 0.07) !important;
-}
-
-.crew-select-table tbody tr:last-child td {
-  border-bottom: none !important;
-}
+/* Crew table itself now reuses the shared .crew-table / .crew-list-table
+   styling (same look as the Crew Summary table) — see crew-table-wrapper
+   and friends further up this file. Clicking anywhere in a row still toggles
+   selection (cursor:pointer set inline on the row in JSX, scoped to this
+   modal only); .crew-row-selected (also shared) highlights the selected row. */
 
 .crew-select-pagination {
   display: flex;
@@ -2349,6 +2266,7 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
+  flex-shrink: 0;
   box-sizing: border-box;
   padding: 14px 20px;
   border-top: 1px solid #edf1f7;
