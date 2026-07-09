@@ -18,6 +18,7 @@ import printIcon from "../../../../../../../assets/images/print.svg";
 import logisticsWarehouseService from "../../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../../services/packingTypeService";
 import useInboundOrderReducer from "../../../../../../../store/InboundOrderReducer";
+import useLandingNoteReducer from "../../../../../../../store/LandingNoteReducer";
 import useAlertReducer from "../../../../../../../store/AlertReducer";
 import inboundOrderService from "../../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../../services/vehicleService";
@@ -200,6 +201,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     deleteInboundOrder,
     convertInboundToLandingNote,
     getAllInbound,
+    getInboundOrdersTotal,
     getInboundById,
     clearInboundDetail,
     inboundOrders,
@@ -699,6 +701,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         cb: () => {
           handleCloseModal();
           getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+          getInboundOrdersTotal({ call_id: callId });
         },
       });
     } else {
@@ -707,6 +710,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         cb: () => {
           handleCloseModal();
           getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+          getInboundOrdersTotal({ call_id: callId });
         },
       });
     }
@@ -776,6 +780,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           setInboundPage(pageAfterDelete);
         }
         getAllInbound({ call_id: callId, page: pageAfterDelete, limit: INBOUND_LIMIT });
+        getInboundOrdersTotal({ call_id: callId });
       },
     });
   };
@@ -1188,6 +1193,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       cb: () => {
         handleCloseConvertModal();
         getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+        getInboundOrdersTotal({ call_id: callId });
+        useLandingNoteReducer.getState().getLandingNotesTotal({ call_id: callId });
       },
     });
   };
