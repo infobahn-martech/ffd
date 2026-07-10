@@ -1685,6 +1685,13 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
     );
   };
 
+  const handleToggleTimeUnitKey = (key) => {
+    setSelectedKeys((prev) => {
+      const withoutTimeUnits = prev.filter((k) => !k.startsWith('time_unit-'));
+      return prev.includes(key) ? withoutTimeUnits : [...withoutTimeUnits, key];
+    });
+  };
+
   const findLabelForKey = (key) => {
     if (key.startsWith('regular-')) {
       const field = displayRegularFields.find((f, idx) => `regular-${f.regular_field_id ?? idx}` === key);
@@ -1800,7 +1807,7 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
                         pillKey={key}
                         label={getFieldLabel(field)}
                         selected={selectedKeys.includes(key)}
-                        onClick={() => handleToggleKey(key)}
+                        onClick={() => handleToggleTimeUnitKey(key)}
                       />
                     );
                   })
