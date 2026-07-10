@@ -65,16 +65,6 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onRequest }) => {
             <h2 className="crew-listing-title">{service.label} Crew</h2>
             <p className="crew-listing-subtitle">Selected crew members for this service.</p>
           </div>
-          {!isCrewChange && (
-            <button
-              type="button"
-              className="crew-listing-request-btn"
-              onClick={onRequest}
-              style={{ "--card-color": cardColor }}
-            >
-              Request
-            </button>
-          )}
         </div>
 
         <div className="crew-listing-table-wrapper">

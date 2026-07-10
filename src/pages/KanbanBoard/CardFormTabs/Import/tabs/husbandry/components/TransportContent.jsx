@@ -3,11 +3,8 @@
   import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
   import { notify } from "../../../../../../../components/Toaster";
   import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
-  import { TRANSPORT_ROUTE_LOCATION_OPTIONS, CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
-  import LocationAutocomplete from "./LocationAutocomplete";
+  import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
   import AttachmentsList from "../../appointment/AttachmentsList";
-  import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
-  import transportCompanyService from "../../../../../../../services/transportCompanyService";
   import callFileService from "../../../../../../../services/callFileService";
   import transportContentService from "../../../../../../../services/transportContentService";
   import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
@@ -107,13 +104,6 @@
   const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
   const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 
-  const unwrapApiList = (axiosData) => {
-    const payload = axiosData?.data ?? axiosData;
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.data)) return payload.data;
-    return [];
-  };
-
   const TRANSPORT_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.TRANSPORT];
 
   const TransportContent = ({ formValues, handleChange, cardColor }) => {
@@ -158,13 +148,6 @@
       };
     }, [callId]);
 
-    const [transportCompanies, setTransportCompanies] = useState([]);
-    const [thirdPartyDrivers, setThirdPartyDrivers] = useState([]);
-
-    const [loadingCompanies, setLoadingCompanies] = useState(false);
-    const [loadingThirdPartyDrivers, setLoadingThirdPartyDrivers] = useState(false);
-    const [loadingCoordinators, setLoadingCoordinators] = useState(false);
-    const [transportCoordinators, setTransportCoordinators] = useState([]);
     const [isSavingTransport, setIsSavingTransport] = useState(false);
     const [transportRequests, setTransportRequests] = useState([]);
     const [loadingTransportRequests, setLoadingTransportRequests] = useState(false);
@@ -192,127 +175,6 @@
     useEffect(() => {
       void fetchTransportRequests();
     }, [fetchTransportRequests]);
-
-    // Invoice Branch options
-    const invoiceBranchOptions = [
-      { value: "Sedres Dammam", label: "Sedres Dammam" },
-      { value: "Sedres Rastanura", label: "Sedres Rastanura" },
-      { value: "Sedres Jubail", label: "Sedres Jubail" },
-      { value: "Sedres Khafji", label: "Sedres Khafji" },
-      { value: "Sedres Saffaniya", label: "Sedres Saffaniya" },
-    ];
-
-    useEffect(() => {
-      let cancelled = false;
-      (async () => {
-        try {
-          setLoadingCompanies(true);
-          const { data } = await transportCompanyService.getTransportCompanyData();
-          const list = unwrapApiList(data);
-          if (!cancelled) setTransportCompanies(list);
-        } catch {
-          if (!cancelled) setTransportCompanies([]);
-        } finally {
-          if (!cancelled) setLoadingCompanies(false);
-        }
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, []);
-
-    useEffect(() => {
-      const companyId = formValues.transportCompanyId;
-      if (!companyId || transportType !== "thirdparty") {
-        setThirdPartyDrivers([]);
-        return;
-      }
-      let cancelled = false;
-      (async () => {
-        try {
-          setLoadingThirdPartyDrivers(true);
-          const { data } = await transportCompanyService.getTransportCompanyById(companyId);
-          const row = data?.data ?? data;
-          const company = Array.isArray(row) ? row[0] : row;
-          const drivers = company?.drivers;
-          if (!cancelled) setThirdPartyDrivers(Array.isArray(drivers) ? drivers : []);
-        } catch {
-          if (!cancelled) setThirdPartyDrivers([]);
-        } finally {
-          if (!cancelled) setLoadingThirdPartyDrivers(false);
-        }
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, [formValues.transportCompanyId, transportType]);
-
-    useEffect(() => {
-      let cancelled = false;
-      (async () => {
-        try {
-          setLoadingCoordinators(true);
-          const { data } = await callFileService.getAllTransportCoordinators();
-          const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-          if (!cancelled) setTransportCoordinators(list);
-        } catch {
-          if (!cancelled) setTransportCoordinators([]);
-        } finally {
-          if (!cancelled) setLoadingCoordinators(false);
-        }
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, []);
-
-    const companyOptions = transportCompanies.map((c) => ({
-      value: String(c.transport_company_id ?? ""),
-      label: c.transport_company || `Company ${c.transport_company_id}`,
-    }));
-
-    const thirdPartyDriverOptions = thirdPartyDrivers.map((d) => ({
-      value: String(d.transport_driver_id ?? ""),
-      label: [
-        d.driver_name,
-        d.vehicle_type,
-        d.seater != null ? `${d.seater} seater` : null,
-        d.contact_no,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-    }));
-
-    const clearTransportSelections = useCallback(() => {
-      handleChange("transportVehicleTypeId")({ target: { value: "" } });
-      handleChange("transportDriverId")({ target: { value: "" } });
-      handleChange("transportCoordinatorId")({ target: { value: "" } });
-      handleChange("transportCompanyId")({ target: { value: "" } });
-      handleChange("transportThirdPartyDriverId")({ target: { value: "" } });
-      handleChange("driverName")({ target: { value: "" } });
-    }, [handleChange]);
-
-    // Handle transport type radio button change
-    const handleTransportTypeChange = (e) => {
-      const value = e.target.value;
-      setTransportType(value);
-      const syntheticEvent = { target: { value: value } };
-      handleChange("transportType")(syntheticEvent);
-      clearTransportSelections();
-    };
-
-    const handleCompanyChange = (e) => {
-      handleChange("transportCompanyId")(e);
-      handleChange("transportThirdPartyDriverId")({ target: { value: "" } });
-      handleChange("driverName")({ target: { value: "" } });
-    };
-
-    const handleThirdPartyDriverChange = (e) => {
-      handleChange("transportThirdPartyDriverId")(e);
-      const id = e.target.value;
-      const row = thirdPartyDrivers.find((d) => String(d.transport_driver_id) === id);
-      handleChange("driverName")({ target: { value: row?.driver_name ?? "" } });
-    };
 
     const fileToAttachment = (file) => ({
       name: file.name,
@@ -513,11 +375,6 @@
       }
     }, [callId, callDetails, formValues, transportType, fetchTransportRequests]);
 
-    const transportCoordinatorOptions = transportCoordinators.map((coordinator) => ({
-      value: String(coordinator.user_id ?? ""),
-      label: coordinator.user_name || `Coordinator ${coordinator.user_id}`,
-    }));
-
     return (
       <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
         <FormSection icon={GroupSettingsIcon} title="">
@@ -562,146 +419,6 @@
                     onChange={(ids) => handleChange("selectedCrew")({ target: { value: ids } })}
                     accent={TRANSPORT_ACCENT}
                   />
-
-                  <FormGroup icon="transport" label="Provider" accent={TRANSPORT_ACCENT}>
-                    <FormField label="Provider">
-                      <div className="transport-type-radio-row">
-                        <label className="transport-type-radio">
-                          <input
-                            type="radio"
-                            name="transportType"
-                            value="inhouse"
-                            checked={transportType === "inhouse"}
-                            onChange={handleTransportTypeChange}
-                          />
-                          <span>In house</span>
-                        </label>
-                        <label className="transport-type-radio">
-                          <input
-                            type="radio"
-                            name="transportType"
-                            value="thirdparty"
-                            checked={transportType === "thirdparty"}
-                            onChange={handleTransportTypeChange}
-                          />
-                          <span>Third party</span>
-                        </label>
-                      </div>
-                    </FormField>
-                  </FormGroup>
-
-                  <FormGroup icon="transport" label={transportType === "inhouse" ? "Transport Coordinator" : "Vehicle & Driver"} accent={TRANSPORT_ACCENT}>
-                    {transportType === "inhouse" && (
-                      <FormField label="Transport Coordinator">
-                        <FormSelect
-                          value={formValues.transportCoordinatorId || ""}
-                          onChange={handleChange("transportCoordinatorId")}
-                          options={transportCoordinatorOptions}
-                          placeholder="Select transport coordinator..."
-                        />
-                      </FormField>
-                    )}
-
-                    {transportType === "thirdparty" && (
-                      <FieldRow>
-                        <FormField label="Transport Company">
-                          <FormSelect
-                            value={formValues.transportCompanyId || ""}
-                            onChange={handleCompanyChange}
-                            options={companyOptions}
-                            placeholder={
-                              loadingCompanies ? "Loading companies..." : "Select transport company..."
-                            }
-                            disabled={loadingCompanies}
-                          />
-                        </FormField>
-
-                        <FormField label="Driver Name">
-                          <FormSelect
-                            value={formValues.transportThirdPartyDriverId || ""}
-                            onChange={handleThirdPartyDriverChange}
-                            options={thirdPartyDriverOptions}
-                            placeholder={
-                              !formValues.transportCompanyId
-                                ? "Select a company first..."
-                                : loadingThirdPartyDrivers
-                                  ? "Loading drivers..."
-                                  : "Select driver..."
-                            }
-                            disabled={!formValues.transportCompanyId || loadingThirdPartyDrivers}
-                          />
-                        </FormField>
-                      </FieldRow>
-                    )}
-
-                  </FormGroup>
-
-                  <FormGroup icon="calendar" label="Route & Schedule" accent={TRANSPORT_ACCENT}>
-                    <FormField label="Pickup Date Time">
-                      <div className="transport-date-time-field">
-                        <DateTimePickerField
-                          dateValue={formValues.transportDateTime || ""}
-                          timeValue={formValues.transportTime || ""}
-                          onDateChange={handleChange("transportDateTime")}
-                          onTimeChange={handleChange("transportTime")}
-                          dateFieldName="transportDateTime"
-                          timeFieldName="transportTime"
-                          placeholder="Select date and time"
-                        />
-                      </div>
-                    </FormField>
-
-                    <div className="transport-route-row">
-                      <FieldRow>
-                        <FormField label="From">
-                          <div className="transport-route-select-stack">
-                            <FormSelect
-                              value={formValues.transportFromType || ""}
-                              onChange={handleChange("transportFromType")}
-                              options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
-                              placeholder="Select from..."
-                            />
-                            <LocationAutocomplete
-                              value={formValues.transportFrom || ""}
-                              onChange={handleChange("transportFrom")}
-                              placeholder="Search for a location..."
-                              onLocationSelect={() => {}}
-                            />
-                          </div>
-                        </FormField>
-
-                        <FormField label="To">
-                          <div className="transport-route-select-stack">
-                            <FormSelect
-                              value={formValues.transportToType || ""}
-                              onChange={handleChange("transportToType")}
-                              options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
-                              placeholder="Select to..."
-                            />
-                            <LocationAutocomplete
-                              value={formValues.transportTo || ""}
-                              onChange={handleChange("transportTo")}
-                              placeholder="Search for a location..."
-                              onLocationSelect={() => {}}
-                            />
-                          </div>
-                        </FormField>
-                      </FieldRow>
-                    </div>
-                  </FormGroup>
-
-                  {transportType === "inhouse" && (
-                    <FormGroup icon="billing" label="Billing" accent={TRANSPORT_ACCENT}>
-                      <FormField label="Invoice Branch">
-                        <FormSelect
-                          value={formValues.invoiceBranch || ""}
-                          onChange={handleChange("invoiceBranch")}
-                          options={invoiceBranchOptions}
-                          placeholder="Select invoice branch..."
-                        />
-                      </FormField>
-                    </FormGroup>
-                  )}
 
                   <FormGroup icon="folder" label="Attachments" accent={TRANSPORT_ACCENT}>
                     <FormField label="Documents" className="cf-field-full">
