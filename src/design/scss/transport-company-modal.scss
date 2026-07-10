@@ -13,7 +13,7 @@ $primary-font: "Manrope", sans-serif;
      the field. */
   .phone-wrapper--notched {
     position: relative;
-    margin-top: 0px;
+    margin-top: 14px;
   }
 
   .phone-wrapper--notched .phone-label {
@@ -60,5 +60,9 @@ $primary-font: "Manrope", sans-serif;
   .phone-wrapper--notched .selected-flag:focus:before,
   .phone-wrapper--notched .selected-flag.open:before {
     border-color: #e2e2ea !important;
+  }
+
+  .email-field-wrap {
+    margin-top: 8px;
   }
 }
