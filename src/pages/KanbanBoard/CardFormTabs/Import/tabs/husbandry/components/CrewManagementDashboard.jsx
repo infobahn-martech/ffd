@@ -526,11 +526,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           <div className="crew-mgmt-hero-row">
             <div className="crew-mgmt-hero-left">
               <div className="crew-mgmt-hero-text">
-                <p className="husbandry-service-hero-eyebrow">Crew Management</p>
                 <h2 className="husbandry-service-selection-title">Crew Management</h2>
-                <p className="husbandry-service-hero-subtitle">
-                  Manage crew list, transport, medical, hotel and related crew services in one place.
-                </p>
               </div>
 
               <div className="crew-mgmt-hero-middle">
