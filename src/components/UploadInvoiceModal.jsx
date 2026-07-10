@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CustomModal from './CustomModal';
 
-function UploadInvoiceModal({ show, closeModal, orderNo, onUploadComplete }) {
+function UploadInvoiceModal({ show, closeModal, orderNo, contextLabel, onUploadComplete }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -66,7 +66,7 @@ function UploadInvoiceModal({ show, closeModal, orderNo, onUploadComplete }) {
                             <label className="form-label mb-0">
                                 Attach invoices <span className="text-danger">*</span>
                             </label>
-                            <small className="text-muted">Order: {orderNo}</small>
+                            <small className="text-muted">{contextLabel || `Order: ${orderNo}`}</small>
                         </div>
 
                         <div className="file-drop-zone-wrapper">

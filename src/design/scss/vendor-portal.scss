@@ -32,6 +32,19 @@
 .vendor-dashboard-section {
     margin-bottom: 30px;
 
+    .vendor-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+
+        .vendor-section-title {
+            margin: 0;
+        }
+    }
+
     .vendor-section-title {
         font: normal normal 600 20px/1.4 $font-primary;
         color: $txtColor;
@@ -306,6 +319,18 @@
         background: #002a6e;
         border-color: #002a6e;
         color: #fff;
+    }
+}
+
+/* Table header actions (e.g. month picker + upload invoice) */
+.vendor-table-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    .vendor-month-input {
+        width: auto;
     }
 }
 

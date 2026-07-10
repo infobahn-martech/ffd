@@ -2913,9 +2913,14 @@
 }
 
 .notification-quill-wrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
   .ql-container {
     min-height: 220px;
     font-size: 14px;
+    border: none;
+    border-radius: 0 0 8px 8px;
   }
 
   .ql-editor {
@@ -2923,6 +2928,130 @@
 
     li {
       margin-bottom: 6px;
+    }
+  }
+
+  // Keep the toolbar on a single row; controls that don't fit are moved by
+  // attachToolbarOverflow() into the .ql-toolbar-more dropdown instead of
+  // wrapping onto a second line.
+  .ql-toolbar.ql-snow {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 6px 8px;
+    background: #f9fafb;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    border-radius: 8px 8px 0 0;
+
+    .ql-formats {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+      margin-right: 6px;
+    }
+
+    button {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+
+      &:hover {
+        background: #eef2f7;
+      }
+
+      &.ql-active {
+        background: #e8eefd;
+
+        .ql-stroke {
+          stroke: #2563eb;
+        }
+
+        .ql-fill {
+          fill: #2563eb;
+        }
+      }
+    }
+
+    .ql-picker {
+      height: 26px;
+    }
+
+    .ql-picker-label {
+      display: flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 6px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      font-size: 13px;
+
+      &:hover {
+        background: #eef2f7;
+      }
+    }
+
+    .ql-picker.ql-expanded .ql-picker-label {
+      border-color: #e5e7eb;
+      background: #ffffff;
+    }
+  }
+
+  .ql-toolbar-more {
+    position: relative;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 4px;
+  }
+
+  .ql-toolbar-more-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 4px;
+
+    &:hover {
+      background: #eef2f7;
+      color: #111827;
+    }
+  }
+
+  .ql-toolbar-more-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    width: max-content;
+    max-width: 180px;
+    margin-top: 6px;
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+
+    &[hidden] {
+      display: none;
+    }
+
+    .ql-formats {
+      display: flex;
+      align-items: center;
+      margin-right: 0 !important;
     }
   }
 }

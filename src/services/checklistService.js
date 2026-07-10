@@ -23,6 +23,10 @@ const getChecklistsByVesselType = (payload) =>
 const getChecklistsByBargeType = (payload) =>
   Gateway.post('checklist/checklist_by_bargetype', payload);
 
+/** POST checklist/checklist_by_port_call — body: { calltype, port_id } */
+const getChecklistsByPortCall = (payload) =>
+  Gateway.post('checklist/checklist_by_port_call', payload);
+
 /** DELETE checklist/delete/{checklist_type_id} */
 const deleteChecklist = (checklist_type_id) =>
   Gateway.delete(
@@ -46,6 +50,7 @@ export default {
     getCallChecklist,
     getChecklistsByVesselType,
     getChecklistsByBargeType,
+    getChecklistsByPortCall,
     deleteChecklist,
     saveCallChecklist,
 };

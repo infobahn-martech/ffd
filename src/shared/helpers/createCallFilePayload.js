@@ -16,6 +16,7 @@ function toJsonArrayString(value) {
 
 const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
+const APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE = "taxi_tug_and_barge";
 const APPOINTMENT_TYPE_VESSEL = "vessel";
 
 // Human-readable labels expected by the backend in the appointment_type field.
@@ -23,7 +24,12 @@ const APPOINTMENT_TYPE_API_LABEL = {
   [APPOINTMENT_TYPE_VESSEL]: "Vessel",
   [APPOINTMENT_TYPE_TUG]: "Taxi Tug",
   [APPOINTMENT_TYPE_TUG_AND_BARGE]: "Tug and Barge",
+  [APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE]: "Taxi Tug and Barge",
 };
+
+// Tug and barge form fields (tug_type_id / vessel_id / barge_* keys) are shared by both barge appointment types.
+const isBargeAppointmentType = (value) =>
+  value === APPOINTMENT_TYPE_TUG_AND_BARGE || value === APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE;
 
 /** Collapses scalar / array / JSON-array-string appointment type values (canonical value or label) to a canonical value. */
 function normalizeAppointmentType(value) {
@@ -43,6 +49,7 @@ function normalizeAppointmentType(value) {
   if (!Array.isArray(list)) list = list == null ? [] : [list];
   const items = list.map((item) => str(item).toLowerCase()).filter(Boolean);
   const has = (...candidates) => candidates.some((candidate) => items.includes(candidate));
+  if (has(APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE, "taxi tug and barge")) return APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE;
   if (has(APPOINTMENT_TYPE_TUG_AND_BARGE, "tug and barge")) return APPOINTMENT_TYPE_TUG_AND_BARGE;
   if (has(APPOINTMENT_TYPE_VESSEL)) return APPOINTMENT_TYPE_VESSEL;
   if (has(APPOINTMENT_TYPE_TUG, "taxi tug")) return APPOINTMENT_TYPE_TUG;
@@ -175,26 +182,27 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendStringField("swimlane_id", fv.swimlane_id ?? fv.swimlaneId ?? "");
 
   appendStringField("assigned_operator_id", fv.assignedOperator);
-  appendStringField("billing_entity_id", fv.mainBillingEntity);
   appendStringField("last_port", fv.lastPort);
   const appointmentType = normalizeAppointmentType(fv.appointmentType);
   fd.append("appointment_type", APPOINTMENT_TYPE_API_LABEL[appointmentType] ?? str(fv.appointmentType));
 
-  // Only the keys relevant to the selected appointment type are sent.
-  if (appointmentType === APPOINTMENT_TYPE_VESSEL) {
-    appendStringField("vessel_type_id", fv.vesselType);
+  // Only the keys relevant to the selected appointment type are sent. Each appointment type carries its
+  // own billing entity selection(s); Tug and Barge / Taxi Tug and Barge keep the tug and barge entities independent.
+  if (appointmentType === APPOINTMENT_TYPE_VESSEL || appointmentType === APPOINTMENT_TYPE_TUG) {
+    appendStringField("billing_entity_id", fv.vesselBillingEntity);
+    if (appointmentType === APPOINTMENT_TYPE_VESSEL) {
+      appendStringField("vessel_type_id", fv.vesselType);
+    } else {
+      appendStringField("tug_type_id", fv.vesselType);
+    }
     appendStringField("vessel_id", fv.vesselName);
     appendStringField("vessel_owner", fv.vesselOwner);
     appendStringField("vessel_principal", fv.vesselPrincipal);
     appendStringField("vessel_manager", fv.vesselManager);
-  } else if (appointmentType === APPOINTMENT_TYPE_TUG) {
-    appendStringField("tug_type_id", fv.vesselType);
-    appendStringField("vessel_id", fv.vesselName);
-    appendStringField("vessel_owner", fv.vesselOwner);
-    appendStringField("vessel_principal", fv.vesselPrincipal);
-    appendStringField("vessel_manager", fv.vesselManager);
-  } else if (appointmentType === APPOINTMENT_TYPE_TUG_AND_BARGE) {
+  } else if (isBargeAppointmentType(appointmentType)) {
     // Tug details reuse the standard vessel keys; barge details use the barge_vessel_* keys.
+    appendStringField("billing_entity_id", fv.tugBillingEntity);
+    appendStringField("barge_billing_entity_id", fv.bargeBillingEntity);
     appendStringField("tug_type_id", fv.tugType);
     appendStringField("barge_type_id", fv.bargeType);
     appendStringField("vessel_id", fv.tugVesselName);
@@ -208,6 +216,11 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   }
   appendStringField("service_requestor_name", fv.serviceRequestorName);
   appendStringField("service_requestor_email", fv.serviceRequestorEmail);
+
+  const checklistIds = (Array.isArray(fv.selectedChecklists) ? fv.selectedChecklists : [])
+    .map((id) => str(id))
+    .filter(Boolean);
+  fd.append("checklist_type_ids", toJsonArrayString(checklistIds));
 
   const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
   fd.append("daily_report_emails", toJsonArrayString(daily));

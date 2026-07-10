@@ -38,11 +38,6 @@ const toDateTimeLocal = (value) => {
     return parsed.isValid() ? parsed.format('YYYY-MM-DDTHH:mm') : '';
 };
 
-const isUploadDisabled = (status) => {
-    const s = (status || '').toLowerCase();
-    return s === 'closed' || s === 'completed' || s === 'paid';
-};
-
 function TransportDashboard() {
     const {
         isDashboardLoading,
@@ -53,8 +48,7 @@ function TransportDashboard() {
         getVendorOrders,
     } = useVendorReducer();
 
-    const [orderOverrides, setOrderOverrides] = useState({});
-    const [uploadOrder, setUploadOrder] = useState(null);
+    const [invoiceMonth, setInvoiceMonth] = useState(dayjs().format('YYYY-MM'));
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     useEffect(() => {
@@ -116,46 +110,44 @@ function TransportDashboard() {
         { label: 'Purchaser', key: 'purchaser' },
         { label: 'Amount', key: 'amount' },
         { label: 'Currency', key: 'currency' },
-        {
-            label: 'Upload Invoice',
-            key: 'uploadInvoice',
-            render: (row) => (
-                <button
-                    type="button"
-                    className="vendor-upload-btn"
-                    disabled={isUploadDisabled(row.status)}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setUploadOrder(row);
-                        setShowUploadModal(true);
-                    }}
-                >
-                    <FiUpload />
-                    Upload
-                </button>
-            ),
-        },
         { label: 'Status', key: 'status', isStatus: true },
     ];
 
+    const tableHeaderAction = (
+        <div className="vendor-table-header-actions">
+            <input
+                type="month"
+                className="form-control form-control-sm vendor-month-input"
+                value={invoiceMonth}
+                onChange={(e) => setInvoiceMonth(e.target.value)}
+                aria-label="Invoice month"
+            />
+            <button
+                type="button"
+                className="vendor-upload-btn"
+                onClick={() => setShowUploadModal(true)}
+            >
+                <FiUpload />
+                Upload Invoice
+            </button>
+        </div>
+    );
+
     const tableRows = useMemo(
         () =>
-            (ordersData || []).map((order) => {
-                const override = orderOverrides[order.po_number];
-                return {
-                    poNo: order.po_number,
-                    woNo: order.wo_number,
-                    subject: `${order.vehicle_type || 'Transport'} - Crew transfer`,
-                    company: order.company,
-                    orderDate: formatDate(order.order_date),
-                    purchaser: order.requested_by,
-                    amount: order.amount,
-                    currency: order.currency,
-                    status: override?.status ?? order.status,
-                    crew: order.crew || [],
-                };
-            }),
-        [ordersData, orderOverrides]
+            (ordersData || []).map((order) => ({
+                poNo: order.po_number,
+                woNo: order.wo_number,
+                subject: `${order.vehicle_type || 'Transport'} - Crew transfer`,
+                company: order.company,
+                orderDate: formatDate(order.order_date),
+                purchaser: order.requested_by,
+                amount: order.amount,
+                currency: order.currency,
+                status: order.status,
+                crew: order.crew || [],
+            })),
+        [ordersData]
     );
 
     return (
@@ -168,6 +160,7 @@ function TransportDashboard() {
                 statusCards={statusCards}
                 quickActions={quickActions}
                 tableTitle="Recent Orders"
+                tableHeaderAction={tableHeaderAction}
                 tableColumns={tableColumns}
                 tableRows={tableRows}
                 isTableLoading={isDashboardLoading || isOrdersLoading}
@@ -237,19 +230,12 @@ function TransportDashboard() {
             {!!showUploadModal && (
                 <UploadInvoiceModal
                     show={showUploadModal}
-                    orderNo={uploadOrder?.poNo}
-                    closeModal={() => {
-                        setShowUploadModal(false);
-                        setUploadOrder(null);
-                    }}
+                    contextLabel={`Month: ${dayjs(invoiceMonth).format('MMMM YYYY')}`}
+                    closeModal={() => setShowUploadModal(false)}
                     onUploadComplete={() => {
-                        if (!uploadOrder?.poNo) return;
-                        setOrderOverrides((prev) => ({
-                            ...prev,
-                            [uploadOrder.poNo]: { status: 'Completed' },
-                        }));
                         setShowUploadModal(false);
-                        setUploadOrder(null);
+                        getVendorDashboard();
+                        getVendorOrders();
                     }}
                 />
             )}

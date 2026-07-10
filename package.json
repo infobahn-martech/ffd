@@ -1,13 +1,13 @@
 {
   "name": "kanbanboardfe",
-"homepage": "https://infobahn-martech.github.io/sedres-fe/",
-"scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "preview": "vite preview",
-  "predeploy": "npm run build && cp dist/index.html dist/404.html",
-  "deploy": "gh-pages -d dist -b gh-pages --dotfiles"
-},
+  "homepage": "https://infobahn-martech.github.io/sedres-fe/",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build && cp dist/index.html dist/404.html",
+    "deploy": "gh-pages -d dist -b gh-pages --dotfiles"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -44,6 +44,7 @@
     "react-loading-skeleton": "^3.3.1",
     "react-phone-input-2": "^2.15.1",
     "react-quill": "^2.0.0",
+    "react-quill-new": "^3.8.3",
     "react-router-dom": "^7.9.5",
     "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
