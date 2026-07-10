@@ -16,6 +16,7 @@ import vesselTypeService from "../../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../../services/bargeTypeService";
 import tugTypeService from "../../../../../../services/tugTypeService";
 import vesselService from "../../../../../../services/vesselService";
+import checklistService from "../../../../../../services/checklistService";
 import kpiTasksService from "../../../../../../services/kpiTasksService";
 import useCallTaskReducer from "../../../../../../store/CallTaskReducer";
 import OperationTasksPanel from "../operation/TaskTab";
@@ -31,6 +32,8 @@ import {
   mapVesselTypesToOptions,
   mapBargeTypesToOptions,
   mapTugTypesToOptions,
+  mapVesselsToOptions,
+  mapChecklistsToOptions,
   mergeOptionIfMissing,
 } from "../../../../../../shared/helpers/callFileFormOptions";
 import { buildCreateCallFileFormData } from "../../../../../../shared/helpers/createCallFilePayload";
@@ -200,10 +203,12 @@ const parseMsgSenderDetails = (msg = {}) => {
 
 const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
+const APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE = "taxi_tug_and_barge";
 const APPOINTMENT_TYPE_VESSEL = "vessel";
 const APPOINTMENT_TYPE_OPTIONS = [
   { value: APPOINTMENT_TYPE_TUG, label: "Taxi Tug" },
   { value: APPOINTMENT_TYPE_TUG_AND_BARGE, label: "Tug and barge" },
+  { value: APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE, label: "Taxi tug and barge" },
   { value: APPOINTMENT_TYPE_VESSEL, label: "Vessel" },
 ];
 
@@ -238,13 +243,15 @@ const normalizeAppointmentTypeValue = (raw, fallback = "") => {
     })
     .filter(Boolean);
   const unique = [...new Set(matched)];
+  if (unique.includes(APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE)) return APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE;
   if (unique.includes(APPOINTMENT_TYPE_TUG_AND_BARGE)) return APPOINTMENT_TYPE_TUG_AND_BARGE;
   if (unique.includes(APPOINTMENT_TYPE_VESSEL)) return APPOINTMENT_TYPE_VESSEL;
   if (unique.includes(APPOINTMENT_TYPE_TUG)) return APPOINTMENT_TYPE_TUG;
   return fallback;
 };
 
-const appointmentTypeShowsBargeFields = (value) => value === APPOINTMENT_TYPE_TUG_AND_BARGE;
+const appointmentTypeShowsBargeFields = (value) =>
+  value === APPOINTMENT_TYPE_TUG_AND_BARGE || value === APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE;
 
 // Single (non tug-and-barge) vessel block is shown for Taxi Tug and Vessel appointment types.
 const appointmentTypeShowsSingleVesselSection = (value) =>
@@ -268,20 +275,22 @@ const toDetailString = (value) =>
 
 // Builds the vessel / tug / barge form fields from a call detail, keyed by the detail's appointment type.
 const mapDetailVesselFields = (detail, appointmentType) => {
-  if (appointmentType === APPOINTMENT_TYPE_TUG_AND_BARGE) {
+  if (appointmentTypeShowsBargeFields(appointmentType)) {
     return {
-      // Tug section reuses the standard vessel_* API keys.
+      // Tug section reuses the standard vessel_* API keys, including the primary billing entity.
       tugType: toDetailString(detail?.tug_type_id),
       tugVesselName: toDetailString(detail?.vessel_id),
       tugOwner: toDetailString(detail?.vessel_owner),
       tugPrincipal: toDetailString(detail?.vessel_principal),
       tugManager: toDetailString(detail?.vessel_manager),
-      // Barge section uses the barge_vessel_* API keys.
+      tugBillingEntity: toDetailString(detail?.billing_entity_id ?? detail?.main_billing_entity_id),
+      // Barge section uses the barge_vessel_* API keys and its own billing entity.
       bargeType: toDetailString(detail?.barge_type_id),
       bargeVesselName: toDetailString(detail?.barge_vessel_id),
       bargeOwner: toDetailString(detail?.barge_vessel_owner ?? detail?.barge_owner),
       bargePrincipal: toDetailString(detail?.barge_vessel_principal),
       bargeManager: toDetailString(detail?.barge_vessel_manager),
+      bargeBillingEntity: toDetailString(detail?.barge_billing_entity_id),
     };
   }
 
@@ -295,6 +304,7 @@ const mapDetailVesselFields = (detail, appointmentType) => {
     vesselOwner: toDetailString(detail?.vessel_owner),
     vesselPrincipal: toDetailString(detail?.vessel_principal),
     vesselManager: toDetailString(detail?.vessel_manager),
+    vesselBillingEntity: toDetailString(detail?.billing_entity_id ?? detail?.main_billing_entity_id),
   };
 };
 
@@ -310,6 +320,11 @@ const mapCallDetailToFormFields = (detail) => {
       .map((item) => String(item?.id ?? item?.email_id ?? item?.reference ?? "").trim())
       .filter(Boolean)
     : [];
+  const selectedChecklists = Array.isArray(detail?.checklist_type_ids)
+    ? detail.checklist_type_ids.map((item) => String(item?.checklist_type_id ?? item ?? "").trim()).filter(Boolean)
+    : Array.isArray(detail?.checklists)
+      ? detail.checklists.map((item) => String(item?.checklist_type_id ?? item ?? "").trim()).filter(Boolean)
+      : [];
 
   const detailAppointmentType = normalizeAppointmentTypeValue(
     detail?.appointment_type,
@@ -326,9 +341,9 @@ const mapCallDetailToFormFields = (detail) => {
     port: detail?.port_id ? String(detail.port_id) : "",
     call_type_id: detail?.call_type_id != null ? String(detail.call_type_id) : "",
     typeOfCall: detail?.call_type ? String(detail.call_type) : "",
-    mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
     lastPort: detail?.last_port != null ? String(detail.last_port) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
+    selectedChecklists,
     appointmentType: detailAppointmentType,
     ...mapDetailVesselFields(detail, detailAppointmentType),
     serviceRequestorName: detail?.service_requestor_name ? String(detail.service_requestor_name) : "",
@@ -1873,7 +1888,6 @@ const ALL_DETAIL_SCALAR_FIELD_MAP = [
   ["vessel_id", "vesselName"],
   ["port_id", "port"],
   ["assigned_operator_id", "assignedOperator"],
-  ["main_billing_entity_id", "mainBillingEntity"],
   ["other_billing_entity_id", "otherBillingEntity"],
   ["vessel_type_id", "vesselType"],
   ["last_port", "lastPort"],
@@ -2325,16 +2339,20 @@ function General({
         : card?.color || "#2A00FF",
     [isAddMode, formValues?.cardColor, card?.color]
   );
-  // Single vessel section (Vessel / Taxi Tug) options.
-  const [vesselNameOptions, setVesselNameOptions] = useState([
-    // Add vessel names here or fetch from API
-  ]);
-  const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
-  // Tug and barge appointments keep independent dropdowns sourced from different type filters.
-  const [tugVesselNameOptions, setTugVesselNameOptions] = useState([]);
-  const [tugVesselOptionsLoading, setTugVesselOptionsLoading] = useState(false);
-  const [bargeVesselNameOptions, setBargeVesselNameOptions] = useState([]);
-  const [bargeVesselOptionsLoading, setBargeVesselOptionsLoading] = useState(false);
+  // Vessel/Tug/Barge Name all pull from the same full vessel catalogue (vessel/all_vessels),
+  // loaded once and independent of Billing Entity / Vessel Type selections.
+  const [allVesselOptions, setAllVesselOptions] = useState([]);
+  const [allVesselsLoading, setAllVesselsLoading] = useState(false);
+  const vesselNameOptions = allVesselOptions;
+  const tugVesselNameOptions = allVesselOptions;
+  const bargeVesselNameOptions = allVesselOptions;
+  const vesselOptionsLoading = allVesselsLoading;
+  const tugVesselOptionsLoading = allVesselsLoading;
+  const bargeVesselOptionsLoading = allVesselsLoading;
+  const [checklistOptions, setChecklistOptions] = useState([]);
+  const [checklistLoading, setChecklistLoading] = useState(false);
+  const checklistRequestIdRef = useRef(0);
+  const lastChecklistFetchKeyRef = useRef("");
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
   const [defaultEmailAttachments, setDefaultEmailAttachments] = useState([]);
   const [uploadedEmailAttachments, setUploadedEmailAttachments] = useState([]);
@@ -2427,10 +2445,6 @@ function General({
   const etaDependentLastRequestKeyRef = useRef("");
   const allDetailByVesselRequestIdRef = useRef(0);
   const lastHydratedEntityFieldCallIdRef = useRef(null);
-  // Race guards so the latest vessel-by-entity response always wins per section.
-  const vesselOptionsRequestIdRef = useRef(0);
-  const tugVesselOptionsRequestIdRef = useRef(0);
-  const bargeVesselOptionsRequestIdRef = useRef(0);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
   const [operatorKpiError, setOperatorKpiError] = useState("");
@@ -2741,7 +2755,9 @@ function General({
       srtNo: "srt_number",
       srtPoWbs: "srt_number",
       project: "project_name",
-      mainBillingEntity: "main_billing_entity_id",
+      vesselBillingEntity: "main_billing_entity_id",
+      tugBillingEntity: "main_billing_entity_id",
+      bargeBillingEntity: "barge_billing_entity_id",
       lastPort: "last_port",
       vesselName: "vessel_id",
     };
@@ -2775,6 +2791,19 @@ function General({
       return String(card[apiAlias]);
     }
     return "";
+  };
+
+  // Entity-dependent lookups (dynamic entity fields, daily report emails, billing instructions) follow
+  // the vessel billing entity for single Vessel/Taxi Tug appointments, or the tug billing entity for
+  // Tug and Barge / Taxi tug and barge appointments — the barge billing entity stays independent.
+  const getPrimaryBillingEntityId = () => {
+    const type = normalizeAppointmentTypeValue(
+      getFieldValue("appointmentType"),
+      isAddMode ? "" : APPOINTMENT_TYPE_TUG
+    );
+    return appointmentTypeShowsBargeFields(type)
+      ? getFieldValue("tugBillingEntity")
+      : getFieldValue("vesselBillingEntity");
   };
 
   const shouldShowApiField = useCallback(
@@ -2846,13 +2875,6 @@ function General({
     return getFieldValue(fieldName);
   };
 
-  const validateGeneralFields = (snapshot = formValues) => {
-    const errors = {};
-    const v = (name) => getValueForGeneralValidation(name, snapshot);
-    if (isEmptyValue(v("mainBillingEntity"))) errors.mainBillingEntity = "Main billing entity is required.";
-    return errors;
-  };
-
   const validateRequiredEntityFields = useCallback((fields, values) => {
     const nextErrors = {};
     fields.forEach((field) => {
@@ -2886,7 +2908,9 @@ function General({
     const singleSelected = appointmentTypeShowsSingleVesselSection(selectedAppointmentType);
     const bargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
     requireField(shouldShowApiField("assigned_operator_id"), "assignedOperator", "Assigned operator is required.");
-    requireField(shouldShowApiField("main_billing_entity_id"), "mainBillingEntity", "Main billing entity is required.");
+    requireField(shouldShowApiField("main_billing_entity_id") && singleSelected, "vesselBillingEntity", "Billing entity is required.");
+    requireField(shouldShowApiField("main_billing_entity_id") && bargeSelected, "tugBillingEntity", "Billing entity is required.");
+    requireField(shouldShowApiField("main_billing_entity_id") && bargeSelected, "bargeBillingEntity", "Billing entity is required.");
     requireField(shouldShowApiField("vessel_id") && singleSelected, "vesselName", "Vessel name is required.");
     requireField(shouldShowApiField("service_requestor_name"), "serviceRequestorName", "Service requestor name is required.");
     requireField(shouldShowApiField("service_requestor_email"), "serviceRequestorEmail", "Service requestor email is required.");
@@ -2902,10 +2926,7 @@ function General({
       if (!selectedAppointmentType) {
         errors.appointmentType = "Appointment type is required.";
       }
-      requireField(singleSelected, "vesselType", "Vessel type is required.");
-      requireField(bargeSelected, "tugType", "Vessel type is required.");
       requireField(bargeSelected, "tugVesselName", "Vessel name is required.");
-      requireField(bargeSelected, "bargeType", "Vessel type is required.");
       requireField(bargeSelected, "bargeVesselName", "Vessel name is required.");
       (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
         if (String(item?.is_required ?? "0") !== "1") return;
@@ -3147,18 +3168,27 @@ function General({
       });
     };
 
-    const singleVesselKeys = ["vesselType", "vesselName", "vesselOwner", "vesselPrincipal", "vesselManager"];
+    const singleVesselKeys = [
+      "vesselType",
+      "vesselName",
+      "vesselOwner",
+      "vesselPrincipal",
+      "vesselManager",
+      "vesselBillingEntity",
+    ];
     const tugAndBargeKeys = [
       "tugType",
       "tugVesselName",
       "tugOwner",
       "tugPrincipal",
       "tugManager",
+      "tugBillingEntity",
       "bargeType",
       "bargeVesselName",
       "bargeOwner",
       "bargePrincipal",
       "bargeManager",
+      "bargeBillingEntity",
     ];
 
     if (appointmentTypeShowsBargeFields(nextType)) {
@@ -3977,9 +4007,9 @@ ${body}
       );
       if (!validFiles.length) return;
 
-      const billingEntityId = getFieldValue("mainBillingEntity");
+      const billingEntityId = getPrimaryBillingEntityId();
       if (isEmptyValue(billingEntityId)) {
-        notify("Please select a Main Billing entity before uploading attachments.", "error");
+        notify("Please select a Billing entity before uploading attachments.", "error");
         return;
       }
 
@@ -4201,46 +4231,6 @@ ${body}
     setBillingInstructionType("email");
   }, [isAddMode, callDetailData?.billing_instruction_emails]);
 
-  const normalizeVesselOptions = useCallback((payload) => {
-    const rows = unwrapListResponse(payload);
-    return rows
-      .map((row) => {
-        const vesselId = row?.vessel_id === undefined || row?.vessel_id === null ? "" : String(row.vessel_id);
-        const vesselName = row?.vessel_name ? String(row.vessel_name).trim() : "";
-        if (!vesselId || !vesselName) return null;
-        return { value: vesselId, label: vesselName };
-      })
-      .filter(Boolean);
-  }, []);
-
-  // Loads vessel-name options for a single dropdown, filtered by entity + a type param
-  // (vessel_type_id | tug_type_id | barge_type_id). Empty entity or empty type clears the list.
-  const fetchVesselOptions = useCallback(
-    async ({ entityId, params, setOptions, setLoading, requestRef }) => {
-      const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
-      const typeParamValue = params ? firstNonEmptyString(...Object.values(params)) : "";
-      if (!normalizedEntityId || !typeParamValue) {
-        requestRef.current += 1;
-        setOptions([]);
-        setLoading(false);
-        return;
-      }
-
-      const requestId = (requestRef.current += 1);
-      setLoading(true);
-      try {
-        const { data } = await vesselService.getVesselsByEntity(normalizedEntityId, params);
-        if (requestRef.current !== requestId) return;
-        setOptions(normalizeVesselOptions(data));
-      } catch (error) {
-        if (requestRef.current === requestId) setOptions([]);
-      } finally {
-        if (requestRef.current === requestId) setLoading(false);
-      }
-    },
-    [normalizeVesselOptions]
-  );
-
   const normalizeVesselDetails = useCallback((payload) => {
     const raw = payload?.data ?? payload ?? {};
     const detail = Array.isArray(raw) ? (raw[0] ?? {}) : raw;
@@ -4326,7 +4316,7 @@ ${body}
   const handleAddNewEmail = useCallback(
     async (email) => {
       const normalizedEmail = email ? String(email).trim() : "";
-      const currentEntityId = getFieldValue("mainBillingEntity");
+      const currentEntityId = getPrimaryBillingEntityId();
       const normalizedEntityId = currentEntityId === undefined || currentEntityId === null ? "" : String(currentEntityId).trim();
       if (!normalizedEmail || !normalizedEntityId) return;
 
@@ -4355,7 +4345,7 @@ ${body}
   const handleAddBillingInstructionEmail = useCallback(
     async (email) => {
       const normalizedEmail = email ? String(email).trim() : "";
-      const currentEntityId = getFieldValue("mainBillingEntity");
+      const currentEntityId = getPrimaryBillingEntityId();
       const normalizedEntityId = currentEntityId === undefined || currentEntityId === null ? "" : String(currentEntityId).trim();
       if (!normalizedEmail || !normalizedEntityId) return;
 
@@ -4404,6 +4394,43 @@ ${body}
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
   const previewOperatorId = firstNonEmptyString(getFieldValue("assignedOperator"));
   const previewLastPort = firstNonEmptyString(getFieldValue("lastPort"));
+
+  // Checklist options depend only on Call Type + Port; refetch and clear the selection whenever either changes.
+  useEffect(() => {
+    if (!previewCallTypeId || !previewPortId) {
+      checklistRequestIdRef.current += 1;
+      lastChecklistFetchKeyRef.current = "";
+      setChecklistOptions([]);
+      setChecklistLoading(false);
+      return;
+    }
+
+    const fetchKey = `${previewCallTypeId}|${previewPortId}`;
+    if (lastChecklistFetchKeyRef.current === fetchKey) return;
+    const isRefetch = Boolean(lastChecklistFetchKeyRef.current);
+    lastChecklistFetchKeyRef.current = fetchKey;
+    if (isRefetch) {
+      handleChange("selectedChecklists")({ target: { value: [], name: "selectedChecklists" } });
+    }
+
+    const requestId = (checklistRequestIdRef.current += 1);
+    setChecklistLoading(true);
+    const loadChecklists = async () => {
+      try {
+        const { data } = await checklistService.getChecklistsByPortCall({
+          call_type_id: previewCallTypeId,
+          port_id: previewPortId,
+        });
+        if (checklistRequestIdRef.current !== requestId) return;
+        setChecklistOptions(mapChecklistsToOptions(unwrapListResponse(data)));
+      } catch {
+        if (checklistRequestIdRef.current === requestId) setChecklistOptions([]);
+      } finally {
+        if (checklistRequestIdRef.current === requestId) setChecklistLoading(false);
+      }
+    };
+    void loadChecklists();
+  }, [previewCallTypeId, previewPortId, handleChange]);
 
   const buildAllDetailPayload = useCallback(
     () => ({
@@ -4830,68 +4857,63 @@ ${body}
     [normalizeEntityFields]
   );
 
-  const handleMainBillingEntityChange = useCallback(
-    (event) => {
-      const selectedEntityId = event?.target?.value ?? "";
-      handleChange("mainBillingEntity")(event);
-      handleChange("dailyReportEmail")({
-        target: { value: [], name: "dailyReportEmail" }
-      });
-      handleChange("billingInstructionEmails")({
-        target: { value: [], name: "billingInstructionEmails" }
-      });
-      handleChange("billingInstructions")({
-        target: { value: "", name: "billingInstructions" }
-      });
-      [
-        "vesselName",
-        "vesselOwner",
-        "vesselManager",
-        "vesselPrincipal",
-        "tugVesselName",
-        "tugOwner",
-        "tugManager",
-        "tugPrincipal",
-        "bargeVesselName",
-        "bargeOwner",
-        "bargeManager",
-        "bargePrincipal",
-      ].forEach((fieldName) => {
-        handleChange(fieldName)({ target: { value: "", name: fieldName } });
-      });
-      setEntityFields([]);
-      setEntityFieldValues({});
-      setEntityFieldErrors({});
-      setEntityFieldsError("");
-      void fetchEntityFields(selectedEntityId);
-      void fetchBillingEntityEmails(selectedEntityId);
-      void fetchBillingInstructionByEntity(selectedEntityId);
-      // Vessel-name dropdowns refetch via the entity/type effects below once the entity changes.
-    },
-    [fetchBillingEntityEmails, fetchBillingInstructionByEntity, fetchEntityFields, handleChange]
-  );
+  // Vessel/Tug billing entity drives the shared entity-dependent lookups (dynamic fields, daily report
+  // emails, billing instructions). Barge billing entity is independent and has no such side effects —
+  // selecting one must never overwrite or refetch data tied to the other.
+  const applyPrimaryBillingEntitySideEffects = (nextEntityId) => {
+    handleChange("dailyReportEmail")({ target: { value: [], name: "dailyReportEmail" } });
+    handleChange("billingInstructionEmails")({ target: { value: [], name: "billingInstructionEmails" } });
+    handleChange("billingInstructions")({ target: { value: "", name: "billingInstructions" } });
+    setEntityFields([]);
+    setEntityFieldValues({});
+    setEntityFieldErrors({});
+    setEntityFieldsError("");
+    void fetchEntityFields(nextEntityId);
+    void fetchBillingEntityEmails(nextEntityId);
+    void fetchBillingInstructionByEntity(nextEntityId);
+  };
 
-  const handleValidatedMainBillingEntityChange = (event) => {
-    const nextVal = event?.target?.value ?? "";
-    handleMainBillingEntityChange(event);
-    if (!hasSubmitted) return;
-    setFieldErrors((prev) => {
-      if (!prev.mainBillingEntity) return prev;
-      const merged = { ...formValues, mainBillingEntity: nextVal };
-      const errs = validateGeneralFields(merged);
-      if (!errs.mainBillingEntity) {
-        const next = { ...prev };
-        delete next.mainBillingEntity;
-        return next;
-      }
-      return { ...prev, mainBillingEntity: errs.mainBillingEntity };
-    });
+  const handleVesselBillingEntityChange = (event) => {
+    const nextEntityId = event?.target?.value ?? "";
+    if (isAddMode) {
+      handleValidatedChange("vesselBillingEntity")(event);
+    } else {
+      handleChange("vesselBillingEntity")(event);
+    }
+    applyPrimaryBillingEntitySideEffects(nextEntityId);
+  };
+
+  const handleTugBillingEntityChange = (event) => {
+    const nextEntityId = event?.target?.value ?? "";
+    if (isAddMode) {
+      handleValidatedChange("tugBillingEntity")(event);
+    } else {
+      handleChange("tugBillingEntity")(event);
+    }
+    applyPrimaryBillingEntitySideEffects(nextEntityId);
+  };
+
+  const handleBargeBillingEntityChange = (event) => {
+    if (isAddMode) {
+      handleValidatedChange("bargeBillingEntity")(event);
+    } else {
+      handleChange("bargeBillingEntity")(event);
+    }
   };
 
   const selectedEntityId = useMemo(
-    () => getFieldValue("mainBillingEntity"),
+    () => getPrimaryBillingEntityId(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAddMode, formValues?.mainBillingEntity, card?.mainBillingEntity, card?.main_billing_entity_id, mappedCallDetail?.mainBillingEntity]
+    [
+      isAddMode,
+      formValues?.appointmentType,
+      formValues?.vesselBillingEntity,
+      formValues?.tugBillingEntity,
+      card?.vesselBillingEntity,
+      card?.tugBillingEntity,
+      mappedCallDetail?.vesselBillingEntity,
+      mappedCallDetail?.tugBillingEntity,
+    ]
   );
 
   const optionalOtherBillingEntityOptions = useMemo(() => {
@@ -4915,66 +4937,27 @@ ${body}
     fetchBillingInstructionByEntity,
   ]);
 
-  // Scalar type ids drive the vessel-name dropdown fetches (kept as primitives so the
-  // effects below only re-run when the underlying selection actually changes).
-  const singleVesselTypeId = firstNonEmptyString(getFieldValue("vesselType"));
-  const tugVesselTypeId = firstNonEmptyString(getFieldValue("tugType"));
-  const bargeVesselTypeId = firstNonEmptyString(getFieldValue("bargeType"));
-  // Vessel -> vessel_type_id; Taxi Tug -> tug_type_id (single section uses the tug source for Taxi Tug).
-  const singleVesselTypeParamKey = appointmentTypeUsesTugTypeSource(selectedAppointmentType)
-    ? "tug_type_id"
-    : "vessel_type_id";
-
-  // Single-section (Vessel / Taxi Tug) vessel names: entity + vessel_type_id|tug_type_id.
+  // Full vessel catalogue, loaded once and shared by Vessel Name, Tug Name and Barge Name —
+  // independent of Billing Entity / Vessel Type selections.
   useEffect(() => {
-    if (!isSingleVesselSection) {
-      setVesselNameOptions([]);
-      return;
-    }
-    void fetchVesselOptions({
-      entityId: selectedEntityId,
-      params: { [singleVesselTypeParamKey]: singleVesselTypeId },
-      setOptions: setVesselNameOptions,
-      setLoading: setVesselOptionsLoading,
-      requestRef: vesselOptionsRequestIdRef,
-    });
-  }, [
-    isSingleVesselSection,
-    selectedEntityId,
-    singleVesselTypeId,
-    singleVesselTypeParamKey,
-    fetchVesselOptions,
-  ]);
-
-  // Tug sub-section vessel names (Tug and barge): entity + tug_type_id.
-  useEffect(() => {
-    if (!isTugAndBargeSelected) {
-      setTugVesselNameOptions([]);
-      return;
-    }
-    void fetchVesselOptions({
-      entityId: selectedEntityId,
-      params: { tug_type_id: tugVesselTypeId },
-      setOptions: setTugVesselNameOptions,
-      setLoading: setTugVesselOptionsLoading,
-      requestRef: tugVesselOptionsRequestIdRef,
-    });
-  }, [isTugAndBargeSelected, selectedEntityId, tugVesselTypeId, fetchVesselOptions]);
-
-  // Barge sub-section vessel names (Tug and barge): entity + barge_type_id.
-  useEffect(() => {
-    if (!isTugAndBargeSelected) {
-      setBargeVesselNameOptions([]);
-      return;
-    }
-    void fetchVesselOptions({
-      entityId: selectedEntityId,
-      params: { barge_type_id: bargeVesselTypeId },
-      setOptions: setBargeVesselNameOptions,
-      setLoading: setBargeVesselOptionsLoading,
-      requestRef: bargeVesselOptionsRequestIdRef,
-    });
-  }, [isTugAndBargeSelected, selectedEntityId, bargeVesselTypeId, fetchVesselOptions]);
+    let cancelled = false;
+    const loadAllVessels = async () => {
+      setAllVesselsLoading(true);
+      try {
+        const { data } = await vesselService.getAllVessels();
+        if (cancelled) return;
+        setAllVesselOptions(mapVesselsToOptions(unwrapListResponse(data)));
+      } catch {
+        if (!cancelled) setAllVesselOptions([]);
+      } finally {
+        if (!cancelled) setAllVesselsLoading(false);
+      }
+    };
+    void loadAllVessels();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
 
 
@@ -5497,6 +5480,24 @@ ${body}
                                     )} */}
                                   </FormField>
                                 )}
+                                {shouldShowApiField("appointment_type") && (
+                                  <FormField
+                                    label={isAddMode ? "Appointment Type *" : "Appointment Type"}
+                                    hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
+                                  >
+                                    <FormSelect
+                                      value={selectedAppointmentType}
+                                      onChange={handleAppointmentTypeChange}
+                                      options={APPOINTMENT_TYPE_OPTIONS}
+                                      placeholder="Select appointment type"
+                                      disabled={masterInputsDisabled}
+                                      hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
+                                    />
+                                    {isAddMode && fieldErrors.appointmentType && (
+                                      <div className="cf-field-error">{fieldErrors.appointmentType}</div>
+                                    )}
+                                  </FormField>
+                                )}
                                 {shouldShowApiField("appointment_received_date") && (
                                   <FormField
                                     label="Appointment Received *"
@@ -5604,21 +5605,16 @@ ${body}
                                   />
                                 </FormField>
                               )}
-                              {shouldShowApiField("main_billing_entity_id") && (
-                                <FormField label="Main Billing entity *" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
-                                  <FormSelect
-                                    value={getFieldValue("mainBillingEntity")}
-                                    onChange={isAddMode ? handleValidatedMainBillingEntityChange : handleMainBillingEntityChange}
-                                    options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
-                                    placeholder="Select billing entity"
-                                    disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}
-                                  />
-                                  {isAddMode && fieldErrors.mainBillingEntity && (
-                                    <div className="cf-field-error">{fieldErrors.mainBillingEntity}</div>
-                                  )}
-                                </FormField>
-                              )}
+                              <FormField label="Select Checklist" className="cf-select-checklist-field">
+                                <MultiSelectField
+                                  name="selectedChecklists"
+                                  value={Array.isArray(getFieldValue("selectedChecklists")) ? getFieldValue("selectedChecklists") : []}
+                                  onChange={handleChange("selectedChecklists")}
+                                  options={checklistOptions}
+                                  placeholder={checklistLoading ? "Loading checklists..." : "Select checklists"}
+                                  disabled={isDisabled || checklistLoading}
+                                />
+                              </FormField>
 
                               {entityFieldsLoading && (
                                 <FormField label="">
@@ -5690,41 +5686,15 @@ ${body}
                             <div className="form-group">
                               <h3 className="form-group-title">Vessel Information</h3>
 
-                              {shouldShowApiField("appointment_type") && (
-                                <FormField
-                                  label={isAddMode ? "Appointment Type *" : "Appointment Type"}
-                                  hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
-                                >
-                                  <FormSelect
-                                    value={selectedAppointmentType}
-                                    onChange={handleAppointmentTypeChange}
-                                    options={APPOINTMENT_TYPE_OPTIONS}
-                                    placeholder="Select appointment type"
-                                    disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.appointmentType)}
-                                  />
-                                  {isAddMode && fieldErrors.appointmentType && (
-                                    <div className="cf-field-error">{fieldErrors.appointmentType}</div>
-                                  )}
-                                </FormField>
-                              )}
-
                               {isSingleVesselSection && showAnyApiField("vessel_type_id", "tug_type_id") && (
-                                <FormField
-                                  label={isAddMode ? "Vessel type *" : "Vessel type"}
-                                  hasError={isAddMode && Boolean(fieldErrors.vesselType)}
-                                >
+                                <FormField label="Vessel type">
                                   <FormSelect
                                     value={getFieldValue("vesselType")}
                                     onChange={handleSingleVesselTypeChange}
                                     options={mergeOptionIfMissing(singleVesselTypeOptions, getFieldValue("vesselType"))}
                                     placeholder="Select vessel type"
                                     disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.vesselType)}
                                   />
-                                  {isAddMode && fieldErrors.vesselType && (
-                                    <div className="cf-field-error">{fieldErrors.vesselType}</div>
-                                  )}
                                 </FormField>
                               )}
 
@@ -5739,12 +5709,28 @@ ${body}
                                         onChange={handleVesselSelectionChange}
                                         options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
                                         placeholder={vesselOptionsLoading ? "Loading vessels..." : "Select vessel name"}
-                                        disabled={isDisabled || vesselOptionsLoading || !selectedEntityId || !singleVesselTypeId}
+                                        disabled={isDisabled || vesselOptionsLoading}
                                         hasError={isAddMode && Boolean(fieldErrors.vesselName)}
                                       />
                                     );
                                   })()}
                                   {isAddMode && fieldErrors.vesselName && <div className="cf-field-error">{fieldErrors.vesselName}</div>}
+                                </FormField>
+                              )}
+
+                              {isSingleVesselSection && shouldShowApiField("main_billing_entity_id") && (
+                                <FormField label="Billing Entity" hasError={isAddMode && Boolean(fieldErrors.vesselBillingEntity)}>
+                                  <FormSelect
+                                    value={getFieldValue("vesselBillingEntity")}
+                                    onChange={handleVesselBillingEntityChange}
+                                    options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("vesselBillingEntity"))}
+                                    placeholder="Select billing entity"
+                                    disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.vesselBillingEntity)}
+                                  />
+                                  {isAddMode && fieldErrors.vesselBillingEntity && (
+                                    <div className="cf-field-error">{fieldErrors.vesselBillingEntity}</div>
+                                  )}
                                 </FormField>
                               )}
 
@@ -5775,24 +5761,17 @@ ${body}
                               {isTugAndBargeSelected && (
                                 <>
                                   <div className="cf-vessel-subsection">
-                                    <h4 className="cf-vessel-subsection-title">Tug</h4>
+                                    <h4 className="cf-vessel-subsection-title">Tug Information</h4>
 
                                     {showAnyApiField("tug_type_id") && (
-                                      <FormField
-                                        label={isAddMode ? "Vessel type *" : "Vessel type"}
-                                        hasError={isAddMode && Boolean(fieldErrors.tugType)}
-                                      >
+                                      <FormField label="Vessel type">
                                         <FormSelect
                                           value={getFieldValue("tugType")}
                                           onChange={handleTugTypeChange}
                                           options={mergeOptionIfMissing(tugTypeSelectOptions, getFieldValue("tugType"))}
                                           placeholder="Select vessel type"
                                           disabled={masterInputsDisabled}
-                                          hasError={isAddMode && Boolean(fieldErrors.tugType)}
                                         />
-                                        {isAddMode && fieldErrors.tugType && (
-                                          <div className="cf-field-error">{fieldErrors.tugType}</div>
-                                        )}
                                       </FormField>
                                     )}
 
@@ -5807,12 +5786,28 @@ ${body}
                                               onChange={handleTugVesselSelectionChange}
                                               options={mergeOptionIfMissing(tugVesselNameOptions, tugVesselNameValue, tugVesselNameLabel)}
                                               placeholder={tugVesselOptionsLoading ? "Loading vessels..." : "Select vessel name"}
-                                              disabled={isDisabled || tugVesselOptionsLoading || !selectedEntityId || !tugVesselTypeId}
+                                              disabled={isDisabled || tugVesselOptionsLoading}
                                               hasError={isAddMode && Boolean(fieldErrors.tugVesselName)}
                                             />
                                           );
                                         })()}
                                         {isAddMode && fieldErrors.tugVesselName && <div className="cf-field-error">{fieldErrors.tugVesselName}</div>}
+                                      </FormField>
+                                    )}
+
+                                    {shouldShowApiField("main_billing_entity_id") && (
+                                      <FormField label="Billing Entity" hasError={isAddMode && Boolean(fieldErrors.tugBillingEntity)}>
+                                        <FormSelect
+                                          value={getFieldValue("tugBillingEntity")}
+                                          onChange={handleTugBillingEntityChange}
+                                          options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("tugBillingEntity"))}
+                                          placeholder="Select billing entity"
+                                          disabled={masterInputsDisabled}
+                                          hasError={isAddMode && Boolean(fieldErrors.tugBillingEntity)}
+                                        />
+                                        {isAddMode && fieldErrors.tugBillingEntity && (
+                                          <div className="cf-field-error">{fieldErrors.tugBillingEntity}</div>
+                                        )}
                                       </FormField>
                                     )}
 
@@ -5839,27 +5834,32 @@ ${body}
                                         />
                                       </FormField>
                                     )}
+
+                                    {showAnyApiField("vessel_manager") && (
+                                      <FormField label="Vessel Manager">
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel manager..."
+                                          value={getFieldValue("tugManager")}
+                                          onChange={handleChange("tugManager")}
+                                          disabled={isDisabled}
+                                        />
+                                      </FormField>
+                                    )}
                                   </div>
 
                                   <div className="cf-vessel-subsection">
-                                    <h4 className="cf-vessel-subsection-title">Barge</h4>
+                                    <h4 className="cf-vessel-subsection-title">Barge Information</h4>
 
                                     {shouldShowApiField("barge_type_id") && (
-                                      <FormField
-                                        label={isAddMode ? "Vessel type *" : "Vessel type"}
-                                        hasError={isAddMode && Boolean(fieldErrors.bargeType)}
-                                      >
+                                      <FormField label="Vessel type">
                                         <FormSelect
                                           value={getFieldValue("bargeType")}
                                           onChange={handleBargeTypeChange}
                                           options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
                                           placeholder="Select vessel type"
                                           disabled={masterInputsDisabled}
-                                          hasError={isAddMode && Boolean(fieldErrors.bargeType)}
                                         />
-                                        {isAddMode && fieldErrors.bargeType && (
-                                          <div className="cf-field-error">{fieldErrors.bargeType}</div>
-                                        )}
                                       </FormField>
                                     )}
 
@@ -5874,12 +5874,28 @@ ${body}
                                               onChange={handleBargeVesselSelectionChange}
                                               options={mergeOptionIfMissing(bargeVesselNameOptions, bargeVesselNameValue, bargeVesselNameLabel)}
                                               placeholder={bargeVesselOptionsLoading ? "Loading vessels..." : "Select vessel name"}
-                                              disabled={isDisabled || bargeVesselOptionsLoading || !selectedEntityId || !bargeVesselTypeId}
+                                              disabled={isDisabled || bargeVesselOptionsLoading}
                                               hasError={isAddMode && Boolean(fieldErrors.bargeVesselName)}
                                             />
                                           );
                                         })()}
                                         {isAddMode && fieldErrors.bargeVesselName && <div className="cf-field-error">{fieldErrors.bargeVesselName}</div>}
+                                      </FormField>
+                                    )}
+
+                                    {shouldShowApiField("barge_billing_entity_id") && (
+                                      <FormField label="Billing Entity" hasError={isAddMode && Boolean(fieldErrors.bargeBillingEntity)}>
+                                        <FormSelect
+                                          value={getFieldValue("bargeBillingEntity")}
+                                          onChange={handleBargeBillingEntityChange}
+                                          options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("bargeBillingEntity"))}
+                                          placeholder="Select billing entity"
+                                          disabled={masterInputsDisabled}
+                                          hasError={isAddMode && Boolean(fieldErrors.bargeBillingEntity)}
+                                        />
+                                        {isAddMode && fieldErrors.bargeBillingEntity && (
+                                          <div className="cf-field-error">{fieldErrors.bargeBillingEntity}</div>
+                                        )}
                                       </FormField>
                                     )}
 
@@ -5902,6 +5918,18 @@ ${body}
                                           placeholder="Enter vessel charter..."
                                           value={getFieldValue("bargePrincipal")}
                                           onChange={handleChange("bargePrincipal")}
+                                          disabled={isDisabled}
+                                        />
+                                      </FormField>
+                                    )}
+
+                                    {showAnyApiField("barge_vessel_manager") && (
+                                      <FormField label="Vessel Manager">
+                                        <FormInput
+                                          type="text"
+                                          placeholder="Enter vessel manager..."
+                                          value={getFieldValue("bargeManager")}
+                                          onChange={handleChange("bargeManager")}
                                           disabled={isDisabled}
                                         />
                                       </FormField>
@@ -6052,7 +6080,7 @@ ${body}
                           onUploadEmailAttachments={handleEmailAttachmentUpload}
                           onRemoveEmailAttachment={handleRemoveEmailAttachment}
                           isUploadingEmailAttachments={isUploadingEmailAttachments}
-                          isBillingEntitySelected={!isEmptyValue(getFieldValue("mainBillingEntity"))}
+                          isBillingEntitySelected={!isEmptyValue(getPrimaryBillingEntityId())}
                         />
                       </div>
                     </>

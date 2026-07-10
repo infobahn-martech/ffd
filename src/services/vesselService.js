@@ -2,6 +2,9 @@ import Gateway from '../gateway/gateway';
 
 const addVessel = (data) => Gateway.post('/vessel/add', data);
 
+/** GET vessel/all_vessels — full vessel list, independent of billing entity / vessel type. */
+const getAllVessels = () => Gateway.get('/vessel/all_vessels');
+
 const fetchVessels = ({ params }) => {
   const p = params || {};
   const apiParams = {
@@ -33,6 +36,7 @@ const archiveVessel = (vesselId) => Gateway.post(`/vessel/archive/${vesselId}`);
 
 export default {
   addVessel,
+  getAllVessels,
   fetchVessels,
   getVesselByVesselId,
   getVesselByEntity,

@@ -61,6 +61,20 @@ export function mapTugTypesToOptions(rows) {
   }));
 }
 
+export function mapVesselsToOptions(rows) {
+  return (rows || []).map((r) => ({
+    value: String(r.vessel_id),
+    label: r.vessel_name ?? '',
+  }));
+}
+
+export function mapChecklistsToOptions(rows) {
+  return (rows || []).map((r) => ({
+    value: String(r.checklist_type_id),
+    label: r.checklist_name ?? '',
+  }));
+}
+
 /** Ensures the current form value appears in the dropdown when edit payload has an id not returned in the list. */
 export function mergeOptionIfMissing(options, rawValue, fallbackLabel) {
   if (rawValue === undefined || rawValue === null || rawValue === '') return options;
