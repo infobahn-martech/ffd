@@ -9,23 +9,23 @@ function str(v) {
   return String(v).trim();
 }
 
-function toJsonArrayString(value) {
-  if (!Array.isArray(value)) return "[]";
-  return JSON.stringify(value);
+/** Appends `key` only when `value` is not undefined/null/empty-string (after trimming). Preserves `0`. */
+function appendIfPresent(fd, key, value) {
+  if (value === undefined || value === null) return;
+  const s = String(value).trim();
+  if (s === "") return;
+  fd.append(key, s);
+}
+
+/** JSON-stringifies `value` (defaulting to an empty array) and appends it under `key`. */
+function appendJsonArray(fd, key, value) {
+  fd.append(key, JSON.stringify(Array.isArray(value) ? value : []));
 }
 
 const APPOINTMENT_TYPE_TUG = "tug";
 const APPOINTMENT_TYPE_TUG_AND_BARGE = "tug_and_barge";
 const APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE = "taxi_tug_and_barge";
 const APPOINTMENT_TYPE_VESSEL = "vessel";
-
-// Human-readable labels expected by the backend in the appointment_type field.
-const APPOINTMENT_TYPE_API_LABEL = {
-  [APPOINTMENT_TYPE_VESSEL]: "Vessel",
-  [APPOINTMENT_TYPE_TUG]: "Taxi Tug",
-  [APPOINTMENT_TYPE_TUG_AND_BARGE]: "Tug and Barge",
-  [APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE]: "Taxi Tug and Barge",
-};
 
 // Tug and barge form fields (tug_type_id / vessel_id / barge_* keys) are shared by both barge appointment types.
 const isBargeAppointmentType = (value) =>
@@ -56,6 +56,21 @@ function normalizeAppointmentType(value) {
   return items[0] ?? "";
 }
 
+/** True when the resolved billing-instruction type is "Email" (case-insensitive). */
+function isEmailInstructionType(value) {
+  return str(value).toLowerCase() === "email";
+}
+
+/**
+ * Resolves the primary billing_entity_id for the given appointment type — the same resolver used
+ * elsewhere for email attachment upload, email fetching and billing-instruction fetching: Vessel
+ * and Taxi Tug follow vesselBillingEntity, Tug and Barge / Taxi Tug and Barge follow tugBillingEntity.
+ * The Barge billing entity is always independent (barge_billing_entity_id) and never overwrites this.
+ */
+function resolvePrimaryBillingEntityId(fv, appointmentType) {
+  return isBargeAppointmentType(appointmentType) ? fv.tugBillingEntity : fv.vesselBillingEntity;
+}
+
 /**
  * Maps selected values (numeric ids, id strings, or email labels matching options) to numbers [1, 2, …].
  * Pass multiple option lists (e.g. field-specific + daily-report options): they are merged; when several
@@ -66,7 +81,7 @@ function normalizeAppointmentType(value) {
  * @param {...Array<{ value?: unknown, label?: string }>} optionLists
  * @returns {number[]}
  */
-function resolveSelectionsToNumericReferenceIds(val, ...optionLists) {
+function normalizeSelectedValues(val, ...optionLists) {
   const opts = optionLists.filter(Boolean).flat();
   const list = Array.isArray(val)
     ? val
@@ -183,17 +198,19 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
 
   appendStringField("assigned_operator_id", fv.assignedOperator);
   appendStringField("last_port", fv.lastPort);
+
+  // Send the canonical snake_case value (tug / vessel / tug_and_barge / taxi_tug_and_barge) — never the display label.
   const appointmentType = normalizeAppointmentType(fv.appointmentType);
-  fd.append("appointment_type", APPOINTMENT_TYPE_API_LABEL[appointmentType] ?? str(fv.appointmentType));
+  fd.append("appointment_type", appointmentType || str(fv.appointmentType));
 
   // Only the keys relevant to the selected appointment type are sent. Each appointment type carries its
   // own billing entity selection(s); Tug and Barge / Taxi Tug and Barge keep the tug and barge entities independent.
+  appendStringField("billing_entity_id", resolvePrimaryBillingEntityId(fv, appointmentType));
   if (appointmentType === APPOINTMENT_TYPE_VESSEL || appointmentType === APPOINTMENT_TYPE_TUG) {
-    appendStringField("billing_entity_id", fv.vesselBillingEntity);
     if (appointmentType === APPOINTMENT_TYPE_VESSEL) {
-      appendStringField("vessel_type_id", fv.vesselType);
+      appendIfPresent(fd, "vessel_type_id", fv.vesselType);
     } else {
-      appendStringField("tug_type_id", fv.vesselType);
+      appendIfPresent(fd, "tug_type_id", fv.vesselType);
     }
     appendStringField("vessel_id", fv.vesselName);
     appendStringField("vessel_owner", fv.vesselOwner);
@@ -201,10 +218,10 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
     appendStringField("vessel_manager", fv.vesselManager);
   } else if (isBargeAppointmentType(appointmentType)) {
     // Tug details reuse the standard vessel keys; barge details use the barge_vessel_* keys.
-    appendStringField("billing_entity_id", fv.tugBillingEntity);
+    // The barge billing entity is independent and must never overwrite the tug billing entity above.
     appendStringField("barge_billing_entity_id", fv.bargeBillingEntity);
-    appendStringField("tug_type_id", fv.tugType);
-    appendStringField("barge_type_id", fv.bargeType);
+    appendIfPresent(fd, "tug_type_id", fv.tugType);
+    appendIfPresent(fd, "barge_type_id", fv.bargeType);
     appendStringField("vessel_id", fv.tugVesselName);
     appendStringField("vessel_owner", fv.tugOwner);
     appendStringField("vessel_principal", fv.tugPrincipal);
@@ -220,20 +237,28 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const checklistIds = (Array.isArray(fv.selectedChecklists) ? fv.selectedChecklists : [])
     .map((id) => str(id))
     .filter(Boolean);
-  fd.append("checklist_type_ids", toJsonArrayString(checklistIds));
+  appendJsonArray(fd, "checklist_type_ids", checklistIds);
 
-  const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
-  fd.append("daily_report_emails", toJsonArrayString(daily));
+  // Backend rule: daily_report_emails / billing_instruction_emails are only populated for
+  // instruction_type "Email" — otherwise they must be empty and billing_instruction_det carries the text.
+  const instructionType = str(fv.instruction_type);
+  const isEmailInstruction = isEmailInstructionType(instructionType);
+  appendStringField("instruction_type", instructionType);
+  appendStringField("billing_instruction_det", isEmailInstruction ? "" : fv.billing_instruction_det);
 
-  appendStringField("instruction_type", fv.instruction_type);
-  appendStringField("billing_instruction_det", fv.billing_instruction_det);
+  const daily = isEmailInstruction
+    ? normalizeSelectedValues(fv.dailyReportEmail, dailyReportEmailOptions)
+    : [];
+  appendJsonArray(fd, "daily_report_emails", daily);
 
-  const billingInst = resolveSelectionsToNumericReferenceIds(
-    fv.billingInstructionEmails,
-    billingInstructionEmailOptions,
-    dailyReportEmailOptions
-  );
-  fd.append("billing_instruction_emails", toJsonArrayString(billingInst));
+  const billingInst = isEmailInstruction
+    ? normalizeSelectedValues(
+      fv.billingInstructionEmails,
+      billingInstructionEmailOptions,
+      dailyReportEmailOptions
+    )
+    : [];
+  appendJsonArray(fd, "billing_instruction_emails", billingInst);
 
   const timeObjects = (Array.isArray(fv.time_objects) ? fv.time_objects : [])
     .map((item) => {
@@ -246,7 +271,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
       };
     })
     .filter(Boolean);
-  fd.append("time_objects", JSON.stringify(timeObjects));
+  appendJsonArray(fd, "time_objects", timeObjects);
 
   const appointmentAcceptanceRaw =
     fv.appointment_acceptance && typeof fv.appointment_acceptance === "object"
@@ -256,30 +281,37 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const sanitizedBody = preserveAppointmentBody
     ? originalBody
     : sanitizeAppointmentEmailBody(originalBody);
-  const normalizeEmailAttachments = (value) =>
-    (Array.isArray(value) ? value : [])
+
+  const normalizeEmailAttachments = (value) => {
+    const seen = new Set();
+    return (Array.isArray(value) ? value : [])
       .map((item) => ({
         file_name: str(item?.file_name ?? item?.name),
         file_url: str(item?.file_url ?? item?.url),
       }))
-      .filter((item) => item.file_name || item.file_url);
+      .filter((item) => item.file_name || item.file_url)
+      .filter((item) => {
+        const key = item.file_url || item.file_name;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  };
 
   const emailAttachments = normalizeEmailAttachments(
     emailAttachmentsOption ?? fv.email_attachments ?? appointmentAcceptanceRaw.attachments
   );
 
+  // attachments live inside appointment_acceptance — this matches the shape the API returns on read.
   const appointmentAcceptance = {
-    body: str(sanitizedBody),
-    cc_emails: str(appointmentAcceptanceRaw.cc_emails),
-    from_email: str(appointmentAcceptanceRaw.from_email),
     subject: str(appointmentAcceptanceRaw.subject),
+    body: str(sanitizedBody),
+    from_email: str(appointmentAcceptanceRaw.from_email),
     to_email: str(appointmentAcceptanceRaw.to_email),
+    cc_emails: str(appointmentAcceptanceRaw.cc_emails),
+    attachments: emailAttachments,
   };
   fd.append("appointment_acceptance", JSON.stringify(appointmentAcceptance));
-
-  // Uploaded email attachments (from /call_file/upload_email_attachments).
-  // Always sent — an empty array when nothing was uploaded.
-  fd.append("attachments", JSON.stringify(emailAttachments));
 
   return fd;
 }

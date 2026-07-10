@@ -2922,6 +2922,14 @@ function General({
       errors.serviceRequestorEmail = "Invalid email format.";
     }
 
+    if (String(billingInstructionType || "").trim().toLowerCase() === "email") {
+      const dailyEmails = v("dailyReportEmail");
+      const hasDailyEmail = Array.isArray(dailyEmails) ? dailyEmails.length > 0 : Boolean(dailyEmails);
+      if (!hasDailyEmail) {
+        errors.dailyReportEmail = "At least one daily report email is required.";
+      }
+    }
+
     if (isAddMode) {
       if (!selectedAppointmentType) {
         errors.appointmentType = "Appointment type is required.";
@@ -2949,6 +2957,7 @@ function General({
     setTimeObjectErrors(timeErrors);
     return Object.keys(errors).length === 0 && Object.keys(dynamicErrors).length === 0 && Object.keys(timeErrors).length === 0;
   }, [
+    billingInstructionType,
     entityFieldValues,
     formValues,
     isAddMode,
@@ -2964,6 +2973,9 @@ function General({
     const isValid = validateGeneralForm();
     if (!isValid) {
       notify("Please fill all required fields before saving.", "error");
+      requestAnimationFrame(() => {
+        document.querySelector(".cf-field-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       return;
     }
 
@@ -3105,6 +3117,13 @@ function General({
         preserveAppointmentBody:
           !isPreviewMessageDirty && Boolean(firstNonEmptyString(apiAppointmentBase.body)),
       });
+      if (import.meta.env.DEV) {
+        console.group("Create Call File Payload");
+        for (const [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
+        console.groupEnd();
+      }
       const response = await callFileService.createCallFile(formData);
       if (onSave) onSave(response);
     } catch (error) {
@@ -4151,6 +4170,7 @@ ${body}
         setBillingInstructionEmailOptions([]);
         handleChange("billingInstructions")({ target: { value: "", name: "billingInstructions" } });
         handleChange("billingInstructionEmails")({ target: { value: [], name: "billingInstructionEmails" } });
+        handleChange("dailyReportEmail")({ target: { value: [], name: "dailyReportEmail" } });
         return;
       }
 
@@ -4168,6 +4188,10 @@ ${body}
         handleChange("billingInstructions")({
           target: { value: isEmailInstruction ? "" : description, name: "billingInstructions" }
         });
+        // daily_report_emails only applies to Email instruction type — clear stale selections otherwise.
+        if (!isEmailInstruction) {
+          handleChange("dailyReportEmail")({ target: { value: [], name: "dailyReportEmail" } });
+        }
       } catch (error) {
         setBillingInstructionType("");
         setBillingInstructionEmailOptions([]);
@@ -5988,7 +6012,7 @@ ${body}
                                 <FormField
                                   label="Daily Report Emails"
                                   className="cf-daily-report-emails-field"
-                                  hasError={false}
+                                  hasError={isAddMode && Boolean(fieldErrors.dailyReportEmail)}
                                 >
                                   <MultiSelectEmail
                                     name="dailyReportEmail"
@@ -5998,7 +6022,11 @@ ${body}
                                     placeholder="Select email addresses..."
                                     onAddNew={handleAddNewEmail}
                                     disabled={isDisabled || dailyReportEmailLoading}
+                                    hasError={isAddMode && Boolean(fieldErrors.dailyReportEmail)}
                                   />
+                                  {isAddMode && fieldErrors.dailyReportEmail && (
+                                    <div className="cf-field-error">{fieldErrors.dailyReportEmail}</div>
+                                  )}
                                 </FormField>
                               )}
 
