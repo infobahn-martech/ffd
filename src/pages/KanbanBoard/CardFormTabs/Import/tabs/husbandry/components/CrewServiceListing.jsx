@@ -59,7 +59,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onRequest }) => {
 
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
-      <div className="husbandry-service-selection-content">
+      <div className="husbandry-service-selection-content crew-listing-page-content">
         <div className="crew-listing-header">
           <div>
             <h2 className="crew-listing-title">{service.label} Crew</h2>

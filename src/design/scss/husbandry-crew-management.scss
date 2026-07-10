@@ -3021,10 +3021,18 @@
   margin: 0;
 }
 
-/* Block layout (not flex/max-height) — the table is already paginated to
-   <=10 rows so it never needs an internal scroll region; a flex-column +
-   max-height wrapper here just left leftover space for the pagination
-   footer's margin-top:auto to expand into, showing up as a gap. */
+// Stretches this page's content to the full height of the (already
+// scrollable) .husbandry-service-selection ancestor, mirroring
+// .crew-select-page-content — so the table below is the one element that
+// scrolls once the crew list overflows, and the page itself never needs to.
+.crew-listing-page-content {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  height: 100%;
+  min-height: 0;
+}
+
 .crew-listing-table-wrapper {
   width: 100%;
   border-radius: 14px;
@@ -3032,11 +3040,17 @@
   box-shadow: 0 2px 12px rgba(0, 54, 140, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .crew-listing-table-scroll {
   width: 100%;
-  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .crew-listing-table {
