@@ -3464,7 +3464,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setLinkActions((prev) => [
       ...prev,
-      { id, key: option.key, label: option.label, operatorKey: '', operatorLabel: 'to card with id', value: '' },
+      {
+        id, key: option.key, label: option.label, operatorKey: '', operatorLabel: 'to card with id',
+        values: [{ id: `${id}-0`, value: '' }],
+      },
     ]);
   };
 
@@ -3501,8 +3504,24 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setOpenLinkOperatorRowId(null);
   };
 
-  const handleChangeLinkActionValue = (id, value) => {
-    setLinkActions((prev) => prev.map((a) => (a.id === id ? { ...a, value } : a)));
+  const handleChangeLinkActionValue = (id, rowId, value) => {
+    setLinkActions((prev) => prev.map((a) => (a.id === id
+      ? { ...a, values: a.values.map((row) => (row.id === rowId ? { ...row, value } : row)) }
+      : a)));
+  };
+
+  const handleAddLinkActionValueRow = (id) => {
+    setLinkActions((prev) => prev.map((a) => (a.id === id
+      ? { ...a, values: [...a.values, { id: `${id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, value: '' }] }
+      : a)));
+  };
+
+  const handleRemoveLinkActionValueRow = (id, rowId) => {
+    setLinkActions((prev) => prev.map((a) => {
+      if (a.id !== id) return a;
+      if (a.values.length <= 1) return { ...a, values: [{ id: rowId, value: '' }] };
+      return { ...a, values: a.values.filter((row) => row.id !== rowId) };
+    }));
   };
 
   // Dev-only fallback so the operator dropdown can be visually tested without a live backend.
@@ -4137,26 +4156,34 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                                 </div>
                               </div>
 
-                              <div className="br-link-card-value-row">
-                                <input
-                                  type="text"
-                                  className="br-link-card-value-input"
-                                  placeholder="Enter card id"
-                                  value={action.value ?? ''}
-                                  onChange={(e) => handleChangeLinkActionValue(action.id, e.target.value)}
-                                />
-                                <div className="business-rule-form-filter-row-actions">
-                                  <span className="business-rule-form-or-btn">AND</span>
-                                  <button
-                                    type="button"
-                                    className="business-rule-form-filter-row-delete"
-                                    onClick={() => handleRemoveLinkAction(action.id)}
-                                    aria-label="Remove action"
-                                  >
-                                    <FiTrash2 size={14} />
-                                  </button>
+                              {action.values.map((row) => (
+                                <div key={row.id} className="br-link-card-value-row">
+                                  <input
+                                    type="text"
+                                    className="br-link-card-value-input"
+                                    placeholder="Enter card id"
+                                    value={row.value ?? ''}
+                                    onChange={(e) => handleChangeLinkActionValue(action.id, row.id, e.target.value)}
+                                  />
+                                  <div className="business-rule-form-filter-row-actions">
+                                    <button
+                                      type="button"
+                                      className="business-rule-form-or-btn"
+                                      onClick={() => handleAddLinkActionValueRow(action.id)}
+                                    >
+                                      AND
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="business-rule-form-filter-row-delete"
+                                      onClick={() => handleRemoveLinkActionValueRow(action.id, row.id)}
+                                      aria-label="Remove row"
+                                    >
+                                      <FiTrash2 size={14} />
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
+                              ))}
                             </div>
                           );
                         })}
