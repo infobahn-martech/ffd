@@ -2822,16 +2822,14 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
             </button>
             {expandedParams && (
               <>
-                {methodSupportsBody && (
-                  <label className="br-link-checkbox-row br-invoke-body-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={sendParamsInBody}
-                      onChange={(e) => setSendParamsInBody(e.target.checked)}
-                    />
-                    Send the parameters in the body of the web service call
-                  </label>
-                )}
+                <label className="br-link-checkbox-row br-invoke-body-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={sendParamsInBody}
+                    onChange={(e) => setSendParamsInBody(e.target.checked)}
+                  />
+                  Send the parameters in the body of the web service call
+                </label>
 
                 <div className="br-invoke-kv-columns">
                   <span>Key</span>
