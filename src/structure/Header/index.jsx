@@ -303,7 +303,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                 >
                   <FiShoppingBag />
                 </NavTabButton>
-                <Tooltip id="medical-portal" place="bottom" content="Medical" />
+                {/* <Tooltip id="medical-portal" place="bottom" content="Medical" />
                 <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
                   active={activePortal === 'medical'}
@@ -313,7 +313,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                   data-tooltip-id="medical-portal"
                 >
                   <FiActivity />
-                </NavTabButton>
+                </NavTabButton> */}
                 <Tooltip id="transport-portal" place="bottom" content="Transport Company" />
                 <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
