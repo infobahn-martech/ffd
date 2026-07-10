@@ -24,6 +24,7 @@ function PortalDashboard({
     statusCards,
     quickActions,
     tableTitle,
+    tableHeaderAction,
     tableColumns,
     tableRows,
     isTableLoading = false,
@@ -97,7 +98,10 @@ function PortalDashboard({
             </div>
 
             <div className="vendor-dashboard-section">
-                <h3 className="vendor-section-title">{tableTitle}</h3>
+                <div className="vendor-section-header">
+                    <h3 className="vendor-section-title">{tableTitle}</h3>
+                    {tableHeaderAction}
+                </div>
                 <div className="vendor-table-wrapper">
                     <div className="vendor-table-scroll">
                         <table className="vendor-table">
