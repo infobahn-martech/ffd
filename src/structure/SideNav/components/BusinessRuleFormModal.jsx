@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import ReactQuill, { Quill } from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill-new';
 import QuillTableBetter from 'quill-table-better';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import {
@@ -64,6 +64,77 @@ const getFieldLabel = (field) =>
   field.field_label ?? field.unit_label ?? field.field_name ?? field.custom_field_name ?? field.unit_name ?? '';
 
 const getPropertyDotColor = (idx) => PROPERTY_DOT_COLORS[idx % PROPERTY_DOT_COLORS.length];
+
+const TOOLBAR_MORE_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>';
+
+// Keeps the Quill toolbar on a single row: instead of the browser's default
+// inline-wrap (which pushes overflowing controls onto a second line), controls
+// that no longer fit are moved into a "more" (⋮) dropdown appended to the end
+// of the toolbar. Operates on the live DOM nodes Quill already bound its click
+// handlers to, so moving them (rather than cloning) keeps every control working.
+function attachToolbarOverflow(toolbar) {
+  const originalGroups = Array.from(toolbar.children);
+  if (originalGroups.length === 0) return () => {};
+
+  const moreWrap = document.createElement('span');
+  moreWrap.className = 'ql-toolbar-more';
+
+  const moreBtn = document.createElement('button');
+  moreBtn.type = 'button';
+  moreBtn.className = 'ql-toolbar-more-trigger';
+  moreBtn.setAttribute('aria-label', 'More formatting options');
+  moreBtn.innerHTML = TOOLBAR_MORE_ICON_SVG;
+
+  const moreMenu = document.createElement('div');
+  moreMenu.className = 'ql-toolbar-more-menu';
+  moreMenu.hidden = true;
+
+  moreWrap.appendChild(moreBtn);
+  moreWrap.appendChild(moreMenu);
+  toolbar.appendChild(moreWrap);
+
+  const closeMenu = () => { moreMenu.hidden = true; };
+  const toggleMenu = (e) => {
+    e.stopPropagation();
+    moreMenu.hidden = !moreMenu.hidden;
+  };
+  moreBtn.addEventListener('click', toggleMenu);
+
+  const onDocMouseDown = (e) => {
+    if (moreWrap.contains(e.target)) return;
+    closeMenu();
+  };
+  document.addEventListener('mousedown', onDocMouseDown);
+
+  const sync = () => {
+    // Reset: every original group back on the toolbar, in order, before the "more" trigger.
+    originalGroups.forEach((group) => toolbar.insertBefore(group, moreWrap));
+    moreMenu.replaceChildren();
+
+    const overflowed = [];
+    while (toolbar.scrollWidth > toolbar.clientWidth) {
+      const lastGroup = moreWrap.previousElementSibling;
+      if (!lastGroup || lastGroup === originalGroups[0]) break;
+      overflowed.push(lastGroup);
+      moreMenu.insertBefore(lastGroup, moreMenu.firstChild);
+    }
+
+    moreWrap.style.display = overflowed.length > 0 ? '' : 'none';
+    if (overflowed.length === 0) closeMenu();
+  };
+
+  const resizeObserver = new ResizeObserver(sync);
+  resizeObserver.observe(toolbar);
+  sync();
+
+  return () => {
+    resizeObserver.disconnect();
+    document.removeEventListener('mousedown', onDocMouseDown);
+    moreBtn.removeEventListener('click', toggleMenu);
+    originalGroups.forEach((group) => toolbar.insertBefore(group, moreWrap));
+    moreWrap.remove();
+  };
+}
 
 // Shared by every picker that scopes custom fields to a trigger type (card property
 // match, refine update criteria, ...) so the trigger_type_id filtering logic lives in
@@ -1918,6 +1989,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const [showCardFieldModal, setShowCardFieldModal] = useState(false);
   const [cardFieldTarget, setCardFieldTarget] = useState(null);
   const quillRef = useRef(null);
+  const quillWrapRef = useRef(null);
 
   useEffect(() => {
     if (!show) return;
@@ -2009,7 +2081,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const quillModules = useMemo(() => ({
     table: false,
     toolbar: [
-      [{ size: ['small', false, 'large', 'huge'] }],
+      [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ color: [] }, { background: [] }],
       [{ align: [] }],
@@ -2025,6 +2097,13 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     },
     keyboard: { bindings: QuillTableBetter.keyboardBindings },
   }), []);
+
+  useLayoutEffect(() => {
+    if (!show) return undefined;
+    const toolbar = quillWrapRef.current?.querySelector('.ql-toolbar');
+    if (!toolbar) return undefined;
+    return attachToolbarOverflow(toolbar);
+  }, [show]);
 
   return (
     <>
@@ -2162,17 +2241,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
           <div className="notification-field">
             <div className="notification-field-head">
               <label className="business-rule-form-label">Body:</label>
-              <div className="notification-field-actions">
-                <button
-                  type="button"
-                  className="notification-dropdown-trigger"
-                  onClick={() => handleOpenCardFieldModal('body')}
-                >
-                  add card fields <FiChevronDown size={12} aria-hidden />
-                </button>
-              </div>
             </div>
-            <div className="notification-quill-wrap">
+            <div className="notification-quill-wrap" ref={quillWrapRef}>
               <ReactQuill ref={quillRef} theme="snow" modules={quillModules} value={bodyContent} onChange={setBodyContent} />
             </div>
           </div>
