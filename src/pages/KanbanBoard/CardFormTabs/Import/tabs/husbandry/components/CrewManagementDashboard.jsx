@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
+import { FiSearch } from "react-icons/fi";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectPage from "./CrewServiceSelectPage";
@@ -214,6 +215,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     }, {})
   );
   const [summarySelectedIds, setSummarySelectedIds] = useState([]);
+  const [summarySearch, setSummarySearch] = useState("");
   // Local-only override so the bulk "Upload Passport/Iqama"/"Upload Visa"
   // actions can flip a crew's doc status icon on even though Crew Summary
   // rows are otherwise derived straight from the real uploaded crew list.
@@ -453,6 +455,16 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     });
   }, [manualDocOverrides]);
 
+  const filteredCrewSummaryRows = useMemo(() => {
+    const query = summarySearch.trim().toLowerCase();
+    if (!query) return crewSummaryRows;
+    return crewSummaryRows.filter((row) =>
+      [row.crewName, row.nationality, row.rank, row.movementType].some((field) =>
+        String(field ?? "").toLowerCase().includes(query)
+      )
+    );
+  }, [crewSummaryRows, summarySearch]);
+
   const previewCrewRows = previewMovementType
     ? crewSummaryRows.filter((row) => row.movementTypeValue === previewMovementType)
     : [];
@@ -466,7 +478,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleSummarySelectAll = () => {
     setSummarySelectedIds((prev) =>
-      prev.length === crewSummaryRows.length ? [] : crewSummaryRows.map((row) => row.id)
+      prev.length === filteredCrewSummaryRows.length ? [] : filteredCrewSummaryRows.map((row) => row.id)
     );
   };
 
@@ -612,42 +624,57 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               <p className="crew-listing-subtitle">Overview of crew documents and assigned services.</p>
             </div>
 
-            {summarySelectedIds.length > 0 && (
-              <div className="crew-summary-bulk-actions">
-                <button
-                  type="button"
-                  className="crew-header-btn"
-                  onClick={() => summaryPassportIqamaInputRef.current?.click()}
-                >
-                  <span className="crew-header-btn__label">Upload Passport / Iqama</span>
-                </button>
+            <div className="crew-summary-header-actions">
+              <div className="crew-summary-search">
+                <FiSearch size={14} className="crew-summary-search__icon" />
                 <input
-                  ref={summaryPassportIqamaInputRef}
-                  type="file"
-                  className="crew-doc-input"
-                  onChange={handleSummaryBulkDocUpload(["passport", "iqama"])}
-                />
-                <button
-                  type="button"
-                  className="crew-header-btn"
-                  onClick={() => summaryVisaInputRef.current?.click()}
-                >
-                  <span className="crew-header-btn__label">Upload Visa</span>
-                </button>
-                <input
-                  ref={summaryVisaInputRef}
-                  type="file"
-                  className="crew-doc-input"
-                  onChange={handleSummaryBulkDocUpload(["visa"])}
+                  type="text"
+                  className="crew-summary-search__input"
+                  placeholder="Search crew name, nationality, rank..."
+                  value={summarySearch}
+                  onChange={(e) => setSummarySearch(e.target.value)}
                 />
               </div>
-            )}
+
+              {summarySelectedIds.length > 0 && (
+                <div className="crew-summary-bulk-actions">
+                  <button
+                    type="button"
+                    className="crew-header-btn"
+                    onClick={() => summaryPassportIqamaInputRef.current?.click()}
+                  >
+                    <span className="crew-header-btn__label">Upload Passport / Iqama</span>
+                  </button>
+                  <input
+                    ref={summaryPassportIqamaInputRef}
+                    type="file"
+                    className="crew-doc-input"
+                    onChange={handleSummaryBulkDocUpload(["passport", "iqama"])}
+                  />
+                  <button
+                    type="button"
+                    className="crew-header-btn"
+                    onClick={() => summaryVisaInputRef.current?.click()}
+                  >
+                    <span className="crew-header-btn__label">Upload Visa</span>
+                  </button>
+                  <input
+                    ref={summaryVisaInputRef}
+                    type="file"
+                    className="crew-doc-input"
+                    onChange={handleSummaryBulkDocUpload(["visa"])}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {crewSummaryRows.length === 0 ? (
             <p className="crew-summary-empty">
               No crew uploaded yet. Select a movement type and upload a crew list to see it here.
             </p>
+          ) : filteredCrewSummaryRows.length === 0 ? (
+            <p className="crew-summary-empty">No crew match your search.</p>
           ) : (
             <div className="crew-table-wrapper">
               <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
@@ -661,7 +688,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                         <input
                           className="crew-list-checkbox crew-list-checkbox--header"
                           type="checkbox"
-                          checked={summarySelectedIds.length === crewSummaryRows.length}
+                          checked={summarySelectedIds.length === filteredCrewSummaryRows.length}
                           onChange={handleSummarySelectAll}
                         />
                       </th>
@@ -679,7 +706,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                     </tr>
                   </thead>
                   <tbody>
-                    {crewSummaryRows.map((row) => (
+                    {filteredCrewSummaryRows.map((row) => (
                       <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
                         <td className="crew-checkbox-cell">
                           <input
