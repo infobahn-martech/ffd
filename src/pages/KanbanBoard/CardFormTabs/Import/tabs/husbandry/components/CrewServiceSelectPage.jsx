@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import CustomModal from "../../../../../../../components/CustomModal";
 
 const PAGE_SIZE = 5;
 
 // Static placeholder rows — mirrors the Crew Summary table on the Crew
-// Management dashboard (same columns/fields) until this modal is wired back
+// Management dashboard (same columns/fields) until this page is wired back
 // up to the real uploaded crew list.
 const STATIC_CREW_ROWS = [
   { id: "1", crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false },
@@ -49,18 +48,19 @@ DocStatusIcon.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-// "Select Crew" popup opened from a Crew Management service card. Selection
-// state lives in the parent (selectedCrewIds); the crew rows shown are
-// static placeholder data for now (see STATIC_CREW_ROWS). The table is
-// paginated for display only; selection tracks crew ids, not page position,
-// so it survives paging.
-const CrewServiceSelectModal = ({
-  show,
+// "Select Crew" step opened from a Crew Management service card — same
+// layout shell as CrewServiceListing (full page, not a modal) so it fits
+// the dashboard's existing page-swap flow: dashboard -> select crew (this
+// page) -> submit -> CrewServiceListing. Selection state lives in the
+// parent (selectedCrewIds); the crew rows shown are static placeholder data
+// for now (see STATIC_CREW_ROWS). The table is paginated for display only;
+// selection tracks crew ids, not page position, so it survives paging.
+const CrewServiceSelectPage = ({
   service,
   selectedCrewIds = [],
   onChangeSelected,
   cardColor,
-  onClose,
+  onBack,
   onSubmit,
 }) => {
   const [page, setPage] = useState(1);
@@ -68,12 +68,10 @@ const CrewServiceSelectModal = ({
   const [signOffCount, setSignOffCount] = useState("");
 
   useEffect(() => {
-    if (show) {
-      setPage(1);
-      setSignOnCount("");
-      setSignOffCount("");
-    }
-  }, [show, service?.tabName]);
+    setPage(1);
+    setSignOnCount("");
+    setSignOffCount("");
+  }, [service?.tabName]);
 
   if (!service) return null;
 
@@ -105,31 +103,29 @@ const CrewServiceSelectModal = ({
   };
 
   return (
-    <CustomModal
-      show={show}
-      closeModal={onClose}
-      createModal
-      className="modal fade crew-service-select-modal"
-      dialgName="modal-dialog modal-dialog-centered crew-service-select-modal-dialog"
-      bodyClassname="crew-service-select-modal__body"
-      header={
-        <div className="crew-service-select-modal__header" style={{ "--card-color": cardColor }}>
-          <div className="crew-service-select-modal__header-main">
-            <h5 className="crew-service-select-modal__title">Select Crew</h5>
-            <span className="crew-service-select-modal__service-badge">{service.label}</span>
+    <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
+      <div className="husbandry-service-selection-content">
+        <button
+          type="button"
+          className="husbandry-back-link-small"
+          onClick={onBack}
+          style={{ "--card-color": cardColor }}
+        >
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>Back to Crew Management</span>
+        </button>
+
+        <div className="crew-listing-header">
+          <div>
+            <h2 className="crew-listing-title">Select Crew</h2>
+            <p className="crew-listing-subtitle">Choose the crew members to assign to {service.label}.</p>
           </div>
-          <button
-            type="button"
-            className="crew-service-select-modal__close-btn"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <span>&times;</span>
-          </button>
+          <span className="crew-service-select-modal__service-badge">{service.label}</span>
         </div>
-      }
-      body={
-        hasCrew ? (
+
+        {hasCrew ? (
           <>
             {isCrewChange && (
               <div className="crew-select-signcount-row">
@@ -157,7 +153,7 @@ const CrewServiceSelectModal = ({
                 </label>
               </div>
             )}
-            <div className="crew-table-wrapper">
+            <div className="crew-table-wrapper crew-select-page-table">
               <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
                 <table
                   className="table table-striped crew-table crew-list-table"
@@ -259,15 +255,14 @@ const CrewServiceSelectModal = ({
           <p className="crew-service-select-modal__empty">
             No crew available yet. Upload a crew list first.
           </p>
-        )
-      }
-      footer={
+        )}
+
         <div className="crew-service-select-modal__footer">
           <span className="crew-service-select-modal__count">
             {selectedCrewIds.length} crew selected
           </span>
           <div className="crew-service-select-modal__footer-actions">
-            <button type="button" className="crew-service-select-modal__cancel-btn" onClick={onClose}>
+            <button type="button" className="crew-service-select-modal__cancel-btn" onClick={onBack}>
               Cancel
             </button>
             <button
@@ -281,13 +276,12 @@ const CrewServiceSelectModal = ({
             </button>
           </div>
         </div>
-      }
-    />
+      </div>
+    </div>
   );
 };
 
-CrewServiceSelectModal.propTypes = {
-  show: PropTypes.bool.isRequired,
+CrewServiceSelectPage.propTypes = {
   service: PropTypes.shape({
     tabName: PropTypes.string,
     label: PropTypes.string,
@@ -295,8 +289,8 @@ CrewServiceSelectModal.propTypes = {
   selectedCrewIds: PropTypes.array,
   onChangeSelected: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
-  onClose: PropTypes.func.isRequired,
+  onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
 };
 
-export default CrewServiceSelectModal;
+export default CrewServiceSelectPage;

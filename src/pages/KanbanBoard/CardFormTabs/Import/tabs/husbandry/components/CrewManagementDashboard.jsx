@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
-import CrewServiceSelectModal from "./CrewServiceSelectModal";
+import CrewServiceSelectPage from "./CrewServiceSelectPage";
 import CrewServiceListing from "./CrewServiceListing";
 import CrewListUploadBox from "./CrewListUploadBox";
 import CrewUploadDropzones from "./CrewUploadDropzones";
@@ -188,7 +188,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const [selectedServiceForCrew, setSelectedServiceForCrew] = useState(null);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
-  const [isCrewSelectModalOpen, setIsCrewSelectModalOpen] = useState(false);
+  const [showCrewSelectView, setShowCrewSelectView] = useState(false);
 
   // { [tabName]: [crewIds] } — seeded from formValues so a saved selection
   // survives this component remounting (e.g. after navigating away and back).
@@ -391,11 +391,11 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     // re-opening it later restores whatever was picked last.
     const existingSelection = selectedServiceCrewMap[card.tabName];
     setSelectedCrewIds(existingSelection || crewWithIds.map(({ id }) => id));
-    setIsCrewSelectModalOpen(true);
+    setShowCrewSelectView(true);
   };
 
-  const handleCloseCrewSelectModal = () => {
-    setIsCrewSelectModalOpen(false);
+  const handleBackFromCrewSelect = () => {
+    setShowCrewSelectView(false);
     setSelectedServiceForCrew(null);
     setSelectedCrewIds([]);
   };
@@ -406,7 +406,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setSelectedServiceCrewMap((prev) => ({ ...prev, [selectedServiceForCrew.tabName]: selectedCrewIds }));
     setActiveCrewListingService(selectedServiceForCrew);
     setShowCrewListingView(true);
-    setIsCrewSelectModalOpen(false);
+    setShowCrewSelectView(false);
     setSelectedServiceForCrew(null);
     setSelectedCrewIds([]);
   };
@@ -499,6 +499,19 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       return next;
     });
   };
+
+  if (showCrewSelectView && selectedServiceForCrew) {
+    return (
+      <CrewServiceSelectPage
+        service={selectedServiceForCrew}
+        selectedCrewIds={selectedCrewIds}
+        onChangeSelected={setSelectedCrewIds}
+        cardColor={cardColor}
+        onBack={handleBackFromCrewSelect}
+        onSubmit={handleSubmitCrewSelection}
+      />
+    );
+  }
 
   if (showCrewListingView && activeCrewListingService) {
     const activeServiceCrewIds = selectedServiceCrewMap[activeCrewListingService.tabName] || [];
@@ -737,17 +750,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           )}
         </div>
       </div>
-
-      <CrewServiceSelectModal
-        show={isCrewSelectModalOpen}
-        service={selectedServiceForCrew}
-        crewRows={crewWithIds}
-        selectedCrewIds={selectedCrewIds}
-        onChangeSelected={setSelectedCrewIds}
-        cardColor={cardColor}
-        onClose={handleCloseCrewSelectModal}
-        onSubmit={handleSubmitCrewSelection}
-      />
 
       <CrewUploadPreviewModal
         show={Boolean(previewMovementType)}
