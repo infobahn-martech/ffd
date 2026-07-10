@@ -43,6 +43,8 @@ export const BUSINESS_RULES = [
   },
 ];
 
+// Dev-only fallback for the THEN column, used when get_trigger_config hasn't
+// returned an `actions` list yet (e.g. local dev without a live backend).
 export const THEN_ACTION_SECTIONS = [
   { id: 'create', title: 'Create cards or subtasks' },
   { id: 'update', title: 'Update the card details' },
@@ -51,6 +53,18 @@ export const THEN_ACTION_SECTIONS = [
   { id: 'notify', title: 'Send notifications' },
   { id: 'invoke', title: 'Create the UI Invoke web service' },
 ];
+
+// Maps a get_trigger_config `actions[].group_type` to the THEN section id the form
+// already knows how to render, so the THEN column can be built from the trigger
+// type's own action catalog instead of always showing every section.
+export const ACTION_GROUP_TYPE_TO_SECTION_ID = {
+  create_cards: 'create',
+  update_card: 'update',
+  link_card: 'link',
+  move_card: 'move',
+  send_notifications: 'notify',
+  invoke_web_service: 'invoke',
+};
 
 export const CREATE_ACTION_OPTIONS = [
   { key: 'card', label: 'Create card' },
