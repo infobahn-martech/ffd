@@ -1685,6 +1685,13 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
     );
   };
 
+  const handleToggleTimeUnitKey = (key) => {
+    setSelectedKeys((prev) => {
+      const withoutTimeUnits = prev.filter((k) => !k.startsWith('time_unit-'));
+      return prev.includes(key) ? withoutTimeUnits : [...withoutTimeUnits, key];
+    });
+  };
+
   const findLabelForKey = (key) => {
     if (key.startsWith('regular-')) {
       const field = displayRegularFields.find((f, idx) => `regular-${f.regular_field_id ?? idx}` === key);
@@ -1800,7 +1807,7 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
                         pillKey={key}
                         label={getFieldLabel(field)}
                         selected={selectedKeys.includes(key)}
-                        onClick={() => handleToggleKey(key)}
+                        onClick={() => handleToggleTimeUnitKey(key)}
                       />
                     );
                   })
@@ -1900,8 +1907,8 @@ CardFieldPickerModal.propTypes = {
 };
 
 function NotificationSettingsModal({ show, onClose, onSave, initialSettings, triggerTypeId }) {
-  const [to, setTo] = useState('');
-  const [cc, setCc] = useState('');
+  const [to, setTo] = useState([]);
+  const [cc, setCc] = useState([]);
   const [subjectParts, setSubjectParts] = useState(DUMMY_NOTIFICATION_SUBJECT_PARTS);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
   const [showInternalUsersModal, setShowInternalUsersModal] = useState(false);
@@ -1914,8 +1921,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
 
   useEffect(() => {
     if (!show) return;
-    setTo(initialSettings?.to ?? '');
-    setCc(initialSettings?.cc ?? '');
+    setTo(initialSettings?.to ?? []);
+    setCc(initialSettings?.cc ?? []);
     setSubjectParts(initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
     setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     setShowInternalUsersModal(false);
@@ -1933,8 +1940,16 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     quill._pillMatcherAdded = true;
   }, [show]);
 
-  const appendToken = (setter, current, value) => {
-    setter(current ? `${current}, ${value}` : value);
+  const appendTokens = (setter, labels, type) => {
+    setter((prev) => [
+      ...prev,
+      ...labels.filter((label) => !prev.some((t) => t.label === label)).map((label) => ({ label, type })),
+    ]);
+  };
+
+  const handleRemoveToken = (target, label) => {
+    const setter = target === 'cc' ? setCc : setTo;
+    setter((prev) => prev.filter((t) => t.label !== label));
   };
 
   const handleOpenInternalUsersModal = (target) => {
@@ -1943,11 +1958,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   };
 
   const handleApplyInternalUsers = (names) => {
-    if (internalUsersTarget === 'cc') {
-      appendToken(setCc, cc, names.join(', '));
-    } else {
-      appendToken(setTo, to, names.join(', '));
-    }
+    appendTokens(internalUsersTarget === 'cc' ? setCc : setTo, names, 'user');
     setInternalUsersTarget(null);
   };
 
@@ -1957,11 +1968,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   };
 
   const handleApplyCustomField = (fieldLabels) => {
-    if (customFieldTarget === 'cc') {
-      appendToken(setCc, cc, fieldLabels.join(', '));
-    } else {
-      appendToken(setTo, to, fieldLabels.join(', '));
-    }
+    appendTokens(customFieldTarget === 'cc' ? setCc : setTo, fieldLabels, 'field');
     setCustomFieldTarget(null);
   };
 
@@ -2074,7 +2081,21 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
                 </button>
               </div>
             </div>
-            <input type="text" className="business-rule-form-input" value={to} onChange={(e) => setTo(e.target.value)} />
+            <div className="notification-subject-box">
+              {to.map((token) => (
+                <span key={token.label} className={`notification-user-pill notification-user-pill--${token.type}`}>
+                  {token.label}
+                  <button
+                    type="button"
+                    className="notification-user-pill-remove"
+                    onClick={() => handleRemoveToken('to', token.label)}
+                    aria-label={`Remove ${token.label}`}
+                  >
+                    <FiX size={12} aria-hidden />
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="notification-field">
@@ -2097,7 +2118,21 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
                 </button>
               </div>
             </div>
-            <input type="text" className="business-rule-form-input" value={cc} onChange={(e) => setCc(e.target.value)} />
+            <div className="notification-subject-box">
+              {cc.map((token) => (
+                <span key={token.label} className={`notification-user-pill notification-user-pill--${token.type}`}>
+                  {token.label}
+                  <button
+                    type="button"
+                    className="notification-user-pill-remove"
+                    onClick={() => handleRemoveToken('cc', token.label)}
+                    aria-label={`Remove ${token.label}`}
+                  >
+                    <FiX size={12} aria-hidden />
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="notification-field">
@@ -4321,8 +4356,8 @@ RefineUpdateCriteriaModal.propTypes = {
 NotificationSettingsModal.propTypes = {
   show: PropTypes.bool.isRequired,
   initialSettings: PropTypes.shape({
-    to: PropTypes.string,
-    cc: PropTypes.string,
+    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, type: PropTypes.oneOf(['user', 'field']) })),
+    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, type: PropTypes.oneOf(['user', 'field']) })),
     subjectParts: PropTypes.array,
     bodyContent: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
   }),
