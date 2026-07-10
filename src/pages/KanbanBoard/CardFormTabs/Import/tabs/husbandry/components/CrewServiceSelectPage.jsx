@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 // Static placeholder rows — mirrors the Crew Summary table on the Crew
 // Management dashboard (same columns/fields) until this page is wired back
@@ -51,10 +52,11 @@ DocStatusIcon.propTypes = {
 // "Select Crew" step opened from a Crew Management service card — same
 // layout shell as CrewServiceListing (full page, not a modal) so it fits
 // the dashboard's existing page-swap flow: dashboard -> select crew (this
-// page) -> submit -> CrewServiceListing. Selection state lives in the
-// parent (selectedCrewIds); the crew rows shown are static placeholder data
-// for now (see STATIC_CREW_ROWS). The table is paginated for display only;
-// selection tracks crew ids, not page position, so it survives paging.
+// page) -> submit -> straight to the service's request/form (or a
+// confirmation, for services without one yet). Selection state lives in
+// the parent (selectedCrewIds); the crew rows shown are static placeholder
+// data for now (see STATIC_CREW_ROWS). The table is paginated for display
+// only; selection tracks crew ids, not page position, so it survives paging.
 const CrewServiceSelectPage = ({
   service,
   selectedCrewIds = [],
@@ -122,7 +124,17 @@ const CrewServiceSelectPage = ({
             <h2 className="crew-listing-title">Select Crew</h2>
             <p className="crew-listing-subtitle">Choose the crew members to assign to {service.label}.</p>
           </div>
-          <span className="crew-service-select-modal__service-badge">{service.label}</span>
+          <div className="crew-select-page-header-actions">
+            <span className="crew-service-select-modal__service-badge">{service.label}</span>
+            <button
+              type="button"
+              className="crew-service-select-modal__submit-btn"
+              onClick={() => onSubmit({ signOnCount, signOffCount })}
+              disabled={!canSubmit}
+            >
+              Submit
+            </button>
+          </div>
         </div>
 
         {hasCrew ? (
@@ -233,10 +245,11 @@ const CrewServiceSelectPage = ({
               <button
                 type="button"
                 className="crew-select-pagination__btn"
+                aria-label="Previous page"
                 disabled={effectivePage <= 1}
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               >
-                Previous
+                <FiChevronLeft size={16} />
               </button>
               <span className="crew-select-pagination__info">
                 Page {effectivePage} of {totalPages}
@@ -244,10 +257,11 @@ const CrewServiceSelectPage = ({
               <button
                 type="button"
                 className="crew-select-pagination__btn"
+                aria-label="Next page"
                 disabled={effectivePage >= totalPages}
                 onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
               >
-                Next
+                <FiChevronRight size={16} />
               </button>
             </div>
           </>
@@ -256,26 +270,6 @@ const CrewServiceSelectPage = ({
             No crew available yet. Upload a crew list first.
           </p>
         )}
-
-        <div className="crew-service-select-modal__footer">
-          <span className="crew-service-select-modal__count">
-            {selectedCrewIds.length} crew selected
-          </span>
-          <div className="crew-service-select-modal__footer-actions">
-            <button type="button" className="crew-service-select-modal__cancel-btn" onClick={onBack}>
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="crew-service-select-modal__submit-btn"
-              style={{ "--card-color": cardColor }}
-              onClick={() => onSubmit({ signOnCount, signOffCount })}
-              disabled={!canSubmit}
-            >
-              Submit
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

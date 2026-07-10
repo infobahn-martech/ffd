@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectPage from "./CrewServiceSelectPage";
-import CrewServiceListing from "./CrewServiceListing";
 import CrewListUploadBox from "./CrewListUploadBox";
 import CrewUploadDropzones from "./CrewUploadDropzones";
 import CrewUploadedListsPanel from "./CrewUploadedListsPanel";
@@ -199,8 +198,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       return acc;
     }, {})
   );
-  const [activeCrewListingService, setActiveCrewListingService] = useState(null);
-  const [showCrewListingView, setShowCrewListingView] = useState(false);
   const [summarySelectedIds, setSummarySelectedIds] = useState([]);
   // Local-only override so the bulk "Upload Passport/Iqama"/"Upload Visa"
   // actions can flip a crew's doc status icon on even though Crew Summary
@@ -400,27 +397,23 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setSelectedCrewIds([]);
   };
 
+  // Submitting the crew selection goes straight to the request step — the
+  // service's own form for services that have one (Transport/Medical/
+  // Hotel), or a submission confirmation for ones that don't yet.
   const handleSubmitCrewSelection = () => {
     if (!selectedServiceForCrew || selectedCrewIds.length === 0) return;
     handleChange(selectedServiceForCrew.crewField)({ target: { value: selectedCrewIds } });
     setSelectedServiceCrewMap((prev) => ({ ...prev, [selectedServiceForCrew.tabName]: selectedCrewIds }));
-    setActiveCrewListingService(selectedServiceForCrew);
-    setShowCrewListingView(true);
+
+    if (selectedServiceForCrew.hasServiceForm) {
+      onNavigateToTab?.(selectedServiceForCrew.tabName);
+    } else {
+      notify(`${selectedServiceForCrew.label} request submitted.`, "success");
+    }
+
     setShowCrewSelectView(false);
     setSelectedServiceForCrew(null);
     setSelectedCrewIds([]);
-  };
-
-  const handleRequestService = () => {
-    if (!activeCrewListingService) return;
-    if (activeCrewListingService.hasServiceForm) {
-      onNavigateToTab?.(activeCrewListingService.tabName);
-    } else {
-      // No existing form for this service yet — just confirm the request.
-      notify(`${activeCrewListingService.label} request submitted.`, "success");
-    }
-    setShowCrewListingView(false);
-    setActiveCrewListingService(null);
   };
 
   const crewWithIds = uploadedCrewList.map((crew, index) => ({
@@ -509,20 +502,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         cardColor={cardColor}
         onBack={handleBackFromCrewSelect}
         onSubmit={handleSubmitCrewSelection}
-      />
-    );
-  }
-
-  if (showCrewListingView && activeCrewListingService) {
-    const activeServiceCrewIds = selectedServiceCrewMap[activeCrewListingService.tabName] || [];
-    const activeServiceCrewRows = crewWithIds.filter(({ id }) => activeServiceCrewIds.includes(id));
-
-    return (
-      <CrewServiceListing
-        service={activeCrewListingService}
-        crewRows={activeServiceCrewRows}
-        cardColor={cardColor}
-        onRequest={handleRequestService}
       />
     );
   }
