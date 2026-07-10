@@ -3,7 +3,7 @@ import PremiumSelect from '../../../components/form/PremiumSelect';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 import { useEffect, useState } from 'react';
-import { FiPlus, FiX } from 'react-icons/fi';
+import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import CustomModal from '../../../components/CustomModal';
 import useTransportCompanyReducer from '../../../store/TransportCompanyReducer';
 import useVehicleReducer from '../../../store/VehicleReducer';
@@ -191,9 +191,9 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
 
           <div className="mb-lg-3 mb-sm-0">
             <div className="transport-field">
-              <div className="phone-wrapper">
+              <div className="phone-wrapper phone-wrapper--notched">
                 <label className="phone-label">
-                  Contact no <span className="text-danger">*</span>
+                  Contact Number <span className="text-danger">*</span>
                 </label>
                 <Controller
                   name="contact_no"
@@ -226,7 +226,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
             </div>
           </div>
 
-          <div className="mb-lg-3 mb-sm-0">
+          <div className="mb-lg-3 mb-sm-0 email-field-wrap">
             <div className="transport-field">
               <div className="form-floating desig-inp">
                 <input
@@ -378,7 +378,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                             title="Remove driver"
                             aria-label="Remove driver"
                           >
-                            <FiX size={18} />
+                            <FiTrash2 size={14} />
                           </button>
                         )}
                         {index === fields.length - 1 && (
@@ -390,7 +390,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                             title="Add driver"
                             aria-label="Add driver"
                           >
-                            <FiPlus size={18} aria-hidden />
+                            <FiPlus size={14} aria-hidden />
                           </button>
                         )}
                       </div>
