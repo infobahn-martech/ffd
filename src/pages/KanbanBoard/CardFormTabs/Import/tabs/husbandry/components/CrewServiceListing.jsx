@@ -73,6 +73,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onRequest }) => {
               <thead>
                 <tr>
                   <th>Crew Name</th>
+                  {isCrewChange && <th>Movement Type</th>}
                   <th>Rank</th>
                   <th>Nationality</th>
                   <th>Passport / Iqama</th>
@@ -84,6 +85,7 @@ const CrewServiceListing = ({ service, crewRows, cardColor, onRequest }) => {
                 {paginatedRows.map(({ id, crew }) => (
                   <tr key={id}>
                     <td>{getField(crew, "crew_name", "crewName", "name")}</td>
+                    {isCrewChange && <td>{getField(crew, "movement_type", "movementType", "signOnOff")}</td>}
                     <td>{getField(crew, "rank")}</td>
                     <td>{getField(crew, "nationality")}</td>
                     <td>{`${getField(crew, "passport_no", "passportNo")} / ${getField(crew, "iqama_no", "iqamaNumber")}`}</td>

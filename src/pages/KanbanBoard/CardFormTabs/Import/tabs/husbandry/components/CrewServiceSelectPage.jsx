@@ -107,21 +107,22 @@ const CrewServiceSelectPage = ({
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
       <div className="husbandry-service-selection-content crew-select-page-content">
-        <button
-          type="button"
-          className="husbandry-back-link-small"
-          onClick={onBack}
-          style={{ "--card-color": cardColor }}
-        >
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Back to Crew Management</span>
-        </button>
-
         <div className="crew-listing-header">
           <div>
-            <h2 className="crew-listing-title">Select Crew</h2>
+            <h2 className="crew-listing-title crew-listing-title--with-back">
+              <button
+                type="button"
+                className="crew-listing-back-arrow"
+                onClick={onBack}
+                aria-label="Back to Crew Management"
+                style={{ "--card-color": cardColor }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              Select Crew
+            </h2>
             <p className="crew-listing-subtitle">Choose the crew members to assign to {service.label}.</p>
           </div>
           <div className="crew-select-page-header-actions">

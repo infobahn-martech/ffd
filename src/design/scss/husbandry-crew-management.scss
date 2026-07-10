@@ -2952,6 +2952,33 @@
   letter-spacing: -0.5px;
 }
 
+.crew-listing-title--with-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crew-listing-back-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--card-color, #00368c);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.crew-listing-back-arrow:hover {
+  background: rgba(0, 54, 140, 0.08);
+  transform: translateX(-2px);
+}
+
 .crew-listing-subtitle {
   margin: 6px 0 0;
   font-size: 13px;
