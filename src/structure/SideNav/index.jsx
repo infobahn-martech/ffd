@@ -14,6 +14,7 @@ import AddDashboardModal from './components/AddDashboardModal';
 import SelectWorkflowModal from './components/SelectWorkflowModal';
 const CallTypeBuilderModal = lazy(() => import('../../pages/CallType/CallTypeBuilderModal'));
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
+import OutlookModal from './components/OutlookModal';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import OnStationModal from '../Header/OnStationModal';
 import '../../design/scss/common.scss';
@@ -209,6 +210,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const [showAddDashboardModal, setShowAddDashboardModal] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
   const [showOnStationModal, setShowOnStationModal] = useState(false);
+  const [showOutlookModal, setShowOutlookModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState(false);
   const [showCallTypeBuilderModal, setShowCallTypeBuilderModal] = useState(false);
@@ -904,29 +906,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
+        setShowOutlookModal(false);
         setShowOnStationModal((prev) => !prev);
         setActiveKanbanIcon(item.id);
         return;
       }
 
       if (item.label === 'Outlook') {
+        closeSelectWorkflowModal();
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         setShowOnStationModal(false);
-        // Open Outlook Classic desktop app (Windows protocol)
-        const fallbackToOutlookWeb = setTimeout(() => {
-          // Fallback to Outlook Web if desktop protocol is unavailable
-          window.open('https://outlook.office.com/mail/', '_blank', 'noopener,noreferrer');
-        }, 1200);
-
-        window.location.href = 'ms-outlook://';
-
-        // If protocol launch succeeds, page visibility usually changes; cancel web fallback
-        setTimeout(() => {
-          if (document.visibilityState === 'hidden') {
-            clearTimeout(fallbackToOutlookWeb);
-          }
-        }, 300);
+        setShowOutlookModal((prev) => !prev);
+        setActiveKanbanIcon(item.id);
         return;
       }
 
@@ -935,6 +929,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       if (showSettingsSubmenu) setShowSettingsSubmenu(false);
       if (showCardManagementSubmenu) setShowCardManagementSubmenu(false);
       if (showOnStationModal) setShowOnStationModal(false);
+      if (showOutlookModal) setShowOutlookModal(false);
       if (showBusinessRulesModal) setShowBusinessRulesModal(false);
       if (showBlockersModal) setShowBlockersModal(false);
       if (showStickersModal) setShowStickersModal(false);
@@ -1061,6 +1056,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
                 (item.label === 'Card management' && showCardManagementSubmenu) ||
                 (item.label === 'Edit Workflow' && pathname.startsWith('/edit-workflow')) ||
                 (item.label === 'On Station' && showOnStationModal) ||
+                (item.label === 'Outlook' && showOutlookModal) ||
                 (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
                 (item.label === 'Add new dashboard' && showAddDashboardModal) ||
                 (item.label === 'Add' && showSelectWorkflowModal) ||
@@ -1167,6 +1163,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
         <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
         <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
+        <OutlookModal show={showOutlookModal} onClose={() => setShowOutlookModal(false)} />
         <AddDashboardModal
           show={showAddDashboardModal}
           onClose={() => setShowAddDashboardModal(false)}
