@@ -7,9 +7,8 @@ import ReactQuill, { Quill } from 'react-quill';
 import QuillTableBetter from 'quill-table-better';
 import 'react-quill/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
-import BusinessRuleIcon from './BusinessRuleIcon';
 import {
-  THEN_ACTION_SECTIONS, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
   INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
@@ -279,7 +278,7 @@ function PropertyPill({ pillKey, label, selected, dotColor, disabled, onClick })
   );
 }
 
-function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
+function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId, showTimeUnit = true, showCustomFields = true }) {
   const [selectedRegularFields, setSelectedRegularFields] = useState([]);
   const [selectedTimeUnits, setSelectedTimeUnits] = useState([]);
   const [selectedCustomFields, setSelectedCustomFields] = useState([]);
@@ -297,7 +296,7 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   } = useBusinessRuleReducer((s) => s);
 
   const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
-    show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
+    show: show && showCustomFields, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
   });
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -342,9 +341,9 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   }, [show, debouncedSearch, triggerTypeId]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show || !showTimeUnit) return;
     getTimeUnits({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
-  }, [show, debouncedSearch, triggerTypeId]);
+  }, [show, showTimeUnit, debouncedSearch, triggerTypeId]);
 
   const handleToggleRegularField = (field, key) => {
     setSelectedRegularFields((prev) =>
@@ -447,108 +446,112 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
             )}
           </div>
 
-          <div className="br-property-section">
-            <button
-              type="button"
-              className="br-property-section-toggle"
-              onClick={() => setExpandedTimeUnit((v) => !v)}
-            >
-              <span className="br-property-section-toggle-icon">
-                {expandedTimeUnit ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
-              </span>
-              Time unit
-            </button>
-            {expandedTimeUnit && (
-              <div className="br-property-pill-grid">
-                {isLoadingTimeUnits ? (
-                  <div className="br-property-picker-empty">Loading...</div>
-                ) : displayTimeUnits.length === 0 ? (
-                  <div className="br-property-picker-empty">No fields found</div>
-                ) : (
-                  displayTimeUnits.map((field, idx) => {
-                    const key = `time_unit-${field.time_unit_id ?? idx}`;
-                    return (
-                      <PropertyPill
-                        key={key}
-                        pillKey={key}
-                        label={getFieldLabel(field)}
-                        selected={selectedTimeUnits.some((item) => item.key === key)}
-                        onClick={() => handleToggleTimeUnit(field, key)}
-                      />
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="br-property-section">
-            <button
-              type="button"
-              className="br-property-section-toggle"
-              onClick={() => setExpandedCustomFields((v) => !v)}
-            >
-              <span className="br-property-section-toggle-icon">
-                {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
-              </span>
-              Custom fields
-            </button>
-            {expandedCustomFields && (
-              <>
-                <div className="br-property-board-filter">
-                  <span className="br-property-board-filter-label">Show fields from board:</span>
-                  <div className="br-property-board-filter-row">
-                    <BoardFilterPicker
-                      workspaces={workspaces ?? []}
-                      value={selectedBoardId}
-                      onChange={setSelectedBoardId}
-                    />
-                    <button
-                      type="button"
-                      className="br-property-board-clear-btn"
-                      onClick={() => setSelectedBoardId('')}
-                      aria-label="Reset board filter"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <label className="business-rule-form-toggle br-property-disabled-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showDisabled}
-                    onChange={(e) => setShowDisabled(e.target.checked)}
-                  />
-                  <span className="business-rule-form-toggle-track" aria-hidden />
-                  <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
-                </label>
-
+          {showTimeUnit && (
+            <div className="br-property-section">
+              <button
+                type="button"
+                className="br-property-section-toggle"
+                onClick={() => setExpandedTimeUnit((v) => !v)}
+              >
+                <span className="br-property-section-toggle-icon">
+                  {expandedTimeUnit ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                </span>
+                Time unit
+              </button>
+              {expandedTimeUnit && (
                 <div className="br-property-pill-grid">
-                  {isLoadingCustomFields ? (
+                  {isLoadingTimeUnits ? (
                     <div className="br-property-picker-empty">Loading...</div>
-                  ) : filteredCustomFields.length === 0 ? (
-                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : displayTimeUnits.length === 0 ? (
+                    <div className="br-property-picker-empty">No fields found</div>
                   ) : (
-                    filteredCustomFields.map((field, idx) => {
-                      const key = `custom-${field.custom_field_id ?? idx}`;
+                    displayTimeUnits.map((field, idx) => {
+                      const key = `time_unit-${field.time_unit_id ?? idx}`;
                       return (
                         <PropertyPill
                           key={key}
                           pillKey={key}
                           label={getFieldLabel(field)}
-                          selected={selectedCustomFields.some((item) => item.key === key)}
-                          dotColor={getPropertyDotColor(idx)}
-                          disabled={isFieldUsed(field)}
-                          onClick={() => handleToggleCustomField(field, key)}
+                          selected={selectedTimeUnits.some((item) => item.key === key)}
+                          onClick={() => handleToggleTimeUnit(field, key)}
                         />
                       );
                     })
                   )}
                 </div>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          )}
+
+          {showCustomFields && (
+            <div className="br-property-section">
+              <button
+                type="button"
+                className="br-property-section-toggle"
+                onClick={() => setExpandedCustomFields((v) => !v)}
+              >
+                <span className="br-property-section-toggle-icon">
+                  {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                </span>
+                Custom fields
+              </button>
+              {expandedCustomFields && (
+                <>
+                  <div className="br-property-board-filter">
+                    <span className="br-property-board-filter-label">Show fields from board:</span>
+                    <div className="br-property-board-filter-row">
+                      <BoardFilterPicker
+                        workspaces={workspaces ?? []}
+                        value={selectedBoardId}
+                        onChange={setSelectedBoardId}
+                      />
+                      <button
+                        type="button"
+                        className="br-property-board-clear-btn"
+                        onClick={() => setSelectedBoardId('')}
+                        aria-label="Reset board filter"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <label className="business-rule-form-toggle br-property-disabled-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showDisabled}
+                      onChange={(e) => setShowDisabled(e.target.checked)}
+                    />
+                    <span className="business-rule-form-toggle-track" aria-hidden />
+                    <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
+                  </label>
+
+                  <div className="br-property-pill-grid">
+                    {isLoadingCustomFields ? (
+                      <div className="br-property-picker-empty">Loading...</div>
+                    ) : filteredCustomFields.length === 0 ? (
+                      <div className="br-property-picker-empty">No custom fields found</div>
+                    ) : (
+                      filteredCustomFields.map((field, idx) => {
+                        const key = `custom-${field.custom_field_id ?? idx}`;
+                        return (
+                          <PropertyPill
+                            key={key}
+                            pillKey={key}
+                            label={getFieldLabel(field)}
+                            selected={selectedCustomFields.some((item) => item.key === key)}
+                            dotColor={getPropertyDotColor(idx)}
+                            disabled={isFieldUsed(field)}
+                            onClick={() => handleToggleCustomField(field, key)}
+                          />
+                        );
+                      })
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <footer className="card-property-match-modal-footer">
@@ -3031,7 +3034,8 @@ ShareWithModal.propTypes = {
 function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
   const [owner, setOwner] = useState('');
   const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
   const [ownerFilterText, setOwnerFilterText] = useState('');
@@ -3043,6 +3047,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [conditions, setConditions] = useState([]);
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const editingConditionIdRef = useRef(null);
+  const [whenFields, setWhenFields] = useState([]);
+  const [showWhenFieldPicker, setShowWhenFieldPicker] = useState(false);
   const [createActions, setCreateActions] = useState([]);
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
@@ -3077,7 +3083,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const conditionOperatorPanelRef = useRef(null);
 
   const {
-    getTriggerConfig, triggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
+    getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -3086,11 +3092,29 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const loggedInUserId = userProfile?.user_id ?? userProfile?.userid ?? null;
   const loggedInUserName = userProfile?.name || userProfile?.username || 'You';
 
+  // The WHEN card is seeded from the picker's already-fetched trigger (get_trigger_types),
+  // but once get_trigger_config resolves for this trigger_type_id, its trigger_name is the
+  // fresher, authoritative value — same source of truth as the AND/THEN columns below.
+  const whenTriggerName = triggerConfig?.trigger_name || rule?.name;
+
   // Drives the AND section from the selected trigger type's own config instead of
   // always showing the "Card is created" (trigger_type_id 1) layout.
   const andHeaderText = triggerConfig?.and_header || 'the created card matches this filter';
   const hasBoardDefaultCondition = (triggerConfig?.default_conditions ?? [])
     .some((c) => String(c.field_label ?? '').trim().toLowerCase() === 'board');
+
+  // Drives the THEN column from the selected trigger type's own action catalog
+  // (get_trigger_config's `actions`, ordered by display_order) instead of always
+  // showing every action section for every trigger type.
+  const triggerActions = triggerConfig?.actions ?? [];
+  const sortedTriggerActions = [...triggerActions].sort(
+    (a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0)
+  );
+  const thenActionSections = sortedTriggerActions.length > 0
+    ? sortedTriggerActions
+      .map((action) => ({ id: ACTION_GROUP_TYPE_TO_SECTION_ID[action.group_type], title: action.action_name }))
+      .filter((section) => section.id)
+    : (import.meta.env.DEV ? THEN_ACTION_SECTIONS : []);
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -3100,7 +3124,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
-    setTags('');
+    setTags([]);
+    setTagInput('');
     setOwner(loggedInUserName);
     setIsOwnerPickerOpen(false);
     setOwnerFilterText('');
@@ -3109,6 +3134,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setDisallowTriggerChain(false);
     setConditions([]);
     setShowPropertyPicker(false);
+    setWhenFields([]);
+    setShowWhenFieldPicker(false);
     setCreateActions([]);
     setShowCreateActionPicker(false);
     setLinkActions([]);
@@ -3214,11 +3241,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       triggerRuleId: rule.id,
       name: name.trim(),
       description: description.trim(),
-      tags: tags.trim(),
+      tags,
       boardIds: boardConditionRows.map((row) => row.boardId || null),
       owner,
       sharePermissions,
       disallowTriggerChain,
+      whenFields,
       conditions,
       createActions,
       linkActions,
@@ -3263,6 +3291,26 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     return perm && (perm.viewer || perm.editor);
   });
 
+  const handleAddTag = () => {
+    const value = tagInput.trim();
+    if (!value) return;
+    setTags((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setTagInput('');
+  };
+
+  const handleTagInputKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      handleAddTag();
+    } else if (e.key === 'Backspace' && tagInput === '' && tags.length > 0) {
+      setTags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const handleRemoveTag = (idx) => {
+    setTags((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleOpenPropertyPicker = () => {
     editingConditionIdRef.current = null;
     setShowPropertyPicker(true);
@@ -3303,6 +3351,27 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveCondition = (id) => {
     setConditions((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  // "When fields" (shown only for trigger types where get_trigger_config reports
+  // has_when_fields === '1', e.g. "Card is updated") record which field(s) must
+  // change for the rule to fire — no operator/value, just the field itself.
+  const handleOpenWhenFieldPicker = () => setShowWhenFieldPicker(true);
+
+  const handleSelectWhenField = (field, category) => {
+    const fieldType = category.category_key === 'custom' ? 'custom' : category.category_key === 'regular' ? 'regular' : null;
+    const fieldId = field.regular_field_id ?? field.custom_field_id ?? null;
+    setWhenFields((prev) => [...prev, {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      fieldLabel: getFieldLabel(field),
+      category: category.category_key,
+      fieldType,
+      fieldId,
+    }]);
+  };
+
+  const handleRemoveWhenField = (id) => {
+    setWhenFields((prev) => prev.filter((f) => f.id !== id));
   };
 
   const handleToggleConditionJoinWord = (id) => {
@@ -3579,14 +3648,30 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
             <div className="business-rule-form-field">
               <label htmlFor="br-form-tags" className="business-rule-form-label">Tags</label>
-              <input
-                id="br-form-tags"
-                type="text"
-                className="business-rule-form-input business-rule-form-control"
-                placeholder="Add tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-              />
+              <div className="business-rule-form-input business-rule-form-control business-rule-form-tags-input">
+                {tags.map((tag, idx) => (
+                  <span key={`${tag}-${idx}`} className="business-rule-form-tag-pill">
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(idx)}
+                      aria-label={`Remove tag ${tag}`}
+                    >
+                      <FiX size={12} />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  id="br-form-tags"
+                  type="text"
+                  className="business-rule-form-tags-input-field"
+                  placeholder={tags.length === 0 ? 'Add tags' : ''}
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagInputKeyDown}
+                  onBlur={handleAddTag}
+                />
+              </div>
             </div>
 
             <div className="business-rule-form-secondary-grid">
@@ -3690,10 +3775,43 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
           <section className="business-rule-form-flow" aria-label="Rule builder">
             <div className="business-rule-form-column">
               <h3 className="business-rule-form-column-title">WHEN</h3>
-              <div className="business-rule-form-column-card business-rule-form-column-card--when">
-                <BusinessRuleIcon iconType={rule.icon} className="business-rule-form-when-icon" />
-                <span className="business-rule-form-trigger-name">{rule.name}</span>
-              </div>
+              <p className="business-rule-form-trigger-name business-rule-form-trigger-name--plain">{whenTriggerName}</p>
+
+              {triggerConfig?.has_when_fields === '1' && (
+                <div className="business-rule-form-column-card business-rule-form-when-fields">
+                  <p className="business-rule-form-when-fields-header">The following card fields are changed</p>
+
+                  {whenFields.length === 0 ? (
+                    <button
+                      type="button"
+                      className="business-rule-form-when-fields-pill"
+                      onClick={handleOpenWhenFieldPicker}
+                    >
+                      Any change
+                    </button>
+                  ) : (
+                    whenFields.map((field) => (
+                      <div key={field.id} className="business-rule-form-when-fields-pill business-rule-form-when-field-chip">
+                        <button
+                          type="button"
+                          className="business-rule-form-when-fields-chip-label"
+                          onClick={handleOpenWhenFieldPicker}
+                        >
+                          {field.fieldLabel}
+                        </button>
+                        <button
+                          type="button"
+                          className="business-rule-form-condition-remove"
+                          onClick={() => handleRemoveWhenField(field.id)}
+                          aria-label="Remove field"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="business-rule-form-column">
@@ -3902,32 +4020,37 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   );
                 })}
 
-                <div className="br-add-property-wrap">
-                  <button
-                    type="button"
-                    className="business-rule-form-add-link"
-                    onClick={handleOpenPropertyPicker}
-                  >
-                    <FiPlus size={14} aria-hidden />
-                    Add new property
-                  </button>
-                  {(conditions.length > 0 || boardConditionRows.some((row) => row.boardId)) && (
+                {hasBoardDefaultCondition && (
+                  <div className="br-add-property-wrap">
                     <button
                       type="button"
                       className="business-rule-form-add-link"
-                      onClick={handleClearConditions}
+                      onClick={handleOpenPropertyPicker}
                     >
-                      Clear all
+                      <FiPlus size={14} aria-hidden />
+                      Add new property
                     </button>
-                  )}
-                </div>
+                    {(conditions.length > 0 || boardConditionRows.some((row) => row.boardId)) && (
+                      <button
+                        type="button"
+                        className="business-rule-form-add-link"
+                        onClick={handleClearConditions}
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="business-rule-form-column business-rule-form-column--then">
               <h3 className="business-rule-form-column-title">THEN</h3>
               <div className="business-rule-form-then-stack">
-                {THEN_ACTION_SECTIONS.map((section) => (
+                {isLoadingTriggerConfig && thenActionSections.length === 0 && (
+                  <div className="br-property-picker-empty">Loading...</div>
+                )}
+                {thenActionSections.map((section) => (
                   <div key={section.id} className="business-rule-form-action-section">
                     <h4 className="business-rule-form-action-title">{section.title}</h4>
 
@@ -4218,6 +4341,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       triggerTypeId={rule.id}
     />
 
+    <CardPropertyMatchModal
+      show={showWhenFieldPicker}
+      onClose={() => setShowWhenFieldPicker(false)}
+      onSelect={handleSelectWhenField}
+      existingFieldLabels={whenFields.map((f) => f.fieldLabel.trim().toLowerCase())}
+      triggerTypeId={rule.id}
+      showTimeUnit={false}
+      showCustomFields={false}
+    />
+
     <CreateActionModal
       show={showCreateActionPicker}
       onClose={() => setShowCreateActionPicker(false)}
@@ -4324,6 +4457,8 @@ CardPropertyMatchModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.number,
+  showTimeUnit: PropTypes.bool,
+  showCustomFields: PropTypes.bool,
 };
 
 CreateActionModal.propTypes = {
