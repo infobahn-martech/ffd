@@ -58,6 +58,21 @@ const MOVEMENT_TYPE_OPTIONS = [
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
+// Static placeholder rows for the Crew Summary table until it's wired back
+// up to a real per-call crew summary endpoint.
+const STATIC_CREW_SUMMARY_ROWS = [
+  { id: "1", crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", movementTypeValue: "sign_on", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false, transportCount: 1, hotelCount: 0, medicalCount: 0 },
+  { id: "2", crewId: 2, crewName: "John Smith", nationality: "United Kingdom", rank: "Master", movementType: "Sign Off", movementTypeValue: "sign_off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: true, transportCount: 0, hotelCount: 1, medicalCount: 0 },
+  { id: "3", crewId: 3, crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", movementType: "Sign On", movementTypeValue: "sign_on", passport: false, iqama: true, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 1 },
+  { id: "4", crewId: 4, crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", movementType: "Sign Off", movementTypeValue: "sign_off", passport: true, iqama: true, visa: true, cgPass: true, zawilPass: true, transportCount: 1, hotelCount: 1, medicalCount: 0 },
+  { id: "5", crewId: 5, crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", movementType: "Sign On", movementTypeValue: "sign_on", passport: false, iqama: false, visa: false, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
+  { id: "6", crewId: 6, crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", movementType: "Sign Off", movementTypeValue: "sign_off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 1, medicalCount: 0 },
+  { id: "7", crewId: 7, crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", movementType: "Sign On", movementTypeValue: "sign_on", passport: true, iqama: true, visa: false, cgPass: false, zawilPass: false, transportCount: 1, hotelCount: 0, medicalCount: 0 },
+  { id: "8", crewId: 8, crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", movementType: "Sign Off", movementTypeValue: "sign_off", passport: false, iqama: true, visa: true, cgPass: true, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 1 },
+  { id: "9", crewId: 9, crewName: "Fatima Al-Sayed", nationality: "Egypt", rank: "Bosun", movementType: "Sign On", movementTypeValue: "sign_on", passport: true, iqama: true, visa: true, cgPass: false, zawilPass: true, transportCount: 1, hotelCount: 0, medicalCount: 0 },
+  { id: "10", crewId: 10, crewName: "Lucas Silva", nationality: "Brazil", rank: "Oiler", movementType: "Sign Off", movementTypeValue: "sign_off", passport: false, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
+];
+
 // Read-only doc status icon for the Passport/Iqama, Visa, CG Pass and Zawil
 // Pass columns — green preview icon when the document is available, blank
 // cell when it's missing (no red "missing" indicator).
@@ -422,43 +437,21 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     id: getCrewOptionId(crew, index),
   }));
 
-  // Real Crew Summary — derived from the actual uploaded crew list plus each
-  // movement type's tracked crew ids (falling back to a real movement_type
-  // field from the backend when present). Only crew that have actually been
-  // uploaded ever appear here.
+  // Crew Summary — static placeholder rows (see STATIC_CREW_SUMMARY_ROWS)
+  // until this table is wired back up to a real per-call summary endpoint.
+  // manualDocOverrides still layers on top so the bulk doc-upload actions
+  // keep working against the static rows.
   const crewSummaryRows = useMemo(() => {
-    const signOnIds = new Set(crewUploads.sign_on?.crewIds || []);
-    const signOffIds = new Set(crewUploads.sign_off?.crewIds || []);
-
-    return uploadedCrewList.map((crew, index) => {
-      const id = getCrewOptionId(crew, index);
-      const backendTag = crew?.movement_type ?? crew?.movementType;
-      let resolvedType = null;
-      if (backendTag === "sign_on" || backendTag === "sign_off") resolvedType = backendTag;
-      else if (signOnIds.has(id)) resolvedType = "sign_on";
-      else if (signOffIds.has(id)) resolvedType = "sign_off";
-
-      const overrides = manualDocOverrides[id] || {};
-
+    return STATIC_CREW_SUMMARY_ROWS.map((row) => {
+      const overrides = manualDocOverrides[row.id] || {};
       return {
-        id,
-        crewId: crew?.crew_id ?? crew?.id ?? index + 1,
-        crewName: crew?.crew_name ?? crew?.crewName ?? crew?.name ?? "—",
-        nationality: crew?.nationality ?? "—",
-        rank: crew?.rank ?? "—",
-        movementType: MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === resolvedType)?.label || "—",
-        movementTypeValue: resolvedType,
-        passport: Boolean(crew?.passport_no ?? crew?.passportNo) || Boolean(overrides.passport),
-        iqama: Boolean(crew?.iqama_no ?? crew?.iqamaNumber) || Boolean(overrides.iqama),
-        visa: Boolean(crew?.visa_no ?? crew?.visaNumber) || Boolean(overrides.visa),
-        cgPass: false,
-        zawilPass: false,
-        transportCount: 0,
-        hotelCount: 0,
-        medicalCount: 0,
+        ...row,
+        passport: row.passport || Boolean(overrides.passport),
+        iqama: row.iqama || Boolean(overrides.iqama),
+        visa: row.visa || Boolean(overrides.visa),
       };
     });
-  }, [uploadedCrewList, crewUploads, manualDocOverrides]);
+  }, [manualDocOverrides]);
 
   const previewCrewRows = previewMovementType
     ? crewSummaryRows.filter((row) => row.movementTypeValue === previewMovementType)
