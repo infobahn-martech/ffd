@@ -102,9 +102,9 @@ function BoardFilterPicker({ workspaces, value, onChange, wrapClassName, trigger
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
 
-  // Dev-only sample groups appended after the real workspaces so the picker has
-  // enough content to test scrolling/layout even with a sparsely-populated backend.
-  const displayWorkspaces = import.meta.env.DEV ? [...workspaces, ...DUMMY_WORKSPACE_BOARDS] : workspaces;
+  // Sample groups appended after the real workspaces so the picker has enough
+  // content to test scrolling/layout even with a sparsely-populated backend.
+  const displayWorkspaces = [...workspaces, ...DUMMY_WORKSPACE_BOARDS];
   const boards = displayWorkspaces.flatMap((w) => w.boards ?? []);
   const selectedBoard = boards.find((b) => String(b.board_id) === String(value));
 
@@ -303,8 +303,8 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
   // Dev-only fallback so the modal can be visually tested without a live backend.
-  const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
-  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
+  const displayRegularFields = regularFields.length > 0 ? regularFields : DUMMY_REGULAR_FIELDS;
+  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : DUMMY_TIME_UNITS;
   // Only fall back to dummy data in the untouched/no-filter state — once a board,
   // the disabled toggle, or a search term narrows the results, an empty response is a
   // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
@@ -312,7 +312,7 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
   const displayCustomFields = customFields.length > 0
     ? customFields
-    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
+    : (isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
@@ -1099,7 +1099,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
   const displayCustomFields = customFields.length > 0
     ? customFields
-    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
+    : (isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
@@ -1456,7 +1456,7 @@ function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
   const displayCustomFields = customFields.length > 0
     ? customFields
-    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
+    : (isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   useEffect(() => {
     if (!show) return;
@@ -1641,8 +1641,8 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
-  const displayRegularFields = regularFields.length > 0 ? regularFields : (import.meta.env.DEV ? DUMMY_REGULAR_FIELDS : []);
-  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : (import.meta.env.DEV ? DUMMY_TIME_UNITS : []);
+  const displayRegularFields = regularFields.length > 0 ? regularFields : DUMMY_REGULAR_FIELDS;
+  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : DUMMY_TIME_UNITS;
   // Only fall back to dummy data in the untouched/no-filter state — once a board,
   // the disabled toggle, or a search term narrows the results, an empty response is a
   // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
@@ -1650,7 +1650,7 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
   const displayCustomFields = customFields.length > 0
     ? customFields
-    : (import.meta.env.DEV && isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
+    : (isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
 
   useEffect(() => {
     if (!show) return;

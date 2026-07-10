@@ -106,7 +106,7 @@ const CrewServiceSelectPage = ({
 
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
-      <div className="husbandry-service-selection-content">
+      <div className="husbandry-service-selection-content crew-select-page-content">
         <button
           type="button"
           className="husbandry-back-link-small"

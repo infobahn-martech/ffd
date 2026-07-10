@@ -2245,10 +2245,27 @@
   flex-shrink: 0;
 }
 
-// Bounded height so a full crew list scrolls inside the table itself
-// instead of the whole page — pagination/footer stay put below it.
+// Stretches this page's content to the full height of the (already
+// scrollable) .husbandry-service-selection ancestor — overriding its
+// align-items:flex-start default, which otherwise sizes the content to fit
+// its children and pushes the scrollbar up onto that ancestor instead of
+// staying inside the table below.
+.crew-select-page-content {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  height: 100%;
+  min-height: 0;
+}
+
+// Back link, header and pagination keep their natural size; only the table
+// grows to fill the remaining column height, so it's the one element that
+// scrolls (via .crew-table-scroll below) once the crew list overflows —
+// the page itself never needs to scroll.
 .crew-select-page-table {
-  max-height: calc(100vh - 260px);
+  flex: 1;
+  min-height: 0;
+  max-height: none;
 }
 
 /* Crew table itself now reuses the shared .crew-table / .crew-list-table
@@ -2291,7 +2308,7 @@
 .crew-select-pagination__btn:hover:not(:disabled) {
   border-color: var(--card-color, #00368c);
   color: var(--card-color, #00368c);
-  background: rgba(0, 54, 140, 0.04);
+  // background: rgba(0, 54, 140, 0.04);
 }
 
 .crew-select-pagination__btn:disabled {
