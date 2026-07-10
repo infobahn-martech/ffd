@@ -2194,6 +2194,106 @@
   padding: 20px 0;
 }
 
+/* ==========================================================
+   CREW UPLOAD PREVIEW MODAL (Preview action on an uploaded
+   crew list card — same visual language as the Select Crew modal)
+   ========================================================== */
+
+.crew-upload-preview-modal-dialog {
+  max-width: 900px;
+  width: 90vw;
+}
+
+.crew-upload-preview-modal-dialog .modal-header {
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
+.crew-upload-preview-modal-dialog .modal-content {
+  padding: 0;
+  border-radius: 20px;
+  border: 1px solid #e7ebf4;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16), 0 10px 24px rgba(16, 24, 40, 0.1);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.crew-upload-preview-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-bottom: 1px solid #edf1f7;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.crew-upload-preview-modal__header-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.crew-upload-preview-modal__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.crew-upload-preview-modal__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.crew-upload-preview-modal__close-btn {
+  border: 1px solid #e4e7ec;
+  background: #fff;
+  color: #667085;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.crew-upload-preview-modal__close-btn:hover {
+  color: #101828;
+  background: #f9fafb;
+  border-color: #d0d5dd;
+}
+
+.crew-upload-preview-modal__body {
+  padding: 16px 20px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.crew-upload-preview-modal__empty {
+  margin: 0;
+  font-size: 13px;
+  color: #667085;
+  text-align: center;
+  padding: 20px 0;
+}
+
 /* Crew Change only — sign on/off counts alongside the crew list. */
 .crew-select-signcount-row {
   display: flex;
@@ -2359,37 +2459,468 @@
 }
 
 /* ==========================================================
-   CREW UPLOAD STEPS (hero-right, 3-step crew document progress tracker)
-   + CREW UPLOAD DROPZONES (hero-right, drag & drop upload boxes to its left)
+   CREW MANAGEMENT HERO LAYOUT
+   Left: title/description, then movement type + crew list/doc upload
+   stacked directly beneath it. Right: "Uploaded Crew Lists" panel — the
+   single place Sign On/Sign Off upload state is shown (no separate
+   progress tracker, no below-hero preview section, no separate middle
+   column).
    ========================================================== */
 
+// Left (title + movement/upload controls) | Uploaded Crew Lists — a fixed
+// 40/60 2-column grid. Row items stretch (default align-items) so the
+// Uploaded Crew Lists panel always matches the left column's height instead
+// of sitting short with blank space below it.
 .crew-mgmt-hero-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.4fr) minmax(420px, 0.6fr);
+  gap: 24px;
+}
+
+.crew-mgmt-hero-left {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 20px;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .crew-mgmt-hero-text {
-  flex: 1;
-  min-width: 240px;
+  min-width: 0;
 }
 
-.crew-mgmt-hero-uploads {
+.crew-mgmt-hero-middle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.crew-mgmt-section-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+/* ==========================================================
+   MOVEMENT TYPE RADIO CARDS
+   ========================================================== */
+
+.crew-movement-radio-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crew-movement-radio-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  min-width: 130px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crew-movement-radio-card:hover {
+  border-color: #cbd5e1;
+}
+
+.crew-movement-radio-card--selected {
+  border-color: var(--card-color, #00368c);
+  background: color-mix(in srgb, var(--card-color, #00368c) 6%, #ffffff);
+}
+
+.crew-movement-radio-card__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crew-movement-radio-card__radio {
+  position: relative;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.crew-movement-radio-card__input:checked ~ .crew-movement-radio-card__radio {
+  border-color: var(--card-color, #00368c);
+}
+
+.crew-movement-radio-card__input:checked ~ .crew-movement-radio-card__radio::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--card-color, #00368c);
+  transform: translate(-50%, -50%);
+}
+
+.crew-movement-radio-card__input:focus-visible ~ .crew-movement-radio-card__radio {
+  outline: 2px solid var(--card-color, #00368c);
+  outline-offset: 2px;
+}
+
+.crew-movement-radio-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.crew-movement-radio-card__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.crew-movement-radio-card__hint {
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.crew-movement-helper-text {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: $status-pending-text;
+}
+
+.crew-mgmt-crewlist-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ==========================================================
+   CREW LIST UPLOAD BOX (movement-type-aware — see CrewListUploadBox.jsx)
+   ========================================================== */
+
+.crew-list-upload-box {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px dashed #cbd5e1;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.crew-upload-dropzones {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
+.crew-list-upload-box:hover {
+  border-color: var(--card-color, #00368c);
+  background: #f8faff;
+}
+
+.crew-list-upload-box--active {
+  border-style: solid;
+  border-color: var(--card-color, #00368c);
+  background: rgba(0, 54, 140, 0.06);
+}
+
+.crew-list-upload-box--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.crew-list-upload-box--disabled:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.crew-list-upload-box--completed {
+  border-style: solid;
+  border-color: var(--card-color, #00368c);
+  background: color-mix(in srgb, var(--card-color, #00368c) 5%, #ffffff);
+}
+
+.crew-list-upload-box--failed {
+  border-style: solid;
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.crew-list-upload-box__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  width: 430px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.crew-list-upload-box__icon--completed {
+  color: #ffffff;
+  background: var(--card-color, #00368c);
+}
+
+.crew-list-upload-box__icon--failed {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+.crew-list-upload-box__icon--uploading {
+  color: var(--card-color, #00368c);
+  background: #eef2ff;
+}
+
+.crew-list-upload-box__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.crew-list-upload-box__title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crew-list-upload-box__subtitle {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================
+   UPLOADED CREW LISTS PANEL (hero-right — single source of truth
+   for Sign On / Sign Off upload state, see CrewUploadedListsPanel.jsx)
+   ========================================================== */
+
+// display:flex column so the panel (a grid item that now stretches to the
+// left column's height, see .crew-mgmt-hero-row) can hand that extra height
+// down to its empty/stack content instead of leaving blank space beneath a
+// short card.
+.crew-uploaded-lists-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+}
+
+.crew-uploaded-lists-panel__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  flex: 1;
+  padding: 22px 10px;
+  border-radius: 10px;
+  border: 1px dashed #e2e8f0;
+  background: #f8fafc;
+}
+
+.crew-uploaded-lists-panel__empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  color: #94a3b8;
+  background: #eef2f7;
+}
+
+.crew-uploaded-lists-panel__empty-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.crew-uploaded-lists-panel__empty-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.crew-uploaded-lists-panel__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// icon | details (grows) | badge, with actions spanning the full width on
+// their own row below — see the "Suggested preview card structure" this
+// mirrors: [icon] [file details.....] [badge] / [Preview] [Replace] [Remove]
+.crew-uploaded-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 12px;
+  row-gap: 8px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.crew-uploaded-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  margin-top: 1px;
+  border-radius: 8px;
+  color: var(--card-color, #00368c);
+  background: color-mix(in srgb, var(--card-color, #00368c) 10%, #ffffff);
+}
+
+.crew-uploaded-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.crew-uploaded-card__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crew-uploaded-card__badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: $status-completed-text;
+  background: rgba(46, 125, 50, 0.12);
+  white-space: nowrap;
+}
+
+.crew-uploaded-card__filename {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--card-color, #00368c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crew-uploaded-card__meta {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.crew-uploaded-card__status {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.crew-uploaded-card__status--success {
+  color: $status-completed-text;
+}
+
+.crew-uploaded-card__status--uploading {
+  color: $status-in-progress-text;
+}
+
+.crew-uploaded-card__status--failed {
+  color: $status-cancelled-text;
+}
+
+.crew-uploaded-card__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.crew-uploaded-card__action {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #475569;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.crew-uploaded-card__action:hover:not(:disabled) {
+  color: var(--card-color, #00368c);
+}
+
+.crew-uploaded-card__action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.crew-uploaded-card__action--danger {
+  color: #dc2626;
+}
+
+.crew-uploaded-card__action--danger:hover:not(:disabled) {
+  color: #b91c1c;
+}
+
+.crew-summary-empty {
+  margin: 12px 0 0;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px dashed #e2e8f0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+// Passport/Iqama and Visa — equal-width/equal-height 2-column grid so the
+// pair's combined width (including gap) matches the full-width Crew List
+// upload box directly above (see .crew-list-upload-box).
+.crew-upload-dropzones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .crew-dropzone {
@@ -2398,11 +2929,6 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  flex: 1;
-  width: 140px;
-  min-width: 130px;
-  max-width: 150px;
-  min-height: 88px;
   padding: 10px 8px;
   border-radius: 12px;
   border: 1.5px dashed #cbd5e1;
@@ -2491,144 +3017,6 @@
   line-height: 1.2;
 }
 
-.crew-dropzone__movement-select {
-  width: 100%;
-  max-width: 120px;
-  padding: 3px 6px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 10.5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.crew-dropzone__movement-select:focus {
-  outline: none;
-  border-color: var(--card-color, #00368c);
-}
-
-.crew-upload-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-  width: 420px;
-  padding: 10px 16px 12px;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
-}
-
-.crew-upload-steps__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2px;
-}
-
-.crew-upload-steps__title {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #64748b;
-}
-
-.crew-upload-steps__progress {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--card-color, #00368c);
-}
-
-/* Circle/line progress track — same visual language as the app's existing
-   stage stepper (numbered circle, connecting line, label below), doubling
-   as the click/drop targets for each upload step. */
-.crew-upload-steps__track {
-  display: flex;
-  align-items: flex-start;
-  padding-top: 4px;
-}
-
-.crew-upload-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-}
-
-/* Positioning mirrors .cardform-steps-wrapper (the app's existing footer
-   stepper): the row is the positioning context, the circle is centered on
-   it absolutely, and the connector starts at the circle's edge and runs to
-   the column's right edge — so it lines up seamlessly with the next
-   column's (also centered) circle. */
-.crew-upload-node__row {
-  position: relative;
-  width: 100%;
-  height: 28px;
-}
-
-.crew-upload-node__row--disabled {
-  opacity: 0.5;
-}
-
-.crew-upload-node__circle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #cbd5e1;
-  background: #ffffff;
-  color: #94a3b8;
-  transition: all 0.2s ease;
-}
-
-.crew-upload-node__circle--uploading {
-  border-color: var(--card-color, #00368c);
-  color: var(--card-color, #00368c);
-}
-
-.crew-upload-node__circle--completed {
-  border-color: #16a34a;
-  background: #16a34a;
-  color: #ffffff;
-}
-
-.crew-upload-node__circle--failed {
-  border-color: #dc2626;
-  color: #dc2626;
-}
-
-.crew-upload-node__number {
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.crew-upload-node__input {
-  display: none;
-}
-
-.crew-upload-node__spinner {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 54, 140, 0.2);
-  border-top-color: var(--card-color, #00368c);
-  animation: crewUploadSpin 0.7s linear infinite;
-}
-
 @keyframes crewUploadSpin {
   from {
     transform: rotate(0deg);
@@ -2639,71 +3027,21 @@
   }
 }
 
-.crew-upload-node__connector {
-  position: absolute;
-  left: calc(50% + 14px);
-  width: calc(100% - 14px);
-  top: 50%;
-  transform: translateY(-50%);
-  height: 2px;
-  background: #cbd5e1;
-  z-index: 1;
-}
-
-.crew-upload-node__connector--complete {
-  background: #16a34a;
-}
-
-.crew-upload-node__title {
-  margin-top: 6px;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.25;
-}
-
-.crew-upload-node__caption {
-  margin-top: 1px;
-  font-size: 9px;
-  font-weight: 600;
-  color: #94a3b8;
-  line-height: 1.25;
-}
-
-.crew-upload-node__caption--uploading {
-  color: $status-in-progress-text;
-}
-
-.crew-upload-node__caption--completed {
-  color: $status-completed-text;
-}
-
-.crew-upload-node__caption--failed {
-  color: $status-cancelled-text;
-}
-
-@media (max-width: 992px) {
-  .crew-mgmt-hero-uploads {
-    width: 100%;
-  }
-
-  .crew-upload-dropzones {
-    width: 100%;
-  }
-
-  .crew-upload-steps {
-    width: 100%;
+// Below this, the left column (title + movement/upload) and the Uploaded
+// Crew Lists panel no longer fit comfortably side by side — stack them.
+@media (max-width: 1100px) {
+  .crew-mgmt-hero-row {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
-  .crew-upload-dropzones {
-    flex-wrap: wrap;
+@media (max-width: 768px) {
+  .crew-movement-radio-group {
+    flex-direction: column;
   }
 
-  .crew-dropzone {
-    min-width: 100px;
-    max-width: none;
+  .crew-uploaded-card__actions {
+    gap: 14px;
   }
 }
 

@@ -1,11 +1,13 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectModal from "./CrewServiceSelectModal";
 import CrewServiceListing from "./CrewServiceListing";
-import CrewUploadSteps from "./CrewUploadSteps";
+import CrewListUploadBox from "./CrewListUploadBox";
 import CrewUploadDropzones from "./CrewUploadDropzones";
+import CrewUploadedListsPanel from "./CrewUploadedListsPanel";
+import CrewUploadPreviewModal from "./CrewUploadPreviewModal";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
@@ -48,30 +50,14 @@ const CREW_SERVICE_CARDS = [
 ];
 
 // Backend-friendly movement type values sent with the crew list import and
-// used to label newly-imported crew in the Crew Summary table below.
+// used to label/describe imported crew across the dashboard.
 const MOVEMENT_TYPE_OPTIONS = [
-  { value: "sign_on", label: "Sign On" },
-  { value: "sign_off", label: "Sign Off" },
+  { value: "sign_on", label: "Sign On", hint: "Joining the vessel" },
+  { value: "sign_off", label: "Sign Off", hint: "Leaving the vessel" },
 ];
 
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
-
-// Static placeholder rows for the Crew Summary table below — until the
-// backend exposes per-crew document/service status, these demonstrate the
-// intended columns (mixed available/missing docs and service counts).
-const CREW_SUMMARY_STATIC_ROWS = [
-  { id: 1, crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false, transportCount: 2, hotelCount: 0, medicalCount: 0 },
-  { id: 2, crewId: 2, crewName: "John Smith", nationality: "United Kingdom", rank: "Master", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: true, transportCount: 0, hotelCount: 1, medicalCount: 0 },
-  { id: 3, crewId: 3, crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", movementType: "Sign On", passport: false, iqama: true, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 1 },
-  { id: 4, crewId: 4, crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", movementType: "Sign Off", passport: true, iqama: true, visa: true, cgPass: true, zawilPass: true, transportCount: 1, hotelCount: 1, medicalCount: 0 },
-  { id: 5, crewId: 5, crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", movementType: "Sign On", passport: false, iqama: false, visa: false, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
-  { id: 6, crewId: 6, crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 3, hotelCount: 0, medicalCount: 0 },
-  { id: 7, crewId: 7, crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 2, medicalCount: 0 },
-  { id: 8, crewId: 8, crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", movementType: "Sign Off", passport: false, iqama: true, visa: true, cgPass: true, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 2 },
-  { id: 9, crewId: 9, crewName: "Fatima Al-Sayed", nationality: "Egypt", rank: "Bosun", movementType: "Sign On", passport: true, iqama: true, visa: true, cgPass: false, zawilPass: true, transportCount: 1, hotelCount: 0, medicalCount: 0 },
-  { id: 10, crewId: 10, crewName: "Lucas Silva", nationality: "Brazil", rank: "Oiler", movementType: "Sign Off", passport: false, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
-];
 
 // Read-only doc status icon for the Passport/Iqama, Visa, CG Pass and Zawil
 // Pass columns — green preview icon when the document is available, blank
@@ -151,12 +137,39 @@ ServiceStatusIcon.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-// Crew Management landing view — hero (with a compact 3-step crew document
-// upload widget on the right: crew list, passport/iqama, visa), counters,
-// and service cards. Each card opens a "Select Crew" popup fed by the crew
-// list already uploaded here; on submit the selection is saved to the
-// matching service field and the existing service form is opened via
-// onNavigateToTab.
+// Compact radio card for choosing the crew list's movement type — the whole
+// card (not just the native radio) is clickable via the wrapping <label>.
+const MovementTypeRadioCard = ({ option, checked, onSelect }) => (
+  <label className={`crew-movement-radio-card${checked ? " crew-movement-radio-card--selected" : ""}`}>
+    <input
+      type="radio"
+      className="crew-movement-radio-card__input"
+      name="crew-movement-type"
+      value={option.value}
+      checked={checked}
+      onChange={() => onSelect(option.value)}
+    />
+    <span className="crew-movement-radio-card__radio" aria-hidden="true" />
+    <span className="crew-movement-radio-card__text">
+      <span className="crew-movement-radio-card__label">{option.label}</span>
+      <span className="crew-movement-radio-card__hint">{option.hint}</span>
+    </span>
+  </label>
+);
+
+MovementTypeRadioCard.propTypes = {
+  option: PropTypes.shape({ value: PropTypes.string, label: PropTypes.string, hint: PropTypes.string }).isRequired,
+  checked: PropTypes.bool,
+  onSelect: PropTypes.func.isRequired,
+};
+
+// Crew Management landing view — hero (movement type selection + crew list
+// upload in the middle, "Uploaded Crew Lists" preview panel on the right —
+// the single source of truth for Sign On/Sign Off upload state),
+// counters/service cards, and the real Crew Summary. Each service card
+// opens a "Select Crew" popup fed by the crew list already uploaded here;
+// on submit the selection is saved to the matching service field and the
+// existing service form is opened via onNavigateToTab.
 const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNavigateToTab }) => {
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
@@ -166,6 +179,12 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   );
   const [uploadSteps, setUploadSteps] = useState(INITIAL_UPLOAD_STEPS);
   const [movementType, setMovementType] = useState("");
+  // Per-movement-type upload state — { sign_on: {...} | null, sign_off: {...} | null }.
+  // Each entry: { name, size, movementType, status, crewCount, crewIds }.
+  const [crewUploads, setCrewUploads] = useState({ sign_on: null, sign_off: null });
+  const [previewMovementType, setPreviewMovementType] = useState(null);
+  const [replaceTargetType, setReplaceTargetType] = useState(null);
+  const replaceFileInputRef = useRef(null);
 
   const [selectedServiceForCrew, setSelectedServiceForCrew] = useState(null);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
@@ -183,7 +202,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const [activeCrewListingService, setActiveCrewListingService] = useState(null);
   const [showCrewListingView, setShowCrewListingView] = useState(false);
   const [summarySelectedIds, setSummarySelectedIds] = useState([]);
-  const [crewSummaryRows, setCrewSummaryRows] = useState(CREW_SUMMARY_STATIC_ROWS);
+  // Local-only override so the bulk "Upload Passport/Iqama"/"Upload Visa"
+  // actions can flip a crew's doc status icon on even though Crew Summary
+  // rows are otherwise derived straight from the real uploaded crew list.
+  const [manualDocOverrides, setManualDocOverrides] = useState({});
   const summaryPassportIqamaInputRef = useRef(null);
   const summaryVisaInputRef = useRef(null);
 
@@ -226,20 +248,38 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   }, [resolveCallAndVesselIds, fetchCallCrewList]);
 
   const handleCrewListBlocked = () => {
-    notify("Select Sign On or Sign Off before uploading the crew list.", "error");
+    notify("Select a movement type before uploading the crew list.", "error");
   };
 
-  const handleCrewListFile = async (file) => {
-    if (!file || uploadSteps.crewList.status === "uploading") return;
-    if (!movementType) {
+  // `targetType` defaults to the currently-selected radio, but Replace passes
+  // an explicit type so it can re-upload a specific movement type's file
+  // without disturbing the current selection.
+  const handleCrewListFile = async (file, targetType = movementType) => {
+    if (!file) return;
+    if (!targetType) {
       handleCrewListBlocked();
       return;
     }
+    if (crewUploads[targetType]?.status === "uploading") return;
+
     setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "uploading" } }));
+    setCrewUploads((prev) => ({
+      ...prev,
+      [targetType]: {
+        ...(prev[targetType] || {}),
+        name: file.name,
+        size: file.size,
+        movementType: targetType,
+        status: "uploading",
+        crewCount: prev[targetType]?.crewCount ?? 0,
+        crewIds: prev[targetType]?.crewIds ?? [],
+      },
+    }));
 
     const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
     if (!resolvedCallId || !resolvedVesselId) {
       setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
+      setCrewUploads((prev) => ({ ...prev, [targetType]: { ...(prev[targetType] || {}), status: "failed" } }));
       notify("Unable to upload: missing call or vessel information.", "error");
       return;
     }
@@ -247,7 +287,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     const formData = new FormData();
     formData.append("call_id", String(resolvedCallId));
     formData.append("vessel_id", String(resolvedVesselId));
-    formData.append("movement_type", movementType);
+    formData.append("movement_type", targetType);
     formData.append("file", file);
 
     try {
@@ -263,37 +303,64 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         ...prev,
         crewList: { status: "completed", files: [{ name: file.name }], progress: 100 },
       }));
-      const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === movementType)?.label || "";
-      setCrewSummaryRows(
-        refreshedList.map((crew, index) => {
-          const crewMovementValue = crew?.movement_type ?? crew?.movementType ?? movementType;
-          return {
-            id: getCrewOptionId(crew, index),
-            crewId: crew?.crew_id ?? crew?.id ?? index + 1,
-            crewName: crew?.crew_name ?? crew?.crewName ?? crew?.name ?? "—",
-            nationality: crew?.nationality ?? "—",
-            rank: crew?.rank ?? "—",
-            movementType:
-              MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === crewMovementValue)?.label ||
-              movementTypeLabel,
-            passport: Boolean(crew?.passport_no ?? crew?.passportNo),
-            iqama: Boolean(crew?.iqama_no ?? crew?.iqamaNumber),
-            visa: Boolean(crew?.visa_no ?? crew?.visaNumber),
-            cgPass: false,
-            zawilPass: false,
-            transportCount: 0,
-            hotelCount: 0,
-            medicalCount: 0,
-          };
-        })
-      );
+
+      // Crew belonging to this batch = everything not already known to
+      // belong to the other movement type (prefers a real movement_type
+      // field from the backend when present).
+      const otherType = targetType === "sign_on" ? "sign_off" : "sign_on";
+      const otherIds = new Set(crewUploads[otherType]?.crewIds || []);
+      const idsForThisType = [];
+      refreshedList.forEach((crew, index) => {
+        const id = getCrewOptionId(crew, index);
+        const backendTag = crew?.movement_type ?? crew?.movementType;
+        const belongsHere = backendTag === targetType || (!backendTag && !otherIds.has(id));
+        if (belongsHere) idsForThisType.push(id);
+      });
+
+      setCrewUploads((prev) => ({
+        ...prev,
+        [targetType]: {
+          name: file.name,
+          size: file.size,
+          movementType: targetType,
+          status: "completed",
+          crewCount: idsForThisType.length,
+          crewIds: idsForThisType,
+        },
+      }));
       setSummarySelectedIds([]);
-      notify(`Crew list uploaded — ${refreshedList.length} crew member(s) loaded.`, "success");
+
+      const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === targetType)?.label || "";
+      notify(`${movementTypeLabel} crew list uploaded — ${idsForThisType.length} crew member(s) loaded.`, "success");
     } catch {
       setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
+      setCrewUploads((prev) => ({ ...prev, [targetType]: { ...(prev[targetType] || {}), status: "failed" } }));
       notify("Failed to upload crew list. Please try again.", "error");
     }
   };
+
+  const handleReplaceClick = (type) => {
+    setReplaceTargetType(type);
+    replaceFileInputRef.current?.click();
+  };
+
+  const handleReplaceFileChange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !replaceTargetType) return;
+    handleCrewListFile(file, replaceTargetType);
+    setReplaceTargetType(null);
+  };
+
+  const handleRemoveUpload = (type) => {
+    const label = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === type)?.label || type;
+    if (!window.confirm(`Remove the ${label} crew list? This only clears it from this view.`)) return;
+    setCrewUploads((prev) => ({ ...prev, [type]: null }));
+    setSummarySelectedIds([]);
+  };
+
+  const handlePreviewClick = (type) => setPreviewMovementType(type);
+  const handleClosePreview = () => setPreviewMovementType(null);
 
   // No bulk backend endpoint exists yet for passport/iqama or visa files, so
   // these two steps are local-only — files are kept in formValues to be
@@ -362,6 +429,49 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     id: getCrewOptionId(crew, index),
   }));
 
+  // Real Crew Summary — derived from the actual uploaded crew list plus each
+  // movement type's tracked crew ids (falling back to a real movement_type
+  // field from the backend when present). Only crew that have actually been
+  // uploaded ever appear here.
+  const crewSummaryRows = useMemo(() => {
+    const signOnIds = new Set(crewUploads.sign_on?.crewIds || []);
+    const signOffIds = new Set(crewUploads.sign_off?.crewIds || []);
+
+    return uploadedCrewList.map((crew, index) => {
+      const id = getCrewOptionId(crew, index);
+      const backendTag = crew?.movement_type ?? crew?.movementType;
+      let resolvedType = null;
+      if (backendTag === "sign_on" || backendTag === "sign_off") resolvedType = backendTag;
+      else if (signOnIds.has(id)) resolvedType = "sign_on";
+      else if (signOffIds.has(id)) resolvedType = "sign_off";
+
+      const overrides = manualDocOverrides[id] || {};
+
+      return {
+        id,
+        crewId: crew?.crew_id ?? crew?.id ?? index + 1,
+        crewName: crew?.crew_name ?? crew?.crewName ?? crew?.name ?? "—",
+        nationality: crew?.nationality ?? "—",
+        rank: crew?.rank ?? "—",
+        movementType: MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === resolvedType)?.label || "—",
+        movementTypeValue: resolvedType,
+        passport: Boolean(crew?.passport_no ?? crew?.passportNo) || Boolean(overrides.passport),
+        iqama: Boolean(crew?.iqama_no ?? crew?.iqamaNumber) || Boolean(overrides.iqama),
+        visa: Boolean(crew?.visa_no ?? crew?.visaNumber) || Boolean(overrides.visa),
+        cgPass: false,
+        zawilPass: false,
+        transportCount: 0,
+        hotelCount: 0,
+        medicalCount: 0,
+      };
+    });
+  }, [uploadedCrewList, crewUploads, manualDocOverrides]);
+
+  const previewCrewRows = previewMovementType
+    ? crewSummaryRows.filter((row) => row.movementTypeValue === previewMovementType)
+    : [];
+  const previewMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === previewMovementType)?.label || "";
+
   const handleSummaryRowToggle = (rowId) => {
     setSummarySelectedIds((prev) =>
       prev.includes(rowId) ? prev.filter((id) => id !== rowId) : [...prev, rowId]
@@ -381,13 +491,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || summarySelectedIds.length === 0) return;
-    setCrewSummaryRows((prev) =>
-      prev.map((row) =>
-        summarySelectedIds.includes(row.id)
-          ? { ...row, ...Object.fromEntries(fields.map((field) => [field, true])) }
-          : row
-      )
-    );
+    setManualDocOverrides((prev) => {
+      const next = { ...prev };
+      summarySelectedIds.forEach((id) => {
+        next[id] = { ...(next[id] || {}), ...Object.fromEntries(fields.map((field) => [field, true])) };
+      });
+      return next;
+    });
   };
 
   if (showCrewListingView && activeCrewListingService) {
@@ -404,66 +514,114 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     );
   }
 
+  const selectedMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === movementType)?.label || "";
+  const otherMovementType = movementType === "sign_on" ? "sign_off" : "sign_on";
+  const otherMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === otherMovementType)?.label || "";
+  const crewListStatus = movementType ? crewUploads[movementType]?.status || "pending" : "pending";
+
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
       <div className="husbandry-service-selection-content">
         <div className="husbandry-service-hero">
           <div className="crew-mgmt-hero-row">
-            <div className="crew-mgmt-hero-text">
-              <p className="husbandry-service-hero-eyebrow">Crew Management</p>
-              <h2 className="husbandry-service-selection-title">Crew Management</h2>
-              <p className="husbandry-service-hero-subtitle">
-                Manage crew list, transport, medical, hotel and related crew services in one place.
-              </p>
+            <div className="crew-mgmt-hero-left">
+              <div className="crew-mgmt-hero-text">
+                <p className="husbandry-service-hero-eyebrow">Crew Management</p>
+                <h2 className="husbandry-service-selection-title">Crew Management</h2>
+                <p className="husbandry-service-hero-subtitle">
+                  Manage crew list, transport, medical, hotel and related crew services in one place.
+                </p>
+              </div>
+
+              <div className="crew-mgmt-hero-middle">
+                <div className="crew-movement-select-block">
+                  <span className="crew-mgmt-section-label">Movement Type</span>
+                  <div className="crew-movement-radio-group">
+                    {MOVEMENT_TYPE_OPTIONS.map((option) => (
+                      <MovementTypeRadioCard
+                        key={option.value}
+                        option={option}
+                        checked={movementType === option.value}
+                        onSelect={setMovementType}
+                      />
+                    ))}
+                  </div>
+                  {!movementType && (
+                    <p className="crew-movement-helper-text">
+                      Select a movement type before uploading the crew list.
+                    </p>
+                  )}
+                </div>
+
+                <div className="crew-mgmt-crewlist-block">
+                  <span className="crew-mgmt-section-label">Crew List Upload</span>
+                  <CrewListUploadBox
+                    movementType={movementType}
+                    movementTypeLabel={selectedMovementTypeLabel}
+                    otherMovementTypeLabel={otherMovementTypeLabel}
+                    status={crewListStatus}
+                    onSelectFile={handleCrewListFile}
+                    onBlocked={handleCrewListBlocked}
+                  />
+                  <CrewUploadDropzones
+                    steps={uploadSteps}
+                    onSelectPassportIqamaFiles={handlePassportIqamaFiles}
+                    onSelectVisaFiles={handleVisaFiles}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="crew-mgmt-hero-uploads">
-              <CrewUploadDropzones
-                steps={uploadSteps}
-                movementType={movementType}
-                movementTypeOptions={MOVEMENT_TYPE_OPTIONS}
-                onChangeMovementType={setMovementType}
-                onCrewListBlocked={handleCrewListBlocked}
-                onSelectCrewListFile={handleCrewListFile}
-                onSelectPassportIqamaFiles={handlePassportIqamaFiles}
-                onSelectVisaFiles={handleVisaFiles}
-              />
-              <CrewUploadSteps steps={uploadSteps} />
-            </div>
+            <CrewUploadedListsPanel
+              movementTypeOptions={MOVEMENT_TYPE_OPTIONS}
+              crewUploads={crewUploads}
+              cardColor={cardColor}
+              onPreview={handlePreviewClick}
+              onReplace={handleReplaceClick}
+              onRemove={handleRemoveUpload}
+            />
           </div>
-        </div>
 
-        <div className="crew-mgmt-service-grid">
-          {CREW_SERVICE_CARDS.map((card) => {
-            const assignedCount = selectedServiceCrewMap[card.tabName]?.length || 0;
-            const isAssigned = assignedCount > 0;
+          <input
+            ref={replaceFileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="crew-doc-input"
+            onChange={handleReplaceFileChange}
+          />
 
-            return (
-              <button
-                key={card.id}
-                type="button"
-                className="crew-mgmt-service-box"
-                onClick={() => handleServiceCardClick(card)}
-                style={{ "--card-color": cardColor }}
-              >
-                {isAssigned && (
-                  <span
-                    className="crew-mgmt-service-box-badge booked-status-completed"
-                    aria-label={`${card.label} status: Completed`}
-                  >
-                    Completed
-                  </span>
-                )}
-                <div className="crew-mgmt-service-box-icon">
-                  <HusbIcon id={card.id} />
-                </div>
-                <div className="crew-mgmt-service-box-content">
-                  <span className="crew-mgmt-service-box-label">{card.label}</span>
-                  <span className="crew-mgmt-service-box-count">{assignedCount} Crew Assigned</span>
-                </div>
-              </button>
-            );
-          })}
+          <div className="crew-mgmt-service-grid">
+            {CREW_SERVICE_CARDS.map((card) => {
+              const assignedCount = selectedServiceCrewMap[card.tabName]?.length || 0;
+              const isAssigned = assignedCount > 0;
+
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  className="crew-mgmt-service-box"
+                  onClick={() => handleServiceCardClick(card)}
+                  style={{ "--card-color": cardColor }}
+                >
+                  {isAssigned && (
+                    <span
+                      className="crew-mgmt-service-box-badge booked-status-completed"
+                      aria-label={`${card.label} status: Completed`}
+                    >
+                      Completed
+                    </span>
+                  )}
+                  <div className="crew-mgmt-service-box-icon">
+                    <HusbIcon id={card.id} />
+                  </div>
+                  <div className="crew-mgmt-service-box-content">
+                    <span className="crew-mgmt-service-box-label">{card.label}</span>
+                    <span className="crew-mgmt-service-box-count">{assignedCount} Crew Assigned</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="crew-mgmt-summary-section">
@@ -505,76 +663,82 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             )}
           </div>
 
-          <div className="crew-table-wrapper">
-            <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
-              <table
-                className="table table-striped crew-table crew-list-table"
-                style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}
-              >
-                <thead>
-                  <tr>
-                    <th className="crew-checkbox-cell-header">
-                      <input
-                        className="crew-list-checkbox crew-list-checkbox--header"
-                        type="checkbox"
-                        checked={summarySelectedIds.length === crewSummaryRows.length}
-                        onChange={handleSummarySelectAll}
-                      />
-                    </th>
-                    <th><span className="crew-th">Crew name</span></th>
-                    <th><span className="crew-th">Nationality</span></th>
-                    <th><span className="crew-th">Rank</span></th>
-                    <th><span className="crew-th">Movement type</span></th>
-                    <th><span className="crew-th">Passport / Iqama</span></th>
-                    <th><span className="crew-th">Visa</span></th>
-                    <th><span className="crew-th">CG Pass</span></th>
-                    <th><span className="crew-th">Zawil Pass</span></th>
-                    <th><span className="crew-th">Transport</span></th>
-                    <th><span className="crew-th">Hotel</span></th>
-                    <th><span className="crew-th">Medical</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {crewSummaryRows.map((row) => (
-                    <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
-                      <td className="crew-checkbox-cell">
+          {crewSummaryRows.length === 0 ? (
+            <p className="crew-summary-empty">
+              No crew uploaded yet. Select a movement type and upload a crew list to see it here.
+            </p>
+          ) : (
+            <div className="crew-table-wrapper">
+              <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
+                <table
+                  className="table table-striped crew-table crew-list-table"
+                  style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}
+                >
+                  <thead>
+                    <tr>
+                      <th className="crew-checkbox-cell-header">
                         <input
-                          className="crew-list-checkbox"
+                          className="crew-list-checkbox crew-list-checkbox--header"
                           type="checkbox"
-                          checked={summarySelectedIds.includes(row.id)}
-                          onChange={() => handleSummaryRowToggle(row.id)}
+                          checked={summarySelectedIds.length === crewSummaryRows.length}
+                          onChange={handleSummarySelectAll}
                         />
-                      </td>
-                      <td>
-                        <div className="crew-table-cell crew-name-cell" title={row.crewName}>
-                          <span className="crew-name-info">
-                            <span className="crew-name-text">{row.crewName}</span>
-                            <span className="crew-name-id">{`ID · ${String(row.crewId).padStart(5, "0")}`}</span>
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
-                      </td>
-                      <td>
-                        <span className="crew-movement-pill" title={row.movementType}>{row.movementType}</span>
-                      </td>
-                      <td><DocStatusIcon available={row.passport || row.iqama} label="Passport / Iqama" /></td>
-                      <td><DocStatusIcon available={row.visa} label="Visa" /></td>
-                      <td><DocStatusIcon available={row.cgPass} label="CG Pass" /></td>
-                      <td><DocStatusIcon available={row.zawilPass} label="Zawil Pass" /></td>
-                      <td><ServiceStatusIcon type="transport" active={row.transportCount > 0} label="Transport" /></td>
-                      <td><ServiceStatusIcon type="hotel" active={row.hotelCount > 0} label="Hotel" /></td>
-                      <td><ServiceStatusIcon type="medical" active={row.medicalCount > 0} label="Medical" /></td>
+                      </th>
+                      <th><span className="crew-th">Crew name</span></th>
+                      <th><span className="crew-th">Nationality</span></th>
+                      <th><span className="crew-th">Rank</span></th>
+                      <th><span className="crew-th">Movement type</span></th>
+                      <th><span className="crew-th">Passport / Iqama</span></th>
+                      <th><span className="crew-th">Visa</span></th>
+                      <th><span className="crew-th">CG Pass</span></th>
+                      <th><span className="crew-th">Zawil Pass</span></th>
+                      <th><span className="crew-th">Transport</span></th>
+                      <th><span className="crew-th">Hotel</span></th>
+                      <th><span className="crew-th">Medical</span></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {crewSummaryRows.map((row) => (
+                      <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
+                        <td className="crew-checkbox-cell">
+                          <input
+                            className="crew-list-checkbox"
+                            type="checkbox"
+                            checked={summarySelectedIds.includes(row.id)}
+                            onChange={() => handleSummaryRowToggle(row.id)}
+                          />
+                        </td>
+                        <td>
+                          <div className="crew-table-cell crew-name-cell" title={row.crewName}>
+                            <span className="crew-name-info">
+                              <span className="crew-name-text">{row.crewName}</span>
+                              <span className="crew-name-id">{`ID · ${String(row.crewId).padStart(5, "0")}`}</span>
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
+                        </td>
+                        <td>
+                          <span className="crew-movement-pill" title={row.movementType}>{row.movementType}</span>
+                        </td>
+                        <td><DocStatusIcon available={row.passport || row.iqama} label="Passport / Iqama" /></td>
+                        <td><DocStatusIcon available={row.visa} label="Visa" /></td>
+                        <td><DocStatusIcon available={row.cgPass} label="CG Pass" /></td>
+                        <td><DocStatusIcon available={row.zawilPass} label="Zawil Pass" /></td>
+                        <td><ServiceStatusIcon type="transport" active={row.transportCount > 0} label="Transport" /></td>
+                        <td><ServiceStatusIcon type="hotel" active={row.hotelCount > 0} label="Hotel" /></td>
+                        <td><ServiceStatusIcon type="medical" active={row.medicalCount > 0} label="Medical" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -587,6 +751,14 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         cardColor={cardColor}
         onClose={handleCloseCrewSelectModal}
         onSubmit={handleSubmitCrewSelection}
+      />
+
+      <CrewUploadPreviewModal
+        show={Boolean(previewMovementType)}
+        movementTypeLabel={previewMovementTypeLabel}
+        crewRows={previewCrewRows}
+        cardColor={cardColor}
+        onClose={handleClosePreview}
       />
     </div>
   );

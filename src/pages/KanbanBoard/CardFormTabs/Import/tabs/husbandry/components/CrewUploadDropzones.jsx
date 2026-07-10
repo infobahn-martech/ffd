@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 
 const DROPZONE_CONFIG = [
-  { key: "crewList", title: "Crew List", accept: ".xlsx,.xls,.csv", multiple: false },
   { key: "passportIqama", title: "Passport / Iqama", accept: ".pdf,.jpg,.jpeg,.png", multiple: true },
   { key: "visa", title: "Visa", accept: ".pdf,.jpg,.jpeg,.png", multiple: true },
 ];
@@ -36,18 +35,12 @@ DropzoneIcon.propTypes = {
   status: PropTypes.oneOf(["pending", "uploading", "completed", "failed"]).isRequired,
 };
 
-// Compact drag & drop upload boxes for the Crew Management hero's left
-// (of the progress tracker) side. Step 1 (Crew List) triggers a real import
-// API via onSelectCrewListFile; steps 2/3 are local-only and gated until
-// step 1 completes — mirrors the gating previously done inside
-// CrewUploadSteps, which is now a pure progress/status display.
+// Compact drag & drop upload boxes for Passport/Iqama and Visa — gated
+// until the Crew List has been uploaded at least once (see
+// CrewListUploadBox, a separate movement-type-aware component that owns
+// the Crew List upload itself).
 const CrewUploadDropzones = ({
   steps,
-  movementType,
-  movementTypeOptions,
-  onChangeMovementType,
-  onCrewListBlocked,
-  onSelectCrewListFile,
   onSelectPassportIqamaFiles,
   onSelectVisaFiles,
 }) => {
@@ -55,29 +48,21 @@ const CrewUploadDropzones = ({
   const fileInputRefs = useRef({});
 
   const handlers = {
-    crewList: (file) => onSelectCrewListFile(file),
     passportIqama: (fileList) => onSelectPassportIqamaFiles(fileList),
     visa: (fileList) => onSelectVisaFiles(fileList),
   };
 
-  // Crew List additionally requires a movement type to be picked first;
-  // Passport/Iqama and Visa keep the original "crew list completed" gate.
-  const isDisabled = (key) =>
-    key === "crewList" ? !movementType : steps.crewList?.status !== "completed";
+  const isDisabled = () => steps.crewList?.status !== "completed";
 
   const openPicker = (key) => {
-    if (isDisabled(key)) {
-      if (key === "crewList") onCrewListBlocked?.();
-      return;
-    }
-    if (steps[key]?.status === "uploading") return;
+    if (isDisabled() || steps[key]?.status === "uploading") return;
     fileInputRefs.current[key]?.click();
   };
 
   const handleDragEnter = (key) => (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isDisabled(key)) setDraggingKey(key);
+    if (!isDisabled()) setDraggingKey(key);
   };
 
   const handleDragLeave = (e) => {
@@ -95,10 +80,7 @@ const CrewUploadDropzones = ({
     e.preventDefault();
     e.stopPropagation();
     setDraggingKey(null);
-    if (isDisabled(key)) {
-      if (key === "crewList") onCrewListBlocked?.();
-      return;
-    }
+    if (isDisabled()) return;
     handlers[key](multiple ? e.dataTransfer.files : e.dataTransfer.files?.[0]);
   };
 
@@ -106,7 +88,7 @@ const CrewUploadDropzones = ({
     <div className="crew-upload-dropzones">
       {DROPZONE_CONFIG.map((zone) => {
         const state = steps[zone.key] || { status: "pending", files: [] };
-        const disabled = isDisabled(zone.key);
+        const disabled = isDisabled();
 
         return (
           <div
@@ -122,25 +104,6 @@ const CrewUploadDropzones = ({
             aria-disabled={disabled}
             title={zone.title}
           >
-            {zone.key === "crewList" && (
-              <select
-                className="crew-dropzone__movement-select"
-                value={movementType}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onChangeMovementType(e.target.value);
-                }}
-                aria-label="Movement type"
-              >
-                <option value="">Movement type</option>
-                {movementTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            )}
             <input
               ref={(el) => (fileInputRefs.current[zone.key] = el)}
               type="file"
@@ -176,20 +139,8 @@ CrewUploadDropzones.propTypes = {
     passportIqama: stepStatePropType,
     visa: stepStatePropType,
   }).isRequired,
-  movementType: PropTypes.string,
-  movementTypeOptions: PropTypes.arrayOf(
-    PropTypes.shape({ value: PropTypes.string, label: PropTypes.string })
-  ),
-  onChangeMovementType: PropTypes.func,
-  onCrewListBlocked: PropTypes.func,
-  onSelectCrewListFile: PropTypes.func.isRequired,
   onSelectPassportIqamaFiles: PropTypes.func.isRequired,
   onSelectVisaFiles: PropTypes.func.isRequired,
-};
-
-CrewUploadDropzones.defaultProps = {
-  movementType: "",
-  movementTypeOptions: [],
 };
 
 export default CrewUploadDropzones;
