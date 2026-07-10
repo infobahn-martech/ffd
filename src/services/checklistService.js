@@ -23,7 +23,7 @@ const getChecklistsByVesselType = (payload) =>
 const getChecklistsByBargeType = (payload) =>
   Gateway.post('checklist/checklist_by_bargetype', payload);
 
-/** POST checklist/checklist_by_port_call — body: { call_type_id, port_id } */
+/** POST checklist/checklist_by_port_call — body: { calltype, port_id } */
 const getChecklistsByPortCall = (payload) =>
   Gateway.post('checklist/checklist_by_port_call', payload);
 

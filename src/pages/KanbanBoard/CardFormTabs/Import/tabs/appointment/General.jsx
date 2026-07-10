@@ -4418,7 +4418,7 @@ ${body}
     const loadChecklists = async () => {
       try {
         const { data } = await checklistService.getChecklistsByPortCall({
-          call_type_id: previewCallTypeId,
+          calltype: previewCallTypeId,
           port_id: previewPortId,
         });
         if (checklistRequestIdRef.current !== requestId) return;
