@@ -31,6 +31,17 @@ const APPOINTMENT_TYPE_VESSEL = "vessel";
 const isBargeAppointmentType = (value) =>
   value === APPOINTMENT_TYPE_TUG_AND_BARGE || value === APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE;
 
+// The API only accepts these exact display labels — internal enum values (tug / vessel / tug_and_barge /
+// taxi_tug_and_barge) must never be sent on the wire.
+const APPOINTMENT_TYPE_API_MAP = {
+  [APPOINTMENT_TYPE_TUG]: "Taxi Tug",
+  [APPOINTMENT_TYPE_VESSEL]: "Vessel",
+  [APPOINTMENT_TYPE_TUG_AND_BARGE]: "Tug and Barge",
+  [APPOINTMENT_TYPE_TAXI_TUG_AND_BARGE]: "Taxi Tug and Barge",
+};
+
+const mapAppointmentTypeToApi = (value) => APPOINTMENT_TYPE_API_MAP[value] || value || "";
+
 /** Collapses scalar / array / JSON-array-string appointment type values (canonical value or label) to a canonical value. */
 function normalizeAppointmentType(value) {
   let list = value;
