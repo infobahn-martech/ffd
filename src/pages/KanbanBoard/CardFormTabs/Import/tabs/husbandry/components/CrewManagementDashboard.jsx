@@ -16,18 +16,11 @@ const INITIAL_UPLOAD_STEPS = {
   visa: { status: "pending", files: [], progress: 0 },
 };
 
-// `hasServiceForm: false` means there's no existing content component to
-// navigate to yet — Request just confirms the submission and returns to the
-// dashboard instead of calling onNavigateToTab (see handleRequestService).
+// Top counter/service cards shown on the Crew Management dashboard. Crew
+// Change and Port Pass are intentionally not listed here — they remain
+// reachable from the left sidebar (see GATED_SIDEBAR_TABS in Husbandry.jsx),
+// they're just no longer shown as a card in this grid.
 const CREW_SERVICE_CARDS = [
-  {
-    id: "crewChange",
-    tabName: "crewChange",
-    label: "Crew Change",
-    description: "Request and track crew change movements for sign on/off.",
-    crewField: "crewChangeSelectedCrew",
-    hasServiceForm: false,
-  },
   {
     id: CREW_MANAGEMENT_SUBTABS.TRANSPORT,
     tabName: "transport",
@@ -52,14 +45,13 @@ const CREW_SERVICE_CARDS = [
     crewField: "hotelSelectedCrew",
     hasServiceForm: true,
   },
-  {
-    id: "portPass",
-    tabName: "portPass",
-    label: "Port Pass",
-    description: "Raise and track port pass requests for crew movement.",
-    crewField: "portPassSelectedCrew",
-    hasServiceForm: false,
-  },
+];
+
+// Backend-friendly movement type values sent with the crew list import and
+// used to label newly-imported crew in the Crew Summary table below.
+const MOVEMENT_TYPE_OPTIONS = [
+  { value: "sign_on", label: "Sign On" },
+  { value: "sign_off", label: "Sign Off" },
 ];
 
 const getCrewOptionId = (crew, index) =>
@@ -173,6 +165,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
   );
   const [uploadSteps, setUploadSteps] = useState(INITIAL_UPLOAD_STEPS);
+  const [movementType, setMovementType] = useState("");
 
   const [selectedServiceForCrew, setSelectedServiceForCrew] = useState(null);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
@@ -232,8 +225,16 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     };
   }, [resolveCallAndVesselIds, fetchCallCrewList]);
 
+  const handleCrewListBlocked = () => {
+    notify("Select Sign On or Sign Off before uploading the crew list.", "error");
+  };
+
   const handleCrewListFile = async (file) => {
     if (!file || uploadSteps.crewList.status === "uploading") return;
+    if (!movementType) {
+      handleCrewListBlocked();
+      return;
+    }
     setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "uploading" } }));
 
     const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
@@ -246,6 +247,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     const formData = new FormData();
     formData.append("call_id", String(resolvedCallId));
     formData.append("vessel_id", String(resolvedVesselId));
+    formData.append("movement_type", movementType);
     formData.append("file", file);
 
     try {
@@ -261,6 +263,31 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         ...prev,
         crewList: { status: "completed", files: [{ name: file.name }], progress: 100 },
       }));
+      const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === movementType)?.label || "";
+      setCrewSummaryRows(
+        refreshedList.map((crew, index) => {
+          const crewMovementValue = crew?.movement_type ?? crew?.movementType ?? movementType;
+          return {
+            id: getCrewOptionId(crew, index),
+            crewId: crew?.crew_id ?? crew?.id ?? index + 1,
+            crewName: crew?.crew_name ?? crew?.crewName ?? crew?.name ?? "—",
+            nationality: crew?.nationality ?? "—",
+            rank: crew?.rank ?? "—",
+            movementType:
+              MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === crewMovementValue)?.label ||
+              movementTypeLabel,
+            passport: Boolean(crew?.passport_no ?? crew?.passportNo),
+            iqama: Boolean(crew?.iqama_no ?? crew?.iqamaNumber),
+            visa: Boolean(crew?.visa_no ?? crew?.visaNumber),
+            cgPass: false,
+            zawilPass: false,
+            transportCount: 0,
+            hotelCount: 0,
+            medicalCount: 0,
+          };
+        })
+      );
+      setSummarySelectedIds([]);
       notify(`Crew list uploaded — ${refreshedList.length} crew member(s) loaded.`, "success");
     } catch {
       setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
@@ -306,13 +333,9 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setSelectedCrewIds([]);
   };
 
-  const handleSubmitCrewSelection = ({ signOnCount, signOffCount } = {}) => {
+  const handleSubmitCrewSelection = () => {
     if (!selectedServiceForCrew || selectedCrewIds.length === 0) return;
     handleChange(selectedServiceForCrew.crewField)({ target: { value: selectedCrewIds } });
-    if (selectedServiceForCrew.tabName === "crewChange") {
-      handleChange("crewChangeSignOnCount")({ target: { value: signOnCount } });
-      handleChange("crewChangeSignOffCount")({ target: { value: signOffCount } });
-    }
     setSelectedServiceCrewMap((prev) => ({ ...prev, [selectedServiceForCrew.tabName]: selectedCrewIds }));
     setActiveCrewListingService(selectedServiceForCrew);
     setShowCrewListingView(true);
@@ -397,6 +420,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             <div className="crew-mgmt-hero-uploads">
               <CrewUploadDropzones
                 steps={uploadSteps}
+                movementType={movementType}
+                movementTypeOptions={MOVEMENT_TYPE_OPTIONS}
+                onChangeMovementType={setMovementType}
+                onCrewListBlocked={handleCrewListBlocked}
                 onSelectCrewListFile={handleCrewListFile}
                 onSelectPassportIqamaFiles={handlePassportIqamaFiles}
                 onSelectVisaFiles={handleVisaFiles}

@@ -2491,6 +2491,24 @@
   line-height: 1.2;
 }
 
+.crew-dropzone__movement-select {
+  width: 100%;
+  max-width: 120px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crew-dropzone__movement-select:focus {
+  outline: none;
+  border-color: var(--card-color, #00368c);
+}
+
 .crew-upload-steps {
   display: flex;
   flex-direction: column;
