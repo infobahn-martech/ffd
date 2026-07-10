@@ -15,7 +15,6 @@ const CREW_DIRECT_NAV_SUBTABS = [
   { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
   { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
   { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical" },
-  { id: "portPass", label: "Port Pass" },
 ];
 
 // Left-nav service icons — one small stroke icon per tab id, matching the
