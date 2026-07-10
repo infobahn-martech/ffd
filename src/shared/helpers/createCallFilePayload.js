@@ -210,9 +210,13 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendStringField("assigned_operator_id", fv.assignedOperator);
   appendStringField("last_port", fv.lastPort);
 
-  // Send the canonical snake_case value (tug / vessel / tug_and_barge / taxi_tug_and_barge) — never the display label.
+  // Internal form values stay canonical (tug / vessel / tug_and_barge / taxi_tug_and_barge); the API only
+  // accepts the exact display label, so the value is converted at this boundary and nowhere else.
   const appointmentType = normalizeAppointmentType(fv.appointmentType);
-  fd.append("appointment_type", appointmentType || str(fv.appointmentType));
+  const appointmentTypeForApi = mapAppointmentTypeToApi(appointmentType || str(fv.appointmentType));
+  if (appointmentTypeForApi) {
+    fd.append("appointment_type", appointmentTypeForApi);
+  }
 
   // Only the keys relevant to the selected appointment type are sent. Each appointment type carries its
   // own billing entity selection(s); Tug and Barge / Taxi Tug and Barge keep the tug and barge entities independent.
