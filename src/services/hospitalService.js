@@ -67,6 +67,23 @@ const addUpdateHospitalService = (data) =>
 const getServiceByHospital = (hospitalId) =>
   Gateway.get(`/medical/get_service_by_hospital/${hospitalId}`);
 
+const createMedicalRequest = (formData) =>
+  Gateway.post('/medical/create_medical_request', formData);
+
+const getMedicalRequests = (callId) =>
+  Gateway.get(`/medical/get_medical_requests/${encodeURIComponent(String(callId))}`);
+
+/**
+ * Normalize medical requests from axios response.
+ */
+export const extractMedicalRequestsFromEnvelope = (responseEnvelope) => {
+  const envelope = responseEnvelope?.data?.data ?? responseEnvelope?.data ?? [];
+  if (Array.isArray(envelope)) return envelope;
+  if (Array.isArray(envelope?.data)) return envelope.data;
+  if (envelope && typeof envelope === 'object') return [envelope];
+  return [];
+};
+
 export default {
   addHospital,
   getHospitalData,
@@ -82,4 +99,6 @@ export default {
   getAllHospitalServices,
   addUpdateHospitalService,
   getServiceByHospital,
+  createMedicalRequest,
+  getMedicalRequests,
 };

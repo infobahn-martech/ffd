@@ -1,14 +1,18 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
+import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
-import hospitalService from "../../../../../../../services/hospitalService";
+import hospitalService, { extractMedicalRequestsFromEnvelope } from "../../../../../../../services/hospitalService";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
 import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
 
 const MEDICAL_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE];
+
+const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
+const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 
 const MEDICAL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
@@ -22,13 +26,39 @@ const MEDICAL_REQUEST_COLUMNS = [
 
 const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
+  const requestEmailInputRef = useRef(null);
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
 
   const [hospitals, setHospitals] = useState([]);
   const [hospitalServices, setHospitalServices] = useState([]);
   const [loadingHospitals, setLoadingHospitals] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [medicalRequests, setMedicalRequests] = useState([]);
+  const [loadingMedicalRequests, setLoadingMedicalRequests] = useState(false);
+
+  const fetchMedicalRequests = useCallback(async () => {
+    if (!callId) {
+      setMedicalRequests([]);
+      setLoadingMedicalRequests(false);
+      return;
+    }
+    setLoadingMedicalRequests(true);
+    try {
+      const response = await hospitalService.getMedicalRequests(callId);
+      setMedicalRequests(extractMedicalRequestsFromEnvelope(response));
+    } catch {
+      setMedicalRequests([]);
+    } finally {
+      setLoadingMedicalRequests(false);
+    }
+  }, [callId]);
+
+  useEffect(() => {
+    void fetchMedicalRequests();
+  }, [fetchMedicalRequests]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +128,72 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     type: file.type,
   });
 
+  const filterRequestEmailFiles = (files) =>
+    Array.from(files || []).filter((f) => REQUEST_EMAIL_EXT_RE.test(f.name));
+
+  const handleRequestEmailDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(true);
+  };
+
+  const handleRequestEmailDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+  };
+
+  const handleRequestEmailDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleRequestEmailDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+    const raw = Array.from(e.dataTransfer.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+      return;
+    }
+    handleChange("medicalServiceRequestEmail")({
+      target: { value: [fileToAttachment(allowed[0])] },
+    });
+  };
+
+  const handleRequestEmailFileInputChange = (e) => {
+    const raw = Array.from(e.target.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+    } else {
+      handleChange("medicalServiceRequestEmail")({
+        target: { value: [fileToAttachment(allowed[0])] },
+      });
+    }
+    if (requestEmailInputRef.current) {
+      requestEmailInputRef.current.value = "";
+    }
+  };
+
+  const handleRequestEmailRemoveAttachment = () => {
+    handleChange("medicalServiceRequestEmail")({ target: { value: [] } });
+  };
+
   const handleDocumentsDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -144,8 +240,67 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("medicalServiceDocuments")({ target: { value: current.filter((_, i) => i !== index) } });
   };
 
-  const handleSave = () => {
-  };
+  const handleSave = useCallback(async () => {
+    if (!callId) {
+      notify("Call is required to save a medical request.", "error", "top-center");
+      return;
+    }
+
+    if (!formValues.medicalServiceSelectedHospital) {
+      notify("Hospital is required.", "error", "top-center");
+      return;
+    }
+
+    if (!formValues.medicalServiceSelectedService) {
+      notify("Medical service is required.", "error", "top-center");
+      return;
+    }
+
+    const payload = {
+      call_id: Number(callId),
+      hospital_id: Number(formValues.medicalServiceSelectedHospital),
+      medical_service_id: Number(formValues.medicalServiceSelectedService),
+      remarks: formValues.medicalServiceDescription || "",
+      crew: (formValues.medicalServiceSelectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
+    };
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
+    const requestEmailFile = formValues.medicalServiceRequestEmail?.[0]?.file;
+    if (requestEmailFile) {
+      formData.append("request_email", requestEmailFile);
+    }
+
+    const documents = formValues.medicalServiceDocuments || [];
+    let docIndex = 0;
+    documents.forEach((attachment) => {
+      const file = attachment?.file ?? attachment;
+      if (file instanceof File) {
+        formData.append(`attachments[${docIndex}]`, file);
+        docIndex += 1;
+      }
+    });
+
+    setIsSaving(true);
+    try {
+      const response = await hospitalService.createMedicalRequest(formData);
+      notify(
+        response?.data?.message || "Medical request created successfully",
+        "success",
+        "top-center"
+      );
+      await fetchMedicalRequests();
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to create medical request",
+        "error",
+        "top-center"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }, [callId, formValues, fetchMedicalRequests]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -162,21 +317,24 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="folder" label="Documents" accent={MEDICAL_ACCENT}>
-                  <FormField label="Documents" className="cf-field-full">
+                <FormGroup icon="mail" label="Request" accent={MEDICAL_ACCENT}>
+                  <FormField label="Request Email">
                     <div className="transport-upload-box">
                       <AttachmentsList
-                        attachments={formValues.medicalServiceDocuments || []}
+                        attachments={formValues.medicalServiceRequestEmail || []}
                         onAdd={() => {}}
-                        onRemove={handleDocumentsRemoveAttachment}
+                        onRemove={handleRequestEmailRemoveAttachment}
                         cardColor={cardColor}
-                        isDragging={isDragging}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={fileInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
+                        isDragging={isDraggingEmail}
+                        onDragEnter={handleRequestEmailDragEnter}
+                        onDragLeave={handleRequestEmailDragLeave}
+                        onDragOver={handleRequestEmailDragOver}
+                        onDrop={handleRequestEmailDrop}
+                        fileInputRef={requestEmailInputRef}
+                        onFileInputChange={handleRequestEmailFileInputChange}
+                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                        multiple={false}
+                        helperText=".msg, .eml, .pdf, .doc or .docx"
                       />
                     </div>
                   </FormField>
@@ -219,6 +377,26 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   </FieldRow>
                 </FormGroup>
 
+                <FormGroup icon="folder" label="Documents" accent={MEDICAL_ACCENT}>
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="transport-upload-box">
+                      <AttachmentsList
+                        attachments={formValues.medicalServiceDocuments || []}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDragging}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={fileInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+
                 <FormGroup icon="notebook" label="Notes" accent={MEDICAL_ACCENT}>
                   <div className="cgpass-remarks">
                     <FormField label="Remarks">
@@ -234,8 +412,8 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
 
                 </div>
                 <div className="form-save-button-wrapper cgpass-save-footer">
-                  <button type="button" className="form-save-button" onClick={handleSave}>
-                    Save
+                  <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save"}
                   </button>
                 </div>
               </div>
@@ -246,8 +424,8 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                 title="Medical requests"
                 subtitle="All medical bookings for this job"
                 icon="list"
-                requests={formValues.medicalServiceRequests || []}
-                loading={false}
+                requests={medicalRequests}
+                loading={loadingMedicalRequests}
                 columns={MEDICAL_REQUEST_COLUMNS}
                 emptyMessage="No medical requests found"
                 serviceType="medical"
