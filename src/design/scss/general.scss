@@ -2651,6 +2651,15 @@
   overflow: hidden;
 }
 
+// Reusable scrollable-menu class for Billing Entity dropdowns (Vessel / Tug / Barge / Other) — keeps a
+// fixed max height with an internal scrollbar instead of clipping long option lists.
+.cf-multi-select-dropdown.billing-entity-select {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
 .cf-multi-select-dropdown--portal,
 .cf-multi-select-dropdown.cf-searchable-select__menu-portal {
   position: fixed !important;
@@ -2702,6 +2711,17 @@
   min-height: 0;
   max-height: 180px;
   padding: 2px 0;
+}
+
+// Configurable max-height for MultiSelectField dropdowns (e.g. Select Checklist) — the height comes
+// from the --cf-multiselect-menu-max-height custom property set on the field's root wrapper.
+.cf-multi-select-dropdown--menu-height {
+  max-height: var(--cf-multiselect-menu-max-height, 260px);
+  overflow-y: auto;
+
+  .cf-multi-select-options-scroll {
+    max-height: var(--cf-multiselect-menu-max-height, 260px);
+  }
 }
 
 .cf-multi-select-no-results {

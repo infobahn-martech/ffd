@@ -43,7 +43,6 @@ import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../com
 import DateTimePickerField from "../../../shared/components/DateTimePickerField";
 import {
   extractTextFromFile,
-  extractAppointmentDetailsWithGemini,
   formatToApiDateTime,
   normalizeAppointmentDateTime,
 } from "../../../../../../shared/helpers/appointmentAiExtractor";
@@ -488,6 +487,9 @@ const FormSelect = ({
   className = "",
   disabled = false,
   hasError = false,
+  menuClassName = "",
+  menuPortalTarget = null,
+  menuPosition = "absolute",
 }) => {
   const normalizedValue = value === undefined || value === null ? "" : String(value);
   return (
@@ -500,6 +502,9 @@ const FormSelect = ({
       className={className}
       disabled={disabled}
       hasError={hasError}
+      menuClassName={menuClassName}
+      menuPortalTarget={menuPortalTarget}
+      menuPosition={menuPosition}
     />
   );
 };
@@ -518,6 +523,9 @@ FormSelect.propTypes = {
   className: PropTypes.string,
   disabled: PropTypes.bool,
   hasError: PropTypes.bool,
+  menuClassName: PropTypes.string,
+  menuPortalTarget: PropTypes.any,
+  menuPosition: PropTypes.oneOf(["absolute", "fixed"]),
 };
 
 const UserOptionAvatar = ({ avatarUrl, label, className = "" }) => {
@@ -1201,7 +1209,19 @@ MultiSelectEmail.propTypes = {
 };
 
 // Generic multi-select with checkbox options (no add-new footer / filter).
-const MultiSelectField = ({ value = [], onChange, options = [], placeholder, disabled = false, name, hasError = false }) => {
+const MultiSelectField = ({
+  value = [],
+  onChange,
+  options = [],
+  placeholder,
+  disabled = false,
+  name,
+  hasError = false,
+  className = "",
+  menuMaxHeight,
+  isLoading = false,
+  emptyMessage = "No options found",
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -1231,7 +1251,11 @@ const MultiSelectField = ({ value = [], onChange, options = [], placeholder, dis
   };
 
   return (
-    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""}`} ref={dropdownRef}>
+    <div
+      className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""} ${className}`.trim()}
+      ref={dropdownRef}
+      style={menuMaxHeight ? { "--cf-multiselect-menu-max-height": `${menuMaxHeight}px` } : undefined}
+    >
       <div
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""} ${hasError ? "has-error" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen((prev) => !prev)}
@@ -1259,27 +1283,33 @@ const MultiSelectField = ({ value = [], onChange, options = [], placeholder, dis
         <span className="cf-multi-select-arrow">▼</span>
       </div>
       {isOpen && !disabled && (
-        <div className="cf-multi-select-dropdown">
+        <div className="cf-multi-select-dropdown cf-multi-select-dropdown--menu-height">
           <div className="cf-multi-select-results">
             <div className="cf-multi-select-options-scroll">
-              {options.map((option) => {
-                const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
-                return (
-                  <div
-                    key={String(option.value)}
-                    className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleToggle(option.value);
-                    }}
-                  >
-                    <span className="cf-multi-select-checkbox">
-                      {isSelected && "✓"}
-                    </span>
-                    <span>{option.label}</span>
-                  </div>
-                );
-              })}
+              {isLoading ? (
+                <div className="cf-multi-select-no-results">Loading...</div>
+              ) : options.length === 0 ? (
+                <div className="cf-multi-select-no-results">{emptyMessage}</div>
+              ) : (
+                options.map((option) => {
+                  const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
+                  return (
+                    <div
+                      key={String(option.value)}
+                      className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleToggle(option.value);
+                      }}
+                    >
+                      <span className="cf-multi-select-checkbox">
+                        {isSelected && "✓"}
+                      </span>
+                      <span>{option.label}</span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -1301,6 +1331,10 @@ MultiSelectField.propTypes = {
   disabled: PropTypes.bool,
   name: PropTypes.string,
   hasError: PropTypes.bool,
+  className: PropTypes.string,
+  menuMaxHeight: PropTypes.number,
+  isLoading: PropTypes.bool,
+  emptyMessage: PropTypes.string,
 };
 
 const createQuillImageUploadHandler = (quillRef) => () => {
@@ -2357,7 +2391,7 @@ function General({
   const [defaultEmailAttachments, setDefaultEmailAttachments] = useState([]);
   const [uploadedEmailAttachments, setUploadedEmailAttachments] = useState([]);
   const [isUploadingEmailAttachments, setIsUploadingEmailAttachments] = useState(false);
-  const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("without_ai");
+  const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("manual");
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
   const [isServerEmailReading, setIsServerEmailReading] = useState(false);
   const [aiExtractionError, setAiExtractionError] = useState("");
@@ -2444,6 +2478,9 @@ function General({
   const etaDependentRequestIdRef = useRef(0);
   const etaDependentLastRequestKeyRef = useRef("");
   const allDetailByVesselRequestIdRef = useRef(0);
+  // Per-field (vesselName / tugVesselName / bargeVesselName) request counters guarding against
+  // a stale vessel-detail response overwriting a newer selection.
+  const vesselDetailRequestIdRef = useRef({});
   const lastHydratedEntityFieldCallIdRef = useRef(null);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
@@ -3226,35 +3263,19 @@ function General({
 
   // Changing a vessel-type selection invalidates the matching vessel-name dropdown, so we clear the
   // dependent name/owner/charter/manager fields and let the fetch effects reload the filtered options.
-  const makeVesselTypeChange = (typeKey, dependentKeys) => (event) => {
+  // Vessel Type / Tug Type / Barge Type are purely descriptive and independent from the selected
+  // vessel — changing one must never clear the already-selected Vessel/Tug/Barge Name or its details.
+  const makeIndependentVesselTypeChange = (typeKey) => (event) => {
     if (isAddMode) {
       handleValidatedChange(typeKey)(event);
     } else {
       handleChange(typeKey)(event);
     }
-    dependentKeys.forEach((fieldName) => {
-      handleChange(fieldName)({ target: { value: "", name: fieldName } });
-    });
   };
 
-  const handleSingleVesselTypeChange = makeVesselTypeChange("vesselType", [
-    "vesselName",
-    "vesselOwner",
-    "vesselManager",
-    "vesselPrincipal",
-  ]);
-  const handleTugTypeChange = makeVesselTypeChange("tugType", [
-    "tugVesselName",
-    "tugOwner",
-    "tugManager",
-    "tugPrincipal",
-  ]);
-  const handleBargeTypeChange = makeVesselTypeChange("bargeType", [
-    "bargeVesselName",
-    "bargeOwner",
-    "bargeManager",
-    "bargePrincipal",
-  ]);
+  const handleSingleVesselTypeChange = makeIndependentVesselTypeChange("vesselType");
+  const handleTugTypeChange = makeIndependentVesselTypeChange("tugType");
+  const handleBargeTypeChange = makeIndependentVesselTypeChange("bargeType");
 
   const handleServiceRequestorEmailChange = useCallback(
     (event) => {
@@ -3574,10 +3595,6 @@ function General({
     return true;
   };
 
-  const fillIfEmpty = (fieldName, value) => {
-    setFieldIfEmpty(fieldName, value);
-  };
-
   const updateFormValue = (fieldName, value) => {
     handleChange(fieldName)({
       target: {
@@ -3738,44 +3755,6 @@ function General({
 
     return filledCount;
   };
-
-  const applyGeminiAppointmentExtraction = useCallback(
-    async (text, msgMetadataDate = "") => {
-      const extracted = await extractAppointmentDetailsWithGemini(text);
-      const normalizedAppointmentDate =
-        normalizeAppointmentDateTime(firstNonEmptyString(extracted?.appointment_received_date)) ||
-        normalizeAppointmentDateTime(msgMetadataDate);
-
-      if (normalizedAppointmentDate) {
-        const receivedParts = splitApiDateTimeValue(normalizedAppointmentDate);
-        if (receivedParts.date && receivedParts.time) {
-          applyAppointmentReceivedDateTime(receivedParts);
-        }
-      }
-
-      const matchedPort = findMatchingOption(portSelectOptions, extracted?.port);
-      if (matchedPort) {
-        fillIfEmpty("port", String(matchedPort.value ?? ""));
-      }
-
-      const matchedCallType = findMatchingOption(callTypeOptions, extracted?.type_of_call);
-      if (matchedCallType) {
-        const callTypeValue = String(matchedCallType.value ?? "");
-        fillIfEmpty("typeOfCall", callTypeValue);
-        fillIfEmpty("call_type_id", callTypeValue);
-      }
-
-      const matchedVessel = findMatchingOption(vesselNameOptions, extracted?.vessel_name);
-      if (matchedVessel) {
-        fillIfEmpty("vesselName", String(matchedVessel.value ?? ""));
-      }
-
-      fillIfEmpty("serviceRequestorName", extracted?.service_requestor_name);
-      fillIfEmpty("serviceRequestorEmail", extracted?.service_requestor_email);
-      notify("Appointment details extracted successfully.", "success");
-    },
-    [callTypeOptions, fillIfEmpty, findMatchingOption, portSelectOptions, vesselNameOptions, applyAppointmentReceivedDateTime]
-  );
 
   const applyBeAppointmentExtraction = useCallback(
     async (file) => {
@@ -3950,22 +3929,15 @@ ${body}
 
       let extractedText = "";
       let msgData = null;
-      let msgMetadataEmailDate = "";
       if (isMsgFile(file)) {
         const parsedMsg = await extractMsgAppointmentText(file);
         extractedText = firstNonEmptyString(parsedMsg?.extractedText);
         msgData = parsedMsg?.msgData || null;
-        msgMetadataEmailDate = firstNonEmptyString(parsedMsg?.metadata?.emailDate);
       } else {
         extractedText = await extractTextFromFile(file);
       }
       if (!firstNonEmptyString(extractedText)) {
         notify("File uploaded, but no matching appointment details found.", "warning");
-        return;
-      }
-
-      if (appointmentExtractionMode === "ai") {
-        await applyGeminiAppointmentExtraction(extractedText, msgMetadataEmailDate);
         return;
       }
 
@@ -3984,27 +3956,21 @@ ${body}
         notify("File uploaded, but no matching appointment details found.", "warning");
       }
     } catch (error) {
-      const isBeMode = appointmentExtractionMode === "be";
-      if (isBeMode) {
-        const beMessage =
+      const isAiMode = appointmentExtractionMode === "be";
+      if (isAiMode) {
+        const aiMessage =
           firstNonEmptyString(error?.response?.data?.message, error?.response?.data?.error, error?.message) ||
-          "Backend email extraction failed.";
-        notify(beMessage, "error");
-        setAiExtractionError(beMessage);
+          "AI appointment extraction failed.";
+        notify(aiMessage, "error");
+        setAiExtractionError(aiMessage);
       } else {
         const isUnsupportedFormat = error?.message === "UNSUPPORTED_FILE_FORMAT";
-        const quotaErrorText = firstNonEmptyString(error?.message);
-        const isQuotaExceeded = quotaErrorText.toLowerCase().includes("gemini quota exceeded");
-        const retrySecondsMatch = quotaErrorText.match(/retry after (\d+) seconds/i);
-        const retrySeconds = retrySecondsMatch?.[1] || "20";
         if (isUnsupportedFormat) {
-          notify("Unsupported file format for AI extraction.", "warning");
-        } else if (isQuotaExceeded) {
-          notify(`Gemini quota exceeded. Please try again after ${retrySeconds} seconds or check API quota.`, "error");
+          notify("Unsupported file format.", "warning");
         } else {
           notify("File uploaded, but auto-fill failed.", "warning");
         }
-        setAiExtractionError(firstNonEmptyString(error?.message) || "AI extraction failed");
+        setAiExtractionError(firstNonEmptyString(error?.message) || "Extraction failed");
       }
     } finally {
       setIsAiExtractingAppointment(false);
@@ -4288,11 +4254,17 @@ ${body}
         handleChange(managerKey)({ target: { value: "", name: managerKey } });
         handleChange(principalKey)({ target: { value: "", name: principalKey } });
 
+        // Track the latest request per field so a slower, older detail response can never
+        // overwrite a newer vessel selection (vesselName / tugVesselName / bargeVesselName are independent).
+        const requestId = (vesselDetailRequestIdRef.current[nameKey] || 0) + 1;
+        vesselDetailRequestIdRef.current[nameKey] = requestId;
+
         const normalizedVesselId = selectedVesselId === undefined || selectedVesselId === null ? "" : String(selectedVesselId).trim();
         if (!normalizedVesselId) return;
 
         try {
           const { data } = await vesselService.getVesselDetailByVesselId(normalizedVesselId);
+          if (vesselDetailRequestIdRef.current[nameKey] !== requestId) return;
           const detail = normalizeVesselDetails(data);
           handleChange(ownerKey)({ target: { value: detail.vessel_owner, name: ownerKey } });
           handleChange(managerKey)({ target: { value: detail.vessel_manager, name: managerKey } });
@@ -5461,9 +5433,8 @@ ${body}
                                         aria-label="Appointment extraction mode"
                                       >
                                         {[
-                                          { id: "without_ai", label: "Manual" },
-                                          { id: "ai", label: "AI" },
-                                          { id: "be", label: "Server" },
+                                          { id: "manual", label: "Manual" },
+                                          { id: "be", label: "AI" },
                                         ].map((mode) => (
                                           <button
                                             key={mode.id}
@@ -5492,7 +5463,7 @@ ${body}
                                       disabled={isDisabled}
                                       hasError={false}
                                       isLoading={isServerEmailReading}
-                                      loadingText="Reading email from server..."
+                                      loadingText="Extracting appointment details with AI..."
                                       fileUrl={appointmentEmailUrl}
                                       showFileActions
                                     />
@@ -5637,6 +5608,10 @@ ${body}
                                   options={checklistOptions}
                                   placeholder={checklistLoading ? "Loading checklists..." : "Select checklists"}
                                   disabled={isDisabled || checklistLoading}
+                                  className="checklist-multi-select"
+                                  menuMaxHeight={260}
+                                  isLoading={checklistLoading}
+                                  emptyMessage="No checklists found"
                                 />
                               </FormField>
 
@@ -5751,6 +5726,9 @@ ${body}
                                     placeholder="Select billing entity"
                                     disabled={masterInputsDisabled}
                                     hasError={isAddMode && Boolean(fieldErrors.vesselBillingEntity)}
+                                    menuClassName="billing-entity-select"
+                                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                                    menuPosition="fixed"
                                   />
                                   {isAddMode && fieldErrors.vesselBillingEntity && (
                                     <div className="cf-field-error">{fieldErrors.vesselBillingEntity}</div>
@@ -5828,6 +5806,9 @@ ${body}
                                           placeholder="Select billing entity"
                                           disabled={masterInputsDisabled}
                                           hasError={isAddMode && Boolean(fieldErrors.tugBillingEntity)}
+                                          menuClassName="billing-entity-select"
+                                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                                          menuPosition="fixed"
                                         />
                                         {isAddMode && fieldErrors.tugBillingEntity && (
                                           <div className="cf-field-error">{fieldErrors.tugBillingEntity}</div>
@@ -5916,6 +5897,9 @@ ${body}
                                           placeholder="Select billing entity"
                                           disabled={masterInputsDisabled}
                                           hasError={isAddMode && Boolean(fieldErrors.bargeBillingEntity)}
+                                          menuClassName="billing-entity-select"
+                                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                                          menuPosition="fixed"
                                         />
                                         {isAddMode && fieldErrors.bargeBillingEntity && (
                                           <div className="cf-field-error">{fieldErrors.bargeBillingEntity}</div>
