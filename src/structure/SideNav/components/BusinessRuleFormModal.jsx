@@ -64,6 +64,11 @@ const getFieldLabel = (field) =>
 
 const getPropertyDotColor = (idx) => PROPERTY_DOT_COLORS[idx % PROPERTY_DOT_COLORS.length];
 
+// Any operator whose label reads as a negation ("is not", "does not contain", "not in", ...)
+// — matched generically on the word "not" so operators added later (backend-driven, not
+// hardcoded here) are still caught without needing a code change.
+const isNegativeOperatorLabel = (label) => /\bnot\b/.test((label || '').trim().toLowerCase());
+
 const TOOLBAR_MORE_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>';
 
 // Keeps the Quill toolbar on a single row: instead of the browser's default
@@ -3496,10 +3501,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleSelectConditionOperator = (id, operator) => {
-    // "is not" implies AND across values ("is not X AND is not Y"); any other
-    // operator implies OR ("is X OR Y") — switching back from "is not" must revert
-    // the join word, not just leave whatever it was set to before.
-    const isNegation = (operator.operator_label || '').trim().toLowerCase() === 'is not';
+    // Negative operators ("is not", "does not contain", ...) imply AND across values
+    // ("is not X AND is not Y"); any other operator implies OR ("is X OR Y") —
+    // switching back from a negative operator must revert the join word, not just
+    // leave whatever it was set to before.
+    const isNegation = isNegativeOperatorLabel(operator.operator_label);
     setConditions((prev) =>
       prev.map((c) =>
         c.id === id
