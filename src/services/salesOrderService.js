@@ -13,10 +13,19 @@ const generateWorkOrder = (soItemIds) =>
   Gateway.post("sales_order/generate_work_order", { so_item_ids: soItemIds });
 
 /**
- * @param {Array<number>} soItemIds
+ * @param {object} payload
+ * @param {Array<number>} payload.so_item_ids
+ * @param {string} [payload.vendor_ref_no]
+ * @param {string} [payload.contact_person]
+ * @param {string} [payload.branch]
+ * @param {string} [payload.currency]
+ * @param {string} [payload.delivery_date]
+ * @param {string} [payload.document_date]
+ * @param {number} [payload.discount_percentage]
+ * @param {number} [payload.rounding]
+ * @param {string} [payload.remarks]
  */
-const generatePO = (soItemIds) =>
-  Gateway.post("sales_order/generate_po", { so_item_ids: soItemIds });
+const generatePO = (payload) => Gateway.post("sales_order/generate_po", payload);
 
 export default {
   getSoItemsByCall,

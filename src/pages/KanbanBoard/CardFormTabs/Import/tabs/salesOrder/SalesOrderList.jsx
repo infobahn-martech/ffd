@@ -936,13 +936,31 @@ const SalesOrderList = ({
     setGrnDetails(null);
   };
 
-  const handleConfirmGeneratePO = async () => {
+  const handleConfirmGeneratePO = async (vendorRefNo) => {
     if (generatePOItemIds.length === 0 || isGeneratingPO) return;
+
+    const discountPercentage =
+      formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== ""
+        ? Number(formValues.soDiscountPercentage)
+        : 0;
+
+    const payload = {
+      so_item_ids: generatePOItemIds,
+      vendor_ref_no: vendorRefNo || "",
+      contact_person: soContactPerson,
+      branch,
+      currency: soBpCurrency,
+      delivery_date: soDeliveryDate,
+      document_date: soDocumentDate,
+      discount_percentage: discountPercentage,
+      rounding: 0,
+      remarks: formValues.soRemarks || "",
+    };
 
     setIsGeneratingPO(true);
     setGeneratePOError(null);
     try {
-      const response = await salesOrderService.generatePO(generatePOItemIds);
+      const response = await salesOrderService.generatePO(payload);
       const body = response?.data;
       if (body?.status !== "success") {
         throw new Error(body?.message || "Failed to generate purchase order.");

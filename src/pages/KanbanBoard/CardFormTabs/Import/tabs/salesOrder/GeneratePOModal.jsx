@@ -49,6 +49,7 @@ const GeneratePOModal = ({
 }) => {
   const [showItemDetails, setShowItemDetails] = useState(false);
   const [copyToOpen, setCopyToOpen] = useState(false);
+  const [vendorRefNo, setVendorRefNo] = useState("");
   const copyToRef = useRef(null);
 
   useEffect(() => {
@@ -154,7 +155,7 @@ const GeneratePOModal = ({
             <button
               type="button"
               className="so-po-toolbar-btn so-po-toolbar-btn-submit"
-              onClick={onGenerate}
+              onClick={() => onGenerate(vendorRefNo)}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Submit"}
@@ -212,7 +213,14 @@ const GeneratePOModal = ({
                 </div>
                 <div className="so-po-field-row">
                   <span className="so-po-field-label">Vendor Ref. No.</span>
-                  <span className="so-po-field-value">—</span>
+                  <input
+                    type="text"
+                    className="so-po-field-input"
+                    value={vendorRefNo}
+                    onChange={(e) => setVendorRefNo(e.target.value)}
+                    placeholder="Enter vendor ref. no..."
+                    disabled={isSubmitting}
+                  />
                 </div>
                 <div className="so-po-field-row">
                   <span className="so-po-field-label">Local Currency</span>
