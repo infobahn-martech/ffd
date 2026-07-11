@@ -296,3 +296,128 @@ $tc-font:         "Manrope", sans-serif;
   &:hover:not(:disabled) { background: $tc-green-dark; }
   &:disabled { opacity: 0.65; cursor: not-allowed; }
 }
+
+// ── Reply banner ──────────────────────────────────────────────────────────────
+.st-reply-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background: #f0f4ff;
+  border: 1px solid #d6e0fb;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: $tc-font;
+  color: #374151;
+}
+
+.st-reply-banner-cancel {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  &:hover { color: #ef4444; }
+}
+
+// ── Comment list ──────────────────────────────────────────────────────────────
+.st-comment-empty {
+  font-size: 12.5px;
+  color: $tc-text-muted;
+  font-family: $tc-font;
+  margin: 8px 0 0;
+}
+
+.st-comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.st-comment-item {
+  padding: 10px 12px;
+  background: $tc-bg-readonly;
+  border: 1px solid $tc-border;
+  border-radius: 8px;
+}
+
+.st-comment-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.st-comment-author {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: $tc-text;
+  font-family: $tc-font;
+}
+
+.st-comment-date {
+  font-size: 11px;
+  color: $tc-text-muted;
+  font-family: $tc-font;
+}
+
+.st-comment-text {
+  font-size: 13px;
+  color: $tc-text;
+  font-family: $tc-font;
+  margin: 4px 0 6px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.st-comment-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.st-comment-action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4a6cf7;
+  cursor: pointer;
+  font-family: $tc-font;
+
+  &:hover { text-decoration: underline; }
+
+  &--danger {
+    color: #ef4444;
+  }
+}
+
+.st-comment-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-left: 16px;
+  border-left: 2px solid $tc-border;
+}
+
+// ── Uploaded document list ────────────────────────────────────────────────────
+.st-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.st-doc-item {
+  font-size: 12.5px;
+  font-family: $tc-font;
+  color: #4a6cf7;
+  text-decoration: underline;
+
+  &:hover { color: $tc-green-dark; }
+}

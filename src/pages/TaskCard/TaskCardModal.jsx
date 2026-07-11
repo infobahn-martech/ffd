@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 import userService from "../../services/userService";
+import taskCardService from "../../services/taskCardService";
+import useAlertReducer from "../../store/AlertReducer";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../components/form/SearchableSelect";
 import { Tag, Layers3, AlertTriangle, Sticker } from "lucide-react";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
@@ -36,6 +38,7 @@ function TaskCardModal({ show, onClose }) {
     const [dueTime, setDueTime] = useState("");
     const [taskNameError, setTaskNameError] = useState("");
     const [users, setUsers] = useState([]);
+    const [isSaving, setIsSaving] = useState(false);
 
     const [mentionOpen, setMentionOpen] = useState(false);
     const [mentionSearch, setMentionSearch] = useState("");
@@ -118,7 +121,7 @@ function TaskCardModal({ show, onClose }) {
         onClose();
     }, [handleReset, onClose]);
 
-    const handleSave = useCallback(() => {
+    const handleSave = useCallback(async () => {
         if (!taskName.trim()) {
             setTaskNameError("Task description is required");
             return;
@@ -127,20 +130,39 @@ function TaskCardModal({ show, onClose }) {
 
         const assignedUser = users.find((u) => String(u.user_id) === String(assignUserId));
         const dueDateDisplay = dueDate ? (dueTime ? `${dueDate} ${dueTime}` : dueDate) : "";
-        const newTask = {
-            id: Date.now(),
-            cardTitle: cardTitle || "Task Card",
-            taskName: taskName.trim(),
-            assignUserId,
-            assignedUserName: assignedUser?.name || "",
-            dueDate: dueDateDisplay,
-            mentionedUsers: selectedMentionUserIds,
-            isSubTask: true,
-        };
+        const dueDatePayload = dueDate ? (dueTime ? `${dueDate} ${dueTime}:00` : dueDate) : "";
 
-        window.dispatchEvent(new CustomEvent("subtask:card-created", { detail: newTask }));
-        handleReset();
-    }, [cardTitle, taskName, assignUserId, dueDate, dueTime, users, selectedMentionUserIds, handleReset]);
+        const { success, error } = useAlertReducer.getState();
+        setIsSaving(true);
+        try {
+            const { data } = await taskCardService.createTaskCard({
+                card_name: cardTitle || "Task Card",
+                task_name: taskName.trim(),
+                assigned_to: assignUserId,
+                due_date: dueDatePayload,
+            });
+
+            const newTask = {
+                id: data?.card_id,
+                cardTitle: cardTitle || "Task Card",
+                taskName: taskName.trim(),
+                assignUserId,
+                assignedUserName: assignedUser?.name || "",
+                dueDate: dueDateDisplay,
+                mentionedUsers: selectedMentionUserIds,
+                isSubTask: true,
+            };
+
+            success(data?.message || "Task card created successfully");
+            window.dispatchEvent(new CustomEvent("subtask:card-created", { detail: newTask }));
+            handleReset();
+            onClose();
+        } catch (err) {
+            error(err?.response?.data?.message ?? "Could not create the task card. Please check your connection and try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [cardTitle, taskName, assignUserId, dueDate, dueTime, users, selectedMentionUserIds, handleReset, onClose]);
 
     if (!show) return null;
 
@@ -269,8 +291,10 @@ function TaskCardModal({ show, onClose }) {
                     </div>
 
                     <div className="tc-save-row">
-                        <button type="button" className="tc-cancel-btn" onClick={handleClose}>Cancel</button>
-                        <button type="button" className="tc-save-btn" onClick={handleSave}>Create Task</button>
+                        <button type="button" className="tc-cancel-btn" onClick={handleClose} disabled={isSaving}>Cancel</button>
+                        <button type="button" className="tc-save-btn" onClick={handleSave} disabled={isSaving}>
+                            {isSaving ? "Creating..." : "Create Task"}
+                        </button>
                     </div>
                 </div>
 
