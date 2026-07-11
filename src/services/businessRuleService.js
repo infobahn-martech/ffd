@@ -33,7 +33,11 @@ const getLinkCardPossibleActionOperators = ({ params } = {}) =>
 const getFieldDetails = (fieldType, fieldId) =>
   Gateway.get(`/business_rule/get_field_details/${fieldType}/${fieldId}`);
 
+const saveNotificationSettings = (payload) =>
+  Gateway.post('/business_rule/save_notification_settings', payload);
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getBusinessRules, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
+  saveNotificationSettings,
 };

@@ -1426,7 +1426,13 @@ function InternalUsersPickerModal({ show, onClose, onApply }) {
 
   const handleApply = () => {
     if (selectedNames.length === 0) return;
-    onApply(selectedNames);
+    // Role options (Self, Owner, Watchers, ...) have no backing user record, so they
+    // carry id: null and are dropped when the caller builds an id list for the API.
+    const items = selectedNames.map((name) => ({
+      label: name,
+      id: users.find((u) => u.name === name)?.user_id ?? null,
+    }));
+    onApply(items);
     onClose();
   };
 
@@ -1565,12 +1571,12 @@ function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   };
 
   const handleApply = () => {
-    const labels = selectedFieldKeys
+    const items = selectedFieldKeys
       .map((key) => displayCustomFields.find((f, idx) => `custom-${f.custom_field_id ?? idx}` === key))
       .filter(Boolean)
-      .map((field) => getFieldLabel(field));
-    if (labels.length === 0) return;
-    onApply(labels);
+      .map((field) => ({ label: getFieldLabel(field), id: field.custom_field_id ?? null }));
+    if (items.length === 0) return;
+    onApply(items);
     onClose();
   };
 
@@ -2002,6 +2008,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const quillWrapRef = useRef(null);
   const subjectBoxRef = useRef(null);
 
+  const { saveNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
+
   useEffect(() => {
     if (!show) return;
     setTo(initialSettings?.to ?? []);
@@ -2044,10 +2052,10 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     quill._pillMatcherAdded = true;
   }, [show]);
 
-  const appendTokens = (setter, labels, type) => {
+  const appendTokens = (setter, items, type) => {
     setter((prev) => [
       ...prev,
-      ...labels.filter((label) => !prev.some((t) => t.label === label)).map((label) => ({ label, type })),
+      ...items.filter((item) => !prev.some((t) => t.label === item.label)).map((item) => ({ label: item.label, id: item.id ?? null, type })),
     ]);
   };
 
@@ -2061,8 +2069,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setShowInternalUsersModal(true);
   };
 
-  const handleApplyInternalUsers = (names) => {
-    appendTokens(internalUsersTarget === 'cc' ? setCc : setTo, names, 'user');
+  const handleApplyInternalUsers = (items) => {
+    appendTokens(internalUsersTarget === 'cc' ? setCc : setTo, items, 'user');
     setInternalUsersTarget(null);
   };
 
@@ -2071,8 +2079,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setShowCustomFieldModal(true);
   };
 
-  const handleApplyCustomField = (fieldLabels) => {
-    appendTokens(customFieldTarget === 'cc' ? setCc : setTo, fieldLabels, 'field');
+  const handleApplyCustomField = (items) => {
+    appendTokens(customFieldTarget === 'cc' ? setCc : setTo, items, 'field');
     setCustomFieldTarget(null);
   };
 
@@ -2145,9 +2153,41 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     }, []);
   };
 
+  // Pill tokens are rendered inline as their label text — there's no template/placeholder
+  // syntax defined for the notification subject or body, so what's shown in the editor is
+  // exactly what gets sent.
+  const subjectPartsToText = (parts) => parts.map((part) => part.value).join('');
+
+  // ReactQuill's onChange is wired directly to setBodyContent, so bodyContent is an HTML
+  // string once the user has typed anything; it's only ever the initial Delta before that.
+  const bodyContentToText = (content) => {
+    if (typeof content === 'string') return content;
+    if (content?.ops) {
+      return content.ops
+        .map((op) => (typeof op.insert === 'string' ? op.insert : (op.insert?.pill ?? '')))
+        .join('');
+    }
+    return '';
+  };
+
   const handleSave = () => {
-    onSave({ to, cc, subjectParts: parseSubjectParts(subjectBoxRef.current), bodyContent });
-    onClose();
+    const subjectParts = parseSubjectParts(subjectBoxRef.current);
+    const payload = {
+      from_email: DUMMY_NOTIFICATION_FROM_EMAIL,
+      to_users: to.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
+      to_custom_fields: to.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      cc_users: cc.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
+      cc_custom_fields: cc.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      subject: subjectPartsToText(subjectParts),
+      body: bodyContentToText(bodyContent),
+    };
+
+    saveNotificationSettings(payload, {
+      cb: (data) => {
+        onSave({ to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+        onClose();
+      },
+    });
   };
 
   // Subject is a single-line field: block Enter from inserting a paragraph break, and
@@ -2336,8 +2376,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
         </div>
 
         <footer className="card-property-match-modal-footer">
-          <button type="button" className="br-property-add-btn" onClick={handleSave}>
-            Save
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingNotificationSettings}>
+            {isSavingNotificationSettings ? 'Saving...' : 'Save'}
           </button>
         </footer>
       </div>
@@ -4495,7 +4535,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           className="business-rule-form-action-detail-link"
                           onClick={() => handleOpenNotificationSettings(action.id)}
                         >
-                          {action.configured ? 'Configured' : 'Not Set'}
+                          {action.configured && action.subjectParts?.length > 0 ? (
+                            action.subjectParts.map((part, idx) => (
+                              part.type === 'pill'
+                                ? <span key={idx} className="notification-pill">{part.value}</span>
+                                : <span key={idx}>{part.value}</span>
+                            ))
+                          ) : (
+                            action.configured ? 'Configured' : 'Not Set'
+                          )}
                         </button>
                       </div>
                     ))}
@@ -4719,10 +4767,11 @@ RefineUpdateCriteriaModal.propTypes = {
 NotificationSettingsModal.propTypes = {
   show: PropTypes.bool.isRequired,
   initialSettings: PropTypes.shape({
-    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, type: PropTypes.oneOf(['user', 'field']) })),
-    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, type: PropTypes.oneOf(['user', 'field']) })),
+    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
+    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
     subjectParts: PropTypes.array,
     bodyContent: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+    notificationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
