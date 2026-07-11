@@ -1983,7 +1983,6 @@ CardFieldPickerModal.propTypes = {
 function NotificationSettingsModal({ show, onClose, onSave, initialSettings, triggerTypeId }) {
   const [to, setTo] = useState([]);
   const [cc, setCc] = useState([]);
-  const [subjectParts, setSubjectParts] = useState(DUMMY_NOTIFICATION_SUBJECT_PARTS);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
   const [showInternalUsersModal, setShowInternalUsersModal] = useState(false);
   const [internalUsersTarget, setInternalUsersTarget] = useState(null);
@@ -1993,12 +1992,12 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const [cardFieldTarget, setCardFieldTarget] = useState(null);
   const quillRef = useRef(null);
   const quillWrapRef = useRef(null);
+  const subjectBoxRef = useRef(null);
 
   useEffect(() => {
     if (!show) return;
     setTo(initialSettings?.to ?? []);
     setCc(initialSettings?.cc ?? []);
-    setSubjectParts(initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
     setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     setShowInternalUsersModal(false);
     setInternalUsersTarget(null);
@@ -2006,6 +2005,28 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setCustomFieldTarget(null);
     setShowCardFieldModal(false);
     setCardFieldTarget(null);
+  }, [show, initialSettings]);
+
+  // Subject is a contentEditable box (free-typed text interleaved with non-editable
+  // "card field" pills) rather than a controlled input, so its DOM only needs seeding
+  // once per open — re-rendering it from React state on every keystroke would fight the
+  // browser's own cursor position.
+  useLayoutEffect(() => {
+    if (!show) return;
+    const el = subjectBoxRef.current;
+    if (!el) return;
+    el.replaceChildren();
+    (initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS).forEach((part) => {
+      if (part.type === 'pill') {
+        const span = document.createElement('span');
+        span.className = 'notification-pill';
+        span.contentEditable = 'false';
+        span.textContent = part.value;
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(part.value));
+      }
+    });
   }, [show, initialSettings]);
 
   useEffect(() => {
@@ -2047,8 +2068,33 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setCustomFieldTarget(null);
   };
 
+  // Mirrors handleAddBodyField's cursor-based insert, but the subject box is a plain
+  // contentEditable div (not Quill), so the caret is managed via the Selection API.
   const handleAddSubjectField = (field) => {
-    setSubjectParts((prev) => [...prev, { type: 'pill', value: field }]);
+    const el = subjectBoxRef.current;
+    if (!el) return;
+    const span = document.createElement('span');
+    span.className = 'notification-pill';
+    span.contentEditable = 'false';
+    span.textContent = field;
+
+    const selection = window.getSelection();
+    const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
+      ? selection.getRangeAt(0)
+      : null;
+    if (existingRange) {
+      existingRange.deleteContents();
+      existingRange.insertNode(span);
+    } else {
+      el.appendChild(span);
+    }
+
+    el.focus();
+    const newRange = document.createRange();
+    newRange.setStartAfter(span);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
   };
 
   const handleAddBodyField = (field) => {
@@ -2076,9 +2122,36 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setCardFieldTarget(null);
   };
 
+  // Subject isn't tracked in React state (see the layout effect above), so it's read
+  // straight off the contentEditable DOM at save time.
+  const parseSubjectParts = (el) => {
+    if (!el) return [];
+    return Array.from(el.childNodes).reduce((acc, node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.textContent) acc.push({ type: 'text', value: node.textContent });
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-pill')) {
+        acc.push({ type: 'pill', value: node.textContent });
+      }
+      return acc;
+    }, []);
+  };
+
   const handleSave = () => {
-    onSave({ to, cc, subjectParts, bodyContent });
+    onSave({ to, cc, subjectParts: parseSubjectParts(subjectBoxRef.current), bodyContent });
     onClose();
+  };
+
+  // Subject is a single-line field: block Enter from inserting a paragraph break, and
+  // strip formatting from pasted content so the box only ever holds text + pill nodes
+  // (anything else would be silently dropped by parseSubjectParts anyway).
+  const handleSubjectKeyDown = (e) => {
+    if (e.key === 'Enter') e.preventDefault();
+  };
+
+  const handleSubjectPaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
   };
 
   const quillModules = useMemo(() => ({
@@ -2230,15 +2303,17 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
                 </button>
               </div>
             </div>
-            <div className="notification-subject-box">
-              {subjectParts.map((part, idx) => (
-                part.type === 'pill' ? (
-                  <span key={idx} className="notification-pill">{part.value}</span>
-                ) : (
-                  <span key={idx} className="notification-subject-text">{part.value}</span>
-                )
-              ))}
-            </div>
+            <div
+              ref={subjectBoxRef}
+              className="notification-subject-box notification-subject-box--editable"
+              contentEditable
+              suppressContentEditableWarning
+              role="textbox"
+              aria-multiline="false"
+              aria-label="Notification subject"
+              onKeyDown={handleSubjectKeyDown}
+              onPaste={handleSubjectPaste}
+            />
           </div>
 
           <div className="notification-field">
