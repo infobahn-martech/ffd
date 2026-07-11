@@ -84,6 +84,17 @@ export const LINK_ACTION_OPTIONS = [
   { key: 'successor', label: 'Link as successor' },
 ];
 
+// "Remove all other X links" checkboxes shown under the Link the card action — one per
+// link type, and only for a type the user has actually added (see hasLinkActionOfType
+// usage in BusinessRuleFormModal.jsx), not all of them unconditionally.
+export const LINK_REMOVE_OTHERS_OPTIONS = [
+  { key: 'child', label: 'Remove all other child links' },
+  { key: 'parent', label: 'Remove all other parent links' },
+  { key: 'predecessor', label: 'Remove all other predecessor links' },
+  { key: 'relative', label: 'Remove all other relative links' },
+  { key: 'successor', label: 'Remove all other successor links' },
+];
+
 // Dev-only fallback data for the Linked Card action operator dropdown, used when the
 // real business_rule/get_link_card_possible_action_operators endpoint returns nothing.
 export const DUMMY_LINK_ACTION_OPERATORS = [
@@ -180,16 +191,16 @@ export const DUMMY_NOTIFICATION_SUBJECT_PARTS = [
 function bulletPillLine(label, pillText) {
   return [
     { insert: `${label}: ` },
-    { insert: pillText, attributes: { pill: true } },
+    { insert: { pill: pillText } },
     { insert: '\n', attributes: { list: 'bullet' } },
   ];
 }
 
 export const DUMMY_NOTIFICATION_BODY_DELTA_OPS = [
   { insert: 'New card has been created by ', attributes: { bold: true } },
-  { insert: 'Author', attributes: { pill: true } },
+  { insert: { pill: 'Author' } },
   { insert: '\n\n' },
-  { insert: 'Card URL', attributes: { pill: true } },
+  { insert: { pill: 'Card URL' } },
   { insert: '\n\n' },
   { insert: 'Card details', attributes: { bold: true } },
   { insert: '\n' },

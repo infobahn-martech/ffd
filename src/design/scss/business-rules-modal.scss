@@ -2856,6 +2856,17 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #ffffff;
+
+  &--editable {
+    cursor: text;
+    font: normal normal 400 14px/1.4 $font-primary;
+    color: $txtColor;
+
+    &:focus {
+      outline: none;
+      border-color: #9ca3af;
+    }
+  }
 }
 
 .notification-subject-text {
