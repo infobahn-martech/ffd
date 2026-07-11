@@ -397,20 +397,17 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // selected movement type's uploaded batch, matched in order to crew_ids[]
   // (crew/upload_passport_copies + passports[], or crew/upload_iqama_copies
   // + iqamas[]), same real-endpoint pattern as the Crew Summary bulk
-  // actions. Refetches crew/get_crew_list afterwards.
+  // actions. Refetches crew/get_crew_list afterwards. No FE count
+  // validation — whatever files are picked are sent as-is, paired
+  // positionally with crew_ids[] up to however many pairs exist; the
+  // backend is the source of truth for count mismatches.
   const handleCrewDocCopyUpload = (kind) => async (fileList) => {
     if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
 
     const targetRows = crewSummaryRows.filter((row) => row.movementTypeValue === movementType);
-    if (files.length !== targetRows.length) {
-      notify(
-        `Select exactly ${targetRows.length} file(s) — one per crew member in this ${selectedMovementTypeLabel || "movement type"}'s list.`,
-        "error"
-      );
-      return;
-    }
+    const pairCount = Math.min(files.length, targetRows.length);
 
     const stepKey = kind === "passport" ? "passport" : "iqama";
     const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
@@ -429,10 +426,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     const formData = new FormData();
     formData.append("call_id", String(resolvedCallId));
     formData.append("vessel_id", String(resolvedVesselId));
-    targetRows.forEach((row, index) => {
-      formData.append("crew_ids[]", String(row.crewId));
-      formData.append(fileFieldName, files[index]);
-    });
+    for (let i = 0; i < pairCount; i += 1) {
+      formData.append("crew_ids[]", String(targetRows[i].crewId));
+      formData.append(fileFieldName, files[i]);
+    }
 
     try {
       await uploadAction({ formData });
@@ -445,7 +442,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         handleChange("crewCount")({ target: { value: list.length } });
       }
       setUploadSteps((prev) => ({ ...prev, [stepKey]: { status: "completed", files, progress: 100 } }));
-      notify(`${label} uploaded for ${targetRows.length} crew member(s).`, "success");
+      notify(`${label} uploaded for ${pairCount} crew member(s).`, "success");
     } catch {
       setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
@@ -614,20 +611,17 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // in order to crew_ids[] (crew/upload_passport_copies + passports[], or
   // crew/upload_iqama_copies + iqamas[]). Unlike the local-only Visa
   // override above, this hits a real endpoint, then refetches
-  // crew/get_crew_list so the doc status icons reflect the real result.
+  // crew/get_crew_list so the doc status icons reflect the real result. No
+  // FE count validation — files are paired positionally with the selected
+  // crew up to however many pairs exist; the backend is the source of truth
+  // for count mismatches.
   const handleBulkCopyUpload = (kind) => async (event) => {
     const files = Array.from(event.target.files || []);
     event.target.value = "";
-    if (summarySelectedIds.length === 0) return;
+    if (summarySelectedIds.length === 0 || files.length === 0) return;
 
     const orderedSelectedRows = crewSummaryRows.filter((row) => summarySelectedIds.includes(row.id));
-    if (files.length !== orderedSelectedRows.length) {
-      notify(
-        `Select exactly ${orderedSelectedRows.length} file(s) — one per selected crew member.`,
-        "error"
-      );
-      return;
-    }
+    const pairCount = Math.min(files.length, orderedSelectedRows.length);
 
     const setUploading = kind === "passport" ? setIsUploadingPassports : setIsUploadingIqamas;
     const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
@@ -643,10 +637,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     const formData = new FormData();
     formData.append("call_id", String(resolvedCallId));
     formData.append("vessel_id", String(resolvedVesselId));
-    orderedSelectedRows.forEach((row, index) => {
-      formData.append("crew_ids[]", String(row.crewId));
-      formData.append(fileFieldName, files[index]);
-    });
+    for (let i = 0; i < pairCount; i += 1) {
+      formData.append("crew_ids[]", String(orderedSelectedRows[i].crewId));
+      formData.append(fileFieldName, files[i]);
+    }
 
     setUploading(true);
     try {
@@ -659,7 +653,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         handleChange("crewList")({ target: { value: list } });
         handleChange("crewCount")({ target: { value: list.length } });
       }
-      notify(`${label} uploaded for ${orderedSelectedRows.length} crew member(s).`, "success");
+      notify(`${label} uploaded for ${pairCount} crew member(s).`, "success");
     } catch {
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
     } finally {
