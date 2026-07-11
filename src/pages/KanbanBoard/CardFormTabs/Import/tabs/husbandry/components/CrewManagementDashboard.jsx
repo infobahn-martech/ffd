@@ -15,7 +15,8 @@ import { notify } from "../../../../../../../components/Toaster";
 
 const INITIAL_UPLOAD_STEPS = {
   crewList: { status: "pending", files: [], progress: 0 },
-  passportIqama: { status: "pending", files: [], progress: 0 },
+  passport: { status: "pending", files: [], progress: 0 },
+  iqama: { status: "pending", files: [], progress: 0 },
   visa: { status: "pending", files: [], progress: 0 },
 };
 
@@ -392,19 +393,71 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const handlePreviewClick = (type) => setPreviewMovementType(type);
   const handleClosePreview = () => setPreviewMovementType(null);
 
-  // No bulk backend endpoint exists yet for passport/iqama or visa files, so
-  // these two steps are local-only — files are kept in formValues to be
-  // submitted with the rest of the card, same as CrewContent's own wizard.
-  const handlePassportIqamaFiles = (fileList) => {
+  // Passport/Iqama dropzones — one file per crew member in the currently
+  // selected movement type's uploaded batch, matched in order to crew_ids[]
+  // (crew/upload_passport_copies + passports[], or crew/upload_iqama_copies
+  // + iqamas[]), same real-endpoint pattern as the Crew Summary bulk
+  // actions. Refetches crew/get_crew_list afterwards.
+  const handleCrewDocCopyUpload = (kind) => async (fileList) => {
     if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
-    handleChange("crewPassportIqamaFiles")({
-      target: { value: files.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type })) },
+
+    const targetRows = crewSummaryRows.filter((row) => row.movementTypeValue === movementType);
+    if (files.length !== targetRows.length) {
+      notify(
+        `Select exactly ${targetRows.length} file(s) — one per crew member in this ${selectedMovementTypeLabel || "movement type"}'s list.`,
+        "error"
+      );
+      return;
+    }
+
+    const stepKey = kind === "passport" ? "passport" : "iqama";
+    const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
+    const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
+    const label = kind === "passport" ? "Passport" : "Iqama";
+
+    setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "uploading" } }));
+
+    const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+    if (!resolvedCallId || !resolvedVesselId) {
+      setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
+      notify("Unable to upload: missing call or vessel information.", "error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("call_id", String(resolvedCallId));
+    formData.append("vessel_id", String(resolvedVesselId));
+    targetRows.forEach((row, index) => {
+      formData.append("crew_ids[]", String(row.crewId));
+      formData.append(fileFieldName, files[index]);
     });
-    setUploadSteps((prev) => ({ ...prev, passportIqama: { status: "completed", files, progress: 100 } }));
+
+    try {
+      await uploadAction({ formData });
+      const list = await fetchCallCrewList({
+        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+      });
+      if (Array.isArray(list)) {
+        setUploadedCrewList(list);
+        handleChange("crewList")({ target: { value: list } });
+        handleChange("crewCount")({ target: { value: list.length } });
+      }
+      setUploadSteps((prev) => ({ ...prev, [stepKey]: { status: "completed", files, progress: 100 } }));
+      notify(`${label} uploaded for ${targetRows.length} crew member(s).`, "success");
+    } catch {
+      setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
+      notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
+    }
   };
 
+  const handlePassportFiles = handleCrewDocCopyUpload("passport");
+  const handleIqamaFiles = handleCrewDocCopyUpload("iqama");
+
+  // No bulk backend endpoint exists yet for visa files, so this step stays
+  // local-only — files are kept in formValues to be submitted with the rest
+  // of the card, same as CrewContent's own wizard.
   const handleVisaFiles = (fileList) => {
     if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
@@ -699,7 +752,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                   />
                   <CrewUploadDropzones
                     steps={uploadSteps}
-                    onSelectPassportIqamaFiles={handlePassportIqamaFiles}
+                    onSelectPassportFiles={handlePassportFiles}
+                    onSelectIqamaFiles={handleIqamaFiles}
                     onSelectVisaFiles={handleVisaFiles}
                   />
                 </div>

@@ -2803,12 +2803,12 @@
   color: #64748b;
 }
 
-// Passport/Iqama and Visa — equal-width/equal-height 2-column grid so the
-// pair's combined width (including gap) matches the full-width Crew List
+// Passport/Iqama/Visa — equal-width/equal-height 3-column row so the
+// trio's combined width (including gaps) matches the full-width Crew List
 // upload box directly above (see .crew-list-upload-box).
 .crew-upload-dropzones {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 

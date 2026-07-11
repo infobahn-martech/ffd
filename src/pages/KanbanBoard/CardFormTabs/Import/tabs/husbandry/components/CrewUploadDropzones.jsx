@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 
 const DROPZONE_CONFIG = [
-  { key: "passportIqama", title: "Passport / Iqama", accept: ".pdf,.jpg,.jpeg,.png", multiple: true },
+  { key: "passport", title: "Passport", accept: ".pdf,.jpg,.jpeg,.png", multiple: true },
+  { key: "iqama", title: "Iqama", accept: ".pdf,.jpg,.jpeg,.png", multiple: true },
   { key: "visa", title: "Visa", accept: ".pdf,.jpg,.jpeg,.png", multiple: true },
 ];
 
@@ -41,14 +42,16 @@ DropzoneIcon.propTypes = {
 // the Crew List upload itself).
 const CrewUploadDropzones = ({
   steps,
-  onSelectPassportIqamaFiles,
+  onSelectPassportFiles,
+  onSelectIqamaFiles,
   onSelectVisaFiles,
 }) => {
   const [draggingKey, setDraggingKey] = useState(null);
   const fileInputRefs = useRef({});
 
   const handlers = {
-    passportIqama: (fileList) => onSelectPassportIqamaFiles(fileList),
+    passport: (fileList) => onSelectPassportFiles(fileList),
+    iqama: (fileList) => onSelectIqamaFiles(fileList),
     visa: (fileList) => onSelectVisaFiles(fileList),
   };
 
@@ -136,10 +139,12 @@ const stepStatePropType = PropTypes.shape({
 CrewUploadDropzones.propTypes = {
   steps: PropTypes.shape({
     crewList: stepStatePropType,
-    passportIqama: stepStatePropType,
+    passport: stepStatePropType,
+    iqama: stepStatePropType,
     visa: stepStatePropType,
   }).isRequired,
-  onSelectPassportIqamaFiles: PropTypes.func.isRequired,
+  onSelectPassportFiles: PropTypes.func.isRequired,
+  onSelectIqamaFiles: PropTypes.func.isRequired,
   onSelectVisaFiles: PropTypes.func.isRequired,
 };
 
