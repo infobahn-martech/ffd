@@ -658,6 +658,11 @@
 .crew-table-scroll {
   flex: 1;
   overflow: auto;
+  // Without this, the flex item refuses to shrink below its content height
+  // in some browsers, so the table pushes past .crew-table-wrapper's
+  // max-height instead of scrolling internally (only the tbody should
+  // scroll — the thead above stays pinned via its own `position: sticky`).
+  min-height: 0;
 }
 
 .crew-table-container {
@@ -3252,4 +3257,86 @@
   background: color-mix(in srgb, $status-danger 16%, white);
   border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
   color: $status-danger;
+}
+
+// Crew Summary table has 2 more columns (Date of birth, Action) than the
+// shared .crew-table column-width rules above assume, so every column here
+// gets an explicit width — scoped to .crew-summary-table so the live Crew
+// List / Select Crew tables that reuse .crew-table/.crew-list-table keep
+// their own widths untouched. Sum (incl. the shared 64px checkbox + 180px
+// crew name columns) drives the table's min-width so headers stop truncating.
+.crew-summary-table {
+  min-width: 1534px;
+}
+
+.crew-summary-table th:nth-child(3),
+.crew-summary-table td:nth-child(3) {
+  width: 110px;
+  min-width: 110px;
+}
+
+.crew-summary-table th:nth-child(4),
+.crew-summary-table td:nth-child(4) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.crew-summary-table th:nth-child(5),
+.crew-summary-table td:nth-child(5) {
+  width: 130px;
+  min-width: 130px;
+}
+
+.crew-summary-table th:nth-child(6),
+.crew-summary-table td:nth-child(6) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.crew-summary-table th:nth-child(7),
+.crew-summary-table td:nth-child(7) {
+  width: 130px;
+  min-width: 130px;
+}
+
+.crew-summary-table th:nth-child(8),
+.crew-summary-table td:nth-child(8) {
+  width: 90px;
+  min-width: 90px;
+}
+
+.crew-summary-table th:nth-child(9),
+.crew-summary-table td:nth-child(9) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.crew-summary-table th:nth-child(10),
+.crew-summary-table td:nth-child(10) {
+  width: 110px;
+  min-width: 110px;
+}
+
+.crew-summary-table th:nth-child(11),
+.crew-summary-table td:nth-child(11) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.crew-summary-table th:nth-child(12),
+.crew-summary-table td:nth-child(12) {
+  width: 90px;
+  min-width: 90px;
+}
+
+.crew-summary-table th:nth-child(13),
+.crew-summary-table td:nth-child(13) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.crew-summary-table th:nth-child(14),
+.crew-summary-table td:nth-child(14) {
+  width: 90px;
+  min-width: 90px;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
-import { FiSearch, FiEdit2, FiCheck, FiX } from "react-icons/fi";
+import { FiSearch, FiEdit2, FiCheck, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectPage from "./CrewServiceSelectPage";
@@ -17,6 +17,8 @@ const INITIAL_UPLOAD_STEPS = {
   passportIqama: { status: "pending", files: [], progress: 0 },
   visa: { status: "pending", files: [], progress: 0 },
 };
+
+const SUMMARY_PAGE_SIZE = 10;
 
 // Top counter/service cards shown on the Crew Management dashboard. Crew
 // Change and Port Pass are intentionally not listed here — they remain
@@ -207,6 +209,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   );
   const [summarySelectedIds, setSummarySelectedIds] = useState([]);
   const [summarySearch, setSummarySearch] = useState("");
+  const [summaryPage, setSummaryPage] = useState(1);
   // Local-only override so the bulk "Upload Passport/Iqama"/"Upload Visa"
   // actions can flip a crew's doc status icon on even though Crew Summary
   // rows are otherwise derived straight from the real uploaded crew list.
@@ -484,6 +487,32 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     : [];
   const previewMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === previewMovementType)?.label || "";
 
+  const totalSummaryItems = filteredCrewSummaryRows.length;
+  const totalSummaryPages = Math.max(1, Math.ceil(totalSummaryItems / SUMMARY_PAGE_SIZE));
+  const effectiveSummaryPage = Math.min(Math.max(summaryPage, 1), totalSummaryPages);
+  const startSummaryItem = totalSummaryItems === 0 ? 0 : (effectiveSummaryPage - 1) * SUMMARY_PAGE_SIZE + 1;
+  const endSummaryItem = totalSummaryItems === 0 ? 0 : Math.min(effectiveSummaryPage * SUMMARY_PAGE_SIZE, totalSummaryItems);
+
+  const paginatedSummaryRows = useMemo(
+    () => filteredCrewSummaryRows.slice((effectiveSummaryPage - 1) * SUMMARY_PAGE_SIZE, effectiveSummaryPage * SUMMARY_PAGE_SIZE),
+    [filteredCrewSummaryRows, effectiveSummaryPage]
+  );
+
+  const summaryPaginationPages = useMemo(() => {
+    const pages = [];
+    const windowSize = 5;
+    const start = Math.max(1, effectiveSummaryPage - 2);
+    const end = Math.min(totalSummaryPages, start + windowSize - 1);
+    const adjustedStart = Math.max(1, end - windowSize + 1);
+    for (let i = adjustedStart; i <= end; i += 1) pages.push(i);
+    return pages;
+  }, [effectiveSummaryPage, totalSummaryPages]);
+
+  const handleSummarySearchChange = (e) => {
+    setSummarySearch(e.target.value);
+    setSummaryPage(1);
+  };
+
   const handleSummaryRowToggle = (rowId) => {
     setSummarySelectedIds((prev) =>
       prev.includes(rowId) ? prev.filter((id) => id !== rowId) : [...prev, rowId]
@@ -492,7 +521,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleSummarySelectAll = () => {
     setSummarySelectedIds((prev) =>
-      prev.length === filteredCrewSummaryRows.length ? [] : filteredCrewSummaryRows.map((row) => row.id)
+      prev.length === paginatedSummaryRows.length ? [] : paginatedSummaryRows.map((row) => row.id)
     );
   };
 
@@ -671,7 +700,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                   className="crew-summary-search__input"
                   placeholder="Search crew name, nationality, rank..."
                   value={summarySearch}
-                  onChange={(e) => setSummarySearch(e.target.value)}
+                  onChange={handleSummarySearchChange}
                 />
               </div>
 
@@ -718,7 +747,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             <div className="crew-table-wrapper">
               <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
                 <table
-                  className="table table-striped crew-table crew-list-table"
+                  className="table table-striped crew-table crew-list-table crew-summary-table"
                   style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}
                 >
                   <thead>
@@ -727,7 +756,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                         <input
                           className="crew-list-checkbox crew-list-checkbox--header"
                           type="checkbox"
-                          checked={summarySelectedIds.length === filteredCrewSummaryRows.length}
+                          checked={summarySelectedIds.length === paginatedSummaryRows.length && paginatedSummaryRows.length > 0}
                           onChange={handleSummarySelectAll}
                         />
                       </th>
@@ -747,7 +776,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCrewSummaryRows.map((row) => {
+                    {paginatedSummaryRows.map((row) => {
                       const isEditing = editingRowId === row.id;
                       return (
                         <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
@@ -863,6 +892,42 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="crew-pagination">
+                <div className="crew-pagination-info">
+                  Showing <strong>{startSummaryItem}–{endSummaryItem}</strong> of {totalSummaryItems} crew members
+                </div>
+                <div className="crew-pagination-actions">
+                  <button
+                    type="button"
+                    className="crew-pagination-btn crew-pagination-btn--icon"
+                    aria-label="Previous page"
+                    disabled={effectiveSummaryPage <= 1}
+                    onClick={() => setSummaryPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    <FiChevronLeft size={16} />
+                  </button>
+                  {summaryPaginationPages.map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      className={`crew-pagination-btn${pageNum === effectiveSummaryPage ? " active" : ""}`}
+                      onClick={() => setSummaryPage(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="crew-pagination-btn crew-pagination-btn--icon"
+                    aria-label="Next page"
+                    disabled={effectiveSummaryPage >= totalSummaryPages}
+                    onClick={() => setSummaryPage((prev) => Math.min(totalSummaryPages, prev + 1))}
+                  >
+                    <FiChevronRight size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           )}
