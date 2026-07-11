@@ -139,6 +139,44 @@ const useCrewReducer = create((set) => ({
         }
     },
 
+    uploadPassportCopies: async ({ formData, cb } = {}) => {
+        try {
+            set({ isBeingUpdated: true, errorMessage: '' });
+            const { data } = await crewService.uploadPassportCopies(formData);
+            set({ isBeingUpdated: false });
+            cb && cb(data);
+            return data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({
+                errorMessage: message,
+                isBeingUpdated: false,
+            });
+            error(message);
+            throw err;
+        }
+    },
+
+    uploadIqamaCopies: async ({ formData, cb } = {}) => {
+        try {
+            set({ isBeingUpdated: true, errorMessage: '' });
+            const { data } = await crewService.uploadIqamaCopies(formData);
+            set({ isBeingUpdated: false });
+            cb && cb(data);
+            return data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({
+                errorMessage: message,
+                isBeingUpdated: false,
+            });
+            error(message);
+            throw err;
+        }
+    },
+
     updateCrewDocuments: async ({ formData, crewId, fieldName, cb } = {}) => {
         const setUploading = (flag) => {
             if (crewId == null || !fieldName) return;

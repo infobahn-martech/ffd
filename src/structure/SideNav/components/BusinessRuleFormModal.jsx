@@ -2011,7 +2011,10 @@ CardFieldPickerModal.propTypes = {
   triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-function NotificationSettingsModal({ show, onClose, onSave, initialSettings, triggerTypeId }) {
+function NotificationSettingsModal({
+  show, onClose, onSave, initialSettings, triggerTypeId,
+  fetchedSettings, isLoadingSettings, users, getFieldDetails, fieldDetailsByKey,
+}) {
   const [to, setTo] = useState([]);
   const [cc, setCc] = useState([]);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
@@ -2027,18 +2030,55 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
 
   const { saveNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
 
+  // A previously-saved notify action carries a backend notification_id: its To/Cc/Subject/Body
+  // come from get_notification_settings (user + custom-field ids) instead of the plain
+  // label tokens used while building the rule locally.
+  const toUserIds = fetchedSettings?.to_users ?? [];
+  const toCustomFieldIds = fetchedSettings?.to_custom_fields ?? [];
+  const ccUserIds = fetchedSettings?.cc_users ?? [];
+  const ccCustomFieldIds = fetchedSettings?.cc_custom_fields ?? [];
+
+  useEffect(() => {
+    if (!show || !fetchedSettings) return;
+    [...toCustomFieldIds, ...ccCustomFieldIds].forEach((fieldId) => {
+      if (fieldId == null) return;
+      if (fieldDetailsByKey[`custom-${fieldId}`] !== undefined) return;
+      getFieldDetails('custom', fieldId);
+    });
+  }, [show, fetchedSettings]);
+
+  // Tokens keep their backend id (not just the display label) so a resave of
+  // untouched to/cc tokens still sends valid to_users/to_custom_fields ids.
+  const resolveUserTokens = (userIds) => userIds
+    .map((userId) => (users ?? []).find((u) => String(u.user_id) === String(userId)))
+    .filter(Boolean)
+    .map((u) => ({ label: u.name, id: u.user_id, type: 'user' }));
+
+  const resolveCustomFieldTokens = (fieldIds) => fieldIds.map((fieldId) => ({
+    label: fieldDetailsByKey[`custom-${fieldId}`]?.field_label ?? String(fieldId),
+    id: fieldId,
+    type: 'field',
+  }));
+
   useEffect(() => {
     if (!show) return;
-    setTo(initialSettings?.to ?? []);
-    setCc(initialSettings?.cc ?? []);
-    setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
+    if (fetchedSettings) {
+      setTo([...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds)]);
+      setCc([...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds)]);
+      setBodyContent(fetchedSettings.body ? new QuillDelta().insert(fetchedSettings.body) : new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
+    } else {
+      setTo(initialSettings?.to ?? []);
+      setCc(initialSettings?.cc ?? []);
+      setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
+    }
     setShowInternalUsersModal(false);
     setInternalUsersTarget(null);
     setShowCustomFieldModal(false);
     setCustomFieldTarget(null);
     setShowCardFieldModal(false);
     setCardFieldTarget(null);
-  }, [show, initialSettings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, initialSettings, fetchedSettings, fieldDetailsByKey, users]);
 
   // Subject is a contentEditable box (free-typed text interleaved with non-editable
   // "card field" pills) rather than a controlled input, so its DOM only needs seeding
@@ -2049,7 +2089,10 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     const el = subjectBoxRef.current;
     if (!el) return;
     el.replaceChildren();
-    (initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS).forEach((part) => {
+    const subjectParts = fetchedSettings
+      ? [{ type: 'text', value: fetchedSettings.subject ?? '' }]
+      : (initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
+    subjectParts.forEach((part) => {
       if (part.type === 'pill') {
         const span = document.createElement('span');
         span.className = 'notification-pill';
@@ -2060,7 +2103,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
         el.appendChild(document.createTextNode(part.value));
       }
     });
-  }, [show, initialSettings]);
+  }, [show, initialSettings, fetchedSettings]);
 
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
@@ -2190,7 +2233,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const handleSave = () => {
     const subjectParts = parseSubjectParts(subjectBoxRef.current);
     const payload = {
-      from_email: DUMMY_NOTIFICATION_FROM_EMAIL,
+      from_email: fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL,
       to_users: to.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
       to_custom_fields: to.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
       cc_users: cc.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
@@ -2275,8 +2318,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
           <div className="notification-field">
             <label className="business-rule-form-label">From:</label>
             <div className="business-rule-form-select-wrap">
-              <select className="business-rule-form-select" value={DUMMY_NOTIFICATION_FROM_EMAIL} disabled>
-                <option value={DUMMY_NOTIFICATION_FROM_EMAIL}>{DUMMY_NOTIFICATION_FROM_EMAIL}</option>
+              <select className="business-rule-form-select" value={fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL} disabled>
+                <option value={fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL}>{fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL}</option>
               </select>
               <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
             </div>
@@ -2393,8 +2436,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
         </div>
 
         <footer className="card-property-match-modal-footer">
-          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingNotificationSettings}>
-            {isSavingNotificationSettings ? 'Saving...' : 'Save'}
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingNotificationSettings}>
+            {isSavingNotificationSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save')}
           </button>
         </footer>
       </div>
@@ -3385,6 +3428,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
+    getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -3457,6 +3501,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowUpdateActionPicker(false);
     setNotifyActions([]);
     setShowNotificationSettings(false);
+    resetNotificationSettings();
     setActiveNotifyActionId(null);
     setInvokeActions([]);
     setShowWebInvokeSettings(false);
@@ -3900,10 +3945,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleOpenNotificationSettings = (id) => {
     setActiveNotifyActionId(id);
     setShowNotificationSettings(true);
+    const action = notifyActions.find((a) => a.id === id);
+    if (action?.notification_id) {
+      getNotificationSettings(action.notification_id);
+    } else {
+      resetNotificationSettings();
+    }
   };
 
-  const handleSaveNotificationSettings = (settings) => {
-    setNotifyActions((prev) => prev.map((a) => (a.id === activeNotifyActionId ? { ...a, ...settings, configured: true } : a)));
+  const handleSaveNotificationSettings = ({ notificationId, ...settings }) => {
+    setNotifyActions((prev) => prev.map((a) => (a.id === activeNotifyActionId
+      ? { ...a, ...settings, notification_id: notificationId ?? a.notification_id, configured: true }
+      : a)));
   };
 
   const activeNotifyAction = notifyActions.find((a) => a.id === activeNotifyActionId);
@@ -4780,6 +4833,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onSave={handleSaveNotificationSettings}
       initialSettings={activeNotifyAction}
       triggerTypeId={rule.id}
+      fetchedSettings={notificationSettings}
+      isLoadingSettings={isLoadingNotificationSettings}
+      users={users}
+      getFieldDetails={getFieldDetails}
+      fieldDetailsByKey={fieldDetailsByKey}
     />
 
     <WebInvokeSettingsModal
@@ -4896,6 +4954,19 @@ NotificationSettingsModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  fetchedSettings: PropTypes.shape({
+    from_email: PropTypes.string,
+    to_users: PropTypes.array,
+    to_custom_fields: PropTypes.array,
+    cc_users: PropTypes.array,
+    cc_custom_fields: PropTypes.array,
+    subject: PropTypes.string,
+    body: PropTypes.string,
+  }),
+  isLoadingSettings: PropTypes.bool,
+  users: PropTypes.array,
+  getFieldDetails: PropTypes.func,
+  fieldDetailsByKey: PropTypes.object,
 };
 
 export default BusinessRuleFormModal;
