@@ -64,7 +64,7 @@ const useCommonReducer = create((set) => ({
     getUsers: async ({ params } = {}) => {
         try {
             set({ usersLoading: true });
-            const { data } = await userService.getUsers({
+            const { data } = await userService.getNonVendorUsers({
                 params: { limit: 200, page: 1, ...params },
             });
             const list = data?.data ?? [];

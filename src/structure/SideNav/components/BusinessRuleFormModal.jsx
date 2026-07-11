@@ -30,25 +30,28 @@ import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } fro
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
 
-// Custom inline format so the "field pill" tokens (e.g. Title, Author) in the
-// notification body survive Quill's HTML sanitization instead of collapsing to
-// plain text — Quill only preserves attributes tied to a registered format.
-const QuillInlineBlot = Quill.import('blots/inline');
-class NotificationPillBlot extends QuillInlineBlot {}
+// Custom embed (not inline format) for the "field pill" tokens (e.g. Title, Author) in
+// the notification body. An inline format only styles editable text — the characters
+// inside are still individually selectable/deletable, so a user could edit "Card URL"
+// down to "Card U". An embed is atomic: Quill treats it as a single indivisible unit for
+// selection, arrow-key navigation, and backspace/delete, matching how Quill's own
+// image/mention-style plugins make chips non-editable.
+const QuillEmbedBlot = Quill.import('blots/embed');
+class NotificationPillBlot extends QuillEmbedBlot {
+  static create(value) {
+    const node = super.create();
+    node.setAttribute('contenteditable', 'false');
+    node.textContent = value;
+    return node;
+  }
+
+  static value(node) {
+    return node.textContent;
+  }
+}
 NotificationPillBlot.blotName = 'pill';
 NotificationPillBlot.tagName = 'span';
 NotificationPillBlot.className = 'notification-pill';
-// Quill's Inline.compare() (used to decide DOM nesting order for overlapping
-// formats) only recognizes names listed in Inline.order — an unlisted name makes
-// the comparison always resolve as "don't wrap", so the pill format would never
-// actually apply. Registering it here is required, not optional.
-QuillInlineBlot.order.push('pill');
-// Our tagName ('span') is identical to Quill's own generic Inline wrapper tag, so
-// the inherited static formats() (which special-cases that tag to mean "no format,
-// just a bare wrapper") reports empty formats for us too — Quill's optimizer then
-// unwraps/removes the span right after creating it. Overriding formats() to always
-// report true stops it from being treated as an empty wrapper.
-NotificationPillBlot.formats = () => true;
 Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
 
@@ -2032,7 +2035,7 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
     if (!quill || quill._pillMatcherAdded) return;
-    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert(node.textContent, { pill: true }));
+    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert({ pill: node.textContent }));
     quill._pillMatcherAdded = true;
   }, [show]);
 
@@ -2101,9 +2104,10 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     const quill = quillRef.current?.getEditor();
     if (!quill) return;
     const index = quill.getSelection(true)?.index ?? quill.getLength();
-    quill.insertText(index, field, { pill: true });
-    quill.insertText(index + field.length, ' ', { pill: false });
-    quill.setSelection(index + field.length + 1, 0);
+    // Embeds always occupy exactly one Delta position, unlike the field's text length.
+    quill.insertEmbed(index, 'pill', field);
+    quill.insertText(index + 1, ' ');
+    quill.setSelection(index + 2, 0);
   };
 
   const handleOpenCardFieldModal = (target) => {
