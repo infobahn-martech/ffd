@@ -204,6 +204,24 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isLoadingNotificationSettings: false,
+    notificationSettings: null,
+
+    getNotificationSettings: async (notificationId) => {
+        try {
+            set({ isLoadingNotificationSettings: true, notificationSettings: null });
+            const { data } = await businessRuleService.getNotificationSettings(notificationId);
+            set({
+                notificationSettings: data?.data ?? null,
+                isLoadingNotificationSettings: false,
+            });
+        } catch (err) {
+            set({ notificationSettings: null, isLoadingNotificationSettings: false });
+        }
+    },
+
+    resetNotificationSettings: () => set({ notificationSettings: null, isLoadingNotificationSettings: false }),
+
     isLoadingLinkCardActionOperators: false,
     linkCardActionOperators: [],
 

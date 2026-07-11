@@ -36,7 +36,10 @@ const getLinkCardPossibleActionOperators = ({ params } = {}) =>
 const getFieldDetails = (fieldType, fieldId) =>
   Gateway.get(`/business_rule/get_field_details/${fieldType}/${fieldId}`);
 
+const getNotificationSettings = (notificationId) =>
+  Gateway.get(`/business_rule/get_notification_settings/${notificationId}`);
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getTriggerConfig,
-  getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
+  getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails, getNotificationSettings,
 };
