@@ -648,21 +648,28 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   );
 }
 
-function CreateActionModal({ show, onClose, onSelect }) {
+function CreateActionModal({ show, onClose, onSelect, actionTypeId }) {
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [filterText, setFilterText] = useState('');
+
+  const { thenActionRegularFields, isLoadingThenActionFields, getThenActionFields } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
     setSelectedKeys([]);
     setFilterText('');
-  }, [show]);
+    if (actionTypeId) getThenActionFields(actionTypeId);
+  }, [show, actionTypeId]);
+
+  const mappedOptions = thenActionRegularFields.map((field) => ({ key: field.field_key, label: field.field_label }));
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const createActionOptions = mappedOptions.length > 0 ? mappedOptions : (import.meta.env.DEV ? CREATE_ACTION_OPTIONS : []);
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredOptions = filterQuery
-    ? CREATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
-    : CREATE_ACTION_OPTIONS;
+    ? createActionOptions.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : createActionOptions;
 
   const handleToggleOption = (key) => {
     setSelectedKeys((prev) =>
@@ -672,7 +679,7 @@ function CreateActionModal({ show, onClose, onSelect }) {
 
   const handleAdd = () => {
     if (selectedKeys.length === 0) return;
-    CREATE_ACTION_OPTIONS
+    createActionOptions
       .filter((opt) => selectedKeys.includes(opt.key))
       .forEach((option) => onSelect(option));
     onClose();
@@ -724,7 +731,9 @@ function CreateActionModal({ show, onClose, onSelect }) {
             </button>
             {expandedRegularFields && (
               <div className="br-property-pill-grid">
-                {filteredOptions.length === 0 ? (
+                {isLoadingThenActionFields ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredOptions.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
                   filteredOptions.map((option) => (
@@ -1159,7 +1168,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   );
 }
 
-function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
+function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId, actionTypeId }) {
   const [selectedActions, setSelectedActions] = useState([]);
   const [selectedCustomFields, setSelectedCustomFields] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
@@ -1172,6 +1181,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
     show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
   });
+  const { thenActionRegularFields, isLoadingThenActionFields, getThenActionFields } = useBusinessRuleReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
   // Only fall back to dummy data in the untouched/no-filter state — once a board,
@@ -1186,20 +1196,25 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
 
+  const mappedRegularOptions = thenActionRegularFields.map((field) => ({ key: field.field_key, label: field.field_label, field: field.field_label }));
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const updateActionOptions = mappedRegularOptions.length > 0 ? mappedRegularOptions : (import.meta.env.DEV ? UPDATE_ACTION_OPTIONS : []);
+
   const filterQuery = filterText.trim().toLowerCase();
   const filteredRegularOptions = filterQuery
-    ? UPDATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
-    : UPDATE_ACTION_OPTIONS;
+    ? updateActionOptions.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : updateActionOptions;
   const filteredCustomFields = displayCustomFields;
 
   useEffect(() => {
     if (!show) return;
+    if (actionTypeId) getThenActionFields(actionTypeId);
     setSelectedActions([]);
     setSelectedCustomFields([]);
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-  }, [show]);
+  }, [show, actionTypeId]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -1279,7 +1294,9 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
             </button>
             {expandedRegularFields && (
               <div className="br-property-pill-grid">
-                {filteredRegularOptions.length === 0 ? (
+                {isLoadingThenActionFields ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredRegularOptions.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
                   filteredRegularOptions.map((option) => (
@@ -3266,6 +3283,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       .filter((section) => section.id)
     : (import.meta.env.DEV ? THEN_ACTION_SECTIONS : []);
 
+  // Each THEN action section fetches its own regular/custom/time-unit field catalog
+  // from get_then_action_fields, keyed by this trigger's action_type_id for that
+  // group_type (get_trigger_config's actions[] carries one per group_type).
+  const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards')?.action_type_id;
+  const updateActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'update_card')?.action_type_id;
+
   useEffect(() => {
     if (!show || !rule) return;
     getTriggerConfig(rule.id);
@@ -4583,6 +4606,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showCreateActionPicker}
       onClose={() => setShowCreateActionPicker(false)}
       onSelect={handleSelectCreateAction}
+      actionTypeId={createActionTypeId}
     />
 
     <LinkActionModal
@@ -4606,6 +4630,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         .filter((a) => a.category === 'custom')
         .map((a) => a.rawLabel.trim().toLowerCase())}
       triggerTypeId={rule.id}
+      actionTypeId={updateActionTypeId}
     />
 
     <NotificationSettingsModal
@@ -4693,6 +4718,7 @@ CreateActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+  actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 LinkActionModal.propTypes = {
@@ -4714,6 +4740,7 @@ RefineUpdateCriteriaModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.number,
+  actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 NotificationSettingsModal.propTypes = {
