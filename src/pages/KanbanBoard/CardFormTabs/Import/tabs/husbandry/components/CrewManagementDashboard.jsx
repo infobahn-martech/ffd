@@ -8,6 +8,7 @@ import CrewListUploadBox from "./CrewListUploadBox";
 import CrewUploadDropzones from "./CrewUploadDropzones";
 import CrewUploadedListsPanel from "./CrewUploadedListsPanel";
 import CrewUploadPreviewModal from "./CrewUploadPreviewModal";
+import DatePickerField from "../../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
@@ -246,6 +247,11 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   }, [formValues?.call_id, formValues?.callId, formValues?.vessel_id, formValues?.vesselId]);
 
   // Populate the crew list already uploaded for this call/vessel on load.
+  // Also mirrors into formValues.crewList (not just local state) so the
+  // gated service listings in Husbandry.jsx — which filter this same list
+  // by each service's selected crew ids — see the real crew even when this
+  // dashboard was never opened this session (sidebar deep-links straight
+  // into a service's crew listing without mounting this component first).
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -254,12 +260,15 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const list = await fetchCallCrewList({
         payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
       });
-      if (!cancelled && Array.isArray(list)) setUploadedCrewList(list);
+      if (cancelled || !Array.isArray(list)) return;
+      setUploadedCrewList(list);
+      handleChange("crewList")({ target: { value: list } });
+      handleChange("crewCount")({ target: { value: list.length } });
     })();
     return () => {
       cancelled = true;
     };
-  }, [resolveCallAndVesselIds, fetchCallCrewList]);
+  }, [resolveCallAndVesselIds, fetchCallCrewList, handleChange]);
 
   const handleCrewListBlocked = () => {
     notify("Select a movement type before uploading the crew list.", "error");
@@ -807,11 +816,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                           </td>
                           <td>
                             {isEditing ? (
-                              <input
-                                type="date"
-                                className="crew-edit-input"
-                                value={editDraft?.dateOfBirth ?? ""}
-                                onChange={handleEditFieldChange("dateOfBirth")}
+                              <DatePickerField
+                                dateValue={editDraft?.dateOfBirth ?? ""}
+                                onDateChange={handleEditFieldChange("dateOfBirth")}
+                                dateFieldName="dateOfBirth"
+                                placeholder="Select DOB"
+                                maxDate={new Date()}
+                                className="crew-edit-date-field"
                               />
                             ) : (
                               <div className="crew-table-cell" title={row.dateOfBirth}>{row.dateOfBirth || "-"}</div>
