@@ -648,21 +648,28 @@ function CardPropertyMatchModal({ show, onClose, onSelect, existingFieldLabels, 
   );
 }
 
-function CreateActionModal({ show, onClose, onSelect }) {
+function CreateActionModal({ show, onClose, onSelect, actionTypeId }) {
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [filterText, setFilterText] = useState('');
+
+  const { thenActionRegularFields, isLoadingThenActionFields, getThenActionFields } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
     setSelectedKeys([]);
     setFilterText('');
-  }, [show]);
+    if (actionTypeId) getThenActionFields(actionTypeId);
+  }, [show, actionTypeId]);
+
+  const mappedOptions = thenActionRegularFields.map((field) => ({ key: field.field_key, label: field.field_label }));
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const createActionOptions = mappedOptions.length > 0 ? mappedOptions : (import.meta.env.DEV ? CREATE_ACTION_OPTIONS : []);
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredOptions = filterQuery
-    ? CREATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
-    : CREATE_ACTION_OPTIONS;
+    ? createActionOptions.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : createActionOptions;
 
   const handleToggleOption = (key) => {
     setSelectedKeys((prev) =>
@@ -672,7 +679,7 @@ function CreateActionModal({ show, onClose, onSelect }) {
 
   const handleAdd = () => {
     if (selectedKeys.length === 0) return;
-    CREATE_ACTION_OPTIONS
+    createActionOptions
       .filter((opt) => selectedKeys.includes(opt.key))
       .forEach((option) => onSelect(option));
     onClose();
@@ -724,7 +731,9 @@ function CreateActionModal({ show, onClose, onSelect }) {
             </button>
             {expandedRegularFields && (
               <div className="br-property-pill-grid">
-                {filteredOptions.length === 0 ? (
+                {isLoadingThenActionFields ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredOptions.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
                   filteredOptions.map((option) => (
@@ -1159,7 +1168,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   );
 }
 
-function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId }) {
+function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId, actionTypeId }) {
   const [selectedActions, setSelectedActions] = useState([]);
   const [selectedCustomFields, setSelectedCustomFields] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
@@ -1172,6 +1181,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
     show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
   });
+  const { thenActionRegularFields, isLoadingThenActionFields, getThenActionFields } = useBusinessRuleReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
   // Only fall back to dummy data in the untouched/no-filter state — once a board,
@@ -1186,20 +1196,25 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
   const isFieldUsed = (field) =>
     (existingFieldLabels ?? []).includes(getFieldLabel(field).trim().toLowerCase());
 
+  const mappedRegularOptions = thenActionRegularFields.map((field) => ({ key: field.field_key, label: field.field_label, field: field.field_label }));
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const updateActionOptions = mappedRegularOptions.length > 0 ? mappedRegularOptions : (import.meta.env.DEV ? UPDATE_ACTION_OPTIONS : []);
+
   const filterQuery = filterText.trim().toLowerCase();
   const filteredRegularOptions = filterQuery
-    ? UPDATE_ACTION_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
-    : UPDATE_ACTION_OPTIONS;
+    ? updateActionOptions.filter((opt) => opt.label.toLowerCase().includes(filterQuery))
+    : updateActionOptions;
   const filteredCustomFields = displayCustomFields;
 
   useEffect(() => {
     if (!show) return;
+    if (actionTypeId) getThenActionFields(actionTypeId);
     setSelectedActions([]);
     setSelectedCustomFields([]);
     setFilterText('');
     setDebouncedSearch('');
     if (workspaces.length === 0) listAllWorkspaces();
-  }, [show]);
+  }, [show, actionTypeId]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -1279,7 +1294,9 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
             </button>
             {expandedRegularFields && (
               <div className="br-property-pill-grid">
-                {filteredRegularOptions.length === 0 ? (
+                {isLoadingThenActionFields ? (
+                  <div className="br-property-picker-empty">Loading...</div>
+                ) : filteredRegularOptions.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
                 ) : (
                   filteredRegularOptions.map((option) => (
@@ -1426,7 +1443,13 @@ function InternalUsersPickerModal({ show, onClose, onApply }) {
 
   const handleApply = () => {
     if (selectedNames.length === 0) return;
-    onApply(selectedNames);
+    // Role options (Self, Owner, Watchers, ...) have no backing user record, so they
+    // carry id: null and are dropped when the caller builds an id list for the API.
+    const items = selectedNames.map((name) => ({
+      label: name,
+      id: users.find((u) => u.name === name)?.user_id ?? null,
+    }));
+    onApply(items);
     onClose();
   };
 
@@ -1565,12 +1588,12 @@ function CustomFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   };
 
   const handleApply = () => {
-    const labels = selectedFieldKeys
+    const items = selectedFieldKeys
       .map((key) => displayCustomFields.find((f, idx) => `custom-${f.custom_field_id ?? idx}` === key))
       .filter(Boolean)
-      .map((field) => getFieldLabel(field));
-    if (labels.length === 0) return;
-    onApply(labels);
+      .map((field) => ({ label: getFieldLabel(field), id: field.custom_field_id ?? null }));
+    if (items.length === 0) return;
+    onApply(items);
     onClose();
   };
 
@@ -2002,6 +2025,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const quillWrapRef = useRef(null);
   const subjectBoxRef = useRef(null);
 
+  const { saveNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
+
   useEffect(() => {
     if (!show) return;
     setTo(initialSettings?.to ?? []);
@@ -2044,10 +2069,10 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     quill._pillMatcherAdded = true;
   }, [show]);
 
-  const appendTokens = (setter, labels, type) => {
+  const appendTokens = (setter, items, type) => {
     setter((prev) => [
       ...prev,
-      ...labels.filter((label) => !prev.some((t) => t.label === label)).map((label) => ({ label, type })),
+      ...items.filter((item) => !prev.some((t) => t.label === item.label)).map((item) => ({ label: item.label, id: item.id ?? null, type })),
     ]);
   };
 
@@ -2061,8 +2086,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setShowInternalUsersModal(true);
   };
 
-  const handleApplyInternalUsers = (names) => {
-    appendTokens(internalUsersTarget === 'cc' ? setCc : setTo, names, 'user');
+  const handleApplyInternalUsers = (items) => {
+    appendTokens(internalUsersTarget === 'cc' ? setCc : setTo, items, 'user');
     setInternalUsersTarget(null);
   };
 
@@ -2071,8 +2096,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setShowCustomFieldModal(true);
   };
 
-  const handleApplyCustomField = (fieldLabels) => {
-    appendTokens(customFieldTarget === 'cc' ? setCc : setTo, fieldLabels, 'field');
+  const handleApplyCustomField = (items) => {
+    appendTokens(customFieldTarget === 'cc' ? setCc : setTo, items, 'field');
     setCustomFieldTarget(null);
   };
 
@@ -2145,9 +2170,41 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     }, []);
   };
 
+  // Pill tokens are rendered inline as their label text — there's no template/placeholder
+  // syntax defined for the notification subject or body, so what's shown in the editor is
+  // exactly what gets sent.
+  const subjectPartsToText = (parts) => parts.map((part) => part.value).join('');
+
+  // ReactQuill's onChange is wired directly to setBodyContent, so bodyContent is an HTML
+  // string once the user has typed anything; it's only ever the initial Delta before that.
+  const bodyContentToText = (content) => {
+    if (typeof content === 'string') return content;
+    if (content?.ops) {
+      return content.ops
+        .map((op) => (typeof op.insert === 'string' ? op.insert : (op.insert?.pill ?? '')))
+        .join('');
+    }
+    return '';
+  };
+
   const handleSave = () => {
-    onSave({ to, cc, subjectParts: parseSubjectParts(subjectBoxRef.current), bodyContent });
-    onClose();
+    const subjectParts = parseSubjectParts(subjectBoxRef.current);
+    const payload = {
+      from_email: DUMMY_NOTIFICATION_FROM_EMAIL,
+      to_users: to.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
+      to_custom_fields: to.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      cc_users: cc.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
+      cc_custom_fields: cc.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      subject: subjectPartsToText(subjectParts),
+      body: bodyContentToText(bodyContent),
+    };
+
+    saveNotificationSettings(payload, {
+      cb: (data) => {
+        onSave({ to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+        onClose();
+      },
+    });
   };
 
   // Subject is a single-line field: block Enter from inserting a paragraph break, and
@@ -2336,8 +2393,8 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
         </div>
 
         <footer className="card-property-match-modal-footer">
-          <button type="button" className="br-property-add-btn" onClick={handleSave}>
-            Save
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingNotificationSettings}>
+            {isSavingNotificationSettings ? 'Saving...' : 'Save'}
           </button>
         </footer>
       </div>
@@ -3265,6 +3322,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       .map((action) => ({ id: ACTION_GROUP_TYPE_TO_SECTION_ID[action.group_type], title: action.action_name }))
       .filter((section) => section.id)
     : (import.meta.env.DEV ? THEN_ACTION_SECTIONS : []);
+
+  // Each THEN action section fetches its own regular/custom/time-unit field catalog
+  // from get_then_action_fields, keyed by this trigger's action_type_id for that
+  // group_type (get_trigger_config's actions[] carries one per group_type).
+  const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards')?.action_type_id;
+  const updateActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'update_card')?.action_type_id;
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -4495,7 +4558,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           className="business-rule-form-action-detail-link"
                           onClick={() => handleOpenNotificationSettings(action.id)}
                         >
-                          {action.configured ? 'Configured' : 'Not Set'}
+                          {action.configured && action.subjectParts?.length > 0 ? (
+                            action.subjectParts.map((part, idx) => (
+                              part.type === 'pill'
+                                ? <span key={idx} className="notification-pill">{part.value}</span>
+                                : <span key={idx}>{part.value}</span>
+                            ))
+                          ) : (
+                            action.configured ? 'Configured' : 'Not Set'
+                          )}
                         </button>
                       </div>
                     ))}
@@ -4583,6 +4654,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       show={showCreateActionPicker}
       onClose={() => setShowCreateActionPicker(false)}
       onSelect={handleSelectCreateAction}
+      actionTypeId={createActionTypeId}
     />
 
     <LinkActionModal
@@ -4606,6 +4678,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         .filter((a) => a.category === 'custom')
         .map((a) => a.rawLabel.trim().toLowerCase())}
       triggerTypeId={rule.id}
+      actionTypeId={updateActionTypeId}
     />
 
     <NotificationSettingsModal
@@ -4693,6 +4766,7 @@ CreateActionModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
+  actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 LinkActionModal.propTypes = {
@@ -4714,15 +4788,17 @@ RefineUpdateCriteriaModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.number,
+  actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 NotificationSettingsModal.propTypes = {
   show: PropTypes.bool.isRequired,
   initialSettings: PropTypes.shape({
-    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, type: PropTypes.oneOf(['user', 'field']) })),
-    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, type: PropTypes.oneOf(['user', 'field']) })),
+    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
+    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
     subjectParts: PropTypes.array,
     bodyContent: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+    notificationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,

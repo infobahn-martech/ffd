@@ -15,6 +15,9 @@ const getCustomFields = ({ params } = {}) =>
 const getRegularFields = ({ params } = {}) =>
   Gateway.get('/business_rule/get_regular_fields', { params });
 
+const getThenActionFields = (actionTypeId, { params } = {}) =>
+  Gateway.get(`/business_rule/get_then_action_fields/${actionTypeId}`, { params });
+
 const getBusinessRules = ({ params } = {}) =>
   Gateway.get('/business_rule/get_business_rules', { params });
 
@@ -33,7 +36,11 @@ const getLinkCardPossibleActionOperators = ({ params } = {}) =>
 const getFieldDetails = (fieldType, fieldId) =>
   Gateway.get(`/business_rule/get_field_details/${fieldType}/${fieldId}`);
 
+const saveNotificationSettings = (payload) =>
+  Gateway.post('/business_rule/save_notification_settings', payload);
+
 export default {
-  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getBusinessRules, getTriggerConfig,
+  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
+  saveNotificationSettings,
 };
