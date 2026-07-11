@@ -3160,6 +3160,20 @@
   border-radius: 8px;
   background: #ffffff;
   min-height: 44px;
+
+  &--editable {
+    flex-wrap: wrap;
+    cursor: text;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font: normal normal 400 14px/1.4 $font-primary;
+    color: $txtColor;
+
+    &:focus {
+      outline: none;
+      border-color: #9ca3af;
+    }
+  }
 }
 
 .br-invoke-value-input {
