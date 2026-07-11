@@ -3133,7 +3133,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const linkOperatorPanelRef = useRef(null);
   const [removeOtherChildLinks, setRemoveOtherChildLinks] = useState(false);
   const [removeOtherParentLinks, setRemoveOtherParentLinks] = useState(false);
-  const [removeOtherRelativeLinks, setRemoveOtherRelativeLinks] = useState(false);
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
@@ -3218,7 +3217,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setLinkOperatorFilterText('');
     setRemoveOtherChildLinks(false);
     setRemoveOtherParentLinks(false);
-    setRemoveOtherRelativeLinks(false);
     setMoveActions([]);
     setShowMoveDestinationPicker(false);
     setActiveMoveActionId(null);
@@ -3325,7 +3323,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       linkActions,
       removeOtherChildLinks,
       removeOtherParentLinks,
-      removeOtherRelativeLinks,
       moveActions,
       updateActions,
       notifyActions,
@@ -3731,6 +3728,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleCancelClose = () => {
     setShowCancelConfirm(false);
   };
+
+  // "Remove all other X links" only makes sense for a link type the user has actually
+  // added — showing all of them regardless of selection is what the earlier version did.
+  const hasChildLinkAction = linkActions.some((a) => a.key === 'child');
+  const hasParentLinkAction = linkActions.some((a) => a.key === 'parent');
 
   return (
     <>
@@ -4315,32 +4317,30 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           );
                         })}
 
-                        <div className="br-link-remove-others-box">
-                          <label className="br-link-checkbox-row">
-                            <input
-                              type="checkbox"
-                              checked={removeOtherChildLinks}
-                              onChange={(e) => setRemoveOtherChildLinks(e.target.checked)}
-                            />
-                            Remove all other child links
-                          </label>
-                          <label className="br-link-checkbox-row">
-                            <input
-                              type="checkbox"
-                              checked={removeOtherParentLinks}
-                              onChange={(e) => setRemoveOtherParentLinks(e.target.checked)}
-                            />
-                            Remove all other parent links
-                          </label>
-                          <label className="br-link-checkbox-row">
-                            <input
-                              type="checkbox"
-                              checked={removeOtherRelativeLinks}
-                              onChange={(e) => setRemoveOtherRelativeLinks(e.target.checked)}
-                            />
-                            Remove all other relative links
-                          </label>
-                        </div>
+                        {(hasChildLinkAction || hasParentLinkAction) && (
+                          <div className="br-link-remove-others-box">
+                            {hasChildLinkAction && (
+                              <label className="br-link-checkbox-row">
+                                <input
+                                  type="checkbox"
+                                  checked={removeOtherChildLinks}
+                                  onChange={(e) => setRemoveOtherChildLinks(e.target.checked)}
+                                />
+                                Remove all other child links
+                              </label>
+                            )}
+                            {hasParentLinkAction && (
+                              <label className="br-link-checkbox-row">
+                                <input
+                                  type="checkbox"
+                                  checked={removeOtherParentLinks}
+                                  onChange={(e) => setRemoveOtherParentLinks(e.target.checked)}
+                                />
+                                Remove all other parent links
+                              </label>
+                            )}
+                          </div>
+                        )}
 
                         <div className="br-link-footer-actions">
                           <button
