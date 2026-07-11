@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import businessRuleService from '../services/businessRuleService';
+import useAlertReducer from './AlertReducer';
 
 // Guards getCustomFields against out-of-order responses: if the board/disabled/search
 // filters change again before an in-flight request resolves, an older response landing
@@ -235,6 +236,25 @@ const useBusinessRuleReducer = create((set) => ({
             });
         } catch (err) {
             set({ linkCardActionOperators: [], isLoadingLinkCardActionOperators: false });
+        }
+    },
+
+    isSavingNotificationSettings: false,
+
+    saveNotificationSettings: async (payload, { cb, onSettled } = {}) => {
+        try {
+            set({ isSavingNotificationSettings: true });
+            const { data } = await businessRuleService.saveNotificationSettings(payload);
+            set({ isSavingNotificationSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Notification settings saved.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isSavingNotificationSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 }));
