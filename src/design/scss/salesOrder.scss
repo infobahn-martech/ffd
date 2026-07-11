@@ -384,7 +384,7 @@
 
 /* Table */
 .sales-order-table-container {
-  overflow-y: scroll !important;
+  overflow-y: auto !important;
   overflow-x: auto !important;
   width: auto;
   margin: 0 14px;
@@ -443,6 +443,7 @@
   width: 100%;
   min-width: 1460px;
   margin: 0;
+  overflow: visible !important;
 }
 
 .sales-order-table-container .table.sales-order-table thead th {
@@ -678,6 +679,133 @@
 .sales-order-table td:nth-child(3) .sales-order-table-cell,
 .sales-order-table td:nth-child(4) .sales-order-table-cell {
   white-space: normal;
+}
+
+/* Bulk Action Bar */
+.so-bulk-action-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 2px solid #00368c;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  z-index: 100;
+  margin-top: 16px;
+}
+
+.so-bulk-action-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.so-bulk-action-count {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.so-bulk-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.so-bulk-btn {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Manrope", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease,
+    color 0.15s ease, transform 0.1s ease;
+}
+
+.so-bulk-btn:active {
+  transform: translateY(1px);
+}
+
+.so-bulk-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.18);
+}
+
+.so-bulk-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.so-bulk-btn-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+/* Clear Selection — small neutral outline */
+.so-bulk-btn-clear {
+  background: transparent;
+  color: #64748b;
+  border-color: #d7dce6;
+}
+
+.so-bulk-btn-clear:hover:not(:disabled) {
+  background: #f4f6fb;
+  border-color: #c3cad9;
+  color: #475569;
+}
+
+/* Cancel — light grey secondary */
+.so-bulk-btn-cancel {
+  background: #f5f5f7;
+  color: #374151;
+  border-color: #d9dce3;
+}
+
+.so-bulk-btn-cancel:hover:not(:disabled) {
+  background: #ececf1;
+  border-color: #c7cbd6;
+}
+
+/* Generate PO — soft navy outline */
+.so-bulk-btn-generate-po {
+  background: #eef2ff;
+  color: #1e3a6d;
+  border-color: #b9c8ee;
+}
+
+.so-bulk-btn-generate-po:hover:not(:disabled) {
+  background: #e2e9ff;
+  border-color: #93a8e0;
+  box-shadow: 0 2px 6px rgba(30, 54, 109, 0.12);
+}
+
+/* Generate Work Order — primary solid */
+.so-bulk-btn-generate-wo {
+  background: #00368c;
+  color: #ffffff;
+  border-color: #00368c;
+}
+
+.so-bulk-btn-generate-wo:hover:not(:disabled) {
+  background: #002b6e;
+  border-color: #002b6e;
+  box-shadow: 0 3px 8px rgba(0, 54, 140, 0.28);
 }
 
 .sales-order-table-cell-total {

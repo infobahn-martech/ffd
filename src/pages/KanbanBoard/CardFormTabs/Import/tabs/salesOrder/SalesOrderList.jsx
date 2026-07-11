@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
-import { FiFilePlus, FiFileText } from "react-icons/fi";
+import { FiFilePlus, FiFileText, FiClipboard, FiTool } from "react-icons/fi";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../../design/scss/salesOrder.scss";
@@ -1579,90 +1579,41 @@ const SalesOrderList = ({
 
       {/* Sticky Bulk Action Bar */}
       {!isDAModule && selectedItems.size > 0 && (
-        <div
-          ref={bulkActionBarRef}
-          style={{
-            position: "sticky",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: "#ffffff",
-            borderTop: "2px solid #00368c",
-            padding: "12px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            zIndex: 100,
-            marginTop: "16px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <span style={{ fontWeight: "600", color: "#1a1a1a" }}>
+        <div ref={bulkActionBarRef} className="so-bulk-action-bar">
+          <div className="so-bulk-action-info">
+            <span className="so-bulk-action-count">
               {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
             </span>
             <button
               type="button"
               onClick={handleClearSelection}
-              style={{
-                padding: "4px 12px",
-                backgroundColor: "transparent",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                color: "#666",
-              }}
+              className="so-bulk-btn so-bulk-btn-clear"
             >
               Clear Selection
             </button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div className="so-bulk-action-buttons">
             <button
               type="button"
               onClick={handleClearSelection}
-              style={{
-                padding: "8px 20px",
-                backgroundColor: "#f5f5f5",
-                color: "#333",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500",
-              }}
+              className="so-bulk-btn so-bulk-btn-cancel"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleGeneratePO}
-              style={{
-                padding: "8px 20px",
-                backgroundColor: "#e2e6ff",
-                color: "rgb(44, 54, 73)",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
+              className="so-bulk-btn so-bulk-btn-generate-po"
             >
+              <FiClipboard className="so-bulk-btn-icon" />
               Generate PO
             </button>
             <button
               type="button"
               onClick={handleGenerateWorkOrder}
-              style={{
-                padding: "8px 20px",
-                backgroundColor: "#e2e6ff",
-                color: "rgb(44, 54, 73)",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
+              className="so-bulk-btn so-bulk-btn-generate-wo"
             >
+              <FiTool className="so-bulk-btn-icon" />
               Generate Work Order
             </button>
           </div>
