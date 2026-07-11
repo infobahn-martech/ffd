@@ -90,6 +90,29 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isLoadingThenActionFields: false,
+    thenActionRegularFields: [],
+    thenActionCustomFields: [],
+    thenActionTimeUnits: [],
+
+    getThenActionFields: async (actionTypeId, { params } = {}) => {
+        try {
+            set({ isLoadingThenActionFields: true });
+            const { data } = await businessRuleService.getThenActionFields(actionTypeId, { params });
+            set({
+                thenActionRegularFields: data?.data?.regular_fields ?? [],
+                thenActionCustomFields: data?.data?.custom_fields ?? [],
+                thenActionTimeUnits: data?.data?.time_units ?? [],
+                isLoadingThenActionFields: false,
+            });
+        } catch (err) {
+            set({
+                thenActionRegularFields: [], thenActionCustomFields: [], thenActionTimeUnits: [],
+                isLoadingThenActionFields: false,
+            });
+        }
+    },
+
     isLoadingBusinessRules: false,
     businessRules: [],
     businessRulesCount: 0,
