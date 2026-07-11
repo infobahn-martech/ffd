@@ -84,6 +84,17 @@ export const LINK_ACTION_OPTIONS = [
   { key: 'successor', label: 'Link as successor' },
 ];
 
+// "Remove all other X links" checkboxes shown under the Link the card action — one per
+// link type, and only for a type the user has actually added (see hasLinkActionOfType
+// usage in BusinessRuleFormModal.jsx), not all of them unconditionally.
+export const LINK_REMOVE_OTHERS_OPTIONS = [
+  { key: 'child', label: 'Remove all other child links' },
+  { key: 'parent', label: 'Remove all other parent links' },
+  { key: 'predecessor', label: 'Remove all other predecessor links' },
+  { key: 'relative', label: 'Remove all other relative links' },
+  { key: 'successor', label: 'Remove all other successor links' },
+];
+
 // Dev-only fallback data for the Linked Card action operator dropdown, used when the
 // real business_rule/get_link_card_possible_action_operators endpoint returns nothing.
 export const DUMMY_LINK_ACTION_OPERATORS = [
