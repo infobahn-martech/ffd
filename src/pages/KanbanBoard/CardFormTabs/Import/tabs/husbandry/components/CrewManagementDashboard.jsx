@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
-import { FiSearch } from "react-icons/fi";
+import { FiSearch, FiEdit2, FiCheck, FiX } from "react-icons/fi";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectPage from "./CrewServiceSelectPage";
@@ -59,20 +59,11 @@ const MOVEMENT_TYPE_OPTIONS = [
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
-// Static placeholder rows for the Crew Summary table until it's wired back
-// up to a real per-call crew summary endpoint.
-const STATIC_CREW_SUMMARY_ROWS = [
-  { id: "1", crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", movementTypeValue: "sign_on", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false, transportCount: 1, hotelCount: 0, medicalCount: 0 },
-  { id: "2", crewId: 2, crewName: "John Smith", nationality: "United Kingdom", rank: "Master", movementType: "Sign Off", movementTypeValue: "sign_off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: true, transportCount: 0, hotelCount: 1, medicalCount: 0 },
-  { id: "3", crewId: 3, crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", movementType: "Sign On", movementTypeValue: "sign_on", passport: false, iqama: true, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 1 },
-  { id: "4", crewId: 4, crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", movementType: "Sign Off", movementTypeValue: "sign_off", passport: true, iqama: true, visa: true, cgPass: true, zawilPass: true, transportCount: 1, hotelCount: 1, medicalCount: 0 },
-  { id: "5", crewId: 5, crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", movementType: "Sign On", movementTypeValue: "sign_on", passport: false, iqama: false, visa: false, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
-  { id: "6", crewId: 6, crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", movementType: "Sign Off", movementTypeValue: "sign_off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 1, medicalCount: 0 },
-  { id: "7", crewId: 7, crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", movementType: "Sign On", movementTypeValue: "sign_on", passport: true, iqama: true, visa: false, cgPass: false, zawilPass: false, transportCount: 1, hotelCount: 0, medicalCount: 0 },
-  { id: "8", crewId: 8, crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", movementType: "Sign Off", movementTypeValue: "sign_off", passport: false, iqama: true, visa: true, cgPass: true, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 1 },
-  { id: "9", crewId: 9, crewName: "Fatima Al-Sayed", nationality: "Egypt", rank: "Bosun", movementType: "Sign On", movementTypeValue: "sign_on", passport: true, iqama: true, visa: true, cgPass: false, zawilPass: true, transportCount: 1, hotelCount: 0, medicalCount: 0 },
-  { id: "10", crewId: 10, crewName: "Lucas Silva", nationality: "Brazil", rank: "Oiler", movementType: "Sign Off", movementTypeValue: "sign_off", passport: false, iqama: false, visa: true, cgPass: false, zawilPass: false, transportCount: 0, hotelCount: 0, medicalCount: 0 },
-];
+const hasDocumentUrl = (url) =>
+  typeof url === "string" && url.trim() !== "" && url.trim().toLowerCase() !== "null";
+
+// Fields editable inline from the Crew Summary table's Action column.
+const EDITABLE_SUMMARY_FIELDS = ["crewName", "dateOfBirth", "nationality", "rank"];
 
 // Read-only doc status icon for the Passport/Iqama, Visa, CG Pass and Zawil
 // Pass columns — green preview icon when the document is available, blank
@@ -220,6 +211,12 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // actions can flip a crew's doc status icon on even though Crew Summary
   // rows are otherwise derived straight from the real uploaded crew list.
   const [manualDocOverrides, setManualDocOverrides] = useState({});
+  // Local-only override for the Crew Summary "Action" inline edit — no
+  // per-crew update endpoint exists yet, so edits are kept client-side the
+  // same way the bulk doc-upload overrides above are.
+  const [manualFieldEdits, setManualFieldEdits] = useState({});
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editDraft, setEditDraft] = useState(null);
   const summaryPassportIqamaInputRef = useRef(null);
   const summaryVisaInputRef = useRef(null);
 
@@ -439,27 +436,44 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     id: getCrewOptionId(crew, index),
   }));
 
-  // Crew Summary — static placeholder rows (see STATIC_CREW_SUMMARY_ROWS)
-  // until this table is wired back up to a real per-call summary endpoint.
-  // manualDocOverrides still layers on top so the bulk doc-upload actions
-  // keep working against the static rows.
+  // Crew Summary — derived straight from the real uploaded crew list
+  // (GET/POST crew/get_crew_list, populated into uploadedCrewList above).
+  // manualDocOverrides/manualFieldEdits layer local-only edits on top since
+  // there's no per-crew update endpoint yet.
   const crewSummaryRows = useMemo(() => {
-    return STATIC_CREW_SUMMARY_ROWS.map((row) => {
-      const overrides = manualDocOverrides[row.id] || {};
+    return crewWithIds.map(({ crew, id }) => {
+      const docOverrides = manualDocOverrides[id] || {};
+      const fieldOverrides = manualFieldEdits[id] || {};
+      const movementTypeRaw = crew?.movement_type || "";
+      const movementTypeValue = movementTypeRaw.toLowerCase().trim().replace(/\s+/g, "_");
+      const assignedTo = (tabName) => Boolean(selectedServiceCrewMap[tabName]?.includes(id));
+
       return {
-        ...row,
-        passport: row.passport || Boolean(overrides.passport),
-        iqama: row.iqama || Boolean(overrides.iqama),
-        visa: row.visa || Boolean(overrides.visa),
+        id,
+        crewId: crew?.crew_id ?? crew?.crew_change_id ?? id,
+        crewName: fieldOverrides.crewName ?? crew?.crew_name ?? "",
+        dateOfBirth: fieldOverrides.dateOfBirth ?? crew?.date_of_birth ?? "",
+        nationality: fieldOverrides.nationality ?? crew?.nationality ?? "N/A",
+        rank: fieldOverrides.rank ?? crew?.rank ?? "",
+        movementType: movementTypeRaw,
+        movementTypeValue,
+        passport: hasDocumentUrl(crew?.passport_copy_url) || Boolean(docOverrides.passport),
+        iqama: hasDocumentUrl(crew?.iqama_copy_url) || Boolean(docOverrides.iqama),
+        visa: hasDocumentUrl(crew?.visa_copy_url) || Boolean(docOverrides.visa),
+        cgPass: false,
+        zawilPass: false,
+        transportCount: assignedTo("transport") ? 1 : 0,
+        hotelCount: assignedTo("hotel") ? 1 : 0,
+        medicalCount: assignedTo("medicalService") ? 1 : 0,
       };
     });
-  }, [manualDocOverrides]);
+  }, [crewWithIds, manualDocOverrides, manualFieldEdits, selectedServiceCrewMap]);
 
   const filteredCrewSummaryRows = useMemo(() => {
     const query = summarySearch.trim().toLowerCase();
     if (!query) return crewSummaryRows;
     return crewSummaryRows.filter((row) =>
-      [row.crewName, row.nationality, row.rank, row.movementType].some((field) =>
+      [row.crewName, row.nationality, row.rank, row.movementType, row.dateOfBirth].some((field) =>
         String(field ?? "").toLowerCase().includes(query)
       )
     );
@@ -496,6 +510,31 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       });
       return next;
     });
+  };
+
+  const handleStartEdit = (row) => {
+    setEditingRowId(row.id);
+    setEditDraft(Object.fromEntries(EDITABLE_SUMMARY_FIELDS.map((field) => [field, row[field]])));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRowId(null);
+    setEditDraft(null);
+  };
+
+  const handleEditFieldChange = (field) => (e) => {
+    const { value } = e.target;
+    setEditDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingRowId || !editDraft) return;
+    setManualFieldEdits((prev) => ({
+      ...prev,
+      [editingRowId]: { ...(prev[editingRowId] || {}), ...editDraft },
+    }));
+    setEditingRowId(null);
+    setEditDraft(null);
   };
 
   if (showCrewSelectView && selectedServiceForCrew) {
@@ -693,6 +732,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                         />
                       </th>
                       <th><span className="crew-th">Crew name</span></th>
+                      <th><span className="crew-th">Date of birth</span></th>
                       <th><span className="crew-th">Nationality</span></th>
                       <th><span className="crew-th">Rank</span></th>
                       <th><span className="crew-th">Movement type</span></th>
@@ -703,45 +743,124 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                       <th><span className="crew-th">Transport</span></th>
                       <th><span className="crew-th">Hotel</span></th>
                       <th><span className="crew-th">Medical</span></th>
+                      <th><span className="crew-th">Action</span></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCrewSummaryRows.map((row) => (
-                      <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
-                        <td className="crew-checkbox-cell">
-                          <input
-                            className="crew-list-checkbox"
-                            type="checkbox"
-                            checked={summarySelectedIds.includes(row.id)}
-                            onChange={() => handleSummaryRowToggle(row.id)}
-                          />
-                        </td>
-                        <td>
-                          <div className="crew-table-cell crew-name-cell" title={row.crewName}>
-                            <span className="crew-name-info">
-                              <span className="crew-name-text">{row.crewName}</span>
-                              <span className="crew-name-id">{`ID · ${String(row.crewId).padStart(5, "0")}`}</span>
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
-                        </td>
-                        <td>
-                          <span className="crew-movement-pill" title={row.movementType}>{row.movementType}</span>
-                        </td>
-                        <td><DocStatusIcon available={row.passport || row.iqama} label="Passport / Iqama" /></td>
-                        <td><DocStatusIcon available={row.visa} label="Visa" /></td>
-                        <td><DocStatusIcon available={row.cgPass} label="CG Pass" /></td>
-                        <td><DocStatusIcon available={row.zawilPass} label="Zawil Pass" /></td>
-                        <td><ServiceStatusIcon type="transport" active={row.transportCount > 0} label="Transport" /></td>
-                        <td><ServiceStatusIcon type="hotel" active={row.hotelCount > 0} label="Hotel" /></td>
-                        <td><ServiceStatusIcon type="medical" active={row.medicalCount > 0} label="Medical" /></td>
-                      </tr>
-                    ))}
+                    {filteredCrewSummaryRows.map((row) => {
+                      const isEditing = editingRowId === row.id;
+                      return (
+                        <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
+                          <td className="crew-checkbox-cell">
+                            <input
+                              className="crew-list-checkbox"
+                              type="checkbox"
+                              checked={summarySelectedIds.includes(row.id)}
+                              onChange={() => handleSummaryRowToggle(row.id)}
+                            />
+                          </td>
+                          <td>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                className="crew-edit-input"
+                                value={editDraft?.crewName ?? ""}
+                                onChange={handleEditFieldChange("crewName")}
+                              />
+                            ) : (
+                              <div className="crew-table-cell crew-name-cell" title={row.crewName}>
+                                <span className="crew-name-info">
+                                  <span className="crew-name-text">{row.crewName}</span>
+                                  <span className="crew-name-id">{`ID · ${String(row.crewId).padStart(5, "0")}`}</span>
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            {isEditing ? (
+                              <input
+                                type="date"
+                                className="crew-edit-input"
+                                value={editDraft?.dateOfBirth ?? ""}
+                                onChange={handleEditFieldChange("dateOfBirth")}
+                              />
+                            ) : (
+                              <div className="crew-table-cell" title={row.dateOfBirth}>{row.dateOfBirth || "-"}</div>
+                            )}
+                          </td>
+                          <td>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                className="crew-edit-input"
+                                value={editDraft?.nationality ?? ""}
+                                onChange={handleEditFieldChange("nationality")}
+                              />
+                            ) : (
+                              <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
+                            )}
+                          </td>
+                          <td>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                className="crew-edit-input"
+                                value={editDraft?.rank ?? ""}
+                                onChange={handleEditFieldChange("rank")}
+                              />
+                            ) : (
+                              <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
+                            )}
+                          </td>
+                          <td>
+                            <span className="crew-movement-pill" title={row.movementType}>{row.movementType}</span>
+                          </td>
+                          <td><DocStatusIcon available={row.passport || row.iqama} label="Passport / Iqama" /></td>
+                          <td><DocStatusIcon available={row.visa} label="Visa" /></td>
+                          <td><DocStatusIcon available={row.cgPass} label="CG Pass" /></td>
+                          <td><DocStatusIcon available={row.zawilPass} label="Zawil Pass" /></td>
+                          <td><ServiceStatusIcon type="transport" active={row.transportCount > 0} label="Transport" /></td>
+                          <td><ServiceStatusIcon type="hotel" active={row.hotelCount > 0} label="Hotel" /></td>
+                          <td><ServiceStatusIcon type="medical" active={row.medicalCount > 0} label="Medical" /></td>
+                          <td>
+                            <div className="crew-table-cell crew-action-cell">
+                              {isEditing ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="crew-action-btn crew-action-btn--save"
+                                    aria-label="Save changes"
+                                    title="Save"
+                                    onClick={handleSaveEdit}
+                                  >
+                                    <FiCheck size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="crew-action-btn crew-action-btn--cancel"
+                                    aria-label="Cancel editing"
+                                    title="Cancel"
+                                    onClick={handleCancelEdit}
+                                  >
+                                    <FiX size={14} />
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="crew-action-btn crew-action-btn--edit"
+                                  aria-label="Edit crew"
+                                  title="Edit"
+                                  onClick={() => handleStartEdit(row)}
+                                >
+                                  <FiEdit2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

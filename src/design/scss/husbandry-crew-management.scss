@@ -3192,3 +3192,64 @@
 .crew-preview-nationality-select-wrap.is-filled .crew-preview-nationality-select.premium-select.cf-searchable-select .cf-multi-select-email-input:not(:focus-within) {
   background: #f0f7ff !important;
 }
+
+// Crew Summary inline row edit — Action column + editable cell inputs.
+.crew-edit-input {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: $radius-md;
+  border: 1.5px solid color-mix(in srgb, var(--card-color, $status-in-progress-text) 45%, white);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.crew-edit-input:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+.crew-action-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crew-action-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crew-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: $shadow-sm;
+}
+
+.crew-action-btn:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+.crew-action-btn--edit {
+  background: color-mix(in srgb, var(--card-color, $status-in-progress-text) 16%, white);
+  border: 1.5px solid color-mix(in srgb, var(--card-color, $status-in-progress-text) 55%, white);
+  color: var(--card-color, $status-in-progress-text);
+}
+
+.crew-action-btn--save {
+  background: color-mix(in srgb, $status-success 22%, white);
+  border: 1.5px solid color-mix(in srgb, $status-success 65%, white);
+  color: $status-success;
+}
+
+.crew-action-btn--cancel {
+  background: color-mix(in srgb, $status-danger 16%, white);
+  border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
+  color: $status-danger;
+}
