@@ -3,6 +3,8 @@ import { FiX } from "react-icons/fi";
 import "../../design/scss/pages/taskCard.scss";
 import "../../design/scss/invoice.scss";
 import userService from "../../services/userService";
+import taskCardService from "../../services/taskCardService";
+import useAlertReducer from "../../store/AlertReducer";
 
 const MENTION_TRIGGER_REGEX = /@([^\s@]*)$/;
 
@@ -13,9 +15,37 @@ const mapUsersFromResponse = (rows) =>
         avatar: row.avatar_path || row.avatar || null,
     }));
 
+function CommentItem({ comment, onReply, onDelete }) {
+    return (
+        <div className="st-comment-item">
+            <div className="st-comment-header">
+                <span className="st-comment-author">{comment.created_by_name || "Unknown"}</span>
+                <span className="st-comment-date">{comment.created_date || ""}</span>
+            </div>
+            <p className="st-comment-text">{comment.comment_text}</p>
+            <div className="st-comment-actions">
+                <button type="button" className="st-comment-action-btn" onClick={() => onReply(comment)}>
+                    Reply
+                </button>
+                <button type="button" className="st-comment-action-btn st-comment-action-btn--danger" onClick={() => onDelete(comment.comment_id)}>
+                    Delete
+                </button>
+            </div>
+            {Array.isArray(comment.replies) && comment.replies.length > 0 && (
+                <div className="st-comment-replies">
+                    {comment.replies.map((reply) => (
+                        <CommentItem key={reply.comment_id} comment={reply} onReply={onReply} onDelete={onDelete} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 function TaskCardDetailView({ card, onClose }) {
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
+    const cardId = card?.cardId;
 
     const [commentText, setCommentText] = useState("");
     const [files, setFiles] = useState([]);
@@ -26,6 +56,15 @@ function TaskCardDetailView({ card, onClose }) {
     const [mentionStartIndex, setMentionStartIndex] = useState(null);
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
     const [isUsersLoading, setIsUsersLoading] = useState(false);
+    const [isSavingComment, setIsSavingComment] = useState(false);
+    const [replyTarget, setReplyTarget] = useState(null);
+
+    const [comments, setComments] = useState([]);
+    const [isLoadingComments, setIsLoadingComments] = useState(false);
+
+    const [documents, setDocuments] = useState([]);
+    const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
+    const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -39,6 +78,29 @@ function TaskCardDetailView({ card, onClose }) {
             .finally(() => { if (!cancelled) setIsUsersLoading(false); });
         return () => { cancelled = true; };
     }, []);
+
+    const loadComments = useCallback(() => {
+        if (!cardId) return Promise.resolve();
+        setIsLoadingComments(true);
+        return taskCardService.getComments(cardId)
+            .then(({ data }) => setComments(data?.data || []))
+            .catch(() => setComments([]))
+            .finally(() => setIsLoadingComments(false));
+    }, [cardId]);
+
+    const loadDocuments = useCallback(() => {
+        if (!cardId) return Promise.resolve();
+        setIsLoadingDocuments(true);
+        return taskCardService.getCardDocuments(cardId)
+            .then(({ data }) => setDocuments(data?.data || []))
+            .catch(() => setDocuments([]))
+            .finally(() => setIsLoadingDocuments(false));
+    }, [cardId]);
+
+    useEffect(() => {
+        loadComments();
+        loadDocuments();
+    }, [loadComments, loadDocuments]);
 
     const filteredUsers = useMemo(() => {
         const term = mentionSearch.trim().toLowerCase();
@@ -87,12 +149,45 @@ function TaskCardDetailView({ card, onClose }) {
         }, 0);
     }, [commentText, mentionSearch, mentionStartIndex, closeMentionDropdown]);
 
-    const handleSave = useCallback(() => {
-        if (!commentText.trim()) return;
-        setCommentText("");
-        setSelectedMentionUserIds([]);
-        closeMentionDropdown();
-    }, [card?.id, commentText, selectedMentionUserIds, closeMentionDropdown]);
+    const handleStartReply = useCallback((comment) => {
+        setReplyTarget({ comment_id: comment.comment_id, name: comment.created_by_name || "" });
+        textareaRef.current?.focus();
+    }, []);
+
+    const handleCancelReply = useCallback(() => setReplyTarget(null), []);
+
+    const handleSave = useCallback(async () => {
+        if (!commentText.trim() || !cardId) return;
+        const { error } = useAlertReducer.getState();
+        setIsSavingComment(true);
+        try {
+            await taskCardService.addComment({
+                card_id: cardId,
+                comment_text: commentText.trim(),
+                mentioned_user_id: selectedMentionUserIds[0] ?? null,
+                parent_comment_id: replyTarget?.comment_id ?? null,
+            });
+            setCommentText("");
+            setSelectedMentionUserIds([]);
+            setReplyTarget(null);
+            closeMentionDropdown();
+            await loadComments();
+        } catch (err) {
+            error(err?.response?.data?.message ?? "Could not add comment. Please check your connection and try again.");
+        } finally {
+            setIsSavingComment(false);
+        }
+    }, [cardId, commentText, selectedMentionUserIds, replyTarget, closeMentionDropdown, loadComments]);
+
+    const handleDeleteComment = useCallback(async (commentId) => {
+        const { error } = useAlertReducer.getState();
+        try {
+            await taskCardService.deleteComment(commentId);
+            await loadComments();
+        } catch (err) {
+            error(err?.response?.data?.message ?? "Could not delete comment. Please check your connection and try again.");
+        }
+    }, [loadComments]);
 
     const handleDrop = (e) => {
         e.preventDefault();
@@ -104,6 +199,28 @@ function TaskCardDetailView({ card, onClose }) {
     const removeFile = (index) => {
         setFiles((prev) => prev.filter((_, i) => i !== index));
     };
+
+    const handleUploadDocuments = useCallback(async () => {
+        if (!cardId || files.length === 0) {
+            onClose();
+            return;
+        }
+        const { success, error } = useAlertReducer.getState();
+        setIsUploadingDocuments(true);
+        try {
+            const formData = new FormData();
+            formData.append("card_id", cardId);
+            files.forEach((file) => formData.append("documents[]", file));
+            const { data } = await taskCardService.uploadCardDocuments(formData);
+            success(data?.message || "Documents uploaded successfully");
+            setFiles([]);
+            await loadDocuments();
+        } catch (err) {
+            error(err?.response?.data?.message ?? "Could not upload documents. Please check your connection and try again.");
+        } finally {
+            setIsUploadingDocuments(false);
+        }
+    }, [cardId, files, onClose, loadDocuments]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -126,6 +243,16 @@ function TaskCardDetailView({ card, onClose }) {
 
                                 <div className="subtasks-tab-field">
                                     <label className="subtasks-tab-label">Comments</label>
+
+                                    {replyTarget && (
+                                        <div className="st-reply-banner">
+                                            Replying to <strong>{replyTarget.name || "comment"}</strong>
+                                            <button type="button" className="st-reply-banner-cancel" onClick={handleCancelReply}>
+                                                <FiX size={10} />
+                                            </button>
+                                        </div>
+                                    )}
+
                                     <div className="comments-tab-mention-host">
                                         <textarea
                                             ref={textareaRef}
@@ -179,9 +306,27 @@ function TaskCardDetailView({ card, onClose }) {
                                             type="button"
                                             className="comments-tab-save-btn"
                                             onClick={handleSave}
+                                            disabled={isSavingComment || !commentText.trim()}
                                         >
-                                            Save
+                                            {isSavingComment ? "Saving..." : "Save"}
                                         </button>
+                                    </div>
+
+                                    <div className="st-comment-list">
+                                        {isLoadingComments ? (
+                                            <p className="st-comment-empty">Loading comments...</p>
+                                        ) : comments.length === 0 ? (
+                                            <p className="st-comment-empty">No comments yet.</p>
+                                        ) : (
+                                            comments.map((comment) => (
+                                                <CommentItem
+                                                    key={comment.comment_id}
+                                                    comment={comment}
+                                                    onReply={handleStartReply}
+                                                    onDelete={handleDeleteComment}
+                                                />
+                                            ))
+                                        )}
                                     </div>
                                 </div>
 
@@ -224,10 +369,37 @@ function TaskCardDetailView({ card, onClose }) {
                                             ))}
                                         </div>
                                     )}
+
+                                    <div className="st-doc-list">
+                                        {isLoadingDocuments ? (
+                                            <p className="st-comment-empty">Loading documents...</p>
+                                        ) : documents.length === 0 ? (
+                                            <p className="st-comment-empty">No documents uploaded yet.</p>
+                                        ) : (
+                                            documents.map((doc) => (
+                                                <a
+                                                    key={doc.upload_id}
+                                                    href={doc.file_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="st-doc-item"
+                                                >
+                                                    {doc.file_name}
+                                                </a>
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="st-inline-actions">
-                                    <button type="button" className="st-inline-save" onClick={onClose}>Submit</button>
+                                    <button
+                                        type="button"
+                                        className="st-inline-save"
+                                        onClick={handleUploadDocuments}
+                                        disabled={isUploadingDocuments}
+                                    >
+                                        {isUploadingDocuments ? "Uploading..." : "Submit"}
+                                    </button>
                                 </div>
 
                             </div>
