@@ -16,11 +16,19 @@ const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 
 const MEDICAL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
-  { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name, type: "crew" },
+  {
+    key: "crew_name",
+    header: "Crew",
+    accessor: (r) =>
+      Array.isArray(r?.crew)
+        ? r.crew.map((c) => c?.crew_name).filter(Boolean).join(", ")
+        : r?.crew_name,
+    type: "crew",
+  },
   { key: "hospital_name", header: "Hospital", accessor: (r) => r?.hospital_name ?? r?.hospitalName },
   { key: "service_name", header: "Service", accessor: (r) => r?.service_name ?? r?.medical_service_name },
   { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
-  { key: "requested_date", header: "Requested Date", accessor: (r) => r?.requested_date, type: "date" },
+  { key: "requested_date", header: "Requested Date", accessor: (r) => r?.requested_date ?? r?.created_date, type: "date" },
   { key: "document", header: "Document", type: "document" },
 ];
 
