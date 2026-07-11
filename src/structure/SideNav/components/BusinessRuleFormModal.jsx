@@ -30,25 +30,28 @@ import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } fro
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
 
-// Custom inline format so the "field pill" tokens (e.g. Title, Author) in the
-// notification body survive Quill's HTML sanitization instead of collapsing to
-// plain text — Quill only preserves attributes tied to a registered format.
-const QuillInlineBlot = Quill.import('blots/inline');
-class NotificationPillBlot extends QuillInlineBlot {}
+// Custom embed (not inline format) for the "field pill" tokens (e.g. Title, Author) in
+// the notification body. An inline format only styles editable text — the characters
+// inside are still individually selectable/deletable, so a user could edit "Card URL"
+// down to "Card U". An embed is atomic: Quill treats it as a single indivisible unit for
+// selection, arrow-key navigation, and backspace/delete, matching how Quill's own
+// image/mention-style plugins make chips non-editable.
+const QuillEmbedBlot = Quill.import('blots/embed');
+class NotificationPillBlot extends QuillEmbedBlot {
+  static create(value) {
+    const node = super.create();
+    node.setAttribute('contenteditable', 'false');
+    node.textContent = value;
+    return node;
+  }
+
+  static value(node) {
+    return node.textContent;
+  }
+}
 NotificationPillBlot.blotName = 'pill';
 NotificationPillBlot.tagName = 'span';
 NotificationPillBlot.className = 'notification-pill';
-// Quill's Inline.compare() (used to decide DOM nesting order for overlapping
-// formats) only recognizes names listed in Inline.order — an unlisted name makes
-// the comparison always resolve as "don't wrap", so the pill format would never
-// actually apply. Registering it here is required, not optional.
-QuillInlineBlot.order.push('pill');
-// Our tagName ('span') is identical to Quill's own generic Inline wrapper tag, so
-// the inherited static formats() (which special-cases that tag to mean "no format,
-// just a bare wrapper") reports empty formats for us too — Quill's optimizer then
-// unwraps/removes the span right after creating it. Overriding formats() to always
-// report true stops it from being treated as an empty wrapper.
-NotificationPillBlot.formats = () => true;
 Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
 
@@ -1988,7 +1991,6 @@ CardFieldPickerModal.propTypes = {
 function NotificationSettingsModal({ show, onClose, onSave, initialSettings, triggerTypeId }) {
   const [to, setTo] = useState([]);
   const [cc, setCc] = useState([]);
-  const [subjectParts, setSubjectParts] = useState(DUMMY_NOTIFICATION_SUBJECT_PARTS);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
   const [showInternalUsersModal, setShowInternalUsersModal] = useState(false);
   const [internalUsersTarget, setInternalUsersTarget] = useState(null);
@@ -1998,12 +2000,12 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
   const [cardFieldTarget, setCardFieldTarget] = useState(null);
   const quillRef = useRef(null);
   const quillWrapRef = useRef(null);
+  const subjectBoxRef = useRef(null);
 
   useEffect(() => {
     if (!show) return;
     setTo(initialSettings?.to ?? []);
     setCc(initialSettings?.cc ?? []);
-    setSubjectParts(initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
     setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     setShowInternalUsersModal(false);
     setInternalUsersTarget(null);
@@ -2013,10 +2015,32 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setCardFieldTarget(null);
   }, [show, initialSettings]);
 
+  // Subject is a contentEditable box (free-typed text interleaved with non-editable
+  // "card field" pills) rather than a controlled input, so its DOM only needs seeding
+  // once per open — re-rendering it from React state on every keystroke would fight the
+  // browser's own cursor position.
+  useLayoutEffect(() => {
+    if (!show) return;
+    const el = subjectBoxRef.current;
+    if (!el) return;
+    el.replaceChildren();
+    (initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS).forEach((part) => {
+      if (part.type === 'pill') {
+        const span = document.createElement('span');
+        span.className = 'notification-pill';
+        span.contentEditable = 'false';
+        span.textContent = part.value;
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(part.value));
+      }
+    });
+  }, [show, initialSettings]);
+
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
     if (!quill || quill._pillMatcherAdded) return;
-    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert(node.textContent, { pill: true }));
+    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert({ pill: node.textContent }));
     quill._pillMatcherAdded = true;
   }, [show]);
 
@@ -2052,17 +2076,43 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setCustomFieldTarget(null);
   };
 
+  // Mirrors handleAddBodyField's cursor-based insert, but the subject box is a plain
+  // contentEditable div (not Quill), so the caret is managed via the Selection API.
   const handleAddSubjectField = (field) => {
-    setSubjectParts((prev) => [...prev, { type: 'pill', value: field }]);
+    const el = subjectBoxRef.current;
+    if (!el) return;
+    const span = document.createElement('span');
+    span.className = 'notification-pill';
+    span.contentEditable = 'false';
+    span.textContent = field;
+
+    const selection = window.getSelection();
+    const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
+      ? selection.getRangeAt(0)
+      : null;
+    if (existingRange) {
+      existingRange.deleteContents();
+      existingRange.insertNode(span);
+    } else {
+      el.appendChild(span);
+    }
+
+    el.focus();
+    const newRange = document.createRange();
+    newRange.setStartAfter(span);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
   };
 
   const handleAddBodyField = (field) => {
     const quill = quillRef.current?.getEditor();
     if (!quill) return;
     const index = quill.getSelection(true)?.index ?? quill.getLength();
-    quill.insertText(index, field, { pill: true });
-    quill.insertText(index + field.length, ' ', { pill: false });
-    quill.setSelection(index + field.length + 1, 0);
+    // Embeds always occupy exactly one Delta position, unlike the field's text length.
+    quill.insertEmbed(index, 'pill', field);
+    quill.insertText(index + 1, ' ');
+    quill.setSelection(index + 2, 0);
   };
 
   const handleOpenCardFieldModal = (target) => {
@@ -2081,9 +2131,36 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
     setCardFieldTarget(null);
   };
 
+  // Subject isn't tracked in React state (see the layout effect above), so it's read
+  // straight off the contentEditable DOM at save time.
+  const parseSubjectParts = (el) => {
+    if (!el) return [];
+    return Array.from(el.childNodes).reduce((acc, node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.textContent) acc.push({ type: 'text', value: node.textContent });
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-pill')) {
+        acc.push({ type: 'pill', value: node.textContent });
+      }
+      return acc;
+    }, []);
+  };
+
   const handleSave = () => {
-    onSave({ to, cc, subjectParts, bodyContent });
+    onSave({ to, cc, subjectParts: parseSubjectParts(subjectBoxRef.current), bodyContent });
     onClose();
+  };
+
+  // Subject is a single-line field: block Enter from inserting a paragraph break, and
+  // strip formatting from pasted content so the box only ever holds text + pill nodes
+  // (anything else would be silently dropped by parseSubjectParts anyway).
+  const handleSubjectKeyDown = (e) => {
+    if (e.key === 'Enter') e.preventDefault();
+  };
+
+  const handleSubjectPaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
   };
 
   const quillModules = useMemo(() => ({
@@ -2235,15 +2312,17 @@ function NotificationSettingsModal({ show, onClose, onSave, initialSettings, tri
                 </button>
               </div>
             </div>
-            <div className="notification-subject-box">
-              {subjectParts.map((part, idx) => (
-                part.type === 'pill' ? (
-                  <span key={idx} className="notification-pill">{part.value}</span>
-                ) : (
-                  <span key={idx} className="notification-subject-text">{part.value}</span>
-                )
-              ))}
-            </div>
+            <div
+              ref={subjectBoxRef}
+              className="notification-subject-box notification-subject-box--editable"
+              contentEditable
+              suppressContentEditableWarning
+              role="textbox"
+              aria-multiline="false"
+              aria-label="Notification subject"
+              onKeyDown={handleSubjectKeyDown}
+              onPaste={handleSubjectPaste}
+            />
           </div>
 
           <div className="notification-field">

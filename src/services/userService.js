@@ -23,6 +23,8 @@ const getUsers = ({ params }) => {
   return Gateway.get('/users', { params: apiParams });
 };
 
+const getNonVendorUsers = ({ params } = {}) => Gateway.get('/users/get_non_vendor_users', { params });
+
 const createUser = (formData) => Gateway.post('/users/create', formData);
 
 const updateUser = (userId, formData) => Gateway.post(`/users/update/${userId}`, formData);
@@ -42,6 +44,7 @@ const unarchiveUser = (user_id) =>
 
 export default {
   getUsers,
+  getNonVendorUsers,
   createUser,
   updateUser,
   getUserPermissions,

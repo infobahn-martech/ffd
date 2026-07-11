@@ -180,16 +180,16 @@ export const DUMMY_NOTIFICATION_SUBJECT_PARTS = [
 function bulletPillLine(label, pillText) {
   return [
     { insert: `${label}: ` },
-    { insert: pillText, attributes: { pill: true } },
+    { insert: { pill: pillText } },
     { insert: '\n', attributes: { list: 'bullet' } },
   ];
 }
 
 export const DUMMY_NOTIFICATION_BODY_DELTA_OPS = [
   { insert: 'New card has been created by ', attributes: { bold: true } },
-  { insert: 'Author', attributes: { pill: true } },
+  { insert: { pill: 'Author' } },
   { insert: '\n\n' },
-  { insert: 'Card URL', attributes: { pill: true } },
+  { insert: { pill: 'Card URL' } },
   { insert: '\n\n' },
   { insert: 'Card details', attributes: { bold: true } },
   { insert: '\n' },
