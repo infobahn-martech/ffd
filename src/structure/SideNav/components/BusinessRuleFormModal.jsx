@@ -8,7 +8,7 @@ import QuillTableBetter from 'quill-table-better';
 import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
-  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
   INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
@@ -3131,8 +3131,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [linkOperatorFilterText, setLinkOperatorFilterText] = useState('');
   const linkOperatorTriggerRef = useRef(null);
   const linkOperatorPanelRef = useRef(null);
-  const [removeOtherChildLinks, setRemoveOtherChildLinks] = useState(false);
-  const [removeOtherParentLinks, setRemoveOtherParentLinks] = useState(false);
+  const [removeOtherLinksByType, setRemoveOtherLinksByType] = useState({});
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
@@ -3215,8 +3214,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     editingLinkActionIdRef.current = null;
     setOpenLinkOperatorRowId(null);
     setLinkOperatorFilterText('');
-    setRemoveOtherChildLinks(false);
-    setRemoveOtherParentLinks(false);
+    setRemoveOtherLinksByType({});
     setMoveActions([]);
     setShowMoveDestinationPicker(false);
     setActiveMoveActionId(null);
@@ -3321,8 +3319,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       conditions,
       createActions,
       linkActions,
-      removeOtherChildLinks,
-      removeOtherParentLinks,
+      removeOtherLinksByType,
       moveActions,
       updateActions,
       notifyActions,
@@ -3595,9 +3592,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   // Dev-only fallback so the operator dropdown can be visually tested without a live backend.
-  const linkOperatorOptions = linkCardActionOperators.length > 0
+  const rawLinkOperatorOptions = linkCardActionOperators.length > 0
     ? linkCardActionOperators
     : (import.meta.env.DEV ? DUMMY_LINK_ACTION_OPERATORS : []);
+  // get_link_card_possible_action_operators has been observed returning entries with
+  // distinct operator_id/operator_key but identical operator_label (e.g. two separate
+  // "to card with id" rows) — dedupe by the visible label itself, since that's what
+  // actually reads as a repeat to the user, not by the (differing) backend id/key.
+  const linkOperatorOptions = Array.from(
+    new Map(rawLinkOperatorOptions.map((op) => [(op.operator_label || '').trim().toLowerCase(), op])).values()
+  );
   const linkOperatorFilterQuery = linkOperatorFilterText.trim().toLowerCase();
   const filteredLinkOperators = linkOperatorFilterQuery
     ? linkOperatorOptions.filter((op) => op.operator_label.toLowerCase().includes(linkOperatorFilterQuery))
@@ -3730,9 +3734,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   // "Remove all other X links" only makes sense for a link type the user has actually
-  // added — showing all of them regardless of selection is what the earlier version did.
-  const hasChildLinkAction = linkActions.some((a) => a.key === 'child');
-  const hasParentLinkAction = linkActions.some((a) => a.key === 'parent');
+  // added — showing all five regardless of selection is what the earlier version did.
+  const activeLinkRemoveOptions = LINK_REMOVE_OTHERS_OPTIONS.filter((opt) =>
+    linkActions.some((a) => a.key === opt.key)
+  );
 
   return (
     <>
@@ -4317,28 +4322,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           );
                         })}
 
-                        {(hasChildLinkAction || hasParentLinkAction) && (
+                        {activeLinkRemoveOptions.length > 0 && (
                           <div className="br-link-remove-others-box">
-                            {hasChildLinkAction && (
-                              <label className="br-link-checkbox-row">
+                            {activeLinkRemoveOptions.map((opt) => (
+                              <label key={opt.key} className="br-link-checkbox-row">
                                 <input
                                   type="checkbox"
-                                  checked={removeOtherChildLinks}
-                                  onChange={(e) => setRemoveOtherChildLinks(e.target.checked)}
+                                  checked={Boolean(removeOtherLinksByType[opt.key])}
+                                  onChange={(e) =>
+                                    setRemoveOtherLinksByType((prev) => ({ ...prev, [opt.key]: e.target.checked }))
+                                  }
                                 />
-                                Remove all other child links
+                                {opt.label}
                               </label>
-                            )}
-                            {hasParentLinkAction && (
-                              <label className="br-link-checkbox-row">
-                                <input
-                                  type="checkbox"
-                                  checked={removeOtherParentLinks}
-                                  onChange={(e) => setRemoveOtherParentLinks(e.target.checked)}
-                                />
-                                Remove all other parent links
-                              </label>
-                            )}
+                            ))}
                           </div>
                         )}
 
