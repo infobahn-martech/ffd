@@ -3266,13 +3266,13 @@
 // their own widths untouched. Sum (incl. the shared 64px checkbox + 180px
 // crew name columns) drives the table's min-width so headers stop truncating.
 .crew-summary-table {
-  min-width: 1534px;
+  min-width: 1554px;
 }
 
 .crew-summary-table th:nth-child(3),
 .crew-summary-table td:nth-child(3) {
-  width: 110px;
-  min-width: 110px;
+  width: 130px;
+  min-width: 130px;
 }
 
 .crew-summary-table th:nth-child(4),
@@ -3339,4 +3339,24 @@
 .crew-summary-table td:nth-child(14) {
   width: 90px;
   min-width: 90px;
+}
+
+// Crew Summary card gets a bounded, bordered box with a *fixed* height
+// (rather than the generic max-height above, which is tall enough on most
+// screens that the wrapper never actually overflows — so it's the outer
+// page that ends up scrolling instead of the table). A fixed height means
+// only .crew-table-scroll's tbody rows scroll internally; the thead stays
+// pinned via its own `position: sticky`, and the page around the card never
+// has to move to browse crew.
+.crew-mgmt-summary-section .crew-table-wrapper {
+  height: 480px;
+  max-height: none;
+  border: 1px solid $border-color-default;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.crew-mgmt-summary-section .crew-pagination {
+  border-bottom-left-radius: $radius-lg;
+  border-bottom-right-radius: $radius-lg;
 }
