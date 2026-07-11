@@ -2582,25 +2582,48 @@ const buildInitialInvokeParams = (initialParams, supportsBody, hasSavedParams) =
     hasSavedParams ? (initialParams ?? []) : withDefaultPayloadRow(initialParams ?? [], supportsBody)
   );
 
-// Card fields inserted into the Url are stored inline as "{Field Name}" tokens
-// in the saved url string (so the shape stays a plain string on the wire), but
-// shown in the editor as removable pills like the Params value box — this pulls
-// the tokens back out into a pill list on load.
+// Card fields inserted into the Url are stored inline as "{Field Name}" tokens in the
+// saved url string (so the shape stays a plain string on the wire), but edited as an
+// ordered mix of free text and non-editable pill nodes in a contentEditable box — like
+// the notification Subject field — so text can be typed before, after, or in between
+// existing field pills instead of pills always trailing at the end.
 const URL_FIELD_TOKEN_RE = /\{([^}]+)\}/g;
-const splitUrlFields = (rawUrl) => {
-  const fields = [];
-  const base = (rawUrl ?? '').replace(URL_FIELD_TOKEN_RE, (_, name) => {
-    fields.push(name);
-    return '';
-  });
-  return { base, fields };
+const parseUrlTokenString = (rawUrl) => {
+  const str = rawUrl ?? '';
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  URL_FIELD_TOKEN_RE.lastIndex = 0;
+  while ((match = URL_FIELD_TOKEN_RE.exec(str))) {
+    if (match.index > lastIndex) parts.push({ type: 'text', value: str.slice(lastIndex, match.index) });
+    parts.push({ type: 'pill', value: match[1] });
+    lastIndex = URL_FIELD_TOKEN_RE.lastIndex;
+  }
+  if (lastIndex < str.length) parts.push({ type: 'text', value: str.slice(lastIndex) });
+  return parts;
 };
+const urlPartsToString = (parts) => parts.map((part) => (part.type === 'pill' ? `{${part.value}}` : part.value)).join('');
+// Mirrors NotificationSettingsModal's parseSubjectParts, scoped to the Url box.
+const parseUrlBoxParts = (el) => {
+  if (!el) return [];
+  return Array.from(el.childNodes).reduce((acc, node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent) acc.push({ type: 'text', value: node.textContent });
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-pill')) {
+      acc.push({ type: 'pill', value: node.textContent });
+    }
+    return acc;
+  }, []);
+};
+
+// The Params value box keeps its simpler "either a plain value or a set of field
+// pills" model (unlike the Url box above) — this join is only used to serialize a
+// param row's field pills into the same inline "{Field Name}" token shape the Url
+// box and the backend both expect.
 const joinUrlFields = (base, fields) => base + fields.map((f) => `{${f}}`).join('');
 
 function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   const [serviceName, setServiceName] = useState('');
-  const [url, setUrl] = useState('');
-  const [urlFields, setUrlFields] = useState([]);
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
   const [authUsername, setAuthUsername] = useState('');
@@ -2615,6 +2638,9 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   const [headers, setHeaders] = useState([]);
   const [params, setParams] = useState([]);
   const [fieldPickerTarget, setFieldPickerTarget] = useState(null);
+  const urlBoxRef = useRef(null);
+
+  const { saveWebServiceSettings, isSavingWebServiceSettings } = useBusinessRuleReducer((s) => s);
 
   const methodSupportsBody = INVOKE_METHODS_WITH_BODY.includes(method);
 
@@ -2623,9 +2649,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     const initialMethod = initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1];
     const supportsBody = INVOKE_METHODS_WITH_BODY.includes(initialMethod);
     setServiceName(initialSettings?.serviceName ?? '');
-    const { base: initialUrlBase, fields: initialUrlFields } = splitUrlFields(initialSettings?.url);
-    setUrl(initialUrlBase);
-    setUrlFields(initialUrlFields);
     setMethod(initialMethod);
     setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
     setAuthUsername(initialSettings?.authUsername ?? '');
@@ -2642,6 +2665,27 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     setFieldPickerTarget(null);
   }, [show, initialSettings]);
 
+  // Seeds the Url contentEditable box once per open, same as the Subject box in
+  // NotificationSettingsModal — plain text + pill nodes are set up directly on the
+  // DOM here rather than driven by React state on every keystroke.
+  useLayoutEffect(() => {
+    if (!show) return;
+    const el = urlBoxRef.current;
+    if (!el) return;
+    el.replaceChildren();
+    parseUrlTokenString(initialSettings?.url).forEach((part) => {
+      if (part.type === 'pill') {
+        const span = document.createElement('span');
+        span.className = 'notification-pill br-invoke-value-pill';
+        span.contentEditable = 'false';
+        span.textContent = part.value;
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(part.value));
+      }
+    });
+  }, [show, initialSettings]);
+
   const handleMethodChange = (newMethod) => {
     const supportsBody = INVOKE_METHODS_WITH_BODY.includes(newMethod);
     setMethod(newMethod);
@@ -2650,11 +2694,45 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     setParams((prev) => withTrailingBlankParam(withDefaultPayloadRow(prev, supportsBody)));
   };
 
-  const handleAddUrlFields = (fields) => {
-    setUrlFields((prev) => Array.from(new Set([...prev, ...fields])));
+  // Mirrors handleAddSubjectField's cursor-based insert so a card field lands
+  // exactly where the caret is, instead of always being appended at the end.
+  const handleInsertUrlField = (field) => {
+    const el = urlBoxRef.current;
+    if (!el) return;
+    const span = document.createElement('span');
+    span.className = 'notification-pill br-invoke-value-pill';
+    span.contentEditable = 'false';
+    span.textContent = field;
+
+    const selection = window.getSelection();
+    const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
+      ? selection.getRangeAt(0)
+      : null;
+    if (existingRange) {
+      existingRange.deleteContents();
+      existingRange.insertNode(span);
+    } else {
+      el.appendChild(span);
+    }
+
+    el.focus();
+    const newRange = document.createRange();
+    newRange.setStartAfter(span);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
   };
-  const handleRemoveUrlField = (field) => {
-    setUrlFields((prev) => prev.filter((f) => f !== field));
+
+  // Url is a single-line field: block Enter from inserting a line break, and strip
+  // formatting from pasted content so the box only ever holds text + pill nodes.
+  const handleUrlKeyDown = (e) => {
+    if (e.key === 'Enter') e.preventDefault();
+  };
+
+  const handleUrlPaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
   };
 
   // Only re-seed a blank row when the list would otherwise be completely
@@ -2719,19 +2797,48 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
 
   const handleApplyFieldPicker = (fields) => {
     if (fieldPickerTarget === 'url') {
-      handleAddUrlFields(fields);
+      fields.forEach((field) => handleInsertUrlField(field));
     } else if (fieldPickerTarget?.paramId != null) {
       handleAddParamFields(fieldPickerTarget.paramId, fields);
     }
   };
 
   const handleSave = () => {
-    onSave({
-      serviceName, url: joinUrlFields(url, urlFields), method, authentication,
-      authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
-      sendParamsInBody, headers, params,
+    const urlValue = urlPartsToString(parseUrlBoxParts(urlBoxRef.current));
+    const payload = {
+      service_name: serviceName,
+      url: urlValue,
+      method,
+      authentication,
+      send_params_in_body: sendParamsInBody ? 1 : 0,
+      headers: headers
+        .filter((h) => !isBlankHeaderRow(h))
+        .map((h) => ({ key: h.key, value: h.value })),
+      params: params
+        .filter((p) => !isBlankParamRow(p))
+        .map((p) => ({ key: p.key, value: p.fields.length > 0 ? joinUrlFields('', p.fields) : p.value })),
+    };
+    if (authentication === 'BASIC') {
+      payload.auth_username = authUsername;
+      payload.auth_password = authPassword;
+    } else if (authentication === 'TOKEN') {
+      payload.auth_token = authToken;
+    } else if (authentication === 'API_KEY') {
+      payload.auth_api_key_name = authApiKeyName;
+      payload.auth_api_key_value = authApiKeyValue;
+      payload.auth_api_key_location = authApiKeyLocation;
+    }
+
+    saveWebServiceSettings(payload, {
+      cb: (data) => {
+        onSave({
+          serviceName, url: urlValue, method, authentication,
+          authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
+          sendParamsInBody, headers, params, webServiceId: data?.data?.web_service_id ?? null,
+        });
+        onClose();
+      },
     });
-    onClose();
   };
 
   return (
@@ -2784,32 +2891,17 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
                 </button>
               </div>
             </div>
-            <div className="br-invoke-value-box">
-              {urlFields.length > 0 ? (
-                <div className="br-invoke-value-pills">
-                  {urlFields.map((f) => (
-                    <span key={f} className="notification-pill br-invoke-value-pill">
-                      {f}
-                      <button
-                        type="button"
-                        className="br-invoke-value-pill-remove"
-                        onClick={() => handleRemoveUrlField(f)}
-                        aria-label={`Remove ${f}`}
-                      >
-                        <FiX size={10} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type="text"
-                  className="br-invoke-value-input"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
-              )}
-            </div>
+            <div
+              ref={urlBoxRef}
+              className="br-invoke-value-box br-invoke-value-box--editable"
+              contentEditable
+              suppressContentEditableWarning
+              role="textbox"
+              aria-multiline="false"
+              aria-label="Service url"
+              onKeyDown={handleUrlKeyDown}
+              onPaste={handleUrlPaste}
+            />
           </div>
 
           <div className="br-invoke-two-col">
@@ -3041,8 +3133,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
           <button type="button" className="br-invoke-test-btn">
             Test Settings
           </button>
-          <button type="button" className="br-property-add-btn" onClick={handleSave}>
-            Save Service
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingWebServiceSettings}>
+            {isSavingWebServiceSettings ? 'Saving...' : 'Save Service'}
           </button>
         </footer>
       </div>
@@ -3074,6 +3166,7 @@ WebInvokeSettingsModal.propTypes = {
     sendParamsInBody: PropTypes.bool,
     headers: PropTypes.array,
     params: PropTypes.array,
+    webServiceId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
@@ -4587,7 +4680,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           className="business-rule-form-action-detail-link"
                           onClick={() => handleOpenWebInvokeSettings(action.id)}
                         >
-                          {action.configured ? 'Configured' : 'Not Set'}
+                          {action.configured ? (action.serviceName?.trim() || 'Configured') : 'Not Set'}
                         </button>
                       </div>
                     ))}

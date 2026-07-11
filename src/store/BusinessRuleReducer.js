@@ -239,6 +239,25 @@ const useBusinessRuleReducer = create((set) => ({
             onSettled && onSettled();
         }
     },
+
+    isSavingWebServiceSettings: false,
+
+    saveWebServiceSettings: async (payload, { cb, onSettled } = {}) => {
+        try {
+            set({ isSavingWebServiceSettings: true });
+            const { data } = await businessRuleService.saveWebServiceSettings(payload);
+            set({ isSavingWebServiceSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Web service settings saved.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isSavingWebServiceSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;
