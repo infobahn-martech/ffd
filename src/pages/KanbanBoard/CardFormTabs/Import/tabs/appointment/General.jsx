@@ -4390,6 +4390,11 @@ ${body}
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
   const previewOperatorId = firstNonEmptyString(getFieldValue("assignedOperator"));
   const previewLastPort = firstNonEmptyString(getFieldValue("lastPort"));
+  const previewSelectedChecklists = getFieldValue("selectedChecklists");
+  const previewChecklistTypeIds = Array.isArray(previewSelectedChecklists)
+    ? previewSelectedChecklists.filter(Boolean)
+    : [];
+  const previewChecklistTypeIdsKey = previewChecklistTypeIds.join(",");
 
   // Checklist options depend only on Call Type + Port; refetch and clear the selection whenever either changes.
   useEffect(() => {
@@ -4440,6 +4445,7 @@ ${body}
       operator_id: previewOperatorId,
       last_port: previewLastPort,
       time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
+      checklist_type_ids: previewChecklistTypeIds,
     }),
     [
       previewVesselId,
@@ -4453,6 +4459,7 @@ ${body}
       previewLastPort,
       stageTimeObjects,
       stageTimeObjectValues,
+      previewChecklistTypeIdsKey,
     ]
   );
   const etaTimeObjectId = useMemo(() => {
@@ -4630,6 +4637,7 @@ ${body}
           operator_id: previewOperatorId,
           last_port: previewLastPort,
           time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
+          checklist_type_ids: previewChecklistTypeIds,
         });
         if (cancelled) return;
         const resolved = resolveEmailPreviewPayload(data);
@@ -4672,6 +4680,7 @@ ${body}
     previewLastPort,
     stageTimeObjectValues,
     stageTimeObjects,
+    previewChecklistTypeIdsKey,
     isPreviewMessageDirty,
     populateEditablePreviewFields,
     resetTouchedPreviewFields,
