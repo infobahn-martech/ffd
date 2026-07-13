@@ -2028,7 +2028,7 @@ function NotificationSettingsModal({
   const quillWrapRef = useRef(null);
   const subjectBoxRef = useRef(null);
 
-  const { saveNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
+  const { saveNotificationSettings, updateNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
 
   // A previously-saved notify action carries a backend notification_id: its To/Cc/Subject/Body
   // come from get_notification_settings (user + custom-field ids) instead of the plain
@@ -2242,12 +2242,25 @@ function NotificationSettingsModal({
       body: bodyContentToText(bodyContent),
     };
 
-    saveNotificationSettings(payload, {
-      cb: (data) => {
-        onSave({ to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
-        onClose();
-      },
-    });
+    // A notify action that already has a notification_id (fetchedSettings was loaded
+    // for it in handleOpenNotificationSettings) was previously saved on the backend, so
+    // resaving it must update that record instead of creating a duplicate one.
+    const existingNotificationId = initialSettings?.notification_id;
+    if (existingNotificationId) {
+      updateNotificationSettings(existingNotificationId, payload, {
+        cb: () => {
+          onSave({ to, cc, subjectParts, bodyContent, notificationId: existingNotificationId });
+          onClose();
+        },
+      });
+    } else {
+      saveNotificationSettings(payload, {
+        cb: (data) => {
+          onSave({ to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+          onClose();
+        },
+      });
+    }
   };
 
   // Subject is a single-line field: block Enter from inserting a paragraph break, and

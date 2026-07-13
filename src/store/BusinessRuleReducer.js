@@ -258,6 +258,23 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    updateNotificationSettings: async (notificationId, payload, { cb, onSettled } = {}) => {
+        try {
+            set({ isSavingNotificationSettings: true });
+            const { data } = await businessRuleService.updateNotificationSettings(notificationId, payload);
+            set({ isSavingNotificationSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Notification settings updated.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isSavingNotificationSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isSavingWebServiceSettings: false,
 
     saveWebServiceSettings: async (payload, { cb, onSettled } = {}) => {
