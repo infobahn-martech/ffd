@@ -45,8 +45,11 @@ const saveNotificationSettings = (payload) =>
 const saveWebServiceSettings = (payload) =>
   Gateway.post('/business_rule/save_web_service_settings', payload);
 
+const updateWebServiceSettings = (webServiceId, payload) =>
+  Gateway.put(`/business_rule/update_web_service_settings/${webServiceId}`, payload);
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
-  getNotificationSettings, saveNotificationSettings, saveWebServiceSettings,
+  getNotificationSettings, saveNotificationSettings, saveWebServiceSettings, updateWebServiceSettings,
 };

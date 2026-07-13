@@ -2683,7 +2683,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
   const [fieldPickerTarget, setFieldPickerTarget] = useState(null);
   const urlBoxRef = useRef(null);
 
-  const { saveWebServiceSettings, isSavingWebServiceSettings } = useBusinessRuleReducer((s) => s);
+  const { saveWebServiceSettings, updateWebServiceSettings, isSavingWebServiceSettings, isUpdatingWebServiceSettings } = useBusinessRuleReducer((s) => s);
 
   const methodSupportsBody = INVOKE_METHODS_WITH_BODY.includes(method);
 
@@ -2872,12 +2872,17 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
       payload.auth_api_key_location = authApiKeyLocation;
     }
 
-    saveWebServiceSettings(payload, {
+    const existingWebServiceId = initialSettings?.webServiceId;
+    const saveOrUpdate = existingWebServiceId
+      ? (p) => updateWebServiceSettings(existingWebServiceId, p)
+      : (p) => saveWebServiceSettings(p);
+
+    saveOrUpdate(payload, {
       cb: (data) => {
         onSave({
           serviceName, url: urlValue, method, authentication,
           authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
-          sendParamsInBody, headers, params, webServiceId: data?.data?.web_service_id ?? null,
+          sendParamsInBody, headers, params, webServiceId: data?.data?.web_service_id ?? existingWebServiceId ?? null,
         });
         onClose();
       },
@@ -3176,8 +3181,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
           <button type="button" className="br-invoke-test-btn">
             Test Settings
           </button>
-          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingWebServiceSettings}>
-            {isSavingWebServiceSettings ? 'Saving...' : 'Save Service'}
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
+            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : 'Save Service'}
           </button>
         </footer>
       </div>
