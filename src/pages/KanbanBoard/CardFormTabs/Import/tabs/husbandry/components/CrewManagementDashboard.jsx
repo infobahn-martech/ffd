@@ -393,24 +393,15 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const handlePreviewClick = (type) => setPreviewMovementType(type);
   const handleClosePreview = () => setPreviewMovementType(null);
 
-  // Passport/Iqama dropzones — one file per crew member in the currently
-  // selected movement type's uploaded batch, matched in order to crew_ids[]
-  // (crew/upload_passport_copies + passports[], or crew/upload_iqama_copies
-  // + iqamas[]), same real-endpoint pattern as the Crew Summary bulk
-  // actions. Refetches crew/get_crew_list afterwards.
+  // Passport/Iqama dropzones — crew/upload_passport_copies + passports[], or
+  // crew/upload_iqama_copies + iqamas[]. Payload is just the file array, no
+  // call_id/vessel_id/crew_ids — same real-endpoint pattern as the Crew
+  // Summary bulk actions. Refetches crew/get_crew_list afterwards so the doc
+  // status icons reflect the real result.
   const handleCrewDocCopyUpload = (kind) => async (fileList) => {
     if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
-
-    const targetRows = crewSummaryRows.filter((row) => row.movementTypeValue === movementType);
-    if (files.length !== targetRows.length) {
-      notify(
-        `Select exactly ${targetRows.length} file(s) — one per crew member in this ${selectedMovementTypeLabel || "movement type"}'s list.`,
-        "error"
-      );
-      return;
-    }
 
     const stepKey = kind === "passport" ? "passport" : "iqama";
     const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
@@ -419,33 +410,24 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
     setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "uploading" } }));
 
-    const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-    if (!resolvedCallId || !resolvedVesselId) {
-      setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
-      notify("Unable to upload: missing call or vessel information.", "error");
-      return;
-    }
-
     const formData = new FormData();
-    formData.append("call_id", String(resolvedCallId));
-    formData.append("vessel_id", String(resolvedVesselId));
-    targetRows.forEach((row, index) => {
-      formData.append("crew_ids[]", String(row.crewId));
-      formData.append(fileFieldName, files[index]);
-    });
+    files.forEach((file) => formData.append(fileFieldName, file));
 
     try {
       await uploadAction({ formData });
-      const list = await fetchCallCrewList({
-        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
-      });
-      if (Array.isArray(list)) {
-        setUploadedCrewList(list);
-        handleChange("crewList")({ target: { value: list } });
-        handleChange("crewCount")({ target: { value: list.length } });
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (resolvedCallId && resolvedVesselId) {
+        const list = await fetchCallCrewList({
+          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+        });
+        if (Array.isArray(list)) {
+          setUploadedCrewList(list);
+          handleChange("crewList")({ target: { value: list } });
+          handleChange("crewCount")({ target: { value: list.length } });
+        }
       }
       setUploadSteps((prev) => ({ ...prev, [stepKey]: { status: "completed", files, progress: 100 } }));
-      notify(`${label} uploaded for ${targetRows.length} crew member(s).`, "success");
+      notify(`${label} uploaded — ${files.length} file(s).`, "success");
     } catch {
       setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
@@ -610,56 +592,39 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     });
   };
 
-  // Passport/Iqama bulk upload — one file per selected crew member, matched
-  // in order to crew_ids[] (crew/upload_passport_copies + passports[], or
-  // crew/upload_iqama_copies + iqamas[]). Unlike the local-only Visa
-  // override above, this hits a real endpoint, then refetches
-  // crew/get_crew_list so the doc status icons reflect the real result.
+  // Passport/Iqama bulk upload — crew/upload_passport_copies + passports[],
+  // or crew/upload_iqama_copies + iqamas[]. Payload is just the file array,
+  // no call_id/vessel_id/crew_ids. Unlike the local-only Visa override
+  // above, this hits a real endpoint, then refetches crew/get_crew_list so
+  // the doc status icons reflect the real result.
   const handleBulkCopyUpload = (kind) => async (event) => {
     const files = Array.from(event.target.files || []);
     event.target.value = "";
-    if (summarySelectedIds.length === 0) return;
-
-    const orderedSelectedRows = crewSummaryRows.filter((row) => summarySelectedIds.includes(row.id));
-    if (files.length !== orderedSelectedRows.length) {
-      notify(
-        `Select exactly ${orderedSelectedRows.length} file(s) — one per selected crew member.`,
-        "error"
-      );
-      return;
-    }
+    if (files.length === 0) return;
 
     const setUploading = kind === "passport" ? setIsUploadingPassports : setIsUploadingIqamas;
     const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
     const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
     const label = kind === "passport" ? "Passport" : "Iqama";
 
-    const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-    if (!resolvedCallId || !resolvedVesselId) {
-      notify("Unable to upload: missing call or vessel information.", "error");
-      return;
-    }
-
     const formData = new FormData();
-    formData.append("call_id", String(resolvedCallId));
-    formData.append("vessel_id", String(resolvedVesselId));
-    orderedSelectedRows.forEach((row, index) => {
-      formData.append("crew_ids[]", String(row.crewId));
-      formData.append(fileFieldName, files[index]);
-    });
+    files.forEach((file) => formData.append(fileFieldName, file));
 
     setUploading(true);
     try {
       await uploadAction({ formData });
-      const list = await fetchCallCrewList({
-        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
-      });
-      if (Array.isArray(list)) {
-        setUploadedCrewList(list);
-        handleChange("crewList")({ target: { value: list } });
-        handleChange("crewCount")({ target: { value: list.length } });
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (resolvedCallId && resolvedVesselId) {
+        const list = await fetchCallCrewList({
+          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+        });
+        if (Array.isArray(list)) {
+          setUploadedCrewList(list);
+          handleChange("crewList")({ target: { value: list } });
+          handleChange("crewCount")({ target: { value: list.length } });
+        }
       }
-      notify(`${label} uploaded for ${orderedSelectedRows.length} crew member(s).`, "success");
+      notify(`${label} uploaded — ${files.length} file(s).`, "success");
     } catch {
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
     } finally {

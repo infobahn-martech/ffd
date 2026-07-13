@@ -816,6 +816,18 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             [MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS]: inboundOrdersCount,
             [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: landingNotesCount,
             [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: dispatchNotesCount,
+            // Each crew service tracks its own selected-crew subset in
+            // formValues — the sidebar badge should show how many crew are
+            // actually assigned to that service, not the total crew list
+            // count (which crewCount falls back to below for the plain
+            // "Crew" tab, the only one with no subset of its own).
+            [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: Array.isArray(formValues?.selectedCrew) ? formValues.selectedCrew.length : 0,
+            [CREW_MANAGEMENT_SUBTABS.HOTEL]: Array.isArray(formValues?.hotelSelectedCrew) ? formValues.hotelSelectedCrew.length : 0,
+            [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: Array.isArray(formValues?.medicalServiceSelectedCrew) ? formValues.medicalServiceSelectedCrew.length : 0,
+            [CREW_MANAGEMENT_SUBTABS.CG_PASS]: Array.isArray(formValues?.cgPassSelectedCrew) ? formValues.cgPassSelectedCrew.length : 0,
+            [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: Array.isArray(formValues?.zawilPassSelectedCrew) ? formValues.zawilPassSelectedCrew.length : 0,
+            crewChange: Array.isArray(formValues?.crewChangeSelectedCrew) ? formValues.crewChangeSelectedCrew.length : 0,
+            portPass: Array.isArray(formValues?.portPassSelectedCrew) ? formValues.portPassSelectedCrew.length : 0,
           }}
         />
         <div className="operation-right">
