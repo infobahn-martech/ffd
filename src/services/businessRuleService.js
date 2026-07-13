@@ -42,8 +42,14 @@ const getNotificationSettings = (notificationId) =>
 const saveNotificationSettings = (payload) =>
   Gateway.post('/business_rule/save_notification_settings', payload);
 
+const updateWebServiceSettings = (webServiceId, payload) =>
+  Gateway.post(`/business_rule/update_web_service_settings/${webServiceId}`, payload);
+
+const deleteWebServiceSettings = (webServiceId) =>
+  Gateway.delete(`/business_rule/delete_web_service_settings/${webServiceId}`);
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
-  getNotificationSettings, saveNotificationSettings,
+  getNotificationSettings, saveNotificationSettings, updateWebServiceSettings, deleteWebServiceSettings,
 };
