@@ -2011,12 +2011,14 @@ CardFieldPickerModal.propTypes = {
   triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
+const NOTIFICATION_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function NotificationSettingsModal({
   show, onClose, onSave, initialSettings, triggerTypeId,
   fetchedSettings, isLoadingSettings, users, getFieldDetails, fieldDetailsByKey,
 }) {
-  const [to, setTo] = useState([]);
-  const [cc, setCc] = useState([]);
+  const [toRecipientError, setToRecipientError] = useState(false);
+  const [ccRecipientError, setCcRecipientError] = useState(false);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
   const [showInternalUsersModal, setShowInternalUsersModal] = useState(false);
   const [internalUsersTarget, setInternalUsersTarget] = useState(null);
@@ -2027,6 +2029,8 @@ function NotificationSettingsModal({
   const quillRef = useRef(null);
   const quillWrapRef = useRef(null);
   const subjectBoxRef = useRef(null);
+  const toBoxRef = useRef(null);
+  const ccBoxRef = useRef(null);
 
   const { saveNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
 
@@ -2035,8 +2039,10 @@ function NotificationSettingsModal({
   // label tokens used while building the rule locally.
   const toUserIds = fetchedSettings?.to_users ?? [];
   const toCustomFieldIds = fetchedSettings?.to_custom_fields ?? [];
+  const toEmails = fetchedSettings?.to_emails ?? [];
   const ccUserIds = fetchedSettings?.cc_users ?? [];
   const ccCustomFieldIds = fetchedSettings?.cc_custom_fields ?? [];
+  const ccEmails = fetchedSettings?.cc_emails ?? [];
 
   useEffect(() => {
     if (!show || !fetchedSettings) return;
@@ -2060,25 +2066,89 @@ function NotificationSettingsModal({
     type: 'field',
   }));
 
+  const resolveEmailTokens = (emails) => emails.map((email) => ({ label: email, id: null, type: 'email' }));
+
   useEffect(() => {
     if (!show) return;
     if (fetchedSettings) {
-      setTo([...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds)]);
-      setCc([...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds)]);
       setBodyContent(fetchedSettings.body ? new QuillDelta().insert(fetchedSettings.body) : new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     } else {
-      setTo(initialSettings?.to ?? []);
-      setCc(initialSettings?.cc ?? []);
       setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     }
+    setToRecipientError(false);
+    setCcRecipientError(false);
     setShowInternalUsersModal(false);
     setInternalUsersTarget(null);
     setShowCustomFieldModal(false);
     setCustomFieldTarget(null);
     setShowCardFieldModal(false);
     setCardFieldTarget(null);
+  }, [show, initialSettings, fetchedSettings]);
+
+  // A recipient pill is a non-editable atomic node inside the contentEditable To/Cc box,
+  // carrying its backend id/type as data attributes so parseRecipientTokens can read them
+  // back out at save time (mirrors the plain-text "×" affordance instead of the FiX icon,
+  // since these nodes are built with raw DOM calls, not JSX).
+  const buildRecipientPill = (label, type, id) => {
+    const span = document.createElement('span');
+    span.className = `notification-user-pill notification-user-pill--${type}`;
+    span.contentEditable = 'false';
+    span.dataset.tokenType = type;
+    span.dataset.tokenId = id != null ? String(id) : '';
+    span.dataset.label = label;
+    span.appendChild(document.createTextNode(label));
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'notification-user-pill-remove';
+    removeBtn.setAttribute('aria-label', `Remove ${label}`);
+    removeBtn.textContent = '×';
+    span.appendChild(removeBtn);
+
+    return span;
+  };
+
+  const isDuplicateRecipientLabel = (el, label) => Array.from(el.querySelectorAll('.notification-user-pill'))
+    .some((pillEl) => pillEl.dataset.label === label);
+
+  // To/Cc are contentEditable boxes (same pattern as Subject below) so the browser's own
+  // caret placement handles "click anywhere to type" natively — no custom position tracking,
+  // and nothing shifts until the user actually types. Seeded once per open, same as Subject.
+  //
+  // Deliberately NOT depending on fieldDetailsByKey/users: getFieldDetails (above) resolves
+  // custom-field labels asynchronously after the modal opens, and each resolution hands back
+  // a new fieldDetailsByKey reference. Reseeding on that would call replaceChildren() again
+  // moments after the box first renders — wiping out anything already typed/clicked into,
+  // which is exactly what made typing look completely broken.
+  useLayoutEffect(() => {
+    if (!show) return;
+    const toEl = toBoxRef.current;
+    const ccEl = ccBoxRef.current;
+    if (!toEl || !ccEl) return;
+    toEl.replaceChildren();
+    ccEl.replaceChildren();
+
+    const seedTo = fetchedSettings
+      ? [...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds), ...resolveEmailTokens(toEmails)]
+      : (initialSettings?.to ?? []);
+    const seedCc = fetchedSettings
+      ? [...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds), ...resolveEmailTokens(ccEmails)]
+      : (initialSettings?.cc ?? []);
+
+    // A trailing space (real text node) after every pill gives the browser a valid
+    // caret anchor next to it — back-to-back pills with nothing but CSS gap between
+    // them leave no landing spot for a click, which is what made typing near/between
+    // existing pills seem completely dead.
+    seedTo.forEach((token) => {
+      toEl.appendChild(buildRecipientPill(token.label, token.type, token.id));
+      toEl.appendChild(document.createTextNode(' '));
+    });
+    seedCc.forEach((token) => {
+      ccEl.appendChild(buildRecipientPill(token.label, token.type, token.id));
+      ccEl.appendChild(document.createTextNode(' '));
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [show, initialSettings, fetchedSettings, fieldDetailsByKey, users]);
+  }, [show, initialSettings, fetchedSettings]);
 
   // Subject is a contentEditable box (free-typed text interleaved with non-editable
   // "card field" pills) rather than a controlled input, so its DOM only needs seeding
@@ -2112,16 +2182,96 @@ function NotificationSettingsModal({
     quill._pillMatcherAdded = true;
   }, [show]);
 
-  const appendTokens = (setter, items, type) => {
-    setter((prev) => [
-      ...prev,
-      ...items.filter((item) => !prev.some((t) => t.label === item.label)).map((item) => ({ label: item.label, id: item.id ?? null, type })),
-    ]);
+  // Inserts pill(s) at the current caret position inside the target contentEditable box
+  // (falling back to appending at the end if the selection isn't inside it) — same
+  // insert-at-selection approach as handleAddSubjectField below.
+  const insertRecipientPills = (boxEl, items, type) => {
+    if (!boxEl) return;
+    const selection = window.getSelection();
+    items.forEach((item) => {
+      if (isDuplicateRecipientLabel(boxEl, item.label)) return;
+      const pill = buildRecipientPill(item.label, type, item.id ?? null);
+      const existingRange = selection?.rangeCount > 0 && boxEl.contains(selection.getRangeAt(0).commonAncestorContainer)
+        ? selection.getRangeAt(0)
+        : null;
+      if (existingRange) {
+        existingRange.deleteContents();
+        existingRange.insertNode(pill);
+        const spaceNode = document.createTextNode(' ');
+        pill.after(spaceNode);
+        const newRange = document.createRange();
+        newRange.setStartAfter(spaceNode);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } else {
+        boxEl.appendChild(pill);
+        boxEl.appendChild(document.createTextNode(' '));
+      }
+    });
+    boxEl.focus();
   };
 
-  const handleRemoveToken = (target, label) => {
-    const setter = target === 'cc' ? setCc : setTo;
-    setter((prev) => prev.filter((t) => t.label !== label));
+  // Clicking the × inside a pill removes just that pill; a click anywhere else in the box
+  // is left to the browser's native contentEditable caret placement — nothing else moves.
+  const handleRecipientBoxClick = (e) => {
+    const removeBtn = e.target.closest('.notification-user-pill-remove');
+    if (!removeBtn) return;
+    e.preventDefault();
+    removeBtn.closest('.notification-user-pill')?.remove();
+  };
+
+  // Enter/comma turns the plain text the user just typed (since the last pill or the
+  // start of the box) into an email pill in place, mirroring handleAddSubjectField's
+  // Selection API usage but replacing text instead of inserting at an empty point.
+  const commitTypedRecipient = (boxEl, setError) => {
+    if (!boxEl) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+    if (!boxEl.contains(node) || node.nodeType !== Node.TEXT_NODE) return;
+
+    const offset = range.startOffset;
+    const fullText = node.textContent;
+    const before = fullText.slice(0, offset);
+    const after = fullText.slice(offset);
+    const trimmed = before.trim().replace(/,+$/, '').trim();
+    if (!trimmed) return;
+
+    if (isDuplicateRecipientLabel(boxEl, trimmed)) {
+      node.textContent = after;
+      setError(false);
+      return;
+    }
+    if (!NOTIFICATION_EMAIL_REGEX.test(trimmed)) {
+      setError(true);
+      return;
+    }
+
+    const pill = buildRecipientPill(trimmed, 'email', null);
+    const parent = node.parentNode;
+    parent.insertBefore(pill, node);
+    const spaceNode = document.createTextNode(' ');
+    parent.insertBefore(spaceNode, node);
+    if (after === '') {
+      node.remove();
+    } else {
+      node.textContent = after;
+    }
+    const newRange = document.createRange();
+    newRange.setStartAfter(spaceNode);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+    setError(false);
+  };
+
+  const handleRecipientKeyDown = (boxRef, setError) => (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitTypedRecipient(boxRef.current, setError);
+    }
   };
 
   const handleOpenInternalUsersModal = (target) => {
@@ -2130,7 +2280,7 @@ function NotificationSettingsModal({
   };
 
   const handleApplyInternalUsers = (items) => {
-    appendTokens(internalUsersTarget === 'cc' ? setCc : setTo, items, 'user');
+    insertRecipientPills((internalUsersTarget === 'cc' ? ccBoxRef : toBoxRef).current, items, 'user');
     setInternalUsersTarget(null);
   };
 
@@ -2140,7 +2290,7 @@ function NotificationSettingsModal({
   };
 
   const handleApplyCustomField = (items) => {
-    appendTokens(customFieldTarget === 'cc' ? setCc : setTo, items, 'field');
+    insertRecipientPills((customFieldTarget === 'cc' ? ccBoxRef : toBoxRef).current, items, 'field');
     setCustomFieldTarget(null);
   };
 
@@ -2218,6 +2368,27 @@ function NotificationSettingsModal({
   // exactly what gets sent.
   const subjectPartsToText = (parts) => parts.map((part) => part.value).join('');
 
+  // To/Cc aren't tracked in React state either (see the layout effect above) — read
+  // straight off their contentEditable DOM at save time. Any left-over plain text (typed
+  // but never confirmed with Enter/comma) is opportunistically picked up here too, so it
+  // isn't silently lost just because Save was clicked instead.
+  const parseRecipientTokens = (el) => {
+    if (!el) return [];
+    return Array.from(el.childNodes).reduce((acc, node) => {
+      if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-user-pill')) {
+        const rawId = node.dataset.tokenId;
+        const id = rawId ? (Number.isNaN(Number(rawId)) ? rawId : Number(rawId)) : null;
+        acc.push({ label: node.dataset.label ?? node.textContent, id, type: node.dataset.tokenType });
+      } else if (node.nodeType === Node.TEXT_NODE) {
+        const trimmed = node.textContent.trim().replace(/,+$/, '').trim();
+        if (trimmed && NOTIFICATION_EMAIL_REGEX.test(trimmed) && !acc.some((t) => t.label === trimmed)) {
+          acc.push({ label: trimmed, id: null, type: 'email' });
+        }
+      }
+      return acc;
+    }, []);
+  };
+
   // ReactQuill's onChange is wired directly to setBodyContent, so bodyContent is an HTML
   // string once the user has typed anything; it's only ever the initial Delta before that.
   const bodyContentToText = (content) => {
@@ -2232,19 +2403,23 @@ function NotificationSettingsModal({
 
   const handleSave = () => {
     const subjectParts = parseSubjectParts(subjectBoxRef.current);
+    const toTokens = parseRecipientTokens(toBoxRef.current);
+    const ccTokens = parseRecipientTokens(ccBoxRef.current);
     const payload = {
       from_email: fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL,
-      to_users: to.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
-      to_custom_fields: to.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
-      cc_users: cc.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
-      cc_custom_fields: cc.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      to_users: toTokens.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
+      to_custom_fields: toTokens.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      to_emails: toTokens.filter((t) => t.type === 'email').map((t) => t.label),
+      cc_users: ccTokens.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
+      cc_custom_fields: ccTokens.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
+      cc_emails: ccTokens.filter((t) => t.type === 'email').map((t) => t.label),
       subject: subjectPartsToText(subjectParts),
       body: bodyContentToText(bodyContent),
     };
 
     saveNotificationSettings(payload, {
       cb: (data) => {
-        onSave({ to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+        onSave({ to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
         onClose();
       },
     });
@@ -2345,21 +2520,20 @@ function NotificationSettingsModal({
                 </button>
               </div>
             </div>
-            <div className="notification-subject-box">
-              {to.map((token) => (
-                <span key={token.label} className={`notification-user-pill notification-user-pill--${token.type}`}>
-                  {token.label}
-                  <button
-                    type="button"
-                    className="notification-user-pill-remove"
-                    onClick={() => handleRemoveToken('to', token.label)}
-                    aria-label={`Remove ${token.label}`}
-                  >
-                    <FiX size={12} aria-hidden />
-                  </button>
-                </span>
-              ))}
-            </div>
+            <div
+              ref={toBoxRef}
+              className={`notification-subject-box notification-subject-box--editable${toRecipientError ? ' notification-subject-box--invalid' : ''}`}
+              contentEditable
+              suppressContentEditableWarning
+              role="textbox"
+              aria-multiline="false"
+              aria-label="To recipients"
+              data-placeholder="Type an email and press Enter"
+              onClick={handleRecipientBoxClick}
+              onInput={() => setToRecipientError(false)}
+              onKeyDown={handleRecipientKeyDown(toBoxRef, setToRecipientError)}
+            />
+            {toRecipientError && <p className="notification-field-error">Enter a valid email address.</p>}
           </div>
 
           <div className="notification-field">
@@ -2382,21 +2556,20 @@ function NotificationSettingsModal({
                 </button>
               </div>
             </div>
-            <div className="notification-subject-box">
-              {cc.map((token) => (
-                <span key={token.label} className={`notification-user-pill notification-user-pill--${token.type}`}>
-                  {token.label}
-                  <button
-                    type="button"
-                    className="notification-user-pill-remove"
-                    onClick={() => handleRemoveToken('cc', token.label)}
-                    aria-label={`Remove ${token.label}`}
-                  >
-                    <FiX size={12} aria-hidden />
-                  </button>
-                </span>
-              ))}
-            </div>
+            <div
+              ref={ccBoxRef}
+              className={`notification-subject-box notification-subject-box--editable${ccRecipientError ? ' notification-subject-box--invalid' : ''}`}
+              contentEditable
+              suppressContentEditableWarning
+              role="textbox"
+              aria-multiline="false"
+              aria-label="Cc recipients"
+              data-placeholder="Type an email and press Enter"
+              onClick={handleRecipientBoxClick}
+              onInput={() => setCcRecipientError(false)}
+              onKeyDown={handleRecipientKeyDown(ccBoxRef, setCcRecipientError)}
+            />
+            {ccRecipientError && <p className="notification-field-error">Enter a valid email address.</p>}
           </div>
 
           <div className="notification-field">
@@ -4945,8 +5118,8 @@ RefineUpdateCriteriaModal.propTypes = {
 NotificationSettingsModal.propTypes = {
   show: PropTypes.bool.isRequired,
   initialSettings: PropTypes.shape({
-    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
-    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
+    to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field', 'email']) })),
+    cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field', 'email']) })),
     subjectParts: PropTypes.array,
     bodyContent: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
     notificationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -4958,8 +5131,10 @@ NotificationSettingsModal.propTypes = {
     from_email: PropTypes.string,
     to_users: PropTypes.array,
     to_custom_fields: PropTypes.array,
+    to_emails: PropTypes.array,
     cc_users: PropTypes.array,
     cc_custom_fields: PropTypes.array,
+    cc_emails: PropTypes.array,
     subject: PropTypes.string,
     body: PropTypes.string,
   }),
