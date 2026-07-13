@@ -2015,6 +2015,7 @@ function NotificationSettingsModal({
   show, onClose, onSave, initialSettings, triggerTypeId,
   fetchedSettings, isLoadingSettings, users, getFieldDetails, fieldDetailsByKey,
 }) {
+  const [from, setFrom] = useState('');
   const [to, setTo] = useState([]);
   const [cc, setCc] = useState([]);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
@@ -2060,15 +2061,26 @@ function NotificationSettingsModal({
     type: 'field',
   }));
 
+  // Populated from the same non-vendor users list the To/Cc pickers use, so "From"
+  // becomes a real dropdown instead of the single fixed address it showed before.
+  const realFromOptions = (users ?? [])
+    .filter((u) => u.email)
+    .map((u) => ({ value: u.email, label: u.name ? `${u.name} (${u.email})` : u.email }));
+  const fromOptions = realFromOptions.length > 0
+    ? realFromOptions
+    : [{ value: DUMMY_NOTIFICATION_FROM_EMAIL, label: DUMMY_NOTIFICATION_FROM_EMAIL }];
+
   useEffect(() => {
     if (!show) return;
     if (fetchedSettings) {
       setTo([...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds)]);
       setCc([...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds)]);
+      setFrom(fetchedSettings.from_email ?? '');
       setBodyContent(fetchedSettings.body ? new QuillDelta().insert(fetchedSettings.body) : new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     } else {
       setTo(initialSettings?.to ?? []);
       setCc(initialSettings?.cc ?? []);
+      setFrom(initialSettings?.from ?? '');
       setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     }
     setShowInternalUsersModal(false);
@@ -2232,8 +2244,9 @@ function NotificationSettingsModal({
 
   const handleSave = () => {
     const subjectParts = parseSubjectParts(subjectBoxRef.current);
+    const fromEmail = from || fromOptions[0].value;
     const payload = {
-      from_email: fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL,
+      from_email: fromEmail,
       to_users: to.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
       to_custom_fields: to.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
       cc_users: cc.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
@@ -2244,7 +2257,7 @@ function NotificationSettingsModal({
 
     saveNotificationSettings(payload, {
       cb: (data) => {
-        onSave({ to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+        onSave({ from: fromEmail, to, cc, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
         onClose();
       },
     });
@@ -2318,8 +2331,14 @@ function NotificationSettingsModal({
           <div className="notification-field">
             <label className="business-rule-form-label">From:</label>
             <div className="business-rule-form-select-wrap">
-              <select className="business-rule-form-select" value={fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL} disabled>
-                <option value={fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL}>{fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL}</option>
+              <select
+                className="business-rule-form-select"
+                value={from || fromOptions[0].value}
+                onChange={(e) => setFrom(e.target.value)}
+              >
+                {fromOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
               <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
             </div>
@@ -4945,6 +4964,7 @@ RefineUpdateCriteriaModal.propTypes = {
 NotificationSettingsModal.propTypes = {
   show: PropTypes.bool.isRequired,
   initialSettings: PropTypes.shape({
+    from: PropTypes.string,
     to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
     cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field']) })),
     subjectParts: PropTypes.array,
