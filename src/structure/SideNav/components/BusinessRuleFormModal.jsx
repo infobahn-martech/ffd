@@ -2665,7 +2665,7 @@ const parseUrlBoxParts = (el) => {
 // box and the backend both expect.
 const joinUrlFields = (base, fields) => base + fields.map((f) => `{${f}}`).join('');
 
-function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
+function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings }) {
   const [serviceName, setServiceName] = useState('');
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
@@ -2689,24 +2689,45 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
 
   useEffect(() => {
     if (!show) return;
-    const initialMethod = initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1];
+    // A previously-saved invoke action carries a backend web_service_id: its settings
+    // come from get_web_service_settings (canonical, server-side field names) instead
+    // of the local shape built while configuring the rule in this session.
+    const source = fetchedSettings
+      ? {
+        serviceName: fetchedSettings.service_name,
+        url: fetchedSettings.url,
+        method: fetchedSettings.method,
+        authentication: fetchedSettings.authentication,
+        authUsername: fetchedSettings.auth_username,
+        authPassword: fetchedSettings.auth_password,
+        authToken: fetchedSettings.auth_token,
+        authApiKeyName: fetchedSettings.auth_api_key_name,
+        authApiKeyValue: fetchedSettings.auth_api_key_value,
+        authApiKeyLocation: fetchedSettings.auth_api_key_location,
+        sendParamsInBody: String(fetchedSettings.send_params_in_body) === '1',
+        headers: (fetchedSettings.headers ?? []).map((h) => ({ id: h.header_id, key: h.header_key, value: h.header_value })),
+        params: (fetchedSettings.params ?? []).map((p) => ({ id: p.param_id, key: p.param_key, value: p.param_value, fields: [] })),
+      }
+      : initialSettings;
+
+    const initialMethod = source?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1];
     const supportsBody = INVOKE_METHODS_WITH_BODY.includes(initialMethod);
-    setServiceName(initialSettings?.serviceName ?? '');
+    setServiceName(source?.serviceName ?? '');
     setMethod(initialMethod);
-    setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
-    setAuthUsername(initialSettings?.authUsername ?? '');
-    setAuthPassword(initialSettings?.authPassword ?? '');
-    setAuthToken(initialSettings?.authToken ?? '');
-    setAuthApiKeyName(initialSettings?.authApiKeyName ?? '');
-    setAuthApiKeyValue(initialSettings?.authApiKeyValue ?? '');
-    setAuthApiKeyLocation(initialSettings?.authApiKeyLocation ?? INVOKE_API_KEY_LOCATIONS[0]);
-    setSendParamsInBody(supportsBody ? (initialSettings?.sendParamsInBody ?? false) : false);
-    setHeaders(withTrailingBlankHeader(initialSettings?.headers ?? []));
-    setParams(buildInitialInvokeParams(initialSettings?.params, supportsBody, initialSettings?.params !== undefined));
+    setAuthentication(source?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
+    setAuthUsername(source?.authUsername ?? '');
+    setAuthPassword(source?.authPassword ?? '');
+    setAuthToken(source?.authToken ?? '');
+    setAuthApiKeyName(source?.authApiKeyName ?? '');
+    setAuthApiKeyValue(source?.authApiKeyValue ?? '');
+    setAuthApiKeyLocation(source?.authApiKeyLocation ?? INVOKE_API_KEY_LOCATIONS[0]);
+    setSendParamsInBody(supportsBody ? (source?.sendParamsInBody ?? false) : false);
+    setHeaders(withTrailingBlankHeader(source?.headers ?? []));
+    setParams(buildInitialInvokeParams(source?.params, supportsBody, source?.params !== undefined));
     setExpandedHeaders(true);
     setExpandedParams(true);
     setFieldPickerTarget(null);
-  }, [show, initialSettings]);
+  }, [show, initialSettings, fetchedSettings]);
 
   // Seeds the Url contentEditable box once per open, same as the Subject box in
   // NotificationSettingsModal — plain text + pill nodes are set up directly on the
@@ -2716,7 +2737,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
     const el = urlBoxRef.current;
     if (!el) return;
     el.replaceChildren();
-    parseUrlTokenString(initialSettings?.url).forEach((part) => {
+    parseUrlTokenString(fetchedSettings ? fetchedSettings.url : initialSettings?.url).forEach((part) => {
       if (part.type === 'pill') {
         const span = document.createElement('span');
         span.className = 'notification-pill br-invoke-value-pill';
@@ -2727,7 +2748,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
         el.appendChild(document.createTextNode(part.value));
       }
     });
-  }, [show, initialSettings]);
+  }, [show, initialSettings, fetchedSettings]);
 
   const handleMethodChange = (newMethod) => {
     const supportsBody = INVOKE_METHODS_WITH_BODY.includes(newMethod);
@@ -2874,8 +2895,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
 
     const existingWebServiceId = initialSettings?.webServiceId;
     const saveOrUpdate = existingWebServiceId
-      ? (p) => updateWebServiceSettings(existingWebServiceId, p)
-      : (p) => saveWebServiceSettings(p);
+      ? (p, opts) => updateWebServiceSettings(existingWebServiceId, p, opts)
+      : (p, opts) => saveWebServiceSettings(p, opts);
 
     saveOrUpdate(payload, {
       cb: (data) => {
@@ -3181,8 +3202,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings }) {
           <button type="button" className="br-invoke-test-btn">
             Test Settings
           </button>
-          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
-            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : 'Save Service'}
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
+            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save Service')}
           </button>
         </footer>
       </div>
@@ -3216,6 +3237,17 @@ WebInvokeSettingsModal.propTypes = {
     params: PropTypes.array,
     webServiceId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
+  fetchedSettings: PropTypes.shape({
+    web_service_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    service_name: PropTypes.string,
+    url: PropTypes.string,
+    method: PropTypes.string,
+    authentication: PropTypes.string,
+    send_params_in_body: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    headers: PropTypes.array,
+    params: PropTypes.array,
+  }),
+  isLoadingSettings: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };
@@ -3434,6 +3466,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
     getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
+    getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -3510,6 +3543,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setActiveNotifyActionId(null);
     setInvokeActions([]);
     setShowWebInvokeSettings(false);
+    resetWebServiceSettings();
     setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
   }, [show, rule, loggedInUserName]);
@@ -3978,6 +4012,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleOpenWebInvokeSettings = (id) => {
     setActiveInvokeActionId(id);
     setShowWebInvokeSettings(true);
+    const action = invokeActions.find((a) => a.id === id);
+    if (action?.webServiceId) {
+      getWebServiceSettings(action.webServiceId);
+    } else {
+      resetWebServiceSettings();
+    }
   };
 
   const handleSaveWebInvokeSettings = (settings) => {
@@ -4850,6 +4890,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowWebInvokeSettings(false)}
       onSave={handleSaveWebInvokeSettings}
       initialSettings={activeInvokeAction}
+      fetchedSettings={webServiceSettings}
+      isLoadingSettings={isLoadingWebServiceSettings}
     />
 
     <ShareWithModal
