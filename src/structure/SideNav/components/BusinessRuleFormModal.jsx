@@ -3420,7 +3420,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
             Test Settings
           </button>
           <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
-            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save Service')}
+            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : (initialSettings?.webServiceId ? 'Update Service' : 'Save Service'))}
           </button>
         </footer>
       </div>
