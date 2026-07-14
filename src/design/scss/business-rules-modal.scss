@@ -2125,6 +2125,18 @@
   flex-shrink: 0;
 }
 
+.business-rule-form-toggle--disabled {
+  cursor: not-allowed;
+
+  .business-rule-form-toggle-track {
+    opacity: 0.5;
+  }
+
+  .business-rule-form-toggle-label {
+    color: #9ca3af;
+  }
+}
+
 .share-with-filter-row {
   display: flex;
   align-items: center;
@@ -2847,26 +2859,46 @@
 }
 
 .notification-subject-box {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+  // Use block (not flex) so text nodes and inline pill <span>s flow in normal
+  // inline layout. A flex container gives pills and text separate flex items with
+  // no reachable text node between them, which makes the browser caret unable to
+  // land before, between, or after pills — effectively breaking free typing.
+  display: block;
+  line-height: 1.8;
   min-height: 46px;
   padding: 8px 14px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #ffffff;
+  word-break: break-word;
 
   &--editable {
     cursor: text;
-    font: normal normal 400 14px/1.4 $font-primary;
+    font: normal normal 400 14px/1.8 $font-primary;
     color: $txtColor;
+    white-space: pre-wrap; // preserves the space text-nodes seeded after each pill
 
     &:focus {
       outline: none;
       border-color: #9ca3af;
     }
   }
+
+  &--invalid {
+    border-color: #d92d20;
+  }
+
+  &--editable:empty::before {
+    content: attr(data-placeholder);
+    color: #9ca3af;
+    pointer-events: none;
+  }
+}
+
+.notification-field-error {
+  margin: 4px 0 0;
+  font: normal normal 400 12px/1.4 $font-primary;
+  color: #d92d20;
 }
 
 .notification-subject-text {
@@ -2877,6 +2909,7 @@
 .notification-pill {
   display: inline-flex;
   align-items: center;
+  vertical-align: middle;
   padding: 2px 10px;
   border-radius: 999px;
   background: #e5e7eb;
@@ -2887,6 +2920,7 @@
 .notification-user-pill {
   display: inline-flex;
   align-items: center;
+  vertical-align: middle;
   gap: 6px;
   padding: 2px 6px 2px 10px;
   border-radius: 999px;
@@ -2906,6 +2940,19 @@
       }
     }
   }
+
+  &.notification-user-pill--email {
+    background: #dbe7fb;
+    color: #1849a9;
+
+    .notification-user-pill-remove {
+      color: #1849a9;
+
+      &:hover {
+        color: #12377f;
+      }
+    }
+  }
 }
 
 .notification-user-pill-remove {
@@ -2917,6 +2964,8 @@
   padding: 0;
   color: #0f7a4a;
   cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
 
   &:hover {
     color: #0a5c37;
