@@ -8,7 +8,7 @@ import QuillTableBetter from 'quill-table-better';
 import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
-  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
   INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
@@ -3690,6 +3690,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [showWhenFieldPicker, setShowWhenFieldPicker] = useState(false);
   const [createActions, setCreateActions] = useState([]);
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
+  const [openCreateTemplateRowId, setOpenCreateTemplateRowId] = useState(null);
+  const [createTemplateFilterText, setCreateTemplateFilterText] = useState('');
+  const createTemplateTriggerRef = useRef(null);
+  const createTemplatePanelRef = useRef(null);
+  const [showCreateDetailsPicker, setShowCreateDetailsPicker] = useState(false);
+  const [activeCreateActionId, setActiveCreateActionId] = useState(null);
   const [linkActions, setLinkActions] = useState([]);
   const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
   const editingLinkActionIdRef = useRef(null);
@@ -3853,6 +3859,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [openLinkOperatorRowId]);
+
+  useEffect(() => {
+    if (openCreateTemplateRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (createTemplatePanelRef.current?.contains(t)) return;
+      if (createTemplateTriggerRef.current?.contains(t)) return;
+      setOpenCreateTemplateRowId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openCreateTemplateRowId]);
 
   useEffect(() => {
     if (!show) return;
@@ -4098,6 +4116,31 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setCreateActions((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handleClearCreateActions = () => {
+    setCreateActions([]);
+  };
+
+  const handleToggleCreateTemplatePicker = (id) => {
+    setCreateTemplateFilterText('');
+    setOpenCreateTemplateRowId((prev) => (prev === id ? null : id));
+  };
+
+  const handleSelectCreateTemplate = (id, templateName) => {
+    setCreateActions((prev) => prev.map((a) => (a.id === id ? { ...a, templateName } : a)));
+    setOpenCreateTemplateRowId(null);
+  };
+
+  const handleOpenCreateDetails = (id) => {
+    setActiveCreateActionId(id);
+    setShowCreateDetailsPicker(true);
+  };
+
+  const handleSaveCreateDetails = (destination) => {
+    setCreateActions((prev) => prev.map((a) => (a.id === activeCreateActionId ? { ...a, ...destination } : a)));
+  };
+
+  const activeCreateAction = createActions.find((a) => a.id === activeCreateActionId);
+
   const handleSelectLinkAction = (option) => {
     const editingId = editingLinkActionIdRef.current;
     if (editingId) {
@@ -4183,6 +4226,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const filteredLinkOperators = linkOperatorFilterQuery
     ? linkOperatorOptions.filter((op) => op.operator_label.toLowerCase().includes(linkOperatorFilterQuery))
     : linkOperatorOptions;
+
+  const createTemplateFilterQuery = createTemplateFilterText.trim().toLowerCase();
+  const filteredCreateTemplates = createTemplateFilterQuery
+    ? DUMMY_CREATE_ACTION_TEMPLATES.filter((name) => name.toLowerCase().includes(createTemplateFilterQuery))
+    : DUMMY_CREATE_ACTION_TEMPLATES;
 
   const handleAddMoveAction = () => {
     const option = MOVE_ACTION_OPTIONS[0];
@@ -4806,19 +4854,118 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   <div key={section.id} className="business-rule-form-action-section">
                     <h4 className="business-rule-form-action-title">{section.title}</h4>
 
-                    {section.id === 'create' && createActions.map((action) => (
-                      <div key={action.id} className="business-rule-form-action-chip">
-                        <span className="business-rule-form-action-chip-label">{action.label}</span>
-                        <button
-                          type="button"
-                          className="business-rule-form-condition-remove"
-                          onClick={() => handleRemoveCreateAction(action.id)}
-                          aria-label="Remove action"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
+                    {section.id === 'create' && createActions.length > 0 && (
+                      <div className="br-create-action-list">
+                        {createActions.map((action) => {
+                          const hasCustomProperties = action.key !== 'subtask';
+                          const isTemplatePickerOpen = openCreateTemplateRowId === action.id;
+                          const titleText = action.templateName
+                            ? `${action.label} - ${action.templateName}`
+                            : `${action.label}${hasCustomProperties ? ' with custom properties' : ''}`;
+                          return (
+                            <div key={action.id} className="br-create-action-card">
+                              <button
+                                type="button"
+                                className="business-rule-form-action-detail-close"
+                                onClick={() => handleRemoveCreateAction(action.id)}
+                                aria-label="Remove action"
+                              >
+                                <FiX size={14} />
+                              </button>
+
+                              {hasCustomProperties ? (
+                                <div className="board-minimap-picker-wrap br-create-template-wrap">
+                                  <button
+                                    type="button"
+                                    ref={isTemplatePickerOpen ? createTemplateTriggerRef : undefined}
+                                    className="br-create-action-title br-create-action-title--trigger"
+                                    onClick={() => handleToggleCreateTemplatePicker(action.id)}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={isTemplatePickerOpen}
+                                  >
+                                    {titleText}
+                                    <FiChevronDown size={14} aria-hidden />
+                                  </button>
+
+                                  {isTemplatePickerOpen && (
+                                    <div className="board-minimap-picker-panel br-create-template-panel" ref={createTemplatePanelRef}>
+                                      <div className="board-minimap-picker-search">
+                                        <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                        <input
+                                          type="text"
+                                          placeholder="Filter"
+                                          value={createTemplateFilterText}
+                                          onChange={(e) => setCreateTemplateFilterText(e.target.value)}
+                                          autoFocus
+                                        />
+                                      </div>
+                                      <div className="board-minimap-picker-scroll br-create-template-scroll">
+                                        <button
+                                          type="button"
+                                          className="br-create-template-option br-create-template-option--default"
+                                          onClick={() => handleSelectCreateTemplate(action.id, null)}
+                                        >
+                                          with custom properties
+                                        </button>
+                                        <div className="br-create-template-section-label">Templates</div>
+                                        {filteredCreateTemplates.length === 0 ? (
+                                          <div className="br-property-picker-empty">No matches</div>
+                                        ) : (
+                                          filteredCreateTemplates.map((name) => (
+                                            <button
+                                              type="button"
+                                              key={name}
+                                              className="br-create-template-option"
+                                              onClick={() => handleSelectCreateTemplate(action.id, name)}
+                                            >
+                                              {name}
+                                            </button>
+                                          ))
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <h5 className="br-create-action-title">{titleText}</h5>
+                              )}
+
+                              {hasCustomProperties ? (
+                                <button
+                                  type="button"
+                                  className="br-create-action-link br-create-action-link--btn"
+                                  onClick={() => handleOpenCreateDetails(action.id)}
+                                >
+                                  {action.boardName
+                                    ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                                    : 'Configure details'}
+                                </button>
+                              ) : (
+                                <span className="br-create-action-link">Not Set</span>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        <div className="br-link-footer-actions">
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={() => setShowCreateActionPicker(true)}
+                          >
+                            <FiPlus size={14} aria-hidden />
+                            Add new action
+                          </button>
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={handleClearCreateActions}
+                          >
+                            Clear all
+                          </button>
+                        </div>
                       </div>
-                    ))}
+                    )}
 
                     {section.id === 'link' && linkActions.length > 0 && (
                       <div className="br-link-card-list">
@@ -5051,7 +5198,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
-                    {!(section.id === 'link' && linkActions.length > 0) && (
+                    {!(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && (
                       <button
                         type="button"
                         className="business-rule-form-add-action"
@@ -5127,6 +5274,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowMoveDestinationPicker(false)}
       onSave={handleSaveMoveDestination}
       initialBoardId={activeMoveAction?.boardId}
+    />
+
+    <BoardMinimapModal
+      show={showCreateDetailsPicker}
+      onClose={() => setShowCreateDetailsPicker(false)}
+      onSave={handleSaveCreateDetails}
+      initialBoardId={activeCreateAction?.boardId}
     />
 
     <RefineUpdateCriteriaModal

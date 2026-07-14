@@ -1608,6 +1608,116 @@
   gap: 12px;
 }
 
+.br-create-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.br-create-action-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 32px 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+  .business-rule-form-action-detail-close {
+    top: -8px;
+    right: -8px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #6b7280;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+
+    &:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+  }
+}
+
+.br-create-action-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font: normal normal 600 14px/1.4 $font-primary;
+  color: $txtColor;
+}
+
+.br-create-action-title--trigger {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: #00368c;
+  }
+}
+
+.br-create-action-link {
+  font: normal normal 500 13px/1.4 $font-primary;
+  color: #00368c;
+}
+
+.br-create-action-link--btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: #002a6e;
+    text-decoration: underline;
+  }
+}
+
+.br-create-template-wrap {
+  align-self: flex-start;
+}
+
+.br-create-template-panel {
+  left: 0;
+  right: auto;
+  width: min(320px, calc(100vw - 120px));
+  max-height: 360px;
+}
+
+.br-create-template-scroll {
+  gap: 2px;
+}
+
+.br-create-template-option {
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  text-align: left;
+  font: normal normal 400 14px/1.4 $font-primary;
+  color: $txtColor;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+}
+
+.br-create-template-option--default {
+  color: #9ca3af;
+}
+
+.br-create-template-section-label {
+  padding: 6px 12px 2px;
+  font: normal normal 600 13px/1.4 $font-primary;
+  color: #00368c;
+}
+
 .br-link-card {
   position: relative;
   display: flex;

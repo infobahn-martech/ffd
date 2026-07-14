@@ -94,6 +94,7 @@ function Workspaces() {
     archiveWorkspace,
     archiveBoard,
     changeWorkspaceBackground,
+    removeWorkspaceBackground,
     addEditLoader,
     updateBoardName,
   } = useWorkSpaceReducer();
@@ -326,6 +327,13 @@ function Workspaces() {
     } finally {
       setUploadingWallpaperPresetId(null);
     }
+  };
+
+  const handleRemoveWorkspaceBackground = (workspaceId) => {
+    removeWorkspaceBackground({
+      workspace_id: workspaceId,
+      cb: closeWorkspaceMenus,
+    });
   };
 
   const handleRenameWorkspace = (workspaceId) => {
@@ -728,6 +736,18 @@ function Workspaces() {
                                   </div>
                                 )}
                               </li>
+                              {menuBackground && (
+                                <li role="none">
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--danger"
+                                    onClick={() => handleRemoveWorkspaceBackground(workspace.id)}
+                                  >
+                                    <span>Remove background</span>
+                                  </button>
+                                </li>
+                              )}
                             </ul>
                           )}
                         </div>

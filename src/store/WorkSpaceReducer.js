@@ -185,6 +185,21 @@ const useWorkSpaceReducer = create((set, get) => ({
       error(err?.response?.data?.message ?? err.message ?? 'Failed to update background');
     }
   },
+  removeWorkspaceBackground: async ({ workspace_id, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await workSpaceService.removeBackground(workspace_id);
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Background removed');
+      cb && cb();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to remove background');
+    }
+  },
   archiveWorkspace: async ({ workspace_id, cb }) => {
     try {
       set({ addEditLoader: true });
