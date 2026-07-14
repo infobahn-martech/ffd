@@ -4288,6 +4288,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     // notification_id) needs the delete call — one still unconfigured/unsaved
     // has nothing to remove server-side.
     const action = notifyActions.find((a) => a.id === id);
+    console.log('[DEBUG] handleRemoveNotifyAction', { id, action, notifyActions });
     if (action?.notification_id) {
       deleteNotificationSettings(action.notification_id, {
         cb: () => setNotifyActions((prev) => prev.filter((a) => a.id !== id)),
