@@ -50,6 +50,7 @@ export const THEN_ACTION_SECTIONS = [
   { id: 'update', title: 'Update the card details' },
   { id: 'link', title: 'Link the card' },
   { id: 'move', title: 'Move the card' },
+  { id: 'copy_values', title: 'Copy the values of these fields from the child into the parent' },
   { id: 'notify', title: 'Send notifications' },
   { id: 'invoke', title: 'Create the UI Invoke web service' },
 ];
@@ -64,6 +65,35 @@ export const ACTION_GROUP_TYPE_TO_SECTION_ID = {
   move_card: 'move',
   send_notifications: 'notify',
   invoke_web_service: 'invoke',
+  // move_parent_card/move_child_card reuse the same 'move' section as plain move_card —
+  // it's still just a destination pick, and the nested "if parent/child card matches
+  // this filter" block below each move action is only rendered when this trigger's own
+  // move action actually carries has_parent_filter/has_child_filter.
+  move_parent_card: 'move',
+  move_child_card: 'move',
+  // update_parent_card/update_child_card get their own dedicated, repeatable section
+  // (like 'create') instead of reusing the flat same-card 'update' chip list — they need
+  // a per-instance nested "if parent/child card matches this filter" sub-picker that the
+  // plain update_card flow never needed, so reusing 'update' would have meant restructuring
+  // its already-working flat shape just for this cross-card case.
+  update_parent_card: 'update_related',
+  update_child_card: 'update_related',
+  // Recurring-schedule triggers (e.g. "Recurring create cards") carry their own
+  // dedicated "execute" section, rendered with a time+timezone picker instead of
+  // an add/remove action list since there's exactly one schedule per rule.
+  execute_at: 'execute',
+  // "Convert subtasks to" (e.g. on "Card is moved") has the same empty
+  // get_then_action_fields shape as move_card — it's a destination pick, not a
+  // field pick — so it reuses the board-minimap destination picker as its own
+  // dedicated section rather than the 'move' one, to keep it a separate action list.
+  convert_subtasks_to: 'convert',
+  // "Copy the values of these fields from the child into the parent" (e.g. on
+  // "Child card is updated") — its own repeatable section like update_related,
+  // with a field-to-copy chip list plus the same nested parent-filter sub-picker.
+  // Not yet returned by the live get_trigger_config for that trigger (actions: []
+  // there as of this writing), so this key is a best-effort guess pending the
+  // backend seeding real action rows — update it if the real group_type differs.
+  copy_values_to_parent: 'copy_values',
 };
 
 export const CREATE_ACTION_OPTIONS = [
@@ -152,6 +182,10 @@ export const DUMMY_FIELD_OPERATORS = [
 
 export const MOVE_ACTION_OPTIONS = [
   { key: 'move_to', label: 'Move card to' },
+];
+
+export const CONVERT_SUBTASK_ACTION_OPTIONS = [
+  { key: 'convert_to', label: 'Convert subtasks to' },
 ];
 
 export const NOTIFY_ACTION_OPTIONS = [

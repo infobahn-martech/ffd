@@ -8,7 +8,7 @@ import QuillTableBetter from 'quill-table-better';
 import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
-  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
   INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
@@ -29,6 +29,26 @@ import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } fro
 
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
+
+// The backend has no timezone catalog for the "Execute at" recurring-schedule action —
+// the runtime's own IANA database is the only source, so it's read once at module load.
+const TIMEZONE_LIST = (() => {
+  try {
+    return Intl.supportedValuesOf('timeZone');
+  } catch {
+    return ['UTC', 'Asia/Dubai', 'Asia/Riyadh', 'Asia/Kolkata', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Asia/Shanghai', 'Australia/Sydney'];
+  }
+})();
+
+// Same gap for the WHEN-side recurrence frequency: get_regular_fields returns nothing for
+// this trigger type, so "Every day/hour/minute/second" is built from the one shared
+// time-unit list (days/hours/minutes/seconds) that get_then_action_fields already returns.
+const RECURRENCE_UNIT_SINGULAR_LABEL = {
+  days: 'day',
+  hours: 'hour',
+  minutes: 'minute',
+  seconds: 'second',
+};
 
 // Custom embed (not inline format) for the "field pill" tokens (e.g. Title, Author) in
 // the notification body. An inline format only styles editable text — the characters
@@ -3707,6 +3727,29 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
+  const [convertSubtaskActions, setConvertSubtaskActions] = useState([]);
+  const [showConvertDestinationPicker, setShowConvertDestinationPicker] = useState(false);
+  const [activeConvertActionId, setActiveConvertActionId] = useState(null);
+  // "Update the parent/child card details" — its own repeatable action list (see
+  // ACTION_GROUP_TYPE_TO_SECTION_ID's update_parent_card/update_child_card comment).
+  // Each instance carries its own fields-to-update chips plus its own nested
+  // "if parent/child card matches this filter" property chips.
+  const [updateRelatedActions, setUpdateRelatedActions] = useState([]);
+  const [showUpdateRelatedFieldPicker, setShowUpdateRelatedFieldPicker] = useState(false);
+  const [activeUpdateRelatedActionId, setActiveUpdateRelatedActionId] = useState(null);
+  // "Copy the values of these fields from the child into the parent" — a third
+  // repeatable action list alongside update_related/move on cross-card triggers;
+  // same shape as update_related: field-to-copy chips plus its own nested
+  // "if parent card matches this filter" property chips.
+  const [copyValuesActions, setCopyValuesActions] = useState([]);
+  const [showCopyValuesFieldPicker, setShowCopyValuesFieldPicker] = useState(false);
+  const [activeCopyValuesActionId, setActiveCopyValuesActionId] = useState(null);
+  // Shared by both the move and update-related sections' nested "if parent/child card
+  // matches this filter" property picker — only one such picker can be open at a time,
+  // so a single { section, actionId } target is enough to route the picked field back
+  // to the right action's filterProperties array.
+  const [showRelatedFilterPicker, setShowRelatedFilterPicker] = useState(false);
+  const [activeRelatedFilterTarget, setActiveRelatedFilterTarget] = useState(null);
   const [updateActions, setUpdateActions] = useState([]);
   const [showUpdateActionPicker, setShowUpdateActionPicker] = useState(false);
   const [notifyActions, setNotifyActions] = useState([]);
@@ -3717,6 +3760,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+  // "Position" (board + swimlane/stage) is a second default condition some triggers carry
+  // alongside "Board" — get_field_details/regular/6 only returns operators (is/is not), not
+  // an actual list of positions, so this reuses the board-minimap destination picker (the
+  // same one "Move the card" uses) as the value picker instead of a plain dropdown.
+  const [positionConditionRows, setPositionConditionRows] = useState([
+    { id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' },
+  ]);
+  const [showPositionDestinationPicker, setShowPositionDestinationPicker] = useState(false);
+  const [activePositionRowId, setActivePositionRowId] = useState(null);
   const [openColorConditionId, setOpenColorConditionId] = useState(null);
   const colorConditionTriggerRef = useRef(null);
   const colorConditionPanelRef = useRef(null);
@@ -3725,12 +3777,35 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const conditionOperatorTriggerRef = useRef(null);
   const conditionOperatorPanelRef = useRef(null);
 
+  // Recurring-schedule triggers (when_type "regular_fields", e.g. "Recurring create cards")
+  // have no schedule options from get_regular_fields/get_then_action_fields beyond the
+  // generic days/hours/minutes/seconds time units — there's no day-of-week or timezone
+  // catalog on the backend yet, so the frequency and timezone lists below are built
+  // client-side from that one shared time-unit list plus the runtime's own IANA database.
+  const [recurrenceUnit, setRecurrenceUnit] = useState('days');
+  const [showRecurrenceUnitPicker, setShowRecurrenceUnitPicker] = useState(false);
+  const recurrenceUnitTriggerRef = useRef(null);
+  const recurrenceUnitPanelRef = useRef(null);
+  const [executeAtTime, setExecuteAtTime] = useState('00:00');
+  const [executeAtTimezone, setExecuteAtTimezone] = useState(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  });
+  const [showTimezonePicker, setShowTimezonePicker] = useState(false);
+  const [timezoneFilterText, setTimezoneFilterText] = useState('');
+  const timezoneTriggerRef = useRef(null);
+  const timezonePanelRef = useRef(null);
+
   const {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
     getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
     deleteNotificationSettings,
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
+    timeUnits, getTimeUnits,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -3748,6 +3823,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const andHeaderText = triggerConfig?.and_header || 'the created card matches this filter';
   const hasBoardDefaultCondition = (triggerConfig?.default_conditions ?? [])
     .some((c) => String(c.field_label ?? '').trim().toLowerCase() === 'board');
+  const hasPositionDefaultCondition = (triggerConfig?.default_conditions ?? [])
+    .some((c) => String(c.field_label ?? '').trim().toLowerCase() === 'position');
 
   // Drives the THEN column from the selected trigger type's own action catalog
   // (get_trigger_config's `actions`, ordered by display_order) instead of always
@@ -3768,12 +3845,36 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards')?.action_type_id;
   const updateActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'update_card')?.action_type_id;
 
+  // Resolved once per trigger: which cross-card direction (if any) this trigger's own
+  // move/update-related action applies to, so the nested filter block can read
+  // "if parent card matches this filter" vs "if child card matches this filter" — and
+  // be skipped entirely for the plain same-card move_card case (neither flag set).
+  const moveRelatedActionMeta = sortedTriggerActions.find((a) =>
+    a.group_type === 'move_parent_card' || a.group_type === 'move_child_card'
+  );
+  const moveRelatedFilterLabel = moveRelatedActionMeta?.has_parent_filter === '1'
+    ? 'parent'
+    : moveRelatedActionMeta?.has_child_filter === '1' ? 'child' : null;
+
+  const updateRelatedActionMeta = sortedTriggerActions.find((a) =>
+    a.group_type === 'update_parent_card' || a.group_type === 'update_child_card'
+  );
+  const updateRelatedActionTypeId = updateRelatedActionMeta?.action_type_id;
+  const updateRelatedFilterLabel = updateRelatedActionMeta?.has_parent_filter === '1'
+    ? 'parent'
+    : updateRelatedActionMeta?.has_child_filter === '1' ? 'child' : null;
+
+  const copyValuesActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'copy_values_to_parent')?.action_type_id;
+
   useEffect(() => {
     if (!show || !rule) return;
     getTriggerConfig(rule.id);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
     if (workspaces.length === 0) listAllWorkspaces();
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+    setPositionConditionRows([{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }]);
+    setShowPositionDestinationPicker(false);
+    setActivePositionRowId(null);
     setName(rule.name ?? '');
     setDescription(rule.description ?? '');
     setTags([]);
@@ -3799,6 +3900,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setMoveActions([]);
     setShowMoveDestinationPicker(false);
     setActiveMoveActionId(null);
+    setConvertSubtaskActions([]);
+    setShowConvertDestinationPicker(false);
+    setActiveConvertActionId(null);
+    setUpdateRelatedActions([]);
+    setShowUpdateRelatedFieldPicker(false);
+    setActiveUpdateRelatedActionId(null);
+    setCopyValuesActions([]);
+    setShowCopyValuesFieldPicker(false);
+    setActiveCopyValuesActionId(null);
+    setShowRelatedFilterPicker(false);
+    setActiveRelatedFilterTarget(null);
     setUpdateActions([]);
     setShowUpdateActionPicker(false);
     setNotifyActions([]);
@@ -3810,6 +3922,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     resetWebServiceSettings();
     setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
+    setRecurrenceUnit('days');
+    setShowRecurrenceUnitPicker(false);
+    setExecuteAtTime('00:00');
+    setShowTimezonePicker(false);
+    setTimezoneFilterText('');
+    if (timeUnits.length === 0) getTimeUnits();
   }, [show, rule, loggedInUserName]);
 
   useEffect(() => {
@@ -3849,6 +3967,31 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   }, [openConditionOperatorId]);
 
   useEffect(() => {
+    if (!showRecurrenceUnitPicker) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (recurrenceUnitPanelRef.current?.contains(t)) return;
+      if (recurrenceUnitTriggerRef.current?.contains(t)) return;
+      setShowRecurrenceUnitPicker(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [showRecurrenceUnitPicker]);
+
+  useEffect(() => {
+    if (!showTimezonePicker) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (timezonePanelRef.current?.contains(t)) return;
+      if (timezoneTriggerRef.current?.contains(t)) return;
+      setShowTimezonePicker(false);
+      setTimezoneFilterText('');
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [showTimezonePicker]);
+
+  useEffect(() => {
     if (openLinkOperatorRowId == null) return undefined;
     const onDocMouseDown = (event) => {
       const t = event.target;
@@ -3881,6 +4024,37 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     );
   }, [show, workspaces]);
 
+  // update_parent_card/update_child_card and move_parent_card/move_child_card aren't
+  // optional, many-instance actions the way create/link/notify/invoke are — a trigger
+  // that carries one of these only ever carries exactly one, and it's the whole point
+  // of the trigger (e.g. "Child card is moved" exists to update/move the parent). So
+  // unlike those optional sections, this one instance is auto-created as soon as the
+  // trigger config loads, instead of waiting for an explicit "Add new action" click.
+  useEffect(() => {
+    if (!show || !triggerConfig) return;
+    const actions = triggerConfig.actions ?? [];
+    if (actions.some((a) => a.group_type === 'update_parent_card' || a.group_type === 'update_child_card')) {
+      setUpdateRelatedActions((prev) => (prev.length === 0
+        ? [{ id: Date.now(), fields: [], filterProperties: [] }]
+        : prev));
+    }
+    if (actions.some((a) => a.group_type === 'move_parent_card' || a.group_type === 'move_child_card')) {
+      const option = MOVE_ACTION_OPTIONS[0];
+      setMoveActions((prev) => (prev.length === 0
+        ? [{
+          id: Date.now(), key: option.key, label: option.label,
+          boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
+          filterProperties: [],
+        }]
+        : prev));
+    }
+    if (actions.some((a) => a.group_type === 'copy_values_to_parent')) {
+      setCopyValuesActions((prev) => (prev.length === 0
+        ? [{ id: Date.now(), fields: [], filterProperties: [] }]
+        : prev));
+    }
+  }, [show, triggerConfig]);
+
   // Default each condition's operator to the first option (usually "is") as soon as its
   // field details load, so the row reads "Label is" instead of a blank "Select operator".
   useEffect(() => {
@@ -3907,6 +4081,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       description: description.trim(),
       tags,
       boardIds: boardConditionRows.map((row) => row.boardId || null),
+      positionConditions: positionConditionRows.map((row) => ({
+        boardId: row.boardId || null, swimlaneId: row.swimlaneId || null, stageId: row.stageId || null,
+      })),
       owner,
       sharePermissions,
       disallowTriggerChain,
@@ -3916,9 +4093,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       linkActions,
       removeOtherLinksByType,
       moveActions,
+      convertSubtaskActions,
       updateActions,
+      updateRelatedActions,
+      copyValuesActions,
       notifyActions,
       invokeActions,
+      recurrenceUnit,
+      executeAtTime,
+      executeAtTimezone,
     });
     onClose();
   };
@@ -4070,6 +4253,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleClearConditions = () => {
     setConditions([]);
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+    setPositionConditionRows([{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }]);
   };
 
   const handleApplyConditionColor = (boxId, valueId, hex) => {
@@ -4239,6 +4423,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       {
         id: Date.now(), key: option.key, label: option.label,
         boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
+        filterProperties: [],
       },
     ]);
   };
@@ -4257,6 +4442,145 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const activeMoveAction = moveActions.find((a) => a.id === activeMoveActionId);
+
+  const handleAddConvertAction = () => {
+    const option = CONVERT_SUBTASK_ACTION_OPTIONS[0];
+    setConvertSubtaskActions((prev) => [
+      ...prev,
+      {
+        id: Date.now(), key: option.key, label: option.label,
+        boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
+      },
+    ]);
+  };
+
+  const handleRemoveConvertAction = (id) => {
+    setConvertSubtaskActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenConvertDestination = (id) => {
+    setActiveConvertActionId(id);
+    setShowConvertDestinationPicker(true);
+  };
+
+  const handleSaveConvertDestination = (destination) => {
+    setConvertSubtaskActions((prev) => prev.map((a) => (a.id === activeConvertActionId ? { ...a, ...destination } : a)));
+  };
+
+  const activeConvertAction = convertSubtaskActions.find((a) => a.id === activeConvertActionId);
+
+  const handleAddUpdateRelatedAction = () => {
+    setUpdateRelatedActions((prev) => [...prev, { id: Date.now(), fields: [], filterProperties: [] }]);
+  };
+
+  const handleRemoveUpdateRelatedAction = (id) => {
+    setUpdateRelatedActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenUpdateRelatedFieldPicker = (id) => {
+    setActiveUpdateRelatedActionId(id);
+    setShowUpdateRelatedFieldPicker(true);
+  };
+
+  const handleSelectUpdateRelatedField = (item, meta) => {
+    const fieldId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const label = meta.category_key === 'custom' ? getFieldLabel(item) : (item.label ?? getFieldLabel(item));
+    setUpdateRelatedActions((prev) => prev.map((a) => (a.id === activeUpdateRelatedActionId
+      ? { ...a, fields: [...a.fields, { id: fieldId, fieldLabel: label }] }
+      : a)));
+  };
+
+  const handleRemoveUpdateRelatedField = (actionId, fieldId) => {
+    setUpdateRelatedActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, fields: a.fields.filter((f) => f.id !== fieldId) }
+      : a)));
+  };
+
+  const activeUpdateRelatedAction = updateRelatedActions.find((a) => a.id === activeUpdateRelatedActionId);
+  const updateRelatedExistingFieldLabels = (activeUpdateRelatedAction?.fields ?? [])
+    .map((f) => f.fieldLabel.trim().toLowerCase());
+
+  const handleAddCopyValuesAction = () => {
+    setCopyValuesActions((prev) => [...prev, { id: Date.now(), fields: [], filterProperties: [] }]);
+  };
+
+  const handleRemoveCopyValuesAction = (id) => {
+    setCopyValuesActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleOpenCopyValuesFieldPicker = (id) => {
+    setActiveCopyValuesActionId(id);
+    setShowCopyValuesFieldPicker(true);
+  };
+
+  const handleSelectCopyValuesField = (item, meta) => {
+    const fieldId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const label = meta.category_key === 'custom' ? getFieldLabel(item) : (item.label ?? getFieldLabel(item));
+    setCopyValuesActions((prev) => prev.map((a) => (a.id === activeCopyValuesActionId
+      ? { ...a, fields: [...a.fields, { id: fieldId, fieldLabel: label }] }
+      : a)));
+  };
+
+  const handleRemoveCopyValuesField = (actionId, fieldId) => {
+    setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, fields: a.fields.filter((f) => f.id !== fieldId) }
+      : a)));
+  };
+
+  const activeCopyValuesAction = copyValuesActions.find((a) => a.id === activeCopyValuesActionId);
+  const copyValuesExistingFieldLabels = (activeCopyValuesAction?.fields ?? [])
+    .map((f) => f.fieldLabel.trim().toLowerCase());
+
+  const handleOpenRelatedFilterPicker = (section, actionId) => {
+    setActiveRelatedFilterTarget({ section, actionId });
+    setShowRelatedFilterPicker(true);
+  };
+
+  const handleAddRelatedFilterProperty = (field) => {
+    if (!activeRelatedFilterTarget) return;
+    const { section, actionId } = activeRelatedFilterTarget;
+    const propId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const prop = { id: propId, fieldLabel: getFieldLabel(field) };
+    if (section === 'move') {
+      setMoveActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
+        : a)));
+    } else if (section === 'update_related') {
+      setUpdateRelatedActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
+        : a)));
+    } else if (section === 'copy_values') {
+      setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
+        : a)));
+    }
+  };
+
+  const handleRemoveRelatedFilterProperty = (section, actionId, propId) => {
+    if (section === 'move') {
+      setMoveActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
+        : a)));
+    } else if (section === 'update_related') {
+      setUpdateRelatedActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
+        : a)));
+    } else if (section === 'copy_values') {
+      setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
+        : a)));
+    }
+  };
+
+  const activeRelatedFilterAction = activeRelatedFilterTarget?.section === 'move'
+    ? moveActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
+    : activeRelatedFilterTarget?.section === 'update_related'
+      ? updateRelatedActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
+      : activeRelatedFilterTarget?.section === 'copy_values'
+        ? copyValuesActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
+        : null;
+  const activeRelatedFilterExistingLabels = (activeRelatedFilterAction?.filterProperties ?? [])
+    .map((p) => p.fieldLabel.trim().toLowerCase());
 
   const handleSelectUpdateAction = (item, meta) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -4369,6 +4693,37 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       return next;
     });
   };
+
+  const handleOpenPositionDestination = (rowId) => {
+    setActivePositionRowId(rowId);
+    setShowPositionDestinationPicker(true);
+  };
+
+  const handleSavePositionDestination = (destination) => {
+    setPositionConditionRows((prev) => prev.map((row) => (row.id === activePositionRowId ? { ...row, ...destination } : row)));
+  };
+
+  const handleRemovePositionConditionRow = (rowId) => {
+    setPositionConditionRows((prev) => {
+      if (prev.length <= 1) {
+        return [{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }];
+      }
+      return prev.filter((row) => row.id !== rowId);
+    });
+  };
+
+  const handleTogglePositionConditionJoinWord = (rowId) => {
+    setPositionConditionRows((prev) => {
+      const rowIndex = prev.findIndex((row) => row.id === rowId);
+      if (rowIndex === -1) return prev;
+      const newRow = { ...prev[rowIndex], id: `position-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` };
+      const next = [...prev];
+      next.splice(rowIndex + 1, 0, newRow);
+      return next;
+    });
+  };
+
+  const activePositionRow = positionConditionRows.find((row) => row.id === activePositionRowId);
 
   const handleCloseAttempt = () => {
     setShowCancelConfirm(true);
@@ -4569,7 +4924,39 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
               <h3 className="business-rule-form-column-title">WHEN</h3>
               <p className="business-rule-form-trigger-name business-rule-form-trigger-name--plain">{whenTriggerName}</p>
 
-              {triggerConfig?.has_when_fields === '1' && (
+              {triggerConfig?.when_type === 'regular_fields' ? (
+                <div className="business-rule-form-column-card business-rule-form-when-fields">
+                  <div className="board-minimap-picker-wrap">
+                    <button
+                      type="button"
+                      ref={showRecurrenceUnitPicker ? recurrenceUnitTriggerRef : undefined}
+                      className="business-rule-form-when-fields-pill"
+                      onClick={() => setShowRecurrenceUnitPicker((prev) => !prev)}
+                      aria-haspopup="listbox"
+                      aria-expanded={showRecurrenceUnitPicker}
+                    >
+                      Every {RECURRENCE_UNIT_SINGULAR_LABEL[recurrenceUnit] || recurrenceUnit}
+                    </button>
+
+                    {showRecurrenceUnitPicker && (
+                      <div className="board-minimap-picker-panel" ref={recurrenceUnitPanelRef}>
+                        <div className="board-minimap-picker-scroll">
+                          {(timeUnits.length > 0 ? timeUnits : DUMMY_TIME_UNITS).map((unit) => (
+                            <button
+                              type="button"
+                              key={unit.time_unit_id ?? unit.unit_key}
+                              className="br-create-template-option"
+                              onClick={() => { setRecurrenceUnit(unit.unit_key); setShowRecurrenceUnitPicker(false); }}
+                            >
+                              Every {RECURRENCE_UNIT_SINGULAR_LABEL[unit.unit_key] || unit.unit_label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : triggerConfig?.has_when_fields === '1' && (
                 <div className="business-rule-form-column-card business-rule-form-when-fields">
                   <p className="business-rule-form-when-fields-header">The following card fields are changed</p>
 
@@ -4602,6 +4989,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))
                   )}
+
+                  <button
+                    type="button"
+                    className="business-rule-form-add-link"
+                    onClick={handleOpenWhenFieldPicker}
+                  >
+                    <FiPlus size={14} aria-hidden />
+                    Add new field
+                  </button>
                 </div>
               )}
             </div>
@@ -4648,6 +5044,44 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {hasPositionDefaultCondition && positionConditionRows.length > 0 && (
+                  <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
+                    <span className="business-rule-form-condition-label">Position is</span>
+                    {positionConditionRows.map((row) => (
+                      <div key={row.id} className="br-board-condition-value-row">
+                        <button
+                          type="button"
+                          className="business-rule-form-condition-value"
+                          onClick={() => handleOpenPositionDestination(row.id)}
+                        >
+                          {row.boardName
+                            ? `${row.boardName} → ${row.swimlaneName || 'Any lane'} / ${row.stageName || 'Any stage'}`
+                            : 'Not Set'}
+                          <FiChevronDown size={16} aria-hidden />
+                        </button>
+
+                        <div className="business-rule-form-filter-row-actions">
+                          <button
+                            type="button"
+                            className="business-rule-form-or-btn"
+                            onClick={() => handleTogglePositionConditionJoinWord(row.id)}
+                          >
+                            {row.joinWord || 'OR'}
+                          </button>
+                          <button
+                            type="button"
+                            className="business-rule-form-filter-row-delete"
+                            onClick={() => handleRemovePositionConditionRow(row.id)}
+                            aria-label="Remove filter"
+                          >
+                            <FiTrash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -4821,7 +5255,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                   );
                 })}
 
-                {hasBoardDefaultCondition && (
+                {(hasBoardDefaultCondition || hasPositionDefaultCondition) && (
                   <div className="br-add-property-wrap">
                     <button
                       type="button"
@@ -4831,7 +5265,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       <FiPlus size={14} aria-hidden />
                       Add new property
                     </button>
-                    {(conditions.length > 0 || boardConditionRows.some((row) => row.boardId)) && (
+                    {(conditions.length > 0
+                      || boardConditionRows.some((row) => row.boardId)
+                      || positionConditionRows.some((row) => row.boardId)) && (
                       <button
                         type="button"
                         className="business-rule-form-add-link"
@@ -5126,6 +5562,128 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'update_related' && updateRelatedActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveUpdateRelatedAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+
+                        {action.fields.map((f) => (
+                          <div key={f.id} className="business-rule-form-action-chip">
+                            <span className="business-rule-form-action-chip-label">{f.fieldLabel}</span>
+                            <button
+                              type="button"
+                              className="business-rule-form-condition-remove"
+                              onClick={() => handleRemoveUpdateRelatedField(action.id, f.id)}
+                              aria-label="Remove field"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="business-rule-form-add-link"
+                          onClick={() => handleOpenUpdateRelatedFieldPicker(action.id)}
+                        >
+                          <FiPlus size={14} aria-hidden />
+                          Add new action
+                        </button>
+
+                        {updateRelatedFilterLabel && (
+                          <div>
+                            <p className="business-rule-form-when-fields-header">if {updateRelatedFilterLabel} card matches this filter</p>
+                            {(action.filterProperties ?? []).map((prop) => (
+                              <div key={prop.id} className="business-rule-form-action-chip">
+                                <span className="business-rule-form-action-chip-label">{prop.fieldLabel}</span>
+                                <button
+                                  type="button"
+                                  className="business-rule-form-condition-remove"
+                                  onClick={() => handleRemoveRelatedFilterProperty('update_related', action.id, prop.id)}
+                                  aria-label="Remove property"
+                                >
+                                  <FiTrash2 size={14} />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              className="business-rule-form-add-link"
+                              onClick={() => handleOpenRelatedFilterPicker('update_related', action.id)}
+                            >
+                              <FiPlus size={14} aria-hidden />
+                              Add new property
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {section.id === 'copy_values' && copyValuesActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveCopyValuesAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+
+                        {action.fields.map((f) => (
+                          <div key={f.id} className="business-rule-form-action-chip">
+                            <span className="business-rule-form-action-chip-label">{f.fieldLabel}</span>
+                            <button
+                              type="button"
+                              className="business-rule-form-condition-remove"
+                              onClick={() => handleRemoveCopyValuesField(action.id, f.id)}
+                              aria-label="Remove field"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="business-rule-form-add-link"
+                          onClick={() => handleOpenCopyValuesFieldPicker(action.id)}
+                        >
+                          <FiPlus size={14} aria-hidden />
+                          Add new field
+                        </button>
+
+                        <div>
+                          <p className="business-rule-form-when-fields-header">if parent card matches this filter</p>
+                          {(action.filterProperties ?? []).map((prop) => (
+                            <div key={prop.id} className="business-rule-form-action-chip">
+                              <span className="business-rule-form-action-chip-label">{prop.fieldLabel}</span>
+                              <button
+                                type="button"
+                                className="business-rule-form-condition-remove"
+                                onClick={() => handleRemoveRelatedFilterProperty('copy_values', action.id, prop.id)}
+                                aria-label="Remove property"
+                              >
+                                <FiTrash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={() => handleOpenRelatedFilterPicker('copy_values', action.id)}
+                          >
+                            <FiPlus size={14} aria-hidden />
+                            Add new property
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
                     {section.id === 'move' && moveActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-detail-card">
                         <button
@@ -5141,6 +5699,56 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           type="button"
                           className="business-rule-form-action-detail-link"
                           onClick={() => handleOpenMoveDestination(action.id)}
+                        >
+                          {action.boardName
+                            ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            : 'Choose where to move'}
+                        </button>
+
+                        {moveRelatedFilterLabel && (
+                          <div>
+                            <p className="business-rule-form-when-fields-header">if {moveRelatedFilterLabel} card matches this filter</p>
+                            {(action.filterProperties ?? []).map((prop) => (
+                              <div key={prop.id} className="business-rule-form-action-chip">
+                                <span className="business-rule-form-action-chip-label">{prop.fieldLabel}</span>
+                                <button
+                                  type="button"
+                                  className="business-rule-form-condition-remove"
+                                  onClick={() => handleRemoveRelatedFilterProperty('move', action.id, prop.id)}
+                                  aria-label="Remove property"
+                                >
+                                  <FiTrash2 size={14} />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              className="business-rule-form-add-link"
+                              onClick={() => handleOpenRelatedFilterPicker('move', action.id)}
+                            >
+                              <FiPlus size={14} aria-hidden />
+                              Add new property
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {section.id === 'convert' && convertSubtaskActions.map((action) => (
+                      <div key={action.id} className="business-rule-form-action-detail-card">
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-close"
+                          onClick={() => handleRemoveConvertAction(action.id)}
+                          aria-label="Remove action"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <h5 className="business-rule-form-action-detail-title">{action.label}</h5>
+                        <button
+                          type="button"
+                          className="business-rule-form-action-detail-link"
+                          onClick={() => handleOpenConvertDestination(action.id)}
                         >
                           {action.boardName
                             ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
@@ -5178,6 +5786,64 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
+                    {section.id === 'execute' && (
+                      <div className="business-rule-form-action-detail-card">
+                        <div className="board-minimap-picker-wrap">
+                          <input
+                            type="time"
+                            aria-label="Execute at time"
+                            className="business-rule-form-condition-input"
+                            value={executeAtTime}
+                            onChange={(e) => setExecuteAtTime(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="board-minimap-picker-wrap">
+                          <button
+                            type="button"
+                            ref={showTimezonePicker ? timezoneTriggerRef : undefined}
+                            className="business-rule-form-action-detail-link"
+                            onClick={() => setShowTimezonePicker((prev) => !prev)}
+                            aria-haspopup="listbox"
+                            aria-expanded={showTimezonePicker}
+                          >
+                            {executeAtTimezone}
+                            <FiChevronDown size={14} aria-hidden />
+                          </button>
+
+                          {showTimezonePicker && (
+                            <div className="board-minimap-picker-panel" ref={timezonePanelRef}>
+                              <div className="board-minimap-picker-search">
+                                <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                <input
+                                  type="text"
+                                  placeholder="Filter"
+                                  value={timezoneFilterText}
+                                  onChange={(e) => setTimezoneFilterText(e.target.value)}
+                                  autoFocus
+                                />
+                              </div>
+                              <div className="board-minimap-picker-scroll">
+                                {TIMEZONE_LIST
+                                  .filter((tz) => tz.toLowerCase().includes(timezoneFilterText.trim().toLowerCase()))
+                                  .slice(0, 200)
+                                  .map((tz) => (
+                                    <button
+                                      type="button"
+                                      key={tz}
+                                      className="br-create-template-option"
+                                      onClick={() => { setExecuteAtTimezone(tz); setShowTimezonePicker(false); setTimezoneFilterText(''); }}
+                                    >
+                                      {tz}
+                                    </button>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {section.id === 'invoke' && invokeActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-detail-card">
                         <button
@@ -5199,7 +5865,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     ))}
 
-                    {!(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && (
+                    {section.id !== 'execute' && !(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && (
                       <button
                         type="button"
                         className="business-rule-form-add-action"
@@ -5207,13 +5873,19 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                           if (section.id === 'create') setShowCreateActionPicker(true);
                           if (section.id === 'link') setShowLinkActionPicker(true);
                           if (section.id === 'move') handleAddMoveAction();
+                          if (section.id === 'convert') handleAddConvertAction();
                           if (section.id === 'update') setShowUpdateActionPicker(true);
+                          if (section.id === 'update_related') handleAddUpdateRelatedAction();
+                          if (section.id === 'copy_values') handleAddCopyValuesAction();
                           if (section.id === 'notify') handleAddNotifyAction();
                           if (section.id === 'invoke') handleAddInvokeAction();
                         }}
                       >
                         <FiPlus size={14} aria-hidden />
-                        Add new action
+                        {section.id === 'move' ? 'Add new move action'
+                          : section.id === 'update_related' ? 'Add new update action'
+                            : section.id === 'copy_values' ? 'Add new copy values action'
+                              : 'Add new action'}
                       </button>
                     )}
                   </div>
@@ -5278,6 +5950,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     />
 
     <BoardMinimapModal
+      show={showConvertDestinationPicker}
+      onClose={() => setShowConvertDestinationPicker(false)}
+      onSave={handleSaveConvertDestination}
+      initialBoardId={activeConvertAction?.boardId}
+    />
+
+    <BoardMinimapModal
+      show={showPositionDestinationPicker}
+      onClose={() => setShowPositionDestinationPicker(false)}
+      onSave={handleSavePositionDestination}
+      initialBoardId={activePositionRow?.boardId}
+    />
+
+    <BoardMinimapModal
       show={showCreateDetailsPicker}
       onClose={() => setShowCreateDetailsPicker(false)}
       onSave={handleSaveCreateDetails}
@@ -5293,6 +5979,32 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         .map((a) => a.rawLabel.trim().toLowerCase())}
       triggerTypeId={rule.id}
       actionTypeId={updateActionTypeId}
+    />
+
+    <RefineUpdateCriteriaModal
+      show={showUpdateRelatedFieldPicker}
+      onClose={() => setShowUpdateRelatedFieldPicker(false)}
+      onSelect={handleSelectUpdateRelatedField}
+      existingFieldLabels={updateRelatedExistingFieldLabels}
+      triggerTypeId={rule.id}
+      actionTypeId={updateRelatedActionTypeId}
+    />
+
+    <RefineUpdateCriteriaModal
+      show={showCopyValuesFieldPicker}
+      onClose={() => setShowCopyValuesFieldPicker(false)}
+      onSelect={handleSelectCopyValuesField}
+      existingFieldLabels={copyValuesExistingFieldLabels}
+      triggerTypeId={rule.id}
+      actionTypeId={copyValuesActionTypeId}
+    />
+
+    <CardPropertyMatchModal
+      show={showRelatedFilterPicker}
+      onClose={() => setShowRelatedFilterPicker(false)}
+      onSelect={handleAddRelatedFilterProperty}
+      existingFieldLabels={activeRelatedFilterExistingLabels}
+      triggerTypeId={rule.id}
     />
 
     <NotificationSettingsModal
