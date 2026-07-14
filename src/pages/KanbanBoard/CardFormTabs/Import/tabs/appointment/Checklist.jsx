@@ -746,7 +746,6 @@ function Checklist({
             onChange={handleChecklistTypeChange}
             options={checklistTypeOptions}
             placeholder={checklistTypeOptions.length ? "Select checklist type..." : "No checklist types available"}
-            cardColor={cardColor}
             disabled={isViewOnly || typeLoading || !prerequisiteState.canLoadChecklists}
           />
           {onOpenReportPreview && !isViewOnly ? (
@@ -800,7 +799,7 @@ function Checklist({
             !checklistError &&
             hasChecklistData &&
             checklistBlocks.map((block) => (
-              <div className="checklist-type-group cl-excel-type-group" key={block.typeId} style={{ "--card-color": cardColor }}>
+              <div className="checklist-type-group cl-excel-type-group" key={block.typeId}>
                 <ChecklistTypeBlock
                   typeTitle={block.typeName}
                   sectionTree={block.tree}
@@ -809,7 +808,6 @@ function Checklist({
                   openSections={openSections}
                   onSectionToggle={handleSectionToggle}
                   onSelectAll={handleSelectAll}
-                  cardColor={cardColor}
                   isViewOnly={isViewOnly}
                   isDAModule={isDAModule}
                 />
@@ -819,7 +817,6 @@ function Checklist({
           {!isViewOnly ? (
             <div className="checklist-actions">
               <ChecklistFooterActions
-                cardColor={cardColor}
                 disabled={isLoading || saveLoading || selectedChecklistTypeIds.length === 0}
                 loading={saveLoading}
                 onSaveConfirm={handleSaveConfirm}

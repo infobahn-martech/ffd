@@ -9,13 +9,12 @@ const ChecklistTypeBlock = ({
   openSections,
   onSectionToggle,
   onSelectAll,
-  cardColor,
   isViewOnly,
   isDAModule,
 }) => (
-  <div className="cl-type-block cl-excel-block" style={{ "--card-color": cardColor }}>
+  <div className="cl-type-block cl-excel-block">
     {typeTitle ? (
-      <div className="cl-excel-type-title">{typeTitle}</div>
+      <div className="cl-excel-type-title" title={typeTitle}>{typeTitle}</div>
     ) : null}
     <div className="cl-excel-table-wrap">
       <table className="checklist-items-table cl-items-table cl-excel-table cl-items-table--6col">
@@ -47,7 +46,6 @@ const ChecklistTypeBlock = ({
               openSections={openSections}
               onSectionToggle={onSectionToggle}
               onSelectAll={onSelectAll}
-              cardColor={cardColor}
               isViewOnly={isViewOnly}
               isDAModule={isDAModule}
               depth={0}
@@ -68,7 +66,6 @@ ChecklistTypeBlock.propTypes = {
   openSections: PropTypes.object.isRequired,
   onSectionToggle: PropTypes.func.isRequired,
   onSelectAll: PropTypes.func.isRequired,
-  cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
   isDAModule: PropTypes.bool,
 };

@@ -7,7 +7,6 @@ const ChecklistMultiSelect = ({
   options = [],
   placeholder,
   className = "",
-  cardColor = "#2A00FF",
   disabled = false,
   id: domId = "cl-type-multiselect",
 }) => {
@@ -52,7 +51,6 @@ const ChecklistMultiSelect = ({
     <div
       className={`cf-multiselect cl-type-multiselect-fallback ${className} ${disabled ? "disabled" : ""}`}
       ref={dropdownRef}
-      style={{ "--card-color": cardColor }}
       id={domId}
     >
       <div
@@ -68,7 +66,7 @@ const ChecklistMultiSelect = ({
             <span className="cf-multiselect-placeholder">{placeholder || "Select options…"}</span>
           ) : (
             value.map((val) => (
-              <span key={val} className="cf-multiselect-tag" style={{ "--card-color": cardColor }}>
+              <span key={val} className="cf-multiselect-tag">
                 <span className="cf-multiselect-tag-text" title={getOptionLabel(val)}>
                   {getOptionLabel(val)}
                 </span>
@@ -89,7 +87,7 @@ const ChecklistMultiSelect = ({
         <span className="cf-multiselect-arrow">{isOpen ? "▲" : "▼"}</span>
       </div>
       {isOpen && (
-        <div className="cf-multiselect-dropdown" style={{ "--card-color": cardColor }}>
+        <div className="cf-multiselect-dropdown">
           {options.map((option) => {
             const normalizedOptionValue = String(option.value).trim();
             const isSelected = value
@@ -122,7 +120,6 @@ ChecklistMultiSelect.propTypes = {
   ),
   placeholder: PropTypes.string,
   className: PropTypes.string,
-  cardColor: PropTypes.string,
   disabled: PropTypes.bool,
   id: PropTypes.string,
 };
