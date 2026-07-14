@@ -2863,6 +2863,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const [headers, setHeaders] = useState([]);
   const [params, setParams] = useState([]);
   const [fieldPickerTarget, setFieldPickerTarget] = useState(null);
+  const [paramPendingRemoveId, setParamPendingRemoveId] = useState(null);
   const urlBoxRef = useRef(null);
 
   const { saveWebServiceSettings, isSavingWebServiceSettings } = useBusinessRuleReducer((s) => s);
@@ -2905,6 +2906,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
     setExpandedHeaders(true);
     setExpandedParams(true);
     setFieldPickerTarget(null);
+    setParamPendingRemoveId(null);
   }, [show, initialSettings, fetchedSettings]);
 
   // Seeds the Url contentEditable box once per open, same as the Subject box in
@@ -3010,6 +3012,11 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       return next.length === 0 ? withTrailingBlankParam(next) : next;
     });
   };
+  const handleConfirmRemoveParam = () => {
+    handleRemoveParam(paramPendingRemoveId);
+    setParamPendingRemoveId(null);
+  };
+  const handleCancelRemoveParam = () => setParamPendingRemoveId(null);
   const handleParamChange = (id, field, value) => {
     setParams((prev) => withTrailingBlankParam(prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))));
   };
@@ -3358,7 +3365,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
                       <button
                         type="button"
                         className="br-invoke-row-delete"
-                        onClick={() => handleRemoveParam(p.id)}
+                        onClick={() => (isBlankParamRow(p) ? handleRemoveParam(p.id) : setParamPendingRemoveId(p.id))}
                         aria-label="Remove param"
                       >
                         <FiTrash2 size={14} />
@@ -3388,6 +3395,30 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       onSelect={handleApplyFieldPicker}
       fields={fieldPickerTarget === 'url' ? DUMMY_URL_FIELD_OPTIONS : DUMMY_INVOKE_PAYLOAD_FIELDS}
     />
+
+    <Modal
+      show={paramPendingRemoveId != null}
+      onHide={handleCancelRemoveParam}
+      className="br-cancel-confirm-modal"
+      dialogClassName="br-cancel-confirm-dialog"
+      backdropClassName="br-cancel-confirm-backdrop"
+      backdrop="static"
+    >
+      <div className="br-cancel-confirm-content">
+        <button type="button" className="br-cancel-confirm-close-btn" onClick={handleCancelRemoveParam}>
+          <FiX size={16} />
+        </button>
+        <p className="br-cancel-confirm-text">Are you sure you want to remove this parameter?</p>
+        <div className="br-cancel-confirm-actions">
+          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--no" onClick={handleCancelRemoveParam}>
+            No
+          </button>
+          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--yes" onClick={handleConfirmRemoveParam}>
+            Yes
+          </button>
+        </div>
+      </div>
+    </Modal>
     </>
   );
 }
@@ -3449,7 +3480,15 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
   const handleToggleDraftPermission = (userId, type) => {
     setDraftPermissions((prev) => {
       const current = prev[userId] ?? { viewer: false, editor: false };
-      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
+      if (type === 'viewer') {
+        if (current.editor) return prev;
+        return { ...prev, [userId]: { ...current, viewer: !current.viewer } };
+      }
+      const nextEditor = !current.editor;
+      return {
+        ...prev,
+        [userId]: { viewer: nextEditor ? true : current.viewer, editor: nextEditor },
+      };
     });
   };
 
@@ -3550,10 +3589,11 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
                       <span className="share-with-avatar" aria-hidden>{getInitials(user.name)}</span>
                       {user.username}
                     </span>
-                    <label className="business-rule-form-toggle share-with-toggle">
+                    <label className={`business-rule-form-toggle share-with-toggle${perm.editor ? ' business-rule-form-toggle--disabled' : ''}`}>
                       <input
                         type="checkbox"
                         checked={perm.viewer}
+                        disabled={perm.editor}
                         onChange={() => handleToggleDraftPermission(user.user_id, 'viewer')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
