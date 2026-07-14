@@ -421,9 +421,9 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </FormGroup>
 
-                <FormGroup icon="notebook" label="Notes" accent={HOTEL_ACCENT}>
+                <FormGroup icon="notebook" label="Remarks" accent={HOTEL_ACCENT}>
                   <div className="cgpass-remarks">
-                    <FormField label="Remarks">
+                    <FormField>
                       <ReactQuillEditor
                         value={formValues?.hotelDescription || ""}
                         onChange={handleChange("hotelDescription")}
