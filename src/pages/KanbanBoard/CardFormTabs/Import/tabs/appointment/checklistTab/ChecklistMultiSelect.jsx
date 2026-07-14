@@ -69,7 +69,9 @@ const ChecklistMultiSelect = ({
           ) : (
             value.map((val) => (
               <span key={val} className="cf-multiselect-tag" style={{ "--card-color": cardColor }}>
-                <span className="cf-multiselect-tag-text">{getOptionLabel(val)}</span>
+                <span className="cf-multiselect-tag-text" title={getOptionLabel(val)}>
+                  {getOptionLabel(val)}
+                </span>
                 {!disabled && (
                   <button
                     type="button"

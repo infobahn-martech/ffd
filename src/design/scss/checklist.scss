@@ -57,7 +57,7 @@
 }
 
 .checklist-header-type-select .cf-multiselect-input {
-  min-height: 36px;
+  height: 48px;
   border-radius: 4px;
   border-width: 1px;
   box-shadow: none;
@@ -1011,7 +1011,8 @@
   background: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 42px;
+  height: 48px;
+  overflow: hidden;
   gap: 8px;
 }
 
@@ -1022,29 +1023,50 @@
 
 .cf-multiselect-tags {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   flex: 1;
+  min-width: 0;
   align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.cf-multiselect-tags::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cf-multiselect-tags::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cf-multiselect-tags::-webkit-scrollbar-thumb {
+  background: #c7cfd8;
+  border-radius: 10px;
 }
 
 .cf-multiselect-placeholder {
   font-size: 14px;
   color: #999;
   font-style: italic;
+  white-space: nowrap;
 }
 
 .cf-multiselect-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 4px 6px;
   background: #f0f0f0;
   border: 1px solid #d0d0d0;
   border-radius: 6px;
   font-size: 13px;
   color: #2c3e50;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  width: 104px;
+  box-sizing: border-box;
 }
 
 .cf-multiselect-tag:hover {
@@ -1054,6 +1076,11 @@
 
 .cf-multiselect-tag-text {
   font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cf-multiselect-tag-remove {
@@ -1071,6 +1098,7 @@
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .cf-multiselect-tag-remove:hover {
