@@ -3120,7 +3120,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
         onSave({
           serviceName, url: urlValue, method, authentication,
           authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
-          sendParamsInBody, headers, params, webServiceId: data?.data?.web_service_id ?? existingWebServiceId ?? null,
+          sendParamsInBody, headers, params, webServiceId: data?.web_service_id ?? existingWebServiceId ?? null,
         });
         onClose();
       },
