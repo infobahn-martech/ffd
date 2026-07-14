@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { buildDepartureReportBody } from "../../services/sendReportBodyBuilder";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import { notify } from "../../../../../../components/Toaster";
+import appointmentAcceptanceService from "../../../../../../services/appointmentAcceptanceService";
 import useArrivalReducer from "../../../../../../store/ArrivalReducer";
 import useDepartureReducer from "../../../../../../store/DepartureReducer";
 import { OPERATION_STAGE_IDS } from "./operationConstants";
+import { extractReportTemplateFields } from "./operationReportTemplate";
 import {
   applyDepartureGetDetailToForm,
   extractDepartureReportDraftFromDetail,
@@ -17,6 +19,7 @@ import {
   appendAdditionalTimeObject,
   commitAdditionalTimeObject,
   DynamicDateTimeFields,
+  extractUploadedAttachments,
   FormField,
   FormInput,
   FormSection,
@@ -32,6 +35,8 @@ import {
   validateAdditionalTimeObjects,
 } from "./components/OperationCommon";
 
+const DEPARTURE_REPORT_TYPE_ID = 5;
+
 function Departure({
   formValues,
   handleChange,
@@ -40,6 +45,8 @@ function Departure({
   isViewOnly = false,
   eventFields = [],
   callId = "",
+  portId = "",
+  callTypeId = "",
   billingEntityId,
   stageId = OPERATION_STAGE_IDS.DEPARTURE,
 }) {
@@ -56,6 +63,7 @@ function Departure({
     message: "",
   });
   const [isSavingDeparture, setIsSavingDeparture] = useState(false);
+  const reportDraftFromDetailRef = useRef(false);
 
   const resolvedCallId = String(
     callId || formValues?.call_id || formValues?.callId || ""
@@ -99,6 +107,10 @@ function Departure({
     .join("|");
 
   useEffect(() => {
+    reportDraftFromDetailRef.current = false;
+  }, [resolvedCallId]);
+
+  useEffect(() => {
     if (isViewOnly || !resolvedCallId) return undefined;
 
     let cancelled = false;
@@ -111,6 +123,7 @@ function Departure({
 
       const savedDraft = extractDepartureReportDraftFromDetail(detail);
       if (savedDraft) {
+        reportDraftFromDetailRef.current = true;
         setReportDraft((prev) => ({
           ...prev,
           from: savedDraft.from || prev.from,
@@ -132,6 +145,61 @@ function Departure({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- formValues / handleChange omitted to avoid refetch loops
   }, [resolvedCallId, isViewOnly, departureEventFieldsApplyKey, fetchDepartureDetail]);
+
+  useEffect(() => {
+    if (isViewOnly) return undefined;
+
+    let cancelled = false;
+
+    const loadDepartureTemplate = async () => {
+      if (reportDraftFromDetailRef.current) return;
+
+      const resolvedPortId = String(portId || formValues?.port_id || formValues?.portId || "").trim();
+      const resolvedCallTypeId = String(
+        callTypeId || formValues?.call_type_id || formValues?.typeOfCall || formValues?.callTypeId || ""
+      ).trim();
+      if (!resolvedCallId || !resolvedPortId || !resolvedCallTypeId) return;
+
+      const timeObjects = buildDepartureTemplateTimeObjectsPayload();
+
+      try {
+        const response = await appointmentAcceptanceService.getArrivalTemplateByPortCallType({
+          call_id: resolvedCallId,
+          port_id: resolvedPortId,
+          call_type_id: resolvedCallTypeId,
+          report_type_id: DEPARTURE_REPORT_TYPE_ID,
+          time_objects: timeObjects,
+        });
+
+        if (cancelled) return;
+        const template = extractReportTemplateFields(response);
+
+        setReportDraft((prev) => ({
+          ...prev,
+          from: template.from || prev.from,
+          to: template.to || prev.to,
+          cc: template.cc || prev.cc,
+          subject: template.subject || prev.subject,
+          message: template.message || prev.message,
+        }));
+
+        const templateAttachments = extractUploadedAttachments(template.attachments);
+        const currentReportAttachments = formValues.departureReportAttachments || [];
+        if (templateAttachments.length && !currentReportAttachments.length) {
+          handleChange("departureReportAttachments")({ target: { value: templateAttachments } });
+        }
+      } catch (error) {
+        if (cancelled) return;
+      }
+    };
+
+    loadDepartureTemplate();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedCallId, portId, callTypeId, isViewOnly, formValues]);
 
   const handleReportDraftChange = (field, value) => {
     setReportDraft((prev) => ({ ...prev, [field]: value }));
@@ -169,6 +237,24 @@ function Departure({
         return {
           time_object_id: timeObjectId,
           time_object_value: `${timeObjectValue}:00`,
+        };
+      })
+      .filter(Boolean);
+
+  const buildDepartureTemplateTimeObjectsPayload = () =>
+    (Array.isArray(eventFields) ? eventFields : [])
+      .map((field) => {
+        const keyPrefix = field?.keyPrefix;
+        if (!keyPrefix) return null;
+        const timeObjectValue = toDateTimeValue(
+          formValues?.[`${keyPrefix}Date`],
+          formValues?.[`${keyPrefix}Time`]
+        );
+        if (!timeObjectValue) return null;
+        return {
+          time_object_id: field?.time_object_id ?? field?.event_type_id ?? null,
+          field_key: field?.field_key || field?.event_name || keyPrefix,
+          time_object_value: timeObjectValue,
         };
       })
       .filter(Boolean);
@@ -451,6 +537,8 @@ Departure.propTypes = {
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   billingEntityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };

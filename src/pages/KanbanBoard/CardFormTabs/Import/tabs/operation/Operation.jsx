@@ -489,6 +489,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               isViewOnly={isViewOnly}
               eventFields={departureEventFields}
               callId={currentCallId}
+              portId={preArrivalPortId}
+              callTypeId={preArrivalCallTypeId}
               billingEntityId={billingEntityId}
               stageId={OPERATION_STAGE_IDS.DEPARTURE}
             />
