@@ -58,15 +58,28 @@ const RECURRENCE_UNIT_SINGULAR_LABEL = {
 // image/mention-style plugins make chips non-editable.
 const QuillEmbedBlot = Quill.import('blots/embed');
 class NotificationPillBlot extends QuillEmbedBlot {
+  // Carries its own "×" remove button, same as the Subject/Url field pills — the
+  // value is kept in a data attribute (not just textContent) so it can be read back
+  // without the button's "×" bleeding into it.
   static create(value) {
     const node = super.create();
+    node.classList.add('notification-pill--removable');
     node.setAttribute('contenteditable', 'false');
-    node.textContent = value;
+    node.dataset.fieldValue = value;
+    node.appendChild(document.createTextNode(value));
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'notification-pill-remove';
+    removeBtn.setAttribute('aria-label', `Remove ${value}`);
+    removeBtn.textContent = '×';
+    node.appendChild(removeBtn);
+
     return node;
   }
 
   static value(node) {
-    return node.textContent;
+    return node.dataset.fieldValue ?? node.textContent;
   }
 }
 NotificationPillBlot.blotName = 'pill';
@@ -2182,6 +2195,26 @@ function NotificationSettingsModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show, initialSettings, fetchedSettings]);
 
+  // Mirrors buildRecipientPill: a non-editable field pill with its own "×" remove
+  // button. The value is kept in a data attribute (not just textContent) so
+  // parseSubjectParts can read it back without the button's "×".
+  const buildSubjectFieldPill = (value) => {
+    const span = document.createElement('span');
+    span.className = 'notification-pill notification-pill--removable';
+    span.contentEditable = 'false';
+    span.dataset.fieldValue = value;
+    span.appendChild(document.createTextNode(value));
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'notification-pill-remove';
+    removeBtn.setAttribute('aria-label', `Remove ${value}`);
+    removeBtn.textContent = '×';
+    span.appendChild(removeBtn);
+
+    return span;
+  };
+
   // Subject is a contentEditable box (free-typed text interleaved with non-editable
   // "card field" pills) rather than a controlled input, so its DOM only needs seeding
   // once per open — re-rendering it from React state on every keystroke would fight the
@@ -2196,11 +2229,7 @@ function NotificationSettingsModal({
       : (initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
     subjectParts.forEach((part) => {
       if (part.type === 'pill') {
-        const span = document.createElement('span');
-        span.className = 'notification-pill';
-        span.contentEditable = 'false';
-        span.textContent = part.value;
-        el.appendChild(span);
+        el.appendChild(buildSubjectFieldPill(part.value));
       } else {
         el.appendChild(document.createTextNode(part.value));
       }
@@ -2210,7 +2239,18 @@ function NotificationSettingsModal({
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
     if (!quill || quill._pillMatcherAdded) return;
-    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert({ pill: node.textContent }));
+    quill.clipboard.addMatcher('span.notification-pill', (node) => new QuillDelta().insert({ pill: node.dataset.fieldValue ?? node.textContent }));
+    // Clicking a pill's "×" must go through Quill's own API (deleteText) rather than
+    // removing the DOM node directly, so Quill's internal Delta model stays in sync.
+    quill.root.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.notification-pill-remove');
+      if (!removeBtn) return;
+      e.preventDefault();
+      const pillNode = removeBtn.closest('.notification-pill');
+      const blot = pillNode && Quill.find(pillNode);
+      if (!blot) return;
+      quill.deleteText(blot.offset(quill.scroll), 1, Quill.sources.USER);
+    });
     quill._pillMatcherAdded = true;
   }, [show]);
 
@@ -2331,10 +2371,7 @@ function NotificationSettingsModal({
   const handleAddSubjectField = (field) => {
     const el = subjectBoxRef.current;
     if (!el) return;
-    const span = document.createElement('span');
-    span.className = 'notification-pill';
-    span.contentEditable = 'false';
-    span.textContent = field;
+    const span = buildSubjectFieldPill(field);
 
     const selection = window.getSelection();
     const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
@@ -2382,17 +2419,28 @@ function NotificationSettingsModal({
   };
 
   // Subject isn't tracked in React state (see the layout effect above), so it's read
-  // straight off the contentEditable DOM at save time.
+  // straight off the contentEditable DOM at save time. Reads the field value from
+  // data-field-value rather than textContent, since the pill also carries a "×"
+  // remove button whose own text would otherwise leak in.
   const parseSubjectParts = (el) => {
     if (!el) return [];
     return Array.from(el.childNodes).reduce((acc, node) => {
       if (node.nodeType === Node.TEXT_NODE) {
         if (node.textContent) acc.push({ type: 'text', value: node.textContent });
       } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-pill')) {
-        acc.push({ type: 'pill', value: node.textContent });
+        acc.push({ type: 'pill', value: node.dataset.fieldValue ?? node.textContent });
       }
       return acc;
     }, []);
+  };
+
+  // Mirrors handleRecipientBoxClick: clicking a pill's "×" removes just that pill,
+  // leaving native contentEditable caret placement for clicks anywhere else.
+  const handleSubjectBoxClick = (e) => {
+    const removeBtn = e.target.closest('.notification-pill-remove');
+    if (!removeBtn) return;
+    e.preventDefault();
+    removeBtn.closest('.notification-pill')?.remove();
   };
 
   // Pill tokens are rendered inline as their label text — there's no template/placeholder
@@ -2645,6 +2693,7 @@ function NotificationSettingsModal({
               role="textbox"
               aria-multiline="false"
               aria-label="Notification subject"
+              onClick={handleSubjectBoxClick}
               onKeyDown={handleSubjectKeyDown}
               onPaste={handleSubjectPaste}
             />
@@ -2872,16 +2921,39 @@ const parseUrlTokenString = (rawUrl) => {
 };
 const urlPartsToString = (parts) => parts.map((part) => (part.type === 'pill' ? `{${part.value}}` : part.value)).join('');
 // Mirrors NotificationSettingsModal's parseSubjectParts, scoped to the Url box.
+// Reads the field value from data-field-value rather than textContent, since the
+// pill also carries a "×" remove button whose own text would otherwise leak in.
 const parseUrlBoxParts = (el) => {
   if (!el) return [];
   return Array.from(el.childNodes).reduce((acc, node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       if (node.textContent) acc.push({ type: 'text', value: node.textContent });
     } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-pill')) {
-      acc.push({ type: 'pill', value: node.textContent });
+      acc.push({ type: 'pill', value: node.dataset.fieldValue ?? node.textContent });
     }
     return acc;
   }, []);
+};
+
+// Mirrors buildRecipientPill/buildSubjectFieldPill: a non-editable field pill with
+// its own "×" remove button, so a selected field can be deleted in one click instead
+// of relying on contentEditable backspace. The value is kept in a data attribute
+// (not just textContent) so parseUrlBoxParts can read it back without the "×".
+const buildUrlFieldPill = (value) => {
+  const span = document.createElement('span');
+  span.className = 'notification-pill br-invoke-value-pill';
+  span.contentEditable = 'false';
+  span.dataset.fieldValue = value;
+  span.appendChild(document.createTextNode(value));
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'br-invoke-value-pill-remove';
+  removeBtn.setAttribute('aria-label', `Remove ${value}`);
+  removeBtn.textContent = '×';
+  span.appendChild(removeBtn);
+
+  return span;
 };
 
 // The Params value box keeps its simpler "either a plain value or a set of field
@@ -2971,11 +3043,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
     el.replaceChildren();
     parseUrlTokenString(fetchedSettings ? fetchedSettings.url : initialSettings?.url).forEach((part) => {
       if (part.type === 'pill') {
-        const span = document.createElement('span');
-        span.className = 'notification-pill br-invoke-value-pill';
-        span.contentEditable = 'false';
-        span.textContent = part.value;
-        el.appendChild(span);
+        el.appendChild(buildUrlFieldPill(part.value));
       } else {
         el.appendChild(document.createTextNode(part.value));
       }
@@ -2995,10 +3063,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const handleInsertUrlField = (field) => {
     const el = urlBoxRef.current;
     if (!el) return;
-    const span = document.createElement('span');
-    span.className = 'notification-pill br-invoke-value-pill';
-    span.contentEditable = 'false';
-    span.textContent = field;
+    const span = buildUrlFieldPill(field);
 
     const selection = window.getSelection();
     const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
@@ -3023,6 +3088,15 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   // formatting from pasted content so the box only ever holds text + pill nodes.
   const handleUrlKeyDown = (e) => {
     if (e.key === 'Enter') e.preventDefault();
+  };
+
+  // Mirrors handleRecipientBoxClick: clicking a pill's "×" removes just that pill,
+  // leaving native contentEditable caret placement for clicks anywhere else.
+  const handleUrlBoxClick = (e) => {
+    const removeBtn = e.target.closest('.br-invoke-value-pill-remove');
+    if (!removeBtn) return;
+    e.preventDefault();
+    removeBtn.closest('.br-invoke-value-pill')?.remove();
   };
 
   const handleUrlPaste = (e) => {
@@ -3205,6 +3279,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
               role="textbox"
               aria-multiline="false"
               aria-label="Service url"
+              onClick={handleUrlBoxClick}
               onKeyDown={handleUrlKeyDown}
               onPaste={handleUrlPaste}
             />
