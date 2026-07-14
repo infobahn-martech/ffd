@@ -671,6 +671,8 @@
   margin: 0;
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 }
 
 // Quiet card footer — no gradient, subtle single-tone divider, matching the
@@ -752,6 +754,7 @@
 
 /* Hide scrollbar but keep functionality */
 .crew-table-container::-webkit-scrollbar {
+  width: 6px;
   height: 6px;
 }
 
