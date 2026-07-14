@@ -296,6 +296,24 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isLoadingWebServiceSettings: false,
+    webServiceSettings: null,
+
+    getWebServiceSettings: async (webServiceId) => {
+        try {
+            set({ isLoadingWebServiceSettings: true, webServiceSettings: null });
+            const { data } = await businessRuleService.getWebServiceSettings(webServiceId);
+            set({
+                webServiceSettings: data?.data ?? null,
+                isLoadingWebServiceSettings: false,
+            });
+        } catch (err) {
+            set({ webServiceSettings: null, isLoadingWebServiceSettings: false });
+        }
+    },
+
+    resetWebServiceSettings: () => set({ webServiceSettings: null, isLoadingWebServiceSettings: false }),
+
     isSavingWebServiceSettings: false,
 
     saveWebServiceSettings: async (payload, { cb, onSettled } = {}) => {
