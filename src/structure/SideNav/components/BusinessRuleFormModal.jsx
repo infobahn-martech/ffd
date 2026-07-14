@@ -2885,7 +2885,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const [paramPendingRemoveId, setParamPendingRemoveId] = useState(null);
   const urlBoxRef = useRef(null);
 
-  const { saveWebServiceSettings, isSavingWebServiceSettings } = useBusinessRuleReducer((s) => s);
+  const { saveWebServiceSettings, updateWebServiceSettings, isSavingWebServiceSettings, isUpdatingWebServiceSettings } = useBusinessRuleReducer((s) => s);
 
   const methodSupportsBody = INVOKE_METHODS_WITH_BODY.includes(method);
 
@@ -3097,12 +3097,17 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       payload.auth_api_key_location = authApiKeyLocation;
     }
 
-    saveWebServiceSettings(payload, {
+    const existingWebServiceId = initialSettings?.webServiceId;
+    const saveOrUpdate = existingWebServiceId
+      ? (p, opts) => updateWebServiceSettings(existingWebServiceId, p, opts)
+      : (p, opts) => saveWebServiceSettings(p, opts);
+
+    saveOrUpdate(payload, {
       cb: (data) => {
         onSave({
           serviceName, url: urlValue, method, authentication,
           authUsername, authPassword, authToken, authApiKeyName, authApiKeyValue, authApiKeyLocation,
-          sendParamsInBody, headers, params, webServiceId: data?.data?.web_service_id ?? null,
+          sendParamsInBody, headers, params, webServiceId: data?.data?.web_service_id ?? existingWebServiceId ?? null,
         });
         onClose();
       },
@@ -3401,8 +3406,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
           <button type="button" className="br-invoke-test-btn">
             Test Settings
           </button>
-          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingWebServiceSettings}>
-            {isSavingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save Service')}
+          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
+            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save Service')}
           </button>
         </footer>
       </div>
@@ -3783,6 +3788,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setActiveNotifyActionId(null);
     setInvokeActions([]);
     setShowWebInvokeSettings(false);
+    resetWebServiceSettings();
     setActiveInvokeActionId(null);
     setShowCancelConfirm(false);
   }, [show, rule, loggedInUserName]);
