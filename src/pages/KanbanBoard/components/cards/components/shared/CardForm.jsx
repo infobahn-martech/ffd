@@ -1892,15 +1892,20 @@ function CardForm({
     return { ...cardMetaFromSnapshot, ...card };
   }, [card, cardMetaFromSnapshot]);
 
+  // Husbandry Call (call_type_id === "4") has no Operation stage.
+  const isHusbandryCall = String(formValues.call_type_id ?? "") === "4";
+
   const TOP_TABS = useMemo(() => {
     const base = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
-    return showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
-  }, [isDAModule, isSimplifiedMode, showExportTabs]);
+    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
+    return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
+  }, [isDAModule, isSimplifiedMode, showExportTabs, isHusbandryCall]);
 
   const ENABLED_TABS = useMemo(() => {
     const base = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
-    return showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
-  }, [isDAModule, isSimplifiedMode, showExportTabs]);
+    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
+    return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
+  }, [isDAModule, isSimplifiedMode, showExportTabs, isHusbandryCall]);
 
   useEffect(() => {
     setActiveTopTab(defaultTab);
@@ -1911,6 +1916,12 @@ function CardForm({
       setActiveTopTab(defaultTab);
     }
   }, [showExportTabs, activeTopTab, defaultTab]);
+
+  useEffect(() => {
+    if (isHusbandryCall && activeTopTab === "Operation") {
+      setActiveTopTab(defaultTab);
+    }
+  }, [isHusbandryCall, activeTopTab, defaultTab]);
 
   const handleChange = useCallback(
     (field) => (e) => {
