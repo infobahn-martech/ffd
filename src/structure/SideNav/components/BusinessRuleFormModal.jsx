@@ -3705,6 +3705,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
     getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
+    deleteNotificationSettings,
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -4216,7 +4217,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleRemoveNotifyAction = (id) => {
-    setNotifyActions((prev) => prev.filter((a) => a.id !== id));
+    // Only a notify action that was actually saved on the backend (has a
+    // notification_id) needs the delete call — one still unconfigured/unsaved
+    // has nothing to remove server-side.
+    const action = notifyActions.find((a) => a.id === id);
+    if (action?.notification_id) {
+      deleteNotificationSettings(action.notification_id, {
+        cb: () => setNotifyActions((prev) => prev.filter((a) => a.id !== id)),
+      });
+    } else {
+      setNotifyActions((prev) => prev.filter((a) => a.id !== id));
+    }
   };
 
   const handleOpenNotificationSettings = (id) => {
