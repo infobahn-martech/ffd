@@ -157,6 +157,34 @@ const useWorkSpaceReducer = create((set, get) => ({
       error(err?.response?.data?.message ?? err.message ?? 'Failed to rename workspace');
     }
   },
+  changeWorkspaceBackground: async ({ workspace_id, background_type, color, background_image, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      if (background_type === 'wallpaper' && background_image) {
+        const formData = new FormData();
+        formData.append('background_type', 'wallpaper');
+        formData.append('background_image', background_image);
+        const { data } = await workSpaceService.changeBackground(workspace_id, formData);
+        set({ addEditLoader: false });
+        const { success } = useAlertReducer.getState();
+        success(data?.message ?? 'Background updated');
+      } else {
+        const { data } = await workSpaceService.changeBackground(workspace_id, {
+          background_type: 'color',
+          color,
+        });
+        set({ addEditLoader: false });
+        const { success } = useAlertReducer.getState();
+        success(data?.message ?? 'Background updated');
+      }
+      cb && cb();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to update background');
+    }
+  },
   archiveWorkspace: async ({ workspace_id, cb }) => {
     try {
       set({ addEditLoader: true });

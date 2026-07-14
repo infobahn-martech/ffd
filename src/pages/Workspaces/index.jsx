@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiLayers } from 'react-icons/fi';
+import { FiLayers, FiImage, FiChevronRight } from 'react-icons/fi';
 import '../../design/scss/Workspaces.scss';
 import GroupIcon from '../../assets/images/Group.svg';
 import AnalyticsIcon from '../../assets/images/analytics 1.svg';
@@ -16,9 +16,24 @@ import DashboardAddItemsModal from './DashboardAddItemsModal';
 import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
 import RenameWorkspaceModal from './RenameWorkspaceModal';
-import { getDashboardCanvasStyle } from '../../shared/utils/dashboardBackground';
+import { getDashboardCanvasStyle, normalizeDashboardBackground } from '../../shared/utils/dashboardBackground';
 import useAuthReducer from '../../store/AuthReducer';
 import { isRestrictedBoardUser, RESTRICTED_BOARD_HOME_PATH } from '../../shared/helpers/restrictedBoardUser';
+import { notify } from '../../components/Toaster';
+import SedresColorPicker from '../../components/SedresColorPicker/SedresColorPicker';
+import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../components/SedresColorPicker/sedresColorPickerConstants';
+
+// Placeholder preset wallpapers shown in the workspace Background menu until a
+// real catalog endpoint exists. Picking one fetches the image client-side and
+// uploads it through the same change_background file flow as a manual upload.
+const DUMMY_WALLPAPERS = [
+  { id: 'w1', url: 'https://picsum.photos/seed/sedres-1/300/200' },
+  { id: 'w2', url: 'https://picsum.photos/seed/sedres-2/300/200' },
+  { id: 'w3', url: 'https://picsum.photos/seed/sedres-3/300/200' },
+  { id: 'w4', url: 'https://picsum.photos/seed/sedres-4/300/200' },
+  { id: 'w5', url: 'https://picsum.photos/seed/sedres-5/300/200' },
+  { id: 'w6', url: 'https://picsum.photos/seed/sedres-6/300/200' },
+];
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (
@@ -44,6 +59,7 @@ const transformWorkspaces = (data) => {
     id: ws.workspace_id,
     name: ws.workspace_name,
     status: ws.workspace_status,
+    background: ws.background,
     boards: Array.isArray(ws.boards)
       ? ws.boards.map((b) => ({
         id: b.board_id,
@@ -77,6 +93,7 @@ function Workspaces() {
     renameBoard,
     archiveWorkspace,
     archiveBoard,
+    changeWorkspaceBackground,
     addEditLoader,
     updateBoardName,
   } = useWorkSpaceReducer();
@@ -162,8 +179,14 @@ function Workspaces() {
   const [widgetCatalogLoading, setWidgetCatalogLoading] = useState(false);
   const [widgetCatalogError, setWidgetCatalogError] = useState(null);
   const [widgetCatalogRetryKey, setWidgetCatalogRetryKey] = useState(0);
+  const [backgroundSubOpen, setBackgroundSubOpen] = useState(false);
+  const [isWorkspaceColorPickerOpen, setIsWorkspaceColorPickerOpen] = useState(false);
+  const [isWallpaperGalleryOpen, setIsWallpaperGalleryOpen] = useState(false);
+  const [uploadingWallpaperPresetId, setUploadingWallpaperPresetId] = useState(null);
   const menuRef = useRef(null);
   const workspaceMenuRef = useRef(null);
+  const workspaceWallpaperInputRef = useRef(null);
+  const workspaceColorPickerRef = useRef(null);
 
   const dashboardWidgetModalRows = useMemo(
     () =>
@@ -187,6 +210,9 @@ function Workspaces() {
       }
       if (workspaceMenuRef.current && !workspaceMenuRef.current.contains(event.target)) {
         setOpenWorkspaceMenuId(null);
+        setBackgroundSubOpen(false);
+        setIsWorkspaceColorPickerOpen(false);
+        setIsWallpaperGalleryOpen(false);
       }
     };
 
@@ -238,7 +264,68 @@ function Workspaces() {
 
   const handleWorkspaceMenu = (workspaceId, e) => {
     e.stopPropagation();
-    setOpenWorkspaceMenuId(openWorkspaceMenuId === workspaceId ? null : workspaceId);
+    setOpenWorkspaceMenuId((prev) => {
+      const next = prev === workspaceId ? null : workspaceId;
+      if (next !== prev) {
+        setBackgroundSubOpen(false);
+        setIsWorkspaceColorPickerOpen(false);
+        setIsWallpaperGalleryOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const closeWorkspaceMenus = () => {
+    setOpenWorkspaceMenuId(null);
+    setBackgroundSubOpen(false);
+    setIsWorkspaceColorPickerOpen(false);
+    setIsWallpaperGalleryOpen(false);
+  };
+
+  const handleWorkspaceColorPick = (workspaceId, hex) => {
+    if (!hex) return;
+    const value = hex.startsWith('#') ? hex : `#${hex}`;
+    changeWorkspaceBackground({
+      workspace_id: workspaceId,
+      background_type: 'color',
+      color: value,
+      cb: closeWorkspaceMenus,
+    });
+  };
+
+  const handleWorkspaceWallpaperFile = (e) => {
+    const file = e.target.files?.[0];
+    const workspaceId = openWorkspaceMenuId;
+    e.target.value = '';
+    if (!file || workspaceId == null) return;
+    changeWorkspaceBackground({
+      workspace_id: workspaceId,
+      background_type: 'wallpaper',
+      background_image: file,
+      cb: closeWorkspaceMenus,
+    });
+  };
+
+  // Preset wallpapers are dummy placeholder URLs (no catalog endpoint exists
+  // yet) — fetch the image client-side and upload it through the same file
+  // flow as a manual upload so the backend always receives a real file.
+  const handleWallpaperPresetSelect = async (workspaceId, preset) => {
+    setUploadingWallpaperPresetId(preset.id);
+    try {
+      const response = await fetch(preset.url);
+      const blob = await response.blob();
+      const file = new File([blob], `${preset.id}.jpg`, { type: blob.type || 'image/jpeg' });
+      changeWorkspaceBackground({
+        workspace_id: workspaceId,
+        background_type: 'wallpaper',
+        background_image: file,
+        cb: closeWorkspaceMenus,
+      });
+    } catch {
+      notify('Failed to load preset wallpaper. Please try again.', 'error');
+    } finally {
+      setUploadingWallpaperPresetId(null);
+    }
   };
 
   const handleRenameWorkspace = (workspaceId) => {
@@ -452,7 +539,9 @@ function Workspaces() {
           )}
         </div>
       ) : (
-        filteredWorkspaces.map((workspace) => (
+        filteredWorkspaces.map((workspace) => {
+          const menuBackground = normalizeDashboardBackground(workspace.background);
+          return (
           <div
             key={workspace.id}
             id={`workspace-row-${workspace.id}`}
@@ -527,6 +616,121 @@ function Workspaces() {
                           </svg>
                           <span>Rename</span>
                         </button>
+                        <div className="workspace-context-menu-item--sub">
+                          <button
+                            type="button"
+                            className="workspace-context-menu-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBackgroundSubOpen((s) => !s);
+                            }}
+                          >
+                            <FiImage size={16} aria-hidden />
+                            <span>Background</span>
+                            <FiChevronRight size={14} className="kanban-dashboard-actions-chevron" aria-hidden />
+                          </button>
+                          {backgroundSubOpen && (
+                            <ul
+                              className="kanban-dashboard-actions-submenu"
+                              role="menu"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <li role="none">
+                                <div className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--color">
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--color-trigger"
+                                    aria-haspopup="dialog"
+                                    aria-expanded={isWorkspaceColorPickerOpen}
+                                    aria-controls="workspace-bg-color-picker"
+                                    onClick={() => setIsWorkspaceColorPickerOpen(true)}
+                                  >
+                                    <span>Color</span>
+                                    <span
+                                      className={`kanban-dashboard-actions-color-swatch ${menuBackground?.type === 'wallpaper' ? 'kanban-dashboard-actions-color-swatch--wallpaper' : ''}`}
+                                      style={
+                                        menuBackground?.type === 'wallpaper'
+                                          ? { backgroundImage: `url(${menuBackground.url})` }
+                                          : {
+                                            backgroundColor:
+                                              menuBackground?.type === 'color'
+                                                ? normalizeHexColor(menuBackground.color)
+                                                : DEFAULT_PICKER_COLOR,
+                                          }
+                                      }
+                                      aria-hidden
+                                    />
+                                  </button>
+                                  {isWorkspaceColorPickerOpen && (
+                                    <SedresColorPicker
+                                      popoverRef={workspaceColorPickerRef}
+                                      popoverId="workspace-bg-color-picker"
+                                      initialHex={
+                                        menuBackground?.type === 'color' && menuBackground.color
+                                          ? normalizeHexColor(menuBackground.color)
+                                          : DEFAULT_PICKER_COLOR
+                                      }
+                                      onApply={(hex) => handleWorkspaceColorPick(workspace.id, hex)}
+                                      onCancel={() => setIsWorkspaceColorPickerOpen(false)}
+                                      ariaLabel="Pick workspace background color"
+                                      hexInputId="workspaceBgColorHex"
+                                    />
+                                  )}
+                                </div>
+                              </li>
+                              <li role="none">
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--wallpaper-row"
+                                  onClick={() => workspaceWallpaperInputRef.current?.click()}
+                                >
+                                  <span>Upload wallpaper</span>
+                                  {menuBackground?.type === 'wallpaper' && (
+                                    <span
+                                      className="kanban-dashboard-actions-wallpaper-thumb"
+                                      style={{ backgroundImage: `url(${menuBackground.url})` }}
+                                      title={menuBackground.fileName ?? undefined}
+                                      aria-hidden
+                                    />
+                                  )}
+                                </button>
+                              </li>
+                              <li role="none" className="workspace-wallpaper-gallery-item">
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--with-chevron"
+                                  aria-expanded={isWallpaperGalleryOpen}
+                                  onClick={() => setIsWallpaperGalleryOpen((s) => !s)}
+                                >
+                                  <span>Preset wallpapers</span>
+                                  <FiChevronRight size={14} className="kanban-dashboard-actions-chevron" aria-hidden />
+                                </button>
+                                {isWallpaperGalleryOpen && (
+                                  <div className="workspace-wallpaper-gallery" role="menu">
+                                    {DUMMY_WALLPAPERS.map((preset) => (
+                                      <button
+                                        key={preset.id}
+                                        type="button"
+                                        className="workspace-wallpaper-gallery-thumb"
+                                        style={{ backgroundImage: `url(${preset.url})` }}
+                                        disabled={uploadingWallpaperPresetId != null}
+                                        aria-label={`Use preset wallpaper ${preset.id}`}
+                                        onClick={() => handleWallpaperPresetSelect(workspace.id, preset)}
+                                      >
+                                        {uploadingWallpaperPresetId === preset.id && (
+                                          <span className="workspace-wallpaper-gallery-thumb__spinner" aria-hidden />
+                                        )}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </li>
+                            </ul>
+                          )}
+                        </div>
                         {isDashboardView && currentDashboard && (
                           <>
                             {!workspaceIdsOnCurrentDashboard.has(String(workspace.id)) ? (
@@ -828,8 +1032,18 @@ function Workspaces() {
               </div>
             )}
           </div>
-        ))
+          );
+        })
       )}
+      <input
+        ref={workspaceWallpaperInputRef}
+        type="file"
+        accept="image/*"
+        className="kanban-dashboard-wallpaper-input"
+        aria-hidden
+        tabIndex={-1}
+        onChange={handleWorkspaceWallpaperFile}
+      />
     </div>
   );
 

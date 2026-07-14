@@ -680,6 +680,61 @@
   }
 }
 
+.workspace-context-menu-item--sub {
+  position: relative;
+}
+
+.workspace-wallpaper-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 6px 8px 4px;
+}
+
+.workspace-wallpaper-gallery-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: #00368c;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+.workspace-wallpaper-gallery-thumb__spinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  animation: workspaceWallpaperSpin 0.7s linear infinite;
+}
+
+@keyframes workspaceWallpaperSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // Boards Grid
 .workspace-boards {
   display: grid;
