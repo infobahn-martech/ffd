@@ -1710,6 +1710,7 @@ function CardForm({
       // Attachments and Links
       attachments: card?.attachments || [],
       departureAttachments: card?.departureAttachments || [],
+      departureReportAttachments: card?.departureReportAttachments || [],
       preArrivalAdditionalTimeObjects: Array.isArray(card?.preArrivalAdditionalTimeObjects)
         ? card.preArrivalAdditionalTimeObjects
         : [],

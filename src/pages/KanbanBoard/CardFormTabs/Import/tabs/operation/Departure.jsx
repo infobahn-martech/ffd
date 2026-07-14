@@ -1,11 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { buildDepartureReportBody } from "../../services/sendReportBodyBuilder";
 import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import { notify } from "../../../../../../components/Toaster";
 import useArrivalReducer from "../../../../../../store/ArrivalReducer";
+import useDepartureReducer from "../../../../../../store/DepartureReducer";
 import { OPERATION_STAGE_IDS } from "./operationConstants";
+import {
+  applyDepartureGetDetailToForm,
+  extractDepartureReportDraftFromDetail,
+} from "./departureDetailApply";
 import {
   AdditionalTimeObjectAddButton,
   AdditionalTimeObjectsFields,
@@ -15,6 +20,7 @@ import {
   FormField,
   FormInput,
   FormSection,
+  getAttachmentFile,
   mapAttachmentsForSave,
   OperationEmailPreviewPanel,
   OperationFileUpload,
@@ -40,6 +46,8 @@ function Departure({
   const saveCallTimeObjectAction = useArrivalReducer((s) => s.saveCallTimeObject);
   const getTimeObjectsByCallAction = useArrivalReducer((s) => s.getTimeObjectsByCall);
   const deleteCallTimeObjectAction = useArrivalReducer((s) => s.deleteCallTimeObject);
+  const fetchDepartureDetail = useDepartureReducer((s) => s.fetchDepartureDetail);
+  const saveDepartureDetailAction = useDepartureReducer((s) => s.saveDepartureDetail);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
     to: "",
@@ -64,8 +72,16 @@ function Departure({
     }
   };
 
-  const handleDepartureAttachmentsChange = (nextAttachments) => {
-    handleChange("departureAttachments")({ target: { value: nextAttachments } });
+  const handleDepartureReportAttachmentsAdd = (files) => {
+    if (files.length > 0) {
+      const currentAttachments = formValues.departureReportAttachments || [];
+      const updatedAttachments = [...currentAttachments, ...files];
+      handleChange("departureReportAttachments")({ target: { value: updatedAttachments } });
+    }
+  };
+
+  const handleDepartureReportAttachmentsChange = (nextAttachments) => {
+    handleChange("departureReportAttachments")({ target: { value: nextAttachments } });
   };
 
   useEffect(() => {
@@ -76,8 +92,59 @@ function Departure({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const departureEventFieldsApplyKey = (Array.isArray(eventFields) ? eventFields : [])
+    .map((field) =>
+      [field.keyPrefix, field.time_object_id ?? field.event_type_id ?? "", field.field_key ?? ""].join(":")
+    )
+    .join("|");
+
+  useEffect(() => {
+    if (isViewOnly || !resolvedCallId) return undefined;
+
+    let cancelled = false;
+
+    const run = async () => {
+      const detail = await fetchDepartureDetail({ callId: resolvedCallId });
+      if (cancelled || !detail) return;
+
+      applyDepartureGetDetailToForm({ responseBody: detail, eventFields, handleChange });
+
+      const savedDraft = extractDepartureReportDraftFromDetail(detail);
+      if (savedDraft) {
+        setReportDraft((prev) => ({
+          ...prev,
+          from: savedDraft.from || prev.from,
+          to: savedDraft.to,
+          cc: savedDraft.cc,
+          subject: savedDraft.subject || prev.subject,
+          message: savedDraft.message || prev.message,
+        }));
+        if (savedDraft.attachments.length) {
+          handleChange("departureReportAttachments")({ target: { value: savedDraft.attachments } });
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- formValues / handleChange omitted to avoid refetch loops
+  }, [resolvedCallId, isViewOnly, departureEventFieldsApplyKey, fetchDepartureDetail]);
+
   const handleReportDraftChange = (field, value) => {
     setReportDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const resolveCreatedBy = () => {
+    if (typeof window === "undefined") return "";
+    return String(
+      localStorage.getItem("userid") ||
+      localStorage.getItem("user_id") ||
+      localStorage.getItem("userId") ||
+      ""
+    ).trim();
   };
 
   const toDateTimeValue = (datePart, timePart) => {
@@ -121,29 +188,61 @@ function Departure({
     }
 
     const timeObjects = buildDepartureTimeObjectsPayload();
-    const departureReport = {
-      subject: reportDraft.subject ?? "",
-      body: resolveReportBodyHtml(reportDraft.message, buildDepartureReportBody(formValues)) ?? "",
-      to_email: reportDraft.to ?? "",
-      from_email: reportDraft.from ?? "",
-      cc_emails: reportDraft.cc ?? "",
-      attachments: mapAttachmentsForSave(formValues.departureAttachments || []),
-    };
-    // TODO: replace with Departure save API call for stage time objects (append time_objects + departure_report to FormData)
+    const reportAttachmentsList = formValues.departureReportAttachments || [];
+    const newReportAttachmentFiles = reportAttachmentsList.map(getAttachmentFile).filter(Boolean);
+    const uploadedReportAttachments = mapAttachmentsForSave(reportAttachmentsList);
+
+    const fd = new FormData();
+    fd.append("call_id", String(resolvedCallId));
+    fd.append("next_port", String(formValues?.nextPort || ""));
+    fd.append("time_objects", JSON.stringify(timeObjects));
+    fd.append(
+      "departure_report",
+      JSON.stringify({
+        subject: reportDraft.subject ?? "",
+        body: resolveReportBodyHtml(reportDraft.message, buildDepartureReportBody(formValues)) ?? "",
+        to_email: reportDraft.to ?? "",
+        from_email: reportDraft.from ?? "",
+        cc_emails: reportDraft.cc ?? "",
+        attachments: uploadedReportAttachments,
+      })
+    );
+    newReportAttachmentFiles.forEach((file) => fd.append("attachments[]", file));
+
+    const emailRequestDocFile = getAttachmentFile((formValues.departureAttachments || [])[0]);
+    if (emailRequestDocFile) {
+      fd.append("email_request_doc", emailRequestDocFile);
+    }
+
+    const createdBy = resolveCreatedBy();
+    if (createdBy) {
+      fd.append("created_by", createdBy);
+    }
 
     try {
-      await persistAdditionalTimeObjects({
-        rows: formValues.departureAdditionalTimeObjects,
-        callId: resolvedCallId,
-        stageId,
-        saveCallTimeObject: saveCallTimeObjectAction,
-      });
+      await saveDepartureDetailAction({ formData: fd });
+      try {
+        await persistAdditionalTimeObjects({
+          rows: formValues.departureAdditionalTimeObjects,
+          callId: resolvedCallId,
+          stageId,
+          saveCallTimeObject: saveCallTimeObjectAction,
+        });
+      } catch (additionalError) {
+        notify(
+          additionalError?.response?.data?.message ||
+          "Saved, but failed to save one or more additional time objects.",
+          "warning"
+        );
+      }
+      const detail = await fetchDepartureDetail({ callId: resolvedCallId });
+      if (detail) {
+        applyDepartureGetDetailToForm({ responseBody: detail, eventFields, handleChange });
+      }
+      notify("Departure saved successfully.", "success");
       return true;
     } catch (error) {
-      notify(
-        error?.response?.data?.message || "Failed to save departure time objects.",
-        "error"
-      );
+      notify(error?.response?.data?.message || "Failed to save Departure.", "error");
       return false;
     }
   };
@@ -239,7 +338,7 @@ function Departure({
         cc: reportDraft.cc,
         subject: reportDraft.subject,
         body: resolveReportBodyHtml(reportDraft.message, buildDepartureReportBody(formValues)),
-        attachments: formValues.departureAttachments || [],
+        attachments: formValues.departureReportAttachments || [],
       });
     } finally {
       setIsSavingDeparture(false);
@@ -307,6 +406,15 @@ function Departure({
                   isViewOnly={isViewOnly}
                   hideAddButton
                 />
+
+                <FormField label="Attachments">
+                  <OperationFileUpload
+                    files={formValues.departureReportAttachments || []}
+                    onAddFiles={handleDepartureReportAttachmentsAdd}
+                    isViewOnly={isViewOnly}
+                    ariaLabel="Upload departure report attachments"
+                  />
+                </FormField>
               </OperationFormCard>
               <OperationFormCard className="operation-email-column">
                 <OperationEmailPreviewPanel
@@ -315,8 +423,8 @@ function Departure({
                   cc={reportDraft.cc}
                   subject={reportDraft.subject}
                   message={reportDraft.message}
-                  attachments={formValues.departureAttachments || []}
-                  onAttachmentsChange={handleDepartureAttachmentsChange}
+                  attachments={formValues.departureReportAttachments || []}
+                  onAttachmentsChange={handleDepartureReportAttachmentsChange}
                   billingEntityId={billingEntityId ?? formValues.mainBillingEntity}
                   onChange={handleReportDraftChange}
                   onSend={handleSaveAndSendReport}

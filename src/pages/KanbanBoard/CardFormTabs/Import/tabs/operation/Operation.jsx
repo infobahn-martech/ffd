@@ -109,6 +109,8 @@ const getDummyValues = () => ({
   nextPort: "Jeddah Port",
   departureAttachments: [
     { name: "Outward_Clearance_Request_001.pdf", size: 345678, type: "application/pdf" },
+  ],
+  departureReportAttachments: [
     { name: "Outward_Clearance_Issued_002.pdf", size: 298765, type: "application/pdf" },
     { name: "Outward_Clearance_Delivered_003.pdf", size: 267890, type: "application/pdf" },
     { name: "Vessel_Sailing_Certificate.pdf", size: 189234, type: "application/pdf" },
@@ -121,6 +123,7 @@ async function sendOperationReportRequest(payload) {
     "Pre Arrival": 2,
     Arrival: 4,
     "Daily Report": 4,
+    Departure: 5,
   };
   const reportTypeId = payload?.report_type_id ?? reportTypeMap[payload?.tabName];
   const requestBody = buildSendReportRequestBody(
