@@ -1012,7 +1012,11 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                                     disabled={isSavingEdit}
                                     onClick={handleSaveEdit}
                                   >
-                                    <FiCheck size={14} />
+                                    {isSavingEdit ? (
+                                      <span className="crew-action-btn__spinner" aria-hidden="true" />
+                                    ) : (
+                                      <FiCheck size={14} />
+                                    )}
                                   </button>
                                   <button
                                     type="button"

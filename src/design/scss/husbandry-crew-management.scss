@@ -3262,6 +3262,20 @@
   color: $status-danger;
 }
 
+.crew-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.crew-action-btn__spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, $status-success 25%, white);
+  border-top-color: $status-success;
+  animation: crewUploadSpin 0.7s linear infinite;
+}
+
 // Crew Summary table has 2 more columns (Date of birth, Action) than the
 // shared .crew-table column-width rules above assume, so every column here
 // gets an explicit width — scoped to .crew-summary-table so the live Crew
