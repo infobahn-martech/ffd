@@ -275,6 +275,25 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isDeletingNotificationSettings: false,
+
+    deleteNotificationSettings: async (notificationId, { cb, onSettled } = {}) => {
+        try {
+            set({ isDeletingNotificationSettings: true });
+            const { data } = await businessRuleService.deleteNotificationSettings(notificationId);
+            set({ isDeletingNotificationSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Notification settings removed.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isDeletingNotificationSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isUpdatingWebServiceSettings: false,
 
     updateWebServiceSettings: async (webServiceId, payload, { cb, onSettled } = {}) => {
