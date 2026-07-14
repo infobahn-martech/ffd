@@ -76,6 +76,42 @@ export const CREATE_ACTION_OPTIONS = [
   { key: 'successor', label: 'Create successor' },
 ];
 
+// Dev-only fallback data for the "Create card or subtask" action's board-template picker.
+export const DUMMY_CREATE_ACTION_TEMPLATES = [
+  'Air Shipment',
+  'Air(FFD)',
+  'Bahrain Visa services',
+  'Bidding',
+  'Collections - Offshore Marine',
+  'CREW CHANGE',
+  'Crew change - Jubail',
+  'Custom Clearance',
+  'DOMESTIC CALL',
+  'Export call',
+  'EXPORT VESSEL',
+  'FFD',
+  'General Board',
+  'IMPORT VESSEL',
+  'Infobahn Import call template',
+  'Land Shipment',
+  'LAUNCH HIRE INVOICE',
+  'MARINE SUPPORT',
+  'Marine Work Permit',
+  'MATERIAL / GARBAGE DELIVERY',
+  'MEDICAL CREW',
+  'Miscellaneous',
+  'MWP',
+  'ON STATION CHARGES',
+  'Procurement',
+  'Purchase Order',
+  'REMOTE ROB SURVEY',
+  'Request Driver',
+  'Sea Freight',
+  'Taxi Tug',
+  'test by khadeeja',
+  'Visa services',
+];
+
 export const LINK_ACTION_OPTIONS = [
   { key: 'child', label: 'Link as child' },
   { key: 'parent', label: 'Link as parent' },
