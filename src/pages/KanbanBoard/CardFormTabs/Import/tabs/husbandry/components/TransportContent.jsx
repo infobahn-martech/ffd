@@ -7,7 +7,6 @@
   import AttachmentsList from "../../appointment/AttachmentsList";
   import callFileService from "../../../../../../../services/callFileService";
   import transportContentService from "../../../../../../../services/transportContentService";
-  import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
   import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
   import CrewSelectionField from "./CrewSelectionField";
 
@@ -110,16 +109,6 @@
     const requestEmailInputRef = useRef(null);
     const documentsInputRef = useRef(null);
     const [isDraggingEmail, setIsDraggingEmail] = useState(false);
-
-    // Radio button state - default to "inhouse" if not set
-    const [transportType, setTransportType] = useState(formValues.transportType || "inhouse");
-
-    // Sync state with formValues when it changes
-    useEffect(() => {
-      if (formValues.transportType) {
-        setTransportType(formValues.transportType);
-      }
-    }, [formValues.transportType]);
 
     const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
 
@@ -310,32 +299,11 @@
         return;
       }
 
-      const pickupDateTime = buildPickupDateTime(
-        formValues.transportDateTime,
-        formValues.transportTime
-      );
-
       const payload = {
         call_id: Number(callDetails?.call_id || ""),
-        request_type: transportType === "thirdparty" ? "Third Party" : "Inhouse",
-        pickup_datetime: pickupDateTime,
-        from_location: formValues.transportFromType || "",
-        from_location_det: formValues.transportFrom || "",
-        to_location: formValues.transportToType || "",
-        to_location_det: formValues.transportTo || "",
         remarks: formValues.transportDescription || "",
         crew: (formValues.selectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
       };
-
-      if (transportType === "inhouse") {
-        payload.transport_coordinator_id = formValues.transportCoordinatorId || "";
-        payload.invoice_branch = formValues.invoiceBranch || "";
-      }
-
-      if (transportType === "thirdparty") {
-        payload.transport_company_id = Number(formValues.transportCompanyId || "");
-        payload.transport_driver_id = Number(formValues.transportThirdPartyDriverId || "");
-      }
 
       const formData = new FormData();
       formData.append("data", JSON.stringify(payload));
@@ -348,10 +316,10 @@
       const transportDocuments = Array.isArray(formValues.transportDocuments)
         ? formValues.transportDocuments
         : [];
-      transportDocuments.forEach((attachment, index) => {
+      transportDocuments.forEach((attachment) => {
         const file = attachment?.file ?? attachment;
         if (file instanceof File) {
-          formData.append(`documents[${index}]`, file);
+          formData.append("attachments[]", file);
         }
       });
 
@@ -373,7 +341,7 @@
       } finally {
         setIsSavingTransport(false);
       }
-    }, [callId, callDetails, formValues, transportType, fetchTransportRequests]);
+    }, [callId, callDetails, formValues, fetchTransportRequests]);
 
     return (
       <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
