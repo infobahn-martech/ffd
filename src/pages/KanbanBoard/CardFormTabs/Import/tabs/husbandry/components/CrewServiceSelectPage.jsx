@@ -33,9 +33,9 @@ DocStatusIcon.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-// "Select Crew" step opened from a Crew Management service card — same
-// layout shell as CrewServiceListing (full page, not a modal) so it fits
-// the dashboard's existing page-swap flow: dashboard -> select crew (this
+// "Select Crew" step opened from a Crew Management service card — a full
+// page (not a modal) so it fits the dashboard's existing page-swap flow:
+// dashboard -> select crew (this
 // page) -> submit -> straight to the service's request/form (or a
 // confirmation, for services without one yet). Selection state lives in
 // the parent (selectedCrewIds); crewRows is the real, unfiltered call/vessel
