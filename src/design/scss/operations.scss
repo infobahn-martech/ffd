@@ -1191,6 +1191,17 @@ $send-report-optional: #80868b;
   border-color: var(--card-color, #2A00FF);
 }
 
+.crew-mgmt-service-box--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.crew-mgmt-service-box--disabled:hover {
+  transform: none;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+  border-color: #dbe6f7;
+}
+
 .crew-mgmt-service-box-icon {
   flex-shrink: 0;
   width: 36px;

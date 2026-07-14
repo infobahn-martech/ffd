@@ -2066,7 +2066,7 @@
 
 /* ==========================================================
    CREW SERVICE SELECT PAGE (Crew Management dashboard cards — full page,
-   same shell as CrewServiceListing, see CrewServiceSelectPage.jsx)
+   see CrewServiceSelectPage.jsx)
    ========================================================== */
 
 .crew-service-select-modal__service-badge {
@@ -3080,165 +3080,10 @@
   color: #64748b;
 }
 
-.crew-listing-request-btn {
-  flex-shrink: 0;
-  padding: 11px 22px;
-  border-radius: 10px;
-  border: none !important;
-  background: var(--card-color, #00368c) !important;
-  color: #ffffff !important;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.crew-listing-request-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 22px rgba(0, 54, 140, 0.32);
-}
-
-.crew-listing-request-btn:active {
-  transform: translateY(0);
-}
-
-.crew-listing-empty {
-  padding: 48px 20px;
-  text-align: center;
-  border-radius: 16px;
-  border: 1px dashed #dbe4ee;
-  background: #f9fafb;
-  color: #64748b;
-  font-size: 13px;
-}
-
-.crew-listing-empty p {
-  margin: 0;
-}
-
-// Stretches this page's content to the full height of the (already
-// scrollable) .husbandry-service-selection ancestor, mirroring
-// .crew-select-page-content — so the table below is the one element that
-// scrolls once the crew list overflows, and the page itself never needs to.
-.crew-listing-page-content {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  height: 100%;
-  min-height: 0;
-}
-
-.crew-listing-table-wrapper {
-  width: 100%;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 2px 12px rgba(0, 54, 140, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-.crew-listing-table-scroll {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-
-.crew-listing-table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-}
-
-/* !important throughout this table's thead/tbody/action styles: table-common.scss
-   sets `.table thead th { background-color: #00368c !important; color: #fff; }`
-   globally for every `.table`-classed element, so plain specificity can't win here —
-   the other crew tables in this app (.crew-table, .husbandry-da-crew-table) fight the
-   same global rule the same way. */
-.crew-listing-table thead {
-  background: #eef2ff !important;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.crew-listing-table thead th {
-  background: #eef2ff !important;
-  color: #4338ca !important;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  padding: 14px 16px !important;
-  border: none !important;
-  white-space: nowrap;
-  text-align: left !important;
-}
-
-.crew-listing-table tbody td {
-  padding: 12px 16px !important;
-  font-size: 13px;
-  vertical-align: middle;
-  border-bottom: 1px solid #f0f4f8 !important;
-  color: #1e293b !important;
-  text-align: left !important;
-  white-space: nowrap;
-}
-
-.crew-listing-table tbody td:first-child {
-  font-weight: 600;
-  color: #0f172a !important;
-  white-space: normal;
-}
-
-/* table-common.scss sets a global `.table tbody tr:nth-of-type(odd) { background: #e7e7e7 }`
-   with no rule for even rows — we only had our own even-row rule, so odd rows fell
-   through to that grey uncontested. Style both explicitly, with !important, so the
-   zebra is fully ours. */
-.crew-listing-table tbody tr:nth-child(odd) td {
-  background: #ffffff !important;
-}
-
-.crew-listing-table tbody tr:nth-child(even) td {
-  background: #f8fafc !important;
-}
-
-.crew-listing-table tbody tr:hover td {
-  background: rgba(0, 54, 140, 0.06) !important;
-}
-
-.crew-listing-table tbody tr:last-child td {
-  border-bottom: none !important;
-}
-
-.crew-listing-status-badge {
-  display: inline-block;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-// Red "Pending" badge on the crew service listing page only — overrides the
-// shared .booked-status-pending (amber) look used elsewhere in the app.
-.crew-listing-status-badge.booked-status-pending {
-  background: $status-cancelled-bg;
-  color: $status-cancelled-text;
-}
-
 @media (max-width: 640px) {
   .crew-listing-header {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .crew-listing-request-btn {
-    width: 100%;
   }
 }
 

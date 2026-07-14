@@ -770,6 +770,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     return (
       <CrewServiceSelectPage
         service={selectedServiceForCrew}
+        crewRows={crewSummaryRows}
         selectedCrewIds={selectedCrewIds}
         onChangeSelected={setSelectedCrewIds}
         cardColor={cardColor}
@@ -856,13 +857,16 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             {CREW_SERVICE_CARDS.map((card) => {
               const assignedCount = selectedServiceCrewMap[card.tabName]?.length || 0;
               const isAssigned = assignedCount > 0;
+              const isDisabled = crewWithIds.length === 0;
 
               return (
                 <button
                   key={card.id}
                   type="button"
-                  className="crew-mgmt-service-box"
+                  className={`crew-mgmt-service-box${isDisabled ? " crew-mgmt-service-box--disabled" : ""}`}
                   onClick={() => handleServiceCardClick(card)}
+                  disabled={isDisabled}
+                  title={isDisabled ? "Upload a crew list to enable this service." : undefined}
                   style={{ "--card-color": cardColor }}
                 >
                   {isAssigned && (

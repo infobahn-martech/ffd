@@ -20,7 +20,6 @@ const ChecklistSectionNode = ({
   openSections,
   onSectionToggle,
   onSelectAll,
-  cardColor = "#2A00FF",
   isViewOnly = false,
   isDAModule = false,
   depth = 0,
@@ -54,7 +53,7 @@ const ChecklistSectionNode = ({
         data-cl-depth={depth}
       >
         <td colSpan={5} className="cl-excel-section-header-title-cell">
-          <span className="cl-excel-section-title">{sectionTitle}</span>
+          <span className="cl-excel-section-title" title={sectionTitle}>{sectionTitle}</span>
           {/* {total > 0 ? (
             <span className="cl-excel-section-count">{done} / {total}</span>
           ) : null} */}
@@ -86,7 +85,6 @@ const ChecklistSectionNode = ({
           item={item}
           itemData={itemsData[item.id] || {}}
           onChange={onItemChange}
-          cardColor={cardColor}
           isViewOnly={isViewOnly}
           isDAModule={isDAModule}
         />
@@ -101,7 +99,6 @@ const ChecklistSectionNode = ({
           openSections={openSections}
           onSectionToggle={onSectionToggle}
           onSelectAll={onSelectAll}
-          cardColor={cardColor}
           isViewOnly={isViewOnly}
           isDAModule={isDAModule}
           depth={depth + 1}
@@ -154,7 +151,6 @@ ChecklistSectionNode.propTypes = {
   openSections: PropTypes.object.isRequired,
   onSectionToggle: PropTypes.func.isRequired,
   onSelectAll: PropTypes.func.isRequired,
-  cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
   isDAModule: PropTypes.bool,
   depth: PropTypes.number,

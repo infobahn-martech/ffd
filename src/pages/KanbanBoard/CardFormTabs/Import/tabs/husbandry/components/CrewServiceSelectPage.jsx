@@ -4,22 +4,6 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const PAGE_SIZE = 10;
 
-// Static placeholder rows — mirrors the Crew Summary table on the Crew
-// Management dashboard (same columns/fields) until this page is wired back
-// up to the real uploaded crew list.
-const STATIC_CREW_ROWS = [
-  { id: "1", crewId: 1, crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: true, zawilPass: false },
-  { id: "2", crewId: 2, crewName: "John Smith", nationality: "United Kingdom", rank: "Master", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: true },
-  { id: "3", crewId: 3, crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", movementType: "Sign On", passport: false, iqama: true, visa: true, cgPass: false, zawilPass: false },
-  { id: "4", crewId: 4, crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", movementType: "Sign Off", passport: true, iqama: true, visa: true, cgPass: true, zawilPass: true },
-  { id: "5", crewId: 5, crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", movementType: "Sign On", passport: false, iqama: false, visa: false, cgPass: false, zawilPass: false },
-  { id: "6", crewId: 6, crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", movementType: "Sign Off", passport: true, iqama: false, visa: true, cgPass: false, zawilPass: false },
-  { id: "7", crewId: 7, crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", movementType: "Sign On", passport: true, iqama: true, visa: false, cgPass: false, zawilPass: false },
-  { id: "8", crewId: 8, crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", movementType: "Sign Off", passport: false, iqama: true, visa: true, cgPass: true, zawilPass: false },
-  { id: "9", crewId: 9, crewName: "Fatima Al-Sayed", nationality: "Egypt", rank: "Bosun", movementType: "Sign On", passport: true, iqama: true, visa: true, cgPass: false, zawilPass: true },
-  { id: "10", crewId: 10, crewName: "Lucas Silva", nationality: "Brazil", rank: "Oiler", movementType: "Sign Off", passport: false, iqama: false, visa: true, cgPass: false, zawilPass: false },
-];
-
 // Read-only doc status icon — green preview icon when available, blank cell
 // when missing. Same visual language as the Crew Summary table.
 const DocStatusIcon = ({ available, label }) => {
@@ -49,16 +33,19 @@ DocStatusIcon.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-// "Select Crew" step opened from a Crew Management service card — same
-// layout shell as CrewServiceListing (full page, not a modal) so it fits
-// the dashboard's existing page-swap flow: dashboard -> select crew (this
+// "Select Crew" step opened from a Crew Management service card — a full
+// page (not a modal) so it fits the dashboard's existing page-swap flow:
+// dashboard -> select crew (this
 // page) -> submit -> straight to the service's request/form (or a
 // confirmation, for services without one yet). Selection state lives in
-// the parent (selectedCrewIds); the crew rows shown are static placeholder
-// data for now (see STATIC_CREW_ROWS). The table is paginated for display
-// only; selection tracks crew ids, not page position, so it survives paging.
+// the parent (selectedCrewIds); crewRows is the real, unfiltered call/vessel
+// crew list (crew/get_crew_list, fetched and row-shaped in
+// CrewManagementDashboard) passed down as-is. The table is paginated for
+// display only; selection tracks crew ids, not page position, so it
+// survives paging.
 const CrewServiceSelectPage = ({
   service,
+  crewRows = [],
   selectedCrewIds = [],
   onChangeSelected,
   cardColor,
@@ -78,11 +65,11 @@ const CrewServiceSelectPage = ({
   if (!service) return null;
 
   const isCrewChange = service.tabName === "crewChange";
-  const hasCrew = STATIC_CREW_ROWS.length > 0;
+  const hasCrew = crewRows.length > 0;
   const canSubmit = hasCrew && selectedCrewIds.length > 0;
-  const totalPages = Math.max(1, Math.ceil(STATIC_CREW_ROWS.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(crewRows.length / PAGE_SIZE));
   const effectivePage = Math.min(page, totalPages);
-  const pagedRows = STATIC_CREW_ROWS.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE);
+  const pagedRows = crewRows.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE);
   const pageIds = pagedRows.map((row) => row.id);
   const isPageFullySelected = pageIds.length > 0 && pageIds.every((id) => selectedCrewIds.includes(id));
 
@@ -281,6 +268,7 @@ CrewServiceSelectPage.propTypes = {
     tabName: PropTypes.string,
     label: PropTypes.string,
   }),
+  crewRows: PropTypes.array,
   selectedCrewIds: PropTypes.array,
   onChangeSelected: PropTypes.func.isRequired,
   cardColor: PropTypes.string,

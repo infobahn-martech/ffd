@@ -263,10 +263,10 @@ const fetchSavedCallChecklist = async (callId) => {
 const normalizeChecklistTypeOptions = (rowsBySource) =>
   mergeChecklistTypeOptions([rowsBySource.vesselRows, rowsBySource.bargeRows]);
 
-const normalizeChecklistDetailResponse = (checklistTypeId, payload) => {
+const normalizeChecklistDetailResponse = (checklistTypeId, payload, fallbackName) => {
   const { checklistDetails, sections } = mapGetChecklistByIdResponse(payload);
   const typeId = toIdString(checklistTypeId);
-  const typeName = checklistDetails?.checklist_name || `Checklist ${typeId}`;
+  const typeName = checklistDetails?.checklist_name || fallbackName || `Checklist ${typeId}`;
   const tree = mapApiSectionsToTree(sections, typeId, typeName);
   return { typeId, typeName, tree, checklistDetails };
 };
@@ -305,6 +305,7 @@ function Checklist({
   const [checklistBlocks, setChecklistBlocks] = useState([]);
   const [savedChecklistLookup, setSavedChecklistLookup] = useState({});
   const [savedChecklistTypeIds, setSavedChecklistTypeIds] = useState([]);
+  const [savedChecklistRows, setSavedChecklistRows] = useState([]);
   const [itemsData, setItemsData] = useState({});
   const [openSections, setOpenSections] = useState({});
   const [openTypeGroups, setOpenTypeGroups] = useState({});
@@ -361,18 +362,35 @@ function Checklist({
 
   const prerequisiteState = useMemo(() => getPrerequisiteStateFromContext(dataContext), [dataContext]);
 
+  // Reset all checklist state before loading a new call so one call's options/selection
+  // can never leak into another while the new call's data is still in flight.
+  useEffect(() => {
+    userChangedSelectionRef.current = false;
+    setChecklistTypeOptions([]);
+    setSelectedChecklistTypeIds([]);
+    setChecklistBlocks([]);
+    setSavedChecklistLookup({});
+    setSavedChecklistTypeIds([]);
+    setSavedChecklistRows([]);
+    setItemsData({});
+    setOpenSections({});
+    setOpenTypeGroups({});
+  }, [currentCallId]);
+
   useEffect(() => {
     let cancelled = false;
     const loadSavedChecklist = async () => {
       if (!currentCallId) {
         setSavedChecklistLookup({});
         setSavedChecklistTypeIds([]);
+        setSavedChecklistRows([]);
         return;
       }
       setSavedLoading(true);
       try {
         const rows = await fetchSavedCallChecklist(currentCallId);
         if (cancelled) return;
+        setSavedChecklistRows(rows);
         const normalized = normalizeSavedChecklistLookup(rows);
         setSavedChecklistLookup(normalized.lookup);
         setSavedChecklistTypeIds(normalized.typeIds);
@@ -381,6 +399,7 @@ function Checklist({
         if (!cancelled) {
           setSavedChecklistLookup({});
           setSavedChecklistTypeIds([]);
+          setSavedChecklistRows([]);
         }
       } finally {
         if (!cancelled) setSavedLoading(false);
@@ -396,12 +415,24 @@ function Checklist({
     let cancelled = false;
     const loadChecklistTypes = async () => {
       if (!prerequisiteState.canLoadChecklists) {
-        setChecklistTypeOptions([]);
-        setSelectedChecklistTypeIds([]);
-        setChecklistBlocks([]);
-        setItemsData({});
-        setOpenSections({});
-        setOpenTypeGroups({});
+        // Prerequisites (call type/port/vessel/barge) missing: still show whatever the
+        // saved-checklist API already resolved for this call, don't wipe it.
+        const savedOptions = mergeSavedChecklistsIntoTypeOptions([], savedChecklistRows);
+        setChecklistTypeOptions(savedOptions);
+        if (!userChangedSelectionRef.current) {
+          setSelectedChecklistTypeIds(
+            savedChecklistTypeIds.filter((id) =>
+              savedOptions.some((option) => String(option.value) === String(id))
+            )
+          );
+        }
+        if (!savedChecklistRows.length) {
+          setSelectedChecklistTypeIds([]);
+          setChecklistBlocks([]);
+          setItemsData({});
+          setOpenSections({});
+          setOpenTypeGroups({});
+        }
         return;
       }
       setTypeLoading(true);
@@ -414,7 +445,10 @@ function Checklist({
           port_id: dataContext.portIdForApi,
         });
         if (cancelled) return;
-        const options = normalizeChecklistTypeOptions(rowsBySource);
+        const fetchedOptions = normalizeChecklistTypeOptions(rowsBySource);
+        // Merge with saved-checklist rows so a valid name survives even when
+        // vessel/barge lookups return empty (e.g. type changed, no linkage row).
+        const options = mergeSavedChecklistsIntoTypeOptions(fetchedOptions, savedChecklistRows);
         setChecklistTypeOptions(options);
         setSelectedChecklistTypeIds((prev) => {
           const optionIds = options.map((o) => String(o.value));
@@ -451,7 +485,7 @@ function Checklist({
     return () => {
       cancelled = true;
     };
-  }, [dataContext, prerequisiteState.canLoadChecklists, savedChecklistTypeIds]);
+  }, [dataContext, prerequisiteState.canLoadChecklists, savedChecklistTypeIds, savedChecklistRows]);
 
   useEffect(() => {
     if (userChangedSelectionRef.current) return;
@@ -483,9 +517,11 @@ function Checklist({
       try {
         const responses = await Promise.all(selectedChecklistTypeIds.map((id) => fetchChecklistById(id)));
         if (cancelled) return;
-        const blocks = responses.map((payload, index) =>
-          normalizeChecklistDetailResponse(selectedChecklistTypeIds[index], payload)
-        );
+        const optionLabelById = new Map(checklistTypeOptions.map((o) => [String(o.value), o.label]));
+        const blocks = responses.map((payload, index) => {
+          const id = selectedChecklistTypeIds[index];
+          return normalizeChecklistDetailResponse(id, payload, optionLabelById.get(String(id)));
+        });
         const allSectionIds = blocks.flatMap((b) => collectTreeSectionIds(b.tree));
 
         setChecklistBlocks(blocks);
@@ -562,6 +598,9 @@ function Checklist({
     return () => {
       cancelled = true;
     };
+    // checklistTypeOptions intentionally omitted: only read as a label fallback,
+    // adding it would refetch checklist details on every options/label merge.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedChecklistLookup, selectedChecklistTypeIds]);
 
   const handleChecklistTypeChange = (event) => {
@@ -654,6 +693,7 @@ function Checklist({
       notify("Checklist saved successfully.", "success");
       try {
         const rows = await fetchSavedCallChecklist(currentCallId);
+        setSavedChecklistRows(rows);
         const normalized = normalizeSavedChecklistLookup(rows);
         setSavedChecklistLookup(normalized.lookup);
         setSavedChecklistTypeIds(normalized.typeIds);
@@ -706,7 +746,6 @@ function Checklist({
             onChange={handleChecklistTypeChange}
             options={checklistTypeOptions}
             placeholder={checklistTypeOptions.length ? "Select checklist type..." : "No checklist types available"}
-            cardColor={cardColor}
             disabled={isViewOnly || typeLoading || !prerequisiteState.canLoadChecklists}
           />
           {onOpenReportPreview && !isViewOnly ? (
@@ -721,7 +760,10 @@ function Checklist({
           {!isLoading && callDetailError ? (
             <ChecklistEmptyState title="Call detail error" message={callDetailError} variant="error" />
           ) : null}
-          {!isLoading && !callDetailError && !prerequisiteState.canLoadChecklists ? (
+          {!isLoading &&
+            !callDetailError &&
+            !prerequisiteState.canLoadChecklists &&
+            savedChecklistRows.length === 0 ? (
             <ChecklistEmptyState
               title="Checklist prerequisites"
               message="Checklist types will load after call type, port, and vessel/barge are available."
@@ -757,7 +799,7 @@ function Checklist({
             !checklistError &&
             hasChecklistData &&
             checklistBlocks.map((block) => (
-              <div className="checklist-type-group cl-excel-type-group" key={block.typeId} style={{ "--card-color": cardColor }}>
+              <div className="checklist-type-group cl-excel-type-group" key={block.typeId}>
                 <ChecklistTypeBlock
                   typeTitle={block.typeName}
                   sectionTree={block.tree}
@@ -766,7 +808,6 @@ function Checklist({
                   openSections={openSections}
                   onSectionToggle={handleSectionToggle}
                   onSelectAll={handleSelectAll}
-                  cardColor={cardColor}
                   isViewOnly={isViewOnly}
                   isDAModule={isDAModule}
                 />
@@ -776,7 +817,6 @@ function Checklist({
           {!isViewOnly ? (
             <div className="checklist-actions">
               <ChecklistFooterActions
-                cardColor={cardColor}
                 disabled={isLoading || saveLoading || selectedChecklistTypeIds.length === 0}
                 loading={saveLoading}
                 onSaveConfirm={handleSaveConfirm}

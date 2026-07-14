@@ -30,18 +30,44 @@
 }
 
 .checklist-page-header {
-  align-items: flex-start;
-  padding: 20px 26px 16px 22px;
-  border-bottom: none;
-  min-height: 0;
-  gap: 12px;
+  min-height: 58px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.checklist-page-header .operation-content-title {
+  position: relative;
+  margin: 0;
+  padding-left: 14px;
+  color: #1f2937;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.checklist-page-header .operation-content-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 4px;
+  height: 20px;
+  border-radius: 4px;
+  background: #6674c8;
 }
 
 .checklist-header-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -57,14 +83,71 @@
 }
 
 .checklist-header-type-select .cf-multiselect-input {
-  min-height: 36px;
-  border-radius: 4px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
   border-width: 1px;
+  border-color: #e5e7eb;
   box-shadow: none;
 }
 
 .checklist-header-type-select .cf-multiselect-input:hover {
-  box-shadow: none;
+  border-color: #c9d0f4;
+  box-shadow: 0 0 0 3px rgba(102, 116, 200, 0.1);
+}
+
+.checklist-header-type-select[aria-expanded="true"] .cf-multiselect-input,
+.checklist-header-type-select .cf-multiselect-input:focus-within {
+  border-color: #6674c8;
+  box-shadow: 0 0 0 3px rgba(102, 116, 200, 0.14);
+}
+
+.checklist-header-type-select .cf-multiselect-placeholder {
+  color: #94a3b8;
+  font-style: normal;
+}
+
+.checklist-header-type-select .cf-multiselect-tag {
+  background: #eef0ff;
+  border: 1px solid #c9d0f4;
+  color: #3f4f8f;
+}
+
+.checklist-header-type-select .cf-multiselect-tag:hover {
+  background: #e2e6ff;
+  border-color: #6674c8;
+}
+
+.checklist-header-type-select .cf-multiselect-tag-remove {
+  color: #5b68a5;
+}
+
+.checklist-header-type-select .cf-multiselect-tag-remove:hover {
+  background: rgba(63, 79, 143, 0.14);
+  color: #3f4f8f;
+}
+
+.checklist-header-type-select .cf-multiselect-arrow {
+  color: #6b7280;
+}
+
+.checklist-header-type-select .cf-multiselect-dropdown {
+  border-color: #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+.checklist-header-type-select .cf-multiselect-option:hover {
+  background: #eef0ff;
+}
+
+.checklist-header-type-select .cf-multiselect-option.selected {
+  background: #e2e6ff;
+  color: #3f4f8f;
+  font-weight: 600;
+}
+
+.checklist-header-type-select .cf-multiselect-option.selected:hover {
+  background: #c9d0f4;
 }
 
 .checklist-form--compact {
@@ -89,6 +172,85 @@
   border-top: none;
   background: transparent;
   box-shadow: none;
+}
+
+/* ==========================================================
+   LOADING SKELETON (appointment checklist)
+   ========================================================== */
+
+.cl-skel-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.cl-skel-card {
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(90deg, #f8fafc 0%, #eef0ff 50%, #f8fafc 100%);
+  background-size: 200% 100%;
+  animation: cl-skel-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes cl-skel-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================================
+   EMPTY / ERROR STATES (appointment checklist)
+   ========================================================== */
+
+.cl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 36px 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.cl-empty--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.cl-empty--prerequisite {
+  border-color: #c9d0f4;
+  background: #eef0ff;
+}
+
+.cl-empty-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.cl-empty__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.cl-empty__msg {
+  margin: 0;
+  max-width: 420px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #6b7280;
 }
 
 /* ==========================================================
@@ -911,8 +1073,8 @@
 }
 
 .checklist-checkbox:checked+.checklist-checkbox-custom {
-  background: #4caf50;
-  border-color: #4caf50;
+  background: #12b981;
+  border-color: #12b981;
   transform: scale(1.05);
 }
 
@@ -921,7 +1083,7 @@
 }
 
 .checklist-checkbox:focus+.checklist-checkbox-custom {
-  outline: 2px solid var(--card-color, #2A00FF);
+  outline: 2px solid #12b981;
   outline-offset: 2px;
 }
 
@@ -1011,7 +1173,8 @@
   background: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 42px;
+  height: 48px;
+  overflow: hidden;
   gap: 8px;
 }
 
@@ -1022,29 +1185,50 @@
 
 .cf-multiselect-tags {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   flex: 1;
+  min-width: 0;
   align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.cf-multiselect-tags::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cf-multiselect-tags::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cf-multiselect-tags::-webkit-scrollbar-thumb {
+  background: #c7cfd8;
+  border-radius: 10px;
 }
 
 .cf-multiselect-placeholder {
   font-size: 14px;
   color: #999;
   font-style: italic;
+  white-space: nowrap;
 }
 
 .cf-multiselect-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 4px 6px;
   background: #f0f0f0;
   border: 1px solid #d0d0d0;
   border-radius: 6px;
   font-size: 13px;
   color: #2c3e50;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  width: 104px;
+  box-sizing: border-box;
 }
 
 .cf-multiselect-tag:hover {
@@ -1054,6 +1238,11 @@
 
 .cf-multiselect-tag-text {
   font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cf-multiselect-tag-remove {
@@ -1071,6 +1260,7 @@
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .cf-multiselect-tag-remove:hover {
@@ -1800,21 +1990,21 @@
 }
 
 .checklist-btn-primary {
-  background: #00368c;
+  background: #6674c8;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 54, 140, 0.3);
+  box-shadow: 0 2px 6px rgba(63, 79, 143, 0.3);
 }
 
 .checklist-btn-primary:hover {
-  background: #002d75;
-  opacity: 0.9;
+  background: #3f4f8f;
+  opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 54, 140, 0.4);
+  box-shadow: 0 6px 16px rgba(63, 79, 143, 0.35);
 }
 
 .checklist-btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 54, 140, 0.3);
+  box-shadow: 0 2px 6px rgba(63, 79, 143, 0.3);
 }
 
 .checklist-btn-secondary {
@@ -2262,9 +2452,9 @@
   font-size: 10px;
   font-weight: 600;
   line-height: 1.25;
-  color: #4338ca;
-  background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%);
-  border: 1px solid rgba(99, 102, 241, 0.28);
+  color: #3f4f8f;
+  background: #e2e6ff;
+  border: 1px solid #c9d0f4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2378,9 +2568,9 @@
 
 /* Expiry chip — view-only */
 span.cl-item-meta-chip.cl-item-meta-chip--expiry {
-  border: 1px solid #d8e2f3;
-  background: #f8fbff;
-  color: #42526e;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #6b7280;
   border-radius: 999px;
   padding: 4px 9px;
   display: inline-flex;
@@ -2398,9 +2588,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   appearance: none;
   -webkit-appearance: none;
   position: relative;
-  border: 1px solid #c9daf5;
-  background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
-  color: #42526e;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
   border-radius: 999px;
   padding: 4px 10px;
   display: inline-flex;
@@ -2428,10 +2618,10 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover {
-  border-color: #7c9cff;
-  background: linear-gradient(180deg, #f5f8ff 0%, #e8f0ff 100%);
-  color: #00368c;
-  box-shadow: 0 2px 10px rgba(0, 54, 140, 0.14);
+  border-color: #c9d0f4;
+  background: #e2e6ff;
+  color: #3f4f8f;
+  box-shadow: 0 2px 10px rgba(63, 79, 143, 0.12);
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover .cl-meta-icon.cl-meta-icon--svg {
@@ -2443,18 +2633,18 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:focus-visible {
-  outline: 3px solid rgba(0, 91, 255, 0.22);
+  outline: 3px solid rgba(102, 116, 200, 0.24);
   outline-offset: 2px;
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:focus-within {
-  outline: 3px solid rgba(0, 91, 255, 0.22);
+  outline: 3px solid rgba(102, 116, 200, 0.24);
   outline-offset: 2px;
 }
 
 .cl-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable,
 .cl-mui-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable {
-  outline: 3px solid rgba(0, 91, 255, 0.22);
+  outline: 3px solid rgba(102, 116, 200, 0.24);
   outline-offset: 2px;
 }
 
@@ -2685,9 +2875,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   appearance: none;
   -webkit-appearance: none;
   flex: 0 0 auto;
-  border: 1px solid #d8e2f3;
-  background: #f8fbff;
-  color: #64748b;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #6b7280;
   border-radius: 999px;
   width: 22px;
   min-width: 22px;
@@ -2707,14 +2897,14 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-item-meta-preview-btn:hover {
-  border-color: #7c9cff;
-  background: #eef4ff;
-  color: #00368c;
-  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.12);
+  border-color: #c9d0f4;
+  background: #e2e6ff;
+  color: #3f4f8f;
+  box-shadow: 0 2px 8px rgba(63, 79, 143, 0.12);
 }
 
 .cl-item-meta-preview-btn:focus-visible {
-  outline: 3px solid rgba(0, 91, 255, 0.18);
+  outline: 3px solid rgba(102, 116, 200, 0.2);
   outline-offset: 2px;
 }
 
@@ -2968,9 +3158,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   height: 22px;
   padding: 0 7px;
   border-radius: 6px;
-  border: 1px dashed rgba(67, 56, 202, 0.45);
-  background: rgba(67, 56, 202, 0.06);
-  color: #4338ca;
+  border: 1px dashed rgba(63, 79, 143, 0.4);
+  background: rgba(102, 116, 200, 0.08);
+  color: #3f4f8f;
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
@@ -2981,12 +3171,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-more-files-chip:hover {
-  background: rgba(67, 56, 202, 0.11);
-  border-color: rgba(67, 56, 202, 0.65);
+  background: rgba(102, 116, 200, 0.14);
+  border-color: rgba(63, 79, 143, 0.6);
 }
 
 .checklist-more-files-chip[aria-expanded="true"] {
-  background: rgba(67, 56, 202, 0.14);
+  background: rgba(102, 116, 200, 0.18);
   border-style: solid;
 }
 
@@ -4356,6 +4546,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-type-group {
   margin-bottom: 12px;
+  margin-top: 12px;
 }
 
 .cl-excel-type-group:last-child {
@@ -4364,22 +4555,23 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-block {
   width: 100%;
-  border: 1px solid #000;
+  border: 1px solid #e5e7eb;
   background: #fff;
-  box-shadow: none;
-  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .cl-excel-type-title {
-  padding: 6px 10px;
+  padding: 10px 14px;
   font-size: 13px;
   font-weight: 700;
-  color: #000;
+  color: rgb(0 0 0);
   text-transform: uppercase;
-  text-decoration: underline;
-  background: #d9e9f4;
-  border-bottom: 1px solid #000;
-  letter-spacing: 0.02em;
+  text-decoration: none;
+  background: #e2e6ff;
+  border-bottom: 1px solid #d9dee8;
+  letter-spacing: 0.04em;
 }
 
 .cl-excel-table-wrap {
@@ -4397,77 +4589,84 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border-radius: 0;
   box-shadow: none;
   min-width: 1080px;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 12.5px;
 }
 
 .cl-excel-table thead {
-  background: #fff;
+  background: #f8fafc;
 }
 
 .cl-excel-table thead th {
   height: auto;
   min-height: 28px;
-  padding: 4px 6px;
-  font-size: 10px;
+  padding: 10px 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #000;
+  color: #1f2937;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  border: 1px solid #000;
-  border-top: none;
-  background: #fff;
+  letter-spacing: 0.04em;
+  border: none;
+  border-right: 1px solid #d9dee8;
+  border-bottom: 1px solid #d9dee8;
+  background: #f8fafc;
   white-space: nowrap;
   vertical-align: middle;
 }
 
+.cl-excel-table thead th:last-child {
+  border-right: 0;
+}
+
 .cl-excel-table tbody td {
-  border: 1px solid #000;
-  border-top: none;
-  padding: 4px 6px;
+  border: none;
+  border-right: 1px solid #d9dee8;
+  border-bottom: 1px solid #d9dee8;
+  padding: 8px 12px;
   vertical-align: middle;
   background: #fff;
+}
+
+.cl-excel-table tbody td:last-child {
+  border-right: 0;
 }
 
 .cl-excel-table tbody tr.checklist-table-row td {
   min-height: 0;
   height: auto;
-  padding: 4px 6px;
-}
-
-.cl-excel-table tbody tr.checklist-table-row td+td {
-  border-left-style: dotted;
-}
-
-.cl-excel-table thead th+th {
-  border-left-style: dotted;
+  padding: 8px 12px;
 }
 
 .cl-excel-table .checklist-table-row {
   border-bottom: none;
-  transition: none;
+  transition: background-color 0.15s ease;
 }
 
-.cl-excel-table .checklist-table-row:hover:not(.checked),
-.cl-excel-table .checklist-table-row.checked,
-.cl-excel-table .checklist-table-row:hover.checked {
-  background: transparent;
+.cl-excel-table .checklist-table-row:hover:not(.checked) td {
+  background: #f8fafc;
 }
 
 .cl-excel-table .checklist-table-row.checked td {
-  background: #f4faf4;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.cl-excel-table .checklist-table-row.checked:hover td {
+  background: #dff9ee;
+}
+
+.cl-excel-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .cl-excel-section-header-row td {
-  background: #d9e9f4 !important;
-  padding: 4px 8px;
-  border: 1px solid #000;
-  border-top: none;
+  background: #e2e6ff !important;
+  padding: 8px 12px;
   vertical-align: middle;
 }
 
 .cl-excel-section-header-row--sub td {
-  background: #e8f2f8 !important;
+  background: #eef0ff !important;
 }
 
 .cl-excel-section-header-title-cell {
@@ -4475,19 +4674,19 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-section-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  color: #000;
+  color: #000000;
   text-transform: uppercase;
-  text-decoration: underline;
-  letter-spacing: 0.02em;
+  text-decoration: none;
+  letter-spacing: 0.03em;
 }
 
 .cl-excel-section-count {
   margin-left: 10px;
   font-size: 10px;
   font-weight: 600;
-  color: #333;
+  color: #5b68a5;
   text-decoration: none;
   text-transform: none;
 }
@@ -4502,15 +4701,16 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 4px;
-  border: none;
-  background: transparent;
-  border-radius: 0;
+  padding: 4px 10px;
+  border: 1px solid #c9d0f4;
+  background: #ffffff;
+  border-radius: 999px;
   box-shadow: none;
   font-size: 10px;
   font-weight: 600;
-  color: #000;
+  color: #3f4f8f;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .cl-excel-select-all-btn .checklist-select-all-checkbox {
@@ -4518,15 +4718,17 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   height: 17px;
   margin: 0;
   flex-shrink: 0;
+  accent-color: #6674c8;
 }
 
 .cl-excel-select-all-btn:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: #eef0ff;
+  border-color: #6674c8;
 }
 
 .cl-excel-select-all-btn .checklist-select-all-label {
   font-size: 10px;
-  color: #000;
+  color: #3f4f8f;
   text-transform: uppercase;
 }
 
@@ -4586,10 +4788,10 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-table .checklist-checkbox-custom--table {
-  width: 17px;
-  height: 17px;
-  border-radius: 3px;
-  border-color: #333;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border-color: #d1d5db;
 }
 
 /* Upload column: single centered upload icon button */
@@ -4625,8 +4827,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-upload-icon-btn:hover {
-  color: var(--card-color, #2a00ff);
-  background: rgba(42, 0, 255, 0.06);
+  color: #3f4f8f;
+  background: rgba(102, 116, 200, 0.1);
   transform: scale(1.12);
 }
 
@@ -4635,7 +4837,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-upload-icon-btn:focus-visible {
-  outline: 2px solid rgba(0, 91, 255, 0.35);
+  outline: 2px solid rgba(102, 116, 200, 0.35);
   outline-offset: 2px;
 }
 
@@ -4648,9 +4850,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-table .cl-item-title.cl-item-title--primary {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #0066cc;
+  color: #1f2937;
   white-space: normal;
   overflow: visible;
   text-overflow: unset;
@@ -4675,9 +4877,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  color: #000;
+  color: #6b7280;
   text-transform: uppercase;
   text-align: center;
   line-height: 1.2;
@@ -4689,7 +4891,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-table .cl-req-empty {
-  color: #666;
+  color: #94a3b8;
   font-size: 11px;
 }
 
@@ -4697,7 +4899,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   padding: 1px;
   border: none;
   background: transparent;
-  color: #0066cc;
+  color: #5b68a5;
   cursor: pointer;
 }
 
@@ -4719,18 +4921,18 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   text-overflow: ellipsis;
   word-break: break-word;
   text-align: center;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.2;
-  color: #555;
+  color: #6b7280;
   max-width: 100%;
 }
 
 .cl-excel-table .cl-req-description {
   align-self: stretch;
   margin: 4px 0 0;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
-  color: #555;
+  color: #6b7280;
   text-align: left;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -4739,9 +4941,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-table .cl-item-description {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.4;
-  color: #555;
+  color: #6b7280;
   text-align: left;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -4750,48 +4952,48 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 
 .cl-excel-table .cl-role-badge {
-  border-radius: 2px;
-  padding: 2px 5px;
-  font-size: 9px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
   font-weight: 600;
-  color: #0066cc;
-  background: transparent;
-  border: 1px solid #99bbe8;
+  color: #3f4f8f;
+  background: #e2e6ff;
+  border: 1px solid #c9d0f4;
   text-transform: uppercase;
 }
 
 .cl-excel-table .cl-role-empty {
   font-size: 11px;
-  color: #666;
+  color: #94a3b8;
 }
 
 .cl-excel-table .checklist-upload-btn {
   padding: 2px 6px;
   font-size: 10px;
-  border-radius: 2px;
-  border: 1px solid #666;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
   background: #fff;
   box-shadow: none;
-  color: #000;
+  color: #1f2937;
   gap: 3px;
   min-height: 22px;
 }
 
 .cl-excel-table .checklist-upload-btn:hover {
-  background: #f5f5f5;
-  border-color: #333;
+  background: #e2e6ff;
+  border-color: #6674c8;
 }
 
 .cl-excel-table .checklist-file-chip {
-  border-radius: 2px;
-  border: 1px solid #ccc;
-  background: #fafafa;
-  font-size: 9px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  font-size: 10px;
   padding: 1px 4px;
 }
 
 .cl-excel-table .checklist-file-chip__name {
-  font-size: 9px;
+  font-size: 10px;
   max-width: 80px;
 }
 
@@ -4814,15 +5016,15 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-table .cf-textarea.checklist-table-textarea textarea,
 .cl-excel-table .cf-textarea.cl-remarks-ta textarea {
-  border-radius: 2px;
-  border: 1px solid #999;
-  padding: 3px 5px;
-  font-size: 11px;
-  min-height: 24px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  padding: 5px 8px;
+  font-size: 12px;
+  min-height: 28px;
   box-shadow: none;
   background: #fff;
   outline: none;
-  transition: none;
+  transition: border-color 0.15s ease;
 }
 
 .cl-excel-table .cf-textarea.checklist-table-textarea textarea::placeholder,
@@ -4830,40 +5032,45 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   color: #9ca3af;
 }
 
-.cl-excel-table .cf-textarea.checklist-table-textarea textarea:hover,
-.cl-excel-table .cf-textarea.checklist-table-textarea textarea:focus,
-.cl-excel-table .cf-textarea.cl-remarks-ta textarea:hover,
-.cl-excel-table .cf-textarea.cl-remarks-ta textarea:focus {
-  border: 1px solid #999;
+.cl-excel-table .cf-textarea.checklist-table-textarea textarea:hover {
+  border: 1px solid #c9d0f4;
   box-shadow: none;
+  outline: none;
+}
+
+.cl-excel-table .cf-textarea.checklist-table-textarea textarea:focus,
+.cl-excel-table .cf-textarea.cl-remarks-ta textarea:focus {
+  border: 1px solid #6674c8;
+  box-shadow: 0 0 0 3px rgba(102, 116, 200, 0.12);
   outline: none;
 }
 
 .cl-excel-table span.cl-item-meta-chip.cl-item-meta-chip--expiry,
 .cl-excel-table .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable {
-  border-radius: 2px;
-  padding: 2px 5px;
-  min-height: 20px;
-  font-size: 10px;
+  border-radius: 6px;
+  padding: 3px 7px;
+  min-height: 22px;
+  font-size: 10.5px;
   box-shadow: none;
-  border-color: #999;
+  border-color: #e5e7eb;
   background: #fff;
 }
 
 .cl-excel-table .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover {
   box-shadow: none;
-  background: #f5f5f5;
+  background: #e2e6ff;
+  border-color: #c9d0f4;
 }
 
 .cl-excel-table .checklist-more-files-chip {
-  border-radius: 2px;
-  font-size: 9px;
+  border-radius: 6px;
+  font-size: 10px;
   padding: 1px 4px;
 }
 
 .cl-excel-table .checklist-files-popover {
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
 }
 
 @media (max-width: 768px) {

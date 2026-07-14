@@ -2,7 +2,6 @@ import PropTypes from "prop-types";
 
 const ChecklistFooterActions = ({
   onSaveConfirm,
-  cardColor,
   disabled,
   loading = false,
   children,
@@ -15,7 +14,6 @@ const ChecklistFooterActions = ({
         type="button"
         className="checklist-btn-primary cl-footer__primary"
         onClick={onSaveConfirm}
-        style={{ "--card-color": cardColor }}
         disabled={disabled || loading}
         aria-busy={loading}
       >
@@ -27,7 +25,6 @@ const ChecklistFooterActions = ({
 
 ChecklistFooterActions.propTypes = {
   onSaveConfirm: PropTypes.func.isRequired,
-  cardColor: PropTypes.string,
   disabled: PropTypes.bool,
   loading: PropTypes.bool,
   children: PropTypes.node,

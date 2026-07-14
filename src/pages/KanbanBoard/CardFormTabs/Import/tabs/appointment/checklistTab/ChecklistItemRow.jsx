@@ -195,7 +195,6 @@ const ChecklistItemRow = ({
   item,
   itemData,
   onChange,
-  cardColor = "#2A00FF",
   isViewOnly = false,
 }) => {
   const {
@@ -493,7 +492,7 @@ const ChecklistItemRow = ({
     });
 
   return (
-    <tr className={`checklist-table-row cl-item-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
+    <tr className={`checklist-table-row cl-item-row ${checked ? "checked" : ""}`}>
       <td className="checklist-table-checkbox">
         <label className="checklist-checkbox-wrapper checklist-checkbox-wrapper--table">
           <input
@@ -657,7 +656,6 @@ ChecklistItemRow.propTypes = {
   item: PropTypes.object.isRequired,
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
-  cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
 };
 
