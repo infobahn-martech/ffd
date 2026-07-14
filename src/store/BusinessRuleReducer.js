@@ -258,6 +258,63 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isDeletingNotificationSettings: false,
+
+    deleteNotificationSettings: async (notificationId, { cb, onSettled } = {}) => {
+        try {
+            set({ isDeletingNotificationSettings: true });
+            const { data } = await businessRuleService.deleteNotificationSettings(notificationId);
+            set({ isDeletingNotificationSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Notification settings removed.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isDeletingNotificationSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
+    isUpdatingWebServiceSettings: false,
+
+    updateWebServiceSettings: async (webServiceId, payload, { cb, onSettled } = {}) => {
+        try {
+            set({ isUpdatingWebServiceSettings: true });
+            const { data } = await businessRuleService.updateWebServiceSettings(webServiceId, payload);
+            set({ isUpdatingWebServiceSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Web service settings updated.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isUpdatingWebServiceSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
+    isDeletingWebServiceSettings: false,
+
+    deleteWebServiceSettings: async (webServiceId, { cb, onSettled } = {}) => {
+        try {
+            set({ isDeletingWebServiceSettings: true });
+            const { data } = await businessRuleService.deleteWebServiceSettings(webServiceId);
+            set({ isDeletingWebServiceSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Web service settings removed.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isDeletingWebServiceSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isLoadingWebServiceSettings: false,
     webServiceSettings: null,
 
@@ -294,43 +351,6 @@ const useBusinessRuleReducer = create((set) => ({
             onSettled && onSettled();
         }
     },
-
-    isUpdatingWebServiceSettings: false,
-
-    updateWebServiceSettings: async (webServiceId, payload, { cb, onSettled } = {}) => {
-        try {
-            set({ isUpdatingWebServiceSettings: true });
-            const { data } = await businessRuleService.updateWebServiceSettings(webServiceId, payload);
-            set({ isUpdatingWebServiceSettings: false });
-            const { success } = useAlertReducer.getState();
-            success(data?.message || 'Web service settings updated.');
-            cb && cb(data);
-        } catch (err) {
-            set({ isUpdatingWebServiceSettings: false });
-            const { error } = useAlertReducer.getState();
-            error(err?.response?.data?.message ?? err.message);
-        } finally {
-            onSettled && onSettled();
-        }
-    },
-
-    isLoadingWebServiceSettings: false,
-    webServiceSettings: null,
-
-    getWebServiceSettings: async (webServiceId) => {
-        try {
-            set({ isLoadingWebServiceSettings: true, webServiceSettings: null });
-            const { data } = await businessRuleService.getWebServiceSettings(webServiceId);
-            set({
-                webServiceSettings: data?.data ?? null,
-                isLoadingWebServiceSettings: false,
-            });
-        } catch (err) {
-            set({ webServiceSettings: null, isLoadingWebServiceSettings: false });
-        }
-    },
-
-    resetWebServiceSettings: () => set({ webServiceSettings: null, isLoadingWebServiceSettings: false }),
 }));
 
 export default useBusinessRuleReducer;

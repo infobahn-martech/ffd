@@ -17,6 +17,7 @@ const TRIGGER_CODE_TO_ICON = {
   all_children_moved: 'all-children-moved',
   time_based: 'time-based',
   recurring_created: 'time-based',
+  recurring_create_cards: 'time-based',
   time_based_rule: 'time-based',
   parent_card_moved: 'parent-moved',
   parent_card_updated: 'parent-updated',

@@ -2017,6 +2017,7 @@ function NotificationSettingsModal({
   show, onClose, onSave, initialSettings, triggerTypeId,
   fetchedSettings, isLoadingSettings, users, getFieldDetails, fieldDetailsByKey,
 }) {
+  const [from, setFrom] = useState('');
   const [toRecipientError, setToRecipientError] = useState(false);
   const [ccRecipientError, setCcRecipientError] = useState(false);
   const [bodyContent, setBodyContent] = useState(() => new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
@@ -2066,13 +2067,24 @@ function NotificationSettingsModal({
     type: 'field',
   }));
 
+  // Populated from the same non-vendor users list the To/Cc pickers use, so "From"
+  // becomes a real dropdown instead of the single fixed address it showed before.
+  const realFromOptions = (users ?? [])
+    .filter((u) => u.email)
+    .map((u) => ({ value: u.email, label: u.name ? `${u.name} (${u.email})` : u.email }));
+  const fromOptions = realFromOptions.length > 0
+    ? realFromOptions
+    : [{ value: DUMMY_NOTIFICATION_FROM_EMAIL, label: DUMMY_NOTIFICATION_FROM_EMAIL }];
+
   const resolveEmailTokens = (emails) => emails.map((email) => ({ label: email, id: null, type: 'email' }));
 
   useEffect(() => {
     if (!show) return;
     if (fetchedSettings) {
+      setFrom(fetchedSettings.from_email ?? '');
       setBodyContent(fetchedSettings.body ? new QuillDelta().insert(fetchedSettings.body) : new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     } else {
+      setFrom(initialSettings?.from ?? '');
       setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     }
     setToRecipientError(false);
@@ -2403,10 +2415,11 @@ function NotificationSettingsModal({
 
   const handleSave = () => {
     const subjectParts = parseSubjectParts(subjectBoxRef.current);
+    const fromEmail = from || fromOptions[0].value;
     const toTokens = parseRecipientTokens(toBoxRef.current);
     const ccTokens = parseRecipientTokens(ccBoxRef.current);
     const payload = {
-      from_email: fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL,
+      from_email: fromEmail,
       to_users: toTokens.filter((t) => t.type === 'user' && t.id != null).map((t) => t.id),
       to_custom_fields: toTokens.filter((t) => t.type === 'field' && t.id != null).map((t) => t.id),
       to_emails: toTokens.filter((t) => t.type === 'email').map((t) => t.label),
@@ -2419,7 +2432,7 @@ function NotificationSettingsModal({
 
     saveNotificationSettings(payload, {
       cb: (data) => {
-        onSave({ to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+        onSave({ from: fromEmail, to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
         onClose();
       },
     });
@@ -2493,8 +2506,14 @@ function NotificationSettingsModal({
           <div className="notification-field">
             <label className="business-rule-form-label">From:</label>
             <div className="business-rule-form-select-wrap">
-              <select className="business-rule-form-select" value={fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL} disabled>
-                <option value={fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL}>{fetchedSettings?.from_email ?? DUMMY_NOTIFICATION_FROM_EMAIL}</option>
+              <select
+                className="business-rule-form-select"
+                value={from || fromOptions[0].value}
+                onChange={(e) => setFrom(e.target.value)}
+              >
+                {fromOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
               <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
             </div>
@@ -2863,6 +2882,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const [headers, setHeaders] = useState([]);
   const [params, setParams] = useState([]);
   const [fieldPickerTarget, setFieldPickerTarget] = useState(null);
+  const [paramPendingRemoveId, setParamPendingRemoveId] = useState(null);
   const urlBoxRef = useRef(null);
 
   const { saveWebServiceSettings, updateWebServiceSettings, isSavingWebServiceSettings, isUpdatingWebServiceSettings } = useBusinessRuleReducer((s) => s);
@@ -2905,6 +2925,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
     setExpandedHeaders(true);
     setExpandedParams(true);
     setFieldPickerTarget(null);
+    setParamPendingRemoveId(null);
   }, [show, initialSettings, fetchedSettings]);
 
   // Seeds the Url contentEditable box once per open, same as the Subject box in
@@ -3010,6 +3031,11 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       return next.length === 0 ? withTrailingBlankParam(next) : next;
     });
   };
+  const handleConfirmRemoveParam = () => {
+    handleRemoveParam(paramPendingRemoveId);
+    setParamPendingRemoveId(null);
+  };
+  const handleCancelRemoveParam = () => setParamPendingRemoveId(null);
   const handleParamChange = (id, field, value) => {
     setParams((prev) => withTrailingBlankParam(prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))));
   };
@@ -3363,7 +3389,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
                       <button
                         type="button"
                         className="br-invoke-row-delete"
-                        onClick={() => handleRemoveParam(p.id)}
+                        onClick={() => (isBlankParamRow(p) ? handleRemoveParam(p.id) : setParamPendingRemoveId(p.id))}
                         aria-label="Remove param"
                       >
                         <FiTrash2 size={14} />
@@ -3393,6 +3419,30 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       onSelect={handleApplyFieldPicker}
       fields={fieldPickerTarget === 'url' ? DUMMY_URL_FIELD_OPTIONS : DUMMY_INVOKE_PAYLOAD_FIELDS}
     />
+
+    <Modal
+      show={paramPendingRemoveId != null}
+      onHide={handleCancelRemoveParam}
+      className="br-cancel-confirm-modal"
+      dialogClassName="br-cancel-confirm-dialog"
+      backdropClassName="br-cancel-confirm-backdrop"
+      backdrop="static"
+    >
+      <div className="br-cancel-confirm-content">
+        <button type="button" className="br-cancel-confirm-close-btn" onClick={handleCancelRemoveParam}>
+          <FiX size={16} />
+        </button>
+        <p className="br-cancel-confirm-text">Are you sure you want to remove this parameter?</p>
+        <div className="br-cancel-confirm-actions">
+          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--no" onClick={handleCancelRemoveParam}>
+            No
+          </button>
+          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--yes" onClick={handleConfirmRemoveParam}>
+            Yes
+          </button>
+        </div>
+      </div>
+    </Modal>
     </>
   );
 }
@@ -3454,7 +3504,15 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
   const handleToggleDraftPermission = (userId, type) => {
     setDraftPermissions((prev) => {
       const current = prev[userId] ?? { viewer: false, editor: false };
-      return { ...prev, [userId]: { ...current, [type]: !current[type] } };
+      if (type === 'viewer') {
+        if (current.editor) return prev;
+        return { ...prev, [userId]: { ...current, viewer: !current.viewer } };
+      }
+      const nextEditor = !current.editor;
+      return {
+        ...prev,
+        [userId]: { viewer: nextEditor ? true : current.viewer, editor: nextEditor },
+      };
     });
   };
 
@@ -3555,10 +3613,11 @@ function ShareWithModal({ show, onClose, permissions, onSave }) {
                       <span className="share-with-avatar" aria-hidden>{getInitials(user.name)}</span>
                       {user.username}
                     </span>
-                    <label className="business-rule-form-toggle share-with-toggle">
+                    <label className={`business-rule-form-toggle share-with-toggle${perm.editor ? ' business-rule-form-toggle--disabled' : ''}`}>
                       <input
                         type="checkbox"
                         checked={perm.viewer}
+                        disabled={perm.editor}
                         onChange={() => handleToggleDraftPermission(user.user_id, 'viewer')}
                       />
                       <span className="business-rule-form-toggle-track" aria-hidden />
@@ -3651,6 +3710,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
     getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
+    deleteNotificationSettings,
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -4163,7 +4223,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleRemoveNotifyAction = (id) => {
-    setNotifyActions((prev) => prev.filter((a) => a.id !== id));
+    // Only a notify action that was actually saved on the backend (has a
+    // notification_id) needs the delete call — one still unconfigured/unsaved
+    // has nothing to remove server-side.
+    const action = notifyActions.find((a) => a.id === id);
+    if (action?.notification_id) {
+      deleteNotificationSettings(action.notification_id, {
+        cb: () => setNotifyActions((prev) => prev.filter((a) => a.id !== id)),
+      });
+    } else {
+      setNotifyActions((prev) => prev.filter((a) => a.id !== id));
+    }
   };
 
   const handleOpenNotificationSettings = (id) => {
@@ -5177,6 +5247,7 @@ RefineUpdateCriteriaModal.propTypes = {
 NotificationSettingsModal.propTypes = {
   show: PropTypes.bool.isRequired,
   initialSettings: PropTypes.shape({
+    from: PropTypes.string,
     to: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field', 'email']) })),
     cc: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), type: PropTypes.oneOf(['user', 'field', 'email']) })),
     subjectParts: PropTypes.array,
