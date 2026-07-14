@@ -770,6 +770,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     return (
       <CrewServiceSelectPage
         service={selectedServiceForCrew}
+        crewRows={crewSummaryRows}
         selectedCrewIds={selectedCrewIds}
         onChangeSelected={setSelectedCrewIds}
         cardColor={cardColor}
