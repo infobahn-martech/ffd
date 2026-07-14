@@ -99,20 +99,49 @@ export const extractCallChecklistRows = (payload) => {
   return extractChecklistTypeRows(payload);
 };
 
-/** Add saved checklist types (and labels) into the multi-select options. */
+/**
+ * Resolve a checklist display name from any of the field names different
+ * endpoints use, rejecting values that are just the id (or purely numeric).
+ */
+const resolveChecklistTypeName = (row, key) => {
+  const candidate =
+    row?.checklist_name ?? row?.checklist_type_name ?? row?.type_name ?? row?.name;
+  const trimmed = String(candidate ?? "").trim();
+  if (!trimmed) return "";
+  if (trimmed === String(key)) return "";
+  if (/^\d+$/.test(trimmed)) return "";
+  return trimmed;
+};
+
+/** True when a label is missing, purely numeric, or the generic "Checklist {id}" placeholder. */
+const isInvalidChecklistLabel = (label, key) => {
+  const trimmed = String(label ?? "").trim();
+  if (!trimmed) return true;
+  if (trimmed === String(key)) return true;
+  if (/^\d+$/.test(trimmed)) return true;
+  if (new RegExp(`^Checklist\\s+${key}$`, "i").test(trimmed)) return true;
+  return false;
+};
+
+/**
+ * Add saved checklist types (and labels) into the multi-select options.
+ * Never overwrites a valid name (from the checklist type API) with an id
+ * or a generic placeholder coming from the saved-checklist rows.
+ */
 export const mergeSavedChecklistsIntoTypeOptions = (options, savedRows) => {
   const map = new Map((options || []).map((o) => [String(o.value), o]));
   (savedRows || []).forEach((row) => {
     const id = row?.checklist_type_id;
     if (id == null || String(id).trim() === "") return;
-    const key = String(id);
-    const label = String(row.checklist_name ?? "").trim() || `Checklist ${key}`;
+    const key = String(id).trim();
+    const resolvedName = resolveChecklistTypeName(row, key);
     const existing = map.get(key);
     if (!existing) {
-      map.set(key, { value: key, label });
-    } else if (!String(existing.label ?? "").trim() || /^Checklist \d+$/i.test(existing.label)) {
-      map.set(key, { ...existing, label });
+      map.set(key, { value: key, label: resolvedName || `Checklist ${key}` });
+    } else if (resolvedName && isInvalidChecklistLabel(existing.label, key)) {
+      map.set(key, { ...existing, label: resolvedName });
     }
+    // else: keep the existing (already valid) label from the checklist type options.
   });
   return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
 };
@@ -163,13 +192,11 @@ export const mergeChecklistTypeOptions = (lists) => {
   const map = new Map();
   lists.flat().forEach((row) => {
     const id = row?.checklist_type_id ?? row?.id;
-    if (id == null || id === "") return;
-    const key = String(id);
+    if (id == null || String(id).trim() === "") return;
+    const key = String(id).trim();
     if (!map.has(key)) {
-      map.set(key, {
-        value: key,
-        label: String(row.checklist_name ?? row.name ?? `Checklist ${key}`).trim() || `Checklist ${key}`,
-      });
+      const resolvedName = resolveChecklistTypeName(row, key);
+      map.set(key, { value: key, label: resolvedName || `Checklist ${key}` });
     }
   });
   return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));

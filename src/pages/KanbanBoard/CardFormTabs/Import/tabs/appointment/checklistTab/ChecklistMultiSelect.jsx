@@ -25,20 +25,27 @@ const ChecklistMultiSelect = ({
   }, [isOpen]);
 
   const handleToggle = (optionValue) => {
-    const newValue = value.includes(optionValue)
-      ? value.filter((v) => v !== optionValue)
-      : [...value, optionValue];
+    const normalizedOptionValue = String(optionValue).trim();
+    const normalizedValues = value.map((item) => String(item).trim());
+    const newValue = normalizedValues.includes(normalizedOptionValue)
+      ? normalizedValues.filter((item) => item !== normalizedOptionValue)
+      : [...normalizedValues, normalizedOptionValue];
     onChange({ target: { value: newValue } });
   };
 
   const handleRemoveTag = (e, optionValue) => {
     e.stopPropagation();
-    onChange({ target: { value: value.filter((v) => v !== optionValue) } });
+    const normalizedOptionValue = String(optionValue).trim();
+    onChange({
+      target: { value: value.filter((v) => String(v).trim() !== normalizedOptionValue) },
+    });
   };
 
   const getOptionLabel = (optionValue) => {
-    const option = options.find((opt) => opt.value === optionValue);
-    return option ? option.label : optionValue;
+    const normalizedValue = String(optionValue).trim();
+    const option = options.find((opt) => String(opt.value).trim() === normalizedValue);
+    // Never surface the raw id — options can momentarily lag selection during merges.
+    return option?.label || `Checklist ${normalizedValue}`;
   };
 
   return (
@@ -82,7 +89,10 @@ const ChecklistMultiSelect = ({
       {isOpen && (
         <div className="cf-multiselect-dropdown" style={{ "--card-color": cardColor }}>
           {options.map((option) => {
-            const isSelected = value.includes(option.value);
+            const normalizedOptionValue = String(option.value).trim();
+            const isSelected = value
+              .map((item) => String(item).trim())
+              .includes(normalizedOptionValue);
             return (
               <div
                 key={option.value}
