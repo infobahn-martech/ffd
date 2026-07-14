@@ -299,6 +299,11 @@
         return;
       }
 
+      if (!formValues.transportRequestEmail?.[0]?.file) {
+        notify("Request email is required.", "error", "top-center");
+        return;
+      }
+
       const payload = {
         call_id: Number(callDetails?.call_id || ""),
         remarks: formValues.transportDescription || "",
@@ -358,8 +363,8 @@
                     titleClassName="crew-pass-request-details-card__title"
                   />
                   <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormGroup icon="mail" label="Request" accent={TRANSPORT_ACCENT}>
-                    <FormField label="Request Email">
+                  <FormGroup icon="mail" label="Request Email *" accent={TRANSPORT_ACCENT}>
+                    <FormField>
                       <div className="transport-upload-box">
                         <AttachmentsList
                           attachments={formValues.transportRequestEmail || []}
@@ -388,8 +393,8 @@
                     accent={TRANSPORT_ACCENT}
                   />
 
-                  <FormGroup icon="folder" label="Attachments" accent={TRANSPORT_ACCENT}>
-                    <FormField label="Documents" className="cf-field-full">
+                  <FormGroup icon="folder" label="Documents *" accent={TRANSPORT_ACCENT}>
+                    <FormField className="cf-field-full">
                       <div className="transport-upload-box">
                         <AttachmentsList
                           attachments={formValues.transportDocuments || []}

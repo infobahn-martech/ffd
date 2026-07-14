@@ -116,22 +116,35 @@ PremiumCardHeader.propTypes = {
   titleClassName: PropTypes.string.isRequired,
 };
 
-/** Groups a related run of fields under a small colored icon + uppercase label + divider. Pass `accent` matching a `husb-accent-*` class. */
+/** Splits a label on "*" and wraps the marker in a red span, so a single label can also carry the required indicator. */
+const renderRequiredLabel = (text) => {
+  const parts = text.split("*");
+  if (parts.length === 1) return text;
+  return (
+    <>
+      {parts[0]}<span className="text-danger">*</span>{parts.slice(1).join("*")}
+    </>
+  );
+};
+
+/** Groups a related run of fields under a small colored icon + label + divider. Pass an empty `label` to omit the header when no field description is needed. Pass `accent` matching a `husb-accent-*` class. */
 export const FormGroup = ({ icon, label, accent = "slate", children }) => (
   <div className={`husb-group husb-accent-${accent}`}>
-    <div className="husb-group__label">
-      <span className="husb-group__icon">
-        <HusbIcon id={icon} />
-      </span>
-      <span className="husb-group__label-text">{label}</span>
-    </div>
+    {label && (
+      <div className="husb-group__label">
+        <span className="husb-group__icon">
+          <HusbIcon id={icon} />
+        </span>
+        <span className="husb-group__label-text">{renderRequiredLabel(label)}</span>
+      </div>
+    )}
     <div className="husb-group__body">{children}</div>
   </div>
 );
 
 FormGroup.propTypes = {
   icon: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
+  label: PropTypes.string,
   accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate", "green", "pink"]),
   children: PropTypes.node.isRequired,
 };
@@ -380,24 +393,12 @@ FormSection.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export const FormField = ({ label, children, className = "" }) => {
-  const renderLabel = (text) => {
-    const parts = text.split("*");
-    if (parts.length === 1) return <label>{text}</label>;
-    return (
-      <label>
-        {parts[0]}<span className="text-danger">*</span>{parts.slice(1).join("*")}
-      </label>
-    );
-  };
-
-  return (
-    <div className={`cf-field ${className}`}>
-      {label && renderLabel(label)}
-      {children}
-    </div>
-  );
-};
+export const FormField = ({ label, children, className = "" }) => (
+  <div className={`cf-field ${className}`}>
+    {label && <label>{renderRequiredLabel(label)}</label>}
+    {children}
+  </div>
+);
 
 FormField.propTypes = {
   label: PropTypes.string,

@@ -4888,10 +4888,10 @@ $send-report-optional: #80868b;
 }
 
 .husb-group__label-text {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--accent, #64748b);
 }
 

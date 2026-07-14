@@ -40,7 +40,7 @@ const CrewSelectionField = ({ callId, selected, onChange, accent = "purple" }) =
 
   return (
     <FormGroup icon="crew" label="Crew Selection" accent={accent}>
-      <FormField label="Select Crew" className="cf-field-full">
+      <FormField className="cf-field-full">
         <ChecklistMultiSelect
           className="husb-crew-multiselect"
           value={selectedIds}

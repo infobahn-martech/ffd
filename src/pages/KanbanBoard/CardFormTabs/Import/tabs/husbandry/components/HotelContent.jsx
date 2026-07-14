@@ -329,8 +329,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                <FormGroup icon="mail" label="Request" accent={HOTEL_ACCENT}>
-                  <FormField label="Request Email">
+                <FormGroup icon="mail" label="Request Email *" accent={HOTEL_ACCENT}>
+                  <FormField>
                     <div className="transport-upload-box">
                       <AttachmentsList
                         attachments={formValues.hotelRequestEmail || []}
@@ -401,8 +401,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </FieldRow>
                 </FormGroup>
 
-                <FormGroup icon="folder" label="Documents" accent={HOTEL_ACCENT}>
-                  <FormField label="Documents" className="cf-field-full">
+                <FormGroup icon="folder" label="Documents *" accent={HOTEL_ACCENT}>
+                  <FormField className="cf-field-full">
                     <div className="transport-upload-box">
                       <AttachmentsList
                         attachments={formValues.hotelDocuments || []}

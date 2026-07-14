@@ -175,8 +175,8 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormGroup icon="mail" label="Request" accent={ZAWIL_PASS_ACCENT}>
-                    <FormField label="Request Email">
+                  <FormGroup icon="mail" label="Request Email *" accent={ZAWIL_PASS_ACCENT}>
+                    <FormField>
                       <div className="transport-upload-box">
                         <AttachmentsList
                           attachments={formValues.zawilPassRequestEmailFile || []}
@@ -205,8 +205,8 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     accent={ZAWIL_PASS_ACCENT}
                   />
 
-                  <FormGroup icon="folder" label="Documents" accent={ZAWIL_PASS_ACCENT}>
-                    <FormField label="Documents" className="cf-field-full">
+                  <FormGroup icon="folder" label="Documents *" accent={ZAWIL_PASS_ACCENT}>
+                    <FormField className="cf-field-full">
                       <div className="transport-upload-box">
                         <AttachmentsList
                           attachments={formValues.zawilPassDocuments || []}
