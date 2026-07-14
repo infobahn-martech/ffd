@@ -34,7 +34,7 @@ const useCrewReducer = create((set) => ({
                 callCrewListPagination: pagination,
                 isCallCrewListLoading: false,
             });
-            cb && cb(list);
+            cb && cb(list, pagination);
             return list;
         } catch (err) {
             const { error } = useAlertReducer.getState();

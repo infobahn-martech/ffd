@@ -214,7 +214,22 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   );
   const [summarySelectedIds, setSummarySelectedIds] = useState([]);
   const [summarySearch, setSummarySearch] = useState("");
+  const [debouncedSummarySearch, setDebouncedSummarySearch] = useState("");
+  const [summaryMovementTypeFilter, setSummaryMovementTypeFilter] = useState("");
   const [summaryPage, setSummaryPage] = useState(1);
+  // Crew Summary table's own server-fetched page — separate from
+  // `uploadedCrewList` (the unfiltered full crew list used by the service
+  // "select crew" popups and the per-movement-type preview modal), since the
+  // table is now paginated/searched/filtered via crew/get_crew_list params
+  // rather than sliced client-side.
+  const [summaryCrewList, setSummaryCrewList] = useState([]);
+  const [summaryTotal, setSummaryTotal] = useState(0);
+  // Starts true so the "no crew match" empty state can't flash before the
+  // first crew/get_crew_list fetch resolves.
+  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  // Bumped after any mutation (upload, inline edit, bulk doc upload) that
+  // should be reflected in the Crew Summary table on its next fetch.
+  const [summaryRefreshTick, setSummaryRefreshTick] = useState(0);
   // Local-only override so the bulk "Upload Visa" action can flip a crew's
   // doc status icon on even though Crew Summary rows are otherwise derived
   // straight from the real uploaded crew list. Passport/Iqama no longer use
@@ -275,6 +290,63 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       cancelled = true;
     };
   }, [resolveCallAndVesselIds, fetchCallCrewList, handleChange]);
+
+  // Debounce the Crew Summary search box before it drives a server request.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSummarySearch(summarySearch.trim());
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [summarySearch]);
+
+  // A new search term or movement-type filter always starts back at page 1.
+  useEffect(() => {
+    setSummaryPage(1);
+  }, [debouncedSummarySearch, summaryMovementTypeFilter]);
+
+  const totalSummaryPages = Math.max(1, Math.ceil(summaryTotal / SUMMARY_PAGE_SIZE));
+  const effectiveSummaryPage = Math.min(Math.max(summaryPage, 1), totalSummaryPages);
+
+  // Crew Summary table — server-driven page/search/movement-type-filter via
+  // crew/get_crew_list (call_id, vessel_id, page, limit, search, movement_type).
+  // Separate from the mount effect above, which keeps fetching the full,
+  // unfiltered crew list for the service "select crew" popups and the
+  // per-movement-type preview modal.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (cancelled || !resolvedCallId || !resolvedVesselId) return;
+      setIsSummaryLoading(true);
+      const list = await fetchCallCrewList({
+        payload: {
+          call_id: resolvedCallId,
+          vessel_id: resolvedVesselId,
+          page: effectiveSummaryPage,
+          limit: SUMMARY_PAGE_SIZE,
+          search: debouncedSummarySearch || undefined,
+          movement_type: summaryMovementTypeFilter || undefined,
+        },
+        cb: (rows, pagination) => {
+          if (cancelled) return;
+          setSummaryTotal(Number(pagination?.total ?? (Array.isArray(rows) ? rows.length : 0)));
+        },
+      });
+      if (cancelled) return;
+      setSummaryCrewList(Array.isArray(list) ? list : []);
+      setIsSummaryLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    resolveCallAndVesselIds,
+    fetchCallCrewList,
+    effectiveSummaryPage,
+    debouncedSummarySearch,
+    summaryMovementTypeFilter,
+    summaryRefreshTick,
+  ]);
 
   const handleCrewListBlocked = () => {
     notify("Select a movement type before uploading the crew list.", "error");
@@ -358,6 +430,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         },
       }));
       setSummarySelectedIds([]);
+      setSummaryRefreshTick((tick) => tick + 1);
 
       const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === targetType)?.label || "";
       notify(`${movementTypeLabel} crew list uploaded — ${idsForThisType.length} crew member(s) loaded.`, "success");
@@ -424,6 +497,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           handleChange("crewCount")({ target: { value: list.length } });
         }
       }
+      setSummaryRefreshTick((tick) => tick + 1);
       setUploadSteps((prev) => ({ ...prev, [stepKey]: { status: "completed", files, progress: 100 } }));
       notify(`${label} uploaded — ${files.length} file(s).`, "success");
     } catch {
@@ -488,14 +562,14 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     id: getCrewOptionId(crew, index),
   }));
 
-  // Crew Summary — derived straight from the real uploaded crew list
-  // (GET/POST crew/get_crew_list, populated into uploadedCrewList above).
+  // Shared row-shaping for both the full crew list (preview modal, "select
+  // all" default) and the server-paginated Crew Summary table below.
   // manualDocOverrides layers local-only doc-flag edits on top since there's
   // no per-crew document-flag update endpoint yet. Name/DOB/nationality/rank
   // are backed by crew/update_crew (see handleSaveEdit), so those come
   // straight from the refetched crew list with no client-side override.
-  const crewSummaryRows = useMemo(() => {
-    return crewWithIds.map(({ crew, id }) => {
+  const toCrewSummaryRow = useCallback(
+    (crew, id) => {
       const docOverrides = manualDocOverrides[id] || {};
       const movementTypeRaw = crew?.movement_type || "";
       const movementTypeValue = movementTypeRaw.toLowerCase().trim().replace(/\s+/g, "_");
@@ -519,34 +593,34 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         hotelCount: assignedTo("hotel") ? 1 : 0,
         medicalCount: assignedTo("medicalService") ? 1 : 0,
       };
-    });
-  }, [crewWithIds, manualDocOverrides, selectedServiceCrewMap]);
+    },
+    [manualDocOverrides, selectedServiceCrewMap]
+  );
 
-  const filteredCrewSummaryRows = useMemo(() => {
-    const query = summarySearch.trim().toLowerCase();
-    if (!query) return crewSummaryRows;
-    return crewSummaryRows.filter((row) =>
-      [row.crewName, row.nationality, row.rank, row.movementType, row.dateOfBirth].some((field) =>
-        String(field ?? "").toLowerCase().includes(query)
-      )
-    );
-  }, [crewSummaryRows, summarySearch]);
+  // Full, unfiltered crew list — feeds the per-movement-type preview modal
+  // and the "no crew uploaded yet" empty state, independent of whatever
+  // search/filter/page is currently applied to the Crew Summary table.
+  const crewSummaryRows = useMemo(
+    () => crewWithIds.map(({ crew, id }) => toCrewSummaryRow(crew, id)),
+    [crewWithIds, toCrewSummaryRow]
+  );
+
+  // Crew Summary table rows — already search/filter/paginated server-side
+  // (see the crew/get_crew_list fetch effect above), so this is just row
+  // shaping, no further client-side slicing.
+  const summaryTableRows = useMemo(() => {
+    const withIds = summaryCrewList.map((crew, index) => ({ crew, id: getCrewOptionId(crew, index) }));
+    return withIds.map(({ crew, id }) => toCrewSummaryRow(crew, id));
+  }, [summaryCrewList, toCrewSummaryRow]);
 
   const previewCrewRows = previewMovementType
     ? crewSummaryRows.filter((row) => row.movementTypeValue === previewMovementType)
     : [];
   const previewMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === previewMovementType)?.label || "";
 
-  const totalSummaryItems = filteredCrewSummaryRows.length;
-  const totalSummaryPages = Math.max(1, Math.ceil(totalSummaryItems / SUMMARY_PAGE_SIZE));
-  const effectiveSummaryPage = Math.min(Math.max(summaryPage, 1), totalSummaryPages);
+  const totalSummaryItems = summaryTotal;
   const startSummaryItem = totalSummaryItems === 0 ? 0 : (effectiveSummaryPage - 1) * SUMMARY_PAGE_SIZE + 1;
   const endSummaryItem = totalSummaryItems === 0 ? 0 : Math.min(effectiveSummaryPage * SUMMARY_PAGE_SIZE, totalSummaryItems);
-
-  const paginatedSummaryRows = useMemo(
-    () => filteredCrewSummaryRows.slice((effectiveSummaryPage - 1) * SUMMARY_PAGE_SIZE, effectiveSummaryPage * SUMMARY_PAGE_SIZE),
-    [filteredCrewSummaryRows, effectiveSummaryPage]
-  );
 
   const summaryPaginationPages = useMemo(() => {
     const pages = [];
@@ -560,7 +634,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleSummarySearchChange = (e) => {
     setSummarySearch(e.target.value);
-    setSummaryPage(1);
+  };
+
+  const handleSummaryMovementTypeFilterChange = (e) => {
+    setSummaryMovementTypeFilter(e.target.value);
   };
 
   const handleSummaryRowToggle = (rowId) => {
@@ -571,7 +648,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleSummarySelectAll = () => {
     setSummarySelectedIds((prev) =>
-      prev.length === paginatedSummaryRows.length ? [] : paginatedSummaryRows.map((row) => row.id)
+      prev.length === summaryTableRows.length ? [] : summaryTableRows.map((row) => row.id)
     );
   };
 
@@ -623,6 +700,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           handleChange("crewCount")({ target: { value: list.length } });
         }
       }
+      setSummaryRefreshTick((tick) => tick + 1);
       notify(`${label} uploaded — ${files.length} file(s).`, "success");
     } catch {
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
@@ -680,6 +758,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           handleChange("crewCount")({ target: { value: list.length } });
         }
       }
+      setSummaryRefreshTick((tick) => tick + 1);
 
       notify("Crew details updated.", "success");
       setEditingRowId(null);
@@ -830,6 +909,20 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                 />
               </div>
 
+              <select
+                className="crew-summary-movement-filter"
+                value={summaryMovementTypeFilter}
+                onChange={handleSummaryMovementTypeFilterChange}
+                aria-label="Filter by movement type"
+              >
+                <option value="">All Movement Types</option>
+                {MOVEMENT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+
               {summarySelectedIds.length > 0 && (
                 <div className="crew-summary-bulk-actions">
                   <button
@@ -888,8 +981,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             <p className="crew-summary-empty">
               No crew uploaded yet. Select a movement type and upload a crew list to see it here.
             </p>
-          ) : filteredCrewSummaryRows.length === 0 ? (
-            <p className="crew-summary-empty">No crew match your search.</p>
+          ) : !isSummaryLoading && summaryTotal === 0 ? (
+            <p className="crew-summary-empty">
+              No crew match your {summaryMovementTypeFilter ? "filter" : "search"}.
+            </p>
           ) : (
             <div className="crew-table-wrapper">
               <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
@@ -903,7 +998,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                         <input
                           className="crew-list-checkbox crew-list-checkbox--header"
                           type="checkbox"
-                          checked={summarySelectedIds.length === paginatedSummaryRows.length && paginatedSummaryRows.length > 0}
+                          checked={summarySelectedIds.length === summaryTableRows.length && summaryTableRows.length > 0}
                           onChange={handleSummarySelectAll}
                         />
                       </th>
@@ -923,7 +1018,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedSummaryRows.map((row) => {
+                    {summaryTableRows.map((row) => {
                       const isEditing = editingRowId === row.id;
                       return (
                         <tr key={row.id} className={summarySelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
@@ -1052,6 +1147,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               <div className="crew-pagination">
                 <div className="crew-pagination-info">
                   Showing <strong>{startSummaryItem}–{endSummaryItem}</strong> of {totalSummaryItems} crew members
+                  {isSummaryLoading ? " (refreshing…)" : ""}
                 </div>
                 <div className="crew-pagination-actions">
                   <button
