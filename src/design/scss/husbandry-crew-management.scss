@@ -3029,6 +3029,51 @@
   color: #94a3b8;
 }
 
+// Sign On/Sign Off/All segmented toggle — filters the Crew Summary table,
+// styled to sit next to .crew-summary-search as one visual group.
+.crew-summary-movement-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #e2e8f0;
+  border-radius: $radius-pill;
+  background: $table-header-bg;
+}
+
+.crew-summary-movement-filter__btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  border-radius: $radius-pill;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crew-summary-movement-filter__btn:hover {
+  color: #0f172a;
+}
+
+.crew-summary-movement-filter__btn:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+.crew-summary-movement-filter__btn--active {
+  background: #ffffff;
+  color: var(--card-color, #00368c);
+  box-shadow: $shadow-sm;
+}
+
+.crew-summary-movement-filter__btn--active:hover {
+  color: var(--card-color, #00368c);
+}
+
 .crew-listing-subtitle {
   margin: 6px 0 0;
   font-size: 13px;

@@ -636,10 +636,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setSummarySearch(e.target.value);
   };
 
-  const handleSummaryMovementTypeFilterChange = (e) => {
-    setSummaryMovementTypeFilter(e.target.value);
-  };
-
   const handleSummaryRowToggle = (rowId) => {
     setSummarySelectedIds((prev) =>
       prev.includes(rowId) ? prev.filter((id) => id !== rowId) : [...prev, rowId]
@@ -903,25 +899,35 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                 <input
                   type="text"
                   className="crew-summary-search__input"
-                  placeholder="Search crew name, nationality, rank..."
+                  placeholder="Search crew name"
                   value={summarySearch}
                   onChange={handleSummarySearchChange}
                 />
               </div>
 
-              <select
-                className="crew-summary-movement-filter"
-                value={summaryMovementTypeFilter}
-                onChange={handleSummaryMovementTypeFilterChange}
-                aria-label="Filter by movement type"
-              >
-                <option value="">All Movement Types</option>
+              <div className="crew-summary-movement-filter" role="tablist" aria-label="Filter by movement type">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={summaryMovementTypeFilter === ""}
+                  className={`crew-summary-movement-filter__btn${summaryMovementTypeFilter === "" ? " crew-summary-movement-filter__btn--active" : ""}`}
+                  onClick={() => setSummaryMovementTypeFilter("")}
+                >
+                  All
+                </button>
                 {MOVEMENT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={summaryMovementTypeFilter === option.value}
+                    className={`crew-summary-movement-filter__btn${summaryMovementTypeFilter === option.value ? " crew-summary-movement-filter__btn--active" : ""}`}
+                    onClick={() => setSummaryMovementTypeFilter(option.value)}
+                  >
                     {option.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
 
               {summarySelectedIds.length > 0 && (
                 <div className="crew-summary-bulk-actions">
