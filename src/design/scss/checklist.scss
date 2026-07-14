@@ -1073,8 +1073,8 @@
 }
 
 .checklist-checkbox:checked+.checklist-checkbox-custom {
-  background: #6674c8;
-  border-color: #6674c8;
+  background: #12b981;
+  border-color: #12b981;
   transform: scale(1.05);
 }
 
@@ -1083,7 +1083,7 @@
 }
 
 .checklist-checkbox:focus+.checklist-checkbox-custom {
-  outline: 2px solid #6674c8;
+  outline: 2px solid #12b981;
   outline-offset: 2px;
 }
 
@@ -4566,7 +4566,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 700;
-  color: #3f4f8f;
+  color: #0000;
   text-transform: uppercase;
   text-decoration: none;
   background: #e2e6ff;
@@ -4647,7 +4647,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-table .checklist-table-row.checked td {
-  background: #e2e6ff;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.cl-excel-table .checklist-table-row.checked:hover td {
+  background: #dff9ee;
 }
 
 .cl-excel-table tbody tr:last-child td {
