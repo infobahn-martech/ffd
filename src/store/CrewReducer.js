@@ -177,6 +177,25 @@ const useCrewReducer = create((set) => ({
         }
     },
 
+    updateCrewInfo: async ({ payload, cb } = {}) => {
+        try {
+            set({ isBeingUpdated: true, errorMessage: '' });
+            const { data } = await crewService.updateCrew(payload || {});
+            set({ isBeingUpdated: false });
+            cb && cb(data);
+            return data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({
+                errorMessage: message,
+                isBeingUpdated: false,
+            });
+            error(message);
+            throw err;
+        }
+    },
+
     updateCrewDocuments: async ({ formData, crewId, fieldName, cb } = {}) => {
         const setUploading = (flag) => {
             if (crewId == null || !fieldName) return;

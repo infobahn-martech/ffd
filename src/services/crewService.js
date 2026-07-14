@@ -11,6 +11,7 @@ const importCrew = (formData) =>
   });
 const updateCrewDocuments = (formData) =>
   Gateway.post("crew/update_crew_documents", formData);
+const updateCrew = (payload) => Gateway.post("crew/update_crew", payload);
 const uploadPassportCopies = (formData) =>
   Gateway.post("crew/upload_passport_copies", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -28,6 +29,7 @@ export default {
   getCrewTemplate,
   importCrew,
   updateCrewDocuments,
+  updateCrew,
   uploadPassportCopies,
   uploadIqamaCopies,
 };

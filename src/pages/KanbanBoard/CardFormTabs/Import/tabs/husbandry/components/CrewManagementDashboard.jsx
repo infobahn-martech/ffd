@@ -185,6 +185,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
+  const updateCrewInfo = useCrewReducer((state) => state.updateCrewInfo);
 
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
@@ -220,12 +221,9 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // this — they're backed by real upload endpoints (see handleBulkCopyUpload
   // below) and the crew list is refetched after each upload instead.
   const [manualDocOverrides, setManualDocOverrides] = useState({});
-  // Local-only override for the Crew Summary "Action" inline edit — no
-  // per-crew update endpoint exists yet, so edits are kept client-side the
-  // same way the bulk doc-upload overrides above are.
-  const [manualFieldEdits, setManualFieldEdits] = useState({});
   const [editingRowId, setEditingRowId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isUploadingPassports, setIsUploadingPassports] = useState(false);
   const [isUploadingIqamas, setIsUploadingIqamas] = useState(false);
   const summaryPassportInputRef = useRef(null);
@@ -492,12 +490,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   // Crew Summary — derived straight from the real uploaded crew list
   // (GET/POST crew/get_crew_list, populated into uploadedCrewList above).
-  // manualDocOverrides/manualFieldEdits layer local-only edits on top since
-  // there's no per-crew update endpoint yet.
+  // manualDocOverrides layers local-only doc-flag edits on top since there's
+  // no per-crew document-flag update endpoint yet. Name/DOB/nationality/rank
+  // are backed by crew/update_crew (see handleSaveEdit), so those come
+  // straight from the refetched crew list with no client-side override.
   const crewSummaryRows = useMemo(() => {
     return crewWithIds.map(({ crew, id }) => {
       const docOverrides = manualDocOverrides[id] || {};
-      const fieldOverrides = manualFieldEdits[id] || {};
       const movementTypeRaw = crew?.movement_type || "";
       const movementTypeValue = movementTypeRaw.toLowerCase().trim().replace(/\s+/g, "_");
       const assignedTo = (tabName) => Boolean(selectedServiceCrewMap[tabName]?.includes(id));
@@ -505,10 +504,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       return {
         id,
         crewId: crew?.crew_id ?? crew?.crew_change_id ?? id,
-        crewName: fieldOverrides.crewName ?? crew?.crew_name ?? "",
-        dateOfBirth: fieldOverrides.dateOfBirth ?? crew?.date_of_birth ?? "",
-        nationality: fieldOverrides.nationality ?? crew?.nationality ?? "N/A",
-        rank: fieldOverrides.rank ?? crew?.rank ?? "",
+        crewName: crew?.crew_name ?? "",
+        dateOfBirth: crew?.date_of_birth ?? "",
+        nationality: crew?.nationality ?? "N/A",
+        rank: crew?.rank ?? "",
         movementType: movementTypeRaw,
         movementTypeValue,
         passport: hasDocumentUrl(crew?.passport_copy_url) || Boolean(docOverrides.passport),
@@ -521,7 +520,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         medicalCount: assignedTo("medicalService") ? 1 : 0,
       };
     });
-  }, [crewWithIds, manualDocOverrides, manualFieldEdits, selectedServiceCrewMap]);
+  }, [crewWithIds, manualDocOverrides, selectedServiceCrewMap]);
 
   const filteredCrewSummaryRows = useMemo(() => {
     const query = summarySearch.trim().toLowerCase();
@@ -647,14 +646,49 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setEditDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveEdit = () => {
+  // Persists inline Crew Summary edits via crew/update_crew, then refetches
+  // crew/get_crew_list so the table reflects the saved values.
+  const handleSaveEdit = async () => {
     if (!editingRowId || !editDraft) return;
-    setManualFieldEdits((prev) => ({
-      ...prev,
-      [editingRowId]: { ...(prev[editingRowId] || {}), ...editDraft },
-    }));
-    setEditingRowId(null);
-    setEditDraft(null);
+    const row = crewSummaryRows.find((summaryRow) => summaryRow.id === editingRowId);
+    const crewIdNum = Number(row?.crewId);
+    if (!crewIdNum) {
+      notify("Unable to save: missing crew id.", "error");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      await updateCrewInfo({
+        payload: {
+          crew_id: crewIdNum,
+          crew_name: editDraft.crewName,
+          date_of_birth: editDraft.dateOfBirth,
+          nationality: editDraft.nationality,
+          rank: editDraft.rank,
+        },
+      });
+
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (resolvedCallId && resolvedVesselId) {
+        const list = await fetchCallCrewList({
+          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+        });
+        if (Array.isArray(list)) {
+          setUploadedCrewList(list);
+          handleChange("crewList")({ target: { value: list } });
+          handleChange("crewCount")({ target: { value: list.length } });
+        }
+      }
+
+      notify("Crew details updated.", "success");
+      setEditingRowId(null);
+      setEditDraft(null);
+    } catch {
+      // error already surfaced via notify in the store; keep editing state so the user can retry
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   if (showCrewSelectView && selectedServiceForCrew) {
@@ -975,6 +1009,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                                     className="crew-action-btn crew-action-btn--save"
                                     aria-label="Save changes"
                                     title="Save"
+                                    disabled={isSavingEdit}
                                     onClick={handleSaveEdit}
                                   >
                                     <FiCheck size={14} />
@@ -984,6 +1019,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                                     className="crew-action-btn crew-action-btn--cancel"
                                     aria-label="Cancel editing"
                                     title="Cancel"
+                                    disabled={isSavingEdit}
                                     onClick={handleCancelEdit}
                                   >
                                     <FiX size={14} />
