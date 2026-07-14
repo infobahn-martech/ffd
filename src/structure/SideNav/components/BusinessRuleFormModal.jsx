@@ -2082,7 +2082,7 @@ function NotificationSettingsModal({
     if (!show) return;
     if (fetchedSettings) {
       setFrom(fetchedSettings.from_email ?? '');
-      setBodyContent(fetchedSettings.body ? new QuillDelta().insert(fetchedSettings.body) : new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
+      setBodyContent(fetchedSettings.body || new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
     } else {
       setFrom(initialSettings?.from ?? '');
       setBodyContent(initialSettings?.bodyContent ?? new QuillDelta(DUMMY_NOTIFICATION_BODY_DELTA_OPS));
@@ -2444,7 +2444,7 @@ function NotificationSettingsModal({
     } else {
       saveNotificationSettings(payload, {
         cb: (data) => {
-          onSave({ from: fromEmail, to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId: data?.data?.notification_id ?? null });
+          onSave({ from: fromEmail, to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId: data?.notification_id ?? null });
           onClose();
         },
       });
@@ -2642,7 +2642,7 @@ function NotificationSettingsModal({
 
         <footer className="card-property-match-modal-footer">
           <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingNotificationSettings}>
-            {isSavingNotificationSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save')}
+            {isSavingNotificationSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : (initialSettings?.notification_id ? 'Update' : 'Save'))}
           </button>
         </footer>
       </div>
