@@ -157,6 +157,45 @@
   box-sizing: border-box;
 }
 
+/* From / To location inputs: match the select fields' height, padding and border */
+.coordinator-transport-form-card .cf-input.location-autocomplete {
+  height: 40px;
+  min-height: 40px;
+  margin-top: 10px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+  gap: 0;
+  align-items: stretch;
+}
+
+.coordinator-transport-form-card .cf-input.location-autocomplete input {
+  height: 100%;
+  min-height: 0;
+  padding: 0 14px;
+  font-size: 13px;
+  line-height: 1.35;
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.coordinator-transport-form-card .cf-input.location-autocomplete input::placeholder {
+  font-size: 13px;
+  color: #999;
+}
+
+.coordinator-transport-form-card .cf-input.location-autocomplete:hover {
+  border-color: #999;
+}
+
+.coordinator-transport-form-card .cf-input.location-autocomplete:focus-within {
+  border-color: #3e5cb6;
+  box-shadow: 0 0 0 1px #3e5cb6;
+}
+
 /* Balanced two-up field rows (Coordinator/Branch, Company/Driver, From/To) */
 .coordinator-transport-form-section .husb-group__row {
   display: grid;
