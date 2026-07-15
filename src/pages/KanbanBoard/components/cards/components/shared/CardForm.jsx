@@ -1557,8 +1557,6 @@ function CardForm({
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
-  // Coordinator Transport role — safe compare since role_id may arrive as string or number.
-  const isCoordinatorTransport = String(userRoleId ?? "") === "19";
   const effectiveVariant = (() => {
     if (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) {
       return "gro";
@@ -1573,6 +1571,25 @@ function CardForm({
   })();
 
   const location = useLocation();
+  // Coordinator Transport view — three independent signals, any of which should
+  // trigger it, since the same card can be reached through different paths:
+  //  1) the dedicated board route (pages/CoordinatorTransport hardcodes variant="gro"
+  //     and doesn't set workflow_role_id per-card);
+  //  2) the viewer's own role is 19;
+  //  3) the card's own workflow_role_id is 19 (kept for forward-compat, though the
+  //     live get_full_board payload shows these cards actually live inside the GRO
+  //     Workflow (role_id 6), not a dedicated role-19 workflow);
+  //  4) the card's task_name is "Transport Request" — the actual signal: these are
+  //     GRO-workflow task cards that GROCardView doesn't special-case, so they fall
+  //     through to its generic Documents panel. An Operator opening one of these via
+  //     the generic /kanban-board/:boardId board hits this path.
+  const isCoordinatorTransportBoard = location.pathname === "/kanban-board/coordinator-transport";
+  const cardTaskName = String(card?.task_name ?? card?.taskName ?? "").trim().toLowerCase();
+  const isCoordinatorTransport =
+    isCoordinatorTransportBoard ||
+    String(userRoleId ?? "") === "19" ||
+    String(card?.workflow_role_id ?? "") === "19" ||
+    cardTaskName === "transport request";
   const isDriverVariant = effectiveVariant === "driver";
   const isHotelVariant = effectiveVariant === "hotel";
   const isMWPVariant = effectiveVariant === "mwp";
