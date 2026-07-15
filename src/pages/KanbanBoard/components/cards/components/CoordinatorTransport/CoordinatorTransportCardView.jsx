@@ -6,7 +6,7 @@ import { notify } from "../../../../../../components/Toaster";
 import callFileService from "../../../../../../services/callFileService";
 import transportContentService from "../../../../../../services/transportContentService";
 import transportCompanyService from "../../../../../../services/transportCompanyService";
-import driverService from "../../../../../../services/driverService";
+import vehicleService from "../../../../../../services/vehicleService";
 import { buildPickupDateTime } from "../../../../../../store/TransportContent";
 import {
   FormGroup,
@@ -45,9 +45,9 @@ const EMPTY_TRANSPORT_FORM = {
   requestEmail: [],
   selectedCrew: [],
   providerType: "inhouse",
-  transportCoordinatorId: "",
+  vehicleTypeId: "",
+  inhouseDriverId: "",
   transportCompanyId: "",
-  transportDriverId: "",
   pickupDate: "",
   pickupTime: "",
   fromType: "",
@@ -226,12 +226,12 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
 
-  const [transportCoordinators, setTransportCoordinators] = useState([]);
-  const [loadingCoordinators, setLoadingCoordinators] = useState(false);
   const [transportCompanies, setTransportCompanies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
-  const [transportDrivers, setTransportDrivers] = useState([]);
-  const [loadingDrivers, setLoadingDrivers] = useState(false);
+  const [vehicleTypes, setVehicleTypes] = useState([]);
+  const [loadingVehicleTypes, setLoadingVehicleTypes] = useState(false);
+  const [inhouseDrivers, setInhouseDrivers] = useState([]);
+  const [loadingInhouseDrivers, setLoadingInhouseDrivers] = useState(false);
 
   const updateTransportField = useCallback((field, value) => {
     setTransportForm((previous) => ({
@@ -282,25 +282,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
 
   useEffect(() => {
     let cancelled = false;
-    setLoadingCoordinators(true);
-    callFileService
-      .getAllTransportCoordinators()
-      .then((response) => {
-        if (!cancelled) setTransportCoordinators(extractListEnvelope(response));
-      })
-      .catch(() => {
-        if (!cancelled) setTransportCoordinators([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCoordinators(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
     setLoadingCompanies(true);
     transportCompanyService
       .getTransportCompanyData()
@@ -319,28 +300,47 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   }, []);
 
   useEffect(() => {
-    const companyId = transportForm.transportCompanyId;
-    if (!companyId) {
-      setTransportDrivers([]);
-      return;
-    }
     let cancelled = false;
-    setLoadingDrivers(true);
-    driverService
-      .getAllDrivers({ transport_company_id: companyId })
+    setLoadingVehicleTypes(true);
+    vehicleService
+      .getAllTransportVehicles()
       .then((response) => {
-        if (!cancelled) setTransportDrivers(extractListEnvelope(response));
+        if (!cancelled) setVehicleTypes(extractListEnvelope(response));
       })
       .catch(() => {
-        if (!cancelled) setTransportDrivers([]);
+        if (!cancelled) setVehicleTypes([]);
       })
       .finally(() => {
-        if (!cancelled) setLoadingDrivers(false);
+        if (!cancelled) setLoadingVehicleTypes(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [transportForm.transportCompanyId]);
+  }, []);
+
+  useEffect(() => {
+    const vehicleTypeId = transportForm.vehicleTypeId;
+    if (!vehicleTypeId) {
+      setInhouseDrivers([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingInhouseDrivers(true);
+    vehicleService
+      .getDriversByVehicleType(vehicleTypeId)
+      .then((response) => {
+        if (!cancelled) setInhouseDrivers(extractListEnvelope(response));
+      })
+      .catch(() => {
+        if (!cancelled) setInhouseDrivers([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingInhouseDrivers(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [transportForm.vehicleTypeId]);
 
   const callTypeSummary = firstNonEmpty(callDetails?.call_type, callDetails?.call_type_name, cardData?.typeOfCall);
   const billingEntitySummary = firstNonEmpty(callDetails?.billing_entity);
@@ -361,18 +361,18 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     setTransportForm((previous) => ({
       ...previous,
       providerType: next,
-      transportCoordinatorId: next === "inhouse" ? previous.transportCoordinatorId : "",
+      vehicleTypeId: next === "inhouse" ? previous.vehicleTypeId : "",
+      inhouseDriverId: next === "inhouse" ? previous.inhouseDriverId : "",
       invoiceBranch: next === "inhouse" ? previous.invoiceBranch : "",
       transportCompanyId: next === "thirdparty" ? previous.transportCompanyId : "",
-      transportDriverId: next === "thirdparty" ? previous.transportDriverId : "",
     }));
   }, []);
 
-  const handleCompanyChange = useCallback((companyId) => {
+  const handleVehicleTypeChange = useCallback((vehicleTypeId) => {
     setTransportForm((previous) => ({
       ...previous,
-      transportCompanyId: companyId,
-      transportDriverId: "",
+      vehicleTypeId,
+      inhouseDriverId: "",
     }));
   }, []);
 
@@ -491,8 +491,12 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
       return;
     }
     if (transportForm.providerType === "inhouse") {
-      if (!transportForm.transportCoordinatorId) {
-        notify("Transport coordinator is required.", "error", "top-center");
+      if (!transportForm.vehicleTypeId) {
+        notify("Vehicle type is required.", "error", "top-center");
+        return;
+      }
+      if (!transportForm.inhouseDriverId) {
+        notify("Inhouse driver is required.", "error", "top-center");
         return;
       }
       if (!transportForm.invoiceBranch) {
@@ -502,10 +506,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     } else {
       if (!transportForm.transportCompanyId) {
         notify("Transport company is required.", "error", "top-center");
-        return;
-      }
-      if (!transportForm.transportDriverId) {
-        notify("Driver is required.", "error", "top-center");
         return;
       }
     }
@@ -523,11 +523,11 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     };
 
     if (transportForm.providerType === "inhouse") {
-      payload.transport_coordinator_id = transportForm.transportCoordinatorId || "";
+      payload.vehicle_type_id = Number(transportForm.vehicleTypeId || "");
+      payload.inhouse_driver_id = Number(transportForm.inhouseDriverId || "");
       payload.invoice_branch = transportForm.invoiceBranch || "";
     } else {
       payload.transport_company_id = Number(transportForm.transportCompanyId || "");
-      payload.transport_driver_id = Number(transportForm.transportDriverId || "");
     }
 
     const formData = new FormData();
@@ -558,15 +558,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     }
   }, [callId, callDetails, transportForm, fetchTransportRequests, resetForm]);
 
-  const coordinatorOptions = useMemo(
-    () =>
-      transportCoordinators.map((c) => ({
-        value: String(c?.user_id ?? ""),
-        label: c?.user_name ?? "",
-      })),
-    [transportCoordinators]
-  );
-
   const companyOptions = useMemo(
     () =>
       transportCompanies.map((c) => ({
@@ -576,13 +567,22 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     [transportCompanies]
   );
 
-  const driverOptions = useMemo(
+  const vehicleTypeOptions = useMemo(
     () =>
-      transportDrivers.map((d) => ({
-        value: String(d?.driver_id ?? d?.id ?? ""),
-        label: d?.driver_name ?? d?.name ?? "",
+      vehicleTypes.map((v) => ({
+        value: String(v?.vehicle_type_id ?? ""),
+        label: v?.vehicle_name ?? "",
       })),
-    [transportDrivers]
+    [vehicleTypes]
+  );
+
+  const inhouseDriverOptions = useMemo(
+    () =>
+      inhouseDrivers.map((d) => ({
+        value: String(d?.driver_id ?? ""),
+        label: d?.driver_name ?? "",
+      })),
+    [inhouseDrivers]
   );
 
   return (
@@ -666,16 +666,31 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
 
                 {transportForm.providerType === "inhouse" ? (
                   <FieldRow>
-                    <FormField label="Transport Coordinator">
+                    <FormField label="Vehicle Type">
                       <FormSelect
-                        value={transportForm.transportCoordinatorId}
-                        onChange={(e) => updateTransportField("transportCoordinatorId", e.target.value)}
-                        options={coordinatorOptions}
-                        placeholder={loadingCoordinators ? "Loading..." : "Select coordinator..."}
-                        disabled={loadingCoordinators}
+                        value={transportForm.vehicleTypeId}
+                        onChange={(e) => handleVehicleTypeChange(e.target.value)}
+                        options={vehicleTypeOptions}
+                        placeholder={loadingVehicleTypes ? "Loading..." : "Select vehicle type..."}
+                        disabled={loadingVehicleTypes}
                       />
                     </FormField>
-                    <FormField label="Invoice Branch">
+                    <FormField label="Inhouse Driver">
+                      <FormSelect
+                        value={transportForm.inhouseDriverId}
+                        onChange={(e) => updateTransportField("inhouseDriverId", e.target.value)}
+                        options={inhouseDriverOptions}
+                        placeholder={
+                          !transportForm.vehicleTypeId
+                            ? "Select vehicle type first"
+                            : loadingInhouseDrivers
+                              ? "Loading drivers..."
+                              : "Select driver..."
+                        }
+                        disabled={!transportForm.vehicleTypeId || loadingInhouseDrivers}
+                      />
+                    </FormField>
+                    <FormField label="Invoice Branch" className="cf-field-full">
                       <FormSelect
                         value={transportForm.invoiceBranch}
                         onChange={(e) => updateTransportField("invoiceBranch", e.target.value)}
@@ -686,28 +701,13 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
                   </FieldRow>
                 ) : (
                   <FieldRow>
-                    <FormField label="Transport Company">
+                    <FormField label="Transport Company" className="cf-field-full">
                       <FormSelect
                         value={transportForm.transportCompanyId}
-                        onChange={(e) => handleCompanyChange(e.target.value)}
+                        onChange={(e) => updateTransportField("transportCompanyId", e.target.value)}
                         options={companyOptions}
                         placeholder={loadingCompanies ? "Loading..." : "Select company..."}
                         disabled={loadingCompanies}
-                      />
-                    </FormField>
-                    <FormField label="Driver Name">
-                      <FormSelect
-                        value={transportForm.transportDriverId}
-                        onChange={(e) => updateTransportField("transportDriverId", e.target.value)}
-                        options={driverOptions}
-                        placeholder={
-                          !transportForm.transportCompanyId
-                            ? "Select company first"
-                            : loadingDrivers
-                              ? "Loading drivers..."
-                              : "Select driver..."
-                        }
-                        disabled={!transportForm.transportCompanyId || loadingDrivers}
                       />
                     </FormField>
                   </FieldRow>
