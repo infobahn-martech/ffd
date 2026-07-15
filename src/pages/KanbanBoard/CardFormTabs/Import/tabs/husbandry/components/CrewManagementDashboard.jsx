@@ -188,6 +188,7 @@ MovementTypeRadioCard.propTypes = {
 // existing service form is opened via onNavigateToTab.
 const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNavigateToTab }) => {
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
+  const replaceCrewFile = useCrewReducer((state) => state.replaceCrewFile);
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
@@ -392,8 +393,10 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   // `targetType` defaults to the currently-selected radio, but Replace passes
   // an explicit type so it can re-upload a specific movement type's file
-  // without disturbing the current selection.
-  const handleCrewListFile = async (file, targetType = movementType) => {
+  // without disturbing the current selection. `mode: "replace"` (set by the
+  // Uploaded Crew Lists panel's Replace action) hits crew/replace_crew_file
+  // instead of the normal crew/import_crew_ai import endpoint.
+  const handleCrewListFile = async (file, targetType = movementType, mode = "import") => {
     if (!file) return;
     if (!targetType) {
       handleCrewListBlocked();
@@ -430,7 +433,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     formData.append("file", file);
 
     try {
-      await importCrewFile({ formData });
+      const uploadAction = mode === "replace" ? replaceCrewFile : importCrewFile;
+      await uploadAction({ formData });
       const list = await fetchCallCrewList({
         payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
       });
@@ -471,11 +475,12 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       setSummaryRefreshTick((tick) => tick + 1);
 
       const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === targetType)?.label || "";
-      notify(`${movementTypeLabel} crew list uploaded — ${idsForThisType.length} crew member(s) loaded.`, "success");
+      const actionLabel = mode === "replace" ? "replaced" : "uploaded";
+      notify(`${movementTypeLabel} crew list ${actionLabel} — ${idsForThisType.length} crew member(s) loaded.`, "success");
     } catch {
       setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
       setCrewUploads((prev) => ({ ...prev, [targetType]: { ...(prev[targetType] || {}), status: "failed" } }));
-      notify("Failed to upload crew list. Please try again.", "error");
+      notify(`Failed to ${mode === "replace" ? "replace" : "upload"} crew list. Please try again.`, "error");
     }
   };
 
@@ -488,7 +493,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !replaceTargetType) return;
-    handleCrewListFile(file, replaceTargetType);
+    handleCrewListFile(file, replaceTargetType, "replace");
     setReplaceTargetType(null);
   };
 

@@ -9,6 +9,10 @@ const importCrew = (formData) =>
   Gateway.post("crew/import_crew_ai", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+const replaceCrewFile = (formData) =>
+  Gateway.post("crew/replace_crew_file", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 const updateCrewDocuments = (formData) =>
   Gateway.post("crew/update_crew_documents", formData);
 const updateCrew = (payload) => Gateway.post("crew/update_crew", payload);
@@ -28,6 +32,7 @@ export default {
   getCrewByCall,
   getCrewTemplate,
   importCrew,
+  replaceCrewFile,
   updateCrewDocuments,
   updateCrew,
   uploadPassportCopies,

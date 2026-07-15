@@ -140,6 +140,25 @@ const useCrewReducer = create((set) => ({
         }
     },
 
+    replaceCrewFile: async ({ formData, cb } = {}) => {
+        try {
+            set({ isBeingUpdated: true, errorMessage: '' });
+            const { data } = await crewService.replaceCrewFile(formData);
+            set({ isBeingUpdated: false });
+            cb && cb(data);
+            return data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({
+                errorMessage: message,
+                isBeingUpdated: false,
+            });
+            error(message);
+            throw err;
+        }
+    },
+
     uploadPassportCopies: async ({ formData, cb } = {}) => {
         try {
             set({ isBeingUpdated: true, errorMessage: '' });
