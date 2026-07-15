@@ -29,6 +29,7 @@ import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/
 import { isExportCall } from "../../../../CardFormTabs/shared/utils/callTypes";
 import NavTabButton from "../../../../../../components/NavTabButton";
 import GROCardView from "../GRO/User/GROCardView";
+import CoordinatorTransportCardView from "../CoordinatorTransport/CoordinatorTransportCardView";
 import CustomCardView from "../Custom/User/CustomCardView";
 import MWPCardView from "../MWP/User/MWPCardView";
 import TaxiBoatCardView from "../TaxiBoat/TaxiBoatCardView";
@@ -1556,6 +1557,8 @@ function CardForm({
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
+  // Coordinator Transport role — safe compare since role_id may arrive as string or number.
+  const isCoordinatorTransport = String(userRoleId ?? "") === "19";
   const effectiveVariant = (() => {
     if (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) {
       return "gro";
@@ -2311,6 +2314,8 @@ function CardForm({
         ) : isGROStyleView ? (
           isCustomVariant ? (
             <CustomCardView ref={groCardViewRef} card={card} userRoleId={userRoleId} />
+          ) : isCoordinatorTransport ? (
+            <CoordinatorTransportCardView cardData={card} cardColor={topbarColor} />
           ) : (
             <GROCardView ref={groCardViewRef} card={card} mode="gro" userRoleId={userRoleId} />
           )
