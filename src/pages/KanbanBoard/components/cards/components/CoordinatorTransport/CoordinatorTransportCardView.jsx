@@ -71,7 +71,10 @@ const resolveCallId = (cardData) =>
   cardData?.call_id ?? cardData?.callId ?? cardData?.card_call_id ?? cardData?.id ?? null;
 
 const resolveTransportRequestId = (cardData) =>
-  cardData?.transport_request_id ?? cardData?.transportRequestId ?? null;
+  cardData?.transport_request_id ??
+  cardData?.transportRequestId ??
+  cardData?.raw?.transport_request_id ??
+  null;
 
 const firstNonEmpty = (...values) => {
   for (const value of values) {
@@ -103,6 +106,7 @@ const flattenTransportRequestRows = (requests) => {
       to_location_det: request?.to_location_det,
       pickup_datetime: request?.pickup_datetime,
       request_email: request?.request_email,
+      request_email_url: request?.request_email_url,
       request_type: request?.request_type,
       transport_company: request?.transport_company,
       inhouse_driver_name: request?.inhouse_driver_name,
@@ -177,11 +181,11 @@ const COORDINATOR_TRANSPORT_REQUEST_COLUMNS = [
     key: "document",
     header: "Document",
     render: (r) =>
-      r?.request_email ? (
+      r?.request_email_url ? (
         <button
           type="button"
           className="crew-pass-requests-table__doc-btn"
-          onClick={() => window.open(r.request_email, "_blank", "noopener,noreferrer")}
+          onClick={() => window.open(r.request_email_url, "_blank", "noopener,noreferrer")}
           aria-label="View document"
         >
           <FiEye size={15} />
@@ -229,7 +233,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     fetchTransportCompanies,
     fetchVehicleTypes,
     fetchInhouseDrivers,
-    fetchTransportRequestBasicDetail,
     createTransportRequest,
   } = useCoordinatorTransportReducer();
 
@@ -259,39 +262,48 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
 
   useEffect(() => {
     if (!transportRequestId) return;
-    let cancelled = false;
-    fetchTransportRequestBasicDetail(transportRequestId).then((detail) => {
-      if (cancelled || !detail) return;
+    const detail = transportRequests.find(
+      (r) => String(r?.transport_request_id ?? "") === String(transportRequestId)
+    );
+    if (!detail) return;
 
-      const { date: pickupDate, time: pickupTime } = splitApiDateTimeParts(detail.pickup_datetime);
-      const crewIds = Array.isArray(detail.crew)
-        ? detail.crew.map((c) => String(c?.crew_change_id ?? c?.id ?? "")).filter(Boolean)
-        : [];
-      const attachmentRows = Array.isArray(detail.attachments) ? detail.attachments : [];
+    const hasPickupDateTime =
+      detail.pickup_datetime && !String(detail.pickup_datetime).startsWith("0000-00-00");
+    const { date: pickupDate, time: pickupTime } = splitApiDateTimeParts(
+      hasPickupDateTime ? detail.pickup_datetime : ""
+    );
+    const crewIds = Array.isArray(detail.crew)
+      ? detail.crew.map((c) => String(c?.crew_change_id ?? c?.id ?? "")).filter(Boolean)
+      : [];
+    const attachmentRows = Array.isArray(detail.attachments) ? detail.attachments : [];
 
-      setTransportForm((previous) => ({
-        ...previous,
-        pickupDate: pickupDate || previous.pickupDate,
-        pickupTime: pickupTime || previous.pickupTime,
-        fromType: detail.from_location || previous.fromType,
-        fromLocation: detail.from_location_det || previous.fromLocation,
-        toType: detail.to_location || previous.toType,
-        toLocation: detail.to_location_det || previous.toLocation,
-        remarks: detail.remarks || previous.remarks,
-        selectedCrew: crewIds.length > 0 ? crewIds : previous.selectedCrew,
-        requestEmail: detail.request_email_url
-          ? [{ name: detail.request_email || "Request email", url: detail.request_email_url }]
-          : previous.requestEmail,
-        documents: attachmentRows.map((a) => ({
-          name: a?.file_name ?? a?.name ?? "Attachment",
-          url: a?.file_url ?? a?.url ?? "",
-        })),
-      }));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [transportRequestId, fetchTransportRequestBasicDetail]);
+    setTransportForm((previous) => ({
+      ...previous,
+      providerType: detail.request_type === "Third Party" ? "thirdparty" : "inhouse",
+      pickupDate: pickupDate || previous.pickupDate,
+      pickupTime: pickupTime || previous.pickupTime,
+      fromType: detail.from_location || previous.fromType,
+      fromLocation: detail.from_location_det || previous.fromLocation,
+      toType: detail.to_location || previous.toType,
+      toLocation: detail.to_location_det || previous.toLocation,
+      remarks: detail.remarks || previous.remarks,
+      selectedCrew: crewIds.length > 0 ? crewIds : previous.selectedCrew,
+      vehicleTypeId: detail.vehicle_id != null ? String(detail.vehicle_id) : previous.vehicleTypeId,
+      inhouseDriverId: detail.driver_id != null ? String(detail.driver_id) : previous.inhouseDriverId,
+      invoiceBranch: detail.invoice_branch || previous.invoiceBranch,
+      transportCompanyId:
+        detail.transport_company_id != null
+          ? String(detail.transport_company_id)
+          : previous.transportCompanyId,
+      requestEmail: detail.request_email_url
+        ? [{ name: detail.request_email || "Request email", url: detail.request_email_url }]
+        : previous.requestEmail,
+      documents: attachmentRows.map((a) => ({
+        name: a?.file_name ?? a?.name ?? "Attachment",
+        url: a?.file_url ?? a?.url ?? "",
+      })),
+    }));
+  }, [transportRequestId, transportRequests]);
 
   useEffect(() => {
     fetchTransportCompanies();
@@ -486,8 +498,8 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     };
 
     if (transportForm.providerType === "inhouse") {
-      payload.vehicle_type_id = Number(transportForm.vehicleTypeId || "");
-      payload.inhouse_driver_id = Number(transportForm.inhouseDriverId || "");
+      payload.vehicle_id = Number(transportForm.vehicleTypeId || "");
+      payload.driver_id = Number(transportForm.inhouseDriverId || "");
       payload.invoice_branch = transportForm.invoiceBranch || "";
     } else {
       payload.transport_company_id = Number(transportForm.transportCompanyId || "");

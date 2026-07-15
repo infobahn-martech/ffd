@@ -213,18 +213,20 @@
 .coordinator-transport-request-upload .document-upload-zone {
   height: auto !important;
   min-height: 64px !important;
-  max-height: 76px !important;
   padding: 10px 14px !important;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .coordinator-transport-request-upload .upload-zone-content {
   width: 100%;
+  height: auto;
   text-align: center;
   gap: 2px;
+  overflow: visible;
 }
 
 .coordinator-transport-request-upload .upload-main-text {
@@ -240,18 +242,20 @@
 .coordinator-transport-documents-upload .document-upload-zone {
   height: auto !important;
   min-height: 64px !important;
-  max-height: 76px !important;
   padding: 10px 14px !important;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .coordinator-transport-documents-upload .upload-zone-content {
   width: 100%;
+  height: auto;
   text-align: center;
   gap: 2px;
+  overflow: visible;
 }
 
 .coordinator-transport-documents-upload .upload-main-text {

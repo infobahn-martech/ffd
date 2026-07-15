@@ -86,16 +86,6 @@ const useCoordinatorTransportReducer = create((set) => ({
     }
   },
 
-  fetchTransportRequestBasicDetail: async (transportRequestId) => {
-    if (!transportRequestId) return null;
-    try {
-      const response = await transportContentService.getTransportRequestBasicDetail(transportRequestId);
-      return response?.data?.data ?? response?.data ?? null;
-    } catch {
-      return null;
-    }
-  },
-
   createTransportRequest: async (formData) => {
     set({ isSavingTransport: true });
     try {

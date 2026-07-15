@@ -6,11 +6,6 @@ const createTransportRequest = (formData) =>
 const getTransportRequest = (callId) =>
   Gateway.get(`/transport/get_transport_request/${encodeURIComponent(String(callId))}`);
 
-const getTransportRequestBasicDetail = (transportRequestId) =>
-  Gateway.get(
-    `/transport/get_transport_request_basic_detail/${encodeURIComponent(String(transportRequestId))}`
-  );
-
 /**
  * Normalize transport requests from axios response.
  */
@@ -79,5 +74,4 @@ export const flattenTransportRequestRows = (workOrders) => {
 export default {
   createTransportRequest,
   getTransportRequest,
-  getTransportRequestBasicDetail,
 };
