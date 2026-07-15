@@ -206,14 +206,6 @@ export const DUMMY_INVOKE_AUTH_OPTIONS = ['NONE', 'BASIC', 'API_KEY'];
 // only ever send parameters as a URL query string.
 export const INVOKE_METHODS_WITH_BODY = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
-// Where an API key credential can be placed on the outgoing request.
-export const INVOKE_API_KEY_LOCATIONS = ['HEADER', 'QUERY_PARAM'];
-
-export const INVOKE_API_KEY_LOCATION_LABELS = {
-  HEADER: 'Header',
-  QUERY_PARAM: 'Query param',
-};
-
 // Regular-field options offered by the "Select a field" modal (Url's "add card fields" trigger).
 export const DUMMY_URL_FIELD_OPTIONS = ['Card ID', 'Custom card ID', 'Internal card id'];
 
