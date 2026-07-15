@@ -3105,6 +3105,52 @@
   box-shadow: $shadow-focus;
 }
 
+.crew-edit-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 26px;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'><path d='M6 9L12 15L18 9' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crew-edit-select:hover {
+  border-color: var(--card-color, $status-in-progress-text);
+}
+
+// Crew Summary's inline DOB editor reuses the shared DatePickerField, whose
+// MUI internals default to a 40px-tall, 14px-font input — shrink them here
+// so DOB matches the height of the plain text/select edit cells beside it.
+.crew-edit-date-field.cf-datetime-picker .cf-datetime-input-field {
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root {
+    min-height: 0;
+    border-radius: $radius-md;
+    border: 1.5px solid color-mix(in srgb, var(--card-color, $status-in-progress-text) 45%, white);
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  .MuiOutlinedInput-input {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 14px;
+  }
+
+  .MuiInputAdornment-root {
+    margin-left: 4px;
+  }
+}
+
 .crew-action-cell {
   display: flex;
   align-items: center;

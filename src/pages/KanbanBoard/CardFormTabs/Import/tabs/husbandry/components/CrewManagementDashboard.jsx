@@ -1180,7 +1180,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                           <td>
                             {isEditing ? (
                               <select
-                                className="crew-edit-input"
+                                className="crew-edit-input crew-edit-select"
                                 value={editDraft?.nationality ?? ""}
                                 onChange={handleEditFieldChange("nationality")}
                               >
