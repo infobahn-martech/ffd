@@ -29,12 +29,24 @@
     font-size: 13px;
     padding: 6px 10px;
   }
+}
 
-  th {
-    color: #6b7280;
-    font-weight: 600;
-    border-bottom: 1px solid #e2e6ff;
-  }
+// Higher specificity than materialmanagement.scss's
+// `.material-table-container .table.material-table thead`/`thead th` rules,
+// which also match this nested items table's <thead> because it sits inside
+// a `.material-table-container` ancestor (CSS descendant selectors don't
+// stop at nested <table> boundaries, so those outer rules reach this inner
+// thead too and would otherwise paint it with --card-color navy).
+.material-summary-wrapper .material-summary-section .material-table-container .material-summary-items-table thead {
+  background: #e2e6ff !important;
+  position: static;
+}
+
+.material-summary-wrapper .material-summary-section .material-table-container .material-summary-items-table thead th {
+  background-color: #e2e6ff !important;
+  color: #1a1a1a !important;
+  font-weight: 600;
+  border-bottom: 1px solid #d5d9e2;
 }
 
 .material-summary-documents {
