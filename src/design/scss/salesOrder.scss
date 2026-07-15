@@ -456,7 +456,9 @@
   font-size: 12px;
   letter-spacing: 0.3px;
   border-bottom: 1px solid #cfd8f0;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.3;
 }
 
 .sales-order-table th,

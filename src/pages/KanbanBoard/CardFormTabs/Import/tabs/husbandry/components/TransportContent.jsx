@@ -3,12 +3,15 @@
   import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
   import { notify } from "../../../../../../../components/Toaster";
   import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
-  import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
+  import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT, TRANSPORT_ROUTE_LOCATION_OPTIONS } from "./Husbandry.constants";
   import AttachmentsList from "../../appointment/AttachmentsList";
   import callFileService from "../../../../../../../services/callFileService";
   import transportContentService from "../../../../../../../services/transportContentService";
+  import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
   import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
   import CrewSelectionField from "./CrewSelectionField";
+  import LocationAutocomplete from "./LocationAutocomplete";
+  import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 
   // Helper functions to extract and flatten transport requests from API response
   const extractTransportRequestsFromEnvelope = (response) => {
@@ -304,8 +307,38 @@
         return;
       }
 
+      if (!formValues.transportPickupDate || !formValues.transportPickupTime) {
+        notify("Pickup date and time are required.", "error", "top-center");
+        return;
+      }
+
+      if (!formValues.transportFromType) {
+        notify("From type is required.", "error", "top-center");
+        return;
+      }
+
+      if (!formValues.transportFromLocation) {
+        notify("From location is required.", "error", "top-center");
+        return;
+      }
+
+      if (!formValues.transportToType) {
+        notify("To type is required.", "error", "top-center");
+        return;
+      }
+
+      if (!formValues.transportToLocation) {
+        notify("To location is required.", "error", "top-center");
+        return;
+      }
+
       const payload = {
         call_id: Number(callDetails?.call_id || ""),
+        pickup_datetime: buildPickupDateTime(formValues.transportPickupDate, formValues.transportPickupTime),
+        from_location: formValues.transportFromType || "",
+        from_location_det: formValues.transportFromLocation || "",
+        to_location: formValues.transportToType || "",
+        to_location_det: formValues.transportToLocation || "",
         remarks: formValues.transportDescription || "",
         crew: (formValues.selectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
       };
@@ -392,6 +425,46 @@
                     onChange={(ids) => handleChange("selectedCrew")({ target: { value: ids } })}
                     accent={TRANSPORT_ACCENT}
                   />
+
+                  <FormGroup icon="calendar" label="Pickup Date Time" accent={TRANSPORT_ACCENT}>
+                    <FormField>
+                      <DateTimePickerField
+                        dateValue={formValues.transportPickupDate || ""}
+                        timeValue={formValues.transportPickupTime || ""}
+                        onDateChange={handleChange("transportPickupDate")}
+                        onTimeChange={handleChange("transportPickupTime")}
+                      />
+                    </FormField>
+                  </FormGroup>
+
+                  <FieldRow>
+                    <FormField label="From">
+                      <FormSelect
+                        value={formValues.transportFromType || ""}
+                        onChange={handleChange("transportFromType")}
+                        options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
+                        placeholder="Select location type"
+                      />
+                      <LocationAutocomplete
+                        value={formValues.transportFromLocation || ""}
+                        onChange={handleChange("transportFromLocation")}
+                        placeholder="Enter pickup location"
+                      />
+                    </FormField>
+                    <FormField label="To">
+                      <FormSelect
+                        value={formValues.transportToType || ""}
+                        onChange={handleChange("transportToType")}
+                        options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
+                        placeholder="Select location type"
+                      />
+                      <LocationAutocomplete
+                        value={formValues.transportToLocation || ""}
+                        onChange={handleChange("transportToLocation")}
+                        placeholder="Enter drop-off location"
+                      />
+                    </FormField>
+                  </FieldRow>
 
                   <FormGroup icon="folder" label="Documents *" accent={TRANSPORT_ACCENT}>
                     <FormField className="cf-field-full">
