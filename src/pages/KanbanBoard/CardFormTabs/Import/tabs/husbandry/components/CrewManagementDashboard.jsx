@@ -10,6 +10,7 @@ import CrewUploadedListsPanel from "./CrewUploadedListsPanel";
 import CrewUploadPreviewModal from "./CrewUploadPreviewModal";
 import DatePickerField from "../../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
+import useCommonReducer from "../../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
 
@@ -194,6 +195,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
   const updateCrewInfo = useCrewReducer((state) => state.updateCrewInfo);
   const deleteCrew = useCrewReducer((state) => state.deleteCrew);
+  const nationalities = useCommonReducer((state) => state.nationalities);
+  const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
 
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
@@ -275,6 +278,19 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
     return { resolvedCallId, resolvedVesselId };
   }, [formValues?.call_id, formValues?.callId, formValues?.vessel_id, formValues?.vesselId]);
+
+  useEffect(() => {
+    fetchAllNationalities();
+  }, [fetchAllNationalities]);
+
+  const nationalityOptions = useMemo(
+    () =>
+      (Array.isArray(nationalities) ? nationalities : []).map((item) => ({
+        value: String(item.country_id),
+        label: item.nationality,
+      })),
+    [nationalities]
+  );
 
   // Populate the crew list already uploaded for this call/vessel on load.
   // Also mirrors into formValues.crewList (not just local state) so the
@@ -752,7 +768,15 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   const handleStartEdit = (row) => {
     setEditingRowId(row.id);
-    setEditDraft(Object.fromEntries(EDITABLE_SUMMARY_FIELDS.map((field) => [field, row[field]])));
+    const draft = Object.fromEntries(EDITABLE_SUMMARY_FIELDS.map((field) => [field, row[field]]));
+    // The crew list only carries the nationality's display text, not its
+    // country_id, so resolve the select's starting value by matching that
+    // text against the fetched nationality options.
+    const matchedNationality = nationalityOptions.find(
+      (option) => option.label?.trim().toLowerCase() === String(row.nationality ?? "").trim().toLowerCase()
+    );
+    draft.nationality = matchedNationality?.value ?? "";
+    setEditDraft(draft);
   };
 
   const handleCancelEdit = () => {
@@ -783,7 +807,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           crew_id: crewIdNum,
           crew_name: editDraft.crewName,
           date_of_birth: editDraft.dateOfBirth,
-          nationality: editDraft.nationality,
+          country_id: editDraft.nationality,
           rank: editDraft.rank,
         },
       });
@@ -1155,12 +1179,18 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                           </td>
                           <td>
                             {isEditing ? (
-                              <input
-                                type="text"
+                              <select
                                 className="crew-edit-input"
                                 value={editDraft?.nationality ?? ""}
                                 onChange={handleEditFieldChange("nationality")}
-                              />
+                              >
+                                <option value="">Select nationality</option>
+                                {nationalityOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
                             ) : (
                               <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
                             )}
