@@ -3836,6 +3836,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+  // Distinguishes a user-picked board condition from the auto-selected first-board default
+  // below — without this, "Clear all" would show as soon as the modal opens (before the user
+  // has added anything) since that effect fills boardConditionRows[0].boardId on its own.
+  const [boardConditionTouched, setBoardConditionTouched] = useState(false);
   // "Position" (board + swimlane/stage) is a second default condition some triggers carry
   // alongside "Board" — get_field_details/regular/6 only returns operators (is/is not), not
   // an actual list of positions, so this reuses the board-minimap destination picker (the
@@ -3949,6 +3953,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
     if (workspaces.length === 0) listAllWorkspaces();
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+    setBoardConditionTouched(false);
     setPositionConditionRows([{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }]);
     setShowPositionDestinationPicker(false);
     setActivePositionRowId(null);
@@ -4330,6 +4335,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleClearConditions = () => {
     setConditions([]);
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+    setBoardConditionTouched(false);
     setPositionConditionRows([{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }]);
   };
 
@@ -4755,6 +4761,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const activeInvokeAction = invokeActions.find((a) => a.id === activeInvokeActionId);
 
   const handlePickConditionBoard = (rowId, board) => {
+    setBoardConditionTouched(true);
     setBoardConditionRows((prev) =>
       prev.map((row) => (row.id === rowId ? { ...row, boardId: board?.board_id ?? '' } : row))
     );
@@ -4762,12 +4769,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveBoardConditionRow = (rowId) => {
     setBoardConditionRows((prev) => {
-      if (prev.length <= 1) return [{ id: 'board-0', boardId: '', joinWord: 'OR' }];
+      if (prev.length <= 1) {
+        setBoardConditionTouched(false);
+        return [{ id: 'board-0', boardId: '', joinWord: 'OR' }];
+      }
       return prev.filter((row) => row.id !== rowId);
     });
   };
 
   const handleToggleBoardConditionJoinWord = (rowId) => {
+    setBoardConditionTouched(true);
     setBoardConditionRows((prev) => {
       // There's no other way to add a second "Board is" row today, so clicking a
       // row's join-word pill duplicates that row (same board) directly below it —
@@ -5353,7 +5364,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       Add new property
                     </button>
                     {(conditions.length > 0
-                      || boardConditionRows.some((row) => row.boardId)
+                      || boardConditionTouched
                       || positionConditionRows.some((row) => row.boardId)) && (
                       <button
                         type="button"
