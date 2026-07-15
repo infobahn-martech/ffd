@@ -1,8 +1,27 @@
 .blockers-modal {
+  .modal-dialog {
+    max-width: 960px;
+    width: 92%;
+    margin: 1.5rem auto;
+    max-height: calc(100vh - 3rem);
+
+    @media (max-width: 991px) {
+      max-width: 95%;
+      width: 95%;
+      margin: 1rem auto;
+      max-height: calc(100vh - 2rem);
+    }
+  }
+
   .modal-content {
     border-radius: 12px;
     border: none;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    background: #ffffff;
+    max-height: calc(100vh - 3rem);
+    display: flex;
+    flex-direction: column;
   }
 
   .blockers-modal-header {

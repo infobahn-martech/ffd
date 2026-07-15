@@ -2,15 +2,23 @@
 
 .business-rules-modal {
   .modal-dialog {
-    max-width: 1200px;
-    width: 94%;
+    max-width: 960px;
+    width: 92%;
     margin: 1.5rem auto;
+    max-height: calc(100vh - 3rem);
 
     @media ($sm-991) {
       max-width: 95%;
       width: 95%;
       margin: 1rem auto;
+      max-height: calc(100vh - 2rem);
     }
+  }
+
+  .modal-content {
+    max-height: calc(100vh - 3rem);
+    display: flex;
+    flex-direction: column;
   }
 
   .modal-content {
@@ -19,6 +27,9 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     background: #ffffff;
+    max-height: calc(100vh - 3rem);
+    display: flex;
+    flex-direction: column;
   }
 
   .modal-backdrop {
@@ -81,13 +92,11 @@
 .business-rules-modal-body {
   padding: 0;
   background: #ffffff;
-
-  /** Keep the Business Rules table view the same height as the Select Rule Type view */
-  min-height: 600px;
-
-  @media ($sm-767) {
-    min-height: 480px;
-  }
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .business-rules-search-section {
@@ -107,7 +116,9 @@
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  max-height: 580px; 
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .br-picker-header {
