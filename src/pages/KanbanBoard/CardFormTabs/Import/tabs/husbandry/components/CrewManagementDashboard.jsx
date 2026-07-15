@@ -56,12 +56,18 @@ const CREW_SERVICE_CARDS = [
 // Backend-friendly movement type values sent with the crew list import and
 // used to label/describe imported crew across the dashboard.
 const MOVEMENT_TYPE_OPTIONS = [
-  { value: "sign_on", label: "Sign On", hint: "Joining the vessel" },
-  { value: "sign_off", label: "Sign Off", hint: "Leaving the vessel" },
+  { value: "Sign On", label: "Sign On", hint: "Joining the vessel" },
+  { value: "Sign Off", label: "Sign Off", hint: "Leaving the vessel" },
 ];
 
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
+
+const getCrewIdsForMovementType = (list, movementType) =>
+  list.reduce((ids, crew, index) => {
+    if ((crew?.movement_type ?? crew?.movementType) === movementType) ids.push(getCrewOptionId(crew, index));
+    return ids;
+  }, []);
 
 const hasDocumentUrl = (url) =>
   typeof url === "string" && url.trim() !== "" && url.trim().toLowerCase() !== "null";
@@ -192,9 +198,9 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   );
   const [uploadSteps, setUploadSteps] = useState(INITIAL_UPLOAD_STEPS);
   const [movementType, setMovementType] = useState("");
-  // Per-movement-type upload state — { sign_on: {...} | null, sign_off: {...} | null }.
+  // Per-movement-type upload state — { Sign On: {...} | null, Sign Off: {...} | null }.
   // Each entry: { name, size, movementType, status, crewCount, crewIds }.
-  const [crewUploads, setCrewUploads] = useState({ sign_on: null, sign_off: null });
+  const [crewUploads, setCrewUploads] = useState({ "Sign On": null, "Sign Off": null });
   const [previewMovementType, setPreviewMovementType] = useState(null);
   const [replaceTargetType, setReplaceTargetType] = useState(null);
   const replaceFileInputRef = useRef(null);
@@ -285,6 +291,38 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       setUploadedCrewList(list);
       handleChange("crewList")({ target: { value: list } });
       handleChange("crewCount")({ target: { value: list.length } });
+
+      // Pull each movement type's tracked upload record (uploaded_crew_file)
+      // so the "Uploaded Crew Lists" panel reflects the file actually saved
+      // on the backend, not just files uploaded during this session.
+      MOVEMENT_TYPE_OPTIONS.forEach((option) => {
+        fetchCallCrewList({
+          payload: {
+            call_id: resolvedCallId,
+            vessel_id: resolvedVesselId,
+            page: 1,
+            limit: 1,
+            movement_type: option.value,
+          },
+          cb: (_rows, _pagination, uploadedFile) => {
+            if (cancelled || !uploadedFile) return;
+            const idsForType = getCrewIdsForMovementType(list, option.value);
+            setCrewUploads((prev) => ({
+              ...prev,
+              [option.value]: {
+                name: uploadedFile.crew_file || `${option.label} crew list`,
+                size: undefined,
+                movementType: option.value,
+                status: "completed",
+                crewCount: idsForType.length,
+                crewIds: idsForType,
+                uploadedAt: uploadedFile.uploaded_at,
+                fileUrl: uploadedFile.crew_file_url,
+              },
+            }));
+          },
+        });
+      });
     })();
     return () => {
       cancelled = true;
@@ -408,7 +446,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       // Crew belonging to this batch = everything not already known to
       // belong to the other movement type (prefers a real movement_type
       // field from the backend when present).
-      const otherType = targetType === "sign_on" ? "sign_off" : "sign_on";
+      const otherType = targetType === "Sign On" ? "Sign Off" : "Sign On";
       const otherIds = new Set(crewUploads[otherType]?.crewIds || []);
       const idsForThisType = [];
       refreshedList.forEach((crew, index) => {
@@ -781,7 +819,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   }
 
   const selectedMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === movementType)?.label || "";
-  const otherMovementType = movementType === "sign_on" ? "sign_off" : "sign_on";
+  const otherMovementType = movementType === "Sign On" ? "Sign Off" : "Sign On";
   const otherMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === otherMovementType)?.label || "";
   const crewListStatus = movementType ? crewUploads[movementType]?.status || "pending" : "pending";
 
@@ -797,7 +835,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
               <div className="crew-mgmt-hero-middle">
                 <div className="crew-movement-select-block">
-                  <span className="crew-mgmt-section-label">Movement Type</span>
                   <div className="crew-movement-radio-group">
                     {MOVEMENT_TYPE_OPTIONS.map((option) => (
                       <MovementTypeRadioCard
@@ -816,7 +853,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                 </div>
 
                 <div className="crew-mgmt-crewlist-block">
-                  <span className="crew-mgmt-section-label">Crew List Upload</span>
                   <CrewListUploadBox
                     movementType={movementType}
                     movementTypeLabel={selectedMovementTypeLabel}

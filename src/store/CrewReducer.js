@@ -24,17 +24,18 @@ const useCrewReducer = create((set) => ({
             const crew = root?.crew ?? (Array.isArray(root) ? root : []);
             const list = Array.isArray(crew) ? crew : [];
             const pagination = {
-                total: Number(root?.total ?? list.length ?? 0) || 0,
-                page: Number(root?.page ?? payload?.page ?? 1) || 1,
-                limit: Number(root?.limit ?? payload?.limit ?? 10) || 10,
-                total_pages: Number(root?.total_pages ?? 1) || 1,
+                total: Number(root?.pagination?.total ?? root?.total ?? list.length ?? 0) || 0,
+                page: Number(root?.pagination?.page ?? root?.page ?? payload?.page ?? 1) || 1,
+                limit: Number(root?.pagination?.limit ?? root?.limit ?? payload?.limit ?? 10) || 10,
+                total_pages: Number(root?.pagination?.total_pages ?? root?.total_pages ?? 1) || 1,
             };
+            const uploadedCrewFile = root?.uploaded_crew_file ?? null;
             set({
                 callCrewList: list,
                 callCrewListPagination: pagination,
                 isCallCrewListLoading: false,
             });
-            cb && cb(list, pagination);
+            cb && cb(list, pagination, uploadedCrewFile);
             return list;
         } catch (err) {
             const { error } = useAlertReducer.getState();

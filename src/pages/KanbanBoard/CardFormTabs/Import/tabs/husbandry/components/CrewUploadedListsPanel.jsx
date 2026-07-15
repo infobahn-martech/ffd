@@ -42,6 +42,7 @@ const CrewUploadedCard = ({ upload, movementTypeLabel, onPreview, onReplace, onR
         <div className="crew-uploaded-card__meta">
           {upload.crewCount} crew member{upload.crewCount === 1 ? "" : "s"}
           {upload.size ? ` · ${formatFileSize(upload.size)}` : ""}
+          {upload.uploadedAt ? ` · Uploaded ${upload.uploadedAt}` : ""}
         </div>
         {isUploading && (
           <span className="crew-uploaded-card__status crew-uploaded-card__status--uploading">Uploading…</span>
@@ -91,6 +92,8 @@ CrewUploadedCard.propTypes = {
     movementType: PropTypes.string,
     status: PropTypes.string,
     crewCount: PropTypes.number,
+    uploadedAt: PropTypes.string,
+    fileUrl: PropTypes.string,
   }).isRequired,
   movementTypeLabel: PropTypes.string.isRequired,
   onPreview: PropTypes.func.isRequired,
@@ -108,7 +111,6 @@ const CrewUploadedListsPanel = ({ movementTypeOptions, crewUploads, cardColor, o
   return (
     <div className="crew-uploaded-lists-panel" style={{ "--card-color": cardColor }}>
       <span className="crew-mgmt-section-label">Uploaded Crew Lists</span>
-
       {uploadedOptions.length === 0 ? (
         <div className="crew-uploaded-lists-panel__empty">
           <span className="crew-uploaded-lists-panel__empty-icon" aria-hidden="true">
