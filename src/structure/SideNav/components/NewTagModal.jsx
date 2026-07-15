@@ -315,7 +315,6 @@ const NewTagModal = ({
       onHide={onClose}
       className="new-blocker-modal"
       centered
-      scrollable
       size="md"
       dialogClassName="new-blocker-modal-dialog"
     >
