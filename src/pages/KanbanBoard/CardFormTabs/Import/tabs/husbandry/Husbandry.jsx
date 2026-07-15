@@ -24,6 +24,7 @@ import HotelContent from "./components/HotelContent";
 import MedicalServiceContent from "./components/MedicalServiceContent";
 import WasteDisposalContent from "./components/WasteDisposalContent";
 import MaterialManagementContent from "./components/MaterialManagementContent";
+import MaterialSummaryContent from "./components/MaterialSummaryContent";
 import InboundOrdersContent from "./components/InboundOrdersContent";
 import LandingNoteContent from "./components/LandingNoteContent";
 import DispatchNoteContent from "./components/DispatchNoteContent";
@@ -434,6 +435,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               [CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE]: "Launch Hire",
               [CREW_MANAGEMENT_SUBTABS.HOTEL]: "Hotel",
               [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "Medical Service",
+              [MATERIAL_MANAGEMENT_SUBTABS.SUMMARY]: "Summary",
               [MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS]: "Inbound Orders",
               [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: "Landing Note",
               [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: "Dispatch Note",
@@ -660,6 +662,14 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
 
   const renderMaterialManagementContent = () => {
     switch (activeSubTab) {
+      case MATERIAL_MANAGEMENT_SUBTABS.SUMMARY:
+        return (
+          <MaterialSummaryContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
       case MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS:
         return (
           <InboundOrdersContent

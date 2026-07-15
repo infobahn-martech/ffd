@@ -21,6 +21,7 @@ export const CREW_MANAGEMENT_SUBTABS = {
 };
 
 export const MATERIAL_MANAGEMENT_SUBTABS = {
+  SUMMARY: "summary",
   INBOUND_ORDERS: "inboundOrders",
   LANDING_NOTE: "landingNote",
   DISPATCH_NOTE: "dispatchNote",
