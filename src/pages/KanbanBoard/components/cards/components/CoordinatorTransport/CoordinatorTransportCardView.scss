@@ -170,11 +170,12 @@
   }
 }
 
-/* Compact request-email upload zone */
+/* Compact request-email upload zone (overrides the 200px default from operations.scss) */
 .coordinator-transport-request-upload .document-upload-zone {
-  min-height: 112px;
-  max-height: 130px;
-  padding: 18px;
+  height: auto !important;
+  min-height: 64px !important;
+  max-height: 76px !important;
+  padding: 10px 14px !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,6 +185,16 @@
 .coordinator-transport-request-upload .upload-zone-content {
   width: 100%;
   text-align: center;
+  gap: 2px;
+}
+
+.coordinator-transport-request-upload .upload-main-text {
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.coordinator-transport-request-upload .upload-sub-text {
+  font-size: 11px;
 }
 
 /* ---------- Provider segmented control ---------- */
