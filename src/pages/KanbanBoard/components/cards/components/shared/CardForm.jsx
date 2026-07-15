@@ -2032,6 +2032,17 @@ function CardForm({
     if (show && isAddMode) setHasSubmitted(false);
   }, [show, isAddMode]);
 
+  // Lock background scroll while the modal is open so the board behind it can't
+  // be scrolled out from under the fixed overlay.
+  useEffect(() => {
+    if (!show) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [show]);
+
   const handleCallFileCreatedSuccess = useCallback(
     async () => {
       notify("Call file created successfully.", "success");

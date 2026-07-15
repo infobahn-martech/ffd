@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiPlus, FiSearch, FiSlash } from 'react-icons/fi';
+import { FiX, FiPlus, FiFilter, FiSlash, FiUsers } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
@@ -322,6 +322,7 @@ const NewTypeModal = ({
     return filteredWorkspaceOptions.map((ws) => (
       <div key={boardKey(ws.workspace_id)} className="new-blocker-workspace-group">
         <div className="new-blocker-workspace-head">
+          <FiUsers size={18} aria-hidden />
           <span className="new-blocker-workspace-title">{ws.workspace_name}</span>
           <button
             type="button"
@@ -331,20 +332,19 @@ const NewTypeModal = ({
             {isWorkspaceFullySelected(ws) ? 'Deselect all' : 'Select all'}
           </button>
         </div>
-        {ws.boards.map((board) => (
-          <label
-            key={boardKey(board.board_id)}
-            className="new-blocker-board-option"
-          >
-            <input
-              type="checkbox"
-              className="new-blocker-board-checkbox"
-              checked={selectedIds.has(boardKey(board.board_id))}
-              onChange={() => toggleBoard(board)}
-            />
-            <span className="new-blocker-board-option-label">{board.board_name}</span>
-          </label>
-        ))}
+        <div className="new-blocker-board-tile-grid">
+          {ws.boards.map((board) => (
+            <button
+              type="button"
+              key={boardKey(board.board_id)}
+              className={`new-blocker-board-tile${selectedIds.has(boardKey(board.board_id)) ? ' new-blocker-board-tile--selected' : ''}`}
+              onClick={() => toggleBoard(board)}
+              aria-pressed={selectedIds.has(boardKey(board.board_id))}
+            >
+              {board.board_name}
+            </button>
+          ))}
+        </div>
       </div>
     ));
   };
@@ -355,6 +355,7 @@ const NewTypeModal = ({
       onHide={onClose}
       className="new-blocker-modal"
       centered
+      scrollable
       size="md"
       dialogClassName="new-blocker-modal-dialog"
     >
@@ -433,37 +434,39 @@ const NewTypeModal = ({
             </div>
           </div>
 
-          <div className="new-blocker-field new-blocker-field-full">
-            <label className="new-blocker-label" htmlFor="new-type-label-input">
-              Label
-            </label>
-            <input
-              id="new-type-label-input"
-              type="text"
-              className="new-blocker-input"
-              placeholder="Enter type label"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-            />
-          </div>
+          <div className="new-blocker-tag-fields-inline">
+            <div className="new-blocker-field new-blocker-field-label-with-availability">
+              <label className="new-blocker-label" htmlFor="new-type-label-input">
+                Label
+              </label>
+              <input
+                id="new-type-label-input"
+                type="text"
+                className="new-blocker-input"
+                placeholder="Enter type label"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+              />
+            </div>
 
-          <div className="new-blocker-field new-blocker-field-full">
-            <label className="new-blocker-label" htmlFor="new-type-availability-select">
-              Availability
-            </label>
-            <select
-              id="new-type-availability-select"
-              className="new-blocker-select"
-              value={availability}
-              onChange={(e) => setAvailability(e.target.value)}
-              aria-required
-            >
-              {TAG_AVAILABILITY_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+            <div className="new-blocker-field new-blocker-field-availability">
+              <label className="new-blocker-label" htmlFor="new-type-availability-select">
+                Availability
+              </label>
+              <select
+                id="new-type-availability-select"
+                className="new-blocker-select"
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value)}
+                aria-required
+              >
+                {TAG_AVAILABILITY_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="new-blocker-field new-blocker-boards-field">
@@ -483,11 +486,11 @@ const NewTypeModal = ({
               {isBoardSelectorOpen && (
                 <div className="new-blocker-board-selector" ref={boardSelectorRef}>
                   <div className="new-blocker-board-selector-header">
-                    <FiSearch size={16} className="new-blocker-board-selector-search-icon" aria-hidden />
+                    <FiFilter size={16} className="new-blocker-board-selector-search-icon" aria-hidden />
                     <input
                       type="search"
                       className="new-blocker-board-selector-search"
-                      placeholder="Search workspaces or boards…"
+                      placeholder="Filter"
                       value={boardSearch}
                       onChange={(e) => setBoardSearch(e.target.value)}
                       aria-label="Filter workspaces and boards"

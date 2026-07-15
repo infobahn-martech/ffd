@@ -1,6 +1,7 @@
 .new-blocker-modal {
   .modal-dialog {
-    max-width: 560px;
+    width: 1140px;
+    max-width: 1140px;
   }
 
   .modal-content {
@@ -45,6 +46,8 @@
   .new-blocker-modal-body {
     padding: 24px;
     background: #ffffff;
+    max-height: 65vh;
+    overflow-y: auto;
   }
 
   .new-blocker-form {
@@ -86,13 +89,13 @@
   }
 
   .new-blocker-field-label-with-availability {
-    flex: 1 1 200px;
+    flex: 1 1 0;
     min-width: 0;
   }
 
   .new-blocker-field-availability {
-    flex: 0 1 240px;
-    min-width: 180px;
+    flex: 1 1 0;
+    min-width: 200px;
   }
 
   .new-blocker-label {
@@ -399,14 +402,16 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
+    margin: 10px 12px 4px;
+    padding: 12px 18px;
     background: #ffffff;
-    border-bottom: 1px solid #e8e8ef;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
   }
 
   .new-blocker-board-selector-search-icon {
     flex-shrink: 0;
-    color: #888;
+    color: #9ca3af;
   }
 
   .new-blocker-board-selector-search {
@@ -451,27 +456,33 @@
   }
 
   .new-blocker-workspace-group {
-    padding: 4px 10px 10px;
-
-    &:not(:last-child) {
-      border-bottom: 1px solid #ececf2;
-    }
+    margin: 8px 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f9fafb;
+    border: 1px solid #eef0f3;
   }
 
   .new-blocker-workspace-head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
-    padding: 6px 4px 8px;
+    margin-bottom: 10px;
+    padding: 4px 6px;
+    color: #1a1a1a;
+
+    svg {
+      color: #00368c;
+      flex-shrink: 0;
+    }
   }
 
   .new-blocker-workspace-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #374151;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
     font-family: 'Manrope', sans-serif;
   }
 
@@ -493,34 +504,34 @@
     }
   }
 
-  .new-blocker-board-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    margin: 2px 0;
+  .new-blocker-board-tile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .new-blocker-board-tile {
+    padding: 12px;
+    min-height: 44px;
+    border: 1px solid transparent;
     border-radius: 8px;
+    background: #eef0f3;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-align: left;
+    font-family: 'Manrope', sans-serif;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease;
 
     &:hover {
-      background: #ffffff;
+      background: #e0e7ff;
     }
-  }
 
-  .new-blocker-board-checkbox {
-    width: 16px;
-    height: 16px;
-    accent-color: #00368c;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  .new-blocker-board-option-label {
-    font-size: 13px;
-    color: #1a1a1a;
-    font-family: 'Manrope', sans-serif;
-    line-height: 1.35;
+    &--selected {
+      border-color: #00368c;
+      background: #e0e7ff;
+    }
   }
 
   .new-blocker-selected-board-chip {
