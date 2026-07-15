@@ -3,100 +3,405 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  box-sizing: border-box;
   overflow: hidden;
+  background: #f6f8fc;
+  box-sizing: border-box;
 }
+
+.coordinator-transport-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 18px 20px 20px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ---------- Summary cards ---------- */
 
 .coordinator-transport-summary {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   width: 100%;
+  flex-shrink: 0;
 }
 
-.coordinator-transport-main {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+.coordinator-transport-summary-card {
+  min-width: 0;
+  min-height: 88px;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 1px solid #e3e8f0;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
 }
+
+.coordinator-transport-summary-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #718096;
+}
+
+.coordinator-transport-summary-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 500;
+  color: #273144;
+}
+
+/* ---------- Workspace (form + table) ---------- */
 
 .coordinator-transport-workspace {
-  display: grid;
-  grid-template-columns: minmax(390px, 32%) minmax(0, 1fr);
-  gap: 24px;
-  width: 100%;
-  height: 100%;
+  flex: 1;
   min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(430px, 32%) minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+  overflow: hidden;
 }
 
 .coordinator-transport-form-card,
 .coordinator-transport-table-card {
   min-width: 0;
+  background: #ffffff;
+  border: 1px solid #e1e7ef;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
+/* ---------- Left form panel ---------- */
+
 .coordinator-transport-form-card {
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  max-height: 100%;
   overflow: hidden;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+}
+
+.coordinator-transport-form-header {
+  flex-shrink: 0;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.coordinator-transport-form-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #1f2937;
+}
+
+.coordinator-transport-form-subtitle {
+  margin-top: 4px;
+  margin-bottom: 0;
+  font-size: 12px;
+  color: #7b8495;
 }
 
 .coordinator-transport-form-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 4px 20px 20px;
+  padding: 16px 18px 24px;
+  scrollbar-width: thin;
 }
+
+.coordinator-transport-form-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.coordinator-transport-form-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.coordinator-transport-form-section {
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.coordinator-transport-form-section:last-child {
+  margin-bottom: 0;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.coordinator-transport-form-card label {
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.coordinator-transport-form-card input,
+.coordinator-transport-form-card select,
+.coordinator-transport-form-card .cf-multi-select-email-input {
+  min-height: 40px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* Balanced two-up field rows (Coordinator/Branch, Company/Driver, From/To) */
+.coordinator-transport-form-section .husb-group__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1250px) {
+  .coordinator-transport-form-section .husb-group__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact request-email upload zone */
+.coordinator-transport-request-upload .document-upload-zone {
+  min-height: 112px;
+  max-height: 130px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.coordinator-transport-request-upload .upload-zone-content {
+  width: 100%;
+  text-align: center;
+}
+
+/* ---------- Provider segmented control ---------- */
+
+.coordinator-transport-provider-toggle {
+  width: 100%;
+  max-width: 320px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 3px;
+  background: #f1f3fb;
+  border: 1px solid #e2e6f0;
+  border-radius: 10px;
+}
+
+.coordinator-transport-provider-option {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.coordinator-transport-provider-option.is-active {
+  background: #ffffff;
+  color: #4f46e5;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* ---------- Save footer ---------- */
 
 .coordinator-transport-form-footer {
   flex-shrink: 0;
-  padding: 14px 20px;
-  border-top: 1px solid #e8ebf3;
-  background: #ffffff;
   display: flex;
   justify-content: flex-end;
+  padding: 14px 18px;
+  background: #ffffff;
+  border-top: 1px solid #e5eaf1;
 }
+
+.coordinator-transport-save-button {
+  min-width: 92px;
+  height: 38px;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- Table panel ---------- */
 
 .coordinator-transport-table-card {
   align-self: start;
-  height: auto;
+  width: 100%;
+  min-height: 430px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.coordinator-transport-provider-toggle {
-  display: inline-flex;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 4px;
-  background: #f8fafc;
-  gap: 4px;
+.coordinator-transport-table-card > .crew-pass-requests-table-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: none;
+  border: 0;
+}
 
-  button {
-    border: none;
-    background: transparent;
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+.coordinator-transport-table-card .crew-pass-requests-table-card__header {
+  flex-shrink: 0;
+  min-height: 64px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5eaf1;
+  box-sizing: border-box;
+}
 
-    &.active {
-      background: #ffffff;
-      color: #6d28d9;
-      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
-    }
-  }
+.coordinator-transport-table-card .crew-pass-requests-table-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202938;
+}
+
+.coordinator-transport-table-card .husb-header-subtitle {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #7c8798;
+}
+
+.coordinator-transport-table-card .crew-pass-requests-table-card__body {
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.coordinator-transport-table-card .crew-pass-requests-table-scroll {
+  flex: 1;
+  min-height: 240px;
+  overflow-x: auto;
+}
+
+.coordinator-transport-table-card table.crew-pass-requests-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.coordinator-transport-table-card th {
+  height: 42px;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.coordinator-transport-table-card td {
+  height: 44px;
+  padding: 10px 14px;
+  font-size: 11px;
+  vertical-align: middle;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.coordinator-transport-table-card tbody tr:hover {
+  background: #fafbff;
+}
+
+.coordinator-transport-table-card .husb-crew-cell__name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coordinator-transport-table-card th:nth-child(1),
+.coordinator-transport-table-card td:nth-child(1) {
+  width: 38%;
+}
+
+.coordinator-transport-table-card th:nth-child(2),
+.coordinator-transport-table-card td:nth-child(2) {
+  width: 12%;
+}
+
+.coordinator-transport-table-card th:nth-child(3),
+.coordinator-transport-table-card td:nth-child(3) {
+  width: 16%;
+}
+
+.coordinator-transport-table-card th:nth-child(4),
+.coordinator-transport-table-card td:nth-child(4) {
+  width: 18%;
+}
+
+.coordinator-transport-table-card th:nth-child(5),
+.coordinator-transport-table-card td:nth-child(5) {
+  width: 16%;
+  text-align: center;
 }
 
 .coordinator-transport-table__empty-cell {
   color: #94a3b8;
 }
+
+.coordinator-transport-table-card .crew-pass-requests-table-card__pagination {
+  flex-shrink: 0;
+  min-height: 58px;
+  margin-top: auto;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e4e8ef;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.coordinator-transport-table-card .crew-pass-requests-pagination__info {
+  font-size: 11px;
+  color: #677489;
+}
+
+.coordinator-transport-table-card .crew-pass-requests-pagination__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coordinator-transport-table-card .crew-pass-requests-pagination__btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e1e6ee;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.coordinator-transport-table-card .crew-pass-requests-pagination__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------- Status badges ---------- */
 
 .coordinator-transport-status-badge {
   display: inline-flex;
@@ -107,61 +412,72 @@
   font-weight: 600;
   text-transform: capitalize;
   white-space: nowrap;
-
-  &--pending {
-    background: #fef3c7;
-    color: #b45309;
-  }
-
-  &--approved,
-  &--assigned {
-    background: #dbeafe;
-    color: #1d4ed8;
-  }
-
-  &--completed {
-    background: #d1fae5;
-    color: #047857;
-  }
-
-  &--rejected,
-  &--cancelled {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-
-  &--default {
-    background: #e2e8f0;
-    color: #475569;
-  }
 }
 
-@media (max-width: 1400px) {
+.coordinator-transport-status-badge--pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.coordinator-transport-status-badge--approved,
+.coordinator-transport-status-badge--assigned {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.coordinator-transport-status-badge--completed {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.coordinator-transport-status-badge--rejected,
+.coordinator-transport-status-badge--cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.coordinator-transport-status-badge--default {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1450px) {
+  .coordinator-transport-workspace {
+    grid-template-columns: minmax(400px, 36%) minmax(0, 1fr);
+  }
+
   .coordinator-transport-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .coordinator-transport-workspace {
-    grid-template-columns: minmax(360px, 38%) minmax(0, 1fr);
-  }
 }
 
-@media (max-width: 1000px) {
-  .coordinator-transport-workspace {
-    grid-template-columns: 1fr;
+@media (max-width: 1100px) {
+  .coordinator-transport-content {
     overflow-y: auto;
   }
 
+  .coordinator-transport-workspace {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
   .coordinator-transport-form-card {
-    max-height: 720px;
+    height: 650px;
   }
 
   .coordinator-transport-table-card {
+    min-height: 420px;
     width: 100%;
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 720px) {
+  .coordinator-transport-content {
+    padding: 14px;
+  }
+
   .coordinator-transport-summary {
     grid-template-columns: 1fr;
   }

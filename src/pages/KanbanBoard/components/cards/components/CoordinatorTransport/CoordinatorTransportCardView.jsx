@@ -13,7 +13,6 @@ import {
   FormField,
   FormSelect,
   FieldRow,
-  PremiumCardHeader,
   ReactQuillEditor,
 } from "../../../../CardFormTabs/Import/tabs/husbandry/components/Husbandry.components";
 import {
@@ -26,7 +25,6 @@ import LocationAutocomplete from "../../../../CardFormTabs/Import/tabs/husbandry
 import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
 import AttachmentsList from "../../../../CardFormTabs/Import/tabs/appointment/AttachmentsList";
 import HusbandryServiceRequestsTable from "../../../../CardFormTabs/Import/tabs/husbandry/components/HusbandryServiceRequestsTable";
-import GroSummaryCard from "../GRO/User/GroSummaryCard";
 import "./CoordinatorTransportCardView.scss";
 
 const TRANSPORT_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.TRANSPORT];
@@ -199,6 +197,20 @@ const COORDINATOR_TRANSPORT_REQUEST_COLUMNS = [
       ),
   },
 ];
+
+const CoordinatorTransportSummaryCard = ({ label, value }) => (
+  <div className="coordinator-transport-summary-card">
+    <div className="coordinator-transport-summary-label">{label}</div>
+    <div className="coordinator-transport-summary-value" title={value}>
+      {value}
+    </div>
+  </div>
+);
+
+CoordinatorTransportSummaryCard.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+};
 
 const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   const requestEmailInputRef = useRef(null);
@@ -575,204 +587,217 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
 
   return (
     <div className="coordinator-transport-card-view" style={{ "--card-color": cardColor }}>
-      <div className="coordinator-transport-summary">
-        <GroSummaryCard label="Call Type" value={callTypeSummary} />
-        <GroSummaryCard label="Billing Entity" value={billingEntitySummary} />
-        <GroSummaryCard label="Port" value={portSummary} />
-        <GroSummaryCard label="Vessel Name" value={vesselNameSummary} />
-        <GroSummaryCard label="Requested Operator" value={requestedOperatorSummary} />
-      </div>
+      <div className="coordinator-transport-content">
+        <div className="coordinator-transport-summary">
+          <CoordinatorTransportSummaryCard label="Call Type" value={callTypeSummary} />
+          <CoordinatorTransportSummaryCard label="Billing Entity" value={billingEntitySummary} />
+          <CoordinatorTransportSummaryCard label="Port" value={portSummary} />
+          <CoordinatorTransportSummaryCard label="Vessel Name" value={vesselNameSummary} />
+          <CoordinatorTransportSummaryCard label="Requested Operator" value={requestedOperatorSummary} />
+        </div>
 
-      <div className="coordinator-transport-main">
         <div className="coordinator-transport-workspace">
           <section className={`coordinator-transport-form-card husb-accent-${TRANSPORT_ACCENT}`}>
-            <PremiumCardHeader
-              icon="transport"
-              title="New transport request"
-              subtitle="Book a vehicle for crew movement"
-              headerClassName="coordinator-transport-form-card__header"
-              titleClassName="coordinator-transport-form-card__title"
-            />
+            <div className="coordinator-transport-form-header">
+              <h3 className="coordinator-transport-form-title">New transport request</h3>
+              <p className="coordinator-transport-form-subtitle">Book a vehicle for crew movement</p>
+            </div>
 
             <div className="coordinator-transport-form-body crew-pass-thin-scrollbar">
-              <FormGroup icon="mail" label="Request Email" accent={TRANSPORT_ACCENT}>
-                <FormField>
-                  <div className="transport-upload-box">
-                    <AttachmentsList
-                      attachments={transportForm.requestEmail}
-                      onAdd={() => {}}
-                      onRemove={handleRequestEmailRemoveAttachment}
-                      cardColor={cardColor}
-                      isDragging={isDraggingEmail}
-                      onDragEnter={handleRequestEmailDragEnter}
-                      onDragLeave={handleRequestEmailDragLeave}
-                      onDragOver={handleRequestEmailDragOver}
-                      onDrop={handleRequestEmailDrop}
-                      fileInputRef={requestEmailInputRef}
-                      onFileInputChange={handleRequestEmailFileInputChange}
-                      accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                      multiple={false}
-                      helperText=".msg, .eml, .pdf, .doc or .docx"
-                    />
-                  </div>
-                </FormField>
-              </FormGroup>
+              <div className="coordinator-transport-form-section">
+                <FormGroup icon="mail" label="Request Email" accent={TRANSPORT_ACCENT}>
+                  <FormField>
+                    <div className="coordinator-transport-request-upload">
+                      <AttachmentsList
+                        attachments={transportForm.requestEmail}
+                        onAdd={() => {}}
+                        onRemove={handleRequestEmailRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingEmail}
+                        onDragEnter={handleRequestEmailDragEnter}
+                        onDragLeave={handleRequestEmailDragLeave}
+                        onDragOver={handleRequestEmailDragOver}
+                        onDrop={handleRequestEmailDrop}
+                        fileInputRef={requestEmailInputRef}
+                        onFileInputChange={handleRequestEmailFileInputChange}
+                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                        multiple={false}
+                        helperText=".msg, .eml, .pdf, .doc or .docx"
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+              </div>
 
-              <CrewSelectionField
-                callId={callId}
-                selected={transportForm.selectedCrew}
-                onChange={(ids) => updateTransportField("selectedCrew", ids)}
-                accent={TRANSPORT_ACCENT}
-              />
+              <div className="coordinator-transport-form-section">
+                <CrewSelectionField
+                  callId={callId}
+                  selected={transportForm.selectedCrew}
+                  onChange={(ids) => updateTransportField("selectedCrew", ids)}
+                  accent={TRANSPORT_ACCENT}
+                />
+              </div>
 
-              <FormGroup icon="transport" label="Provider" accent={TRANSPORT_ACCENT}>
-                <FormField>
-                  <div className="coordinator-transport-provider-toggle">
-                    <button
-                      type="button"
-                      className={transportForm.providerType === "inhouse" ? "active" : ""}
-                      onClick={() => handleProviderChange("inhouse")}
-                    >
-                      In house
-                    </button>
-                    <button
-                      type="button"
-                      className={transportForm.providerType === "thirdparty" ? "active" : ""}
-                      onClick={() => handleProviderChange("thirdparty")}
-                    >
-                      Third party
-                    </button>
-                  </div>
-                </FormField>
-              </FormGroup>
+              <div className="coordinator-transport-form-section">
+                <FormGroup icon="transport" label="Provider" accent={TRANSPORT_ACCENT}>
+                  <FormField>
+                    <div className="coordinator-transport-provider-toggle">
+                      <button
+                        type="button"
+                        className={`coordinator-transport-provider-option${
+                          transportForm.providerType === "inhouse" ? " is-active" : ""
+                        }`}
+                        onClick={() => handleProviderChange("inhouse")}
+                      >
+                        In house
+                      </button>
+                      <button
+                        type="button"
+                        className={`coordinator-transport-provider-option${
+                          transportForm.providerType === "thirdparty" ? " is-active" : ""
+                        }`}
+                        onClick={() => handleProviderChange("thirdparty")}
+                      >
+                        Third party
+                      </button>
+                    </div>
+                  </FormField>
+                </FormGroup>
 
-              {transportForm.providerType === "inhouse" ? (
-                <FieldRow>
-                  <FormField label="Transport Coordinator">
-                    <FormSelect
-                      value={transportForm.transportCoordinatorId}
-                      onChange={(e) => updateTransportField("transportCoordinatorId", e.target.value)}
-                      options={coordinatorOptions}
-                      placeholder={loadingCoordinators ? "Loading..." : "Select coordinator..."}
-                      disabled={loadingCoordinators}
+                {transportForm.providerType === "inhouse" ? (
+                  <FieldRow>
+                    <FormField label="Transport Coordinator">
+                      <FormSelect
+                        value={transportForm.transportCoordinatorId}
+                        onChange={(e) => updateTransportField("transportCoordinatorId", e.target.value)}
+                        options={coordinatorOptions}
+                        placeholder={loadingCoordinators ? "Loading..." : "Select coordinator..."}
+                        disabled={loadingCoordinators}
+                      />
+                    </FormField>
+                    <FormField label="Invoice Branch">
+                      <FormSelect
+                        value={transportForm.invoiceBranch}
+                        onChange={(e) => updateTransportField("invoiceBranch", e.target.value)}
+                        options={INVOICE_BRANCH_OPTIONS}
+                        placeholder="Select branch..."
+                      />
+                    </FormField>
+                  </FieldRow>
+                ) : (
+                  <FieldRow>
+                    <FormField label="Transport Company">
+                      <FormSelect
+                        value={transportForm.transportCompanyId}
+                        onChange={(e) => handleCompanyChange(e.target.value)}
+                        options={companyOptions}
+                        placeholder={loadingCompanies ? "Loading..." : "Select company..."}
+                        disabled={loadingCompanies}
+                      />
+                    </FormField>
+                    <FormField label="Driver Name">
+                      <FormSelect
+                        value={transportForm.transportDriverId}
+                        onChange={(e) => updateTransportField("transportDriverId", e.target.value)}
+                        options={driverOptions}
+                        placeholder={
+                          !transportForm.transportCompanyId
+                            ? "Select company first"
+                            : loadingDrivers
+                              ? "Loading drivers..."
+                              : "Select driver..."
+                        }
+                        disabled={!transportForm.transportCompanyId || loadingDrivers}
+                      />
+                    </FormField>
+                  </FieldRow>
+                )}
+              </div>
+
+              <div className="coordinator-transport-form-section">
+                <FormGroup icon="calendar" label="Pickup Date Time" accent={TRANSPORT_ACCENT}>
+                  <FormField>
+                    <DateTimePickerField
+                      dateValue={transportForm.pickupDate}
+                      timeValue={transportForm.pickupTime}
+                      onDateChange={(e) => updateTransportField("pickupDate", e.target.value)}
+                      onTimeChange={(e) => updateTransportField("pickupTime", e.target.value)}
                     />
                   </FormField>
-                  <FormField label="Invoice Branch">
+                </FormGroup>
+
+                <FieldRow>
+                  <FormField label="From">
                     <FormSelect
-                      value={transportForm.invoiceBranch}
-                      onChange={(e) => updateTransportField("invoiceBranch", e.target.value)}
-                      options={INVOICE_BRANCH_OPTIONS}
-                      placeholder="Select branch..."
+                      value={transportForm.fromType}
+                      onChange={(e) => updateTransportField("fromType", e.target.value)}
+                      options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
+                      placeholder="Select location type"
+                    />
+                    <LocationAutocomplete
+                      value={transportForm.fromLocation}
+                      onChange={(e) => updateTransportField("fromLocation", e.target.value)}
+                      placeholder="Enter pickup location"
+                    />
+                  </FormField>
+                  <FormField label="To">
+                    <FormSelect
+                      value={transportForm.toType}
+                      onChange={(e) => updateTransportField("toType", e.target.value)}
+                      options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
+                      placeholder="Select location type"
+                    />
+                    <LocationAutocomplete
+                      value={transportForm.toLocation}
+                      onChange={(e) => updateTransportField("toLocation", e.target.value)}
+                      placeholder="Enter drop-off location"
                     />
                   </FormField>
                 </FieldRow>
-              ) : (
-                <FieldRow>
-                  <FormField label="Transport Company">
-                    <FormSelect
-                      value={transportForm.transportCompanyId}
-                      onChange={(e) => handleCompanyChange(e.target.value)}
-                      options={companyOptions}
-                      placeholder={loadingCompanies ? "Loading..." : "Select company..."}
-                      disabled={loadingCompanies}
+              </div>
+
+              <div className="coordinator-transport-form-section">
+                <FormGroup icon="folder" label="Documents" accent={TRANSPORT_ACCENT}>
+                  <FormField className="cf-field-full">
+                    <div className="coordinator-transport-documents-upload">
+                      <AttachmentsList
+                        attachments={transportForm.documents}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingDocuments}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={documentsInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                        helperText="Drag files or click to browse"
+                        multiple
+                      />
+                    </div>
+                  </FormField>
+                </FormGroup>
+              </div>
+
+              <div className="coordinator-transport-form-section">
+                <FormGroup icon="notebook" label="Remarks" accent={TRANSPORT_ACCENT}>
+                  <FormField>
+                    <ReactQuillEditor
+                      value={transportForm.remarks}
+                      onChange={(e) => updateTransportField("remarks", e.target.value)}
+                      placeholder="Enter remarks..."
+                      name="remarks"
                     />
                   </FormField>
-                  <FormField label="Driver Name">
-                    <FormSelect
-                      value={transportForm.transportDriverId}
-                      onChange={(e) => updateTransportField("transportDriverId", e.target.value)}
-                      options={driverOptions}
-                      placeholder={
-                        !transportForm.transportCompanyId
-                          ? "Select company first"
-                          : loadingDrivers
-                            ? "Loading drivers..."
-                            : "Select driver..."
-                      }
-                      disabled={!transportForm.transportCompanyId || loadingDrivers}
-                    />
-                  </FormField>
-                </FieldRow>
-              )}
-
-              <FormGroup icon="calendar" label="Pickup Date Time" accent={TRANSPORT_ACCENT}>
-                <FormField>
-                  <DateTimePickerField
-                    dateValue={transportForm.pickupDate}
-                    timeValue={transportForm.pickupTime}
-                    onDateChange={(e) => updateTransportField("pickupDate", e.target.value)}
-                    onTimeChange={(e) => updateTransportField("pickupTime", e.target.value)}
-                  />
-                </FormField>
-              </FormGroup>
-
-              <FieldRow>
-                <FormField label="From">
-                  <FormSelect
-                    value={transportForm.fromType}
-                    onChange={(e) => updateTransportField("fromType", e.target.value)}
-                    options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
-                    placeholder="Select location type"
-                  />
-                  <LocationAutocomplete
-                    value={transportForm.fromLocation}
-                    onChange={(e) => updateTransportField("fromLocation", e.target.value)}
-                    placeholder="Enter pickup location"
-                  />
-                </FormField>
-                <FormField label="To">
-                  <FormSelect
-                    value={transportForm.toType}
-                    onChange={(e) => updateTransportField("toType", e.target.value)}
-                    options={TRANSPORT_ROUTE_LOCATION_OPTIONS}
-                    placeholder="Select location type"
-                  />
-                  <LocationAutocomplete
-                    value={transportForm.toLocation}
-                    onChange={(e) => updateTransportField("toLocation", e.target.value)}
-                    placeholder="Enter drop-off location"
-                  />
-                </FormField>
-              </FieldRow>
-
-              <FormGroup icon="folder" label="Documents" accent={TRANSPORT_ACCENT}>
-                <FormField className="cf-field-full">
-                  <div className="transport-upload-box">
-                    <AttachmentsList
-                      attachments={transportForm.documents}
-                      onAdd={() => {}}
-                      onRemove={handleDocumentsRemoveAttachment}
-                      cardColor={cardColor}
-                      isDragging={isDraggingDocuments}
-                      onDragEnter={handleDocumentsDragEnter}
-                      onDragLeave={handleDocumentsDragLeave}
-                      onDragOver={handleDocumentsDragOver}
-                      onDrop={handleDocumentsDrop}
-                      fileInputRef={documentsInputRef}
-                      onFileInputChange={handleDocumentsFileInputChange}
-                      helperText="Drag files or click to browse"
-                      multiple
-                    />
-                  </div>
-                </FormField>
-              </FormGroup>
-
-              <FormGroup icon="notebook" label="Remarks" accent={TRANSPORT_ACCENT}>
-                <FormField>
-                  <ReactQuillEditor
-                    value={transportForm.remarks}
-                    onChange={(e) => updateTransportField("remarks", e.target.value)}
-                    placeholder="Enter remarks..."
-                    name="remarks"
-                  />
-                </FormField>
-              </FormGroup>
+                </FormGroup>
+              </div>
             </div>
 
             <div className="coordinator-transport-form-footer">
               <button
                 type="button"
-                className="form-save-button"
+                className="form-save-button coordinator-transport-save-button"
                 onClick={handleSave}
                 disabled={isSavingTransport}
               >
