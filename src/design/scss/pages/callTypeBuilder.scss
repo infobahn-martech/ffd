@@ -27,6 +27,19 @@
 // ── Modal overlay & topbar overrides ─────────────────────────────────────────
 .ct-modal-overlay {
   z-index: 1350;
+
+  .cardform-panel {
+    max-width: 960px;
+    width: 92%;
+    max-height: calc(100vh - 3rem);
+    height: auto;
+
+    @media (max-width: 991px) {
+      max-width: 95%;
+      width: 95%;
+      max-height: calc(100vh - 2rem);
+    }
+  }
 }
 
 .ct-modal-topbar {
