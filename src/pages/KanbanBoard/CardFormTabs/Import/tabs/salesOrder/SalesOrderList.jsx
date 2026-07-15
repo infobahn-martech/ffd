@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
-import { FiFilePlus, FiFileText, FiClipboard, FiTool } from "react-icons/fi";
+import { FiFilePlus, FiFileText, FiClipboard, FiTool, FiCheck } from "react-icons/fi";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../../design/scss/salesOrder.scss";
@@ -267,6 +267,8 @@ PreviewModal.propTypes = {
 
 const TAX_CODE_OPTIONS = ["15%", "5%", "0%"];
 const TYPE_OF_PO_OPTIONS = ["Inhouse", "Outhouse PO", "Multiple PO"];
+
+const isThirdParty = (value) => value === 1 || value === "1" || value === true;
 
 const DUMMY_VENDORS = [
   { code: "VEND-001", name: "Al Rashid Trading Co." },
@@ -1120,6 +1122,17 @@ const SalesOrderList = ({
         </div>
       </td>
 
+      {/* Third Party */}
+      <td>
+        <div className="sales-order-table-cell">
+          {isThirdParty(order.is_third_party) ? (
+            <FiCheck className="so-third-party-tick" aria-label="Third party" />
+          ) : (
+            <span className="so-docs-empty">—</span>
+          )}
+        </div>
+      </td>
+
       {/* Supporting Documents */}
       <td>
         <div className="sales-order-table-cell">
@@ -1688,6 +1701,7 @@ const SalesOrderList = ({
               {renderTableHeader("Tax Code", "col-tax")}
               {renderTableHeader("Total Amount", "col-total")}
               {renderTableHeader("Type of PO", "col-type-po")}
+              {renderTableHeader("Third Party", "col-third-party")}
               {renderTableHeader("Supporting Documents", "col-documents")}
               {renderTableHeader("Supplier Code", "col-supplier")}
               {renderTableHeader("Status", "col-status")}
@@ -1697,7 +1711,7 @@ const SalesOrderList = ({
             {displayOrderList.length === 0 && !isLoadingSalesOrder && (
               <tr>
                 <td
-                  colSpan={isDAModule ? 11 : 12}
+                  colSpan={isDAModule ? 12 : 13}
                   style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                 >
                   No sales order line items for this call.
@@ -1730,7 +1744,7 @@ const SalesOrderList = ({
                     }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={isDAModule ? 11 : 12} style={{ padding: "12px 16px" }}>
+                    <td colSpan={isDAModule ? 12 : 13} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {!isDAModule && (

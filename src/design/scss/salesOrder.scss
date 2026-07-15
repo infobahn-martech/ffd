@@ -441,7 +441,7 @@
   border-spacing: 0;
   table-layout: fixed !important;
   width: 100%;
-  min-width: 1460px;
+  min-width: 1560px;
   margin: 0;
   overflow: visible !important;
 }
@@ -634,6 +634,12 @@
 .so-docs-empty {
   color: #a7afc2;
   font-size: 13px;
+}
+
+.so-third-party-tick {
+  color: #16a34a;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 /* Supporting Documents control inside the Add Item form */
@@ -872,6 +878,11 @@
   .col-type-po {
     width: 12%;
     min-width: 160px;
+  }
+
+  .col-third-party {
+    width: 7%;
+    min-width: 90px;
   }
 
   .col-documents {
