@@ -79,6 +79,12 @@ export function getDashboardCanvasStyle(background) {
   };
 }
 
+function cleanBackgroundField(value) {
+  const s = String(value ?? '').trim();
+  if (!s || s.toLowerCase() === 'null' || s.toLowerCase() === 'undefined') return '';
+  return s;
+}
+
 /**
  * Inline styles for the Kanban board page container (`.page-cont-wrp`) from
  * `kanban_board/get_full_board` response `background: { color, background_url }`.
@@ -89,15 +95,16 @@ export function getDashboardCanvasStyle(background) {
 export function getBoardPageBackgroundStyle(background) {
   if (!background || typeof background !== 'object') return null;
 
-  const color = String(background.color ?? '').trim();
+  const color = cleanBackgroundField(background.color);
   if (color) {
     return { backgroundColor: color, backgroundImage: 'none' };
   }
 
-  const url = String(background.background_url ?? '').trim();
+  const url = cleanBackgroundField(background.background_url);
   if (url) {
     return {
-      backgroundImage: `url(${url})`,
+      backgroundColor: 'transparent',
+      backgroundImage: `url("${url}")`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
