@@ -754,7 +754,7 @@ $send-report-optional: #80868b;
   /* Override all buttons to use #00368c */
   .checklist-btn-primary,
   .btn-primary,
-  button[class*="btn"]:not(.landing-action-btn):not(.print-action-icon-wrap):not(.note-action-btn):not(.note-dropdown-btn):not(.dispatch-note-action-btn):not(.dispatch-note-dropdown-btn) {
+  button[class*="btn"]:not(.landing-action-btn):not(.print-action-icon-wrap):not(.note-action-btn):not(.note-dropdown-btn):not(.dispatch-note-action-btn):not(.dispatch-note-dropdown-btn):not(.crew-summary-movement-filter__btn) {
     background: #e2e6ff !important;
     border-color: #e2e6ff !important;
     color: #1a1a1a !important;

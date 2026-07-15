@@ -3064,13 +3064,13 @@
 }
 
 .crew-summary-movement-filter__btn--active {
-  background: #ffffff;
-  color: var(--card-color, #00368c);
+  background: var(--card-color, #00368c);
+  color: #ffffff;
   box-shadow: $shadow-sm;
 }
 
 .crew-summary-movement-filter__btn--active:hover {
-  color: var(--card-color, #00368c);
+  color: #ffffff;
 }
 
 .crew-listing-subtitle {

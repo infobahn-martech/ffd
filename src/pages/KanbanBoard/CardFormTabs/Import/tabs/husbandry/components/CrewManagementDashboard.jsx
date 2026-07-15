@@ -951,6 +951,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                   role="tab"
                   aria-selected={summaryMovementTypeFilter === ""}
                   className={`crew-summary-movement-filter__btn${summaryMovementTypeFilter === "" ? " crew-summary-movement-filter__btn--active" : ""}`}
+                  style={summaryMovementTypeFilter === "" ? { background: cardColor || "#00368c", color: "#fff" } : undefined}
                   onClick={() => setSummaryMovementTypeFilter("")}
                 >
                   All
@@ -962,6 +963,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                     role="tab"
                     aria-selected={summaryMovementTypeFilter === option.value}
                     className={`crew-summary-movement-filter__btn${summaryMovementTypeFilter === option.value ? " crew-summary-movement-filter__btn--active" : ""}`}
+                    style={summaryMovementTypeFilter === option.value ? { background: cardColor || "#00368c", color: "#fff" } : undefined}
                     onClick={() => setSummaryMovementTypeFilter(option.value)}
                   >
                     {option.label}
