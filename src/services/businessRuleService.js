@@ -60,8 +60,12 @@ const saveWebServiceSettings = (payload) =>
 const getWebServiceSettings = (webServiceId) =>
   Gateway.get(`/business_rule/get_web_service_settings/${webServiceId}`);
 
+const saveCreateSubtaskSettings = (payload) =>
+  Gateway.post('/business_rule/save_create_subtask_settings', payload);
+
 export default {
   getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
   getNotificationSettings, saveNotificationSettings, updateNotificationSettings, deleteNotificationSettings, updateWebServiceSettings, deleteWebServiceSettings, saveWebServiceSettings, getWebServiceSettings,
+  saveCreateSubtaskSettings,
 };
