@@ -3151,6 +3151,12 @@
   color: $status-danger;
 }
 
+.crew-action-btn--delete {
+  background: color-mix(in srgb, $status-danger 16%, white);
+  border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
+  color: $status-danger;
+}
+
 .crew-action-btn:disabled {
   cursor: not-allowed;
   opacity: 0.7;
@@ -3163,6 +3169,11 @@
   border: 2px solid color-mix(in srgb, $status-success 25%, white);
   border-top-color: $status-success;
   animation: crewUploadSpin 0.7s linear infinite;
+}
+
+.crew-action-btn--delete .crew-action-btn__spinner {
+  border: 2px solid color-mix(in srgb, $status-danger 25%, white);
+  border-top-color: $status-danger;
 }
 
 // Crew Summary table has 2 more columns (Date of birth, Action) than the

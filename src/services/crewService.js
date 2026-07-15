@@ -16,6 +16,7 @@ const replaceCrewFile = (formData) =>
 const updateCrewDocuments = (formData) =>
   Gateway.post("crew/update_crew_documents", formData);
 const updateCrew = (payload) => Gateway.post("crew/update_crew", payload);
+const deleteCrew = (crewId) => Gateway.delete(`crew/delete_crew/${crewId}`);
 const uploadPassportCopies = (formData) =>
   Gateway.post("crew/upload_passport_copies", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -35,6 +36,7 @@ export default {
   replaceCrewFile,
   updateCrewDocuments,
   updateCrew,
+  deleteCrew,
   uploadPassportCopies,
   uploadIqamaCopies,
 };

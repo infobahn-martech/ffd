@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
-import { FiSearch, FiEdit2, FiCheck, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiEdit2, FiCheck, FiX, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectPage from "./CrewServiceSelectPage";
@@ -193,6 +193,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
   const updateCrewInfo = useCrewReducer((state) => state.updateCrewInfo);
+  const deleteCrew = useCrewReducer((state) => state.deleteCrew);
 
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
@@ -246,6 +247,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const [editingRowId, setEditingRowId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [deletingRowId, setDeletingRowId] = useState(null);
   const [isUploadingPassports, setIsUploadingPassports] = useState(false);
   const [isUploadingIqamas, setIsUploadingIqamas] = useState(false);
   const summaryPassportInputRef = useRef(null);
@@ -809,6 +811,43 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     }
   };
 
+  // Deletes a crew member via crew/delete_crew/{crew_id}, then refetches the
+  // crew list so both the summary table and the rest of the dashboard
+  // (service popups, crewCount, etc.) drop the removed crew member.
+  const handleDeleteCrew = async (row) => {
+    const crewIdNum = Number(row?.crewId);
+    if (!crewIdNum) {
+      notify("Unable to delete: missing crew id.", "error");
+      return;
+    }
+    if (!window.confirm(`Remove ${row.crewName || "this crew member"} from the crew list?`)) return;
+
+    setDeletingRowId(row.id);
+    try {
+      await deleteCrew({ crewId: crewIdNum });
+
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (resolvedCallId && resolvedVesselId) {
+        const list = await fetchCallCrewList({
+          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+        });
+        if (Array.isArray(list)) {
+          setUploadedCrewList(list);
+          handleChange("crewList")({ target: { value: list } });
+          handleChange("crewCount")({ target: { value: list.length } });
+        }
+      }
+      setSummarySelectedIds((prev) => prev.filter((id) => id !== row.id));
+      setSummaryRefreshTick((tick) => tick + 1);
+
+      notify("Crew member removed.", "success");
+    } catch {
+      // error already surfaced via notify in the store
+    } finally {
+      setDeletingRowId(null);
+    }
+  };
+
   if (showCrewSelectView && selectedServiceForCrew) {
     return (
       <CrewServiceSelectPage
@@ -1178,15 +1217,32 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                                   </button>
                                 </>
                               ) : (
-                                <button
-                                  type="button"
-                                  className="crew-action-btn crew-action-btn--edit"
-                                  aria-label="Edit crew"
-                                  title="Edit"
-                                  onClick={() => handleStartEdit(row)}
-                                >
-                                  <FiEdit2 size={14} />
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    className="crew-action-btn crew-action-btn--edit"
+                                    aria-label="Edit crew"
+                                    title="Edit"
+                                    disabled={deletingRowId === row.id}
+                                    onClick={() => handleStartEdit(row)}
+                                  >
+                                    <FiEdit2 size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="crew-action-btn crew-action-btn--delete"
+                                    aria-label="Delete crew"
+                                    title="Delete"
+                                    disabled={deletingRowId === row.id}
+                                    onClick={() => handleDeleteCrew(row)}
+                                  >
+                                    {deletingRowId === row.id ? (
+                                      <span className="crew-action-btn__spinner" aria-hidden="true" />
+                                    ) : (
+                                      <FiTrash2 size={14} />
+                                    )}
+                                  </button>
+                                </>
                               )}
                             </div>
                           </td>
