@@ -5758,7 +5758,7 @@ ${body}
                               )}
 
                               {isSingleVesselSection && shouldShowApiField("vessel_principal") && (
-                                <FormField label="Vessel Charter">
+                                <FormField label="Vessel Charterer">
                                   <FormInput
                                     type="text"
                                     placeholder="Enter vessel charter..."
@@ -5838,7 +5838,7 @@ ${body}
                                     )}
 
                                     {showAnyApiField("vessel_principal") && (
-                                      <FormField label="Vessel Charter">
+                                      <FormField label="Vessel Charterer">
                                         <FormInput
                                           type="text"
                                           placeholder="Enter vessel charter..."
@@ -5929,7 +5929,7 @@ ${body}
                                     )}
 
                                     {showAnyApiField("barge_vessel_principal") && (
-                                      <FormField label="Vessel Charter">
+                                      <FormField label="Vessel Charterer">
                                         <FormInput
                                           type="text"
                                           placeholder="Enter vessel charter..."

@@ -462,7 +462,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                 <div className="form-floating desig-inp">
                   <input
                     className={`form-control ${errors.vesselPrincipal ? "is-invalid" : ""}`}
-                    placeholder="Vessel Charter"
+                    placeholder="Vessel Charterer"
                     {...register("vesselPrincipal", {
                       required: "Vessel charter is required",
                       validate: (v) =>
@@ -470,7 +470,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                     })}
                   />
                   <label>
-                    Vessel Charter <span className="text-danger">*</span>
+                    Vessel Charterer <span className="text-danger">*</span>
                   </label>
                   {errors.vesselPrincipal && (
                     <span className="error text-danger">

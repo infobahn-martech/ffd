@@ -179,7 +179,7 @@ const MAIN_TABS = [
                     "Vessel Type",
                     "Vessel Name",
                     "Vessel Owner",
-                    "Vessel Charter",
+                    "Vessel Charterer",
                     "Barge Type",
                     "Barge Name",
                     "Barge Owner",
