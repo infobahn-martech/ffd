@@ -10,17 +10,18 @@ import 'quill-table-better/dist/quill-table-better.css';
 import {
   THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
-  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
-  DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES, DUMMY_BOARD_BOTTOM_STAGES,
+  DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
   DUMMY_WORKSPACE_BOARDS,
   DUMMY_NOTIFICATION_FROM_EMAIL, DUMMY_INTERNAL_USERS,
   DUMMY_NOTIFICATION_SUBJECT_PARTS, DUMMY_NOTIFICATION_BODY_DELTA_OPS, INTERNAL_USER_ROLE_OPTIONS,
   DUMMY_LINK_ACTION_OPERATORS, DUMMY_FIELD_OPERATORS,
 } from './businessRulesData';
+import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import useCommonReducer from '../../../store/CommonReducer';
 import useAuthReducer from '../../../store/AuthReducer';
+import useWorkFlowReducer from '../../../store/WorkFlowReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials } from '../../../shared/utils/utils';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
@@ -86,11 +87,6 @@ NotificationPillBlot.tagName = 'span';
 NotificationPillBlot.className = 'notification-pill';
 Quill.register(NotificationPillBlot);
 const QuillDelta = Quill.import('delta');
-
-// Swimlanes at the bottom of the "Board Minimap" grid that use the DUMMY_BOARD_BOTTOM_STAGES
-// column set (Backlog/Requested/In Progress/Done/Ready to Archive) instead of the main
-// DUMMY_BOARD_LEAF_COLUMNS set shown for the swimlanes above them.
-const BOTTOM_GROUP_SWIMLANE_NAMES = ['TEST', 'Default Swimlane', 'New Swimlane'];
 
 const PROPERTY_DOT_COLORS = [...PRIMARY_PRESET_COLORS, ...SECONDARY_PRESET_COLORS];
 
@@ -981,13 +977,21 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [isBoardPickerOpen]);
 
-  // The swimlanes and the column/header layout below are a fixed demo dataset (see
-  // DUMMY_BOARD_* in businessRulesData.js) shown for every board regardless of its
-  // real structure, per client-facing walkthrough requirements.
-  const swimlanes = DUMMY_BOARD_SWIMLANES;
-  const areaGroups = DUMMY_BOARD_AREA_GROUPS;
-  const headerCells = DUMMY_BOARD_HEADER_CELLS;
-  const leafColumns = DUMMY_BOARD_LEAF_COLUMNS;
+  const { boardStructure, isLoadingBoardStructure, getBoardStructure } = useWorkFlowReducer((s) => s);
+
+  useEffect(() => {
+    if (!show || !boardId) return;
+    getBoardStructure({ boardId });
+  }, [show, boardId]);
+
+  // One block per active workflow on the board — each with its own stage segments
+  // (colored, from `stages`), the flattened leaf columns under them, and its own
+  // swimlane rows. Workflows can have entirely different stages, so they're never
+  // merged into a single shared header.
+  const minimapWorkflows = useMemo(
+    () => (boardId ? buildBoardMinimapWorkflows(boardStructure) : []),
+    [boardId, boardStructure]
+  );
 
   const handlePickCell = (swimlane, leafColumn) => {
     onSave({
@@ -1112,87 +1116,77 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
 
           {!boardId ? (
             <div className="br-property-picker-empty">Select a board to view its structure</div>
-          ) : swimlanes.length === 0 ? (
-            <div className="br-property-picker-empty">No lanes found for this board</div>
+          ) : isLoadingBoardStructure ? (
+            <div className="br-property-picker-empty">Loading board structure…</div>
+          ) : minimapWorkflows.length === 0 ? (
+            <div className="br-property-picker-empty">No active workflow found for this board</div>
           ) : (
-            <div className="board-minimap-grid">
-              <div className="board-minimap-title-bar">{DUMMY_BOARD_TITLE}</div>
+            <div className="board-minimap-workflows">
+              {minimapWorkflows.map((workflow) => (
+                <div key={workflow.id} className="board-minimap-grid">
+                  <div className="board-minimap-title-bar">{workflow.name}</div>
 
-              <div className="board-minimap-area-row">
-                {areaGroups.map((group, idx) => (
-                  <div
-                    key={`${group.area}-${idx}`}
-                    className="board-minimap-area-cell"
-                    style={{ flexGrow: group.span, backgroundColor: group.color }}
-                  >
-                    {group.area}
+                  <div className="board-minimap-area-row">
+                    {workflow.stageSegments.map((segment) => (
+                      <div
+                        key={`${workflow.id}-${segment.id}`}
+                        className="board-minimap-area-cell"
+                        style={{ flexGrow: segment.columns.length, backgroundColor: segment.color }}
+                        title={segment.name}
+                      >
+                        {segment.name}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              <div className="board-minimap-header-grid">
-                {headerCells.map((cell) => {
-                  // Only cells that map 1:1 to a real leaf column (e.g. not the
-                  // PREPARE ORDER / ORDER COMPLETED group labels, which span
-                  // several leaf columns and have no single stageId of their own)
-                  // are selectable as "whole column".
-                  const leafColumn = leafColumns.find((lc) => lc.id === cell.gridArea);
-                  const isClickable = Boolean(leafColumn);
-                  return (
-                    <div
-                      key={cell.gridArea}
-                      className={`board-minimap-header-cell board-minimap-header-cell--${cell.gridArea}${isClickable ? ' board-minimap-header-cell--clickable' : ''}`}
-                      role={isClickable ? 'button' : undefined}
-                      tabIndex={isClickable ? 0 : undefined}
-                      onMouseEnter={isClickable ? () => setHoveredLeafColumnId(leafColumn.id) : undefined}
-                      onMouseLeave={isClickable ? () => setHoveredLeafColumnId(null) : undefined}
-                      onClick={isClickable ? () => handlePickColumn(leafColumn) : undefined}
-                    >
-                      {cell.name}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {swimlanes.map((swimlane) => {
-                const isBottomGroup = BOTTOM_GROUP_SWIMLANE_NAMES.includes(swimlane.name);
-                const rowStages = isBottomGroup ? DUMMY_BOARD_BOTTOM_STAGES : leafColumns;
-                const showStageLabels = swimlane.name === 'TEST';
-
-                return (
-                  <div key={swimlane.id} className="board-minimap-lane-row">
-                    <div
-                      className="board-minimap-lane-label"
-                      style={swimlane.colorCode
-                        ? { backgroundColor: swimlane.colorCode, color: pickForegroundOnSwimlaneBackground(swimlane.colorCode) }
-                        : undefined}
-                      role="button"
-                      tabIndex={0}
-                      onMouseEnter={() => setHoveredSwimlaneId(swimlane.id)}
-                      onMouseLeave={() => setHoveredSwimlaneId(null)}
-                      onClick={() => handlePickRow(swimlane)}
-                    >
-                      {swimlane.name}
-                    </div>
-                    <div className="board-minimap-lane-cells">
-                      {rowStages.map((stage) => (
-                        <button
-                          type="button"
-                          key={stage.id}
-                          className={`board-minimap-cell${stage.accent ? ` board-minimap-cell--${stage.accent}` : ''}${showStageLabels ? ' board-minimap-cell--labeled' : ''}${hoveredLeafColumnId === stage.id && !showStageLabels ? ' board-minimap-cell--col-active' : ''}${hoveredSwimlaneId === swimlane.id ? ' board-minimap-cell--row-active' : ''}`}
-                          style={showStageLabels ? { borderTopColor: stage.color } : undefined}
-                          onMouseEnter={showStageLabels ? () => setHoveredLeafColumnId(stage.id) : undefined}
-                          onMouseLeave={showStageLabels ? () => setHoveredLeafColumnId(null) : undefined}
-                          onClick={() => handlePickCell(swimlane, stage)}
-                          aria-label={`Move to ${swimlane.name}, ${stage.name}`}
-                        >
-                          {showStageLabels ? stage.name : null}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="board-minimap-header-grid">
+                    {workflow.leafColumns.map((column) => (
+                      <div
+                        key={`${workflow.id}-${column.id}`}
+                        className="board-minimap-header-cell"
+                        role="button"
+                        tabIndex={0}
+                        onMouseEnter={() => setHoveredLeafColumnId(column.id)}
+                        onMouseLeave={() => setHoveredLeafColumnId(null)}
+                        onClick={() => handlePickColumn(column)}
+                      >
+                        {column.name}
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
+
+                  {workflow.swimlanes.map((swimlane) => (
+                    <div key={`${workflow.id}-${swimlane.id}`} className="board-minimap-lane-row">
+                      <div
+                        className="board-minimap-lane-label"
+                        style={swimlane.colorCode
+                          ? { backgroundColor: swimlane.colorCode, color: pickForegroundOnSwimlaneBackground(swimlane.colorCode) }
+                          : undefined}
+                        role="button"
+                        tabIndex={0}
+                        onMouseEnter={() => setHoveredSwimlaneId(swimlane.id)}
+                        onMouseLeave={() => setHoveredSwimlaneId(null)}
+                        onClick={() => handlePickRow(swimlane)}
+                      >
+                        {swimlane.name}
+                      </div>
+                      <div className="board-minimap-lane-cells">
+                        {workflow.leafColumns.map((column) => (
+                          <button
+                            type="button"
+                            key={`${workflow.id}-${swimlane.id}-${column.id}`}
+                            className={`board-minimap-cell${hoveredLeafColumnId === column.id ? ' board-minimap-cell--col-active' : ''}${hoveredSwimlaneId === swimlane.id ? ' board-minimap-cell--row-active' : ''}`}
+                            onMouseEnter={() => setHoveredLeafColumnId(column.id)}
+                            onMouseLeave={() => setHoveredLeafColumnId(null)}
+                            onClick={() => handlePickCell(swimlane, column)}
+                            aria-label={`Move to ${workflow.name}, ${swimlane.name}, ${column.name}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           )}
         </div>
