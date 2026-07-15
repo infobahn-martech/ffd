@@ -1097,7 +1097,8 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                               className={`board-minimap-picker-tile${String(board.board_id) === String(boardId) ? ' board-minimap-picker-tile--selected' : ''}`}
                               onClick={() => handlePickBoard(board)}
                             >
-                              {board.board_name}
+                              <span className="board-minimap-picker-tile-name">{board.board_name}</span>
+                              <span className="board-minimap-picker-tile-count">{(board.total_cards ?? 0).toLocaleString()}</span>
                             </button>
                           ))}
                         </div>
