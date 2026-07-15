@@ -97,6 +97,18 @@ const useCoordinatorTransportReducer = create((set) => ({
       throw err;
     }
   },
+
+  updateTransportRequestDetail: async (formData) => {
+    set({ isSavingTransport: true });
+    try {
+      const response = await transportContentService.updateTransportRequestDetail(formData);
+      set({ isSavingTransport: false });
+      return response;
+    } catch (err) {
+      set({ isSavingTransport: false });
+      throw err;
+    }
+  },
 }));
 
 export default useCoordinatorTransportReducer;

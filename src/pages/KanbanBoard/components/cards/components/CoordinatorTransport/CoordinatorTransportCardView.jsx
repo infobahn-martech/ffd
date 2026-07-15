@@ -234,6 +234,7 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     fetchVehicleTypes,
     fetchInhouseDrivers,
     createTransportRequest,
+    updateTransportRequestDetail,
   } = useCoordinatorTransportReducer();
 
   const [transportForm, setTransportForm] = useState(EMPTY_TRANSPORT_FORM);
@@ -441,28 +442,8 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
       notify("Call type id is missing. Please reload call details.", "warning", "top-center");
       return;
     }
-    if (transportForm.selectedCrew.length === 0) {
-      notify("Please select at least one crew member.", "error", "top-center");
-      return;
-    }
     if (!transportForm.pickupDate || !transportForm.pickupTime) {
       notify("Pickup date and time are required.", "error", "top-center");
-      return;
-    }
-    if (!transportForm.fromType) {
-      notify("From type is required.", "error", "top-center");
-      return;
-    }
-    if (!transportForm.fromLocation) {
-      notify("From location is required.", "error", "top-center");
-      return;
-    }
-    if (!transportForm.toType) {
-      notify("To type is required.", "error", "top-center");
-      return;
-    }
-    if (!transportForm.toLocation) {
-      notify("To location is required.", "error", "top-center");
       return;
     }
     if (transportForm.providerType === "inhouse") {
@@ -483,6 +464,64 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
         notify("Transport company is required.", "error", "top-center");
         return;
       }
+    }
+
+    // Existing card already has a linked transport request: confirm/update
+    // its driver/company, pickup time, invoice branch, remarks & attachments.
+    if (transportRequestId) {
+      const updatePayload = {
+        transport_request_id: Number(transportRequestId),
+        request_type: transportForm.providerType === "thirdparty" ? "Third Party" : "Inhouse",
+        pickup_datetime: buildPickupDateTime(transportForm.pickupDate, transportForm.pickupTime),
+        remarks: transportForm.remarks || "",
+      };
+
+      if (transportForm.providerType === "inhouse") {
+        updatePayload.driver_id = Number(transportForm.inhouseDriverId || "");
+        updatePayload.invoice_branch = transportForm.invoiceBranch || "";
+      } else {
+        updatePayload.transport_company_id = Number(transportForm.transportCompanyId || "");
+      }
+
+      const updateFormData = new FormData();
+      updateFormData.append("data", JSON.stringify(updatePayload));
+
+      transportForm.documents.forEach((attachment) => {
+        const file = attachment?.file ?? attachment;
+        if (file instanceof File) {
+          updateFormData.append("attachments[]", file);
+        }
+      });
+
+      try {
+        const response = await updateTransportRequestDetail(updateFormData);
+        notify(response?.data?.message || "Transport request updated successfully", "success", "top-center");
+        await refreshTransportRequests();
+      } catch (error) {
+        notify(error?.response?.data?.message || "Failed to update transport request", "error", "top-center");
+      }
+      return;
+    }
+
+    if (transportForm.selectedCrew.length === 0) {
+      notify("Please select at least one crew member.", "error", "top-center");
+      return;
+    }
+    if (!transportForm.fromType) {
+      notify("From type is required.", "error", "top-center");
+      return;
+    }
+    if (!transportForm.fromLocation) {
+      notify("From location is required.", "error", "top-center");
+      return;
+    }
+    if (!transportForm.toType) {
+      notify("To type is required.", "error", "top-center");
+      return;
+    }
+    if (!transportForm.toLocation) {
+      notify("To location is required.", "error", "top-center");
+      return;
     }
 
     const payload = {
@@ -528,7 +567,16 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     } catch (error) {
       notify(error?.response?.data?.message || "Failed to create transport request", "error", "top-center");
     }
-  }, [callId, callDetails, transportForm, createTransportRequest, refreshTransportRequests, resetForm]);
+  }, [
+    callId,
+    callDetails,
+    transportForm,
+    transportRequestId,
+    createTransportRequest,
+    updateTransportRequestDetail,
+    refreshTransportRequests,
+    resetForm,
+  ]);
 
   const companyOptions = useMemo(
     () =>

@@ -3,6 +3,9 @@ import Gateway from "../gateway/gateway";
 const createTransportRequest = (formData) =>
   Gateway.post("/transport/create_transport_request", formData);
 
+const updateTransportRequestDetail = (formData) =>
+  Gateway.post("/transport/update_transport_request_detail", formData);
+
 const getTransportRequest = (callId) =>
   Gateway.get(`/transport/get_transport_request/${encodeURIComponent(String(callId))}`);
 
@@ -73,5 +76,6 @@ export const flattenTransportRequestRows = (workOrders) => {
 
 export default {
   createTransportRequest,
+  updateTransportRequestDetail,
   getTransportRequest,
 };
