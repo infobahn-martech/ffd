@@ -369,6 +369,40 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isTestingWebServiceSettings: false,
+
+    // Unlike the other actions here, the result (status code / duration / response
+    // body) is rendered inline in the modal rather than as a toast, so this reports
+    // outcome via cb/onError instead of useAlertReducer — except on a hard failure
+    // to reach our own backend, where there's nothing to render inline and a toast
+    // is the only way to surface it.
+    //
+    // The backend mirrors the invoked service's outcome onto the outer HTTP status
+    // (e.g. a target that returns 422 makes this call itself reject with 422), so a
+    // rejected promise still carries a full { status, message, data } result body —
+    // that's a completed test, not a failure to reach our own endpoint, and goes to
+    // cb like the success path. Only a response with no such body is a real failure.
+    testWebServiceSettings: async (payload, { cb, onError, onSettled } = {}) => {
+        try {
+            set({ isTestingWebServiceSettings: true });
+            const { data } = await businessRuleService.testWebServiceSettings(payload);
+            set({ isTestingWebServiceSettings: false });
+            cb && cb(data);
+        } catch (err) {
+            set({ isTestingWebServiceSettings: false });
+            const errData = err?.response?.data;
+            if (errData?.data) {
+                cb && cb(errData);
+            } else {
+                const { error } = useAlertReducer.getState();
+                error(errData?.message ?? err.message);
+                onError && onError(err);
+            }
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isSavingCreateSubtaskSettings: false,
 
     saveCreateSubtaskSettings: async (payload, { cb, onSettled } = {}) => {

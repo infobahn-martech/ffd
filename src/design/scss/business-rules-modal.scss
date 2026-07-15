@@ -2426,6 +2426,69 @@
   }
 }
 
+.br-invoke-test-result {
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #d7dce5;
+  background: #f7f9fc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &--ok {
+    border-color: #b7e2c7;
+    background: #f0faf3;
+  }
+
+  &--error {
+    border-color: #f3c2c2;
+    background: #fdf3f3;
+  }
+}
+
+.br-invoke-test-result-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.br-invoke-test-result-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: normal normal 600 13px/1.4 $font-primary;
+  color: #1f7a43;
+
+  .br-invoke-test-result--error & {
+    color: #c23434;
+  }
+}
+
+.br-invoke-test-result-duration {
+  font: normal normal 500 12px/1.4 $font-primary;
+  color: #6b7280;
+}
+
+.br-invoke-test-result-message {
+  margin: 0;
+  font: normal normal 400 13px/1.5 $font-primary;
+  color: #333f4e;
+}
+
+.br-invoke-test-result-body {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e3e7ee;
+  font: normal normal 400 12px/1.5 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #333f4e;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 // Condition row with input + remove
 .business-rule-form-condition-row {
   display: flex;
@@ -3459,10 +3522,15 @@
   color: #00368c;
   background: #ffffff;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, opacity 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #eef1f6;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
