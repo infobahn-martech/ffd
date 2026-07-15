@@ -3,11 +3,9 @@ import PropTypes from "prop-types";
 import { format, isValid, parseISO } from "date-fns";
 import { FiEye } from "react-icons/fi";
 import { notify } from "../../../../../../components/Toaster";
-import callFileService from "../../../../../../services/callFileService";
-import transportContentService from "../../../../../../services/transportContentService";
-import transportCompanyService from "../../../../../../services/transportCompanyService";
-import vehicleService from "../../../../../../services/vehicleService";
+import useCoordinatorTransportReducer from "../../../../../../store/CoordinatorTransportReducer";
 import { buildPickupDateTime } from "../../../../../../store/TransportContent";
+import { splitApiDateTimeParts } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import {
   FormGroup,
   FormField,
@@ -72,6 +70,9 @@ const STATUS_TONE_MAP = {
 const resolveCallId = (cardData) =>
   cardData?.call_id ?? cardData?.callId ?? cardData?.card_call_id ?? cardData?.id ?? null;
 
+const resolveTransportRequestId = (cardData) =>
+  cardData?.transport_request_id ?? cardData?.transportRequestId ?? null;
+
 const firstNonEmpty = (...values) => {
   for (const value of values) {
     if (value === null || value === undefined) continue;
@@ -87,13 +88,6 @@ const fileToAttachment = (file) => ({
   size: file.size,
   type: file.type,
 });
-
-const extractListEnvelope = (response) => {
-  const payload = response?.data?.data ?? response?.data ?? response;
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-};
 
 const flattenTransportRequestRows = (requests) => {
   if (!Array.isArray(requests)) return [];
@@ -217,21 +211,31 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   const documentsInputRef = useRef(null);
 
   const callId = useMemo(() => resolveCallId(cardData), [cardData]);
+  const transportRequestId = useMemo(() => resolveTransportRequestId(cardData), [cardData]);
 
-  const [callDetails, setCallDetails] = useState(null);
+  const {
+    callDetails,
+    transportRequests,
+    loadingTransportRequests,
+    transportCompanies,
+    loadingCompanies,
+    vehicleTypes,
+    loadingVehicleTypes,
+    inhouseDrivers,
+    loadingInhouseDrivers,
+    isSavingTransport,
+    fetchCallDetails,
+    fetchTransportRequests,
+    fetchTransportCompanies,
+    fetchVehicleTypes,
+    fetchInhouseDrivers,
+    fetchTransportRequestBasicDetail,
+    createTransportRequest,
+  } = useCoordinatorTransportReducer();
+
   const [transportForm, setTransportForm] = useState(EMPTY_TRANSPORT_FORM);
-  const [transportRequests, setTransportRequests] = useState([]);
-  const [loadingTransportRequests, setLoadingTransportRequests] = useState(false);
-  const [isSavingTransport, setIsSavingTransport] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
-
-  const [transportCompanies, setTransportCompanies] = useState([]);
-  const [loadingCompanies, setLoadingCompanies] = useState(false);
-  const [vehicleTypes, setVehicleTypes] = useState([]);
-  const [loadingVehicleTypes, setLoadingVehicleTypes] = useState(false);
-  const [inhouseDrivers, setInhouseDrivers] = useState([]);
-  const [loadingInhouseDrivers, setLoadingInhouseDrivers] = useState(false);
 
   const updateTransportField = useCallback((field, value) => {
     setTransportForm((previous) => ({
@@ -241,106 +245,65 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   }, []);
 
   useEffect(() => {
-    if (!callId) {
-      setCallDetails(null);
-      return;
-    }
+    fetchCallDetails(callId);
+  }, [callId, fetchCallDetails]);
+
+  const refreshTransportRequests = useCallback(
+    () => fetchTransportRequests(callId),
+    [callId, fetchTransportRequests]
+  );
+
+  useEffect(() => {
+    void refreshTransportRequests();
+  }, [refreshTransportRequests]);
+
+  useEffect(() => {
+    if (!transportRequestId) return;
     let cancelled = false;
-    callFileService
-      .getCallDetail(callId)
-      .then(({ data }) => {
-        if (!cancelled) setCallDetails(data?.data || null);
-      })
-      .catch(() => {
-        if (!cancelled) setCallDetails(null);
-      });
+    fetchTransportRequestBasicDetail(transportRequestId).then((detail) => {
+      if (cancelled || !detail) return;
+
+      const { date: pickupDate, time: pickupTime } = splitApiDateTimeParts(detail.pickup_datetime);
+      const crewIds = Array.isArray(detail.crew)
+        ? detail.crew.map((c) => String(c?.crew_change_id ?? c?.id ?? "")).filter(Boolean)
+        : [];
+      const attachmentRows = Array.isArray(detail.attachments) ? detail.attachments : [];
+
+      setTransportForm((previous) => ({
+        ...previous,
+        pickupDate: pickupDate || previous.pickupDate,
+        pickupTime: pickupTime || previous.pickupTime,
+        fromType: detail.from_location || previous.fromType,
+        fromLocation: detail.from_location_det || previous.fromLocation,
+        toType: detail.to_location || previous.toType,
+        toLocation: detail.to_location_det || previous.toLocation,
+        remarks: detail.remarks || previous.remarks,
+        selectedCrew: crewIds.length > 0 ? crewIds : previous.selectedCrew,
+        requestEmail: detail.request_email_url
+          ? [{ name: detail.request_email || "Request email", url: detail.request_email_url }]
+          : previous.requestEmail,
+        documents: attachmentRows.map((a) => ({
+          name: a?.file_name ?? a?.name ?? "Attachment",
+          url: a?.file_url ?? a?.url ?? "",
+        })),
+      }));
+    });
     return () => {
       cancelled = true;
     };
-  }, [callId]);
-
-  const fetchTransportRequests = useCallback(async () => {
-    if (!callId) {
-      setTransportRequests([]);
-      setLoadingTransportRequests(false);
-      return;
-    }
-    setLoadingTransportRequests(true);
-    try {
-      const response = await transportContentService.getTransportRequest(callId);
-      setTransportRequests(flattenTransportRequestRows(extractListEnvelope(response)));
-    } catch {
-      setTransportRequests([]);
-    } finally {
-      setLoadingTransportRequests(false);
-    }
-  }, [callId]);
+  }, [transportRequestId, fetchTransportRequestBasicDetail]);
 
   useEffect(() => {
-    void fetchTransportRequests();
-  }, [fetchTransportRequests]);
+    fetchTransportCompanies();
+  }, [fetchTransportCompanies]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoadingCompanies(true);
-    transportCompanyService
-      .getTransportCompanyData()
-      .then((response) => {
-        if (!cancelled) setTransportCompanies(extractListEnvelope(response));
-      })
-      .catch(() => {
-        if (!cancelled) setTransportCompanies([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCompanies(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    fetchVehicleTypes();
+  }, [fetchVehicleTypes]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoadingVehicleTypes(true);
-    vehicleService
-      .getAllTransportVehicles()
-      .then((response) => {
-        if (!cancelled) setVehicleTypes(extractListEnvelope(response));
-      })
-      .catch(() => {
-        if (!cancelled) setVehicleTypes([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingVehicleTypes(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const vehicleTypeId = transportForm.vehicleTypeId;
-    if (!vehicleTypeId) {
-      setInhouseDrivers([]);
-      return;
-    }
-    let cancelled = false;
-    setLoadingInhouseDrivers(true);
-    vehicleService
-      .getDriversByVehicleType(vehicleTypeId)
-      .then((response) => {
-        if (!cancelled) setInhouseDrivers(extractListEnvelope(response));
-      })
-      .catch(() => {
-        if (!cancelled) setInhouseDrivers([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingInhouseDrivers(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [transportForm.vehicleTypeId]);
+    fetchInhouseDrivers(transportForm.vehicleTypeId);
+  }, [transportForm.vehicleTypeId, fetchInhouseDrivers]);
 
   const callTypeSummary = firstNonEmpty(callDetails?.call_type, callDetails?.call_type_name, cardData?.typeOfCall);
   const billingEntitySummary = firstNonEmpty(callDetails?.billing_entity);
@@ -545,18 +508,15 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
       }
     });
 
-    setIsSavingTransport(true);
     try {
-      const response = await transportContentService.createTransportRequest(formData);
+      const response = await createTransportRequest(formData);
       notify(response?.data?.message || "Transport request created successfully", "success", "top-center");
       resetForm();
-      await fetchTransportRequests();
+      await refreshTransportRequests();
     } catch (error) {
       notify(error?.response?.data?.message || "Failed to create transport request", "error", "top-center");
-    } finally {
-      setIsSavingTransport(false);
     }
-  }, [callId, callDetails, transportForm, fetchTransportRequests, resetForm]);
+  }, [callId, callDetails, transportForm, createTransportRequest, refreshTransportRequests, resetForm]);
 
   const companyOptions = useMemo(
     () =>
@@ -583,6 +543,11 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
         label: d?.driver_name ?? "",
       })),
     [inhouseDrivers]
+  );
+
+  const transportRequestRows = useMemo(
+    () => flattenTransportRequestRows(transportRequests),
+    [transportRequests]
   );
 
   return (
@@ -811,7 +776,7 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
               title="Transport requests"
               subtitle="All bookings for this job"
               icon="list"
-              requests={transportRequests}
+              requests={transportRequestRows}
               loading={loadingTransportRequests}
               columns={COORDINATOR_TRANSPORT_REQUEST_COLUMNS}
               emptyMessage="No transport requests found"
