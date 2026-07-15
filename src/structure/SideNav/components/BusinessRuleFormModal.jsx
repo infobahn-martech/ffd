@@ -10,7 +10,7 @@ import 'quill-table-better/dist/quill-table-better.css';
 import {
   THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
-  INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS, DUMMY_INVOKE_PAYLOAD_FIELDS, DUMMY_URL_FIELD_OPTIONS,
+  INVOKE_API_KEY_LOCATIONS, INVOKE_API_KEY_LOCATION_LABELS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS, DUMMY_BOARD_TITLE,
   DUMMY_BOARD_AREA_GROUPS, DUMMY_BOARD_HEADER_CELLS, DUMMY_BOARD_LEAF_COLUMNS, DUMMY_BOARD_SWIMLANES, DUMMY_BOARD_BOTTOM_STAGES,
   DUMMY_WORKSPACE_BOARDS,
@@ -2971,7 +2971,7 @@ const mapFetchedHeaders = (headers) => sortByDisplayOrder(headers ?? [])
 const mapFetchedParams = (params) => sortByDisplayOrder(params ?? [])
   .map((p) => ({ id: p.param_id, key: p.param_key ?? '', value: p.param_value ?? '', fields: [] }));
 
-function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings }) {
+function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, triggerTypeId }) {
   const [serviceName, setServiceName] = useState('');
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
@@ -3521,11 +3521,11 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       </div>
     </Modal>
 
-    <SelectFieldModal
+    <CardFieldPickerModal
       show={fieldPickerTarget != null}
       onClose={() => setFieldPickerTarget(null)}
-      onSelect={handleApplyFieldPicker}
-      fields={fieldPickerTarget === 'url' ? DUMMY_URL_FIELD_OPTIONS : DUMMY_INVOKE_PAYLOAD_FIELDS}
+      onApply={handleApplyFieldPicker}
+      triggerTypeId={triggerTypeId}
     />
 
     <Modal
@@ -3593,6 +3593,7 @@ WebInvokeSettingsModal.propTypes = {
   isLoadingSettings: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 function ShareWithModal({ show, onClose, permissions, onSave }) {
@@ -6113,6 +6114,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       initialSettings={activeInvokeAction}
       fetchedSettings={webServiceSettings}
       isLoadingSettings={isLoadingWebServiceSettings}
+      triggerTypeId={rule.id}
     />
 
     <ShareWithModal
