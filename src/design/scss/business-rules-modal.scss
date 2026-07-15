@@ -2779,13 +2779,20 @@
   flex-shrink: 0;
 }
 
+// Scroll owner: stacks one .board-minimap-grid block per active workflow on the board.
+.board-minimap-workflows {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
 .board-minimap-grid {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: auto;
-  flex: 1;
-  min-height: 0;
 }
 
 .board-minimap-title-bar {
@@ -2817,19 +2824,15 @@
   text-overflow: ellipsis;
 }
 
-// 9 equal leaf columns; PREPARE ORDER/ORDER COMPLETED occupy row 1 and span their
-// child leaf columns in row 2 below them (see DUMMY_BOARD_HEADER_CELLS).
+// One box per leaf column (nested sub-columns are flattened into this single row),
+// aligned under the stage segments above and the swimlane cells below.
 .board-minimap-header-grid {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  grid-template-rows: repeat(2, auto);
-  grid-template-areas:
-    "weather create prepare prepare completed port delivery undelivered archive"
-    "weather create requested progress departed port delivery undelivered archive";
+  display: flex;
   gap: 2px;
 }
 
 .board-minimap-header-cell {
+  flex: 1 1 0;
   min-width: 70px;
   min-height: 56px;
   display: flex;
@@ -2841,22 +2844,7 @@
   font: normal normal 600 12px/1.3 $font-primary;
   color: $txtColor;
   text-align: center;
-
-  &--weather { grid-area: weather; }
-  &--create { grid-area: create; }
-  &--prepare { grid-area: prepare; }
-  &--completed { grid-area: completed; }
-  &--requested { grid-area: requested; }
-  &--progress { grid-area: progress; }
-  &--departed { grid-area: departed; }
-  &--port { grid-area: port; }
-  &--delivery { grid-area: delivery; }
-  &--undelivered { grid-area: undelivered; }
-  &--archive { grid-area: archive; }
-
-  &--clickable {
-    cursor: pointer;
-  }
+  cursor: pointer;
 }
 
 .board-minimap-lane-row {
@@ -2902,50 +2890,10 @@
     border-color: #1d4ed8;
   }
 
-  &--green {
-    background: #2fab7d;
-    border-color: #2fab7d;
-
-    &:hover {
-      background: #278f68;
-      border-color: #278f68;
-    }
-  }
-
-  &--red {
-    background: #cc2936;
-    border-color: #cc2936;
-
-    &:hover {
-      background: #b3232f;
-      border-color: #b3232f;
-    }
-  }
-
   &--col-active,
   &--row-active {
     background: #1d4ed8;
     border-color: #1d4ed8;
-  }
-
-  &--labeled {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    background: #ffffff;
-    border-color: #e5e7eb;
-    border-top-width: 3px;
-    border-top-style: solid;
-    font: normal normal 600 11px/1.3 $font-primary;
-    color: $txtColor;
-    text-align: center;
-    white-space: normal;
-
-    &:hover {
-      background: #f3f4f6;
-      border-color: #e5e7eb;
-    }
   }
 }
 
