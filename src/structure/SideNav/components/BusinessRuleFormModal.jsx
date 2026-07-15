@@ -3595,6 +3595,145 @@ WebInvokeSettingsModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
+function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, users }) {
+  const [ownerUserId, setOwnerUserId] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState('');
+  const [deadlineTime, setDeadlineTime] = useState('00:00');
+  const [description, setDescription] = useState('');
+
+  const { saveCreateSubtaskSettings, isSavingCreateSubtaskSettings } = useBusinessRuleReducer((s) => s);
+
+  useEffect(() => {
+    if (!show) return;
+    setOwnerUserId(initialSettings?.ownerUserId ?? '');
+    const [datePart, timePart] = String(initialSettings?.deadline ?? '').split(' ');
+    setDeadlineDate(datePart ?? '');
+    setDeadlineTime((timePart ?? '00:00').slice(0, 5));
+    setDescription(initialSettings?.description ?? '');
+  }, [show, initialSettings]);
+
+  const handleSave = () => {
+    const deadline = deadlineDate ? `${deadlineDate} ${deadlineTime || '00:00'}:00` : '';
+    const payload = {
+      owner_user_id: ownerUserId,
+      deadline,
+      description,
+    };
+    saveCreateSubtaskSettings(payload, {
+      cb: (data) => {
+        onSave({
+          ownerUserId,
+          deadline,
+          description,
+          createSubtaskId: data?.create_subtask_id ?? initialSettings?.createSubtaskId ?? null,
+        });
+        onClose();
+      },
+    });
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal notification-settings-modal"
+      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-invoke-modal-shell">
+        <button
+          type="button"
+          className="br-floating-modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+
+        <header className="card-property-match-modal-header br-floating-close-header">
+          <h2 className="card-property-match-modal-title">Create Sub Task Settings</h2>
+        </header>
+
+        <div className="card-property-match-modal-body notification-settings-body">
+          <div className="notification-field">
+            <label className="business-rule-form-label br-invoke-field-label">Owner</label>
+            <div className="business-rule-form-select-wrap">
+              <select
+                className="business-rule-form-select"
+                value={ownerUserId}
+                onChange={(e) => setOwnerUserId(e.target.value)}
+              >
+                <option value="">Select owner</option>
+                {(users ?? []).map((u) => (
+                  <option key={u.user_id} value={u.user_id}>{u.name}</option>
+                ))}
+              </select>
+              <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+            </div>
+          </div>
+
+          <div className="br-invoke-two-col">
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Deadline date</label>
+              <input
+                type="date"
+                className="business-rule-form-input"
+                value={deadlineDate}
+                onChange={(e) => setDeadlineDate(e.target.value)}
+              />
+            </div>
+            <div className="notification-field">
+              <label className="business-rule-form-label br-invoke-field-label">Deadline time</label>
+              <input
+                type="time"
+                className="business-rule-form-input"
+                value={deadlineTime}
+                onChange={(e) => setDeadlineTime(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="notification-field">
+            <label className="business-rule-form-label br-invoke-field-label">Description</label>
+            <textarea
+              className="business-rule-form-textarea"
+              placeholder="Enter description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer br-invoke-modal-footer">
+          <button
+            type="button"
+            className="br-property-add-btn"
+            onClick={handleSave}
+            disabled={isSavingCreateSubtaskSettings}
+          >
+            {isSavingCreateSubtaskSettings ? 'Saving...' : 'Save Sub Task'}
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+CreateSubtaskSettingsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  initialSettings: PropTypes.shape({
+    ownerUserId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    deadline: PropTypes.string,
+    description: PropTypes.string,
+    createSubtaskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }),
+  users: PropTypes.array,
+};
+
 function ShareWithModal({ show, onClose, permissions, onSave }) {
   const [filterText, setFilterText] = useState('');
   const [draftPermissions, setDraftPermissions] = useState(permissions);
@@ -3833,6 +3972,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const [invokeActions, setInvokeActions] = useState([]);
   const [showWebInvokeSettings, setShowWebInvokeSettings] = useState(false);
   const [activeInvokeActionId, setActiveInvokeActionId] = useState(null);
+  // "Create subtask" is one of the options inside the generic "Create Card or Subtask"
+  // picker (CREATE_ACTION_OPTIONS' 'subtask' key) — its Owner/Deadline/Description
+  // settings live on that same createActions entry, not a separate action list.
+  const [showCreateSubtaskSettings, setShowCreateSubtaskSettings] = useState(false);
+  const [activeCreateSubtaskActionId, setActiveCreateSubtaskActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
   // "Position" (board + swimlane/stage) is a second default condition some triggers carry
@@ -3997,6 +4141,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowWebInvokeSettings(false);
     resetWebServiceSettings();
     setActiveInvokeActionId(null);
+    setShowCreateSubtaskSettings(false);
+    setActiveCreateSubtaskActionId(null);
     setShowCancelConfirm(false);
     setRecurrenceUnit('days');
     setShowRecurrenceUnitPicker(false);
@@ -4753,6 +4899,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const activeInvokeAction = invokeActions.find((a) => a.id === activeInvokeActionId);
 
+  // The "Create subtask" create-action (createActions entry with key 'subtask')
+  // has no destination to configure like the other create actions — instead its
+  // "Not Set" link opens this Owner/Deadline/Description settings modal.
+  const handleOpenCreateSubtaskSettings = (id) => {
+    setActiveCreateSubtaskActionId(id);
+    setShowCreateSubtaskSettings(true);
+  };
+
+  const handleSaveCreateSubtaskSettings = (settings) => {
+    setCreateActions((prev) => prev.map((a) => (a.id === activeCreateSubtaskActionId ? { ...a, ...settings, configured: true } : a)));
+  };
+
+  const activeCreateSubtaskAction = createActions.find((a) => a.id === activeCreateSubtaskActionId);
+
   const handlePickConditionBoard = (rowId, board) => {
     setBoardConditionRows((prev) =>
       prev.map((row) => (row.id === rowId ? { ...row, boardId: board?.board_id ?? '' } : row))
@@ -5380,7 +5540,11 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                     {section.id === 'create' && createActions.length > 0 && (
                       <div className="br-create-action-list">
                         {createActions.map((action) => {
-                          const hasCustomProperties = action.key !== 'subtask';
+                          // Matched by label rather than key: the DEV fallback's key is the
+                          // literal string 'subtask', but a live get_then_action_fields
+                          // response keys this same "Create subtask" regular field by its
+                          // own field_key (e.g. a backend id), which isn't 'subtask'.
+                          const hasCustomProperties = action.label?.trim().toLowerCase() !== 'create subtask';
                           const isTemplatePickerOpen = openCreateTemplateRowId === action.id;
                           const titleText = action.templateName
                             ? `${action.label} - ${action.templateName}`
@@ -5464,7 +5628,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                                     : 'Configure details'}
                                 </button>
                               ) : (
-                                <span className="br-create-action-link">Not Set</span>
+                                <button
+                                  type="button"
+                                  className="br-create-action-link br-create-action-link--btn"
+                                  onClick={() => handleOpenCreateSubtaskSettings(action.id)}
+                                >
+                                  {action.configured ? (action.description?.trim() || 'Configured') : 'Not Set'}
+                                </button>
                               )}
                             </div>
                           );
@@ -6113,6 +6283,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       initialSettings={activeInvokeAction}
       fetchedSettings={webServiceSettings}
       isLoadingSettings={isLoadingWebServiceSettings}
+    />
+
+    <CreateSubtaskSettingsModal
+      show={showCreateSubtaskSettings}
+      onClose={() => setShowCreateSubtaskSettings(false)}
+      onSave={handleSaveCreateSubtaskSettings}
+      initialSettings={activeCreateSubtaskAction}
+      users={users}
     />
 
     <ShareWithModal
