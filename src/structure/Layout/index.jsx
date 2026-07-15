@@ -4,7 +4,7 @@ import '../../design/scss/dashboard.scss';
 import { Outlet } from 'react-router';
 import SideNav from '../SideNav/index';
 import Header from '../Header';
-import { LayoutViewProvider } from '../../shared/context/LayoutViewContext';
+import { LayoutViewProvider, useLayoutView } from '../../shared/context/LayoutViewContext';
 import useAuthReducer from '../../store/AuthReducer';
 
 function Layout() {
@@ -54,34 +54,59 @@ function Layout() {
 
   return (
     <LayoutViewProvider>
+      <LayoutContent
+        isKanbanBoard={isKanbanBoard}
+        kanbanFullWidth={kanbanFullWidth}
+        hideSidebar={hideSidebar}
+        mobileMenuOpen={mobileMenuOpen}
+        activePortal={activePortal}
+        handleMenuToggle={handleMenuToggle}
+        handleCloseMobileMenu={handleCloseMobileMenu}
+      />
+    </LayoutViewProvider>
+  );
+}
+
+function LayoutContent({
+  isKanbanBoard,
+  kanbanFullWidth,
+  hideSidebar,
+  mobileMenuOpen,
+  activePortal,
+  handleMenuToggle,
+  handleCloseMobileMenu,
+}) {
+  const { pageBackground } = useLayoutView();
+
+  return (
+    <div
+      className={`main-layout ${isKanbanBoard ? 'kanban-board-layout' : ''} ${kanbanFullWidth ? 'kanban-full-width' : ''}`}
+    >
+      <Header
+        onMenuToggle={handleMenuToggle}
+        mobileMenuOpen={mobileMenuOpen}
+        activePortal={activePortal}
+      />
+
       <div
-        className={`main-layout ${isKanbanBoard ? 'kanban-board-layout' : ''} ${kanbanFullWidth ? 'kanban-full-width' : ''}`}
+        className={`dashboard-wrp ${hideSidebar ? 'no-sidebar' : ''} ${kanbanFullWidth ? 'kanban-full-width' : ''}`}
       >
-        <Header
-          onMenuToggle={handleMenuToggle}
-          mobileMenuOpen={mobileMenuOpen}
-          activePortal={activePortal}
-        />
+        {!hideSidebar && (
+          <SideNav
+            isMobileMenuOpen={mobileMenuOpen}
+            onCloseMobileMenu={handleCloseMobileMenu}
+            activePortal={activePortal}
+          />
+        )}
 
         <div
-          className={`dashboard-wrp ${hideSidebar ? 'no-sidebar' : ''} ${kanbanFullWidth ? 'kanban-full-width' : ''}`}
+          className={`page-cont-wrp ${hideSidebar ? 'full-width' : ''} ${kanbanFullWidth ? 'kanban-full-width' : ''}`}
+          style={pageBackground ?? undefined}
         >
-          {!hideSidebar && (
-            <SideNav
-              isMobileMenuOpen={mobileMenuOpen}
-              onCloseMobileMenu={handleCloseMobileMenu}
-              activePortal={activePortal}
-            />
-          )}
-
-          <div
-            className={`page-cont-wrp ${hideSidebar ? 'full-width' : ''} ${kanbanFullWidth ? 'kanban-full-width' : ''}`}
-          >
-            <Outlet />
-          </div>
+          <Outlet />
         </div>
       </div>
-    </LayoutViewProvider>
+    </div>
   );
 }
 

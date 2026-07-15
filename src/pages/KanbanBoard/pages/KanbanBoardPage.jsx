@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useLayoutView } from "../../../shared/context/LayoutViewContext";
+import { getBoardPageBackgroundStyle } from "../../../shared/utils/dashboardBackground";
 import Workspaces from "../../Workspaces";
 import useSyncKanbanSidebarWorkflows from "../../../shared/hooks/useSyncKanbanSidebarWorkflows";
 import useKanbanAddCardFromSidebar from "../../../shared/hooks/useKanbanAddCardFromSidebar";
@@ -32,7 +33,7 @@ export default function KanbanBoardPage() {
   const isOperatorBoard = String(selectedBoardId ?? "").toLowerCase() === "operator";
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
-  const { layoutView } = useLayoutView();
+  const { layoutView, setPageBackground } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
   const isDarkMode = layoutView === "dark";
@@ -48,6 +49,7 @@ export default function KanbanBoardPage() {
     patchCardTag,
     boardLoading,
     boardLoadError,
+    boardBackground,
     selectedCard,
     setSelectedCard,
     isAddMode,
@@ -80,6 +82,11 @@ export default function KanbanBoardPage() {
   );
 
   useKanbanRoleAccess();
+
+  useEffect(() => {
+    setPageBackground(getBoardPageBackgroundStyle(boardBackground));
+    return () => setPageBackground(null);
+  }, [boardBackground, setPageBackground]);
 
   const [contextMenu, setContextMenu] = useState(null);
   const [contextMenuColumn, setContextMenuColumn] = useState(null);

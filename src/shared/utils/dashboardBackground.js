@@ -78,3 +78,31 @@ export function getDashboardCanvasStyle(background) {
     backgroundRepeat: 'no-repeat',
   };
 }
+
+/**
+ * Inline styles for the Kanban board page container (`.page-cont-wrp`) from
+ * `kanban_board/get_full_board` response `background: { color, background_url }`.
+ * `color` wins when present; falls back to `background_url` as a cover image.
+ * @param {{ color?: string; background_url?: string } | null | undefined} background
+ * @returns {Record<string, string> | null} null means keep the SCSS default.
+ */
+export function getBoardPageBackgroundStyle(background) {
+  if (!background || typeof background !== 'object') return null;
+
+  const color = String(background.color ?? '').trim();
+  if (color) {
+    return { backgroundColor: color, backgroundImage: 'none' };
+  }
+
+  const url = String(background.background_url ?? '').trim();
+  if (url) {
+    return {
+      backgroundImage: `url(${url})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    };
+  }
+
+  return null;
+}

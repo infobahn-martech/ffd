@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { initialData, TASK_WORKFLOW_TEMPLATE } from "../../../shared/helpers/data";
 import { ensureStaticWorkflows, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
 import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
-import { mapFullBoardApiResponse } from "../../../shared/helpers/kanbanBoardApiMapper";
+import {
+  mapFullBoardApiResponse,
+  extractFullBoardBackground,
+} from "../../../shared/helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
 
@@ -17,6 +20,7 @@ export default function useKanbanBoardState(selectedBoardId) {
   );
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
+  const [boardBackground, setBoardBackground] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
@@ -37,6 +41,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       const payload = res?.data;
       const mapped = mapFullBoardApiResponse(payload);
       setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
+      setBoardBackground(extractFullBoardBackground(payload));
       setSelectedCard((prev) => {
         if (!prev?.id) return prev;
         const wf = findWorkflowByCardId(mapped, prev.id);
@@ -56,6 +61,7 @@ export default function useKanbanBoardState(selectedBoardId) {
   useEffect(() => {
     if (!selectedBoardId) {
       setWorkflows(initialData);
+      setBoardBackground(null);
       setBoardLoadError(null);
       setBoardLoading(false);
       return undefined;
@@ -63,6 +69,7 @@ export default function useKanbanBoardState(selectedBoardId) {
 
     if (isOperatorBoardId(selectedBoardId)) {
       setWorkflows(operatorKanbanStaticWorkflows);
+      setBoardBackground(null);
       setBoardLoadError(null);
       setBoardLoading(false);
       return undefined;
@@ -79,6 +86,7 @@ export default function useKanbanBoardState(selectedBoardId) {
         const mapped = mapFullBoardApiResponse(payload);
         if (cancelled) return;
         setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
+        setBoardBackground(extractFullBoardBackground(payload));
         setBoardLoadError(null);
       } catch (e) {
         if (!cancelled) {
@@ -337,6 +345,7 @@ export default function useKanbanBoardState(selectedBoardId) {
     patchCardTag,
     boardLoading,
     boardLoadError,
+    boardBackground,
     selectedCard,
     setSelectedCard,
     isAddMode,

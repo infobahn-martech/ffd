@@ -28,3 +28,14 @@ export function mapFullBoardApiResponse(responseData) {
       : [];
   return list.map(mapFullBoardApiToWorkflow).filter(Boolean);
 }
+
+/**
+ * Extracts the board-level `background: { color, background_url }` from a
+ * `get_full_board` response, if present.
+ * @param {unknown} responseData - axios `response.data`
+ * @returns {{ color?: string; background_url?: string } | null}
+ */
+export function extractFullBoardBackground(responseData) {
+  const background = responseData?.background;
+  return background && typeof background === "object" ? background : null;
+}
