@@ -4069,6 +4069,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
     timeUnits, getTimeUnits,
     deleteWebServiceSettings,
+    deleteCreateSubtaskSettings,
     getCreateSubtaskSettings, createSubtaskSettings, isLoadingCreateSubtaskSettings, resetCreateSubtaskSettings,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -4566,7 +4567,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   };
 
   const handleRemoveCreateAction = (id) => {
-    setCreateActions((prev) => prev.filter((a) => a.id !== id));
+    // Only a "Create subtask" action that was actually saved on the backend
+    // (has a createSubtaskId) needs the delete call — one still unconfigured/
+    // unsaved, or a different create-action type, has nothing to remove server-side.
+    const action = createActions.find((a) => a.id === id);
+    if (action?.createSubtaskId) {
+      deleteCreateSubtaskSettings(action.createSubtaskId, {
+        cb: () => setCreateActions((prev) => prev.filter((a) => a.id !== id)),
+      });
+    } else {
+      setCreateActions((prev) => prev.filter((a) => a.id !== id));
+    }
   };
 
   const handleClearCreateActions = () => {
