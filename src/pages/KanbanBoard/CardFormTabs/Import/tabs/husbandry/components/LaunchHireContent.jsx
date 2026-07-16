@@ -212,38 +212,6 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor, card, onLaunch
                     )}
                   </FormField>
 
-                  <FormField
-                    label="Vessel Name *"
-                    className={errorClass("launchHireVesselName")}
-                  >
-                    <FormInput
-                      type="text"
-                      value={resolvedVesselName}
-                      placeholder="Auto-populated from Master Card"
-                      readOnly
-                      onChange={() => {}}
-                    />
-                    {errors.launchHireVesselName && (
-                      <span className="cf-field-error">{errors.launchHireVesselName}</span>
-                    )}
-                  </FormField>
-
-                  <FormField
-                    label="Billing Entity *"
-                    className={errorClass("launchHireBillingEntity")}
-                  >
-                    <FormInput
-                      type="text"
-                      value={resolvedBillingEntity}
-                      placeholder="Auto-populated from Master Card"
-                      readOnly
-                      onChange={() => {}}
-                    />
-                    {errors.launchHireBillingEntity && (
-                      <span className="cf-field-error">{errors.launchHireBillingEntity}</span>
-                    )}
-                  </FormField>
-
                   <FormField label="Agent Name">
                     <FormInput
                       type="text"

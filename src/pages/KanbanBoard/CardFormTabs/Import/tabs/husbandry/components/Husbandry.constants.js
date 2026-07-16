@@ -60,6 +60,9 @@ export const SERVICE_ACCENT = {
   [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: "amber",
   [CREW_MANAGEMENT_SUBTABS.HOTEL]: "pink",
   [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "green",
+  [MAIN_TABS.WASTE_DISPOSAL]: "amber",
+  [MAIN_TABS.MWP_RENEWAL]: "green",
+  [MAIN_TABS.THIRD_PARTY_SERVICES]: "blue",
 };
 
 // Launch Hire - Trigger & Booking Interface

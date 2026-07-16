@@ -2,10 +2,13 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormGroup, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import useMWPRenewalReducer from "../../../../../../../store/MWPRenewalReducer";
+import { MAIN_TABS, SERVICE_ACCENT } from "./Husbandry.constants";
+
+const MWP_RENEWAL_ACCENT = SERVICE_ACCENT[MAIN_TABS.MWP_RENEWAL];
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
@@ -234,72 +237,89 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form mwp-renewal-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card">
-                <div className="crew-pass-request-details-card__header">
-                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
-                </div>
+              <div className={`crew-pass-request-details-card husb-accent-${MWP_RENEWAL_ACCENT}`}>
+                <PremiumCardHeader
+                  icon="mwpRenewal"
+                  title="Request Details"
+                  subtitle="Submit an MWP renewal request for this call"
+                  headerClassName="crew-pass-request-details-card__header"
+                  titleClassName="crew-pass-request-details-card__title"
+                />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormField label="Expiry Date">
-                    <div className="cf-input date-time-row">
-                      <input
-                        type="date"
-                        value={formValues.mwpRenewalExpiryDate || ""}
-                        onChange={handleChange("mwpRenewalExpiryDate")}
-                        placeholder="Select expiry date"
-                      />
-                    </div>
-                  </FormField>
-
-                  <FormField label="Request Email">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={requestEmailAttachments}
-                        onAdd={() => {}}
-                        onRemove={handleRequestEmailRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingEmail}
-                        onDragEnter={handleRequestEmailDragEnter}
-                        onDragLeave={handleRequestEmailDragLeave}
-                        onDragOver={handleRequestEmailDragOver}
-                        onDrop={handleRequestEmailDrop}
-                        fileInputRef={requestEmailInputRef}
-                        onFileInputChange={handleRequestEmailFileInputChange}
-                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                        multiple={false}
-                      />
-                    </div>
-                  </FormField>
-
-                  <FormField label="MWP Documents" className="cf-field-full">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={documentsAttachments}
-                        onAdd={() => {}}
-                        onRemove={handleDocumentsRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDragging}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={fileInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
-                        accept={DOCUMENTS_ACCEPT_ATTR}
-                        multiple
-                      />
-                    </div>
-                  </FormField>
-
-                  <div className="cgpass-remarks">
-                    <FormField label="Remarks">
-                      <ReactQuillEditor
-                        value={formValues?.mwpRenewalDescription || ""}
-                        onChange={handleChange("mwpRenewalDescription")}
-                        placeholder="Enter remarks..."
-                        name="mwpRenewalDescription"
-                      />
+                  <FormGroup icon="calendar" label="Expiry Date" accent={MWP_RENEWAL_ACCENT}>
+                    <FormField>
+                      <div className="cf-input date-time-row">
+                        <input
+                          type="date"
+                          value={formValues.mwpRenewalExpiryDate || ""}
+                          onChange={handleChange("mwpRenewalExpiryDate")}
+                          placeholder="Select expiry date"
+                        />
+                      </div>
                     </FormField>
-                  </div>
+                  </FormGroup>
+
+                  <FormGroup icon="mail" label="Request Email" accent={MWP_RENEWAL_ACCENT}>
+                    <FormField>
+                      <div className="transport-upload-box">
+                        <AttachmentsList
+                          attachments={requestEmailAttachments}
+                          onAdd={() => {}}
+                          onRemove={handleRequestEmailRemoveAttachment}
+                          cardColor={cardColor}
+                          isDragging={isDraggingEmail}
+                          onDragEnter={handleRequestEmailDragEnter}
+                          onDragLeave={handleRequestEmailDragLeave}
+                          onDragOver={handleRequestEmailDragOver}
+                          onDrop={handleRequestEmailDrop}
+                          fileInputRef={requestEmailInputRef}
+                          onFileInputChange={handleRequestEmailFileInputChange}
+                          accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                          multiple={false}
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="folder" label="MWP Documents" accent={MWP_RENEWAL_ACCENT}>
+                    <FormField className="cf-field-full">
+                      <div className="transport-upload-box">
+                        <AttachmentsList
+                          attachments={documentsAttachments}
+                          onAdd={() => {}}
+                          onRemove={handleDocumentsRemoveAttachment}
+                          cardColor={cardColor}
+                          isDragging={isDragging}
+                          onDragEnter={handleDocumentsDragEnter}
+                          onDragLeave={handleDocumentsDragLeave}
+                          onDragOver={handleDocumentsDragOver}
+                          onDrop={handleDocumentsDrop}
+                          fileInputRef={fileInputRef}
+                          onFileInputChange={handleDocumentsFileInputChange}
+                          accept={DOCUMENTS_ACCEPT_ATTR}
+                          multiple
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="notebook" label="Remarks" accent={MWP_RENEWAL_ACCENT}>
+                    <div className="cgpass-remarks">
+                      <FormField>
+                        <ReactQuillEditor
+                          value={formValues?.mwpRenewalDescription || ""}
+                          onChange={handleChange("mwpRenewalDescription")}
+                          placeholder="Enter remarks..."
+                          name="mwpRenewalDescription"
+                        />
+                      </FormField>
+                    </div>
+                  </FormGroup>
+                </div>
+                <div className="form-save-button-wrapper cgpass-save-footer">
+                  <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -313,11 +333,6 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
                 serviceType="MWP"
                 emptyMessage="No renewal requests found"
               />
-              <div className="form-save-button-wrapper cgpass-save-footer">
-                <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save"}
-                </button>
-              </div>
             </div>
           </div>
         </div>

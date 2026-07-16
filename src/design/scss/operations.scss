@@ -5139,11 +5139,13 @@ $send-report-optional: #80868b;
   height: 20px;
   border-radius: 6px;
   background: var(--accent-tint, #f1f5f9);
+  border: 1px solid var(--accent, #64748b);
   color: var(--accent, #64748b);
 
   svg {
     width: 12px;
     height: 12px;
+    stroke: currentColor;
   }
 }
 
