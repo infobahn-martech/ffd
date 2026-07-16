@@ -351,18 +351,14 @@
 }
 
 /* Tab status indicator */
-.cardform-tabs .tab.tab-has-status {
-  position: relative;
-}
-
 .tab-status-dot {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  display: inline-block;
+  margin-left: 6px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  vertical-align: middle;
 }
 
 /* Body layout */
