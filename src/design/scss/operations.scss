@@ -2367,6 +2367,61 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Pre Arrival / Arrival / Departure field background — scoped to these three tabs' LEFT
+   form column only (OperationFormCard), not the Email Preview column, and not Check List
+   or other tabs that share the same .cf-input / .cf-multi-select-email-input / MUI classes. */
+.operation-form-column,
+.operation-document-column {
+
+  .cf-input,
+  .cf-multi-select-email-input {
+    background: #f3f5ff;
+
+    &:hover {
+      background: #e4e8fb;
+    }
+
+    &:focus-within {
+      background: #ffffff;
+    }
+  }
+
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root {
+    background: #f3f5ff;
+
+    &:hover {
+      background: #e4e8fb;
+    }
+
+    &.Mui-focused {
+      background: #ffffff;
+    }
+  }
+
+  /* Time-object date/time fields (DateTimePickerField) render their MUI root nested
+     inside .cf-datetime-picker .cf-datetime-input-field, which is 3 classes deep and
+     otherwise beats the plain MUI selector above on specificity — match that full chain
+     so the same background actually wins here too. */
+  .cf-datetime-picker .cf-datetime-input-field {
+
+    .MuiPickersInputBase-root,
+    .MuiOutlinedInput-root,
+    .MuiInputBase-root {
+      background: #f3f5ff;
+
+      &:hover {
+        background: #e4e8fb;
+      }
+
+      &.Mui-focused {
+        background: #ffffff;
+      }
+    }
+  }
+}
+
 @keyframes operation-card-reveal {
   from {
     opacity: 0;
