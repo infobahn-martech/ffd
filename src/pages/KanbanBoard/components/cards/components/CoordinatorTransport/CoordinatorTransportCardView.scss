@@ -397,6 +397,23 @@
   font-size: 11px;
   vertical-align: middle;
   border-bottom: 1px solid #edf0f4;
+  overflow: hidden;
+}
+
+.coordinator-transport-table-card .husb-route {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.coordinator-transport-table-card .husb-route__point {
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coordinator-transport-table-card .husb-route__arrow {
+  flex-shrink: 0;
 }
 
 .coordinator-transport-table-card tbody tr:hover {
@@ -412,12 +429,12 @@
 
 .coordinator-transport-table-card th:nth-child(1),
 .coordinator-transport-table-card td:nth-child(1) {
-  width: 38%;
+  width: 26%;
 }
 
 .coordinator-transport-table-card th:nth-child(2),
 .coordinator-transport-table-card td:nth-child(2) {
-  width: 12%;
+  width: 30%;
 }
 
 .coordinator-transport-table-card th:nth-child(3),
