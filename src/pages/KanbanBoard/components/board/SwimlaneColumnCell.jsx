@@ -119,6 +119,7 @@ export default function SwimlaneColumnCell({
               alignItems: "start",
               alignContent: "start",
               minHeight: cards.length === 0 ? `${EMPTY_DROP_ZONE_MIN_HEIGHT}px` : undefined,
+              ...(column.backgroundColor ? { backgroundColor: column.backgroundColor } : {}),
             }}
           >
             {cards.map((card, index) =>
