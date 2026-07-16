@@ -106,6 +106,39 @@ export const CREATE_ACTION_OPTIONS = [
   { key: 'successor', label: 'Create successor' },
 ];
 
+// Relational create-action variants — these create a new card linked to the card that
+// triggered the rule (an "originator"), so after picking a destination they get an extra
+// "Copy Card Details" step to pick which of the originator's fields to carry over. A plain
+// "Create card" has no originator relationship, so it skips that step entirely.
+// Matched by label rather than key — same reason as the "Create subtask" check nearby
+// (hasCustomProperties): a live get_then_action_fields response keys each regular field by
+// its own backend field_key, not the dev-fallback's literal 'child'/'parent'/... strings,
+// so key-based matching silently never fires once real backend data is in play.
+export const RELATIONAL_CREATE_ACTION_LABELS = ['create child', 'create parent', 'create predecessor', 'create relative', 'create successor'];
+
+// Fixed field list for the "Copy Card Details" step (no backend endpoint returns this
+// list today — best-effort, hardcoded to match the same fixed-option pattern as
+// CREATE_ACTION_OPTIONS/UPDATE_ACTION_OPTIONS above).
+export const COPY_CARD_DETAIL_REGULAR_FIELDS = [
+  { key: 'title', label: 'Title' },
+  { key: 'description', label: 'Description' },
+  { key: 'owner', label: 'Owner' },
+  { key: 'color', label: 'Color' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'deadline', label: 'Deadline' },
+  { key: 'size', label: 'Size' },
+  { key: 'type', label: 'Type' },
+  { key: 'tags', label: 'Tags' },
+  { key: 'attachments', label: 'Attachments' },
+  { key: 'subtasks', label: 'Subtasks' },
+  { key: 'co_owners', label: 'Co-owners' },
+  { key: 'stickers', label: 'Stickers' },
+  { key: 'milestones', label: 'Milestones' },
+  { key: 'custom_card_id', label: 'Custom card ID' },
+  { key: 'parent_links', label: 'Parent links' },
+  { key: 'all_custom_fields', label: 'All custom fields' },
+];
+
 // Dev-only fallback data for the "Create card or subtask" action's board-template picker.
 export const DUMMY_CREATE_ACTION_TEMPLATES = [
   'Air Shipment',

@@ -62,6 +62,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
     triggerTypes, isLoadingGet, getTriggerTypes,
     getBusinessRuleStats, businessRuleStats,
+    createBusinessRule, isCreatingBusinessRule,
   } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
@@ -109,10 +110,16 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     setShowFormModal(true);
   };
 
-  const handleSaveFormModal = () => {
-    setShowFormModal(false);
-    setSelectedRule(null);
-    setView('table');
+  const handleSaveFormModal = (payload) => {
+    createBusinessRule(payload, {
+      cb: () => {
+        setShowFormModal(false);
+        setSelectedRule(null);
+        setView('table');
+        getBusinessRules({ params: { page, limit, searchTerm: searchValue } });
+        getBusinessRuleStats();
+      },
+    });
   };
 
   const handleCancelFormModal = () => {
@@ -361,6 +368,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         boardName={boardName}
         onClose={handleCancelFormModal}
         onSave={handleSaveFormModal}
+        isSaving={isCreatingBusinessRule}
       />
     </>
   );
