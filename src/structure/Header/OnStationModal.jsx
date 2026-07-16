@@ -50,6 +50,27 @@ const TruncatedCell = ({ text, maxLength = 11, tooltipId }) => {
     );
 };
 
+// On Station enable/disable switch (pill toggle, row-wise loading state)
+const OnStationSwitch = ({ isEnabled, loading, onChange, tooltipId }) => (
+    <>
+        <button
+            type="button"
+            role="switch"
+            aria-checked={isEnabled}
+            aria-label={isEnabled ? 'Disable On Station' : 'Enable On Station'}
+            className={`on-station-pill-toggle${isEnabled ? ' on-station-pill-toggle--on' : ''}`}
+            disabled={loading}
+            onClick={loading ? undefined : onChange}
+            data-tooltip-id={tooltipId}
+            data-tooltip-content={loading ? 'Processing...' : isEnabled ? 'Enabled' : 'Disabled'}
+            style={loading ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+        >
+            <span className="on-station-pill-toggle__thumb" />
+        </button>
+        <Tooltip id={tooltipId} place="top" />
+    </>
+);
+
 // Helper for Action buttons (icon-only with tooltip, row-wise loading spinner)
 const ActionButton = ({ icon: Icon, disabled, loading, tooltip, onClick, tooltipId }) => {
     const isDisabled = disabled || loading;
@@ -132,7 +153,7 @@ function OnStationModal({ show, onClose }) {
     const cols = [
         {
             name: <HeaderLabel label="Vessel Name" tooltipId="th-vessel-name" />,
-            selector: 'vesselName',
+            selector: 'vessel_name',
             tableClasses: 'table-striped',
             sort: true,
             contentClass: 'table-content',
@@ -140,7 +161,7 @@ function OnStationModal({ show, onClose }) {
             width: '200',
             cell: (props) => (
                 <TruncatedCell
-                    text={props.row.vessel_name ?? props.row.vesselName}
+                    text={props.row.vessel_name}
                     maxLength={11}
                     tooltipId={`vessel-${getRowId(props.row)}`}
                 />
@@ -148,7 +169,7 @@ function OnStationModal({ show, onClose }) {
         },
         {
             name: <HeaderLabel label="Client" tooltipId="th-client" />,
-            selector: 'client',
+            selector: 'billing_entity',
             tableClasses: 'table-striped',
             sort: true,
             contentClass: 'table-content',
@@ -156,7 +177,7 @@ function OnStationModal({ show, onClose }) {
             width: '180',
             cell: (props) => (
                 <TruncatedCell
-                    text={props.row.client}
+                    text={props.row.billing_entity}
                     maxLength={11}
                     tooltipId={`client-${getRowId(props.row)}`}
                 />
@@ -164,7 +185,7 @@ function OnStationModal({ show, onClose }) {
         },
         {
             name: <HeaderLabel label="Owner Name" tooltipId="th-owner-name" />,
-            selector: 'ownerName',
+            selector: 'vessel_owner',
             tableClasses: 'table-striped',
             sort: true,
             contentClass: 'table-content',
@@ -172,7 +193,7 @@ function OnStationModal({ show, onClose }) {
             width: '180',
             cell: (props) => (
                 <TruncatedCell
-                    text={props.row.owner_name ?? props.row.ownerName}
+                    text={props.row.vessel_owner}
                     maxLength={11}
                     tooltipId={`owner-${getRowId(props.row)}`}
                 />
@@ -180,7 +201,7 @@ function OnStationModal({ show, onClose }) {
         },
         {
             name: <HeaderLabel label="Vessel Manager" tooltipId="th-vessel-manager" />,
-            selector: 'vesselManager',
+            selector: 'vessel_manager',
             tableClasses: 'table-striped',
             sort: true,
             contentClass: 'table-content',
@@ -188,63 +209,83 @@ function OnStationModal({ show, onClose }) {
             width: '140',
             cell: (props) => (
                 <TruncatedCell
-                    text={props.row.vessel_manager ?? props.row.vesselManager}
+                    text={props.row.vessel_manager}
                     maxLength={11}
                     tooltipId={`manager-${getRowId(props.row)}`}
                 />
             ),
         },
         {
+            // Import Port Call Custom Clearance Date (backend-derived, not computed here)
             name: <HeaderLabel label="Import Date" tooltipId="th-import-date" />,
-            selector: 'importDate',
+            selector: 'import_custom_clearance_date',
             tableClasses: 'table-striped',
             sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
             width: '140',
-            cell: (props) => <span>{props.row.import_date ?? props.row.importDate ?? '-'}</span>,
+            cell: (props) => <span>{props.row.import_custom_clearance_date ?? '-'}</span>,
         },
         {
+            // Export Port Call ATD (backend-derived, not computed here)
             name: <HeaderLabel label="Export Date" tooltipId="th-export-date" />,
-            selector: 'exportDate',
+            selector: 'export_atd',
             tableClasses: 'table-striped',
             sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
             width: '140',
-            cell: (props) => <span>{props.row.export_date ?? props.row.exportDate ?? '-'}</span>,
+            cell: (props) => <span>{props.row.export_atd ?? '-'}</span>,
         },
         {
             name: <HeaderLabel label="On Station" tooltipId="th-on-station" />,
+            selector: 'is_enabled',
+            tableClasses: 'table-striped',
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '110',
+            cell: (props) => {
+                const row = props.row;
+                const rowId = getRowId(row);
+                const isEnabled = Number(row.is_enabled) === 1;
+                const loading = rowActionLoading[rowId] || {};
+
+                return (
+                    <OnStationSwitch
+                        isEnabled={isEnabled}
+                        loading={!!loading.toggle}
+                        tooltipId={`switch-${rowId}`}
+                        onChange={() => toggleOnStation({ call_id: rowId, is_enabled: !isEnabled })}
+                    />
+                );
+            },
+        },
+        {
+            name: <HeaderLabel label="Actions" tooltipId="th-actions" />,
             selector: 'actions',
             tableClasses: 'table-striped',
             contentClass: 'table-content',
             thclass: 'tb-head',
-            width: '420',
+            width: '360',
             cell: (props) => {
                 const row = props.row;
                 const rowId = getRowId(row);
-                const isEnabled = !!row.is_enabled;
+                const isEnabled = Number(row.is_enabled) === 1;
                 const onStationId = row.on_station_id ?? null;
                 const salesOrderId = row.sales_order_id ?? null;
                 const salesOrderNo = row.sales_order_no ?? null;
                 const taxInvoiceId = row.tax_invoice_id ?? null;
                 const taxInvoiceNo = row.tax_invoice_no ?? null;
-                const taxInvoiceSent = !!row.tax_invoice_sent;
+                const taxInvoiceSent = Number(row.tax_invoice_sent) === 1;
                 const loading = rowActionLoading[rowId] || {};
 
-                // Button 1: Enable On Station -> Create Sales Order (once enabled)
-                let btn1Tooltip = 'Enable On Station';
-                let btn1Disabled = false;
-                let btn1OnClick = () => toggleOnStation({ call_id: rowId, is_enabled: true });
-
-                if (isEnabled && !salesOrderId) {
-                    btn1Tooltip = 'Create Sales Order';
-                    btn1OnClick = () => createSalesOrder({ call_id: rowId, on_station_id: onStationId });
-                } else if (salesOrderId) {
-                    btn1Disabled = true;
-                    btn1Tooltip = `Sales Order: ${salesOrderNo ?? salesOrderId}`;
-                }
+                // Button 1: Create Sales Order (only once On Station is enabled)
+                const btn1Disabled = !isEnabled || !!salesOrderId;
+                const btn1Tooltip = salesOrderId
+                    ? `Sales Order: ${salesOrderNo ?? salesOrderId}`
+                    : isEnabled
+                        ? 'Create Sales Order'
+                        : 'Enable On Station first';
 
                 // Button 2: Convert to Tax Invoice
                 const btn2Disabled = !salesOrderId || !!taxInvoiceId;
@@ -267,10 +308,10 @@ function OnStationModal({ show, onClose }) {
                         <ActionButton
                             icon={FiFileText}
                             disabled={btn1Disabled}
-                            loading={loading.toggle || loading.createSalesOrder}
+                            loading={loading.createSalesOrder}
                             tooltip={btn1Tooltip}
                             tooltipId={`so-${rowId}`}
-                            onClick={btn1OnClick}
+                            onClick={() => createSalesOrder({ call_id: rowId, on_station_id: onStationId })}
                         />
                         <ActionButton
                             icon={FiDollarSign}
@@ -379,7 +420,7 @@ function OnStationModal({ show, onClose }) {
         <Modal
             show={show}
             onHide={handleClose}
-            className="documents-modal"
+            className="documents-modal on-station-modal"
             dialogClassName="modal-dialog modal-dialog-centered modal-xl"
             centered
             backdrop="static"

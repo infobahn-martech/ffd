@@ -76,34 +76,18 @@
 
 .documents-modal-body {
   padding: 30px;
-  max-height: calc(100vh - 250px);
-  overflow-y: auto;
+  height: calc(100vh - 250px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: #ffffff;
   width: 100%;
   box-sizing: border-box;
-
-  // Custom scrollbar
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-
-    &:hover {
-      background: #94a3b8;
-    }
-  }
 }
 
 // Search Section
 .documents-search {
+  flex-shrink: 0;
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid #e5e7eb;
@@ -155,12 +139,34 @@
 
 // Table Section
 .documents-table-wrapper {
+  flex: 1;
+  min-height: 0;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-bottom: 20px;
   position: relative;
   width: 100%;
   max-width: 100%;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #94a3b8;
+    }
+  }
 
   // Hide default pagination from CustomTable
   .paginations {
@@ -281,6 +287,7 @@
 
 // Footer Section
 .documents-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -482,4 +489,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* On Station modal: fixed header/search/footer, only the table body scrolls */
+.on-station-modal {
+  .documents-modal-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .documents-search {
+    flex-shrink: 0;
+  }
+
+  .documents-table-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .documents-footer {
+    flex-shrink: 0;
+    margin-top: 20px;
+  }
 }
