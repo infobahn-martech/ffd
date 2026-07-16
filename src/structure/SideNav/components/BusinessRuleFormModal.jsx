@@ -8,7 +8,7 @@ import QuillTableBetter from 'quill-table-better';
 import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
-  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, RELATIONAL_CREATE_ACTION_LABELS, COPY_CARD_DETAIL_REGULAR_FIELDS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
   DUMMY_WORKSPACE_BOARDS,
@@ -17,6 +17,7 @@ import {
   DUMMY_LINK_ACTION_OPERATORS, DUMMY_FIELD_OPERATORS,
 } from './businessRulesData';
 import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
+import { buildCreateBusinessRulePayload, getUnconfiguredActionLabels } from './buildBusinessRulePayload';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import useCommonReducer from '../../../store/CommonReducer';
@@ -49,6 +50,12 @@ const RECURRENCE_UNIT_SINGULAR_LABEL = {
   minutes: 'minute',
   seconds: 'second',
 };
+
+// "Update card details" actions that reference actual users rather than a free-text
+// value get a user picker (avatar + name, multi-select via AND) instead of the plain
+// text input every other field uses. Keyed against UPDATE_ACTION_OPTIONS' dev-fallback
+// keys — the live backend's own field_key for these may differ, best-effort until confirmed.
+const USER_REFERENCE_UPDATE_KEYS = ['add_co_owners', 'remove_co_owners', 'add_watcher'];
 
 // Custom embed (not inline format) for the "field pill" tokens (e.g. Title, Author) in
 // the notification body. An inline format only styles editable text — the characters
@@ -1195,7 +1202,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   );
 }
 
-function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, triggerTypeId, actionTypeId }) {
+function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabels, existingActionKeys, triggerTypeId, actionTypeId }) {
   const [selectedActions, setSelectedActions] = useState([]);
   const [selectedCustomFields, setSelectedCustomFields] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
@@ -1332,6 +1339,7 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
                       pillKey={option.key}
                       label={option.label}
                       selected={selectedActions.some((item) => item.key === `action-${option.key}`)}
+                      disabled={(existingActionKeys ?? []).includes(option.key)}
                       onClick={() => handlePickAction(option)}
                     />
                   ))
@@ -1417,6 +1425,176 @@ function RefineUpdateCriteriaModal({ show, onClose, onSelect, existingFieldLabel
             onClick={handleAdd}
           >
             Add
+          </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+// Follow-up step after picking a destination for a relational "Create card" action
+// (Create child/parent/predecessor/relative/successor) — lets the user pick which of the
+// originator (triggering) card's fields to carry over onto the new card.
+function CopyCardDetailsModal({ show, onClose, onContinue, triggerTypeId, boardId }) {
+  const [selectedRegular, setSelectedRegular] = useState([]);
+  const [selectedCustom, setSelectedCustom] = useState([]);
+  const [expandedRegularFields, setExpandedRegularFields] = useState(true);
+  const [expandedCustomFields, setExpandedCustomFields] = useState(true);
+
+  const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
+    show, triggerTypeId, boardId, showDisabled: false, search: '',
+  });
+  // Dev-only fallback so the modal can be visually tested without a live backend.
+  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+
+  useEffect(() => {
+    if (!show) return;
+    setSelectedRegular([]);
+    setSelectedCustom([]);
+  }, [show]);
+
+  const toggleRegular = (key) => {
+    setSelectedRegular((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  };
+
+  const toggleCustom = (key) => {
+    setSelectedCustom((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  };
+
+  const handleContinue = () => {
+    onContinue({ regularFields: selectedRegular, customFields: selectedCustom });
+    onClose();
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal"
+      dialogClassName="card-property-match-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Copy Card Details</h2>
+          <button
+            type="button"
+            className="business-rule-form-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body">
+          <p className="br-copy-card-details-subtitle">Select the fields that you want to copy from the originator</p>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedRegularFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedRegularFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Regular fields
+            </button>
+            {expandedRegularFields && (
+              <>
+                <div className="br-property-select-all-row">
+                  <button
+                    type="button"
+                    className="business-rule-form-add-link"
+                    onClick={() => setSelectedRegular(COPY_CARD_DETAIL_REGULAR_FIELDS.map((f) => f.key))}
+                  >
+                    Select all
+                  </button>
+                  /
+                  <button
+                    type="button"
+                    className="business-rule-form-add-link"
+                    onClick={() => setSelectedRegular([])}
+                  >
+                    Deselect all
+                  </button>
+                </div>
+                <div className="br-property-pill-grid">
+                  {COPY_CARD_DETAIL_REGULAR_FIELDS.map((field) => (
+                    <PropertyPill
+                      key={field.key}
+                      pillKey={field.key}
+                      label={field.label}
+                      selected={selectedRegular.includes(field.key)}
+                      onClick={() => toggleRegular(field.key)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="br-property-section">
+            <button
+              type="button"
+              className="br-property-section-toggle"
+              onClick={() => setExpandedCustomFields((v) => !v)}
+            >
+              <span className="br-property-section-toggle-icon">
+                {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </span>
+              Custom fields
+            </button>
+            {expandedCustomFields && (
+              <>
+                <div className="br-property-select-all-row">
+                  <button
+                    type="button"
+                    className="business-rule-form-add-link"
+                    onClick={() => setSelectedCustom(displayCustomFields.map((f, idx) => f.custom_field_id ?? idx))}
+                  >
+                    Select all
+                  </button>
+                  /
+                  <button
+                    type="button"
+                    className="business-rule-form-add-link"
+                    onClick={() => setSelectedCustom([])}
+                  >
+                    Deselect all
+                  </button>
+                </div>
+                <div className="br-property-pill-grid">
+                  {isLoadingCustomFields ? (
+                    <div className="br-property-picker-empty">Loading...</div>
+                  ) : displayCustomFields.length === 0 ? (
+                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : (
+                    displayCustomFields.map((field, idx) => {
+                      const key = field.custom_field_id ?? idx;
+                      return (
+                        <PropertyPill
+                          key={key}
+                          pillKey={key}
+                          label={getFieldLabel(field)}
+                          selected={selectedCustom.includes(key)}
+                          onClick={() => toggleCustom(key)}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="card-property-match-modal-footer">
+          <button type="button" className="br-property-add-btn" onClick={handleContinue}>
+            Continue
           </button>
         </footer>
       </div>
@@ -3943,12 +4121,14 @@ ShareWithModal.propTypes = {
   onSave: PropTypes.func,
 };
 
-function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
+function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSaving }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [owner, setOwner] = useState('');
+  const [ownerUserId, setOwnerUserId] = useState(null);
+  const [saveError, setSaveError] = useState('');
   const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
   const [ownerFilterText, setOwnerFilterText] = useState('');
   const ownerPickerTriggerRef = useRef(null);
@@ -3969,6 +4149,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const createTemplatePanelRef = useRef(null);
   const [showCreateDetailsPicker, setShowCreateDetailsPicker] = useState(false);
   const [activeCreateActionId, setActiveCreateActionId] = useState(null);
+  const [showCopyCardDetailsPicker, setShowCopyCardDetailsPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
   const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
   const editingLinkActionIdRef = useRef(null);
@@ -3977,6 +4158,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const linkOperatorTriggerRef = useRef(null);
   const linkOperatorPanelRef = useRef(null);
   const [removeOtherLinksByType, setRemoveOtherLinksByType] = useState({});
+  // User-picker dropdown for "people list" update actions (Add/Remove co-owners,
+  // Add watcher) — one shared open-row id + filter text, mirroring the link-operator
+  // per-row dropdown pattern above.
+  const [openUpdateUserRowId, setOpenUpdateUserRowId] = useState(null);
+  const [updateUserFilterText, setUpdateUserFilterText] = useState('');
+  const updateUserTriggerRef = useRef(null);
+  const updateUserPanelRef = useRef(null);
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
@@ -4146,17 +4334,20 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setTags([]);
     setTagInput('');
     setOwner(loggedInUserName);
+    setOwnerUserId(loggedInUserId);
     setIsOwnerPickerOpen(false);
     setOwnerFilterText('');
     setSharePermissions({});
     setShowShareModal(false);
     setDisallowTriggerChain(false);
+    setSaveError('');
     setConditions([]);
     setShowPropertyPicker(false);
     setWhenFields([]);
     setShowWhenFieldPicker(false);
     setCreateActions([]);
     setShowCreateActionPicker(false);
+    setShowCopyCardDetailsPicker(false);
     setLinkActions([]);
     setShowLinkActionPicker(false);
     editingLinkActionIdRef.current = null;
@@ -4197,7 +4388,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     setShowTimezonePicker(false);
     setTimezoneFilterText('');
     if (timeUnits.length === 0) getTimeUnits();
-  }, [show, rule, loggedInUserName]);
+  }, [show, rule, loggedInUserName, loggedInUserId]);
 
   useEffect(() => {
     if (!isOwnerPickerOpen) return undefined;
@@ -4273,6 +4464,18 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   }, [openLinkOperatorRowId]);
 
   useEffect(() => {
+    if (openUpdateUserRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateUserPanelRef.current?.contains(t)) return;
+      if (updateUserTriggerRef.current?.contains(t)) return;
+      setOpenUpdateUserRowId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateUserRowId]);
+
+  useEffect(() => {
     if (openCreateTemplateRowId == null) return undefined;
     const onDocMouseDown = (event) => {
       const t = event.target;
@@ -4344,19 +4547,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   if (!rule) return null;
 
   const handleSave = () => {
-    onSave?.({
+    const formState = {
       triggerRuleId: rule.id,
       name: name.trim(),
       description: description.trim(),
       tags,
-      boardIds: boardConditionRows.map((row) => row.boardId || null),
-      positionConditions: positionConditionRows.map((row) => ({
-        boardId: row.boardId || null, swimlaneId: row.swimlaneId || null, stageId: row.stageId || null,
-      })),
-      owner,
+      ownerUserId,
       sharePermissions,
       disallowTriggerChain,
       whenFields,
+      boardConditionRows,
+      positionConditionRows,
       conditions,
       createActions,
       linkActions,
@@ -4368,11 +4569,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       copyValuesActions,
       notifyActions,
       invokeActions,
-      recurrenceUnit,
-      executeAtTime,
-      executeAtTimezone,
-    });
-    onClose();
+    };
+
+    const unconfigured = getUnconfiguredActionLabels(formState);
+    if (unconfigured.length > 0) {
+      setSaveError(`Finish configuring these actions before saving: ${unconfigured.join(', ')}.`);
+      return;
+    }
+    setSaveError('');
+
+    const payload = buildCreateBusinessRulePayload(formState, { loggedInUserId, triggerConfig, fieldDetailsByKey });
+    onSave?.(payload);
   };
 
   const otherOwnerUsers = users.filter((u) => String(u.user_id) !== String(loggedInUserId));
@@ -4392,6 +4599,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handlePickOwner = (user) => {
     setOwner(user.name);
+    setOwnerUserId(user.user_id);
     setIsOwnerPickerOpen(false);
     setOwnerFilterText('');
   };
@@ -4601,6 +4809,17 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleSaveCreateDetails = (destination) => {
     setCreateActions((prev) => prev.map((a) => (a.id === activeCreateActionId ? { ...a, ...destination } : a)));
+    // Relational create variants (child/parent/...) create a card linked to the card that
+    // triggered the rule, so once a destination is picked they get one more step: choosing
+    // which of that originator card's fields to carry over onto the new card.
+    const action = createActions.find((a) => a.id === activeCreateActionId);
+    if (action && RELATIONAL_CREATE_ACTION_LABELS.includes(action.label?.trim().toLowerCase())) {
+      setShowCopyCardDetailsPicker(true);
+    }
+  };
+
+  const handleContinueCopyCardDetails = (fields) => {
+    setCreateActions((prev) => prev.map((a) => (a.id === activeCreateActionId ? { ...a, copyFields: fields } : a)));
   };
 
   const activeCreateAction = createActions.find((a) => a.id === activeCreateActionId);
@@ -4870,6 +5089,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         ...prev,
         { id, category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel, field: rawLabel },
       ]);
+    } else if (USER_REFERENCE_UPDATE_KEYS.includes(item.key)) {
+      setUpdateActions((prev) => [
+        ...prev,
+        {
+          id, category: 'action', key: item.key, label: item.label, field: item.field,
+          values: [{ id: `${id}-0`, userId: '', userName: '' }],
+        },
+      ]);
     } else {
       setUpdateActions((prev) => [
         ...prev,
@@ -4880,6 +5107,30 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
 
   const handleRemoveUpdateAction = (id) => {
     setUpdateActions((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleChangeUpdateActionValue = (id, value) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === id ? { ...a, value } : a)));
+  };
+
+  const handleAddUpdateActionUserRow = (actionId) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, values: [...(a.values ?? []), { id: `${actionId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, userId: '', userName: '' }] }
+      : a)));
+  };
+
+  const handleRemoveUpdateActionUserRow = (actionId, rowId) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, values: (a.values ?? []).filter((v) => v.id !== rowId) }
+      : a)));
+  };
+
+  const handlePickUpdateActionUser = (actionId, rowId, user) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, values: (a.values ?? []).map((v) => (v.id === rowId ? { ...v, userId: user.user_id, userName: user.name } : v)) }
+      : a)));
+    setOpenUpdateUserRowId(null);
+    setUpdateUserFilterText('');
   };
 
   const handleAddNotifyAction = () => {
@@ -5869,23 +6120,135 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                       </div>
                     )}
 
-                    {section.id === 'update' && updateActions.map((action) => (
-                      <div key={action.id} className="business-rule-form-action-chip">
-                        <span className="business-rule-form-action-chip-label">
-                          {action.field ? (
-                            <>{action.field}: <span className="notification-pill">{action.field}</span></>
-                          ) : action.label}
-                        </span>
-                        <button
-                          type="button"
-                          className="business-rule-form-condition-remove"
-                          onClick={() => handleRemoveUpdateAction(action.id)}
-                          aria-label="Remove action"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
+                    {section.id === 'update' && updateActions.map((action) => {
+                      if (USER_REFERENCE_UPDATE_KEYS.includes(action.key)) {
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="business-rule-form-action-chip-label">{action.label}</span>
+
+                            {(action.values ?? []).map((row) => {
+                              const rowKey = `${action.id}-${row.id}`;
+                              const isRowOpen = openUpdateUserRowId === rowKey;
+                              const userFilterQuery = updateUserFilterText.trim().toLowerCase();
+                              const filteredUpdateUsers = userFilterQuery
+                                ? users.filter((u) => u.name.toLowerCase().includes(userFilterQuery))
+                                : users;
+                              return (
+                                <div key={row.id} className="br-link-card-value-row">
+                                  <div className="board-minimap-picker-wrap br-update-user-wrap">
+                                    <button
+                                      type="button"
+                                      ref={isRowOpen ? updateUserTriggerRef : undefined}
+                                      className="br-update-user-trigger"
+                                      onClick={() => {
+                                        setOpenUpdateUserRowId((prev) => (prev === rowKey ? null : rowKey));
+                                        setUpdateUserFilterText('');
+                                      }}
+                                      aria-haspopup="listbox"
+                                      aria-expanded={isRowOpen}
+                                    >
+                                      {row.userName ? (
+                                        <span className="business-rule-form-owner-avatar" aria-hidden>
+                                          {getInitials(row.userName)}
+                                        </span>
+                                      ) : (
+                                        <FiUsers size={16} className="br-update-user-placeholder-icon" aria-hidden />
+                                      )}
+                                      <span className="br-owner-picker-trigger-name">{row.userName || 'Select user'}</span>
+                                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                                    </button>
+
+                                    {isRowOpen && (
+                                      <div className="br-owner-picker-panel" ref={updateUserPanelRef}>
+                                        <div className="br-owner-picker-search">
+                                          <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                          <input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={updateUserFilterText}
+                                            onChange={(e) => setUpdateUserFilterText(e.target.value)}
+                                            autoFocus
+                                          />
+                                        </div>
+                                        <div className="br-owner-picker-list">
+                                          {usersLoading ? (
+                                            <div className="br-property-picker-empty">Loading...</div>
+                                          ) : filteredUpdateUsers.length === 0 ? (
+                                            <div className="br-property-picker-empty">No matches</div>
+                                          ) : (
+                                            filteredUpdateUsers.map((u) => (
+                                              <div key={u.user_id} className="br-owner-picker-row">
+                                                <button
+                                                  type="button"
+                                                  className={`br-owner-picker-row-btn${row.userId === u.user_id ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                                  onClick={() => handlePickUpdateActionUser(action.id, row.id, u)}
+                                                >
+                                                  <span className="business-rule-form-owner-avatar" aria-hidden>
+                                                    {getInitials(u.name)}
+                                                  </span>
+                                                  <span className="br-owner-picker-row-name">{u.name}</span>
+                                                </button>
+                                              </div>
+                                            ))
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="business-rule-form-filter-row-actions">
+                                    <button
+                                      type="button"
+                                      className="business-rule-form-or-btn"
+                                      onClick={() => handleAddUpdateActionUserRow(action.id)}
+                                    >
+                                      AND
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="business-rule-form-filter-row-delete"
+                                      onClick={() => handleRemoveUpdateActionUserRow(action.id, row.id)}
+                                      aria-label="Remove row"
+                                    >
+                                      <FiTrash2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={action.id} className="business-rule-form-action-chip">
+                          <span className="business-rule-form-action-chip-label">
+                            {action.label}
+                          </span>
+                          <input
+                            type="text"
+                            className="br-update-action-value-input"
+                            placeholder="New value"
+                            value={action.value ?? ''}
+                            onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            className="business-rule-form-condition-remove"
+                            onClick={() => handleRemoveUpdateAction(action.id)}
+                            aria-label="Remove action"
+                          >
+                            <FiTrash2 size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
 
                     {section.id === 'update_related' && updateRelatedActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-detail-card">
@@ -6221,11 +6584,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
         </div>
 
         <footer className="business-rule-form-modal-footer">
+          {saveError && <p className="text-danger mb-2">{saveError}</p>}
           <p className="business-rule-form-footer-note">
             <strong>Note:</strong> Due to their asynchronous nature, the business rules may sometimes run with a short delay. In rare cases it may take up to 30 minutes.
           </p>
-          <button type="button" className="business-rule-form-save-btn" onClick={handleSave}>
-            Save
+          <button type="button" className="business-rule-form-save-btn" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </footer>
       </div>
@@ -6295,6 +6659,14 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       initialBoardId={activeCreateAction?.boardId}
     />
 
+    <CopyCardDetailsModal
+      show={showCopyCardDetailsPicker}
+      onClose={() => setShowCopyCardDetailsPicker(false)}
+      onContinue={handleContinueCopyCardDetails}
+      triggerTypeId={rule.id}
+      boardId={activeCreateAction?.boardId}
+    />
+
     <RefineUpdateCriteriaModal
       show={showUpdateActionPicker}
       onClose={() => setShowUpdateActionPicker(false)}
@@ -6302,6 +6674,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       existingFieldLabels={updateActions
         .filter((a) => a.category === 'custom')
         .map((a) => a.rawLabel.trim().toLowerCase())}
+      existingActionKeys={updateActions
+        .filter((a) => a.category === 'action')
+        .map((a) => a.key)}
       triggerTypeId={rule.id}
       actionTypeId={updateActionTypeId}
     />
@@ -6410,6 +6785,7 @@ BusinessRuleFormModal.propTypes = {
   boardName: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
+  isSaving: PropTypes.bool,
 };
 
 PropertyPill.propTypes = {
@@ -6454,10 +6830,19 @@ BoardMinimapModal.propTypes = {
 RefineUpdateCriteriaModal.propTypes = {
   show: PropTypes.bool.isRequired,
   existingFieldLabels: PropTypes.arrayOf(PropTypes.string),
+  existingActionKeys: PropTypes.arrayOf(PropTypes.string),
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.number,
   actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+CopyCardDetailsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onContinue: PropTypes.func.isRequired,
+  triggerTypeId: PropTypes.number,
+  boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 NotificationSettingsModal.propTypes = {
