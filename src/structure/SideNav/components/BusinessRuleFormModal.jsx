@@ -5702,7 +5702,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
                                   className="br-create-action-link br-create-action-link--btn"
                                   onClick={() => handleOpenCreateSubtaskSettings(action.id)}
                                 >
-                                  {action.configured ? (action.description?.trim() || 'Configured') : 'Not Set'}
+                                  {action.configured ? (action.description?.trim() || 'Configured') : 'Configure details'}
                                 </button>
                               )}
                             </div>
