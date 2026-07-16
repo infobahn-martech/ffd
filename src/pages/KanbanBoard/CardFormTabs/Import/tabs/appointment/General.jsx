@@ -20,6 +20,7 @@ import checklistService from "../../../../../../services/checklistService";
 import kpiTasksService from "../../../../../../services/kpiTasksService";
 import useCallTaskReducer from "../../../../../../store/CallTaskReducer";
 import OperationTasksPanel from "../operation/TaskTab";
+import GeneralViewAppointmentDetails from "./GeneralViewAppointmentDetails";
 import { mapTasksToSections } from "../operation/operationTasksMapper";
 import stageTimeMappingService from "../../../../../../services/stageTimeMappingService";
 import preArrivalInfoService from "../../../../../../services/preArrivalInfoService";
@@ -2563,6 +2564,11 @@ function General({
     const url = callDetailData?.appointment_email_url ?? mappedCallDetail?.appointmentEmailUrl;
     return url ? String(url).trim() : "";
   }, [callDetailData?.appointment_email_url, mappedCallDetail?.appointmentEmailUrl]);
+
+  const appointmentEmailName = useMemo(() => {
+    const first = appointmentDocuments?.[0];
+    return (first && typeof first === "object" ? first.name : first) || "";
+  }, [appointmentDocuments]);
 
   const viewModeTimeObjects = useMemo(() => {
     if (isAddMode) return [];
@@ -5441,7 +5447,7 @@ ${body}
                               />
                             </FormField>
                           </>
-                        ) : (
+                        ) : isAddMode ? (
                           <>
                             {shouldShowApiField("owner_id") && (
                               <OwnerField
@@ -6097,6 +6103,33 @@ ${body}
 
                             </div>
                           </>
+                        ) : (
+                          <GeneralViewAppointmentDetails
+                            getFieldValue={getFieldValue}
+                            shouldShowApiField={shouldShowApiField}
+                            ownerOptions={ownerOptions}
+                            operatorOptions={operatorOptions}
+                            portSelectOptions={portSelectOptions}
+                            callTypeOptions={callTypeOptions}
+                            billingEntitySelectOptions={billingEntitySelectOptions}
+                            singleVesselTypeOptions={singleVesselTypeOptions}
+                            tugTypeSelectOptions={tugTypeSelectOptions}
+                            bargeTypeSelectOptions={bargeTypeSelectOptions}
+                            vesselNameOptions={vesselNameOptions}
+                            tugVesselNameOptions={tugVesselNameOptions}
+                            bargeVesselNameOptions={bargeVesselNameOptions}
+                            checklistOptions={checklistOptions}
+                            viewModeTimeObjects={viewModeTimeObjects}
+                            visibleDynamicEntityFields={visibleDynamicEntityFields}
+                            entityFieldValues={entityFieldValues}
+                            appointmentEmailName={appointmentEmailName}
+                            appointmentEmailUrl={appointmentEmailUrl}
+                            isSingleVesselSection={isSingleVesselSection}
+                            isTugAndBargeSelected={isTugAndBargeSelected}
+                            dailyReportEmailOptions={dailyReportEmailOptions}
+                            billingInstructionType={billingInstructionType}
+                            billingInstructionEmailOptions={billingInstructionEmailOptions}
+                          />
                         )}
                       </div>
                     </div>
@@ -6209,5 +6242,5 @@ General.propTypes = {
 };
 
 export default General;
-export { DailyTaskTodo };
+export { DailyTaskTodo, getOptionLabel, formatDateTime, splitApiDateTimeValue, firstNonEmptyString };
 
