@@ -131,7 +131,7 @@ function OnStationModal({ show, onClose }) {
 
     const cols = [
         {
-            name: <HeaderLabel label="VESSEL NAME" tooltipId="th-vessel-name" />,
+            name: <HeaderLabel label="Vessel Name" tooltipId="th-vessel-name" />,
             selector: 'vesselName',
             tableClasses: 'table-striped',
             sort: true,
@@ -147,7 +147,7 @@ function OnStationModal({ show, onClose }) {
             ),
         },
         {
-            name: <HeaderLabel label="CLIENT" tooltipId="th-client" />,
+            name: <HeaderLabel label="Client" tooltipId="th-client" />,
             selector: 'client',
             tableClasses: 'table-striped',
             sort: true,
@@ -163,7 +163,7 @@ function OnStationModal({ show, onClose }) {
             ),
         },
         {
-            name: <HeaderLabel label="OWNER NAME" tooltipId="th-owner-name" />,
+            name: <HeaderLabel label="Owner Name" tooltipId="th-owner-name" />,
             selector: 'ownerName',
             tableClasses: 'table-striped',
             sort: true,
@@ -179,7 +179,7 @@ function OnStationModal({ show, onClose }) {
             ),
         },
         {
-            name: <HeaderLabel label="VESSEL MANAGER" tooltipId="th-vessel-manager" />,
+            name: <HeaderLabel label="Vessel Manager" tooltipId="th-vessel-manager" />,
             selector: 'vesselManager',
             tableClasses: 'table-striped',
             sort: true,
@@ -195,7 +195,7 @@ function OnStationModal({ show, onClose }) {
             ),
         },
         {
-            name: <HeaderLabel label="IMPORT DATE" tooltipId="th-import-date" />,
+            name: <HeaderLabel label="Import Date" tooltipId="th-import-date" />,
             selector: 'importDate',
             tableClasses: 'table-striped',
             sort: true,
@@ -205,7 +205,7 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => <span>{props.row.import_date ?? props.row.importDate ?? '-'}</span>,
         },
         {
-            name: <HeaderLabel label="EXPORT DATE" tooltipId="th-export-date" />,
+            name: <HeaderLabel label="Export Date" tooltipId="th-export-date" />,
             selector: 'exportDate',
             tableClasses: 'table-striped',
             sort: true,
@@ -215,7 +215,7 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => <span>{props.row.export_date ?? props.row.exportDate ?? '-'}</span>,
         },
         {
-            name: <HeaderLabel label="ON STATION" tooltipId="th-on-station" />,
+            name: <HeaderLabel label="On Station" tooltipId="th-on-station" />,
             selector: 'actions',
             tableClasses: 'table-striped',
             contentClass: 'table-content',
