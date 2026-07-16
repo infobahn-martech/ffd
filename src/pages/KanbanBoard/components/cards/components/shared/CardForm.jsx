@@ -44,14 +44,13 @@ const ALL_TOP_TABS = [
   "Husbandry",
   "Sales Order",
   "Reports",
-  "KPI",
   "Document Library",
   "Comments",
   "Subtasks",
   "Notes",
 ];
 
-const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Document Library", "Comments", "Subtasks", "Notes"];
+const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "Document Library", "Comments", "Subtasks", "Notes"];
 
 const EXPORT_ONLY_TABS = ["Export Approval"];
 

@@ -1,20 +1,47 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
-import CrewPassRequestsTable from "./CrewPassRequestsTable";
+import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+import useMWPRenewalReducer from "../../../../../../../store/MWPRenewalReducer";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const DOCUMENTS_ACCEPT_ATTR = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
+
+const MWP_RENEWAL_REQUEST_COLUMNS = [
+  { key: "expiry_date", header: "Expiry Date", accessor: (r) => r?.expiry_date, type: "date" },
+  { key: "remarks", header: "Remarks", accessor: (r) => r?.remarks },
+  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
+  { key: "requested_date", header: "Requested", accessor: (r) => r?.created_date, type: "date" },
+  { key: "document", header: "Document", accessor: (r) => r?.document_url, type: "document" },
+];
 
 const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
   const requestEmailInputRef = useRef(null);
+
+  const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+  const {
+    mwpRenewalRequests,
+    isLoadingList,
+    isSaving,
+    getMwpRenewalRequests,
+    createMwpRenewalRequest,
+  } = useMWPRenewalReducer();
+
+  useEffect(() => {
+    void getMwpRenewalRequests(callId);
+  }, [callId, getMwpRenewalRequests]);
+
+  const mwpRenewalRequestRows = mwpRenewalRequests.map((row) => ({
+    ...row,
+    document_url: row?.request_email_url || row?.documents?.[0]?.file_url || "",
+  }));
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -146,8 +173,55 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const handleSave = () => {
-  };
+  const handleSave = useCallback(async () => {
+    if (!callId) {
+      notify("Call is required to save an MWP renewal request.", "error", "top-center");
+      return;
+    }
+    if (!formValues.mwpRenewalExpiryDate) {
+      notify("Expiry date is required.", "error", "top-center");
+      return;
+    }
+
+    const payload = {
+      call_id: Number(callId),
+      expiry_date: `${formValues.mwpRenewalExpiryDate} 00:00:00`,
+      remarks: formValues.mwpRenewalDescription || "",
+    };
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
+    const requestEmailFile = normalizeAttachmentList(
+      formValues.mwpRenewalRequestEmailDocuments || []
+    )[0]?.file;
+    if (requestEmailFile instanceof File) {
+      formData.append("request_email", requestEmailFile);
+    }
+
+    normalizeAttachmentList(formValues.mwpRenewalDocuments || []).forEach((attachment) => {
+      const file = attachment?.file ?? attachment;
+      if (file instanceof File) {
+        formData.append("attachments[]", file);
+      }
+    });
+
+    try {
+      const response = await createMwpRenewalRequest(formData);
+      notify(
+        response?.data?.message || "MWP renewal request created successfully",
+        "success",
+        "top-center"
+      );
+      await getMwpRenewalRequests(callId);
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to create MWP renewal request",
+        "error",
+        "top-center"
+      );
+    }
+  }, [callId, formValues, createMwpRenewalRequest, getMwpRenewalRequests]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.mwpRenewalRequestEmailDocuments || []
@@ -228,8 +302,8 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
                   </div>
 
                   <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button type="button" className="form-save-button" onClick={handleSave}>
-                      Save
+                    <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Save"}
                     </button>
                   </div>
                 </div>
@@ -237,11 +311,12 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="general-info-right crew-pass-requests-sidebar">
-              <CrewPassRequestsTable
+              <HusbandryServiceRequestsTable
                 title="MWP Renewal Requests"
-                requests={[]}
-                loading={false}
-                passType="MWP"
+                requests={mwpRenewalRequestRows}
+                loading={isLoadingList}
+                columns={MWP_RENEWAL_REQUEST_COLUMNS}
+                serviceType="MWP"
                 emptyMessage="No renewal requests found"
               />
             </div>

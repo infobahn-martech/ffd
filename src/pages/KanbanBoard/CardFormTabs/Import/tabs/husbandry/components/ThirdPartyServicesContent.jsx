@@ -1,15 +1,24 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
-import CrewPassRequestsTable from "./CrewPassRequestsTable";
+import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import thirdPartyService from "../../../../../../../services/thirdPartyService";
+import useThirdPartyServiceRequestReducer from "../../../../../../../store/ThirdPartyServiceRequestReducer";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const DOCUMENTS_ACCEPT_ATTR = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
+
+const THIRD_PARTY_REQUEST_COLUMNS = [
+  { key: "service_name", header: "Service Type", accessor: (r) => r?.service_name },
+  { key: "remarks", header: "Remarks", accessor: (r) => r?.remarks },
+  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
+  { key: "requested_date", header: "Requested", accessor: (r) => r?.created_date, type: "date" },
+  { key: "document", header: "Document", accessor: (r) => r?.document_url, type: "document" },
+];
 
 const unwrapApiList = (axiosData) => {
   const payload = axiosData?.data ?? axiosData;
@@ -26,6 +35,24 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
 
   const [thirdPartyServiceCatalog, setThirdPartyServiceCatalog] = useState([]);
   const [loadingThirdPartyServiceCatalog, setLoadingThirdPartyServiceCatalog] = useState(false);
+
+  const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+  const {
+    thirdPartyServiceRequests,
+    isLoadingList,
+    isSaving,
+    getThirdPartyServiceRequests,
+    createThirdPartyServiceRequest,
+  } = useThirdPartyServiceRequestReducer();
+
+  useEffect(() => {
+    void getThirdPartyServiceRequests(callId);
+  }, [callId, getThirdPartyServiceRequests]);
+
+  const thirdPartyServiceRequestRows = thirdPartyServiceRequests.map((row) => ({
+    ...row,
+    document_url: row?.request_email_url || row?.documents?.[0]?.file_url || "",
+  }));
 
   useEffect(() => {
     let cancelled = false;
@@ -193,8 +220,61 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
 
   const isOthersSelected = formValues.thirdPartyServiceType === "Others";
 
-  const handleSave = () => {
-  };
+  const handleSave = useCallback(async () => {
+    if (!callId) {
+      notify("Call is required to save a third-party service request.", "error", "top-center");
+      return;
+    }
+    if (!formValues.thirdPartyServiceType) {
+      notify("Service type is required.", "error", "top-center");
+      return;
+    }
+
+    const serviceTypeId = formValues.thirdPartyServiceType === "Others"
+      ? formValues.thirdPartyServiceType
+      : Number(formValues.thirdPartyServiceType);
+
+    const payload = {
+      call_id: Number(callId),
+      third_party_service_id: serviceTypeId,
+      third_party_service_type_other: formValues.thirdPartyServiceTypeOther || "",
+      po_number: formValues.thirdPartyPONumber || "",
+      remarks: formValues.thirdPartyServicesDescription || "",
+    };
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
+    const requestEmailFile = normalizeAttachmentList(
+      formValues.thirdPartyServicesRequestEmailDocuments || []
+    )[0]?.file;
+    if (requestEmailFile instanceof File) {
+      formData.append("request_email", requestEmailFile);
+    }
+
+    normalizeAttachmentList(formValues.thirdPartyServicesDocuments || []).forEach((attachment) => {
+      const file = attachment?.file ?? attachment;
+      if (file instanceof File) {
+        formData.append("attachments[]", file);
+      }
+    });
+
+    try {
+      const response = await createThirdPartyServiceRequest(formData);
+      notify(
+        response?.data?.message || "Third-party service request created successfully",
+        "success",
+        "top-center"
+      );
+      await getThirdPartyServiceRequests(callId);
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to create third-party service request",
+        "error",
+        "top-center"
+      );
+    }
+  }, [callId, formValues, createThirdPartyServiceRequest, getThirdPartyServiceRequests]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.thirdPartyServicesRequestEmailDocuments || []
@@ -302,8 +382,8 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                   </div>
 
                   <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button type="button" className="form-save-button" onClick={handleSave}>
-                      Save
+                    <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Save"}
                     </button>
                   </div>
                 </div>
@@ -311,11 +391,12 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="general-info-right crew-pass-requests-sidebar">
-              <CrewPassRequestsTable
+              <HusbandryServiceRequestsTable
                 title="Third-Party Service Requests"
-                requests={[]}
-                loading={false}
-                passType="THIRD_PARTY"
+                requests={thirdPartyServiceRequestRows}
+                loading={isLoadingList}
+                columns={THIRD_PARTY_REQUEST_COLUMNS}
+                serviceType="THIRD_PARTY"
                 emptyMessage="No service requests found"
               />
             </div>

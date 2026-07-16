@@ -1,14 +1,18 @@
-﻿import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect, useCallback } from "react";
 
 import PropTypes from "prop-types";
 
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
+
+import { notify } from "../../../../../../../components/Toaster";
 
 import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 
 import wasteTypeService from "../../../../../../../services/wasteTypeService";
+
+import useWasteDisposalReducer from "../../../../../../../store/WasteDisposalReducer";
 
 
 
@@ -44,7 +48,21 @@ const mergeWasteDisposalDateValue = (dateStr, timeStr) => {
 
 
 
+const toApiDateTime = (dateStr, timeStr) => {
+
+  if (!dateStr) return "";
+
+  return `${dateStr} ${timeStr || "00:00"}:00`;
+
+};
+
+
+
 const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
+
+  const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+
+  const { isSaving, createWasteDisposalRequest } = useWasteDisposalReducer();
 
   const [isDraggingRequestEmail, setIsDraggingRequestEmail] = useState(false);
 
@@ -318,10 +336,103 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
 
 
 
-  const handleSave = () => {
+  const handleSave = useCallback(async () => {
+
+    if (!callId) {
+
+      notify("Call is required to save a waste disposal request.", "error", "top-center");
+
+      return;
+
+    }
+
+    if (!formValues.wasteTypeId) {
+
+      notify("Waste type is required.", "error", "top-center");
+
+      return;
+
+    }
+
+    if (!formValues.wasteDisposalDate) {
+
+      notify("Disposal date is required.", "error", "top-center");
+
+      return;
+
+    }
 
 
-  };
+
+    const payload = {
+
+      call_id: Number(callId),
+
+      waste_type_id: Number(formValues.wasteTypeId),
+
+      disposal_date: toApiDateTime(disposalDateParts.date, disposalDateParts.time),
+
+      remarks: formValues.wasteDisposalDescription || "",
+
+      po_number: formValues.wasteDisposalPONumber || "",
+
+    };
+
+
+
+    const formData = new FormData();
+
+    formData.append("data", JSON.stringify(payload));
+
+
+
+    const requestEmailFile = requestEmailFiles[0];
+
+    if (requestEmailFile instanceof File) {
+
+      formData.append("request_email", requestEmailFile);
+
+    }
+
+
+
+    wasteDisposalDocumentsFiles.forEach((file) => {
+
+      if (file instanceof File) formData.append("documents[]", file);
+
+    });
+
+
+
+    try {
+
+      const response = await createWasteDisposalRequest(formData);
+
+      notify(
+
+        response?.data?.message || "Waste disposal request created successfully",
+
+        "success",
+
+        "top-center"
+
+      );
+
+    } catch (error) {
+
+      notify(
+
+        error?.response?.data?.message || "Failed to create waste disposal request",
+
+        "error",
+
+        "top-center"
+
+      );
+
+    }
+
+  }, [callId, formValues, disposalDateParts, requestEmailFiles, wasteDisposalDocumentsFiles, createWasteDisposalRequest]);
 
 
 
@@ -701,9 +812,9 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
 
               <div className="transport-save-footer">
 
-                <button type="button" className="form-save-button" onClick={handleSave}>
+                <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
 
-                  Save
+                  {isSaving ? "Saving..." : "Save"}
 
                 </button>
 

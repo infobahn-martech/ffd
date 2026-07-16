@@ -4169,6 +4169,30 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Waste Disposal / MWP Renewal / Third-Party Services / Launch Hire: field backgrounds */
+.waste-disposal-form,
+.mwp-renewal-form,
+.third-party-services-form,
+.launchhire-form {
+  .cf-input,
+  .cf-multi-select-email-input,
+  .document-upload-zone,
+  .attachment-list-wrapper .document-upload-zone,
+  .react-quill-wrapper .ql-toolbar.ql-snow,
+  .react-quill-wrapper .ql-container.ql-snow {
+    background: #f8faff;
+  }
+
+  .cf-datetime-picker .cf-datetime-input-field {
+
+    .MuiPickersInputBase-root,
+    .MuiOutlinedInput-root,
+    .MuiInputBase-root {
+      background: #f8faff;
+    }
+  }
+}
+
 /* Husbandry Transport / Hotel / Medical: compact left column (field rhythm, controls height) */
 .transport-form,
 .hotel-form,
