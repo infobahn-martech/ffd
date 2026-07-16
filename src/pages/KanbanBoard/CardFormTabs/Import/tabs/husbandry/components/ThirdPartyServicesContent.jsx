@@ -380,12 +380,6 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                       />
                     </FormField>
                   </div>
-
-                  <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
-                      {isSaving ? "Saving..." : "Save"}
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -399,6 +393,11 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                 serviceType="THIRD_PARTY"
                 emptyMessage="No service requests found"
               />
+              <div className="form-save-button-wrapper cgpass-save-footer">
+                <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

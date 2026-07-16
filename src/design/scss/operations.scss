@@ -3935,6 +3935,8 @@ $send-report-optional: #80868b;
     row-gap: 18px;
     align-items: stretch;
     width: 100%;
+    flex: 1;
+    min-height: 0;
     box-sizing: border-box;
   }
 
@@ -4706,7 +4708,8 @@ $send-report-optional: #80868b;
 .medicalservice-form,
 .third-party-services-form,
 .mwp-renewal-form,
-.launchhire-form {
+.launchhire-form,
+.waste-disposal-form {
   display: flex;
   flex-direction: column;
 

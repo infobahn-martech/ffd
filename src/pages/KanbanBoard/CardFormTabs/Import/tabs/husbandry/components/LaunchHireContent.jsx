@@ -446,15 +446,15 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor, card, onLaunch
                     </div>
                   )}
 
-                  <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button
-                      type="button"
-                      className="form-save-button"
-                      onClick={handleSave}
-                    >
-                      Save
-                    </button>
-                  </div>
+                </div>
+                <div className="form-save-button-wrapper cgpass-save-footer">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={handleSave}
+                  >
+                    Save
+                  </button>
                 </div>
               </div>
             </div>

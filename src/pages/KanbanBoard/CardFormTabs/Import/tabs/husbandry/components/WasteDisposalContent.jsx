@@ -808,18 +808,6 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
 
               </div>
 
-
-
-              <div className="transport-save-footer">
-
-                <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
-
-                  {isSaving ? "Saving..." : "Save"}
-
-                </button>
-
-              </div>
-
             </div>
 
 
@@ -847,6 +835,16 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
                   className="transport-remarks-quill"
 
                 />
+
+              </div>
+
+              <div className="transport-save-footer">
+
+                <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
+
+                  {isSaving ? "Saving..." : "Save"}
+
+                </button>
 
               </div>
 
