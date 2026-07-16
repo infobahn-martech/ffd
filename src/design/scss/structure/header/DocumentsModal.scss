@@ -482,15 +482,6 @@
   }
 }
 
-/* Table header label truncation */
-.table-header-label {
-  display: inline-block;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* On Station modal: fixed header/search/footer, only the table body scrolls */
 .on-station-modal {
   .documents-modal-body {
@@ -512,5 +503,15 @@
   .documents-footer {
     flex-shrink: 0;
     margin-top: 20px;
+  }
+
+  /* Light table header, full column names — no truncation, no sort arrows */
+  .documents-table .tb-head {
+    background-color: #f8f9fc;
+    color: #00368c;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
   }
 }

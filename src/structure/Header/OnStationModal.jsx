@@ -8,30 +8,10 @@ import useOnStationReducer from '../../store/OnStationReducer';
 import '../../design/scss/common.scss';
 import '../../design/scss/structure/header/DocumentsModal.scss';
 
-const HEADER_TRUNCATE_LENGTH = 9;
-
 const getRowId = (row) => row?.call_id ?? row?._id;
 
-// Column header: truncate after 9 chars with "..." and tooltip
-const HeaderLabel = ({ label, tooltipId }) => {
-    const isTruncated = label.length > HEADER_TRUNCATE_LENGTH;
-    const displayText = isTruncated ? label.substring(0, HEADER_TRUNCATE_LENGTH) + '..' : label;
-    return (
-        <>
-            <span
-                data-tooltip-id={isTruncated ? tooltipId : undefined}
-                data-tooltip-content={isTruncated ? label : undefined}
-                className="table-header-label"
-            >
-                {displayText}
-            </span>
-            {isTruncated && <Tooltip id={tooltipId} place="top" />}
-        </>
-    );
-};
-
-// Helper component for truncated text with tooltip (data cells: 11 chars)
-const TruncatedCell = ({ text, maxLength = 11, tooltipId }) => {
+// Helper component for truncated text with tooltip (falls back to "-" when empty)
+const TruncatedCell = ({ text, maxLength = 30, tooltipId }) => {
     if (!text) return <span>-</span>;
     const isTruncated = text.length > maxLength;
     const displayText = isTruncated ? text.substring(0, maxLength) + '...' : text;
@@ -152,98 +132,92 @@ function OnStationModal({ show, onClose }) {
 
     const cols = [
         {
-            name: <HeaderLabel label="Vessel Name" tooltipId="th-vessel-name" />,
+            name: 'Vessel Name',
             selector: 'vessel_name',
             tableClasses: 'table-striped',
-            sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
             width: '200',
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.vessel_name}
-                    maxLength={11}
+                    maxLength={30}
                     tooltipId={`vessel-${getRowId(props.row)}`}
                 />
             ),
         },
         {
-            name: <HeaderLabel label="Client" tooltipId="th-client" />,
+            name: 'Client',
             selector: 'billing_entity',
             tableClasses: 'table-striped',
-            sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
             width: '180',
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.billing_entity}
-                    maxLength={11}
+                    maxLength={30}
                     tooltipId={`client-${getRowId(props.row)}`}
                 />
             ),
         },
         {
-            name: <HeaderLabel label="Owner Name" tooltipId="th-owner-name" />,
+            name: 'Owner Name',
             selector: 'vessel_owner',
             tableClasses: 'table-striped',
-            sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
             width: '180',
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.vessel_owner}
-                    maxLength={11}
+                    maxLength={30}
                     tooltipId={`owner-${getRowId(props.row)}`}
                 />
             ),
         },
         {
-            name: <HeaderLabel label="Vessel Manager" tooltipId="th-vessel-manager" />,
+            name: 'Vessel Manager',
             selector: 'vessel_manager',
             tableClasses: 'table-striped',
-            sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
-            width: '140',
+            width: '170',
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.vessel_manager}
-                    maxLength={11}
+                    maxLength={30}
                     tooltipId={`manager-${getRowId(props.row)}`}
                 />
             ),
         },
         {
             // Import Port Call Custom Clearance Date (backend-derived, not computed here)
-            name: <HeaderLabel label="Import Date" tooltipId="th-import-date" />,
+            name: 'Import Date',
             selector: 'import_custom_clearance_date',
             tableClasses: 'table-striped',
-            sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
-            width: '140',
+            width: '150',
             cell: (props) => <span>{props.row.import_custom_clearance_date ?? '-'}</span>,
         },
         {
             // Export Port Call ATD (backend-derived, not computed here)
-            name: <HeaderLabel label="Export Date" tooltipId="th-export-date" />,
+            name: 'Export Date',
             selector: 'export_atd',
             tableClasses: 'table-striped',
-            sort: true,
             contentClass: 'table-content',
             thclass: 'tb-head',
-            width: '140',
+            width: '150',
             cell: (props) => <span>{props.row.export_atd ?? '-'}</span>,
         },
         {
-            name: <HeaderLabel label="On Station" tooltipId="th-on-station" />,
+            name: 'On Station',
             selector: 'is_enabled',
             tableClasses: 'table-striped',
             contentClass: 'table-content',
             thclass: 'tb-head',
-            width: '110',
+            width: '130',
             cell: (props) => {
                 const row = props.row;
                 const rowId = getRowId(row);
@@ -261,12 +235,12 @@ function OnStationModal({ show, onClose }) {
             },
         },
         {
-            name: <HeaderLabel label="Actions" tooltipId="th-actions" />,
+            name: 'Actions',
             selector: 'actions',
             tableClasses: 'table-striped',
             contentClass: 'table-content',
             thclass: 'tb-head',
-            width: '360',
+            width: '340',
             cell: (props) => {
                 const row = props.row;
                 const rowId = getRowId(row);
