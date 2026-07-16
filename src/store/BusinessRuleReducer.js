@@ -132,6 +132,24 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isLoadingBusinessRuleDetails: false,
+    businessRuleDetails: null,
+
+    getBusinessRuleById: async (businessRuleId) => {
+        try {
+            set({ isLoadingBusinessRuleDetails: true, businessRuleDetails: null });
+            const { data } = await businessRuleService.getBusinessRuleById(businessRuleId);
+            set({
+                businessRuleDetails: data?.data ?? null,
+                isLoadingBusinessRuleDetails: false,
+            });
+        } catch (err) {
+            set({ businessRuleDetails: null, isLoadingBusinessRuleDetails: false });
+        }
+    },
+
+    resetBusinessRuleDetails: () => set({ businessRuleDetails: null, isLoadingBusinessRuleDetails: false }),
+
     isLoadingTriggerConfig: false,
     triggerConfig: null,
 

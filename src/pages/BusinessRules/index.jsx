@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useBusinessRuleReducer from '../../store/BusinessRuleReducer';
 import BusinessRulesModal from '../../structure/SideNav/components/BusinessRulesModal';
+import BusinessRuleDetailsModal from './Modals/BusinessRuleDetailsModal';
 import './business-rules-page.scss';
 
 const FILTER_OPTIONS = [
@@ -47,6 +48,8 @@ const BusinessRules = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedRuleId, setSelectedRuleId] = useState(null);
 
   const { getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules } =
     useBusinessRuleReducer((s) => s);
@@ -170,7 +173,15 @@ const BusinessRules = () => {
                             &#8942;
                           </button>
                           <ul className="dropdown-menu dropdown-menu-end">
-                            <li><button className="dropdown-item" type="button">Edit</button></li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                type="button"
+                                onClick={() => { setSelectedRuleId(ruleId); setShowDetailsModal(true); }}
+                              >
+                                Edit
+                              </button>
+                            </li>
                             <li><button className="dropdown-item text-danger" type="button">Delete</button></li>
                           </ul>
                         </div>
@@ -212,6 +223,12 @@ const BusinessRules = () => {
       <BusinessRulesModal
         show={showAddModal}
         onClose={() => setShowAddModal(false)}
+      />
+
+      <BusinessRuleDetailsModal
+        show={showDetailsModal}
+        businessRuleId={selectedRuleId}
+        onClose={() => { setShowDetailsModal(false); setSelectedRuleId(null); }}
       />
     </div>
   );
