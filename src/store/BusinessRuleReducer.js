@@ -421,6 +421,24 @@ const useBusinessRuleReducer = create((set) => ({
             onSettled && onSettled();
         }
     },
+
+    isLoadingCreateSubtaskSettings: false,
+    createSubtaskSettings: null,
+
+    getCreateSubtaskSettings: async (createSubtaskId) => {
+        try {
+            set({ isLoadingCreateSubtaskSettings: true, createSubtaskSettings: null });
+            const { data } = await businessRuleService.getCreateSubtaskSettings(createSubtaskId);
+            set({
+                createSubtaskSettings: data?.data ?? null,
+                isLoadingCreateSubtaskSettings: false,
+            });
+        } catch (err) {
+            set({ createSubtaskSettings: null, isLoadingCreateSubtaskSettings: false });
+        }
+    },
+
+    resetCreateSubtaskSettings: () => set({ createSubtaskSettings: null, isLoadingCreateSubtaskSettings: false }),
 }));
 
 export default useBusinessRuleReducer;

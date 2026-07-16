@@ -3623,7 +3623,7 @@ WebInvokeSettingsModal.propTypes = {
   triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, users }) {
+function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, users }) {
   const [ownerUserId, setOwnerUserId] = useState('');
   const [deadlineDate, setDeadlineDate] = useState('');
   const [deadlineTime, setDeadlineTime] = useState('00:00');
@@ -3633,12 +3633,15 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, us
 
   useEffect(() => {
     if (!show) return;
-    setOwnerUserId(initialSettings?.ownerUserId ?? '');
-    const [datePart, timePart] = String(initialSettings?.deadline ?? '').split(' ');
+    const source = fetchedSettings
+      ? { ownerUserId: fetchedSettings.owner_user_id, deadline: fetchedSettings.deadline, description: fetchedSettings.description }
+      : initialSettings;
+    setOwnerUserId(source?.ownerUserId ?? '');
+    const [datePart, timePart] = String(source?.deadline ?? '').split(' ');
     setDeadlineDate(datePart ?? '');
     setDeadlineTime((timePart ?? '00:00').slice(0, 5));
-    setDescription(initialSettings?.description ?? '');
-  }, [show, initialSettings]);
+    setDescription(source?.description ?? '');
+  }, [show, initialSettings, fetchedSettings]);
 
   const handleSave = () => {
     const deadline = deadlineDate ? `${deadlineDate} ${deadlineTime || '00:00'}:00` : '';
@@ -3739,9 +3742,9 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, us
             type="button"
             className="br-property-add-btn"
             onClick={handleSave}
-            disabled={isSavingCreateSubtaskSettings}
+            disabled={isLoadingSettings || isSavingCreateSubtaskSettings}
           >
-            {isSavingCreateSubtaskSettings ? 'Saving...' : 'Save Sub Task'}
+            {isSavingCreateSubtaskSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save Sub Task')}
           </button>
         </footer>
       </div>
@@ -3759,6 +3762,14 @@ CreateSubtaskSettingsModal.propTypes = {
     description: PropTypes.string,
     createSubtaskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
+  fetchedSettings: PropTypes.shape({
+    create_subtask_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    then_action_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    owner_user_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    deadline: PropTypes.string,
+    description: PropTypes.string,
+  }),
+  isLoadingSettings: PropTypes.bool,
   users: PropTypes.array,
 };
 
@@ -4058,6 +4069,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
     timeUnits, getTimeUnits,
     deleteWebServiceSettings,
+    getCreateSubtaskSettings, createSubtaskSettings, isLoadingCreateSubtaskSettings, resetCreateSubtaskSettings,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -4175,6 +4187,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
     resetWebServiceSettings();
     setActiveInvokeActionId(null);
     setShowCreateSubtaskSettings(false);
+    resetCreateSubtaskSettings();
     setActiveCreateSubtaskActionId(null);
     setShowCancelConfirm(false);
     setRecurrenceUnit('days');
@@ -4939,6 +4952,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
   const handleOpenCreateSubtaskSettings = (id) => {
     setActiveCreateSubtaskActionId(id);
     setShowCreateSubtaskSettings(true);
+    const action = createActions.find((a) => a.id === id);
+    if (action?.createSubtaskId) {
+      getCreateSubtaskSettings(action.createSubtaskId);
+    } else {
+      resetCreateSubtaskSettings();
+    }
   };
 
   const handleSaveCreateSubtaskSettings = (settings) => {
@@ -6330,6 +6349,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave }) {
       onClose={() => setShowCreateSubtaskSettings(false)}
       onSave={handleSaveCreateSubtaskSettings}
       initialSettings={activeCreateSubtaskAction}
+      fetchedSettings={createSubtaskSettings}
+      isLoadingSettings={isLoadingCreateSubtaskSettings}
       users={users}
     />
 
