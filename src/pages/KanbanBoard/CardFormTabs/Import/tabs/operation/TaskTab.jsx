@@ -35,6 +35,15 @@ function getStatusProgress(status) {
   return STATUS_PROGRESS_MAP[status] ?? 0;
 }
 
+function getSectionInitials(title = "") {
+  const words = String(title).trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "?";
+  return words
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 function formatSadadExpiry(value) {
   if (!value) return "-";
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value).trim());
@@ -308,6 +317,9 @@ function OperationTasksPanel({
           {!isLoading && !error && taskSections.map((section) => (
             <li key={section.id} className="operation-task-section">
               <div className="operation-task-section-head">
+                <span className="operation-task-section-avatar" aria-hidden="true">
+                  {getSectionInitials(section.title)}
+                </span>
                 <h4 className="operation-task-section-title" id={`operation-task-section-${section.id}`}>
                   {section.title}
                 </h4>
