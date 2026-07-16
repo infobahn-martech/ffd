@@ -5,6 +5,7 @@ import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormGroup, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import useMWPRenewalReducer from "../../../../../../../store/MWPRenewalReducer";
 import { MAIN_TABS, SERVICE_ACCENT } from "./Husbandry.constants";
 
@@ -21,6 +22,27 @@ const MWP_RENEWAL_REQUEST_COLUMNS = [
   { key: "requested_date", header: "Requested", accessor: (r) => r?.created_date, type: "date" },
   { key: "document", header: "Document", accessor: (r) => r?.document_url, type: "document" },
 ];
+
+const parseMwpExpiryDateValue = (value) => {
+  const v = String(value || "").trim();
+  if (!v) return { date: "", time: "00:00" };
+  const mDate = v.match(/^(\d{4}-\d{2}-\d{2})/);
+  const datePart = mDate ? mDate[1] : "";
+  const mTime = v.match(/T(\d{2}:\d{2})/);
+  const timePart = mTime ? mTime[1] : "00:00";
+  return { date: datePart, time: timePart };
+};
+
+const mergeMwpExpiryDateValue = (dateStr, timeStr) => {
+  if (!dateStr) return "";
+  if (!timeStr || timeStr === "00:00") return dateStr;
+  return `${dateStr}T${timeStr}`;
+};
+
+const toApiDateTime = (dateStr, timeStr) => {
+  if (!dateStr) return "";
+  return `${dateStr} ${timeStr || "00:00"}:00`;
+};
 
 const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -176,6 +198,13 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
+  const expiryDateParts = parseMwpExpiryDateValue(formValues.mwpRenewalExpiryDate);
+
+  const handleExpiryDateTimeChange = (next) => {
+    const merged = mergeMwpExpiryDateValue(next?.date ?? "", next?.time ?? "");
+    handleChange("mwpRenewalExpiryDate")({ target: { value: merged } });
+  };
+
   const handleSave = useCallback(async () => {
     if (!callId) {
       notify("Call is required to save an MWP renewal request.", "error", "top-center");
@@ -188,7 +217,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
 
     const payload = {
       call_id: Number(callId),
-      expiry_date: `${formValues.mwpRenewalExpiryDate} 00:00:00`,
+      expiry_date: toApiDateTime(expiryDateParts.date, expiryDateParts.time),
       remarks: formValues.mwpRenewalDescription || "",
     };
 
@@ -224,7 +253,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, createMwpRenewalRequest, getMwpRenewalRequests]);
+  }, [callId, formValues, expiryDateParts, createMwpRenewalRequest, getMwpRenewalRequests]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.mwpRenewalRequestEmailDocuments || []
@@ -246,19 +275,6 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormGroup icon="calendar" label="Expiry Date" accent={MWP_RENEWAL_ACCENT}>
-                    <FormField>
-                      <div className="cf-input date-time-row">
-                        <input
-                          type="date"
-                          value={formValues.mwpRenewalExpiryDate || ""}
-                          onChange={handleChange("mwpRenewalExpiryDate")}
-                          placeholder="Select expiry date"
-                        />
-                      </div>
-                    </FormField>
-                  </FormGroup>
-
                   <FormGroup icon="mail" label="Request Email" accent={MWP_RENEWAL_ACCENT}>
                     <FormField>
                       <div className="transport-upload-box">
@@ -276,6 +292,21 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
                           onFileInputChange={handleRequestEmailFileInputChange}
                           accept={REQUEST_EMAIL_ACCEPT_ATTR}
                           multiple={false}
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="calendar" label="Expiry Date" accent={MWP_RENEWAL_ACCENT}>
+                    <FormField>
+                      <div className="transport-date-time-field">
+                        <DateTimePickerField
+                          dateValue={expiryDateParts.date}
+                          timeValue={expiryDateParts.time}
+                          onDateTimeChange={handleExpiryDateTimeChange}
+                          dateFieldName="mwpRenewalExpiryDate"
+                          timeFieldName="mwpRenewalExpiryDate"
+                          placeholder="Select date and time"
                         />
                       </div>
                     </FormField>
@@ -332,6 +363,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
                 columns={MWP_RENEWAL_REQUEST_COLUMNS}
                 serviceType="MWP"
                 emptyMessage="No renewal requests found"
+                accent={MWP_RENEWAL_ACCENT}
               />
             </div>
           </div>
