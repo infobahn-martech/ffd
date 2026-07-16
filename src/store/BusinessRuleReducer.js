@@ -422,6 +422,25 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isDeletingCreateSubtaskSettings: false,
+
+    deleteCreateSubtaskSettings: async (createSubtaskId, { cb, onSettled } = {}) => {
+        try {
+            set({ isDeletingCreateSubtaskSettings: true });
+            const { data } = await businessRuleService.deleteCreateSubtaskSettings(createSubtaskId);
+            set({ isDeletingCreateSubtaskSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Create subtask settings removed.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isDeletingCreateSubtaskSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isLoadingCreateSubtaskSettings: false,
     createSubtaskSettings: null,
 
