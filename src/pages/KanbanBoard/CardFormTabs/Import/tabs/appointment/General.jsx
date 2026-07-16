@@ -804,6 +804,22 @@ const DocumentUpload = ({
           ) : (
             <>
               <div className="upload-icon-wrapper">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M7 18a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 17.3 7.02 4.5 4.5 0 0 1 17 18H7Z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 10.5v6M9.5 12.8 12 10.3l2.5 2.5"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
               <div className="upload-text-content">
                 <p className="upload-main-text">
@@ -1493,17 +1509,23 @@ const DailyTaskTodo = ({ tasks = [], accentColor, isLoading = false, error = "" 
                         <span style={{ color: "#fff", fontSize: "10px", lineHeight: 1 }}>•</span>
                       </div>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
+                    <div className="daily-task-item-body">
                       <span className="daily-task-text">{task.text}</span>
-                      <div style={{ fontSize: "11px", color: "#666" }}>
+                      <div className="daily-task-meta-line">
                         {task.startTime && <span>Start: {formatTaskDateTime(task.startTime)}</span>}
                         {task.dueTime && <span> | Due: {formatTaskDateTime(task.dueTime)}</span>}
                         {task.completedTime && <span> | Completed: {formatTaskDateTime(task.completedTime)}</span>}
                       </div>
-                      <div style={{ fontSize: "11px", fontWeight: 600, color: task.statusColor || "#666" }}>
-                        {task.status || "PENDING"}
-                        {task.delayText ? ` - ${task.delayText}` : ""}
-                      </div>
+                      <span
+                        className={`daily-task-status-badge ${task.delayText ? "daily-task-status-badge--delayed" : ""}`}
+                      >
+                        <span
+                          className="daily-task-status-dot"
+                          style={{ backgroundColor: task.statusColor || "#666" }}
+                        />
+                        <span style={{ color: task.statusColor || "#666" }}>{task.status || "PENDING"}</span>
+                        {task.delayText && <span className="daily-task-status-delay">{task.delayText}</span>}
+                      </span>
                     </div>
                   </div>
                 ))
@@ -1513,9 +1535,14 @@ const DailyTaskTodo = ({ tasks = [], accentColor, isLoading = false, error = "" 
 
           {normalizedTasks.length > 0 && (
             <div className="daily-task-summary">
-              <span className="daily-task-summary-text">
-                {completedCount} of {totalCount} completed
-              </span>
+              <div className="daily-task-summary-row">
+                <span className="daily-task-summary-text">
+                  {completedCount} of {totalCount} completed
+                </span>
+                <span className="daily-task-summary-pct">
+                  {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
+                </span>
+              </div>
               <div className="daily-task-progress-bar">
                 <div
                   className="daily-task-progress-fill"

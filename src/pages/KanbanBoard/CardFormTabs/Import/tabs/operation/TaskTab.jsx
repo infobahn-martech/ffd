@@ -35,6 +35,15 @@ function getStatusProgress(status) {
   return STATUS_PROGRESS_MAP[status] ?? 0;
 }
 
+function getSectionInitials(title = "") {
+  const words = String(title).trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "?";
+  return words
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 function formatSadadExpiry(value) {
   if (!value) return "-";
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value).trim());
@@ -265,6 +274,145 @@ MwpInfoPanel.propTypes = {
   mwpSubscriptionTaxInvoice: PropTypes.string,
 };
 
+function TaskRow({ task }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const detailsId = `operation-task-details-${task.id}`;
+
+  return (
+    <li className="operation-task-row operation-task-row--nested" role="listitem">
+      <button
+        type="button"
+        className="operation-task-row-header"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        aria-controls={detailsId}
+      >
+        <div className="operation-task-row-main">
+          <span className="operation-task-name">{task.title}</span>
+          <TaskStatusBadge status={task.status} />
+        </div>
+        <ChevronIcon isOpen={isOpen} />
+      </button>
+
+      <div
+        id={detailsId}
+        className={`operation-task-row-details-wrapper${isOpen ? " operation-task-row-details-wrapper--open" : ""}`}
+        aria-hidden={!isOpen}
+      >
+        <div className="operation-task-row-details-inner">
+          <div className="operation-task-row-details">
+            <p className="operation-task-detail-line">
+              <span className="operation-task-detail-label">Assigned User:</span>{" "}
+              <span className="operation-task-detail-value">
+                {task.assignedTo || "Unassigned"}
+              </span>
+            </p>
+            <p className="operation-task-detail-line">
+              <span className="operation-task-detail-label">Documents:</span>{" "}
+              <span className="operation-task-detail-value">
+                {task.documentCount ?? 0}
+              </span>
+            </p>
+            <TaskProgressIndicator status={task.status} progress={task.progress} />
+            {(String(task.id) === "6" || task.title === "Applying MWP") && (
+              <MwpInfoPanel
+                mwpApplicationNo={task.mwpApplicationNo}
+                sadadNo={task.sadadNo}
+                sadadDocument={task.sadadDocument}
+                sadadExpiry={task.sadadExpiry}
+                mwpSubscriptionSadadNo={task.mwpSubscriptionSadadNo}
+                mwpSubscriptionSadadDoc={task.mwpSubscriptionSadadDoc}
+                mwpCopy={task.mwpCopy}
+                mwpSubscriptionTaxInvoice={task.mwpSubscriptionTaxInvoice}
+              />
+            )}
+            <TaskDocumentsAccordion documents={task.documents} taskId={task.id} />
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+TaskRow.propTypes = {
+  task: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    title: PropTypes.string.isRequired,
+    assignedTo: PropTypes.string,
+    status: PropTypes.string,
+    documentCount: PropTypes.number,
+    progress: PropTypes.number,
+    mwpApplicationNo: PropTypes.string,
+    sadadNo: PropTypes.string,
+    sadadDocument: PropTypes.string,
+    sadadExpiry: PropTypes.string,
+    mwpSubscriptionSadadNo: PropTypes.string,
+    mwpSubscriptionSadadDoc: PropTypes.string,
+    mwpCopy: PropTypes.string,
+    mwpSubscriptionTaxInvoice: PropTypes.string,
+    documents: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        name: PropTypes.string.isRequired,
+        status: PropTypes.string,
+      })
+    ),
+  }).isRequired,
+};
+
+function TaskSection({ section }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const listId = `operation-task-section-list-${section.id}`;
+  const taskCount = Array.isArray(section.tasks) ? section.tasks.length : 0;
+
+  return (
+    <li className="operation-task-section">
+      <button
+        type="button"
+        className="operation-task-section-head"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        aria-controls={listId}
+      >
+        <span className="operation-task-section-avatar" aria-hidden="true">
+          {getSectionInitials(section.title)}
+        </span>
+        <h4 className="operation-task-section-title" id={`operation-task-section-${section.id}`}>
+          {section.title}
+        </h4>
+        <span className="operation-task-section-count">{taskCount}</span>
+        <ChevronIcon isOpen={isOpen} />
+      </button>
+
+      <div
+        id={listId}
+        className={`operation-task-section-collapse${isOpen ? " operation-task-section-collapse--open" : ""}`}
+        aria-hidden={!isOpen}
+      >
+        <div className="operation-task-section-collapse-inner">
+          <ul
+            className="operation-task-section-list"
+            role="list"
+            aria-labelledby={`operation-task-section-${section.id}`}
+          >
+            {section.tasks.map((task) => (
+              <TaskRow key={task.id} task={task} />
+            ))}
+          </ul>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+TaskSection.propTypes = {
+  section: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    title: PropTypes.string.isRequired,
+    tasks: PropTypes.array.isRequired,
+  }).isRequired,
+};
+
 function OperationTasksPanel({
   cardColor,
   isViewOnly = false,
@@ -306,56 +454,7 @@ function OperationTasksPanel({
             </li>
           ) : null}
           {!isLoading && !error && taskSections.map((section) => (
-            <li key={section.id} className="operation-task-section">
-              <div className="operation-task-section-head">
-                <h4 className="operation-task-section-title" id={`operation-task-section-${section.id}`}>
-                  {section.title}
-                </h4>
-              </div>
-
-              <ul
-                className="operation-task-section-list"
-                role="list"
-                aria-labelledby={`operation-task-section-${section.id}`}
-              >
-                {section.tasks.map((task) => (
-                  <li key={task.id} className="operation-task-row operation-task-row--nested" role="listitem">
-                    <div className="operation-task-row-main">
-                      <span className="operation-task-name">{task.title}</span>
-                      <TaskStatusBadge status={task.status} />
-                    </div>
-                    <div className="operation-task-row-details">
-                      <p className="operation-task-detail-line">
-                        <span className="operation-task-detail-label">Assigned User:</span>{" "}
-                        <span className="operation-task-detail-value">
-                          {task.assignedTo || "Unassigned"}
-                        </span>
-                      </p>
-                      <p className="operation-task-detail-line">
-                        <span className="operation-task-detail-label">Documents:</span>{" "}
-                        <span className="operation-task-detail-value">
-                          {task.documentCount ?? 0}
-                        </span>
-                      </p>
-                      <TaskProgressIndicator status={task.status} progress={task.progress} />
-                      {(String(task.id) === "6" || task.title === "Applying MWP") && (
-                        <MwpInfoPanel
-                          mwpApplicationNo={task.mwpApplicationNo}
-                          sadadNo={task.sadadNo}
-                          sadadDocument={task.sadadDocument}
-                          sadadExpiry={task.sadadExpiry}
-                          mwpSubscriptionSadadNo={task.mwpSubscriptionSadadNo}
-                          mwpSubscriptionSadadDoc={task.mwpSubscriptionSadadDoc}
-                          mwpCopy={task.mwpCopy}
-                          mwpSubscriptionTaxInvoice={task.mwpSubscriptionTaxInvoice}
-                        />
-                      )}
-                      <TaskDocumentsAccordion documents={task.documents} taskId={task.id} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </li>
+            <TaskSection key={section.id} section={section} />
           ))}
         </ul>
       </div>

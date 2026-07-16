@@ -330,11 +330,18 @@
   padding: 8px 10px;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.cardform-tabs .tab:not(.active):not(.disabled):hover {
+  background: rgba(109, 94, 245, 0.08);
+  color: #4f46e5;
 }
 
 .cardform-tabs .tab.active {
   background: #ffffff;
-  color: #222;
+  color: #4f46e5;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
 .cardform-tabs .tab.disabled {
@@ -404,6 +411,18 @@
 /* ==========================================================
     SECTION STYLE (ACCORDION LOOK BUT ALWAYS OPEN)
    ========================================================== */
+@keyframes cf-section-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .cf-section {
   background: #ffffff;
   border-radius: 12px;
@@ -411,36 +430,49 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f0f0f0;
   overflow: hidden;
+  animation: cf-section-fade-in 0.3s ease both;
 }
 
 .cf-section-header {
+  position: relative;
   padding: 14px 18px;
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(to right, #f8f9ff 0%, #ffffff 100%);
+  background: linear-gradient(to right, #f2f1ff 0%, #ffffff 65%);
   border-bottom: 1px solid #f0f0f0;
+}
+
+.cf-section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #6d5ef5 0%, #4f46e5 100%);
 }
 
 /* FIX 1 — remove blue BG from icons */
 .cf-section-icon {
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent !important;
+  border-radius: 8px;
+  background: rgba(109, 94, 245, 0.12) !important;
 }
 
 .cf-section-icon img {
-  width: 16px;
-  height: 16px;
-  filter: brightness(0) saturate(0%) opacity(0.7);
+  width: 15px;
+  height: 15px;
+  filter: brightness(0) saturate(0%) opacity(0.75);
 }
 
 .cf-section-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1a1a1a;
   letter-spacing: 0.01em;
 }
@@ -733,10 +765,11 @@
   border-color: #c5c5d1;
 }
 
-/* .cf-input:focus-within {
-  border-color: #3e5cb6;
-  background: #fafaff;
-} */
+.cf-input:focus-within {
+  border-color: #6d5ef5;
+  background: #fbfaff;
+  box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.14);
+}
 
 .cf-input input,
 .cf-input select {
@@ -1032,6 +1065,18 @@
   display: flex;
 }
 
+@keyframes general-panel-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .general-add-form-panel {
   display: flex;
   flex-direction: column;
@@ -1043,6 +1088,7 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
   overflow: hidden;
   min-width: 0;
+  animation: general-panel-fade-in 0.35s ease both;
 }
 
 .general-add-form-scroll {
@@ -1261,6 +1307,7 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  animation: general-panel-fade-in 0.35s ease 0.05s both;
 }
 
 .general-add-preview-panel.general-add-preview-panel--split-scroll {
@@ -1344,6 +1391,10 @@
   font-size: 18px;
   font-weight: 700;
   color: #111827;
+  background: linear-gradient(90deg, #4f46e5, #6d5ef5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .email-preview-topbar-status {
@@ -1372,6 +1423,7 @@
 }
 
 .email-preview-card {
+  position: relative;
   flex: 0 1 auto;
   min-height: 300px;
   width: 100%;
@@ -1381,6 +1433,22 @@
   background: #fff;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.25s ease;
+}
+
+.email-preview-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6d5ef5 0%, #4f46e5 50%, #22c55e 100%);
+}
+
+.email-preview-card:hover {
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
 }
 
 .email-preview-content {
@@ -1397,6 +1465,11 @@
   gap: 12px;
   padding: 12px 14px;
   border-bottom: 1px solid #edf0f4;
+  transition: background 0.15s ease;
+}
+
+.email-preview-meta .email-preview-row:hover {
+  background: #f8f8ff;
 }
 
 .email-preview-row-label {
@@ -1435,8 +1508,9 @@
 }
 
 .email-preview-inline-input:focus {
-  border-color: #cfd8e3;
+  border-color: #6d5ef5;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.14);
 }
 
 .email-preview-bcc-link {
