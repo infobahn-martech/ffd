@@ -240,8 +240,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
     const payload = {
       call_id: Number(callId),
       third_party_service_id: serviceTypeId,
-      third_party_service_type_other: formValues.thirdPartyServiceTypeOther || "",
-      po_number: formValues.thirdPartyPONumber || "",
+      others: formValues.thirdPartyServiceTypeOther || "",
       remarks: formValues.thirdPartyServicesDescription || "",
     };
 
@@ -299,21 +298,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormGroup icon="list" label="Service Type" accent={THIRD_PARTY_ACCENT}>
-                    <FormField>
-                      <FormSelect
-                        value={formValues.thirdPartyServiceType || ""}
-                        onChange={handleChange("thirdPartyServiceType")}
-                        options={serviceTypeOptions}
-                        placeholder={
-                          loadingThirdPartyServiceCatalog
-                            ? "Loading service types..."
-                            : "Select service type..."
-                        }
-                        disabled={loadingThirdPartyServiceCatalog}
-                      />
-                    </FormField>
-                  </FormGroup>
+              
 
                   {isOthersSelected && (
                     <FormField label="Specify Other Service Type">
@@ -327,19 +312,6 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
                     </FormField>
                   )}
-
-                  <FormGroup icon="billing" label="PO Number" accent={THIRD_PARTY_ACCENT}>
-                    <FormField>
-                      <div className="cf-input">
-                        <input
-                          type="text"
-                          value={formValues.thirdPartyPONumber || ""}
-                          onChange={handleChange("thirdPartyPONumber")}
-                          placeholder="Enter PO number..."
-                        />
-                      </div>
-                    </FormField>
-                  </FormGroup>
 
                   <FormGroup icon="mail" label="Request Email" accent={THIRD_PARTY_ACCENT}>
                     <FormField>
@@ -360,6 +332,21 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                           multiple={false}
                         />
                       </div>
+                    </FormField>
+                  </FormGroup>
+                      <FormGroup icon="list" label="Service Type" accent={THIRD_PARTY_ACCENT}>
+                    <FormField>
+                      <FormSelect
+                        value={formValues.thirdPartyServiceType || ""}
+                        onChange={handleChange("thirdPartyServiceType")}
+                        options={serviceTypeOptions}
+                        placeholder={
+                          loadingThirdPartyServiceCatalog
+                            ? "Loading service types..."
+                            : "Select service type..."
+                        }
+                        disabled={loadingThirdPartyServiceCatalog}
+                      />
                     </FormField>
                   </FormGroup>
 

@@ -254,6 +254,11 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
     .filter(Boolean);
   appendJsonArray(fd, "checklist_type_ids", checklistIds);
 
+  const bargeChecklistIds = (Array.isArray(fv.bargeSelectedChecklists) ? fv.bargeSelectedChecklists : [])
+    .map((id) => str(id))
+    .filter(Boolean);
+  appendJsonArray(fd, "barge_checklist_type_ids", bargeChecklistIds);
+
   // Backend rule: daily_report_emails / billing_instruction_emails are only populated for
   // instruction_type "Email" — otherwise they must be empty and billing_instruction_det carries the text.
   const instructionType = str(fv.instruction_type);

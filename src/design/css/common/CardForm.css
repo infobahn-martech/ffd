@@ -1098,7 +1098,6 @@
   right: 0;
   top: 0;
   height: 3px;
-  border-radius: 18px 18px 0 0;
   background: linear-gradient(90deg, #6d5ef5 0%, #4f46e5 50%, #22c55e 100%);
   z-index: 3;
   pointer-events: none;
@@ -1331,7 +1330,6 @@
   right: 0;
   top: 0;
   height: 3px;
-  border-radius: 18px 18px 0 0;
   background: linear-gradient(90deg, #6d5ef5 0%, #4f46e5 50%, #22c55e 100%);
   z-index: 3;
   pointer-events: none;

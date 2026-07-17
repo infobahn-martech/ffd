@@ -148,6 +148,13 @@ function GeneralViewAppointmentDetails({
     .map((id) => getOptionLabel(checklistOptions, id) || String(id))
     .filter(Boolean);
 
+  const bargeSelectedChecklists = Array.isArray(getFieldValue("bargeSelectedChecklists"))
+    ? getFieldValue("bargeSelectedChecklists")
+    : [];
+  const bargeChecklistLabels = bargeSelectedChecklists
+    .map((id) => getOptionLabel(checklistOptions, id) || String(id))
+    .filter(Boolean);
+
   const dailyReportEmails = Array.isArray(getFieldValue("dailyReportEmail"))
     ? getFieldValue("dailyReportEmail")
     : [];
@@ -240,7 +247,6 @@ function GeneralViewAppointmentDetails({
         {shouldShowApiField("main_billing_entity_id") && (
           <DetailRow label="Last Port" value={getFieldValue("lastPort")} />
         )}
-        <DetailRow label="Checklist" span value={<DetailChips items={checklistLabels} />} />
         {visibleDynamicEntityFields.map((field) => (
           <DetailRow key={field.field_id} label={field.field_name} value={entityFieldValues[field.field_id]} />
         ))}
@@ -257,6 +263,7 @@ function GeneralViewAppointmentDetails({
             />
             <DetailRow label="Vessel Owner" value={getFieldValue("vesselOwner")} />
             <DetailRow label="Vessel Charterer" value={getFieldValue("vesselPrincipal")} />
+            <DetailRow label="Checklist" span value={<DetailChips items={checklistLabels} />} />
           </>
         ) : isTugAndBargeSelected ? (
           <>
@@ -270,6 +277,7 @@ function GeneralViewAppointmentDetails({
             <DetailRow label="Vessel Owner" value={getFieldValue("tugOwner")} />
             <DetailRow label="Vessel Charterer" value={getFieldValue("tugPrincipal")} />
             <DetailRow label="Vessel Manager" value={getFieldValue("tugManager")} />
+            <DetailRow label="Checklist" span value={<DetailChips items={checklistLabels} />} />
 
             <DetailSubsectionTitle>Barge Information</DetailSubsectionTitle>
             <DetailRow label="Vessel Type" value={getOptionLabel(bargeTypeSelectOptions, getFieldValue("bargeType"))} />
@@ -281,6 +289,7 @@ function GeneralViewAppointmentDetails({
             <DetailRow label="Vessel Owner" value={getFieldValue("bargeOwner")} />
             <DetailRow label="Vessel Charterer" value={getFieldValue("bargePrincipal")} />
             <DetailRow label="Vessel Manager" value={getFieldValue("bargeManager")} />
+            <DetailRow label="Checklist" span value={<DetailChips items={bargeChecklistLabels} />} />
           </>
         ) : null}
 

@@ -325,6 +325,11 @@ const mapCallDetailToFormFields = (detail) => {
     : Array.isArray(detail?.checklists)
       ? detail.checklists.map((item) => String(item?.checklist_type_id ?? item ?? "").trim()).filter(Boolean)
       : [];
+  const bargeSelectedChecklists = Array.isArray(detail?.barge_checklist_type_ids)
+    ? detail.barge_checklist_type_ids.map((item) => String(item?.checklist_type_id ?? item ?? "").trim()).filter(Boolean)
+    : Array.isArray(detail?.barge_checklists)
+      ? detail.barge_checklists.map((item) => String(item?.checklist_type_id ?? item ?? "").trim()).filter(Boolean)
+      : [];
 
   const detailAppointmentType = normalizeAppointmentTypeValue(
     detail?.appointment_type,
@@ -344,6 +349,7 @@ const mapCallDetailToFormFields = (detail) => {
     lastPort: detail?.last_port != null ? String(detail.last_port) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
     selectedChecklists,
+    bargeSelectedChecklists,
     appointmentType: detailAppointmentType,
     ...mapDetailVesselFields(detail, detailAppointmentType),
     serviceRequestorName: detail?.service_requestor_name ? String(detail.service_requestor_name) : "",
@@ -3266,8 +3272,10 @@ function General({
       // Switching into Tug and barge: drop the single-section values.
       clearFields(singleVesselKeys);
     } else {
-      // Switching into Taxi Tug / Vessel: drop the tug & barge sub-section values.
+      // Switching into Taxi Tug / Vessel: drop the tug & barge sub-section values, including the
+      // Barge Information checklist selection — the Barge section no longer renders.
       clearFields(tugAndBargeKeys);
+      clearFields(["bargeSelectedChecklists"]);
       // The single-section "Vessel type" catalogue differs between the tug source (Taxi Tug)
       // and the vessel source (Vessel), so a previously selected id is invalid across that boundary.
       if (appointmentTypeUsesTugTypeSource(prevType) !== appointmentTypeUsesTugTypeSource(nextType)) {
@@ -4410,8 +4418,13 @@ ${body}
     ? previewSelectedChecklists.filter(Boolean)
     : [];
   const previewChecklistTypeIdsKey = previewChecklistTypeIds.join(",");
+  const previewBargeSelectedChecklists = getFieldValue("bargeSelectedChecklists");
+  const previewBargeChecklistTypeIds = Array.isArray(previewBargeSelectedChecklists)
+    ? previewBargeSelectedChecklists.filter(Boolean)
+    : [];
+  const previewBargeChecklistTypeIdsKey = previewBargeChecklistTypeIds.join(",");
 
-  // Checklist options depend only on Call Type + Port; refetch and clear the selection whenever either changes.
+  // Checklist options depend only on Call Type + Port; refetch and clear both selections whenever either changes.
   useEffect(() => {
     if (!previewCallTypeId || !previewPortId) {
       checklistRequestIdRef.current += 1;
@@ -4427,6 +4440,7 @@ ${body}
     lastChecklistFetchKeyRef.current = fetchKey;
     if (isRefetch) {
       handleChange("selectedChecklists")({ target: { value: [], name: "selectedChecklists" } });
+      handleChange("bargeSelectedChecklists")({ target: { value: [], name: "bargeSelectedChecklists" } });
     }
 
     const requestId = (checklistRequestIdRef.current += 1);
@@ -4461,6 +4475,7 @@ ${body}
       last_port: previewLastPort,
       time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
       checklist_type_ids: previewChecklistTypeIds,
+      barge_checklist_type_ids: previewBargeChecklistTypeIds,
     }),
     [
       previewVesselId,
@@ -4475,6 +4490,7 @@ ${body}
       stageTimeObjects,
       stageTimeObjectValues,
       previewChecklistTypeIdsKey,
+      previewBargeChecklistTypeIdsKey,
     ]
   );
   const etaTimeObjectId = useMemo(() => {
@@ -4653,6 +4669,7 @@ ${body}
           last_port: previewLastPort,
           time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
           checklist_type_ids: previewChecklistTypeIds,
+          barge_checklist_type_ids: previewBargeChecklistTypeIds,
         });
         if (cancelled) return;
         const resolved = resolveEmailPreviewPayload(data);
@@ -4696,6 +4713,7 @@ ${body}
     stageTimeObjectValues,
     stageTimeObjects,
     previewChecklistTypeIdsKey,
+    previewBargeChecklistTypeIdsKey,
     isPreviewMessageDirty,
     populateEditablePreviewFields,
     resetTouchedPreviewFields,
@@ -5624,20 +5642,6 @@ ${body}
                                   />
                                 </FormField>
                               )}
-                              <FormField label="Select Checklist" className="cf-select-checklist-field">
-                                <MultiSelectField
-                                  name="selectedChecklists"
-                                  value={Array.isArray(getFieldValue("selectedChecklists")) ? getFieldValue("selectedChecklists") : []}
-                                  onChange={handleChange("selectedChecklists")}
-                                  options={checklistOptions}
-                                  placeholder={checklistLoading ? "Loading checklists..." : "Select checklists"}
-                                  disabled={isDisabled || checklistLoading}
-                                  className="checklist-multi-select"
-                                  menuMaxHeight={260}
-                                  isLoading={checklistLoading}
-                                  emptyMessage="No checklists found"
-                                />
-                              </FormField>
 
                               {entityFieldsLoading && (
                                 <FormField label="">
@@ -5784,6 +5788,23 @@ ${body}
                                 </FormField>
                               )}
 
+                              {isSingleVesselSection && (
+                                <FormField label="Select Checklist" className="cf-select-checklist-field">
+                                  <MultiSelectField
+                                    name="selectedChecklists"
+                                    value={Array.isArray(getFieldValue("selectedChecklists")) ? getFieldValue("selectedChecklists") : []}
+                                    onChange={handleChange("selectedChecklists")}
+                                    options={checklistOptions}
+                                    placeholder={checklistLoading ? "Loading checklists..." : "Select checklists"}
+                                    disabled={isDisabled || checklistLoading}
+                                    className="checklist-multi-select"
+                                    menuMaxHeight={260}
+                                    isLoading={checklistLoading}
+                                    emptyMessage="No checklists found"
+                                  />
+                                </FormField>
+                              )}
+
                               {isTugAndBargeSelected && (
                                 <>
                                   <div className="cf-vessel-subsection">
@@ -5875,6 +5896,21 @@ ${body}
                                         />
                                       </FormField>
                                     )}
+
+                                    <FormField label="Select Checklist" className="cf-select-checklist-field">
+                                      <MultiSelectField
+                                        name="selectedChecklists"
+                                        value={Array.isArray(getFieldValue("selectedChecklists")) ? getFieldValue("selectedChecklists") : []}
+                                        onChange={handleChange("selectedChecklists")}
+                                        options={checklistOptions}
+                                        placeholder={checklistLoading ? "Loading checklists..." : "Select checklists"}
+                                        disabled={isDisabled || checklistLoading}
+                                        className="checklist-multi-select"
+                                        menuMaxHeight={260}
+                                        isLoading={checklistLoading}
+                                        emptyMessage="No checklists found"
+                                      />
+                                    </FormField>
                                   </div>
 
                                   <div className="cf-vessel-subsection">
@@ -5966,6 +6002,21 @@ ${body}
                                         />
                                       </FormField>
                                     )}
+
+                                    <FormField label="Select Checklist" className="cf-select-checklist-field">
+                                      <MultiSelectField
+                                        name="bargeSelectedChecklists"
+                                        value={Array.isArray(getFieldValue("bargeSelectedChecklists")) ? getFieldValue("bargeSelectedChecklists") : []}
+                                        onChange={handleChange("bargeSelectedChecklists")}
+                                        options={checklistOptions}
+                                        placeholder={checklistLoading ? "Loading checklists..." : "Select checklists"}
+                                        disabled={isDisabled || checklistLoading}
+                                        className="checklist-multi-select"
+                                        menuMaxHeight={260}
+                                        isLoading={checklistLoading}
+                                        emptyMessage="No checklists found"
+                                      />
+                                    </FormField>
                                   </div>
                                 </>
                               )}
