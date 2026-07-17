@@ -532,7 +532,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
           ) : (
             <div className="crew-table-wrapper">
               <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
-                <table className="table table-striped crew-table crew-list-table crew-summary-table" style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}>
+                <table className="table table-striped crew-table crew-immigration-listing-table" style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}>
                   <thead>
                     <tr>
                       <th><span className="crew-th">Crew name</span></th>

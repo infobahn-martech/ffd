@@ -736,9 +736,9 @@
   width: 32px;
   padding: 0;
   border-radius: 999px;
-  background: #0f172a;
+  background: var(--card-color, #00368c);
   color: #ffffff;
-  border-color: #0f172a;
+  border-color: var(--card-color, #00368c);
   box-shadow: none;
 }
 
@@ -2532,6 +2532,53 @@
 
 .crew-immigration-add-batch-btn:hover {
   background: color-mix(in srgb, var(--card-color, #00368c) 8%, #ffffff);
+}
+
+/* Crew Immigration's Crew Listing table has 6 columns and no leading
+   checkbox column, unlike Crew Management's 14-column .crew-summary-table
+   (whose nth-child width rules it would otherwise inherit via the shared
+   .crew-table class, throwing the columns badly out of balance — Crew name
+   picking up every leftover pixel). Compound selectors here so they win
+   over .crew-table's own nth-child widths regardless of source order. */
+.crew-table.crew-immigration-listing-table {
+  min-width: 0;
+}
+
+.crew-table.crew-immigration-listing-table th:nth-child(1),
+.crew-table.crew-immigration-listing-table td:nth-child(1) {
+  width: 26%;
+  min-width: 0;
+  text-align: left;
+}
+
+.crew-table.crew-immigration-listing-table th:nth-child(2),
+.crew-table.crew-immigration-listing-table td:nth-child(2) {
+  width: 14%;
+  min-width: 0;
+  text-align: left;
+}
+
+.crew-table.crew-immigration-listing-table th:nth-child(3),
+.crew-table.crew-immigration-listing-table td:nth-child(3) {
+  width: 18%;
+  min-width: 0;
+  text-align: left;
+}
+
+.crew-table.crew-immigration-listing-table th:nth-child(4),
+.crew-table.crew-immigration-listing-table td:nth-child(4) {
+  width: 18%;
+  min-width: 0;
+  text-align: left;
+}
+
+.crew-table.crew-immigration-listing-table th:nth-child(5),
+.crew-table.crew-immigration-listing-table td:nth-child(5),
+.crew-table.crew-immigration-listing-table th:nth-child(6),
+.crew-table.crew-immigration-listing-table td:nth-child(6) {
+  width: 12%;
+  min-width: 0;
+  text-align: center;
 }
 
 /* ==========================================================
