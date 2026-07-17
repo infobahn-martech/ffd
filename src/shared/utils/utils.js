@@ -1,6 +1,15 @@
 import useAlertReducer from '../../store/AlertReducer';
 import * as XLSX from 'xlsx';
 
+export const stripHtmlTags = (value) => {
+  const text = String(value ?? '');
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export const getInitials = (fullName) => {
   const nameParts = fullName?.split(' ');
   if (nameParts && nameParts.length > 0) {
