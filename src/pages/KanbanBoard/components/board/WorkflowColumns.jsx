@@ -8,6 +8,7 @@ import {
   getSwimlaneColumnCards,
 } from "../../utils/columnHelpers";
 import { BOARD_COLUMN_GAP_PX, getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
+import { sanitizeSwimlaneColorCode, pickForegroundOnSwimlaneBackground } from "../../../EditWorkflows/workflow.utils";
 import "../../../../design/scss/pages/kanban-board/swimlaneBoard.scss";
 
 export default function WorkflowColumns({
@@ -102,19 +103,35 @@ export default function WorkflowColumns({
             const lane = workflow.swimlanes?.[laneId];
             if (!lane) return null;
 
+            /* Only real (non-default) swimlane colors get the colored title band — see workflow-swimlane-label-cell / board-minimap-lane-label for the same convention */
+            const laneColorHex = sanitizeSwimlaneColorCode(lane.color);
+            const hasLaneColor = Boolean(laneColorHex) && laneColorHex !== "#ffffff";
+
             return (
               <section
                 className={`kanban-swimlane ${!shouldShowSwimlaneTitle ? "kanban-swimlane--single" : ""}`}
                 key={laneId}
                 aria-label={lane.title}
                 style={
-                  lane.color
-                    ? { borderLeft: `3px solid ${lane.color}` }
+                  !shouldShowSwimlaneTitle && hasLaneColor
+                    ? { borderLeft: `3px solid ${laneColorHex}` }
                     : undefined
                 }
               >
                 {shouldShowSwimlaneTitle && (
-                  <div className="kanban-swimlane__title">{lane.title}</div>
+                  <div
+                    className="kanban-swimlane__title"
+                    style={
+                      hasLaneColor
+                        ? {
+                            backgroundColor: laneColorHex,
+                            color: pickForegroundOnSwimlaneBackground(laneColorHex),
+                          }
+                        : undefined
+                    }
+                  >
+                    {lane.title}
+                  </div>
                 )}
                 {/* Same gridTemplateColumns as header row — keeps headers and cells aligned */}
                 <div className="kanban-swimlane__columns" style={boardRowGridStyle}>
