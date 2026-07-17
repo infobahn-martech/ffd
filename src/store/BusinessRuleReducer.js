@@ -339,7 +339,8 @@ const useBusinessRuleReducer = create((set) => ({
             const { data } = await businessRuleService.updateWebServiceSettings(webServiceId, payload);
             set({ isUpdatingWebServiceSettings: false });
             const { success } = useAlertReducer.getState();
-            success(data?.message || 'Web service settings updated.');
+            const baseMessage = data?.message || 'Web service settings updated.';
+            success(data?.web_service_id ? `${baseMessage} (ID: ${data.web_service_id})` : baseMessage);
             cb && cb(data);
         } catch (err) {
             set({ isUpdatingWebServiceSettings: false });
@@ -395,7 +396,8 @@ const useBusinessRuleReducer = create((set) => ({
             const { data } = await businessRuleService.saveWebServiceSettings(payload);
             set({ isSavingWebServiceSettings: false });
             const { success } = useAlertReducer.getState();
-            success(data?.message || 'Web service settings saved.');
+            const baseMessage = data?.message || 'Web service settings saved.';
+            success(data?.web_service_id ? `${baseMessage} (ID: ${data.web_service_id})` : baseMessage);
             cb && cb(data);
         } catch (err) {
             set({ isSavingWebServiceSettings: false });
