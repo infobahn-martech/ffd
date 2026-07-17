@@ -605,6 +605,53 @@
       overflow: visible;
     }
   }
+
+  /* Add Card form fields — same background treatment as the Pre Arrival / Arrival /
+     Departure form column, scoped to the left form panel only (not Email Preview). */
+  .general-add-form-panel {
+    .cf-input,
+    .cf-multi-select-email-input {
+      background: #f3f5ff;
+
+      &:hover {
+        background: #e4e8fb;
+      }
+
+      &:focus-within {
+        background: #ffffff;
+      }
+    }
+
+    .MuiPickersInputBase-root,
+    .MuiOutlinedInput-root,
+    .MuiInputBase-root {
+      background: #f3f5ff;
+
+      &:hover {
+        background: #e4e8fb;
+      }
+
+      &.Mui-focused {
+        background: #ffffff;
+      }
+    }
+
+    .cf-datetime-picker .cf-datetime-input-field {
+      .MuiPickersInputBase-root,
+      .MuiOutlinedInput-root,
+      .MuiInputBase-root {
+        background: #f3f5ff;
+
+        &:hover {
+          background: #e4e8fb;
+        }
+
+        &.Mui-focused {
+          background: #ffffff;
+        }
+      }
+    }
+  }
 }
 
 .cf-section.general-info-section .general-info-view-with-tasks.general-info-three-column.general-tab-form-layout {

@@ -804,24 +804,6 @@ const DocumentUpload = ({
             </div>
           ) : (
             <>
-              <div className="upload-icon-wrapper">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M7 18a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 17.3 7.02 4.5 4.5 0 0 1 17 18H7Z"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 10.5v6M9.5 12.8 12 10.3l2.5 2.5"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
               <div className="upload-text-content">
                 <p className="upload-main-text">
                   Drag and drop your files here, or{" "}

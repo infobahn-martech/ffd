@@ -1155,7 +1155,7 @@
 .general-add-page-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-bottom: 12px;
   padding-top: 0;
   padding-right: 2px;
   flex-shrink: 0;
