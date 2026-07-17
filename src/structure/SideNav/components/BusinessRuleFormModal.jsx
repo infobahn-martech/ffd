@@ -4324,10 +4324,12 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
   const [activeCreateSubtaskActionId, setActiveCreateSubtaskActionId] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [boardConditionRows, setBoardConditionRows] = useState([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
-  // Distinguishes a user-picked board condition from the auto-selected first-board default
-  // below — without this, "Clear all" would show as soon as the modal opens (before the user
-  // has added anything) since that effect fills boardConditionRows[0].boardId on its own.
-  const [boardConditionTouched, setBoardConditionTouched] = useState(false);
+  // The first-board auto-fill effect below must only ever apply once per modal-open
+  // session — otherwise a late-resolving (or re-fetched) workspaces list can silently
+  // refill the board condition after the user has explicitly cleared it via the row's
+  // own delete button, since that resets boardId back to '' and looks identical to the
+  // untouched initial state the effect is meant to default.
+  const boardConditionDefaultAppliedRef = useRef(false);
   // "Position" (board + swimlane/stage) is a second default condition some triggers carry
   // alongside "Board" — get_field_details/regular/6 only returns operators (is/is not), not
   // an actual list of positions, so this reuses the board-minimap destination picker (the
@@ -4443,7 +4445,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
     if (workspaces.length === 0) listAllWorkspaces();
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
-    setBoardConditionTouched(false);
+    boardConditionDefaultAppliedRef.current = false;
     setPositionConditionRows([{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }]);
     setShowPositionDestinationPicker(false);
     setActivePositionRowId(null);
@@ -4606,9 +4608,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
   }, [openCreateTemplateRowId]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show || boardConditionDefaultAppliedRef.current) return;
     const firstBoard = (workspaces ?? []).flatMap((w) => w.boards ?? [])[0];
     if (!firstBoard) return;
+    boardConditionDefaultAppliedRef.current = true;
     setBoardConditionRows((prev) =>
       prev.length === 1 && !prev[0].boardId ? [{ ...prev[0], boardId: firstBoard.board_id }] : prev
     );
@@ -4843,13 +4846,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
         return { ...c, values: nextValues };
       })
     );
-  };
-
-  const handleClearConditions = () => {
-    setConditions([]);
-    setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
-    setBoardConditionTouched(false);
-    setPositionConditionRows([{ id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' }]);
   };
 
   const handleApplyConditionColor = (boxId, valueId, hex) => {
@@ -5347,7 +5343,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
   const activeCreateSubtaskAction = createActions.find((a) => a.id === activeCreateSubtaskActionId);
 
   const handlePickConditionBoard = (rowId, board) => {
-    setBoardConditionTouched(true);
     setBoardConditionRows((prev) =>
       prev.map((row) => (row.id === rowId ? { ...row, boardId: board?.board_id ?? '' } : row))
     );
@@ -5356,7 +5351,9 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
   const handleRemoveBoardConditionRow = (rowId) => {
     setBoardConditionRows((prev) => {
       if (prev.length <= 1) {
-        setBoardConditionTouched(false);
+        // Guards against the first-board auto-fill effect reinstating a board after
+        // this explicit clear once its workspaces fetch resolves.
+        boardConditionDefaultAppliedRef.current = true;
         return [{ id: 'board-0', boardId: '', joinWord: 'OR' }];
       }
       return prev.filter((row) => row.id !== rowId);
@@ -5364,7 +5361,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
   };
 
   const handleToggleBoardConditionJoinWord = (rowId) => {
-    setBoardConditionTouched(true);
     setBoardConditionRows((prev) => {
       // There's no other way to add a second "Board is" row today, so clicking a
       // row's join-word pill duplicates that row (same board) directly below it —
@@ -5949,17 +5945,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                       <FiPlus size={14} aria-hidden />
                       Add new property
                     </button>
-                    {(conditions.length > 0
-                      || boardConditionTouched
-                      || positionConditionRows.some((row) => row.boardId)) && (
-                      <button
-                        type="button"
-                        className="business-rule-form-add-link"
-                        onClick={handleClearConditions}
-                      >
-                        Clear all
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
