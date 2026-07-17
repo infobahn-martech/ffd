@@ -3537,6 +3537,11 @@
   align-items: center;
   gap: $space-2;
   flex-shrink: 0;
+  // .inner centers items against the tallest column (the field, with its
+  // label above the input), which floats a center-aligned actions row
+  // above the input's own vertical middle. Bottom-align instead so Cancel/
+  // Submit sit level with the input box, not the label.
+  align-self: flex-end;
 }
 
 .crew-launch-hire-panel__btn {
