@@ -76,7 +76,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setShowFormModal(false);
       return;
     }
-    getBusinessRules({ params: { page, limit, searchTerm: searchValue } });
+    getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined } });
   }, [show, page, searchValue]);
 
   useEffect(() => {
@@ -116,7 +116,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         setShowFormModal(false);
         setSelectedRule(null);
         setView('table');
-        getBusinessRules({ params: { page, limit, searchTerm: searchValue } });
+        getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined } });
         getBusinessRuleStats();
       },
     });
@@ -224,12 +224,12 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                         const ruleId = rule?.business_rule_id ?? rule?.id;
                         const name = rule?.name ?? rule?.rule_name ?? '-';
                         const execOrder = rule?.execution_order ?? '-';
-                        const tags = Array.isArray(rule?.tags) && rule.tags.length > 0
-                          ? rule.tags.join(', ') : '-';
+                        const tags = rule?.tags || '-';
+                        const isEnabled = String(rule?.status) === '1';
                         const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                           ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                           : '-';
-                        const boards = rule?.boards ?? (rule?.board_name ? [rule.board_name] : []);
+                        const boards = rule?.board_name ?? [];
 
                         return (
                           <tr key={ruleId}>
@@ -238,7 +238,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                 <input
                                   className="form-check-input"
                                   type="checkbox"
-                                  checked={rule?.is_enabled ?? false}
+                                  checked={isEnabled}
                                   readOnly
                                 />
                               </div>

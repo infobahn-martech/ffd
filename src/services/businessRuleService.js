@@ -19,7 +19,7 @@ const getThenActionFields = (actionTypeId, { params } = {}) =>
   Gateway.get(`/business_rule/get_then_action_fields/${actionTypeId}`, { params });
 
 const getBusinessRules = ({ params } = {}) =>
-  Gateway.get('/business_rule/get_business_rules', { params });
+  Gateway.get('/business_rule/get_business_rule_list', { params });
 
 const getBusinessRuleById = (businessRuleId) =>
   Gateway.get(`/business_rule/get_business_rule_by_id/${businessRuleId}`);
