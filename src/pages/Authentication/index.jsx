@@ -91,19 +91,19 @@ function Index() {
           <div className="form-content-wrap">
             {/* FORM START */}
             <form onSubmit={handleSubmit(onSubmit)}>
-              {/* EMAIL */}
+              {/* EMAIL / USERNAME */}
               <div className="input-outer-wrap">
-                <label className="label">Email</label>
+                <label className="label">Email / Username</label>
                 <div className="input-wrap">
                   <input
                     type="text"
-                    placeholder="Enter your email"
+                    placeholder="Enter your email or username"
                     className="txt"
                     {...register("email", {
-                      required: "Email is required",
-                      pattern: {
-                        value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i,
-                        message: "Enter a valid email",
+                      required: "Email or username is required",
+                      minLength: {
+                        value: 3,
+                        message: "Enter at least 3 characters",
                       },
                     })}
                   />
