@@ -8,6 +8,7 @@ export const MAIN_TABS = {
   WASTE_DISPOSAL: "wasteDisposal",
   MWP_RENEWAL: "mwpRenewal",
   THIRD_PARTY_SERVICES: "thirdPartyServices",
+  ADD_ON_SERVICES: "addOnServices",
 };
 
 export const CREW_MANAGEMENT_SUBTABS = {
@@ -46,6 +47,7 @@ export const TAB_ICON_COLORS = {
   [MAIN_TABS.WASTE_DISPOSAL]: "#D97706",
   [MAIN_TABS.MWP_RENEWAL]: "#16A34A",
   [MAIN_TABS.THIRD_PARTY_SERVICES]: "#2563EB",
+  [MAIN_TABS.ADD_ON_SERVICES]: "#E11D48",
   LAUNCH_HIRE: "#0D9488",
 };
 
@@ -63,6 +65,7 @@ export const SERVICE_ACCENT = {
   [MAIN_TABS.WASTE_DISPOSAL]: "amber",
   [MAIN_TABS.MWP_RENEWAL]: "green",
   [MAIN_TABS.THIRD_PARTY_SERVICES]: "blue",
+  [MAIN_TABS.ADD_ON_SERVICES]: "rose",
 };
 
 // Launch Hire - Trigger & Booking Interface

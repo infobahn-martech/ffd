@@ -35,6 +35,7 @@ const TAB_ICON_PATHS = {
   [MAIN_TABS.WASTE_DISPOSAL]: "M3 4H13M6 4V2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V4M4 4L4.7 13.3C4.73 13.7 5.07 14 5.47 14H10.53C10.93 14 11.27 13.7 11.3 13.3L12 4",
   [MAIN_TABS.MWP_RENEWAL]: "M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10 2 11.5 2.8 12.5 4M12.5 4V1.5M12.5 4H10",
   [MAIN_TABS.THIRD_PARTY_SERVICES]: "M2 5H14V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V5ZM4 5V3.5C4 2.67157 4.67157 2 5.5 2H10.5C11.3284 2 12 2.67157 12 3.5V5",
+  [MAIN_TABS.ADD_ON_SERVICES]: "M8 1.5L14 4.75V11.25L8 14.5L2 11.25V4.75L8 1.5Z M8 6V11M5.5 8.5H10.5",
   LAUNCH_HIRE: "M2 10H14L12.5 13H3.5L2 10ZM8 2V10M6 4L8 2L10 4M1 10C3 8.5 5 8 8 8C11 8 13 8.5 15 10",
   crewChange: "M2 5H11L9 3M11 5L9 7M14 11H5L7 9M5 11L7 13",
   portPass: "M2 3H14C14.5523 3 15 3.44772 15 4V12C15 12.5523 14.5523 13 14 13H2C1.44772 13 1 12.5523 1 12V4C1 3.44772 1.44772 3 2 3ZM5.5 8.5C6.32843 8.5 7 7.82843 7 7C7 6.17157 6.32843 5.5 5.5 5.5C4.67157 5.5 4 6.17157 4 7C4 7.82843 4.67157 8.5 5.5 8.5ZM3.5 11C3.5 9.89543 4.39543 9 5.5 9C6.60457 9 7.5 9.89543 7.5 11M9.5 6H12.5M9.5 8.5H12.5",
@@ -235,6 +236,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal" },
     { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal" },
     { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services" },
+    { id: MAIN_TABS.ADD_ON_SERVICES, label: "Add-on Services" },
   ];
 
   const mainTabs = selectedServices.length > 0
@@ -287,6 +289,9 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     subTabs = [];
   } else if (activeMainTab === MAIN_TABS.THIRD_PARTY_SERVICES) {
     // Third-Party Services - no sub-tabs for now
+    subTabs = [];
+  } else if (activeMainTab === MAIN_TABS.ADD_ON_SERVICES) {
+    // Add-on Services - no sub-tabs for now
     subTabs = [];
   }
 

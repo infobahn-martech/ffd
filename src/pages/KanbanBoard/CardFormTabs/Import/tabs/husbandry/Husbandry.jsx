@@ -32,6 +32,7 @@ import OrderHistoryContent from "./components/OrderHistoryContent";
 import MWPRenewalContent from "./components/MWPRenewalContent";
 import OnStationContent from "./components/OnStationContent";
 import ThirdPartyServicesContent from "./components/ThirdPartyServicesContent";
+import AddOnServicesContent from "./components/AddOnServicesContent";
 import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import useDispatchNoteReducer from "../../../../../../store/DispatchNoteReducer";
@@ -116,6 +117,13 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       summary: "Raise and monitor external vendor service requests.",
       bookedSummary: "Manage third-party support under a single service view.",
     },
+    {
+      id: MAIN_TABS.ADD_ON_SERVICES,
+      label: "Add-on Services",
+      icon: "addon",
+      summary: "Raise and monitor optional add-on service requests.",
+      bookedSummary: "Track add-on support requests under a single service view.",
+    },
   ];
 
   const totalServices = services.length;
@@ -184,6 +192,13 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
             <rect x="10" y="18" width="28" height="22" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
             <path d="M16 18V14C16 11.7909 17.7909 10 20 10H28C30.2091 10 32 11.7909 32 14V18" stroke="currentColor" strokeWidth="2" />
             <path d="M10 26H38M20 26V32M28 26V32" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "addon":
+        return (
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4L42 14V34L24 44L6 34V14L24 4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="none" />
+            <path d="M24 18V30M18 24H30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         );
       default:
@@ -392,6 +407,9 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
         setActiveSubTab(null);
       } else if (tab === MAIN_TABS.THIRD_PARTY_SERVICES) {
         // Third-Party Services - placeholder for future implementation
+        setActiveSubTab(null);
+      } else if (tab === MAIN_TABS.ADD_ON_SERVICES) {
+        // Add-on Services - no subtabs
         setActiveSubTab(null);
       }
     }
@@ -837,6 +855,13 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           )}
           {activeMainTab === MAIN_TABS.THIRD_PARTY_SERVICES && (
             <ThirdPartyServicesContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
+          )}
+          {activeMainTab === MAIN_TABS.ADD_ON_SERVICES && (
+            <AddOnServicesContent
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
