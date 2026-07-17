@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCheckCircle, FiAlertCircle, FiCalendar } from 'react-icons/fi';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCalendar } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import ReactQuill, { Quill } from 'react-quill-new';
@@ -1923,7 +1923,13 @@ CustomFieldPickerModal.propTypes = {
 // Custom fields together, used by the notification Subject/Body "add card
 // fields" triggers so any card field (not just a fixed shortlist) can be
 // inserted as a pill.
-function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
+// actionTypeId puts this in "then action" mode: all three sections (regular/time
+// unit/custom fields) come from the one get_then_action_fields/{action_type_id}
+// response instead of the trigger-scoped get_regular_fields/get_time_units plus a
+// separate board-filterable custom-fields lookup. Used for then-action contexts
+// (e.g. "Invoke web service") where the available fields are scoped to that action,
+// not to the rule's trigger.
+function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId, actionTypeId }) {
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedRegularFields, setExpandedRegularFields] = useState(true);
   const [expandedTimeUnit, setExpandedTimeUnit] = useState(true);
@@ -1933,27 +1939,46 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   const [filterText, setFilterText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
+  const isActionMode = actionTypeId != null;
+
   const {
     regularFields, isLoadingRegularFields, getRegularFields,
     timeUnits, isLoadingTimeUnits, getTimeUnits,
+    thenActionRegularFields, thenActionCustomFields, thenActionTimeUnits,
+    isLoadingThenActionFields, getThenActionFields,
   } = useBusinessRuleReducer((s) => s);
 
   const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
-    show, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
+    show: show && !isActionMode, triggerTypeId, boardId: selectedBoardId, showDisabled, search: debouncedSearch,
   });
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
 
-  const displayRegularFields = regularFields.length > 0 ? regularFields : DUMMY_REGULAR_FIELDS;
-  const displayTimeUnits = timeUnits.length > 0 ? timeUnits : DUMMY_TIME_UNITS;
+  // get_then_action_fields has no search param, so action mode filters client-side
+  // (same as CreateActionModal/RefineUpdateCriteriaModal do for their own regular options).
+  const filterQuery = filterText.trim().toLowerCase();
+  const applyClientFilter = (list) => filterQuery
+    ? list.filter((field) => getFieldLabel(field).toLowerCase().includes(filterQuery))
+    : list;
+
+  const displayRegularFields = isActionMode
+    ? applyClientFilter(thenActionRegularFields)
+    : (regularFields.length > 0 ? regularFields : DUMMY_REGULAR_FIELDS);
+  const displayTimeUnits = isActionMode
+    ? applyClientFilter(thenActionTimeUnits)
+    : (timeUnits.length > 0 ? timeUnits : DUMMY_TIME_UNITS);
   // Only fall back to dummy data in the untouched/no-filter state — once a board,
   // the disabled toggle, or a search term narrows the results, an empty response is a
   // real answer (e.g. "no disabled fields on this board") and must be shown as empty,
   // not masked by an unrelated generic dummy list.
   const isCustomFieldsUnfiltered = !selectedBoardId && !showDisabled && !debouncedSearch;
-  const displayCustomFields = customFields.length > 0
-    ? customFields
-    : (isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []);
+  const displayCustomFields = isActionMode
+    ? applyClientFilter(thenActionCustomFields)
+    : (customFields.length > 0 ? customFields : (isCustomFieldsUnfiltered ? DUMMY_CUSTOM_FIELDS : []));
+
+  const regularFieldsLoading = isActionMode ? isLoadingThenActionFields : isLoadingRegularFields;
+  const timeUnitsLoading = isActionMode ? isLoadingThenActionFields : isLoadingTimeUnits;
+  const customFieldsLoading = isActionMode ? isLoadingThenActionFields : isLoadingCustomFields;
 
   useEffect(() => {
     if (!show) return;
@@ -1962,7 +1987,7 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
     setDebouncedSearch('');
     setSelectedBoardId('');
     setShowDisabled(false);
-    if (workspaces.length === 0) listAllWorkspaces();
+    if (!isActionMode && workspaces.length === 0) listAllWorkspaces();
   }, [show]);
 
   useEffect(() => {
@@ -1973,14 +1998,19 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
   }, [filterText]);
 
   useEffect(() => {
-    if (!show) return;
-    getRegularFields({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
-  }, [show, debouncedSearch, triggerTypeId]);
+    if (!show || !isActionMode) return;
+    getThenActionFields(actionTypeId);
+  }, [show, isActionMode, actionTypeId]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show || isActionMode) return;
+    getRegularFields({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
+  }, [show, isActionMode, debouncedSearch, triggerTypeId]);
+
+  useEffect(() => {
+    if (!show || isActionMode) return;
     getTimeUnits({ params: { trigger_type_id: triggerTypeId, search: debouncedSearch || undefined } });
-  }, [show, debouncedSearch, triggerTypeId]);
+  }, [show, isActionMode, debouncedSearch, triggerTypeId]);
 
   const handleToggleKey = (key) => {
     setSelectedKeys((prev) =>
@@ -2062,7 +2092,7 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
             </button>
             {expandedRegularFields && (
               <div className="br-property-pill-grid">
-                {isLoadingRegularFields ? (
+                {regularFieldsLoading ? (
                   <div className="br-property-picker-empty">Loading...</div>
                 ) : displayRegularFields.length === 0 ? (
                   <div className="br-property-picker-empty">No fields found</div>
@@ -2084,107 +2114,111 @@ function CardFieldPickerModal({ show, onClose, onApply, triggerTypeId }) {
             )}
           </div>
 
-          <div className="br-property-section">
-            <button
-              type="button"
-              className="br-property-section-toggle"
-              onClick={() => setExpandedTimeUnit((v) => !v)}
-            >
-              <span className="br-property-section-toggle-icon">
-                {expandedTimeUnit ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
-              </span>
-              Time unit
-            </button>
-            {expandedTimeUnit && (
-              <div className="br-property-pill-grid">
-                {isLoadingTimeUnits ? (
-                  <div className="br-property-picker-empty">Loading...</div>
-                ) : displayTimeUnits.length === 0 ? (
-                  <div className="br-property-picker-empty">No fields found</div>
-                ) : (
-                  displayTimeUnits.map((field, idx) => {
-                    const key = `time_unit-${field.time_unit_id ?? idx}`;
-                    return (
-                      <PropertyPill
-                        key={key}
-                        pillKey={key}
-                        label={getFieldLabel(field)}
-                        selected={selectedKeys.includes(key)}
-                        onClick={() => handleToggleTimeUnitKey(key)}
-                      />
-                    );
-                  })
+          {!isActionMode && (
+            <>
+              <div className="br-property-section">
+                <button
+                  type="button"
+                  className="br-property-section-toggle"
+                  onClick={() => setExpandedTimeUnit((v) => !v)}
+                >
+                  <span className="br-property-section-toggle-icon">
+                    {expandedTimeUnit ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                  </span>
+                  Time unit
+                </button>
+                {expandedTimeUnit && (
+                  <div className="br-property-pill-grid">
+                    {timeUnitsLoading ? (
+                      <div className="br-property-picker-empty">Loading...</div>
+                    ) : displayTimeUnits.length === 0 ? (
+                      <div className="br-property-picker-empty">No fields found</div>
+                    ) : (
+                      displayTimeUnits.map((field, idx) => {
+                        const key = `time_unit-${field.time_unit_id ?? idx}`;
+                        return (
+                          <PropertyPill
+                            key={key}
+                            pillKey={key}
+                            label={getFieldLabel(field)}
+                            selected={selectedKeys.includes(key)}
+                            onClick={() => handleToggleTimeUnitKey(key)}
+                          />
+                        );
+                      })
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
 
-          <div className="br-property-section">
-            <button
-              type="button"
-              className="br-property-section-toggle"
-              onClick={() => setExpandedCustomFields((v) => !v)}
-            >
-              <span className="br-property-section-toggle-icon">
-                {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
-              </span>
-              Custom fields
-            </button>
-            {expandedCustomFields && (
-              <>
-                <div className="br-property-board-filter">
-                  <span className="br-property-board-filter-label">Show fields from board:</span>
-                  <div className="br-property-board-filter-row">
-                    <BoardFilterPicker
-                      workspaces={workspaces ?? []}
-                      value={selectedBoardId}
-                      onChange={setSelectedBoardId}
-                    />
-                    <button
-                      type="button"
-                      className="br-property-board-clear-btn"
-                      onClick={() => setSelectedBoardId('')}
-                      aria-label="Reset board filter"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <label className="business-rule-form-toggle br-property-disabled-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showDisabled}
-                    onChange={(e) => setShowDisabled(e.target.checked)}
-                  />
-                  <span className="business-rule-form-toggle-track" aria-hidden />
-                  <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
-                </label>
-
-                <div className="br-property-pill-grid">
-                  {isLoadingCustomFields ? (
-                    <div className="br-property-picker-empty">Loading...</div>
-                  ) : displayCustomFields.length === 0 ? (
-                    <div className="br-property-picker-empty">No custom fields found</div>
-                  ) : (
-                    displayCustomFields.map((field, idx) => {
-                      const key = `custom-${field.custom_field_id ?? idx}`;
-                      return (
-                        <PropertyPill
-                          key={key}
-                          pillKey={key}
-                          label={getFieldLabel(field)}
-                          selected={selectedKeys.includes(key)}
-                          dotColor={getPropertyDotColor(idx)}
-                          onClick={() => handleToggleKey(key)}
+              <div className="br-property-section">
+                <button
+                  type="button"
+                  className="br-property-section-toggle"
+                  onClick={() => setExpandedCustomFields((v) => !v)}
+                >
+                  <span className="br-property-section-toggle-icon">
+                    {expandedCustomFields ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                  </span>
+                  Custom fields
+                </button>
+                {expandedCustomFields && (
+                  <>
+                    <div className="br-property-board-filter">
+                      <span className="br-property-board-filter-label">Show fields from board:</span>
+                      <div className="br-property-board-filter-row">
+                        <BoardFilterPicker
+                          workspaces={workspaces ?? []}
+                          value={selectedBoardId}
+                          onChange={setSelectedBoardId}
                         />
-                      );
-                    })
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+                        <button
+                          type="button"
+                          className="br-property-board-clear-btn"
+                          onClick={() => setSelectedBoardId('')}
+                          aria-label="Reset board filter"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <label className="business-rule-form-toggle br-property-disabled-toggle">
+                      <input
+                        type="checkbox"
+                        checked={showDisabled}
+                        onChange={(e) => setShowDisabled(e.target.checked)}
+                      />
+                      <span className="business-rule-form-toggle-track" aria-hidden />
+                      <span className="business-rule-form-toggle-label">Show disabled custom fields</span>
+                    </label>
+
+                    <div className="br-property-pill-grid">
+                      {customFieldsLoading ? (
+                        <div className="br-property-picker-empty">Loading...</div>
+                      ) : displayCustomFields.length === 0 ? (
+                        <div className="br-property-picker-empty">No custom fields found</div>
+                      ) : (
+                        displayCustomFields.map((field, idx) => {
+                          const key = `custom-${field.custom_field_id ?? idx}`;
+                          return (
+                            <PropertyPill
+                              key={key}
+                              pillKey={key}
+                              label={getFieldLabel(field)}
+                              selected={selectedKeys.includes(key)}
+                              dotColor={getPropertyDotColor(idx)}
+                              onClick={() => handleToggleKey(key)}
+                            />
+                          );
+                        })
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <footer className="card-property-match-modal-footer">
@@ -2207,6 +2241,7 @@ CardFieldPickerModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onApply: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const NOTIFICATION_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -3090,7 +3125,7 @@ const mapFetchedHeaders = (headers) => sortByDisplayOrder(headers ?? [])
 const mapFetchedParams = (params) => sortByDisplayOrder(params ?? [])
   .map((p) => ({ id: p.param_id, key: p.param_key ?? '', value: p.param_value ?? '', fields: [] }));
 
-function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, triggerTypeId }) {
+function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, triggerTypeId, actionTypeId }) {
   const [serviceName, setServiceName] = useState('');
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
@@ -3619,40 +3654,27 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
               </>
             )}
           </div>
-
-          {testResult && (
-            <div className={`br-invoke-test-result ${testResult.ok ? 'br-invoke-test-result--ok' : 'br-invoke-test-result--error'}`}>
-              <div className="br-invoke-test-result-head">
-                <span className="br-invoke-test-result-status">
-                  {testResult.ok ? <FiCheckCircle size={14} aria-hidden /> : <FiAlertCircle size={14} aria-hidden />}
-                  {testResult.statusCode ? `${testResult.statusCode} ${testResult.ok ? 'OK' : 'Error'}` : (testResult.ok ? 'Success' : 'Failed')}
-                </span>
-                {testResult.durationMs != null && (
-                  <span className="br-invoke-test-result-duration">{testResult.durationMs} ms</span>
-                )}
-              </div>
-              {testResult.message && (
-                <p className="br-invoke-test-result-message">{testResult.message}</p>
-              )}
-              {testResult.responseBody && (
-                <pre className="br-invoke-test-result-body">{testResult.responseBody}</pre>
-              )}
-            </div>
-          )}
         </div>
 
         <footer className="card-property-match-modal-footer br-invoke-modal-footer">
-          <button
-            type="button"
-            className="br-invoke-test-btn"
-            onClick={handleTestSettings}
-            disabled={isTestingWebServiceSettings}
-          >
-            {isTestingWebServiceSettings ? 'Testing...' : 'Test Settings'}
-          </button>
-          <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
-            {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : (initialSettings?.webServiceId ? 'Update Service' : 'Save Service'))}
-          </button>
+          {testResult && (
+            <span className={`br-invoke-test-result-line ${testResult.ok ? 'br-invoke-test-result-line--ok' : 'br-invoke-test-result-line--error'}`}>
+              {testResult.message || (testResult.ok ? 'Success' : 'Failed')}
+            </span>
+          )}
+          <div className="br-invoke-modal-footer-actions">
+            <button
+              type="button"
+              className="br-invoke-test-btn"
+              onClick={handleTestSettings}
+              disabled={isTestingWebServiceSettings}
+            >
+              {isTestingWebServiceSettings ? 'Testing...' : 'Test Settings'}
+            </button>
+            <button type="button" className="br-property-add-btn" onClick={handleSave} disabled={isLoadingSettings || isSavingWebServiceSettings || isUpdatingWebServiceSettings}>
+              {isSavingWebServiceSettings || isUpdatingWebServiceSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : (initialSettings?.webServiceId ? 'Update Service' : 'Save Service'))}
+            </button>
+          </div>
         </footer>
       </div>
     </Modal>
@@ -3662,6 +3684,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       onClose={() => setFieldPickerTarget(null)}
       onApply={handleApplyFieldPicker}
       triggerTypeId={triggerTypeId}
+      actionTypeId={actionTypeId}
     />
 
     <Modal
@@ -3724,6 +3747,7 @@ WebInvokeSettingsModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  actionTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, users }) {
@@ -4341,6 +4365,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
   // group_type (get_trigger_config's actions[] carries one per group_type).
   const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards')?.action_type_id;
   const updateActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'update_card')?.action_type_id;
+  const webInvokeActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'invoke_web_service')?.action_type_id;
 
   // Resolved once per trigger: which cross-card direction (if any) this trigger's own
   // move/update-related action applies to, so the nested filter block can read
@@ -6755,6 +6780,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
       fetchedSettings={webServiceSettings}
       isLoadingSettings={isLoadingWebServiceSettings}
       triggerTypeId={rule.id}
+      actionTypeId={webInvokeActionTypeId}
     />
 
     <CreateSubtaskSettingsModal
