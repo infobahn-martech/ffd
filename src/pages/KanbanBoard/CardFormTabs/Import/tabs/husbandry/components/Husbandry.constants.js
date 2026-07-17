@@ -66,6 +66,7 @@ export const SERVICE_ACCENT = {
   [MAIN_TABS.MWP_RENEWAL]: "green",
   [MAIN_TABS.THIRD_PARTY_SERVICES]: "blue",
   [MAIN_TABS.ADD_ON_SERVICES]: "rose",
+  LAUNCH_HIRE: "teal",
 };
 
 // Launch Hire - Trigger & Booking Interface

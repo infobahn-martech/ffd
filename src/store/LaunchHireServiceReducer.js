@@ -12,6 +12,8 @@ const useLaunchHireServiceReducer = create((set) => ({
   isDetailLoading: false,
   isDeleteLoading: false,
   totalServiceCount: 0,
+  launchHireRequests: [],
+  isLoadingRequests: false,
 
   addLaunchHireService: async ({ formData, cb }) => {
     try {
@@ -105,6 +107,22 @@ const useLaunchHireServiceReducer = create((set) => ({
   },
 
   clearServiceDetail: () => set({ serviceDetail: null }),
+
+  getLaunchHireRequests: async (callId) => {
+    if (!callId) {
+      set({ launchHireRequests: [] });
+      return;
+    }
+    set({ isLoadingRequests: true });
+    try {
+      const response = await launchHireService.getLaunchHireRequests(callId);
+      const payload = response?.data?.data ?? response?.data ?? [];
+      const list = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+      set({ launchHireRequests: list, isLoadingRequests: false });
+    } catch {
+      set({ launchHireRequests: [], isLoadingRequests: false });
+    }
+  },
 }));
 
 export default useLaunchHireServiceReducer;
