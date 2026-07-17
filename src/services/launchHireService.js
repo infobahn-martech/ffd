@@ -20,6 +20,12 @@ const deleteLaunchHireService = (service_id) =>
 const getLaunchHireRequests = (callId) =>
   Gateway.get(`/launch_hire/get_launch_hire_requests/${encodeURIComponent(String(callId))}`);
 
+// Placeholder — the standalone "request launch hire" (call/vessel +
+// launch_datetime only) endpoint contract isn't finalized on the backend
+// yet. Update the path once it's confirmed.
+const createLaunchHireRequest = (payload) =>
+  Gateway.post("/launch_hire/create_launch_hire_request", payload);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -27,4 +33,5 @@ export default {
   updateLaunchHireService,
   deleteLaunchHireService,
   getLaunchHireRequests,
+  createLaunchHireRequest,
 };

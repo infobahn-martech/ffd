@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
-import { FiSearch, FiEdit2, FiCheck, FiX, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiEdit2, FiCheck, FiX, FiTrash2, FiChevronLeft, FiChevronRight, FiNavigation } from "react-icons/fi";
 import { CREW_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 import { HusbIcon } from "./Husbandry.components";
 import CrewServiceSelectPage from "./CrewServiceSelectPage";
@@ -8,9 +8,11 @@ import CrewListUploadBox from "./CrewListUploadBox";
 import CrewUploadDropzones from "./CrewUploadDropzones";
 import CrewUploadedListsPanel from "./CrewUploadedListsPanel";
 import CrewUploadPreviewModal from "./CrewUploadPreviewModal";
+import LaunchHireInlineForm from "./LaunchHireInlineForm";
 import DatePickerField from "../../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../../store/CrewReducer";
 import useCommonReducer from "../../../../../../../store/CommonReducer";
+import useLaunchHireServiceReducer from "../../../../../../../store/LaunchHireServiceReducer";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
 
@@ -197,6 +199,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const deleteCrew = useCrewReducer((state) => state.deleteCrew);
   const nationalities = useCommonReducer((state) => state.nationalities);
   const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
+  const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
 
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
@@ -256,6 +259,15 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const summaryPassportInputRef = useRef(null);
   const summaryIqamaInputRef = useRef(null);
   const summaryVisaInputRef = useRef(null);
+
+  // "Request Launch Hire" inline panel — a single required datetime field,
+  // submitted separately from the crew-list-driven Transport/Medical/Hotel
+  // flows above (see handleSubmitLaunchHire below).
+  const [showLaunchHireForm, setShowLaunchHireForm] = useState(false);
+  const [launchDateTime, setLaunchDateTime] = useState("");
+  const [launchDateTimeError, setLaunchDateTimeError] = useState("");
+  const [isSubmittingLaunchHire, setIsSubmittingLaunchHire] = useState(false);
+  const [launchHireRequested, setLaunchHireRequested] = useState(false);
 
   const resolveCallAndVesselIds = useCallback(async () => {
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
@@ -872,6 +884,85 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     }
   };
 
+  // Enabled once we at least know the call — vessel_id is resolved lazily
+  // by resolveCallAndVesselIds() at submit time (same as every other upload
+  // flow on this dashboard), so it isn't required just to open the panel.
+  const hasCallInfo = Boolean(formValues?.call_id ?? formValues?.callId);
+
+  const handleCancelLaunchHire = () => {
+    if (isSubmittingLaunchHire) return;
+    setShowLaunchHireForm(false);
+    setLaunchDateTime("");
+    setLaunchDateTimeError("");
+  };
+
+  const handleLaunchHireButtonClick = () => {
+    if (isSubmittingLaunchHire) return;
+    if (showLaunchHireForm) {
+      handleCancelLaunchHire();
+    } else {
+      setShowLaunchHireForm(true);
+    }
+  };
+
+  const handleLaunchDateTimeChange = (nextValue) => {
+    setLaunchDateTime(nextValue);
+    if (!nextValue) return;
+    const selected = new Date(nextValue);
+    if (!Number.isNaN(selected.getTime()) && selected.getTime() >= Date.now()) {
+      setLaunchDateTimeError("");
+    }
+  };
+
+  // "2026-07-20T14:30" (datetime-local, already local time) -> "2026-07-20
+  // 14:30:00" for the backend — no timezone conversion, just reshaping.
+  const formatLaunchDateTimeForApi = (localValue) => {
+    const [datePart, timePart = "00:00"] = localValue.split("T");
+    const timeWithSeconds = timePart.length > 5 ? timePart.slice(0, 8) : `${timePart}:00`;
+    return `${datePart} ${timeWithSeconds}`;
+  };
+
+  const handleSubmitLaunchHire = async () => {
+    if (isSubmittingLaunchHire) return;
+    if (!launchDateTime) {
+      setLaunchDateTimeError("Select a launch date and time.");
+      return;
+    }
+    const selected = new Date(launchDateTime);
+    if (Number.isNaN(selected.getTime()) || selected.getTime() < Date.now()) {
+      setLaunchDateTimeError("Launch date and time cannot be in the past.");
+      return;
+    }
+
+    setIsSubmittingLaunchHire(true);
+    try {
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (!resolvedCallId || !resolvedVesselId) {
+        notify("Unable to submit: missing call or vessel information.", "error");
+        return;
+      }
+
+      await createLaunchHireRequest({
+        call_id: resolvedCallId,
+        vessel_id: resolvedVesselId,
+        launch_datetime: formatLaunchDateTimeForApi(launchDateTime),
+      });
+
+      notify("Launch hire request submitted successfully.", "success");
+      setShowLaunchHireForm(false);
+      setLaunchDateTime("");
+      setLaunchDateTimeError("");
+      setLaunchHireRequested(true);
+    } catch (err) {
+      notify(
+        err?.response?.data?.message ?? "Failed to submit launch hire request. Please try again.",
+        "error"
+      );
+    } finally {
+      setIsSubmittingLaunchHire(false);
+    }
+  };
+
   if (showCrewSelectView && selectedServiceForCrew) {
     return (
       <CrewServiceSelectPage
@@ -1002,6 +1093,26 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             </div>
 
             <div className="crew-summary-header-actions">
+              <div className="crew-launch-hire-trigger">
+                <button
+                  type="button"
+                  className="crew-header-btn crew-header-btn--launch-hire crew-header-btn--request-launch-hire"
+                  disabled={!hasCallInfo}
+                  aria-expanded={showLaunchHireForm}
+                  title={!hasCallInfo ? "Call or vessel information is unavailable." : undefined}
+                  onClick={handleLaunchHireButtonClick}
+                >
+                  <FiNavigation size={14} aria-hidden="true" />
+                  <span className="crew-header-btn__label">Request Launch Hire</span>
+                </button>
+                {launchHireRequested && (
+                  <span className="crew-launch-hire-status-chip">
+                    <FiCheck size={12} aria-hidden="true" />
+                    Launch Hire Requested
+                  </span>
+                )}
+              </div>
+
               <div className="crew-summary-search">
                 <FiSearch size={14} className="crew-summary-search__icon" />
                 <input
@@ -1092,6 +1203,17 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               )}
             </div>
           </div>
+
+          <LaunchHireInlineForm
+            open={showLaunchHireForm}
+            cardColor={cardColor}
+            value={launchDateTime}
+            error={launchDateTimeError}
+            isSubmitting={isSubmittingLaunchHire}
+            onChange={handleLaunchDateTimeChange}
+            onCancel={handleCancelLaunchHire}
+            onSubmit={handleSubmitLaunchHire}
+          />
 
           {crewSummaryRows.length === 0 ? (
             <p className="crew-summary-empty">

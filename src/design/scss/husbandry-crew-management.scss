@@ -3401,3 +3401,262 @@
   border-bottom-left-radius: $radius-lg;
   border-bottom-right-radius: $radius-lg;
 }
+
+/* ==========================================================
+   CREW SUMMARY — "Request Launch Hire" trigger + inline panel
+   ========================================================== */
+
+.crew-launch-hire-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.crew-header-btn--request-launch-hire {
+  gap: $space-2;
+}
+
+.crew-header-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.crew-header-btn--launch-hire:disabled,
+.crew-header-btn--launch-hire:disabled:hover {
+  background: var(--card-color, #2A00FF);
+  opacity: 0.55;
+}
+
+.crew-launch-hire-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $status-success 12%, white);
+  border: 1px solid color-mix(in srgb, $status-success 30%, white);
+  color: $status-success;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// Always mounted so open/close animates via max-height/opacity rather than
+// mount/unmount — the max-height budget below has headroom over the panel's
+// natural content height so the validation error never gets clipped.
+.crew-launch-hire-panel {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.25s ease, margin 0.3s ease;
+}
+
+.crew-launch-hire-panel--open {
+  max-height: 160px;
+  opacity: 1;
+  margin: 0 0 $space-5;
+}
+
+.crew-launch-hire-panel__inner {
+  display: flex;
+  align-items: center;
+  gap: $space-5;
+  padding: $space-4 $space-5;
+  border-radius: $radius-lg;
+  background: color-mix(in srgb, var(--card-color, #00368c) 6%, white);
+  border: 1px solid color-mix(in srgb, var(--card-color, #00368c) 18%, white);
+  box-shadow: $shadow-sm;
+}
+
+.crew-launch-hire-panel__info {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.crew-launch-hire-panel__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-md;
+  background: var(--card-color, #00368c);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.crew-launch-hire-panel__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.crew-launch-hire-panel__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.crew-launch-hire-panel__hint {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.crew-launch-hire-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 240px;
+  min-width: 220px;
+}
+
+.crew-launch-hire-panel__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.crew-launch-hire-panel__input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 $space-3;
+  height: 38px;
+  border-radius: $radius-md;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crew-launch-hire-panel__input-wrap:focus-within {
+  border-color: var(--card-color, #00368c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-color, #00368c) 15%, transparent);
+}
+
+.crew-launch-hire-panel__input-wrap.is-invalid {
+  border-color: $status-danger;
+}
+
+.crew-launch-hire-panel__input-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.crew-launch-hire-panel__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #0f172a;
+  min-width: 0;
+}
+
+.crew-launch-hire-panel__error {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: $status-danger;
+}
+
+.crew-launch-hire-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-shrink: 0;
+}
+
+.crew-launch-hire-panel__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 $space-4;
+  border-radius: $radius-pill;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.crew-launch-hire-panel__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.crew-launch-hire-panel__btn--cancel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.crew-launch-hire-panel__btn--cancel:hover:not(:disabled) {
+  background: $table-header-bg;
+  border-color: #cbd5e1;
+}
+
+.crew-launch-hire-panel__btn--submit {
+  background: var(--card-color, #00368c);
+  border: 1px solid var(--card-color, #00368c);
+  color: #ffffff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--card-color, #00368c) 28%, transparent);
+}
+
+.crew-launch-hire-panel__btn--submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.crew-launch-hire-panel__btn--submit:focus-visible,
+.crew-launch-hire-panel__btn--cancel:focus-visible {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+.crew-launch-hire-panel__spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  animation: crewUploadSpin 0.7s linear infinite;
+}
+
+@media (max-width: 900px) {
+  .crew-launch-hire-panel__inner {
+    flex-wrap: wrap;
+  }
+
+  .crew-launch-hire-panel__field {
+    flex-basis: 100%;
+  }
+
+  .crew-launch-hire-panel__actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+
+  .crew-launch-hire-panel--open {
+    max-height: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .crew-launch-hire-panel__actions {
+    justify-content: stretch;
+  }
+
+  .crew-launch-hire-panel__btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .crew-launch-hire-panel--open {
+    max-height: 320px;
+  }
+}

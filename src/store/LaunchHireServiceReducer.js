@@ -108,6 +108,14 @@ const useLaunchHireServiceReducer = create((set) => ({
 
   clearServiceDetail: () => set({ serviceDetail: null }),
 
+  // Standalone "request launch hire" (call/vessel + launch_datetime only) —
+  // caller (CrewManagementDashboard) owns its own submitting/error state, so
+  // this just performs the call and lets failures propagate.
+  createLaunchHireRequest: async (payload) => {
+    const { data } = await launchHireService.createLaunchHireRequest(payload);
+    return data;
+  },
+
   getLaunchHireRequests: async (callId) => {
     if (!callId) {
       set({ launchHireRequests: [] });
