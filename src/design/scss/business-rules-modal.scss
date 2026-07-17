@@ -2511,67 +2511,19 @@
   }
 }
 
-.br-invoke-test-result {
-  border-radius: 10px;
-  padding: 14px 16px;
-  border: 1px solid #d7dce5;
-  background: #f7f9fc;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  &--ok {
-    border-color: #b7e2c7;
-    background: #f0faf3;
-  }
+.br-invoke-test-result-line {
+  font: normal normal 500 13px/1.4 $font-primary;
+  color: #1f7a43;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &--error {
-    border-color: #f3c2c2;
-    background: #fdf3f3;
+    color: $status-danger;
+    background: color-mix(in srgb, $status-danger 12%, white);
   }
-}
-
-.br-invoke-test-result-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.br-invoke-test-result-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font: normal normal 600 13px/1.4 $font-primary;
-  color: #1f7a43;
-
-  .br-invoke-test-result--error & {
-    color: #c23434;
-  }
-}
-
-.br-invoke-test-result-duration {
-  font: normal normal 500 12px/1.4 $font-primary;
-  color: #6b7280;
-}
-
-.br-invoke-test-result-message {
-  margin: 0;
-  font: normal normal 400 13px/1.5 $font-primary;
-  color: #333f4e;
-}
-
-.br-invoke-test-result-body {
-  margin: 0;
-  max-height: 220px;
-  overflow: auto;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #ffffff;
-  border: 1px solid #e3e7ee;
-  font: normal normal 400 12px/1.5 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  color: #333f4e;
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 // Condition row with input + remove
@@ -3500,6 +3452,24 @@
 
 .br-invoke-modal-footer {
   gap: 12px;
+  align-items: center;
+
+  // The test result line sits to the left of the action buttons: margin-right: auto
+  // consumes the remaining flex space so it stays left-aligned while Test Settings/
+  // Save Service stay grouped together on the right, regardless of the shared
+  // .card-property-match-modal-footer's justify-content: flex-end.
+  .br-invoke-test-result-line {
+    margin-right: auto;
+    min-width: 0;
+    max-width: 60%;
+  }
+}
+
+.br-invoke-modal-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .br-invoke-test-btn {
