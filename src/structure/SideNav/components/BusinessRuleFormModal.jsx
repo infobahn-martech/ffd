@@ -24,7 +24,7 @@ import useCommonReducer from '../../../store/CommonReducer';
 import useAuthReducer from '../../../store/AuthReducer';
 import useWorkFlowReducer from '../../../store/WorkFlowReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
-import { getInitials } from '../../../shared/utils/utils';
+import { getInitials, stripHtmlTags } from '../../../shared/utils/utils';
 import DatePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DatePickerField';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
@@ -3098,7 +3098,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const [authPassword, setAuthPassword] = useState('');
   const [authToken, setAuthToken] = useState('');
   const [sendParamsInBody, setSendParamsInBody] = useState(false);
-  const [timeoutSeconds, setTimeoutSeconds] = useState('');
   const [expandedHeaders, setExpandedHeaders] = useState(true);
   const [expandedParams, setExpandedParams] = useState(true);
   const [headers, setHeaders] = useState([]);
@@ -3124,7 +3123,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       setSendParamsInBody(supportsBody ? Boolean(Number(fetchedSettings.send_params_in_body ?? 0)) : false);
       setHeaders(withTrailingBlankHeader(mapFetchedHeaders(fetchedSettings.headers)));
       setParams(buildInitialInvokeParams(mapFetchedParams(fetchedSettings.params), supportsBody, true));
-      setTimeoutSeconds(fetchedSettings.timeout_ms != null ? String(Number(fetchedSettings.timeout_ms) / 1000) : '');
     } else {
       const initialMethod = initialSettings?.method ?? DUMMY_INVOKE_METHOD_OPTIONS[1];
       const supportsBody = INVOKE_METHODS_WITH_BODY.includes(initialMethod);
@@ -3137,7 +3135,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       setSendParamsInBody(supportsBody ? (initialSettings?.sendParamsInBody ?? false) : false);
       setHeaders(withTrailingBlankHeader(initialSettings?.headers ?? []));
       setParams(buildInitialInvokeParams(initialSettings?.params, supportsBody, initialSettings?.params !== undefined));
-      setTimeoutSeconds(initialSettings?.timeoutMs != null ? String(Number(initialSettings.timeoutMs) / 1000) : '');
     }
     setExpandedHeaders(true);
     setExpandedParams(true);
@@ -3312,11 +3309,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
     } else if (authentication === 'API_KEY') {
       payload.auth_token = authToken;
     }
-    const timeoutMs = timeoutSeconds !== '' && !Number.isNaN(Number(timeoutSeconds))
-      ? Math.round(Number(timeoutSeconds) * 1000)
-      : null;
-    if (timeoutMs != null) payload.timeout_ms = timeoutMs;
-    return { payload, urlValue, timeoutMs };
+    return { payload, urlValue };
   };
 
   const handleTestSettings = () => {
@@ -3331,7 +3324,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
           statusCode,
           durationMs: result.duration_ms ?? null,
           responseBody: result.response_body ?? '',
-          message: data?.message ?? '',
+          message: stripHtmlTags(data?.message),
         });
       },
       onError: (err) => {
@@ -3340,14 +3333,14 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
           statusCode: null,
           durationMs: null,
           responseBody: '',
-          message: err?.response?.data?.message ?? err.message ?? 'Test request failed.',
+          message: stripHtmlTags(err?.response?.data?.message ?? err.message) || 'Test request failed.',
         });
       },
     });
   };
 
   const handleSave = () => {
-    const { payload, urlValue, timeoutMs } = buildWebServicePayload();
+    const { payload, urlValue } = buildWebServicePayload();
 
     const existingWebServiceId = initialSettings?.webServiceId;
     const saveOrUpdate = existingWebServiceId
@@ -3359,7 +3352,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
         onSave({
           serviceName, url: urlValue, method, authentication,
           authUsername, authPassword, authToken,
-          sendParamsInBody, headers, params, timeoutMs, webServiceId: data?.web_service_id ?? existingWebServiceId ?? null,
+          sendParamsInBody, headers, params, webServiceId: data?.web_service_id ?? existingWebServiceId ?? null,
         });
         onClose();
       },
@@ -3430,7 +3423,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
             />
           </div>
 
-          <div className="br-invoke-three-col">
+          <div className="br-invoke-two-col">
             <div className="notification-field">
               <label className="business-rule-form-label br-invoke-field-label">Method</label>
               <div className="business-rule-form-select-wrap">
@@ -3453,19 +3446,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
                 </select>
                 <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
               </div>
-            </div>
-
-            <div className="notification-field">
-              <label className="business-rule-form-label br-invoke-field-label">Timeout (sec)</label>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                className="business-rule-form-input"
-                placeholder="Default"
-                value={timeoutSeconds}
-                onChange={(e) => setTimeoutSeconds(e.target.value)}
-              />
             </div>
           </div>
 
@@ -3724,7 +3704,6 @@ WebInvokeSettingsModal.propTypes = {
     sendParamsInBody: PropTypes.bool,
     headers: PropTypes.array,
     params: PropTypes.array,
-    timeoutMs: PropTypes.number,
     webServiceId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
   fetchedSettings: PropTypes.shape({
@@ -3740,7 +3719,6 @@ WebInvokeSettingsModal.propTypes = {
     send_params_in_body: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     headers: PropTypes.array,
     params: PropTypes.array,
-    timeout_ms: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
   isLoadingSettings: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
