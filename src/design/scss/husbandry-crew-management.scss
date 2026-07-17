@@ -3517,6 +3517,7 @@
   flex: 0 1 240px;
   width: 240px;
   max-width: 240px;
+  position: relative;
 }
 
 .crew-launch-hire-panel__label {
@@ -3525,11 +3526,19 @@
   color: #475569;
 }
 
+// Absolutely positioned so it doesn't add to .field's flex-column height —
+// otherwise the error text pushes .field taller than .actions, and
+// .actions' align-self: flex-end (below) then drops the buttons to match,
+// misaligning them from the input the moment an error appears.
 .crew-launch-hire-panel__error {
   display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
   margin-top: 4px;
   font-size: 11px;
   color: $status-danger;
+  white-space: nowrap;
 }
 
 .crew-launch-hire-panel__actions {
@@ -3578,7 +3587,6 @@
   background: var(--card-color, #00368c);
   border: 1px solid var(--card-color, #00368c);
   color: #ffffff;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--card-color, #00368c) 28%, transparent);
 }
 
 .crew-launch-hire-panel__btn--submit:hover:not(:disabled) {
