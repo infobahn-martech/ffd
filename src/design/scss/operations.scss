@@ -4782,6 +4782,16 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Waste Disposal: Request Details on top, Waste Disposal Requests table
+   full width below — overrides the shared 34/66 side-by-side split above. */
+.waste-disposal-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
+  grid-template-columns: 1fr;
+}
+
+.waste-disposal-form .general-info-right.crew-pass-requests-sidebar {
+  width: 100%;
+}
+
 /* Husbandry Zawil Pass: match CG Pass layout */
 .zawilpass-form {
   display: flex;
