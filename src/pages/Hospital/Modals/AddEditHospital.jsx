@@ -154,15 +154,15 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                             <div className="col-12">
                                 <div className="phone-wrapper">
                                     <label className="phone-label">
-                                        Contact Number <span className="text-danger">*</span>
+                                        Contact Number
                                     </label>
 
                                     <Controller
                                         name="contact_number"
                                         control={control}
                                         rules={{
-                                            required: "Contact number is required",
                                             validate: (value) => {
+                                                if (!value) return true;
                                                 const digits = (value || "").replace(/\D/g, "");
                                                 return digits.length >= 7 || "Enter a valid phone number";
                                             },

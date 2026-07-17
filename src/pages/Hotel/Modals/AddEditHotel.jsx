@@ -131,15 +131,15 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                             <div className="col-12">
                                 <div className="phone-wrapper">
                                     <label className="phone-label">
-                                        Contact No <span className="text-danger">*</span>
+                                        Contact No
                                     </label>
 
                                     <Controller
                                         name="contact_no"
                                         control={control}
                                         rules={{
-                                            required: "Contact no is required",
                                             validate: (value) => {
+                                                if (!value) return true;
                                                 const digits = (value || "").replace(/\D/g, "");
                                                 return digits.length >= 7 || "Enter a valid phone number";
                                             },

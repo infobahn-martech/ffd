@@ -202,13 +202,13 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                             </div>
                             <div className="col-lg-6 col-sm-12">
                                 <div className="phone-wrapper">
-                                    <label className="phone-label">Contact No <span className="text-danger">*</span></label>
+                                    <label className="phone-label">Contact No</label>
                                     <Controller
                                         name="contact_no"
                                         control={control}
                                         rules={{
-                                            required: "Contact no is required",
                                             validate: (value) => {
+                                                if (!value) return true;
                                                 const digits = (value || "").replace(/\D/g, "");
                                                 return digits.length >= 7 || "Enter a valid phone number";
                                             },
