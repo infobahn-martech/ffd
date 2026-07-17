@@ -3787,7 +3787,7 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
   const ownerPickerTriggerRef = useRef(null);
   const ownerPickerPanelRef = useRef(null);
 
-  const { saveCreateSubtaskSettings, isSavingCreateSubtaskSettings } = useBusinessRuleReducer((s) => s);
+  const { saveCreateSubtaskSettings, updateCreateSubtaskSettings, isSavingCreateSubtaskSettings } = useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
     if (!show) return;
@@ -3869,17 +3869,30 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
       ...(deadline ? { deadline } : {}),
       description,
     };
-    saveCreateSubtaskSettings(payload, {
-      cb: (data) => {
-        onSave({
-          ownerUserId,
-          deadline,
-          description,
-          createSubtaskId: data?.create_subtask_id ?? initialSettings?.createSubtaskId ?? null,
-        });
-        onClose();
-      },
-    });
+    // A create-subtask action that already has a createSubtaskId (fetchedSettings was
+    // loaded for it in handleOpenCreateSubtaskSettings) was previously saved on the
+    // backend, so resaving it must update that record instead of creating a duplicate one.
+    const existingCreateSubtaskId = initialSettings?.createSubtaskId;
+    if (existingCreateSubtaskId) {
+      updateCreateSubtaskSettings(existingCreateSubtaskId, payload, {
+        cb: () => {
+          onSave({ ownerUserId, deadline, description, createSubtaskId: existingCreateSubtaskId });
+          onClose();
+        },
+      });
+    } else {
+      saveCreateSubtaskSettings(payload, {
+        cb: (data) => {
+          onSave({
+            ownerUserId,
+            deadline,
+            description,
+            createSubtaskId: data?.create_subtask_id ?? null,
+          });
+          onClose();
+        },
+      });
+    }
   };
 
   const renderDeadlineTrigger = ({ disabled, onOpen, displayValue }) => (
@@ -4014,7 +4027,7 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
             onClick={handleSave}
             disabled={isLoadingSettings || isSavingCreateSubtaskSettings}
           >
-            {isSavingCreateSubtaskSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save')}
+            {isSavingCreateSubtaskSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : (initialSettings?.createSubtaskId ? 'Update' : 'Save'))}
           </button>
         </footer>
       </div>
