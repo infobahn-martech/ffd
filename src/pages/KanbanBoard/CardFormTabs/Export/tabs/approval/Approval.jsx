@@ -1,7 +1,9 @@
-  import { useState, useCallback, useRef } from "react";
+  import { useState, useCallback, useEffect, useRef } from "react";
   import PropTypes from "prop-types";
   import { FiCheckCircle, FiArrowRight, FiClock } from "react-icons/fi";
   import DateTimePickerField from "../../../shared/components/DateTimePickerField";
+  import useExportApprovalReducer from "../../../../../../store/ExportApprovalReducer";
+  import { splitApiDateTimeParts } from "../../../../../../shared/helpers/dateTimeFieldUtils";
   import "../../../../../../design/scss/general.scss";
   import "../../../../../../design/css/common/CardForm.css";
   import "../../../../../../design/scss/approval.scss";
@@ -13,6 +15,23 @@
       year: "numeric",
     });
 
+  const formatApiDate = (raw) => {
+    if (!raw) return "";
+    const { date } = splitApiDateTimeParts(raw);
+    if (!date) return "";
+    const [year, month, day] = date.split("-").map(Number);
+    const parsed = new Date(year, month - 1, day);
+    if (Number.isNaN(parsed.getTime())) return "";
+    return parsed.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getCallId = (card, formValues) =>
+    formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId ?? null;
+
 const createEmptyPartySection = () => ({
   details: "",
   vesselCountUnderAgency: "",
@@ -21,6 +40,22 @@ const createEmptyPartySection = () => ({
   latestPaymentDate: "",
   latestPaymentTime: "",
 });
+
+  const mapPartySection = (section, detailsKey) => {
+    if (!section) return createEmptyPartySection();
+    const { date, time } = splitApiDateTimeParts(section.latest_payment_received_date);
+    return {
+      details: section[detailsKey] ?? "",
+      vesselCountUnderAgency:
+        section.no_of_vessels_chartered != null ? String(section.no_of_vessels_chartered) : "",
+      outstandingBalanceSoa:
+        section.outstanding_balance_soa != null ? String(section.outstanding_balance_soa) : "",
+      latestPayment:
+        section.latest_payment_amount != null ? String(section.latest_payment_amount) : "",
+      latestPaymentDate: date,
+      latestPaymentTime: time,
+    };
+  };
 
   const getInitialBasicDetails = (formValues, card) => ({
     date: formatToday(),
@@ -213,6 +248,32 @@ const createEmptyPartySection = () => ({
     onChange: PropTypes.func.isRequired,
   };
 
+  function ExistingDocumentsList({ documents }) {
+    if (!documents || documents.length === 0) return null;
+    return (
+      <ul className="approval-existing-documents">
+        {documents.map((doc) => (
+          <li key={doc.stage_document_id}>
+            <a href={doc.attachment_url} target="_blank" rel="noopener noreferrer">
+              {doc.attachment || doc.document_name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  ExistingDocumentsList.propTypes = {
+    documents: PropTypes.arrayOf(
+      PropTypes.shape({
+        stage_document_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        document_name: PropTypes.string,
+        attachment: PropTypes.string,
+        attachment_url: PropTypes.string,
+      })
+    ),
+  };
+
   function ApprovalCard({
     title,
     commentsLabel,
@@ -222,6 +283,7 @@ const createEmptyPartySection = () => ({
     commentsClassName = "",
     document,
     onDocumentChange,
+    existingDocuments,
     primaryActionLabel,
     secondaryActionLabel,
     onPrimaryAction,
@@ -243,6 +305,7 @@ const createEmptyPartySection = () => ({
             {helperText ? <p className="approval-helper-text">{helperText}</p> : null}
           </FormField>
           <FormField label="Document Upload">
+            <ExistingDocumentsList documents={existingDocuments} />
             <DocumentUploadField file={document} onChange={onDocumentChange} />
           </FormField>
         </div>
@@ -267,6 +330,7 @@ const createEmptyPartySection = () => ({
     commentsClassName: PropTypes.string,
     document: PropTypes.instanceOf(File),
     onDocumentChange: PropTypes.func.isRequired,
+    existingDocuments: ExistingDocumentsList.propTypes.documents,
     primaryActionLabel: PropTypes.string.isRequired,
     secondaryActionLabel: PropTypes.string.isRequired,
     onPrimaryAction: PropTypes.func.isRequired,
@@ -398,6 +462,44 @@ const createEmptyPartySection = () => ({
     const [ceoComments, setCeoComments] = useState("");
     const [ceoDocument, setCeoDocument] = useState(null);
 
+    const callId = getCallId(card, formValues);
+    const details = useExportApprovalReducer((state) => state.details);
+    const isLoadingDetails = useExportApprovalReducer((state) => state.isLoadingDetails);
+    const getExportApprovalDetails = useExportApprovalReducer(
+      (state) => state.getExportApprovalDetails
+    );
+
+    useEffect(() => {
+      if (callId) {
+        getExportApprovalDetails(callId);
+      }
+    }, [callId, getExportApprovalDetails]);
+
+    useEffect(() => {
+      if (!details) return;
+
+      const basic = details.basic_details || {};
+      const { date: vesselEtdDate, time: vesselEtdTime } = splitApiDateTimeParts(
+        basic.vessel_etd
+      );
+
+      setBasicDetails({
+        date: formatApiDate(basic.date) || formatToday(),
+        requestedBy: basic.requested_by || "",
+        branch: basic.branch || "",
+        vesselName: basic.vessel_name || "",
+        vesselEtdDate,
+        vesselEtdTime,
+        billingEntity: basic.billing_entity || "",
+      });
+      setVesselOwner(mapPartySection(details.vessel_owner, "owner_details"));
+      setVesselPrincipal(mapPartySection(details.vessel_principal, "principal_details"));
+      setVesselCharterer(mapPartySection(details.vessel_charterer, "charterer_details"));
+      setCreditControllerRemarks(details.credit_controller?.remarks || "");
+      setManagerComments(details.manager_ofm?.remarks || "");
+      setCeoComments(details.ceo?.remarks || "");
+    }, [details]);
+
     const handleCreditControllerApproved = useCallback(() => {
     }, []);
 
@@ -435,6 +537,12 @@ const createEmptyPartySection = () => ({
     return (
       <div className="general-tab-content approval-tab-content">
         <div className="cardform-body card-form-panel general-tab-body">
+          {isLoadingDetails ? (
+            <div className="text-center text-muted py-4">
+              <span className="spinner-border spinner-border-sm me-2" role="status" />
+              Loading approval details...
+            </div>
+          ) : null}
           <div className="approval-sections-wrapper">
             <section className="approval-form-card approval-section--full">
               <h3 className="form-group-title">Basic Details</h3>
@@ -525,6 +633,7 @@ const createEmptyPartySection = () => ({
                 commentsPlaceholder="Enter remarks / recommendation from Credit Controller"
                 document={creditControllerDocument}
                 onDocumentChange={setCreditControllerDocument}
+                existingDocuments={details?.documents?.credit_controller}
                 primaryActionLabel="Approved"
                 secondaryActionLabel="Proceed to Operator"
                 onPrimaryAction={handleCreditControllerApproved}
@@ -540,6 +649,7 @@ const createEmptyPartySection = () => ({
                 commentsClassName="approval-textarea--blue"
                 document={managerDocument}
                 onDocumentChange={setManagerDocument}
+                existingDocuments={details?.documents?.manager_ofm}
                 primaryActionLabel="Approved"
                 secondaryActionLabel="Proceed to CEO"
                 onPrimaryAction={handleManagerApproved}
@@ -556,6 +666,7 @@ const createEmptyPartySection = () => ({
                 commentsClassName="approval-textarea--blue"
                 document={ceoDocument}
                 onDocumentChange={setCeoDocument}
+                existingDocuments={details?.documents?.ceo}
                 primaryActionLabel="Approved"
                 secondaryActionLabel="On Hold"
                 onPrimaryAction={handleCeoApproved}
