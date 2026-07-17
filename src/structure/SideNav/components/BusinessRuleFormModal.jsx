@@ -28,6 +28,7 @@ import { getInitials, stripHtmlTags } from '../../../shared/utils/utils';
 import DatePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DatePickerField';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+import toastSuccessIcon from '../../../assets/images/toast-success.svg';
 
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
@@ -3657,11 +3658,6 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
         </div>
 
         <footer className="card-property-match-modal-footer br-invoke-modal-footer">
-          {testResult && (
-            <span className={`br-invoke-test-result-line ${testResult.ok ? 'br-invoke-test-result-line--ok' : 'br-invoke-test-result-line--error'}`}>
-              {testResult.message || (testResult.ok ? 'Success' : 'Failed')}
-            </span>
-          )}
           <div className="br-invoke-modal-footer-actions">
             <button
               type="button"
@@ -3708,6 +3704,36 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
             Yes
           </button>
         </div>
+      </div>
+    </Modal>
+
+    <Modal
+      show={testResult != null}
+      onHide={() => setTestResult(null)}
+      className="br-invoke-test-result-modal"
+      dialogClassName="br-invoke-test-result-dialog"
+      backdropClassName="br-invoke-test-result-backdrop"
+      centered
+    >
+      <div className="br-invoke-test-result-content">
+        <button
+          type="button"
+          className="br-invoke-test-result-close-btn"
+          onClick={() => setTestResult(null)}
+          aria-label="Close"
+        >
+          <FiX size={16} />
+        </button>
+        <h3 className="br-invoke-test-result-title">Service Invoke Test Result</h3>
+        {testResult?.ok ? (
+          <div className="br-invoke-test-result-success">
+            <img src={toastSuccessIcon} alt="Success" className="br-invoke-test-result-image" />
+          </div>
+        ) : (
+          <p className="br-invoke-test-result-message br-invoke-test-result-message--error">
+            {testResult?.message || 'Test request failed.'}
+          </p>
+        )}
       </div>
     </Modal>
     </>
