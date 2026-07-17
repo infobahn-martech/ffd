@@ -101,15 +101,11 @@ const generateCard = (workflowId, colId, cardId) => {
     ];
 
     const serviceTypes = [
-        "Crew Change",
         "Technician Visit",
         "Port Captain & Port Engineer Visit",
         "Aramco Personnel",
-        "Immigration Clearance",
-        "Material Delivery",
         "Provision Delivery",
         "Garbage Collection",
-        "Custom Inspection",
         "Tanker Clearance",
     ];
 

@@ -113,13 +113,10 @@ export const LAUNCH_HIRE_SERVICE_TYPES = {
 };
 
 export const LAUNCH_HIRE_SERVICE_TYPE_OPTIONS = [
-  { value: LAUNCH_HIRE_SERVICE_TYPES.CREW_CHANGE, label: "Crew Change" },
-  { value: LAUNCH_HIRE_SERVICE_TYPES.MATERIAL_DELIVERY, label: "Material Delivery" },
-  { value: LAUNCH_HIRE_SERVICE_TYPES.CREW_CHANGE_MATERIAL_DELIVERY, label: "Crew Change Material Delivery" },
+
   { value: LAUNCH_HIRE_SERVICE_TYPES.PROVISION_DELIVERY, label: "Provision Delivery" },
   { value: LAUNCH_HIRE_SERVICE_TYPES.PORT_CAPTAIN_ENGINEER_VISIT, label: "Port Captain & Port Engineer Visit" },
-  { value: LAUNCH_HIRE_SERVICE_TYPES.CUSTOM_INSPECTION, label: "Custom Inspection" },
-  { value: LAUNCH_HIRE_SERVICE_TYPES.IMMIGRATION_CLEARANCE, label: "Immigration Clearance" },
+
   { value: LAUNCH_HIRE_SERVICE_TYPES.GARBAGE_COLLECTION, label: "Garbage Collection" },
   { value: LAUNCH_HIRE_SERVICE_TYPES.TECHNICIAN_VISIT, label: "Technician Visit" },
   { value: LAUNCH_HIRE_SERVICE_TYPES.TANKER_CLEARANCE, label: "Tanker Clearance" },
