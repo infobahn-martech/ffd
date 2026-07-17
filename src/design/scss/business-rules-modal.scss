@@ -3687,6 +3687,23 @@
   max-width: 560px;
 }
 
+// Portaled to document.body (see CreateSubtaskSettingsModal) so it renders above the
+// modal's own stacking/scroll context instead of being clipped by it; position is set
+// inline per-open from the trigger's live viewport rect, so only reset the CSS anchoring
+// here and let the inline top/left/width win.
+.br-owner-picker-panel--floating {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: auto;
+  z-index: 2000;
+  max-width: min(320px, calc(100vw - 24px));
+
+  &.br-owner-picker-panel--top {
+    transform: translateY(-100%);
+  }
+}
+
 .br-subtask-deadline-trigger {
   display: inline-flex;
   align-items: center;

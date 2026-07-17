@@ -3809,7 +3809,9 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
   const [description, setDescription] = useState('');
   const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
   const [ownerFilterText, setOwnerFilterText] = useState('');
-  const ownerPickerWrapRef = useRef(null);
+  const [ownerPanelCoords, setOwnerPanelCoords] = useState({ top: 0, left: 0, width: 0, placement: 'bottom' });
+  const ownerPickerTriggerRef = useRef(null);
+  const ownerPickerPanelRef = useRef(null);
 
   const { saveCreateSubtaskSettings, isSavingCreateSubtaskSettings } = useBusinessRuleReducer((s) => s);
 
@@ -3827,15 +3829,51 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
     setOwnerFilterText('');
   }, [show, initialSettings, fetchedSettings]);
 
+  // The picker panel is portaled to document.body (see below) so it isn't clipped by
+  // the modal's own overflow/scroll box or trapped behind the modal's stacking context —
+  // its position is computed from the trigger's live viewport rect instead of CSS
+  // anchoring, and flips above the trigger when there isn't room below.
+  const updateOwnerPanelPosition = () => {
+    const el = ownerPickerTriggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 6;
+    const estimatedPanelHeight = 320;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const placeAbove = spaceBelow < estimatedPanelHeight && r.top > spaceBelow;
+    setOwnerPanelCoords({
+      top: placeAbove ? r.top - gap : r.bottom + gap,
+      left: r.left,
+      width: Math.max(r.width, 260),
+      placement: placeAbove ? 'top' : 'bottom',
+    });
+  };
+
+  const handleToggleOwnerPicker = () => {
+    setIsOwnerPickerOpen((prev) => {
+      const next = !prev;
+      if (next) updateOwnerPanelPosition();
+      return next;
+    });
+  };
+
   useEffect(() => {
-    if (!isOwnerPickerOpen) return;
+    if (!isOwnerPickerOpen) return undefined;
     const onDocMouseDown = (e) => {
-      if (ownerPickerWrapRef.current && !ownerPickerWrapRef.current.contains(e.target)) {
-        setIsOwnerPickerOpen(false);
-      }
+      const t = e.target;
+      if (ownerPickerPanelRef.current?.contains(t)) return;
+      if (ownerPickerTriggerRef.current?.contains(t)) return;
+      setIsOwnerPickerOpen(false);
     };
+    const onReposition = () => updateOwnerPanelPosition();
     document.addEventListener('mousedown', onDocMouseDown);
-    return () => document.removeEventListener('mousedown', onDocMouseDown);
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
   }, [isOwnerPickerOpen]);
 
   const selectedOwnerUser = (users ?? []).find((u) => String(u.user_id) === String(ownerUserId));
@@ -3853,8 +3891,8 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
   const handleSave = () => {
     const deadline = deadlineDate ? `${deadlineDate} ${deadlineTime || '00:00'}:00` : '';
     const payload = {
-      owner_user_id: ownerUserId,
-      deadline,
+      ...(ownerUserId ? { owner_user_id: ownerUserId } : {}),
+      ...(deadline ? { deadline } : {}),
       description,
     };
     saveCreateSubtaskSettings(payload, {
@@ -3908,12 +3946,13 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
 
         <div className="card-property-match-modal-body notification-settings-body">
           <div className="br-invoke-two-col">
-            <div className="notification-field br-owner-picker-wrap" ref={ownerPickerWrapRef}>
+            <div className="business-rule-form-field">
               <label className="business-rule-form-label">Owner</label>
               <button
                 type="button"
+                ref={ownerPickerTriggerRef}
                 className="business-rule-form-select-wrap business-rule-form-select-wrap--owner business-rule-form-control br-owner-picker-trigger"
-                onClick={() => setIsOwnerPickerOpen((v) => !v)}
+                onClick={handleToggleOwnerPicker}
                 aria-haspopup="listbox"
                 aria-expanded={isOwnerPickerOpen}
               >
@@ -3924,8 +3963,12 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
                 <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
               </button>
 
-              {isOwnerPickerOpen && (
-                <div className="br-owner-picker-panel">
+              {isOwnerPickerOpen && createPortal(
+                <div
+                  className={`br-owner-picker-panel br-owner-picker-panel--floating br-owner-picker-panel--${ownerPanelCoords.placement}`}
+                  ref={ownerPickerPanelRef}
+                  style={{ top: ownerPanelCoords.top, left: ownerPanelCoords.left, width: ownerPanelCoords.width }}
+                >
                   <div className="br-owner-picker-search">
                     <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
                     <input
@@ -3964,7 +4007,8 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
                       ))
                     )}
                   </div>
-                </div>
+                </div>,
+                document.body
               )}
             </div>
 
