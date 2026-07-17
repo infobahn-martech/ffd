@@ -3126,6 +3126,29 @@ const mapFetchedHeaders = (headers) => sortByDisplayOrder(headers ?? [])
 const mapFetchedParams = (params) => sortByDisplayOrder(params ?? [])
   .map((p) => ({ id: p.param_id, key: p.param_key ?? '', value: p.param_value ?? '', fields: [] }));
 
+// The invoked service's raw response_body is often a JSON error payload or an HTML
+// error page rather than a plain string, so a generic "Request failed with status
+// 405." message alone doesn't tell the user why. This pulls out the most useful bit
+// (a nested message/error/detail field, or the stripped/truncated body as a fallback)
+// to show alongside the generic message.
+const MAX_TEST_ERROR_DETAIL_LENGTH = 300;
+const extractTestErrorDetail = (responseBody) => {
+  const raw = String(responseBody ?? '').trim();
+  if (!raw) return '';
+
+  let detail = raw;
+  try {
+    const parsed = JSON.parse(raw);
+    detail = parsed?.message ?? parsed?.error ?? parsed?.error_description ?? parsed?.detail ?? JSON.stringify(parsed);
+  } catch {
+    detail = stripHtmlTags(raw);
+  }
+
+  return detail.length > MAX_TEST_ERROR_DETAIL_LENGTH
+    ? `${detail.slice(0, MAX_TEST_ERROR_DETAIL_LENGTH)}…`
+    : detail;
+};
+
 function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, triggerTypeId, actionTypeId }) {
   const [serviceName, setServiceName] = useState('');
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
@@ -3355,12 +3378,15 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       cb: (data) => {
         const result = data?.data ?? {};
         const statusCode = result.status_code ?? null;
+        const ok = data?.status !== 'error' && (statusCode == null || statusCode < 400);
+        const message = stripHtmlTags(data?.message);
+        const errorDetail = ok ? '' : extractTestErrorDetail(result.response_body);
         setTestResult({
-          ok: data?.status !== 'error' && (statusCode == null || statusCode < 400),
+          ok,
           statusCode,
           durationMs: result.duration_ms ?? null,
           responseBody: result.response_body ?? '',
-          message: stripHtmlTags(data?.message),
+          message: errorDetail && errorDetail !== message ? `${message} ${errorDetail}`.trim() : message,
         });
       },
       onError: (err) => {
@@ -3707,12 +3733,19 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       </div>
     </Modal>
 
+    {testResult != null && createPortal(
+      <div
+        className="br-invoke-test-result-overlay"
+        onClick={() => setTestResult(null)}
+      />,
+      document.body
+    )}
     <Modal
       show={testResult != null}
       onHide={() => setTestResult(null)}
       className="br-invoke-test-result-modal"
       dialogClassName="br-invoke-test-result-dialog"
-      backdropClassName="br-invoke-test-result-backdrop"
+      backdrop={false}
       centered
     >
       <div className="br-invoke-test-result-content">
