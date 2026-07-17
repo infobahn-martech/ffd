@@ -831,6 +831,31 @@ $send-report-optional: #80868b;
    HUSBANDRY SERVICE SELECTION
    ========================================================== */
 
+@keyframes husbandry-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes husbandry-hero-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: translate3d(2%, -2%, 0) scale(1.06);
+  }
+}
+
 .husbandry-service-selection {
   display: flex;
   align-items: flex-start;
@@ -842,7 +867,7 @@ $send-report-optional: #80868b;
   /* Allow flex child to shrink */
 
   padding: $space-8 $space-5;
-  background: #ffffff;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 220px);
 }
 
 .husbandry-service-selection-content {
@@ -854,21 +879,49 @@ $send-report-optional: #80868b;
 .husbandry-service-hero {
   width: 100%;
   text-align: left;
-  border: 1px solid rgba(0, 54, 140, 0.12);
-  border-radius: 18px;
-  padding: 24px 28px;
-  background: linear-gradient(120deg, rgba(0, 54, 140, 0.08) 0%, #ffffff 65%);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dfe8f7;
+  border-radius: 20px;
+  padding: 28px 32px;
+  background: linear-gradient(125deg, #f4f8ff 0%, #ffffff 45%, #eef6f6 100%);
+  box-shadow: 0 14px 32px -16px rgba(0, 54, 140, 0.16), 0 2px 8px rgba(15, 23, 42, 0.04);
+  margin-bottom: 24px;
+  animation: husbandry-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -60%;
+    right: -10%;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 70%);
+    animation: husbandry-hero-glow 7s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0, 54, 140, 0.07) 1px, transparent 0);
+    background-size: 18px 18px;
+    opacity: 0.6;
+    pointer-events: none;
+  }
 }
 
 .husbandry-service-hero-eyebrow {
   margin: 0;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.9px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: var(--card-color, #00368c);
+  color: var(--card-color, #2563eb);
+  position: relative;
+  z-index: 1;
 }
 
 .husbandry-service-selection-title {
@@ -878,34 +931,47 @@ $send-report-optional: #80868b;
   margin: 8px 0;
   letter-spacing: -0.7px;
   text-align: left;
+  position: relative;
+  z-index: 1;
 }
 
 .husbandry-service-hero-subtitle {
   margin: 0;
   max-width: 780px;
-  color: #475569;
+  color: #56637a;
   font-size: 14px;
   line-height: 1.6;
   text-align: left;
+  position: relative;
+  z-index: 1;
 }
 
 .husbandry-service-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
 }
 
 .husbandry-service-summary-card {
   border-radius: 14px;
-  border: 1px solid #dbe6f7;
+  border: 1px solid #e7edf6;
   background: #ffffff;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   padding: 16px 18px;
   text-align: left;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+  animation: husbandry-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms + 80ms);
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0, 54, 140, 0.25);
+    box-shadow: 0 10px 22px -8px rgba(15, 23, 42, 0.12);
+  }
 }
 
 .husbandry-service-summary-label {
@@ -915,10 +981,11 @@ $send-report-optional: #80868b;
 }
 
 .husbandry-service-summary-value {
-  font-size: 26px;
+  font-size: 28px;
   color: #0f172a;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.2;
+  letter-spacing: -0.5px;
 }
 
 .husbandry-service-summary-helper {
@@ -982,10 +1049,10 @@ $send-report-optional: #80868b;
   gap: 14px;
   padding: 26px 22px;
   background: #ffffff;
-  border: 1.5px solid #dbe4ee;
+  border: 1.5px solid #e7edf6;
   border-radius: $radius-xl;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
   text-align: left;
   min-height: 260px;
   position: relative;
@@ -993,12 +1060,26 @@ $send-report-optional: #80868b;
   min-width: 290px;
   max-width: 320px;
   width: 320px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  isolation: isolate;
+  animation: husbandry-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 70ms + 140ms);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--service-accent, var(--card-color, #00368c)) 0%, transparent 55%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    z-index: -1;
+  }
 }
 
 .husbandry-service-option.booked {
-  border-color: rgba(0, 54, 140, 0.5);
-  background: linear-gradient(135deg, rgba(0, 54, 140, 0.08) 0%, rgba(0, 54, 140, 0.02) 100%);
+  border-color: color-mix(in srgb, var(--service-accent, #00368c) 45%, #dbe4ee);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--service-accent, #00368c) 7%, #ffffff) 0%, #ffffff 60%);
   min-height: 300px;
 }
 
@@ -1014,42 +1095,52 @@ $send-report-optional: #80868b;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
 .husbandry-service-option:hover {
-  border: 1.5px solid var(--card-color, #00368c);
-  background: linear-gradient(135deg, rgba(0, 54, 140, 0.03) 0%, rgba(0, 54, 140, 0.01) 100%);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 54, 140, 0.16);
+  border-color: var(--service-accent, var(--card-color, #00368c));
+  transform: translateY(-6px);
+  box-shadow: 0 20px 32px -14px color-mix(in srgb, var(--service-accent, #00368c) 55%, transparent), 0 4px 10px rgba(15, 23, 42, 0.06);
   z-index: 1;
+
+  &::before {
+    opacity: 0.06;
+  }
 }
 
 .husbandry-service-option:active {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 // Keyboard-navigation focus state — this card is a <button> with no
 // explicit focus style today (falls back to the browser default outline).
 .husbandry-service-option:focus-visible {
   outline: none;
-  border: 1.5px solid var(--card-color, #{$colorPrimary});
+  border-color: var(--service-accent, var(--card-color, #{$colorPrimary}));
   box-shadow: $shadow-focus;
 }
 
 .husbandry-service-option-icon {
-  color: var(--card-color, #00368c);
+  color: var(--service-accent, var(--card-color, #00368c));
   display: flex;
   align-items: center;
   justify-content: center;
   width: 58px;
   height: 58px;
   border-radius: 14px;
-  background: rgba(0, 54, 140, 0.08);
-  transition: transform 0.3s ease;
+  background: color-mix(in srgb, var(--service-accent, #00368c) 12%, #ffffff);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 .husbandry-service-option:hover .husbandry-service-option-icon {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(-4deg);
+  background: color-mix(in srgb, var(--service-accent, #00368c) 18%, #ffffff);
 }
 
 .husbandry-service-option-label {
@@ -1057,10 +1148,11 @@ $send-report-optional: #80868b;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: 0;
+  transition: color 0.3s ease;
 }
 
 .husbandry-service-option:hover .husbandry-service-option-label {
-  color: var(--card-color, #00368c);
+  color: var(--service-accent, var(--card-color, #00368c));
 }
 
 .husbandry-service-option-content {
@@ -1071,7 +1163,7 @@ $send-report-optional: #80868b;
 
 .husbandry-service-option-summary {
   margin: 0;
-  color: #475569;
+  color: #64748b;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1095,8 +1187,8 @@ $send-report-optional: #80868b;
 }
 
 .husbandry-service-option-meta {
-  color: var(--card-color, #00368c);
-  background: rgba(0, 54, 140, 0.1);
+  color: var(--service-accent, var(--card-color, #00368c));
+  background: color-mix(in srgb, var(--service-accent, #00368c) 12%, #ffffff);
 }
 
 .husbandry-service-option-note {
@@ -1109,7 +1201,7 @@ $send-report-optional: #80868b;
   margin-top: 4px;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 54, 140, 0.12);
+  border: 1px solid color-mix(in srgb, var(--service-accent, #00368c) 15%, #e7edf6);
   background: rgba(255, 255, 255, 0.85);
   display: flex;
   flex-direction: column;
@@ -1120,7 +1212,7 @@ $send-report-optional: #80868b;
 .husbandry-service-option-sub {
   font-size: 12px;
   font-weight: 700;
-  color: var(--card-color, #00368c);
+  color: var(--service-accent, var(--card-color, #00368c));
   line-height: 1.3;
 }
 

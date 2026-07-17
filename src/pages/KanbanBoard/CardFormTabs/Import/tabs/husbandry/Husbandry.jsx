@@ -77,6 +77,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: MAIN_TABS.CREW_MANAGEMENT,
       label: "Crew Management",
       icon: "crew",
+      accent: "#2563eb",
       summary: "Crew transport, hotel, medical and launch hire support.",
       footerBadges: ["Sign In: 0", "Sign Off: 0"],
       bookedSummary: "Coordinate crew movement, accommodation and welfare services.",
@@ -85,6 +86,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: MAIN_TABS.MATERIAL_MANAGEMENT,
       label: "Material Management",
       icon: "box",
+      accent: "#0d9488",
       summary: "Inbound orders, landing note and dispatch note handling.",
       footerBadges: ["Inbound: 0", "Dispatch: 0"],
       bookedSummary: "Track vessel material flow from intake to final dispatch.",
@@ -93,6 +95,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: MAIN_TABS.WASTE_DISPOSAL,
       label: "Waste Disposal",
       icon: "trash",
+      accent: "#d97706",
       summary: "Waste request initiation and disposal progress tracking.",
       bookedSummary: "Ensure regulated pickup and transparent disposal follow-up.",
     },
@@ -100,6 +103,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: "LAUNCH_HIRE",
       label: "Launch Hire",
       icon: "boat",
+      accent: "#0891b2",
       summary: "Launch booking, transfer coordination and movement support.",
       bookedSummary: "Arrange transfer windows with optimized launch availability.",
     },
@@ -107,6 +111,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: MAIN_TABS.MWP_RENEWAL,
       label: "MWP Renewal",
       icon: "renewal",
+      accent: "#7c3aed",
       summary: "Monitor MWP renewal requests and expected completion updates.",
       bookedSummary: "Keep permits current with proactive renewal processing.",
     },
@@ -114,6 +119,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: MAIN_TABS.THIRD_PARTY_SERVICES,
       label: "Third-Party Services",
       icon: "vendor",
+      accent: "#e11d48",
       summary: "Raise and monitor external vendor service requests.",
       bookedSummary: "Manage third-party support under a single service view.",
     },
@@ -121,6 +127,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       id: MAIN_TABS.ADD_ON_SERVICES,
       label: "Add-on Services",
       icon: "addon",
+      accent: "#059669",
       summary: "Raise and monitor optional add-on service requests.",
       bookedSummary: "Track add-on support requests under a single service view.",
     },
@@ -228,8 +235,12 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
         </div>
 
         <div className="husbandry-service-summary-grid">
-          {dashboardSummaryCards.map((card) => (
-            <div key={card.label} className="husbandry-service-summary-card">
+          {dashboardSummaryCards.map((card, index) => (
+            <div
+              key={card.label}
+              className="husbandry-service-summary-card"
+              style={{ "--stagger-index": index }}
+            >
               <span className="husbandry-service-summary-label">{card.label}</span>
               <span className="husbandry-service-summary-value">{card.value}</span>
               {/* <span className="husbandry-service-summary-helper">{card.helper}</span> */}
@@ -238,7 +249,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
         </div>
 
         <div className="husbandry-service-options">
-          {services.map((service) => {
+          {services.map((service, index) => {
             const bookedEntry = bookedServicesMap[service.id];
             const isBooked = Boolean(bookedEntry);
             const status = bookedEntry?.status || "Pending";
@@ -249,7 +260,11 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
                 type="button"
                 className={`husbandry-service-option ${isBooked ? "booked" : ""}`}
                 onClick={() => onSelectService(service.id)}
-                style={{ "--card-color": cardColor }}
+                style={{
+                  "--card-color": cardColor,
+                  "--service-accent": service.accent || cardColor,
+                  "--stagger-index": index,
+                }}
               >
                 {isBooked && (
                   <span
