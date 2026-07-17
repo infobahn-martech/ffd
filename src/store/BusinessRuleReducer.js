@@ -461,6 +461,23 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    updateCreateSubtaskSettings: async (createSubtaskId, payload, { cb, onSettled } = {}) => {
+        try {
+            set({ isSavingCreateSubtaskSettings: true });
+            const { data } = await businessRuleService.updateCreateSubtaskSettings(createSubtaskId, payload);
+            set({ isSavingCreateSubtaskSettings: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Create subtask settings updated.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isSavingCreateSubtaskSettings: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isDeletingCreateSubtaskSettings: false,
 
     deleteCreateSubtaskSettings: async (createSubtaskId, { cb, onSettled } = {}) => {
