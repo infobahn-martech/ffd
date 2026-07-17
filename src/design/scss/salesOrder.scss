@@ -441,7 +441,7 @@
   border-spacing: 0;
   table-layout: fixed !important;
   width: 100%;
-  min-width: 1560px;
+  min-width: 1690px;
   margin: 0;
   overflow: visible !important;
 }
@@ -875,6 +875,11 @@
   .col-total {
     width: 8%;
     min-width: 105px;
+  }
+
+  .col-work-order {
+    width: 10%;
+    min-width: 130px;
   }
 
   .col-type-po {

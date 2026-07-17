@@ -726,7 +726,7 @@ const SalesOrderList = ({
   };
 
   // Supporting Documents chip/button control (shared by table rows and add-item form)
-  const renderSupportingDocsControl = (documents, onOpen) => {
+  const renderSupportingDocsControl = (documents, onOpen, disabled = false) => {
     const count = documents?.length || 0;
 
     if (count > 0) {
@@ -739,7 +739,7 @@ const SalesOrderList = ({
             </span>
           </span>
           {!readOnly && (
-            <button type="button" className="so-docs-action-btn" onClick={onOpen}>
+            <button type="button" className="so-docs-action-btn" onClick={onOpen} disabled={disabled}>
               View/Edit
             </button>
           )}
@@ -752,7 +752,7 @@ const SalesOrderList = ({
     }
 
     return (
-      <button type="button" className="so-docs-add-btn" onClick={onOpen}>
+      <button type="button" className="so-docs-add-btn" onClick={onOpen} disabled={disabled}>
         <FiFilePlus className="so-docs-add-icon" />
         Add Docs
       </button>
@@ -814,6 +814,7 @@ const SalesOrderList = ({
       supplierName: newItemForm.supplierName || "",
       documents: newItemForm.documents || [],
       poStatus: "Draft",
+      workOrder: "",
     };
     newItem.totalAmount = calcRowTotal(newItem);
 
@@ -1012,7 +1013,11 @@ const SalesOrderList = ({
   };
 
   // Render a single order row
-  const renderOrderRow = (order) => (
+  const renderOrderRow = (order) => {
+    const hasWorkOrder = Boolean(order.workOrder);
+    const defaultTypeOfPo = !isThirdParty(order.is_third_party) ? "Inhouse" : "";
+
+    return (
     <tr key={order.id}>
       {!isDAModule && (
         <td>
@@ -1104,14 +1109,22 @@ const SalesOrderList = ({
         </div>
       </td>
 
+      {/* Work Order No. */}
+      <td>
+        <div className="sales-order-table-cell">
+          {order.workOrder || "—"}
+        </div>
+      </td>
+
       {/* Type of PO */}
       <td>
         <div className="sales-order-table-cell">
-          {readOnly ? (order.typeOfPo || "—") : (
+          {readOnly ? (order.typeOfPo || defaultTypeOfPo || "—") : (
             <select
-              value={order.typeOfPo || ""}
+              value={order.typeOfPo || defaultTypeOfPo}
               onChange={(e) => handleFieldChange(order.id, "typeOfPo", e.target.value)}
               className="sales-order-type-po-select"
+              disabled={!hasWorkOrder}
             >
               <option value="">— Select —</option>
               {TYPE_OF_PO_OPTIONS.map((t) => (
@@ -1136,7 +1149,7 @@ const SalesOrderList = ({
       {/* Supporting Documents */}
       <td>
         <div className="sales-order-table-cell">
-          {renderSupportingDocsControl(order.documents, () => setDocumentModalTarget(order.id))}
+          {renderSupportingDocsControl(order.documents, () => setDocumentModalTarget(order.id), !hasWorkOrder)}
         </div>
       </td>
 
@@ -1158,6 +1171,7 @@ const SalesOrderList = ({
                 onClick={() => setVendorModalTarget(order.id)}
                 title={order.supplierName || "Select Vendor"}
                 className="sales-order-supplier-select-btn"
+                disabled={!hasWorkOrder}
               >
                 {order.supplierCode ? "Change" : "Select"}
               </button>
@@ -1175,7 +1189,8 @@ const SalesOrderList = ({
         </div>
       </td>
     </tr>
-  );
+    );
+  };
 
   return (
     <div className="cardform-left-full sales-order-content-wrapper" style={{ "--card-color": cardColor }}>
@@ -1523,7 +1538,7 @@ const SalesOrderList = ({
                 />
               </div>
               <div className="sales-order-add-form-field">
-                <label>Discount %</label>
+                <label>Discount</label>
                 <input
                   type="number"
                   min="0"
@@ -1697,9 +1712,10 @@ const SalesOrderList = ({
               {renderTableHeader("Item Description", "col-item-desc")}
               {renderTableHeader("Quantity", "col-qty")}
               {renderTableHeader("Unit Price", "col-unit-price")}
-              {renderTableHeader("Discount %", "col-discount")}
+              {renderTableHeader("Discount", "col-discount")}
               {renderTableHeader("Tax Code", "col-tax")}
               {renderTableHeader("Total Amount", "col-total")}
+              {renderTableHeader("Work Order No.", "col-work-order")}
               {renderTableHeader("Type of PO", "col-type-po")}
               {renderTableHeader("Third Party", "col-third-party")}
               {renderTableHeader("Supporting Documents", "col-documents")}
@@ -1711,7 +1727,7 @@ const SalesOrderList = ({
             {displayOrderList.length === 0 && !isLoadingSalesOrder && (
               <tr>
                 <td
-                  colSpan={isDAModule ? 12 : 13}
+                  colSpan={isDAModule ? 13 : 14}
                   style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                 >
                   No sales order line items for this call.
@@ -1744,7 +1760,7 @@ const SalesOrderList = ({
                     }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={isDAModule ? 12 : 13} style={{ padding: "12px 16px" }}>
+                    <td colSpan={isDAModule ? 13 : 14} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {!isDAModule && (
@@ -1886,7 +1902,7 @@ const SalesOrderList = ({
                   </div>
                   {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
                     <div className="so-accounting-row">
-                      <span className="so-accounting-label">Discount %</span>
+                      <span className="so-accounting-label">Discount</span>
                       <span className="so-accounting-value">
                         {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
                       </span>
