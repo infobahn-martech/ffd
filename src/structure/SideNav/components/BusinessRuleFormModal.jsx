@@ -6706,7 +6706,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
       existingFieldLabels={whenFields.map((f) => f.fieldLabel.trim().toLowerCase())}
       triggerTypeId={rule.id}
       showTimeUnit={false}
-      showCustomFields={false}
     />
 
     <CreateActionModal
