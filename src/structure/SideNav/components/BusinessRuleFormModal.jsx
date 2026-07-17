@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCheckCircle, FiAlertCircle, FiCalendar } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import ReactQuill, { Quill } from 'react-quill-new';
@@ -25,6 +25,7 @@ import useAuthReducer from '../../../store/AuthReducer';
 import useWorkFlowReducer from '../../../store/WorkFlowReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials } from '../../../shared/utils/utils';
+import DatePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DatePickerField';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 
@@ -3806,6 +3807,11 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
   const [deadlineDate, setDeadlineDate] = useState('');
   const [deadlineTime, setDeadlineTime] = useState('00:00');
   const [description, setDescription] = useState('');
+  const [isOwnerPickerOpen, setIsOwnerPickerOpen] = useState(false);
+  const [ownerFilterText, setOwnerFilterText] = useState('');
+  const [ownerPanelCoords, setOwnerPanelCoords] = useState({ top: 0, left: 0, width: 0, placement: 'bottom' });
+  const ownerPickerTriggerRef = useRef(null);
+  const ownerPickerPanelRef = useRef(null);
 
   const { saveCreateSubtaskSettings, isSavingCreateSubtaskSettings } = useBusinessRuleReducer((s) => s);
 
@@ -3819,13 +3825,74 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
     setDeadlineDate(datePart ?? '');
     setDeadlineTime((timePart ?? '00:00').slice(0, 5));
     setDescription(source?.description ?? '');
+    setIsOwnerPickerOpen(false);
+    setOwnerFilterText('');
   }, [show, initialSettings, fetchedSettings]);
+
+  // The picker panel is portaled to document.body (see below) so it isn't clipped by
+  // the modal's own overflow/scroll box or trapped behind the modal's stacking context —
+  // its position is computed from the trigger's live viewport rect instead of CSS
+  // anchoring, and flips above the trigger when there isn't room below.
+  const updateOwnerPanelPosition = () => {
+    const el = ownerPickerTriggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 6;
+    const estimatedPanelHeight = 320;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const placeAbove = spaceBelow < estimatedPanelHeight && r.top > spaceBelow;
+    setOwnerPanelCoords({
+      top: placeAbove ? r.top - gap : r.bottom + gap,
+      left: r.left,
+      width: Math.max(r.width, 260),
+      placement: placeAbove ? 'top' : 'bottom',
+    });
+  };
+
+  const handleToggleOwnerPicker = () => {
+    setIsOwnerPickerOpen((prev) => {
+      const next = !prev;
+      if (next) updateOwnerPanelPosition();
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!isOwnerPickerOpen) return undefined;
+    const onDocMouseDown = (e) => {
+      const t = e.target;
+      if (ownerPickerPanelRef.current?.contains(t)) return;
+      if (ownerPickerTriggerRef.current?.contains(t)) return;
+      setIsOwnerPickerOpen(false);
+    };
+    const onReposition = () => updateOwnerPanelPosition();
+    document.addEventListener('mousedown', onDocMouseDown);
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [isOwnerPickerOpen]);
+
+  const selectedOwnerUser = (users ?? []).find((u) => String(u.user_id) === String(ownerUserId));
+  const ownerName = selectedOwnerUser?.name || 'None';
+  const ownerFilterQuery = ownerFilterText.trim().toLowerCase();
+  const filteredOwnerUsers = ownerFilterQuery
+    ? (users ?? []).filter((u) => u.name?.toLowerCase().includes(ownerFilterQuery))
+    : (users ?? []);
+
+  const handlePickOwner = (user) => {
+    setOwnerUserId(user?.user_id ?? '');
+    setIsOwnerPickerOpen(false);
+  };
 
   const handleSave = () => {
     const deadline = deadlineDate ? `${deadlineDate} ${deadlineTime || '00:00'}:00` : '';
     const payload = {
-      owner_user_id: ownerUserId,
-      deadline,
+      ...(ownerUserId ? { owner_user_id: ownerUserId } : {}),
+      ...(deadline ? { deadline } : {}),
       description,
     };
     saveCreateSubtaskSettings(payload, {
@@ -3841,12 +3908,24 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
     });
   };
 
+  const renderDeadlineTrigger = ({ disabled, onOpen, displayValue }) => (
+    <button
+      type="button"
+      className="br-subtask-deadline-trigger"
+      onClick={onOpen}
+      disabled={disabled}
+    >
+      <FiCalendar size={14} aria-hidden />
+      {displayValue || 'Not Set'}
+    </button>
+  );
+
   return (
     <Modal
       show={show}
       onHide={onClose}
-      className="card-property-match-modal notification-settings-modal"
-      dialogClassName="card-property-match-modal-dialog notification-settings-modal-dialog"
+      className="card-property-match-modal br-subtask-settings-modal"
+      dialogClassName="card-property-match-modal-dialog br-subtask-settings-modal-dialog"
       backdropClassName="card-property-match-modal-backdrop"
       centered
       scrollable
@@ -3862,67 +3941,106 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
         </button>
 
         <header className="card-property-match-modal-header br-floating-close-header">
-          <h2 className="card-property-match-modal-title">Create Sub Task Settings</h2>
+          <h2 className="card-property-match-modal-title">Create Subtask</h2>
         </header>
 
         <div className="card-property-match-modal-body notification-settings-body">
-          <div className="notification-field">
-            <label className="business-rule-form-label br-invoke-field-label">Owner</label>
-            <div className="business-rule-form-select-wrap">
-              <select
-                className="business-rule-form-select"
-                value={ownerUserId}
-                onChange={(e) => setOwnerUserId(e.target.value)}
-              >
-                <option value="">Select owner</option>
-                {(users ?? []).map((u) => (
-                  <option key={u.user_id} value={u.user_id}>{u.name}</option>
-                ))}
-              </select>
-              <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
-            </div>
-          </div>
-
           <div className="br-invoke-two-col">
-            <div className="notification-field">
-              <label className="business-rule-form-label br-invoke-field-label">Deadline date</label>
-              <input
-                type="date"
-                className="business-rule-form-input"
-                value={deadlineDate}
-                onChange={(e) => setDeadlineDate(e.target.value)}
-              />
+            <div className="business-rule-form-field">
+              <label className="business-rule-form-label">Owner</label>
+              <button
+                type="button"
+                ref={ownerPickerTriggerRef}
+                className="business-rule-form-select-wrap business-rule-form-select-wrap--owner business-rule-form-control br-owner-picker-trigger"
+                onClick={handleToggleOwnerPicker}
+                aria-haspopup="listbox"
+                aria-expanded={isOwnerPickerOpen}
+              >
+                <span className="business-rule-form-owner-avatar" aria-hidden>
+                  {getInitials(ownerName)}
+                </span>
+                <span className="br-owner-picker-trigger-name">{ownerName}</span>
+                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+              </button>
+
+              {isOwnerPickerOpen && createPortal(
+                <div
+                  className={`br-owner-picker-panel br-owner-picker-panel--floating br-owner-picker-panel--${ownerPanelCoords.placement}`}
+                  ref={ownerPickerPanelRef}
+                  style={{ top: ownerPanelCoords.top, left: ownerPanelCoords.left, width: ownerPanelCoords.width }}
+                >
+                  <div className="br-owner-picker-search">
+                    <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                    <input
+                      type="text"
+                      placeholder="Filter"
+                      value={ownerFilterText}
+                      onChange={(e) => setOwnerFilterText(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="br-owner-picker-list">
+                    <div className="br-owner-picker-row">
+                      <button
+                        type="button"
+                        className={`br-owner-picker-row-btn${!ownerUserId ? ' br-owner-picker-row-btn--selected' : ''}`}
+                        onClick={() => handlePickOwner(null)}
+                      >
+                        <span className="business-rule-form-owner-avatar" aria-hidden>{getInitials('None')}</span>
+                        <span className="br-owner-picker-row-name">None</span>
+                      </button>
+                    </div>
+                    {filteredOwnerUsers.length === 0 ? (
+                      <div className="br-property-picker-empty">No matches</div>
+                    ) : (
+                      filteredOwnerUsers.map((user) => (
+                        <div key={user.user_id} className="br-owner-picker-row">
+                          <button
+                            type="button"
+                            className={`br-owner-picker-row-btn${String(ownerUserId) === String(user.user_id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                            onClick={() => handlePickOwner(user)}
+                          >
+                            <span className="business-rule-form-owner-avatar" aria-hidden>{getInitials(user.name)}</span>
+                            <span className="br-owner-picker-row-name">{user.name}</span>
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>,
+                document.body
+              )}
             </div>
+
             <div className="notification-field">
-              <label className="business-rule-form-label br-invoke-field-label">Deadline time</label>
-              <input
-                type="time"
-                className="business-rule-form-input"
-                value={deadlineTime}
-                onChange={(e) => setDeadlineTime(e.target.value)}
+              <label className="business-rule-form-label">Deadline</label>
+              <DatePickerField
+                dateValue={deadlineDate}
+                onDateChange={(e) => setDeadlineDate(e.target.value)}
+                popperClassName="br-subtask-deadline-popper"
+                renderTrigger={renderDeadlineTrigger}
               />
             </div>
           </div>
 
           <div className="notification-field">
-            <label className="business-rule-form-label br-invoke-field-label">Description</label>
+            <label className="business-rule-form-label">Description</label>
             <textarea
-              className="business-rule-form-textarea"
-              placeholder="Enter description"
+              className="business-rule-form-textarea br-subtask-description-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
         </div>
 
-        <footer className="card-property-match-modal-footer br-invoke-modal-footer">
+        <footer className="card-property-match-modal-footer">
           <button
             type="button"
             className="br-property-add-btn"
             onClick={handleSave}
             disabled={isLoadingSettings || isSavingCreateSubtaskSettings}
           >
-            {isSavingCreateSubtaskSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save Sub Task')}
+            {isSavingCreateSubtaskSettings ? 'Saving...' : (isLoadingSettings ? 'Loading...' : 'Save')}
           </button>
         </footer>
       </div>
@@ -5953,7 +6071,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                                   className="br-create-action-link br-create-action-link--btn"
                                   onClick={() => handleOpenCreateSubtaskSettings(action.id)}
                                 >
-                                  {action.configured ? (action.description?.trim() || 'Configured') : 'Configure details'}
+                                  {action.configured ? (action.description?.trim() || 'Configured') : 'Not Set'}
                                 </button>
                               )}
                             </div>
