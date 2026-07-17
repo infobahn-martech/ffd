@@ -3582,8 +3582,31 @@
   }
 }
 
-.br-invoke-test-result-modal {
-  z-index: 1060;
+// react-bootstrap's own Backdrop (`backdropClassName`) kept losing the z-index/
+// opacity fight against legacy global overrides elsewhere in this stylesheet
+// (e.g. operations.scss's `body .modal-backdrop.show { z-index: 1299 !important }`,
+// bundled app-wide, not scoped to the Operations page), so the dialog rendered
+// through it undarkened instead of over the whole screen. This modal now renders
+// its own plain overlay div (see WebInvokeSettingsModal in BusinessRuleFormModal.jsx)
+// with `backdrop={false}` on the Modal, so darkening no longer depends on
+// react-bootstrap's Backdrop/Fade timing or any other page's leftover !important.
+.br-invoke-test-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000 !important;
+  background-color: rgba(15, 23, 42, 0.85);
+}
+
+// modal-designs.scss pins EVERY plain `.modal.show` to z-index 1300 !important
+// (`body .modal.show { z-index: 1300 !important }`, meant as a catch-all for
+// modals with no specific class) — that selector's specificity (0,2,1) beat a
+// plain `.br-invoke-test-result-modal` class selector even with !important, which
+// is why the popup dialog kept rendering *under* the overlay above instead of
+// on top of it. Matching `.modal` + our own class + `.fade`/`.show` here brings
+// the specificity to (0,3,1), which reliably wins regardless of stylesheet order.
+body .modal.fade.br-invoke-test-result-modal,
+body .modal.br-invoke-test-result-modal.show {
+  z-index: 2100 !important;
 
   .modal-content {
     background: transparent;
@@ -3596,10 +3619,6 @@
 .br-invoke-test-result-dialog {
   max-width: 220px;
   margin: 1.75rem auto;
-}
-
-.br-invoke-test-result-backdrop {
-  background-color: rgba(15, 23, 42, 0.7);
 }
 
 .br-invoke-test-result-content {
@@ -3659,7 +3678,7 @@
   font: normal normal 400 13px/1.5 $font-primary;
   color: #4b5563;
   margin: 0;
-  text-align: left;
+  text-align: center;
   white-space: pre-line;
 
   &--error {
