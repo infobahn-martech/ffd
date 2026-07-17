@@ -1,11 +1,14 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiChevronLeft, FiChevronRight, FiCheck, FiNavigation } from "react-icons/fi";
 import CrewListUploadBox from "../husbandry/components/CrewListUploadBox";
 import CrewUploadDropzones from "../husbandry/components/CrewUploadDropzones";
 import CrewUploadPreviewModal from "../husbandry/components/CrewUploadPreviewModal";
+import LaunchHireInlineForm from "../husbandry/components/LaunchHireInlineForm";
 import useCrewReducer from "../../../../../../store/CrewReducer";
+import useLaunchHireServiceReducer from "../../../../../../store/LaunchHireServiceReducer";
 import callFileService from "../../../../../../services/callFileService";
+import { buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import { notify } from "../../../../../../components/Toaster";
 
 const LISTING_PAGE_SIZE = 10;
@@ -129,6 +132,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
+  const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
 
   const [batches, setBatches] = useState(() => [createBatch(1)]);
   const [previewBatchId, setPreviewBatchId] = useState(null);
@@ -143,6 +147,24 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [listingTotal, setListingTotal] = useState(0);
   const [isListingLoading, setIsListingLoading] = useState(true);
   const [listingRefreshTick, setListingRefreshTick] = useState(0);
+  const [listingSelectedIds, setListingSelectedIds] = useState([]);
+  // Local-only override so the bulk "Upload Visa" action can flip a crew's
+  // visa status icon on — mirrors CrewManagementDashboard's manualDocOverrides,
+  // since there's no bulk visa upload endpoint yet.
+  const [manualDocOverrides, setManualDocOverrides] = useState({});
+  const [isUploadingPassports, setIsUploadingPassports] = useState(false);
+  const [isUploadingIqamas, setIsUploadingIqamas] = useState(false);
+  const listingPassportInputRef = useRef(null);
+  const listingIqamaInputRef = useRef(null);
+  const listingVisaInputRef = useRef(null);
+
+  // "Request Launch Hire" inline panel — same pattern as CrewManagementDashboard.
+  const [showLaunchHireForm, setShowLaunchHireForm] = useState(false);
+  const [launchDate, setLaunchDate] = useState("");
+  const [launchTime, setLaunchTime] = useState("");
+  const [launchDateTimeError, setLaunchDateTimeError] = useState("");
+  const [isSubmittingLaunchHire, setIsSubmittingLaunchHire] = useState(false);
+  const [launchHireRequested, setLaunchHireRequested] = useState(false);
 
   const resolveCallAndVesselIds = useCallback(async () => {
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId);
@@ -178,7 +200,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         let uploadedFile = null;
         let total = 0;
         await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1, movement_type: label },
+          payload: { call_id: resolvedCallId, page: 1, limit: 1, movement_type: label },
           cb: (_rows, pagination, file) => {
             uploadedFile = file;
             total = Number(pagination?.total ?? 0);
@@ -229,7 +251,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       const list = await fetchCallCrewList({
         payload: {
           call_id: resolvedCallId,
-          vessel_id: resolvedVesselId,
           page: effectiveListingPage,
           limit: LISTING_PAGE_SIZE,
           search: debouncedListingSearch || undefined,
@@ -279,7 +300,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
         let crewCount = 0;
         await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1, movement_type: label },
+          payload: { call_id: resolvedCallId, page: 1, limit: 1, movement_type: label },
           cb: (_rows, pagination, uploadedFile) => {
             crewCount = Number(pagination?.total ?? 0);
             setBatches((prev) =>
@@ -371,7 +392,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       return;
     }
     const list = await fetchCallCrewList({
-      payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000, movement_type: label },
+      payload: { call_id: resolvedCallId, page: 1, limit: 1000, movement_type: label },
     });
     setPreviewCrewRows(
       Array.isArray(list)
@@ -406,17 +427,140 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
   const listingRows = useMemo(
     () =>
-      listingCrewList.map((crew, index) => ({
-        id: getCrewOptionId(crew, index),
-        crewName: crew?.crew_name ?? "",
-        dateOfBirth: crew?.date_of_birth ?? "",
-        nationality: crew?.nationality ?? "N/A",
-        rank: crew?.rank ?? "",
-        passportOrIqama: hasDocumentUrl(crew?.passport_copy_url) || hasDocumentUrl(crew?.iqama_copy_url),
-        visa: hasDocumentUrl(crew?.visa_copy_url),
-      })),
-    [listingCrewList]
+      listingCrewList.map((crew, index) => {
+        const id = getCrewOptionId(crew, index);
+        const docOverrides = manualDocOverrides[id] || {};
+        return {
+          id,
+          crewName: crew?.crew_name ?? "",
+          dateOfBirth: crew?.date_of_birth ?? "",
+          nationality: crew?.nationality ?? "N/A",
+          rank: crew?.rank ?? "",
+          passportOrIqama: hasDocumentUrl(crew?.passport_copy_url) || hasDocumentUrl(crew?.iqama_copy_url),
+          visa: hasDocumentUrl(crew?.visa_copy_url) || Boolean(docOverrides.visa),
+        };
+      }),
+    [listingCrewList, manualDocOverrides]
   );
+
+  const handleListingRowToggle = (rowId) => {
+    setListingSelectedIds((prev) => (prev.includes(rowId) ? prev.filter((id) => id !== rowId) : [...prev, rowId]));
+  };
+
+  const handleListingSelectAll = () => {
+    setListingSelectedIds((prev) => (prev.length === listingRows.length ? [] : listingRows.map((row) => row.id)));
+  };
+
+  // Passport/Iqama bulk upload — same real endpoints as CrewManagementDashboard
+  // (crew/upload_passport_copies + passports[], crew/upload_iqama_copies +
+  // iqamas[]); refetches the listing afterwards so the doc icons reflect the
+  // real result.
+  const handleListingBulkCopyUpload = (kind) => async (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (files.length === 0) return;
+
+    const setUploading = kind === "passport" ? setIsUploadingPassports : setIsUploadingIqamas;
+    const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
+    const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
+    const label = kind === "passport" ? "Passport" : "Iqama";
+
+    const formData = new FormData();
+    files.forEach((file) => formData.append(fileFieldName, file));
+
+    setUploading(true);
+    try {
+      await uploadAction({ formData });
+      setListingRefreshTick((tick) => tick + 1);
+      notify(`${label} uploaded — ${files.length} file(s).`, "success");
+    } catch {
+      notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // No bulk backend endpoint exists yet for visa files (same limitation as
+  // Crew Management), so this just flips the local override on for the
+  // currently-checked rows.
+  const handleListingBulkVisaUpload = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || listingSelectedIds.length === 0) return;
+    setManualDocOverrides((prev) => {
+      const next = { ...prev };
+      listingSelectedIds.forEach((id) => {
+        next[id] = { ...(next[id] || {}), visa: true };
+      });
+      return next;
+    });
+  };
+
+  const handleCancelLaunchHire = () => {
+    if (isSubmittingLaunchHire) return;
+    setShowLaunchHireForm(false);
+    setLaunchDate("");
+    setLaunchTime("");
+    setLaunchDateTimeError("");
+  };
+
+  const handleLaunchHireButtonClick = () => {
+    if (isSubmittingLaunchHire) return;
+    if (showLaunchHireForm) {
+      handleCancelLaunchHire();
+    } else {
+      setShowLaunchHireForm(true);
+    }
+  };
+
+  const handleLaunchDateTimeChange = ({ date, time }) => {
+    setLaunchDate(date);
+    setLaunchTime(time);
+    if (!date) return;
+    const selected = new Date(`${date}T${time || "00:00"}`);
+    if (!Number.isNaN(selected.getTime()) && selected.getTime() >= Date.now()) {
+      setLaunchDateTimeError("");
+    }
+  };
+
+  const handleSubmitLaunchHire = async () => {
+    if (isSubmittingLaunchHire) return;
+    if (!launchDate) {
+      setLaunchDateTimeError("Select a launch date and time.");
+      return;
+    }
+    const selected = new Date(`${launchDate}T${launchTime || "00:00"}`);
+    if (Number.isNaN(selected.getTime()) || selected.getTime() < Date.now()) {
+      setLaunchDateTimeError("Launch date and time cannot be in the past.");
+      return;
+    }
+
+    setIsSubmittingLaunchHire(true);
+    try {
+      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+      if (!resolvedCallId || !resolvedVesselId) {
+        notify("Unable to submit: missing call or vessel information.", "error");
+        return;
+      }
+
+      await createLaunchHireRequest({
+        call_id: resolvedCallId,
+        vessel_id: resolvedVesselId,
+        launch_datetime: buildApiDateTime(launchDate, launchTime),
+      });
+
+      notify("Launch hire request submitted successfully.", "success");
+      setShowLaunchHireForm(false);
+      setLaunchDate("");
+      setLaunchTime("");
+      setLaunchDateTimeError("");
+      setLaunchHireRequested(true);
+    } catch (err) {
+      notify(err?.response?.data?.message ?? "Failed to submit launch hire request. Please try again.", "error");
+    } finally {
+      setIsSubmittingLaunchHire(false);
+    }
+  };
 
   const totalListingItems = listingTotal;
   const startListingItem = totalListingItems === 0 ? 0 : (effectiveListingPage - 1) * LISTING_PAGE_SIZE + 1;
@@ -435,6 +579,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const lastBatch = batches[batches.length - 1];
   const canAddBatch = Boolean(lastBatch) && lastBatch.uploadSteps.crewList.status === "completed";
   const previewBatchLabel = previewBatchId ? `Batch ${previewBatchId}` : "";
+  const hasCallInfo = Boolean(formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId);
 
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
@@ -510,6 +655,26 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             </div>
 
             <div className="crew-summary-header-actions">
+              <div className="crew-launch-hire-trigger">
+                <button
+                  type="button"
+                  className="crew-header-btn crew-header-btn--launch-hire crew-header-btn--request-launch-hire"
+                  disabled={!hasCallInfo}
+                  aria-expanded={showLaunchHireForm}
+                  title={!hasCallInfo ? "Call or vessel information is unavailable." : undefined}
+                  onClick={handleLaunchHireButtonClick}
+                >
+                  <FiNavigation size={14} aria-hidden="true" />
+                  <span className="crew-header-btn__label">Request Launch Hire</span>
+                </button>
+                {launchHireRequested && (
+                  <span className="crew-launch-hire-status-chip">
+                    <FiCheck size={12} aria-hidden="true" />
+                    Launch Hire Requested
+                  </span>
+                )}
+              </div>
+
               <div className="crew-summary-search">
                 <FiSearch size={14} className="crew-summary-search__icon" />
                 <input
@@ -520,8 +685,72 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   onChange={(e) => setListingSearch(e.target.value)}
                 />
               </div>
+
+              {listingSelectedIds.length > 0 && (
+                <div className="crew-summary-bulk-actions">
+                  <button
+                    type="button"
+                    className="crew-header-btn"
+                    disabled={isUploadingPassports}
+                    onClick={() => listingPassportInputRef.current?.click()}
+                  >
+                    <span className="crew-header-btn__label">
+                      {isUploadingPassports ? "Uploading Passport…" : "Upload Passport"}
+                    </span>
+                  </button>
+                  <input
+                    ref={listingPassportInputRef}
+                    type="file"
+                    multiple
+                    className="crew-doc-input"
+                    onChange={handleListingBulkCopyUpload("passport")}
+                  />
+                  <button
+                    type="button"
+                    className="crew-header-btn"
+                    disabled={isUploadingIqamas}
+                    onClick={() => listingIqamaInputRef.current?.click()}
+                  >
+                    <span className="crew-header-btn__label">
+                      {isUploadingIqamas ? "Uploading Iqama…" : "Upload Iqama"}
+                    </span>
+                  </button>
+                  <input
+                    ref={listingIqamaInputRef}
+                    type="file"
+                    multiple
+                    className="crew-doc-input"
+                    onChange={handleListingBulkCopyUpload("iqama")}
+                  />
+                  <button
+                    type="button"
+                    className="crew-header-btn"
+                    onClick={() => listingVisaInputRef.current?.click()}
+                  >
+                    <span className="crew-header-btn__label">Upload Visa</span>
+                  </button>
+                  <input
+                    ref={listingVisaInputRef}
+                    type="file"
+                    className="crew-doc-input"
+                    onChange={handleListingBulkVisaUpload}
+                  />
+                </div>
+              )}
             </div>
           </div>
+
+          <LaunchHireInlineForm
+            open={showLaunchHireForm}
+            cardColor={cardColor}
+            dateValue={launchDate}
+            timeValue={launchTime}
+            error={launchDateTimeError}
+            isSubmitting={isSubmittingLaunchHire}
+            onDateTimeChange={handleLaunchDateTimeChange}
+            onCancel={handleCancelLaunchHire}
+            onSubmit={handleSubmitLaunchHire}
+          />
 
           {isListingLoading && listingRows.length === 0 ? (
             <p className="crew-summary-empty">Loading crew…</p>
@@ -535,6 +764,14 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                 <table className="table table-striped crew-table crew-immigration-listing-table" style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}>
                   <thead>
                     <tr>
+                      <th className="crew-checkbox-cell-header">
+                        <input
+                          className="crew-list-checkbox crew-list-checkbox--header"
+                          type="checkbox"
+                          checked={listingSelectedIds.length === listingRows.length && listingRows.length > 0}
+                          onChange={handleListingSelectAll}
+                        />
+                      </th>
                       <th><span className="crew-th">Crew name</span></th>
                       <th><span className="crew-th">Date of birth</span></th>
                       <th><span className="crew-th">Nationality</span></th>
@@ -545,7 +782,15 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   </thead>
                   <tbody>
                     {listingRows.map((row) => (
-                      <tr key={row.id}>
+                      <tr key={row.id} className={listingSelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
+                        <td className="crew-checkbox-cell">
+                          <input
+                            className="crew-list-checkbox"
+                            type="checkbox"
+                            checked={listingSelectedIds.includes(row.id)}
+                            onChange={() => handleListingRowToggle(row.id)}
+                          />
+                        </td>
                         <td>
                           <div className="crew-table-cell crew-name-cell" title={row.crewName}>
                             <span className="crew-name-info">
