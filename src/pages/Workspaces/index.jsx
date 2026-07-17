@@ -549,11 +549,12 @@ function Workspaces() {
         </div>
       ) : (
         filteredWorkspaces.map((workspace) => {
+          const hasOpenBoardMenu = workspace.boards?.some((b) => b.id === openMenuId);
           return (
           <div
             key={workspace.id}
             id={`workspace-row-${workspace.id}`}
-            className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards?.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id ? 'menu-open' : ''}`}
+            className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards?.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id || hasOpenBoardMenu ? 'menu-open' : ''}`}
             onClick={() => handleWorkspaceClick(workspace)}
           >
             <div className="workspace-card-header">

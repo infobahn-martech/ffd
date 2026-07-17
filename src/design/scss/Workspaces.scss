@@ -836,6 +836,7 @@
 }
 
 .board-menu-wrapper {
+  position: relative;
   z-index: 2;
 }
 
@@ -885,9 +886,9 @@
 
 .board-context-menu {
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   right: 0;
-  margin-bottom: 8px;
+  margin-top: 8px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
