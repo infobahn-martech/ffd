@@ -6,6 +6,8 @@ import { OPERATION_TABS } from "../operationConstants";
 // convention used by the Husbandry left nav (TabIcon in Husbandry.components.jsx)
 // without importing from that file, so this stays isolated from Husbandry.
 const TAB_ICON_PATHS = {
+  [OPERATION_TABS.CREW_IMMIGRATION]:
+    "M6 14C6 11.7909 7.79086 10 10 10C12.2091 10 14 11.7909 14 14M10 10C11.3807 10 12.5 8.88071 12.5 7.5C12.5 6.11929 11.3807 5 10 5C8.61929 5 7.5 6.11929 7.5 7.5C7.5 8.88071 8.61929 10 10 10ZM2.5 6L3.5 7L5.5 5M2.5 12L3.5 13L5.5 11",
   [OPERATION_TABS.PRE_ARRIVAL]:
     "M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8Z M8 4.5V8L10.5 9.5",
   [OPERATION_TABS.ARRIVAL]:
@@ -16,6 +18,7 @@ const TAB_ICON_PATHS = {
 };
 
 const TAB_ICON_COLORS = {
+  [OPERATION_TABS.CREW_IMMIGRATION]: "#DB2777",
   [OPERATION_TABS.PRE_ARRIVAL]: "#2563EB",
   [OPERATION_TABS.ARRIVAL]: "#16A34A",
   [OPERATION_TABS.DEPARTURE]: "#D97706",
@@ -41,6 +44,7 @@ OperationTabIcon.propTypes = {
 
 const OperationTabs = ({ activeTab, onTabChange }) => {
   const tabs = [
+    { id: OPERATION_TABS.CREW_IMMIGRATION, label: "Crew Immigration" },
     { id: OPERATION_TABS.PRE_ARRIVAL, label: "Pre Arrival" },
     { id: OPERATION_TABS.ARRIVAL, label: "Arrival" },
     { id: OPERATION_TABS.DEPARTURE, label: "Departure" },

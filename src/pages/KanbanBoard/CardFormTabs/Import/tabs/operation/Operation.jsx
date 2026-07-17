@@ -7,6 +7,7 @@ import stageTimeMappingService from "../../../../../../services/stageTimeMapping
 import preArrivalInfoService from "../../../../../../services/preArrivalInfoService";
 import "../../../../../../design/scss/operations.scss";
 import OperationTabs from "./components/OperationTabs";
+import CrewImmigrationDashboard from "./CrewImmigrationDashboard";
 import PreArrival from "./PreArrival";
 import Arrival from "./Arrival";
 import Departure from "./Departure";
@@ -441,6 +442,13 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
           onTabChange={handleTabChange}
         />
         <div className="operation-right">
+          {activeOperationTab === OPERATION_TABS.CREW_IMMIGRATION && (
+            <CrewImmigrationDashboard
+              card={card}
+              formValues={viewOnlyFormValues}
+              cardColor={cardColor}
+            />
+          )}
           {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
             <PreArrival
               card={card}

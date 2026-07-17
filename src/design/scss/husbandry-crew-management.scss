@@ -2504,6 +2504,37 @@
 }
 
 /* ==========================================================
+   CREW IMMIGRATION — batch-based crew list upload (see
+   CrewImmigrationDashboard.jsx). Stacks the same crewlist-block markup used
+   above once per batch, separated by a light divider.
+   ========================================================== */
+
+.crew-immigration-batches .crew-mgmt-crewlist-block + .crew-mgmt-crewlist-block {
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.crew-immigration-add-batch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--card-color, #00368c);
+  background: #ffffff;
+  color: var(--card-color, #00368c);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crew-immigration-add-batch-btn:hover {
+  background: color-mix(in srgb, var(--card-color, #00368c) 8%, #ffffff);
+}
+
+/* ==========================================================
    CREW LIST UPLOAD BOX (movement-type-aware — see CrewListUploadBox.jsx)
    ========================================================== */
 

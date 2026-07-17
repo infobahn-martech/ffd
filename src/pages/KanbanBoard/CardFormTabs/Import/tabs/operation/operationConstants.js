@@ -1,4 +1,5 @@
 export const OPERATION_TABS = {
+  CREW_IMMIGRATION: "crewImmigration",
   PRE_ARRIVAL: "preArrival",
   CHECK_LIST: "checkList",
   ARRIVAL: "arrival",
