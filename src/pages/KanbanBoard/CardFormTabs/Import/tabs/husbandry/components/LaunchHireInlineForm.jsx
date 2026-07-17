@@ -1,14 +1,7 @@
 import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { FiNavigation, FiCalendar, FiSend } from "react-icons/fi";
-
-// `min` for the datetime-local input — local time, no timezone math — so
-// neither the native picker nor a user typing manually can pick the past.
-const getMinDateTimeLocal = () => {
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-};
+import { FiNavigation, FiSend } from "react-icons/fi";
+import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 
 // Compact inline scheduling panel for the Crew Summary "Request Launch
 // Hire" action. Always mounted (even collapsed) so open/close can transition
@@ -16,17 +9,24 @@ const getMinDateTimeLocal = () => {
 const LaunchHireInlineForm = ({
   open,
   cardColor,
-  value,
+  dateValue,
+  timeValue,
   error,
   isSubmitting,
-  onChange,
+  onDateTimeChange,
   onCancel,
   onSubmit,
 }) => {
-  const inputRef = useRef(null);
+  const fieldWrapperRef = useRef(null);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (!open) return undefined;
+    // DateTimePickerField doesn't expose an inputRef, so focus the MUI
+    // input it renders directly rather than extending the shared component.
+    const timer = setTimeout(() => {
+      fieldWrapperRef.current?.querySelector("input")?.focus();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [open]);
 
   useEffect(() => {
@@ -55,24 +55,17 @@ const LaunchHireInlineForm = ({
           </span>
         </div>
 
-        <div className="crew-launch-hire-panel__field">
-          <label htmlFor="launchHireDateTime" className="crew-launch-hire-panel__label">
-            Launch Date &amp; Time *
-          </label>
-          <div className={`crew-launch-hire-panel__input-wrap${error ? " is-invalid" : ""}`}>
-            <FiCalendar size={14} className="crew-launch-hire-panel__input-icon" aria-hidden="true" />
-            <input
-              ref={inputRef}
-              id="launchHireDateTime"
-              type="datetime-local"
-              className="crew-launch-hire-panel__input"
-              value={value}
-              min={getMinDateTimeLocal()}
-              disabled={isSubmitting}
-              tabIndex={open ? 0 : -1}
-              onChange={(e) => onChange(e.target.value)}
-            />
-          </div>
+        <div className="crew-launch-hire-panel__field" ref={fieldWrapperRef}>
+          <label className="crew-launch-hire-panel__label">Launch Date &amp; Time *</label>
+          <DateTimePickerField
+            dateValue={dateValue}
+            timeValue={timeValue}
+            onDateTimeChange={onDateTimeChange}
+            disabled={isSubmitting}
+            hasError={Boolean(error)}
+            placeholder="Select date and time"
+            minDate={new Date()}
+          />
           {error && <span className="crew-launch-hire-panel__error">{error}</span>}
         </div>
 
@@ -81,7 +74,6 @@ const LaunchHireInlineForm = ({
             type="button"
             className="crew-launch-hire-panel__btn crew-launch-hire-panel__btn--cancel"
             disabled={isSubmitting}
-            tabIndex={open ? 0 : -1}
             onClick={onCancel}
           >
             Cancel
@@ -90,7 +82,6 @@ const LaunchHireInlineForm = ({
             type="button"
             className="crew-launch-hire-panel__btn crew-launch-hire-panel__btn--submit"
             disabled={isSubmitting}
-            tabIndex={open ? 0 : -1}
             onClick={onSubmit}
           >
             {isSubmitting ? (
@@ -114,10 +105,11 @@ const LaunchHireInlineForm = ({
 LaunchHireInlineForm.propTypes = {
   open: PropTypes.bool.isRequired,
   cardColor: PropTypes.string,
-  value: PropTypes.string,
+  dateValue: PropTypes.string,
+  timeValue: PropTypes.string,
   error: PropTypes.string,
   isSubmitting: PropTypes.bool,
-  onChange: PropTypes.func.isRequired,
+  onDateTimeChange: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
 };

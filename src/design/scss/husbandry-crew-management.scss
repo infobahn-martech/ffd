@@ -3507,54 +3507,22 @@
   color: #64748b;
 }
 
+// Deliberately capped (not flex: 1) — a full-width datetime field looked
+// oversized in this single-row layout; DateTimePickerField itself is
+// fullWidth, so it fills whatever this wrapper's width is.
 .crew-launch-hire-panel__field {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1 1 240px;
-  min-width: 220px;
+  flex: 0 1 240px;
+  width: 240px;
+  max-width: 240px;
 }
 
 .crew-launch-hire-panel__label {
   font-size: 12px;
   font-weight: 600;
   color: #475569;
-}
-
-.crew-launch-hire-panel__input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 $space-3;
-  height: 38px;
-  border-radius: $radius-md;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.crew-launch-hire-panel__input-wrap:focus-within {
-  border-color: var(--card-color, #00368c);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-color, #00368c) 15%, transparent);
-}
-
-.crew-launch-hire-panel__input-wrap.is-invalid {
-  border-color: $status-danger;
-}
-
-.crew-launch-hire-panel__input-icon {
-  color: #94a3b8;
-  flex-shrink: 0;
-}
-
-.crew-launch-hire-panel__input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  color: #0f172a;
-  min-width: 0;
 }
 
 .crew-launch-hire-panel__error {
@@ -3634,6 +3602,8 @@
 
   .crew-launch-hire-panel__field {
     flex-basis: 100%;
+    width: 100%;
+    max-width: 100%;
   }
 
   .crew-launch-hire-panel__actions {

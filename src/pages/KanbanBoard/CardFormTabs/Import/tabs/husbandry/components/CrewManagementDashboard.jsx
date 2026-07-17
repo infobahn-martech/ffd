@@ -14,6 +14,7 @@ import useCrewReducer from "../../../../../../../store/CrewReducer";
 import useCommonReducer from "../../../../../../../store/CommonReducer";
 import useLaunchHireServiceReducer from "../../../../../../../store/LaunchHireServiceReducer";
 import callFileService from "../../../../../../../services/callFileService";
+import { buildApiDateTime } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
 import { notify } from "../../../../../../../components/Toaster";
 
 const INITIAL_UPLOAD_STEPS = {
@@ -264,7 +265,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // submitted separately from the crew-list-driven Transport/Medical/Hotel
   // flows above (see handleSubmitLaunchHire below).
   const [showLaunchHireForm, setShowLaunchHireForm] = useState(false);
-  const [launchDateTime, setLaunchDateTime] = useState("");
+  const [launchDate, setLaunchDate] = useState("");
+  const [launchTime, setLaunchTime] = useState("");
   const [launchDateTimeError, setLaunchDateTimeError] = useState("");
   const [isSubmittingLaunchHire, setIsSubmittingLaunchHire] = useState(false);
   const [launchHireRequested, setLaunchHireRequested] = useState(false);
@@ -892,7 +894,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const handleCancelLaunchHire = () => {
     if (isSubmittingLaunchHire) return;
     setShowLaunchHireForm(false);
-    setLaunchDateTime("");
+    setLaunchDate("");
+    setLaunchTime("");
     setLaunchDateTimeError("");
   };
 
@@ -905,30 +908,23 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     }
   };
 
-  const handleLaunchDateTimeChange = (nextValue) => {
-    setLaunchDateTime(nextValue);
-    if (!nextValue) return;
-    const selected = new Date(nextValue);
+  const handleLaunchDateTimeChange = ({ date, time }) => {
+    setLaunchDate(date);
+    setLaunchTime(time);
+    if (!date) return;
+    const selected = new Date(`${date}T${time || "00:00"}`);
     if (!Number.isNaN(selected.getTime()) && selected.getTime() >= Date.now()) {
       setLaunchDateTimeError("");
     }
   };
 
-  // "2026-07-20T14:30" (datetime-local, already local time) -> "2026-07-20
-  // 14:30:00" for the backend — no timezone conversion, just reshaping.
-  const formatLaunchDateTimeForApi = (localValue) => {
-    const [datePart, timePart = "00:00"] = localValue.split("T");
-    const timeWithSeconds = timePart.length > 5 ? timePart.slice(0, 8) : `${timePart}:00`;
-    return `${datePart} ${timeWithSeconds}`;
-  };
-
   const handleSubmitLaunchHire = async () => {
     if (isSubmittingLaunchHire) return;
-    if (!launchDateTime) {
+    if (!launchDate) {
       setLaunchDateTimeError("Select a launch date and time.");
       return;
     }
-    const selected = new Date(launchDateTime);
+    const selected = new Date(`${launchDate}T${launchTime || "00:00"}`);
     if (Number.isNaN(selected.getTime()) || selected.getTime() < Date.now()) {
       setLaunchDateTimeError("Launch date and time cannot be in the past.");
       return;
@@ -945,12 +941,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       await createLaunchHireRequest({
         call_id: resolvedCallId,
         vessel_id: resolvedVesselId,
-        launch_datetime: formatLaunchDateTimeForApi(launchDateTime),
+        launch_datetime: buildApiDateTime(launchDate, launchTime),
       });
 
       notify("Launch hire request submitted successfully.", "success");
       setShowLaunchHireForm(false);
-      setLaunchDateTime("");
+      setLaunchDate("");
+      setLaunchTime("");
       setLaunchDateTimeError("");
       setLaunchHireRequested(true);
     } catch (err) {
@@ -1207,10 +1204,11 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
           <LaunchHireInlineForm
             open={showLaunchHireForm}
             cardColor={cardColor}
-            value={launchDateTime}
+            dateValue={launchDate}
+            timeValue={launchTime}
             error={launchDateTimeError}
             isSubmitting={isSubmittingLaunchHire}
-            onChange={handleLaunchDateTimeChange}
+            onDateTimeChange={handleLaunchDateTimeChange}
             onCancel={handleCancelLaunchHire}
             onSubmit={handleSubmitLaunchHire}
           />
