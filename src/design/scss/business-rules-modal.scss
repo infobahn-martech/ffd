@@ -3674,12 +3674,51 @@
     background: #2563eb;
     border: 1px solid #2563eb;
     color: #ffffff;
-    box-shadow: 0 0 0 3px #bfdbfe; 
-    
+    box-shadow: 0 0 0 3px #bfdbfe;
+
     &:hover {
       background: #1d4ed8;
       border-color: #1d4ed8;
     }
   }
+}
+
+.br-subtask-settings-modal-dialog {
+  max-width: 560px;
+}
+
+.br-subtask-deadline-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+  font: normal normal 500 14px/1.4 $font-primary;
+  color: #00368c;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: #cbd5e1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #00368c;
+    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.br-subtask-description-textarea {
+  min-height: 64px;
 }
 
