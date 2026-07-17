@@ -237,7 +237,7 @@ export const buildCreateBusinessRulePayload = (formState, ctx) => {
     owner_user_id: formState.ownerUserId ?? ctx.loggedInUserId,
     tags: formState.tags.join(', '),
     disallow_rule_action_trigger: formState.disallowTriggerChain ? 1 : 0,
-    is_enabled: 1,
+    is_enabled: 0,
     conditions: buildConditions(formState, nextCtx),
     then_actions: buildThenActions(formState, nextCtx),
     shared_users: buildSharedUsers(formState.sharePermissions),

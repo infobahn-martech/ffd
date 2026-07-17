@@ -27,8 +27,8 @@ const OwnerCell = ({ owner }) => {
   );
 };
 
-const BoardNameCell = ({ boards, boardName }) => {
-  const items = boards ?? (boardName ? [boardName] : []);
+const BoardNameCell = ({ boards }) => {
+  const items = boards ?? [];
   if (!Array.isArray(items) || items.length === 0) return <span>-</span>;
   return (
     <>
@@ -55,7 +55,8 @@ const BusinessRules = () => {
     useBusinessRuleReducer((s) => s);
 
   useEffect(() => {
-    getBusinessRules({ params: { page, limit, searchTerm, filter } });
+    const is_enabled = filter === 'enabled' ? 1 : filter === 'disabled' ? 0 : undefined;
+    getBusinessRules({ params: { page, per_page: limit, search: searchTerm || undefined, is_enabled } });
   }, [page, limit, searchTerm, filter]);
 
   const totalPages = Math.max(1, Math.ceil(businessRulesCount / limit));
@@ -136,9 +137,8 @@ const BusinessRules = () => {
                   const ruleId = rule?.business_rule_id ?? rule?.id;
                   const name = rule?.name ?? rule?.rule_name ?? '-';
                   const execOrder = rule?.execution_order ?? '-';
-                  const tags = Array.isArray(rule?.tags) && rule.tags.length > 0
-                    ? rule.tags.join(', ')
-                    : '-';
+                  const tags = rule?.tags || '-';
+                  const isEnabled = String(rule?.status) === '1';
                   const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                     ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                     : '-';
@@ -150,7 +150,7 @@ const BusinessRules = () => {
                           <input
                             className="form-check-input"
                             type="checkbox"
-                            checked={rule?.is_enabled ?? false}
+                            checked={isEnabled}
                             readOnly
                           />
                         </div>
@@ -158,7 +158,7 @@ const BusinessRules = () => {
                       <td>{ruleId}</td>
                       <td><span className="br-rule-name">{name}</span></td>
                       <td><OwnerCell owner={rule?.owner} /></td>
-                      <td><BoardNameCell boards={rule?.boards} boardName={rule?.board_name} /></td>
+                      <td><BoardNameCell boards={rule?.board_name} /></td>
                       <td>{execOrder}</td>
                       <td>{tags}</td>
                       <td>{sharedWith}</td>

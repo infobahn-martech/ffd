@@ -124,7 +124,7 @@ const useBusinessRuleReducer = create((set) => ({
             const { data } = await businessRuleService.getBusinessRules({ params });
             set({
                 businessRules: data?.data ?? [],
-                businessRulesCount: data?.count ?? data?.total ?? 0,
+                businessRulesCount: data?.total ?? 0,
                 isLoadingBusinessRules: false,
             });
         } catch (err) {

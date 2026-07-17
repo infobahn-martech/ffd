@@ -97,6 +97,28 @@
         vertical-align: middle;
       }
     }
+
+    // Restores the pill-shaped switch look for the enabled/disabled column: a global
+    // rule in form-designs.scss collapses every .form-check .form-check-input to a
+    // 15x15 plain circle, which also flattens Bootstrap's .form-switch track/knob here.
+    .form-check.form-switch .form-check-input {
+      width: 2.25em !important;
+      height: 1.25em !important;
+      margin-left: 0 !important;
+      border-radius: 2em !important;
+      border-color: #d1d5db !important;
+      background-position: left center;
+
+      &:checked {
+        background-color: #00368c !important;
+        border-color: #00368c !important;
+        background-position: right center;
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.15) !important;
+      }
+    }
   }
 
   .br-rule-name {
