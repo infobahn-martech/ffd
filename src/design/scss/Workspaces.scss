@@ -833,11 +833,9 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 12px;
-  position: relative;
 }
 
 .board-menu-wrapper {
-  position: relative;
   z-index: 2;
 }
 
@@ -887,9 +885,9 @@
 
 .board-context-menu {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   right: 0;
-  margin-top: 8px;
+  margin-bottom: 8px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -956,6 +954,10 @@
       height: 14px;
     }
   }
+}
+
+.board-context-menu-item--sub {
+  position: relative;
 }
 
 .board-card-content {

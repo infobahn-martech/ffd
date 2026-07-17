@@ -23,13 +23,6 @@ const archiveWorkspace = (workspaceId) =>
 const getWorkspaceArchiveLog = () =>
   Gateway.get('/kanban_workspace/workspace_archive_log');
 
-/** JSON body for color, or FormData for wallpaper (background_type + background_image). */
-const changeBackground = (workspaceId, data) =>
-  Gateway.post(`/kanban_workspace/change_background/${workspaceId}`, data);
-
-const removeBackground = (workspaceId) =>
-  Gateway.post(`/kanban_workspace/remove_background/${workspaceId}`);
-
 const unarchiveWorkspace = (board_id) =>
   Gateway.post(`/kanban_board/unarchive_board/${board_id}`, {
     board_id: board_id,
@@ -52,16 +45,23 @@ const archiveBoard = (boardId) =>
     board_id: boardId,
   });
 
+/** JSON body for color, or FormData for wallpaper (background_type + background_image). */
+const changeBoardBackground = (boardId, data) =>
+  Gateway.post(`/kanban_board/change_background/${boardId}`, data);
+
+const removeBoardBackground = (boardId) =>
+  Gateway.post(`/kanban_board/remove_background/${boardId}`);
+
 export default {
   createWorkspace,
   listAllWorkspaces,
   renameWorkspace,
   archiveWorkspace,
   getWorkspaceArchiveLog,
-  changeBackground,
-  removeBackground,
   unarchiveWorkspace,
   createBoard,
   renameBoard,
   archiveBoard,
+  changeBoardBackground,
+  removeBoardBackground,
 };
