@@ -1,19 +1,22 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, FormGroup, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
-import addOnService from "../../../../../../../services/addOnService";
 import useAddOnServiceRequestReducer from "../../../../../../../store/AddOnServiceRequestReducer";
-import { MAIN_TABS, SERVICE_ACCENT } from "./Husbandry.constants";
+import { MAIN_TABS, SERVICE_ACCENT, LAUNCH_HIRE_SERVICE_TYPE_OPTIONS } from "./Husbandry.constants";
 
 const ADD_ON_SERVICE_ACCENT = SERVICE_ACCENT[MAIN_TABS.ADD_ON_SERVICES];
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const DOCUMENTS_ACCEPT_ATTR = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
+
+// Same "Type of Service" option list LaunchHireContent uses, plus the
+// "Others" fallback that ThirdPartyServicesContent's Service Type field has.
+const ADD_ON_SERVICE_TYPE_OPTIONS = [...LAUNCH_HIRE_SERVICE_TYPE_OPTIONS, { value: "Others", label: "Others" }];
 
 const ADD_ON_SERVICE_REQUEST_COLUMNS = [
   { key: "service_name", header: "Service Type", accessor: (r) => r?.service_name },
@@ -23,21 +26,11 @@ const ADD_ON_SERVICE_REQUEST_COLUMNS = [
   { key: "document", header: "Document", accessor: (r) => r?.document_url, type: "document" },
 ];
 
-const unwrapApiList = (axiosData) => {
-  const payload = axiosData?.data ?? axiosData;
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-};
-
 const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
   const requestEmailInputRef = useRef(null);
-
-  const [addOnServiceCatalog, setAddOnServiceCatalog] = useState([]);
-  const [loadingAddOnServiceCatalog, setLoadingAddOnServiceCatalog] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
   const {
@@ -56,32 +49,6 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
     ...row,
     document_url: row?.request_email_url || row?.documents?.[0]?.file_url || "",
   }));
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoadingAddOnServiceCatalog(true);
-        const { data } = await addOnService.getAddOnServices({
-          params: {
-            page: 1,
-            limit: 1000,
-            sortBy: "add_on_service",
-            sortOrder: "ASC",
-          },
-        });
-        const list = unwrapApiList(data);
-        if (!cancelled) setAddOnServiceCatalog(list);
-      } catch {
-        if (!cancelled) setAddOnServiceCatalog([]);
-      } finally {
-        if (!cancelled) setLoadingAddOnServiceCatalog(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -213,14 +180,6 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const serviceTypeOptions = useMemo(() => {
-    const fromApi = addOnServiceCatalog.map((row) => ({
-      value: String(row.add_on_service_id ?? row._id ?? ""),
-      label: row.add_on_service ?? "",
-    }));
-    return [...fromApi.filter((o) => o.value), { value: "Others", label: "Others" }];
-  }, [addOnServiceCatalog]);
-
   const isOthersSelected = formValues.addOnServiceType === "Others";
 
   const handleSave = useCallback(async () => {
@@ -233,13 +192,9 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
       return;
     }
 
-    const serviceTypeId = formValues.addOnServiceType === "Others"
-      ? formValues.addOnServiceType
-      : Number(formValues.addOnServiceType);
-
     const payload = {
       call_id: Number(callId),
-      add_on_service_id: serviceTypeId,
+      add_on_service_type: formValues.addOnServiceType,
       add_on_service_type_other: formValues.addOnServiceTypeOther || "",
       remarks: formValues.addOnServicesDescription || "",
     };
@@ -303,13 +258,8 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
                       <FormSelect
                         value={formValues.addOnServiceType || ""}
                         onChange={handleChange("addOnServiceType")}
-                        options={serviceTypeOptions}
-                        placeholder={
-                          loadingAddOnServiceCatalog
-                            ? "Loading service types..."
-                            : "Select service type..."
-                        }
-                        disabled={loadingAddOnServiceCatalog}
+                        options={ADD_ON_SERVICE_TYPE_OPTIONS}
+                        placeholder="Select service type..."
                       />
                     </FormField>
                   </FormGroup>
