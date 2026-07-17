@@ -2477,6 +2477,24 @@ $send-report-optional: #80868b;
     }
   }
 
+  /* .cf-multi-select-email-input's base border is transparent (general.scss) —
+     it relies on a faint inset box-shadow plus its tinted background for
+     definition. On a white background that shadow is invisible, so give it
+     an explicit visible border here, matching .cf-input's resting border. */
+  .cf-multi-select-email-input {
+    border-color: #e2e2ea;
+    box-shadow: none;
+
+    &:hover {
+      border-color: #c5c5d1;
+      box-shadow: none;
+    }
+
+    &:focus-within {
+      border-color: #6d5ef5;
+    }
+  }
+
   .MuiPickersInputBase-root,
   .MuiOutlinedInput-root,
   .MuiInputBase-root {

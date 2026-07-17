@@ -611,10 +611,10 @@
   .general-add-form-panel {
     .cf-input,
     .cf-multi-select-email-input {
-      background: #f3f5ff;
+      background: #ffffff;
 
       &:hover {
-        background: #e4e8fb;
+        background: #ffffff;
       }
 
       &:focus-within {
@@ -622,13 +622,31 @@
       }
     }
 
+    /* .cf-multi-select-email-input's base border is transparent — it relies on a
+       faint inset box-shadow plus its tinted background for definition. On a
+       white background that shadow is invisible, so give it an explicit
+       visible border here, matching .cf-input's resting border. */
+    .cf-multi-select-email-input {
+      border-color: #e2e2ea;
+      box-shadow: none;
+
+      &:hover {
+        border-color: #c5c5d1;
+        box-shadow: none;
+      }
+
+      &:focus-within {
+        border-color: #6d5ef5;
+      }
+    }
+
     .MuiPickersInputBase-root,
     .MuiOutlinedInput-root,
     .MuiInputBase-root {
-      background: #f3f5ff;
+      background: #ffffff;
 
       &:hover {
-        background: #e4e8fb;
+        background: #ffffff;
       }
 
       &.Mui-focused {
@@ -640,10 +658,10 @@
       .MuiPickersInputBase-root,
       .MuiOutlinedInput-root,
       .MuiInputBase-root {
-        background: #f3f5ff;
+        background: #ffffff;
 
         &:hover {
-          background: #e4e8fb;
+          background: #ffffff;
         }
 
         &.Mui-focused {
