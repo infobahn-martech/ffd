@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, FormGroup, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
@@ -310,95 +310,111 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form waste-disposal-form">
           <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
             <div className="general-info-left crew-pass-premium-left">
-              <div className="crew-pass-request-details-card">
-                <div className="crew-pass-request-details-card__header">
-                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
-                </div>
+              <div className={`crew-pass-request-details-card husb-accent-${WASTE_DISPOSAL_ACCENT}`}>
+                <PremiumCardHeader
+                  icon="wasteDisposal"
+                  title="Request Details"
+                  subtitle="Submit a waste disposal request for this call"
+                  headerClassName="crew-pass-request-details-card__header"
+                  titleClassName="crew-pass-request-details-card__title"
+                />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-                  <FormField label="Request Email">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={requestEmailAttachments}
-                        onAdd={() => {}}
-                        onRemove={handleRequestEmailRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingEmail}
-                        onDragEnter={handleRequestEmailDragEnter}
-                        onDragLeave={handleRequestEmailDragLeave}
-                        onDragOver={handleRequestEmailDragOver}
-                        onDrop={handleRequestEmailDrop}
-                        fileInputRef={requestEmailInputRef}
-                        onFileInputChange={handleRequestEmailFileInputChange}
-                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                        multiple={false}
-                      />
-                    </div>
-                  </FormField>
+                  <FormGroup icon="mail" label="Request Email" accent={WASTE_DISPOSAL_ACCENT}>
+                    <FormField>
+                      <div className="transport-upload-box">
+                        <AttachmentsList
+                          attachments={requestEmailAttachments}
+                          onAdd={() => {}}
+                          onRemove={handleRequestEmailRemoveAttachment}
+                          cardColor={cardColor}
+                          isDragging={isDraggingEmail}
+                          onDragEnter={handleRequestEmailDragEnter}
+                          onDragLeave={handleRequestEmailDragLeave}
+                          onDragOver={handleRequestEmailDragOver}
+                          onDrop={handleRequestEmailDrop}
+                          fileInputRef={requestEmailInputRef}
+                          onFileInputChange={handleRequestEmailFileInputChange}
+                          accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                          multiple={false}
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
 
-                  <FormField label="PO Number">
-                    <div className="cf-input">
-                      <input
-                        type="text"
-                        value={formValues.wasteDisposalPONumber || ""}
-                        onChange={handleChange("wasteDisposalPONumber")}
-                        placeholder="Enter PO number..."
-                      />
-                    </div>
-                  </FormField>
+                  <FormGroup icon="billing" label="PO Number" accent={WASTE_DISPOSAL_ACCENT}>
+                    <FormField>
+                      <div className="cf-input">
+                        <input
+                          type="text"
+                          value={formValues.wasteDisposalPONumber || ""}
+                          onChange={handleChange("wasteDisposalPONumber")}
+                          placeholder="Enter PO number..."
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
 
-                  <FormField label="Waste Type">
-                    <FormSelect
-                      value={formValues.wasteTypeId || ""}
-                      onChange={handleWasteTypeChange}
-                      options={wasteTypeOptions}
-                      placeholder={loadingWasteTypes ? "Loading waste types..." : "Select waste type..."}
-                      disabled={loadingWasteTypes}
-                    />
-                  </FormField>
-
-                  <FormField label="Disposal Date">
-                    <div className="transport-date-time-field">
-                      <DateTimePickerField
-                        dateValue={disposalDateParts.date}
-                        timeValue={disposalDateParts.time}
-                        onDateTimeChange={handleDisposalDateTimeChange}
-                        dateFieldName="wasteDisposalDate"
-                        timeFieldName="wasteDisposalDate"
-                        placeholder="Select date and time"
-                      />
-                    </div>
-                  </FormField>
-
-                  <FormField label="Documents" className="cf-field-full">
-                    <div className="transport-upload-box">
-                      <AttachmentsList
-                        attachments={documentsAttachments}
-                        onAdd={() => {}}
-                        onRemove={handleDocumentsRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDragging}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={fileInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
-                        accept={DOCUMENTS_ACCEPT_ATTR}
-                        multiple
-                      />
-                    </div>
-                  </FormField>
-
-                  <div className="cgpass-remarks">
-                    <FormField label="Remarks">
-                      <ReactQuillEditor
-                        value={formValues?.wasteDisposalDescription || ""}
-                        onChange={handleChange("wasteDisposalDescription")}
-                        placeholder="Enter remarks..."
-                        name="wasteDisposalDescription"
+                  <FormGroup icon="list" label="Waste Type" accent={WASTE_DISPOSAL_ACCENT}>
+                    <FormField>
+                      <FormSelect
+                        value={formValues.wasteTypeId || ""}
+                        onChange={handleWasteTypeChange}
+                        options={wasteTypeOptions}
+                        placeholder={loadingWasteTypes ? "Loading waste types..." : "Select waste type..."}
+                        disabled={loadingWasteTypes}
                       />
                     </FormField>
-                  </div>
+                  </FormGroup>
+
+                  <FormGroup icon="calendar" label="Disposal Date" accent={WASTE_DISPOSAL_ACCENT}>
+                    <FormField>
+                      <div className="transport-date-time-field">
+                        <DateTimePickerField
+                          dateValue={disposalDateParts.date}
+                          timeValue={disposalDateParts.time}
+                          onDateTimeChange={handleDisposalDateTimeChange}
+                          dateFieldName="wasteDisposalDate"
+                          timeFieldName="wasteDisposalDate"
+                          placeholder="Select date and time"
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="folder" label="Documents" accent={WASTE_DISPOSAL_ACCENT}>
+                    <FormField className="cf-field-full">
+                      <div className="transport-upload-box">
+                        <AttachmentsList
+                          attachments={documentsAttachments}
+                          onAdd={() => {}}
+                          onRemove={handleDocumentsRemoveAttachment}
+                          cardColor={cardColor}
+                          isDragging={isDragging}
+                          onDragEnter={handleDocumentsDragEnter}
+                          onDragLeave={handleDocumentsDragLeave}
+                          onDragOver={handleDocumentsDragOver}
+                          onDrop={handleDocumentsDrop}
+                          fileInputRef={fileInputRef}
+                          onFileInputChange={handleDocumentsFileInputChange}
+                          accept={DOCUMENTS_ACCEPT_ATTR}
+                          multiple
+                        />
+                      </div>
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="notebook" label="Remarks" accent={WASTE_DISPOSAL_ACCENT}>
+                    <div className="cgpass-remarks">
+                      <FormField>
+                        <ReactQuillEditor
+                          value={formValues?.wasteDisposalDescription || ""}
+                          onChange={handleChange("wasteDisposalDescription")}
+                          placeholder="Enter remarks..."
+                          name="wasteDisposalDescription"
+                        />
+                      </FormField>
+                    </div>
+                  </FormGroup>
                 </div>
                 <div className="form-save-button-wrapper cgpass-save-footer">
                   <button type="button" className="form-save-button" onClick={handleSave} disabled={isSaving}>
