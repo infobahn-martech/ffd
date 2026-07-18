@@ -16,7 +16,14 @@ const useCrewImmigrationReducer = create((set) => ({
             set({ isCallCrewListLoading: true });
             const { data } = await crewImmigrationService.getImmigrationCrewList(payload || {});
             const root = data?.data ?? data;
-            const crew = root?.crew ?? (Array.isArray(root) ? root : []);
+            const crew = Array.isArray(root?.batches)
+                ? root.batches.flatMap((batch, batchIndex) =>
+                      (Array.isArray(batch?.crew) ? batch.crew : []).map((member) => ({
+                          ...member,
+                          batchLabel: `Batch ${batchIndex + 1}`,
+                      }))
+                  )
+                : root?.crew ?? (Array.isArray(root) ? root : []);
             const list = Array.isArray(crew) ? crew : [];
             set({
                 callCrewList: list,

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { Fragment, useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { FiSearch, FiChevronLeft, FiChevronRight, FiCheck, FiNavigation } from "react-icons/fi";
 import CrewListUploadBox from "../husbandry/components/CrewListUploadBox";
@@ -369,10 +369,26 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
           rank: crew?.rank ?? "",
           passportOrIqama: hasDocumentUrl(crew?.passport_copy_url) || hasDocumentUrl(crew?.iqama_copy_url),
           visa: hasDocumentUrl(crew?.visa_copy_url) || Boolean(docOverrides.visa),
+          batchLabel: crew?.batchLabel || "Batch 1",
         };
       }),
     [pagedListingCrewList, manualDocOverrides]
   );
+
+  // Groups the current page's rows by batch so the table can show a
+  // dynamic "Batch 1", "Batch 2"… header per batch instead of a flat list.
+  const listingRowGroups = useMemo(() => {
+    const groups = [];
+    listingRows.forEach((row) => {
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && lastGroup.label === row.batchLabel) {
+        lastGroup.rows.push(row);
+      } else {
+        groups.push({ label: row.batchLabel, rows: [row] });
+      }
+    });
+    return groups;
+  }, [listingRows]);
 
   const handleListingRowToggle = (rowId) => {
     setListingSelectedIds((prev) => (prev.includes(rowId) ? prev.filter((id) => id !== rowId) : [...prev, rowId]));
@@ -682,6 +698,9 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             </p>
           ) : (
             <div className="crew-table-wrapper">
+              {listingRowGroups.length > 0 && (
+                <div className="crew-batch-group-bar">{listingRowGroups[0].label}</div>
+              )}
               <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
                 <table className="table table-striped crew-table crew-immigration-listing-table" style={{ "--card-color": cardColor, tableLayout: "fixed", width: "100%" }}>
                   <thead>
@@ -703,35 +722,44 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {listingRows.map((row) => (
-                      <tr key={row.id} className={listingSelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
-                        <td className="crew-checkbox-cell">
-                          <input
-                            className="crew-list-checkbox"
-                            type="checkbox"
-                            checked={listingSelectedIds.includes(row.id)}
-                            onChange={() => handleListingRowToggle(row.id)}
-                          />
-                        </td>
-                        <td>
-                          <div className="crew-table-cell crew-name-cell" title={row.crewName}>
-                            <span className="crew-name-info">
-                              <span className="crew-name-text">{row.crewName}</span>
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={row.dateOfBirth}>{row.dateOfBirth || "-"}</div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
-                        </td>
-                        <td>
-                          <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
-                        </td>
-                        <td><DocStatusIcon available={row.passportOrIqama} label="Passport / Iqama" /></td>
-                        <td><DocStatusIcon available={row.visa} label="Visa" /></td>
-                      </tr>
+                    {listingRowGroups.map((group, groupIndex) => (
+                      <Fragment key={group.label}>
+                        {groupIndex > 0 && (
+                          <tr className="crew-batch-group-row">
+                            <td colSpan={7} className="crew-batch-group-row__label">{group.label}</td>
+                          </tr>
+                        )}
+                        {group.rows.map((row) => (
+                          <tr key={row.id} className={listingSelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
+                            <td className="crew-checkbox-cell">
+                              <input
+                                className="crew-list-checkbox"
+                                type="checkbox"
+                                checked={listingSelectedIds.includes(row.id)}
+                                onChange={() => handleListingRowToggle(row.id)}
+                              />
+                            </td>
+                            <td>
+                              <div className="crew-table-cell crew-name-cell" title={row.crewName}>
+                                <span className="crew-name-info">
+                                  <span className="crew-name-text">{row.crewName}</span>
+                                </span>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="crew-table-cell" title={row.dateOfBirth}>{row.dateOfBirth || "-"}</div>
+                            </td>
+                            <td>
+                              <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
+                            </td>
+                            <td>
+                              <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
+                            </td>
+                            <td><DocStatusIcon available={row.passportOrIqama} label="Passport / Iqama" /></td>
+                            <td><DocStatusIcon available={row.visa} label="Visa" /></td>
+                          </tr>
+                        ))}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>

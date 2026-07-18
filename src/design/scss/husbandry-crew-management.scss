@@ -2561,6 +2561,32 @@
   text-align: center;
 }
 
+// Batch bar shown above the Crew Immigration listing table for the page's
+// first batch (dynamic "Batch 1", "Batch 2"… label, see CrewImmigrationDashboard.jsx).
+.crew-batch-group-bar {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+// Inline divider row used only when a later batch starts mid-page (the
+// page's first batch is shown via .crew-batch-group-bar above instead).
+.crew-batch-group-row td.crew-batch-group-row__label {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  background: #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 /* ==========================================================
    CREW LIST UPLOAD BOX (movement-type-aware — see CrewListUploadBox.jsx)
    ========================================================== */
