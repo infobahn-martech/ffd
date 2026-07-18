@@ -68,12 +68,6 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
   }
 
   if (stageId === 9) {
-    if (!trimText(data.custom_inspection_status)) {
-      errors.custom_inspection_status = "Custom Inspection Status is required.";
-    }
-    if (data.custom_inspection_status === GRO_CUSTOM_INSPECTION_STATUS.FAILED && !trimText(data.failed_reason)) {
-      errors.failed_reason = "Customs remarks are required.";
-    }
     if (!hasFile(data.initial_bayan_doc)) {
       errors.initial_bayan_doc = "Initial Bayan Doc is required.";
     }
