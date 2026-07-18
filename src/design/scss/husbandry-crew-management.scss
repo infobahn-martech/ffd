@@ -3526,6 +3526,26 @@
   color: #475569;
 }
 
+.crew-launch-hire-panel__select {
+  height: 40px;
+  padding: 0 $space-2;
+  border: 1px solid #dfe3f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #fff;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--card-color, #2563eb);
+    outline-offset: 1px;
+  }
+}
+
 // Absolutely positioned so it doesn't add to .field's flex-column height —
 // otherwise the error text pushes .field taller than .actions, and
 // .actions' align-self: flex-end (below) then drops the buttons to match,
