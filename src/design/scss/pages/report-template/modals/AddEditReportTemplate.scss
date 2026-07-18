@@ -1,3 +1,111 @@
+// Top-level rules ensure table cell borders apply regardless of modal portal
+// nesting. The .ql-table-better class is set by quill-table-better on every
+// table it creates, so this only targets our feature's tables — matches the
+// CG Pass / Vessel Registration template modals' own copy of these rules.
+.ql-editor table.ql-table-better {
+  border-collapse: collapse !important;
+  table-layout: auto !important;
+  width: 100%;
+}
+
+.ql-editor table.ql-table-better td,
+.ql-editor table.ql-table-better th {
+  border: 1px solid #999 !important;
+  padding: 6px 10px !important;
+  min-width: 80px;
+  height: 36px;
+  vertical-align: top;
+  box-sizing: border-box;
+}
+
+.ql-editor table.ql-table-better td > p,
+.ql-editor table.ql-table-better th > p {
+  margin: 0 !important;
+  line-height: 1.5;
+}
+
+.ql-table-select-container,
+.ql-table-menus-container {
+  z-index: 9999;
+}
+
+// Appended to document.body by the custom image controls (not scoped inside the
+// modal), so these have to be top-level rules too — see attachImageControls in
+// AddEditAppointmentAcceptance.jsx. Modeled after Microsoft Word's image selection
+// UI: an outline box, 8 resize handles at the corners/edge midpoints, and a small
+// "Layout Options" icon that opens a wrap/align dropdown. Shared verbatim with the
+// CG Pass / Vessel Registration template modals' own copy of these same rules.
+.ql-image-selection-box {
+  position: fixed;
+  border: 1px solid #2B7DE9;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.ql-image-resize-handle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #2B7DE9;
+  border-radius: 50%;
+  background: #fff;
+  z-index: 10000;
+}
+
+.ql-image-layout-icon {
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7dee5;
+  border-radius: 4px;
+  background: #fff;
+  color: #35475E;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 10000;
+
+  &:hover {
+    background: #f2f6fa;
+  }
+}
+
+.ql-image-layout-dropdown {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #d7dee5;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+}
+
+.ql-image-layout-dropdown-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #35475E;
+  cursor: pointer;
+
+  &:hover {
+    background: #f2f6fa;
+  }
+}
+
+.ql-image-layout-dropdown-divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: #e5eaf0;
+}
+
 // Scoped to .report-template-modal, NOT the shared .appointment-acceptance-modal-lg —
 // the CG Pass Template and Vessel Registration Template modals reuse that same shared
 // class name and set `direction: rtl` on their own .ql-editor under it (intentionally,
