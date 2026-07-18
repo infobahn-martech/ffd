@@ -4873,6 +4873,19 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     setConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
+  // Clears every AND-column filter (Board is / Position is / custom property boxes)
+  // back to their untouched default state in one action, same as the Create/Link
+  // "Clear all" footers. Guards against the first-board auto-fill effect (see
+  // boardConditionDefaultAppliedRef above) reinstating a board after this explicit clear.
+  const handleClearAndConditions = () => {
+    boardConditionDefaultAppliedRef.current = true;
+    setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+    setPositionConditionRows([
+      { id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' },
+    ]);
+    setConditions([]);
+  };
+
   // "When fields" (shown only for trigger types where get_trigger_config reports
   // has_when_fields === '1', e.g. "Card is updated") record which field(s) must
   // change for the rule to fire — no operator/value, just the field itself.
@@ -6017,6 +6030,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                     >
                       <FiPlus size={14} aria-hidden />
                       Add new property
+                    </button>
+                    <button
+                      type="button"
+                      className="business-rule-form-add-link"
+                      onClick={handleClearAndConditions}
+                    >
+                      Clear all
                     </button>
                   </div>
                 )}
