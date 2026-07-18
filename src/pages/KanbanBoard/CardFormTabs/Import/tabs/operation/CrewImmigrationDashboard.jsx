@@ -6,6 +6,7 @@ import CrewUploadDropzones from "../husbandry/components/CrewUploadDropzones";
 import CrewUploadPreviewModal from "../husbandry/components/CrewUploadPreviewModal";
 import LaunchHireInlineForm from "../husbandry/components/LaunchHireInlineForm";
 import useCrewReducer from "../../../../../../store/CrewReducer";
+import useCrewImmigrationReducer from "../../../../../../store/CrewImmigrationReducer";
 import useLaunchHireServiceReducer from "../../../../../../store/LaunchHireServiceReducer";
 import callFileService from "../../../../../../services/callFileService";
 import { buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
@@ -120,18 +121,17 @@ BatchUploadedCard.propTypes = {
 // Crew Immigration — batch-based crew document intake for the Operation
 // section. Each batch bundles a Crew List + Passport + Iqama + Visa upload;
 // a new batch only unlocks once the previous batch's crew list has been
-// imported. Crew list import/replace/listing all reuse the existing Crew
-// Management APIs (crew/import_crew_ai, crew/replace_crew_file,
-// crew/get_crew_list, crew/upload_passport_copies, crew/upload_iqama_copies)
-// via useCrewReducer — batches are tagged through the existing
-// `movement_type` field (e.g. "Batch 1") since the backend has no separate
-// batch concept yet.
+// imported. Crew list import/replace/listing use the dedicated Crew
+// Immigration APIs (crew/import_crew_immigration, crew/get_immigration_crew_list)
+// via useCrewImmigrationReducer; passport/iqama copies still reuse the
+// existing Crew Management APIs via useCrewReducer. Batches are tagged
+// through the `movement_type` field (e.g. "Batch 1") since the backend has
+// no separate batch concept yet.
 const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
-  const importCrewFile = useCrewReducer((state) => state.importCrewFile);
-  const replaceCrewFile = useCrewReducer((state) => state.replaceCrewFile);
-  const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
+  const importCrewImmigrationFile = useCrewImmigrationReducer((state) => state.importCrewImmigrationFile);
+  const fetchCallCrewList = useCrewImmigrationReducer((state) => state.fetchCallCrewList);
   const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
 
   const [batches, setBatches] = useState(() => [createBatch(1)]);
@@ -318,8 +318,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       formData.append("file", file);
 
       try {
-        const uploadAction = mode === "replace" ? replaceCrewFile : importCrewFile;
-        await uploadAction({ formData });
+        await importCrewImmigrationFile({ formData });
 
         let crewCount = 0;
         await fetchCallCrewList({
@@ -354,7 +353,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         notify(`Failed to ${mode === "replace" ? "replace" : "upload"} ${label.toLowerCase()} crew list. Please try again.`, "error");
       }
     },
-    [batches, resolveCallAndVesselIds, replaceCrewFile, importCrewFile, fetchCallCrewList]
+    [batches, resolveCallAndVesselIds, importCrewImmigrationFile, fetchCallCrewList]
   );
 
   const handleAddBatch = () => {
