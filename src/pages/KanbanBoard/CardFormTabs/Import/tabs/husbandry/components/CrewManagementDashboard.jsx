@@ -318,7 +318,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
       if (cancelled || !resolvedCallId || !resolvedVesselId) return;
       const list = await fetchCallCrewList({
-        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+        payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
       });
       if (cancelled || !Array.isArray(list)) return;
       setUploadedCrewList(list);
@@ -332,7 +332,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         fetchCallCrewList({
           payload: {
             call_id: resolvedCallId,
-            vessel_id: resolvedVesselId,
             page: 1,
             limit: 1,
             movement_type: option.value,
@@ -379,7 +378,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const effectiveSummaryPage = Math.min(Math.max(summaryPage, 1), totalSummaryPages);
 
   // Crew Summary table — server-driven page/search/movement-type-filter via
-  // crew/get_crew_list (call_id, vessel_id, page, limit, search, movement_type).
+  // crew/get_crew_list (call_id, page, limit, search, movement_type).
   // Separate from the mount effect above, which keeps fetching the full,
   // unfiltered crew list for the service "select crew" popups and the
   // per-movement-type preview modal.
@@ -392,7 +391,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const list = await fetchCallCrewList({
         payload: {
           call_id: resolvedCallId,
-          vessel_id: resolvedVesselId,
           page: effectiveSummaryPage,
           limit: SUMMARY_PAGE_SIZE,
           search: debouncedSummarySearch || undefined,
@@ -468,7 +466,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const uploadAction = mode === "replace" ? replaceCrewFile : importCrewFile;
       await uploadAction({ formData });
       const list = await fetchCallCrewList({
-        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+        payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
       });
       const refreshedList = Array.isArray(list) ? list : [];
       setUploadedCrewList(refreshedList);
@@ -564,7 +562,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
       if (resolvedCallId && resolvedVesselId) {
         const list = await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+          payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
         });
         if (Array.isArray(list)) {
           setUploadedCrewList(list);
@@ -763,7 +761,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
       if (resolvedCallId && resolvedVesselId) {
         const list = await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+          payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
         });
         if (Array.isArray(list)) {
           setUploadedCrewList(list);
@@ -829,7 +827,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
       if (resolvedCallId && resolvedVesselId) {
         const list = await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+          payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
         });
         if (Array.isArray(list)) {
           setUploadedCrewList(list);
@@ -867,7 +865,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
       if (resolvedCallId && resolvedVesselId) {
         const list = await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: 1, limit: 1000 },
+          payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
         });
         if (Array.isArray(list)) {
           setUploadedCrewList(list);
