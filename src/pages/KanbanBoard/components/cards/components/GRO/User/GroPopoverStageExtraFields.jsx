@@ -130,41 +130,8 @@ function GroPopoverStageExtraFields({
   }
 
   if (stageId === 9) {
-    const showFailedReason = values?.custom_inspection_status === GRO_CUSTOM_INSPECTION_STATUS.FAILED;
     return (
       <>
-        <div className={`gro-inward-popover-field${errors?.custom_inspection_status ? " gro-inward-popover-field--error" : ""}`}>
-          <span className="gro-inward-popover-label">Custom Inspection Status *</span>
-          <select
-            className="gro-inward-popover-select"
-            value={values?.custom_inspection_status ?? ""}
-            disabled={disabled}
-            onChange={(e) => onFieldChange("custom_inspection_status", e.target.value)}
-          >
-            <option value="">Select status</option>
-            <option value={GRO_CUSTOM_INSPECTION_STATUS.PASSED}>{GRO_CUSTOM_INSPECTION_STATUS.PASSED}</option>
-            <option value={GRO_CUSTOM_INSPECTION_STATUS.FAILED}>{GRO_CUSTOM_INSPECTION_STATUS.FAILED}</option>
-          </select>
-          {errors?.custom_inspection_status ? (
-            <span className="gro-inward-popover-field-error">{errors.custom_inspection_status}</span>
-          ) : null}
-        </div>
-        {showFailedReason ? (
-          <div className={`gro-inward-popover-field${errors?.failed_reason ? " gro-inward-popover-field--error" : ""}`}>
-            <span className="gro-inward-popover-label">Failed Reason *</span>
-            <textarea
-              className="gro-inward-popover-textarea"
-              rows={3}
-              placeholder="Enter failed reason"
-              value={values?.failed_reason ?? ""}
-              disabled={disabled}
-              onChange={(e) => onFieldChange("failed_reason", e.target.value)}
-            />
-            {errors?.failed_reason ? (
-              <span className="gro-inward-popover-field-error">{errors.failed_reason}</span>
-            ) : null}
-          </div>
-        ) : null}
         <PopoverFileUploadField
           label="Initial Bayan Doc"
           fieldKey="initial_bayan_doc"
