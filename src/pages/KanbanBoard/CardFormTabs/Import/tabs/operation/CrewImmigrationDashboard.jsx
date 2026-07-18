@@ -1,12 +1,14 @@
 import { Fragment, useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import { FiSearch, FiChevronLeft, FiChevronRight, FiCheck, FiNavigation } from "react-icons/fi";
+import { FiSearch, FiChevronLeft, FiChevronRight, FiCheck, FiNavigation, FiEdit2, FiX, FiTrash2 } from "react-icons/fi";
 import CrewListUploadBox from "../husbandry/components/CrewListUploadBox";
 import CrewUploadDropzones from "../husbandry/components/CrewUploadDropzones";
 import CrewUploadPreviewModal from "../husbandry/components/CrewUploadPreviewModal";
 import LaunchHireInlineForm from "../husbandry/components/LaunchHireInlineForm";
+import DatePickerField from "../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../store/CrewReducer";
 import useCrewImmigrationReducer from "../../../../../../store/CrewImmigrationReducer";
+import useCommonReducer from "../../../../../../store/CommonReducer";
 import useLaunchHireServiceReducer from "../../../../../../store/LaunchHireServiceReducer";
 import callFileService from "../../../../../../services/callFileService";
 import { buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
@@ -26,6 +28,10 @@ const getCrewOptionId = (crew, index) =>
 
 const hasDocumentUrl = (url) =>
   typeof url === "string" && url.trim() !== "" && url.trim().toLowerCase() !== "null";
+
+// Fields editable inline from the Crew Listing table's Action column —
+// mirrors EDITABLE_SUMMARY_FIELDS in CrewManagementDashboard.
+const EDITABLE_LISTING_FIELDS = ["crewName", "dateOfBirth", "nationality", "rank"];
 
 // crew/import_crew_immigration's response carries the imported crew count
 // under one of a few likely field names — check them defensively rather
@@ -112,8 +118,12 @@ UploadedCrewFileCard.propTypes = {
 const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
+  const updateCrewInfo = useCrewReducer((state) => state.updateCrewInfo);
+  const deleteCrew = useCrewReducer((state) => state.deleteCrew);
   const importCrewImmigrationFile = useCrewImmigrationReducer((state) => state.importCrewImmigrationFile);
   const fetchCallCrewList = useCrewImmigrationReducer((state) => state.fetchCallCrewList);
+  const nationalities = useCommonReducer((state) => state.nationalities);
+  const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
   const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
 
   const [uploadSteps, setUploadSteps] = useState(() => createUploadSteps());
@@ -137,6 +147,10 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const listingPassportInputRef = useRef(null);
   const listingIqamaInputRef = useRef(null);
   const listingVisaInputRef = useRef(null);
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editDraft, setEditDraft] = useState(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [deletingRowId, setDeletingRowId] = useState(null);
 
   // "Request Launch Hire" inline panel — same pattern as CrewManagementDashboard.
   const [showLaunchHireForm, setShowLaunchHireForm] = useState(false);
@@ -167,6 +181,19 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
     return { resolvedCallId, resolvedVesselId };
   }, [formValues?.call_id, formValues?.callId, formValues?.vessel_id, formValues?.vesselId, card?.call_id, card?.callId, card?.vessel_id, card?.vesselId]);
+
+  useEffect(() => {
+    fetchAllNationalities();
+  }, [fetchAllNationalities]);
+
+  const nationalityOptions = useMemo(
+    () =>
+      (Array.isArray(nationalities) ? nationalities : []).map((item) => ({
+        value: String(item.country_id),
+        label: item.nationality,
+      })),
+    [nationalities]
+  );
 
   // Reconstructs upload state for a call reopened in a later session —
   // if any crew already exists for this call, mark the crew list step
@@ -363,6 +390,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         const docOverrides = manualDocOverrides[id] || {};
         return {
           id,
+          crewId: crew?.crew_id ?? crew?.crew_change_id ?? id,
           crewName: crew?.crew_name ?? "",
           dateOfBirth: crew?.date_of_birth ?? "",
           nationality: crew?.nationality ?? "N/A",
@@ -441,6 +469,86 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       });
       return next;
     });
+  };
+
+  const handleStartEdit = (row) => {
+    setEditingRowId(row.id);
+    const draft = Object.fromEntries(EDITABLE_LISTING_FIELDS.map((field) => [field, row[field]]));
+    // The crew list only carries the nationality's display text, not its
+    // country_id, so resolve the select's starting value by matching that
+    // text against the fetched nationality options.
+    const matchedNationality = nationalityOptions.find(
+      (option) => option.label?.trim().toLowerCase() === String(row.nationality ?? "").trim().toLowerCase()
+    );
+    draft.nationality = matchedNationality?.value ?? "";
+    setEditDraft(draft);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRowId(null);
+    setEditDraft(null);
+  };
+
+  const handleEditFieldChange = (field) => (e) => {
+    const { value } = e.target;
+    setEditDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Persists inline Crew Listing edits via crew/update_crew, then refetches
+  // crew/get_immigration_crew_list so the table reflects the saved values.
+  const handleSaveEdit = async () => {
+    if (!editingRowId || !editDraft) return;
+    const row = listingRows.find((listingRow) => listingRow.id === editingRowId);
+    const crewIdNum = Number(row?.crewId);
+    if (!crewIdNum) {
+      notify("Unable to save: missing crew id.", "error");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      await updateCrewInfo({
+        payload: {
+          crew_id: crewIdNum,
+          crew_name: editDraft.crewName,
+          date_of_birth: editDraft.dateOfBirth,
+          country_id: editDraft.nationality,
+          rank: editDraft.rank,
+        },
+      });
+
+      setListingRefreshTick((tick) => tick + 1);
+      notify("Crew details updated.", "success");
+      setEditingRowId(null);
+      setEditDraft(null);
+    } catch {
+      // error already surfaced via notify in the store; keep editing state so the user can retry
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  // Deletes a crew member via crew/delete_crew/{crew_id}, then refetches the
+  // listing so the removed crew member drops out of the table.
+  const handleDeleteCrew = async (row) => {
+    const crewIdNum = Number(row?.crewId);
+    if (!crewIdNum) {
+      notify("Unable to delete: missing crew id.", "error");
+      return;
+    }
+    if (!window.confirm(`Remove ${row.crewName || "this crew member"} from the crew list?`)) return;
+
+    setDeletingRowId(row.id);
+    try {
+      await deleteCrew({ crewId: crewIdNum });
+      setListingSelectedIds((prev) => prev.filter((id) => id !== row.id));
+      setListingRefreshTick((tick) => tick + 1);
+      notify("Crew member removed.", "success");
+    } catch {
+      // error already surfaced via notify in the store
+    } finally {
+      setDeletingRowId(null);
+    }
   };
 
   const handleCancelLaunchHire = () => {
@@ -719,6 +827,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                       <th><span className="crew-th">Rank</span></th>
                       <th><span className="crew-th">Passport / Iqama</span></th>
                       <th><span className="crew-th">Visa</span></th>
+                      <th><span className="crew-th">Action</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -726,39 +835,145 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                       <Fragment key={group.label}>
                         {groupIndex > 0 && (
                           <tr className="crew-batch-group-row">
-                            <td colSpan={7} className="crew-batch-group-row__label">{group.label}</td>
+                            <td colSpan={8} className="crew-batch-group-row__label">{group.label}</td>
                           </tr>
                         )}
-                        {group.rows.map((row) => (
-                          <tr key={row.id} className={listingSelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
-                            <td className="crew-checkbox-cell">
-                              <input
-                                className="crew-list-checkbox"
-                                type="checkbox"
-                                checked={listingSelectedIds.includes(row.id)}
-                                onChange={() => handleListingRowToggle(row.id)}
-                              />
-                            </td>
-                            <td>
-                              <div className="crew-table-cell crew-name-cell" title={row.crewName}>
-                                <span className="crew-name-info">
-                                  <span className="crew-name-text">{row.crewName}</span>
-                                </span>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="crew-table-cell" title={row.dateOfBirth}>{row.dateOfBirth || "-"}</div>
-                            </td>
-                            <td>
-                              <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
-                            </td>
-                            <td>
-                              <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
-                            </td>
-                            <td><DocStatusIcon available={row.passportOrIqama} label="Passport / Iqama" /></td>
-                            <td><DocStatusIcon available={row.visa} label="Visa" /></td>
-                          </tr>
-                        ))}
+                        {group.rows.map((row) => {
+                          const isEditing = editingRowId === row.id;
+                          return (
+                            <tr key={row.id} className={listingSelectedIds.includes(row.id) ? "crew-row-selected" : ""}>
+                              <td className="crew-checkbox-cell">
+                                <input
+                                  className="crew-list-checkbox"
+                                  type="checkbox"
+                                  checked={listingSelectedIds.includes(row.id)}
+                                  onChange={() => handleListingRowToggle(row.id)}
+                                />
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    className="crew-edit-input"
+                                    value={editDraft?.crewName ?? ""}
+                                    onChange={handleEditFieldChange("crewName")}
+                                  />
+                                ) : (
+                                  <div className="crew-table-cell crew-name-cell" title={row.crewName}>
+                                    <span className="crew-name-info">
+                                      <span className="crew-name-text">{row.crewName}</span>
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <DatePickerField
+                                    dateValue={editDraft?.dateOfBirth ?? ""}
+                                    onDateChange={handleEditFieldChange("dateOfBirth")}
+                                    dateFieldName="dateOfBirth"
+                                    placeholder="Select DOB"
+                                    maxDate={new Date()}
+                                    className="crew-edit-date-field"
+                                  />
+                                ) : (
+                                  <div className="crew-table-cell" title={row.dateOfBirth}>{row.dateOfBirth || "-"}</div>
+                                )}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <select
+                                    className="crew-edit-input crew-edit-select"
+                                    value={editDraft?.nationality ?? ""}
+                                    onChange={handleEditFieldChange("nationality")}
+                                  >
+                                    <option value="">Select nationality</option>
+                                    {nationalityOptions.map((option) => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
+                                )}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    className="crew-edit-input"
+                                    value={editDraft?.rank ?? ""}
+                                    onChange={handleEditFieldChange("rank")}
+                                  />
+                                ) : (
+                                  <div className="crew-table-cell" title={row.rank}>{row.rank}</div>
+                                )}
+                              </td>
+                              <td><DocStatusIcon available={row.passportOrIqama} label="Passport / Iqama" /></td>
+                              <td><DocStatusIcon available={row.visa} label="Visa" /></td>
+                              <td>
+                                <div className="crew-table-cell crew-action-cell">
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="crew-action-btn crew-action-btn--save"
+                                        aria-label="Save changes"
+                                        title="Save"
+                                        disabled={isSavingEdit}
+                                        onClick={handleSaveEdit}
+                                      >
+                                        {isSavingEdit ? (
+                                          <span className="crew-action-btn__spinner" aria-hidden="true" />
+                                        ) : (
+                                          <FiCheck size={14} />
+                                        )}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="crew-action-btn crew-action-btn--cancel"
+                                        aria-label="Cancel editing"
+                                        title="Cancel"
+                                        disabled={isSavingEdit}
+                                        onClick={handleCancelEdit}
+                                      >
+                                        <FiX size={14} />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="crew-action-btn crew-action-btn--edit"
+                                        aria-label="Edit crew"
+                                        title="Edit"
+                                        disabled={deletingRowId === row.id}
+                                        onClick={() => handleStartEdit(row)}
+                                      >
+                                        <FiEdit2 size={14} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="crew-action-btn crew-action-btn--delete"
+                                        aria-label="Delete crew"
+                                        title="Delete"
+                                        disabled={deletingRowId === row.id}
+                                        onClick={() => handleDeleteCrew(row)}
+                                      >
+                                        {deletingRowId === row.id ? (
+                                          <span className="crew-action-btn__spinner" aria-hidden="true" />
+                                        ) : (
+                                          <FiTrash2 size={14} />
+                                        )}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </Fragment>
                     ))}
                   </tbody>

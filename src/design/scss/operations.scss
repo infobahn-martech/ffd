@@ -1969,12 +1969,6 @@ $send-report-optional: #80868b;
    CallType builder preview — both reuse the bare .operation-left / .op-tab
    class names.
 
-   Colors here are hardcoded rather than var(--card-color): Crew's active/
-   hover background+text are hardcoded too (its var(--card-color) only ever
-   reaches border-left-color), so reusing the variable here would tint this
-   nav with whatever color the current card happens to have instead of
-   Crew's fixed blue/lavender look.
-
    The guide line is a real border-left on .op-tab-list (a plain, non-
    absolutely-positioned wrapper around just the 4 buttons), exactly like
    .op-submenu — so its height is driven by that content only, never by the
@@ -2010,94 +2004,27 @@ $send-report-optional: #80868b;
     background: transparent;
     color: $txtColor;
     overflow: hidden;
-    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
   }
 
+  // Fixed to Crew Management's blue ($colorPrimary), not var(--card-color)
+  // — this nav is shared by every Operation sub-tab and should always match
+  // Crew Management's sidenav rather than tint with the current card's color.
   .op-tab:hover {
-    background: #eef0ff;
-    color: #333333;
-    transform: translateX(2px);
+    background: rgba(0, 54, 140, 0.06);
+    color: $colorPrimary;
   }
 
   .op-tab.active {
-    background: linear-gradient(135deg, #4f46e5 0%, #6d5ef5 55%, #7c3aed 100%);
-    color: #ffffff;
-    border-left-color: transparent;
+    background: rgba(0, 54, 140, 0.08);
+    color: $colorPrimary;
+    border-left-color: $colorPrimary;
     font-weight: 700;
-    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.32);
-    transform: translateX(2px);
-  }
-
-  .op-tab.active::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #ffffff;
-    animation: op-tab-bar-grow 0.25s ease both;
-  }
-
-  .op-tab.active .op-tab-icon {
-    background: rgba(255, 255, 255, 0.22);
-    color: #ffffff;
-    animation: op-tab-icon-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-
-  .op-tab.active .op-tab-label {
-    animation: op-tab-label-in 0.3s ease both;
   }
 
   .op-tab:focus-visible {
     outline: none;
     box-shadow: $shadow-focus;
-  }
-}
-
-@keyframes op-tab-bar-grow {
-  from {
-    transform: scaleY(0);
-  }
-
-  to {
-    transform: scaleY(1);
-  }
-}
-
-@keyframes op-tab-icon-pop {
-  0% {
-    transform: scale(0.6) rotate(-8deg);
-    opacity: 0;
-  }
-
-  60% {
-    transform: scale(1.15) rotate(4deg);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-@keyframes op-tab-label-in {
-  from {
-    opacity: 0;
-    transform: translateX(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .operation-left.op-tab-nav--main .op-tab.active::after,
-  .operation-left.op-tab-nav--main .op-tab.active .op-tab-icon,
-  .operation-left.op-tab-nav--main .op-tab.active .op-tab-label {
-    animation: none !important;
   }
 }
 

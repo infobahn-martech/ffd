@@ -446,7 +446,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
             <CrewImmigrationDashboard
               card={card}
               formValues={viewOnlyFormValues}
-              cardColor={cardColor}
+              cardColor="#00368c"
             />
           )}
           {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
