@@ -3949,6 +3949,7 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
       backdropClassName="card-property-match-modal-backdrop"
       centered
       scrollable
+      enforceFocus={false}
     >
       <div className="card-property-match-modal-shell br-invoke-modal-shell">
         <button
