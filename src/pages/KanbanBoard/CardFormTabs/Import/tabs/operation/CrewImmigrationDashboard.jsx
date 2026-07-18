@@ -35,6 +35,18 @@ const getCrewOptionId = (crew, index) =>
 const hasDocumentUrl = (url) =>
   typeof url === "string" && url.trim() !== "" && url.trim().toLowerCase() !== "null";
 
+// crew/import_crew_immigration's response carries the imported crew count
+// under one of a few likely field names — check them defensively rather
+// than assuming one exact shape.
+const extractImportedCrewCount = (result) => {
+  const root = result?.data ?? result ?? {};
+  const count = root?.count ?? root?.crew_count ?? root?.total ?? root?.imported_count ?? root?.total_crew;
+  if (Number.isFinite(Number(count))) return Number(count);
+  if (Array.isArray(root?.crew)) return root.crew.length;
+  if (Array.isArray(root)) return root.length;
+  return 0;
+};
+
 const FileIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
@@ -122,11 +134,13 @@ BatchUploadedCard.propTypes = {
 // section. Each batch bundles a Crew List + Passport + Iqama + Visa upload;
 // a new batch only unlocks once the previous batch's crew list has been
 // imported. Crew list import/replace/listing use the dedicated Crew
-// Immigration APIs (crew/import_crew_immigration, crew/get_immigration_crew_list)
-// via useCrewImmigrationReducer; passport/iqama copies still reuse the
-// existing Crew Management APIs via useCrewReducer. Batches are tagged
-// through the `movement_type` field (e.g. "Batch 1") since the backend has
-// no separate batch concept yet.
+// Immigration APIs via useCrewImmigrationReducer — crew/import_crew_immigration
+// only accepts {call_id, file} and crew/get_immigration_crew_list only
+// accepts {call_id}, so there's no server-side batch tag, pagination, or
+// search: batches are a client-side-only grouping of upload actions, and
+// the Crew Listing table paginates/searches the full list in memory.
+// Passport/iqama copies still reuse the existing Crew Management APIs via
+// useCrewReducer.
 const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
@@ -144,7 +158,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [debouncedListingSearch, setDebouncedListingSearch] = useState("");
   const [listingPage, setListingPage] = useState(1);
   const [listingCrewList, setListingCrewList] = useState([]);
-  const [listingTotal, setListingTotal] = useState(0);
   const [isListingLoading, setIsListingLoading] = useState(true);
   const [listingRefreshTick, setListingRefreshTick] = useState(0);
   const [listingSelectedIds, setListingSelectedIds] = useState([]);
@@ -187,44 +200,27 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     return { resolvedCallId, resolvedVesselId };
   }, [formValues?.call_id, formValues?.callId, formValues?.vessel_id, formValues?.vesselId, card?.call_id, card?.callId, card?.vessel_id, card?.vesselId]);
 
-  // Discover any batches already uploaded for this call (e.g. reopening the
-  // card in a later session) by probing Batch 1, 2, 3… until one comes back
-  // empty, so in-progress batch state survives a remount.
+  // Reconstructs upload state for a call reopened in a later session.
+  // crew/get_immigration_crew_list only accepts call_id (no movement_type),
+  // so individual prior batches can't be told apart — if any crew already
+  // exists for this call, collapse it into a single completed Batch 1.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-      if (cancelled || !resolvedCallId || !resolvedVesselId) return;
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (cancelled || !resolvedCallId) return;
 
-      const discovered = [];
-      for (let index = 1; index <= 50; index += 1) {
-        const label = `Batch ${index}`;
-        let uploadedFile = null;
-        let total = 0;
-        await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, page: 1, limit: 1, movement_type: label },
-          cb: (_rows, pagination, file) => {
-            uploadedFile = file;
-            total = Number(pagination?.total ?? 0);
-          },
-        });
-        if (cancelled || !uploadedFile) break;
+      const list = await fetchCallCrewList({ payload: { call_id: resolvedCallId } });
+      if (cancelled || !Array.isArray(list) || list.length === 0) return;
 
-        const batch = createBatch(index);
-        batch.crewCount = total;
-        batch.fileMeta = {
-          name: uploadedFile.crew_file || label,
-          uploadedAt: uploadedFile.uploaded_at,
-          fileUrl: uploadedFile.crew_file_url,
-        };
-        batch.uploadSteps = {
-          ...batch.uploadSteps,
-          crewList: { status: "completed", files: [{ name: batch.fileMeta.name }], progress: 100 },
-        };
-        discovered.push(batch);
-      }
-
-      if (!cancelled && discovered.length > 0) setBatches(discovered);
+      const batch = createBatch(1);
+      batch.crewCount = list.length;
+      batch.fileMeta = { name: "Crew List", uploadedAt: undefined, fileUrl: undefined };
+      batch.uploadSteps = {
+        ...batch.uploadSteps,
+        crewList: { status: "completed", files: [{ name: "Crew List" }], progress: 100 },
+      };
+      setBatches([batch]);
     })();
     return () => {
       cancelled = true;
@@ -262,27 +258,13 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setListingPage(1);
   }, [debouncedListingSearch]);
 
-  const totalListingPages = Math.max(1, Math.ceil(listingTotal / LISTING_PAGE_SIZE));
-  const effectiveListingPage = Math.min(Math.max(listingPage, 1), totalListingPages);
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-      if (cancelled || !resolvedCallId || !resolvedVesselId) return;
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (cancelled || !resolvedCallId) return;
       setIsListingLoading(true);
-      const list = await fetchCallCrewList({
-        payload: {
-          call_id: resolvedCallId,
-          page: effectiveListingPage,
-          limit: LISTING_PAGE_SIZE,
-          search: debouncedListingSearch || undefined,
-        },
-        cb: (rows, pagination) => {
-          if (cancelled) return;
-          setListingTotal(Number(pagination?.total ?? (Array.isArray(rows) ? rows.length : 0)));
-        },
-      });
+      const list = await fetchCallCrewList({ payload: { call_id: resolvedCallId } });
       if (cancelled) return;
       setListingCrewList(Array.isArray(list) ? list : []);
       setIsListingLoading(false);
@@ -290,7 +272,23 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     return () => {
       cancelled = true;
     };
-  }, [resolveCallAndVesselIds, fetchCallCrewList, effectiveListingPage, debouncedListingSearch, listingRefreshTick]);
+  }, [resolveCallAndVesselIds, fetchCallCrewList, listingRefreshTick]);
+
+  // crew/get_immigration_crew_list has no server-side search or pagination
+  // (call_id only), so both are done client-side over the full list.
+  const filteredListingCrewList = useMemo(() => {
+    const term = debouncedListingSearch.trim().toLowerCase();
+    if (!term) return listingCrewList;
+    return listingCrewList.filter((crew) => String(crew?.crew_name ?? "").toLowerCase().includes(term));
+  }, [listingCrewList, debouncedListingSearch]);
+
+  const totalListingPages = Math.max(1, Math.ceil(filteredListingCrewList.length / LISTING_PAGE_SIZE));
+  const effectiveListingPage = Math.min(Math.max(listingPage, 1), totalListingPages);
+
+  const pagedListingCrewList = useMemo(
+    () => filteredListingCrewList.slice((effectiveListingPage - 1) * LISTING_PAGE_SIZE, effectiveListingPage * LISTING_PAGE_SIZE),
+    [filteredListingCrewList, effectiveListingPage]
+  );
 
   const handleBatchCrewListFile = useCallback(
     async (batchId, file, mode = "import") => {
@@ -302,47 +300,40 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, crewList: { ...b.uploadSteps.crewList, status: "uploading" } } } : b))
       );
 
-      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-      if (!resolvedCallId || !resolvedVesselId) {
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (!resolvedCallId) {
         setBatches((prev) =>
           prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, crewList: { ...b.uploadSteps.crewList, status: "failed" } } } : b))
         );
-        notify("Unable to upload: missing call or vessel information.", "error");
+        notify("Unable to upload: missing call information.", "error");
         return;
       }
 
       const formData = new FormData();
       formData.append("call_id", String(resolvedCallId));
-      formData.append("vessel_id", String(resolvedVesselId));
-      formData.append("movement_type", label);
       formData.append("file", file);
 
       try {
-        await importCrewImmigrationFile({ formData });
+        const importResult = await importCrewImmigrationFile({ formData });
+        const importRoot = importResult?.data ?? importResult ?? {};
+        const crewCount = extractImportedCrewCount(importResult);
 
-        let crewCount = 0;
-        await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, page: 1, limit: 1, movement_type: label },
-          cb: (_rows, pagination, uploadedFile) => {
-            crewCount = Number(pagination?.total ?? 0);
-            setBatches((prev) =>
-              prev.map((b) =>
-                b.id === batchId
-                  ? {
-                      ...b,
-                      crewCount,
-                      fileMeta: {
-                        name: uploadedFile?.crew_file || file.name,
-                        uploadedAt: uploadedFile?.uploaded_at,
-                        fileUrl: uploadedFile?.crew_file_url,
-                      },
-                      uploadSteps: { ...b.uploadSteps, crewList: { status: "completed", files: [{ name: file.name }], progress: 100 } },
-                    }
-                  : b
-              )
-            );
-          },
-        });
+        setBatches((prev) =>
+          prev.map((b) =>
+            b.id === batchId
+              ? {
+                  ...b,
+                  crewCount,
+                  fileMeta: {
+                    name: importRoot?.crew_file || file.name,
+                    uploadedAt: importRoot?.uploaded_at,
+                    fileUrl: importRoot?.crew_file_url,
+                  },
+                  uploadSteps: { ...b.uploadSteps, crewList: { status: "completed", files: [{ name: file.name }], progress: 100 } },
+                }
+              : b
+          )
+        );
 
         setListingRefreshTick((tick) => tick + 1);
         notify(`${label} crew list ${mode === "replace" ? "replaced" : "uploaded"} — ${crewCount} crew member(s) loaded.`, "success");
@@ -353,7 +344,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         notify(`Failed to ${mode === "replace" ? "replace" : "upload"} ${label.toLowerCase()} crew list. Please try again.`, "error");
       }
     },
-    [batches, resolveCallAndVesselIds, importCrewImmigrationFile, fetchCallCrewList]
+    [batches, resolveCallAndVesselIds, importCrewImmigrationFile]
   );
 
   const handleAddBatch = () => {
@@ -405,17 +396,16 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     );
   };
 
+  // crew/get_immigration_crew_list only accepts call_id, so batches can't be
+  // previewed individually — Preview shows the full crew list for the call.
   const handlePreviewBatch = async (batchId) => {
     setPreviewBatchId(batchId);
-    const label = `Batch ${batchId}`;
-    const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-    if (!resolvedCallId || !resolvedVesselId) {
+    const { resolvedCallId } = await resolveCallAndVesselIds();
+    if (!resolvedCallId) {
       setPreviewCrewRows([]);
       return;
     }
-    const list = await fetchCallCrewList({
-      payload: { call_id: resolvedCallId, page: 1, limit: 1000, movement_type: label },
-    });
+    const list = await fetchCallCrewList({ payload: { call_id: resolvedCallId } });
     setPreviewCrewRows(
       Array.isArray(list)
         ? list.map((crew, index) => ({
@@ -423,7 +413,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             crewName: crew?.crew_name ?? "",
             nationality: crew?.nationality ?? "N/A",
             rank: crew?.rank ?? "",
-            movementType: label,
           }))
         : []
     );
@@ -449,7 +438,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
   const listingRows = useMemo(
     () =>
-      listingCrewList.map((crew, index) => {
+      pagedListingCrewList.map((crew, index) => {
         const id = getCrewOptionId(crew, index);
         const docOverrides = manualDocOverrides[id] || {};
         return {
@@ -462,7 +451,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
           visa: hasDocumentUrl(crew?.visa_copy_url) || Boolean(docOverrides.visa),
         };
       }),
-    [listingCrewList, manualDocOverrides]
+    [pagedListingCrewList, manualDocOverrides]
   );
 
   const handleListingRowToggle = (rowId) => {
@@ -597,7 +586,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     }
   };
 
-  const totalListingItems = listingTotal;
+  const totalListingItems = filteredListingCrewList.length;
   const startListingItem = totalListingItems === 0 ? 0 : (effectiveListingPage - 1) * LISTING_PAGE_SIZE + 1;
   const endListingItem = totalListingItems === 0 ? 0 : Math.min(effectiveListingPage * LISTING_PAGE_SIZE, totalListingItems);
 
@@ -613,7 +602,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
   const lastBatch = batches[batches.length - 1];
   const canAddBatch = Boolean(lastBatch) && lastBatch.uploadSteps.crewList.status === "completed";
-  const previewBatchLabel = previewBatchId ? `Batch ${previewBatchId}` : "";
+  const previewBatchLabel = previewBatchId ? "All" : "";
   const hasCallInfo = Boolean(formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId);
 
   return (
@@ -794,7 +783,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
           {isListingLoading && listingRows.length === 0 ? (
             <p className="crew-summary-empty">Loading crew…</p>
-          ) : !isListingLoading && listingTotal === 0 ? (
+          ) : !isListingLoading && totalListingItems === 0 ? (
             <p className="crew-summary-empty">
               {debouncedListingSearch ? "No crew match your search." : "No crew uploaded yet. Upload a batch's crew list to see it here."}
             </p>

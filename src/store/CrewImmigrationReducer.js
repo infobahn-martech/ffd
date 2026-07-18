@@ -5,11 +5,12 @@ import crewImmigrationService from '../services/crewImmigrationService';
 const useCrewImmigrationReducer = create((set) => ({
     /** Crew rows from POST crew/get_immigration_crew_list; null = not loaded yet */
     callCrewList: null,
-    callCrewListPagination: null,
     isCallCrewListLoading: false,
     isBeingUpdated: false,
     errorMessage: '',
 
+    // crew/get_immigration_crew_list only accepts { call_id } — no
+    // pagination/search — so it always returns the full crew list for the call.
     fetchCallCrewList: async ({ payload, cb } = {}) => {
         try {
             set({ isCallCrewListLoading: true });
@@ -17,19 +18,11 @@ const useCrewImmigrationReducer = create((set) => ({
             const root = data?.data ?? data;
             const crew = root?.crew ?? (Array.isArray(root) ? root : []);
             const list = Array.isArray(crew) ? crew : [];
-            const pagination = {
-                total: Number(root?.pagination?.total ?? root?.total ?? list.length ?? 0) || 0,
-                page: Number(root?.pagination?.page ?? root?.page ?? payload?.page ?? 1) || 1,
-                limit: Number(root?.pagination?.limit ?? root?.limit ?? payload?.limit ?? 10) || 10,
-                total_pages: Number(root?.pagination?.total_pages ?? root?.total_pages ?? 1) || 1,
-            };
-            const uploadedCrewFile = root?.uploaded_crew_file ?? null;
             set({
                 callCrewList: list,
-                callCrewListPagination: pagination,
                 isCallCrewListLoading: false,
             });
-            cb && cb(list, pagination, uploadedCrewFile);
+            cb && cb(list);
             return list;
         } catch (err) {
             const { error } = useAlertReducer.getState();
@@ -43,7 +36,7 @@ const useCrewImmigrationReducer = create((set) => ({
 
     // Import and replace both hit the same crew/import_crew_immigration
     // endpoint — there's no separate replace endpoint for this API, so a
-    // "replace" is just re-importing under the same movement_type tag.
+    // "replace" is just re-importing.
     importCrewImmigrationFile: async ({ formData, cb } = {}) => {
         try {
             set({ isBeingUpdated: true, errorMessage: '' });
