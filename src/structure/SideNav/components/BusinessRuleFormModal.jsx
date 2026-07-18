@@ -2295,11 +2295,14 @@ function NotificationSettingsModal({
     .filter(Boolean)
     .map((u) => ({ label: u.name, id: u.user_id, type: 'user' }));
 
-  const resolveCustomFieldTokens = (fieldIds) => fieldIds.map((fieldId) => ({
-    label: fieldDetailsByKey[`custom-${fieldId}`]?.field_label ?? String(fieldId),
-    id: fieldId,
-    type: 'field',
-  }));
+  const resolveCustomFieldTokens = (fieldIds) => fieldIds.map((fieldId) => {
+    const details = fieldDetailsByKey[`custom-${fieldId}`];
+    return {
+      label: (details && getFieldLabel(details)) || String(fieldId),
+      id: fieldId,
+      type: 'field',
+    };
+  });
 
   // Populated from the same non-vendor users list the To/Cc pickers use, so "From"
   // becomes a real dropdown instead of the single fixed address it showed before.
@@ -2389,6 +2392,27 @@ function NotificationSettingsModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show, initialSettings, fetchedSettings]);
 
+  // Custom-field pills seeded above before get_field_details resolves render with the
+  // raw field id as a placeholder (see resolveCustomFieldTokens). The seeding effect
+  // deliberately doesn't re-run when fieldDetailsByKey updates (that would wipe anything
+  // typed/clicked in since), so once the label resolves, patch just those specific pills
+  // in place instead of re-seeding the whole box.
+  useEffect(() => {
+    if (!show) return;
+    [toBoxRef.current, ccBoxRef.current].forEach((boxEl) => {
+      if (!boxEl) return;
+      boxEl.querySelectorAll('.notification-user-pill--field').forEach((pillEl) => {
+        const fieldId = pillEl.dataset.tokenId;
+        if (!fieldId) return;
+        const details = fieldDetailsByKey[`custom-${fieldId}`];
+        const resolvedLabel = details && getFieldLabel(details);
+        if (!resolvedLabel || resolvedLabel === pillEl.dataset.label) return;
+        pillEl.dataset.label = resolvedLabel;
+        pillEl.textContent = resolvedLabel;
+      });
+    });
+  }, [show, fieldDetailsByKey]);
+
   // Mirrors buildRecipientPill: a non-editable field pill, with the value kept in a
   // data attribute (not just textContent) so parseSubjectParts can read it back. No
   // remove button — removed via Backspace/Delete like any other atomic node.
@@ -2402,6 +2426,25 @@ function NotificationSettingsModal({
     return span;
   };
 
+  // A previously-saved subject comes back as a plain string with each card-field token
+  // written as "{Field Label}" (see handleAddSubjectField, which wraps every inserted
+  // pill in literal "{"/"}" text nodes) — split it back into pill/text parts so those
+  // tokens render as pills again instead of literal curly-brace text.
+  const parseSubjectString = (text) => {
+    const parts = [];
+    const tokenRegex = /\{([^{}]+)\}/g;
+    let lastIndex = 0;
+    let match = tokenRegex.exec(text);
+    while (match) {
+      if (match.index > lastIndex) parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+      parts.push({ type: 'text', value: '{' }, { type: 'pill', value: match[1] }, { type: 'text', value: '}' });
+      lastIndex = match.index + match[0].length;
+      match = tokenRegex.exec(text);
+    }
+    if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) });
+    return parts;
+  };
+
   // Subject is a contentEditable box (free-typed text interleaved with non-editable
   // "card field" pills) rather than a controlled input, so its DOM only needs seeding
   // once per open — re-rendering it from React state on every keystroke would fight the
@@ -2412,7 +2455,7 @@ function NotificationSettingsModal({
     if (!el) return;
     el.replaceChildren();
     const subjectParts = fetchedSettings
-      ? [{ type: 'text', value: fetchedSettings.subject ?? '' }]
+      ? parseSubjectString(fetchedSettings.subject ?? '')
       : (initialSettings?.subjectParts ?? DUMMY_NOTIFICATION_SUBJECT_PARTS);
     subjectParts.forEach((part) => {
       if (part.type === 'pill') {
@@ -2535,10 +2578,14 @@ function NotificationSettingsModal({
 
   // Mirrors handleAddBodyField's cursor-based insert, but the subject box is a plain
   // contentEditable div (not Quill), so the caret is managed via the Selection API.
+  // Wrapped in literal "{"/"}" text nodes to match the placeholder-token look every
+  // other card field pill in the subject uses (see DUMMY_NOTIFICATION_SUBJECT_PARTS).
   const handleAddSubjectField = (field) => {
     const el = subjectBoxRef.current;
     if (!el) return;
+    const openBrace = document.createTextNode('{');
     const span = buildSubjectFieldPill(field);
+    const closeBrace = document.createTextNode('}');
 
     const selection = window.getSelection();
     const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
@@ -2546,14 +2593,18 @@ function NotificationSettingsModal({
       : null;
     if (existingRange) {
       existingRange.deleteContents();
-      existingRange.insertNode(span);
+      const fragment = document.createDocumentFragment();
+      fragment.append(openBrace, span, closeBrace);
+      existingRange.insertNode(fragment);
     } else {
+      el.appendChild(openBrace);
       el.appendChild(span);
+      el.appendChild(closeBrace);
     }
 
     el.focus();
     const newRange = document.createRange();
-    newRange.setStartAfter(span);
+    newRange.setStartAfter(closeBrace);
     newRange.collapse(true);
     selection.removeAllRanges();
     selection.addRange(newRange);
