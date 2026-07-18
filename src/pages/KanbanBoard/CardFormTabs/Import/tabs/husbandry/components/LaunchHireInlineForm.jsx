@@ -16,9 +16,8 @@ const LaunchHireInlineForm = ({
   onDateTimeChange,
   onCancel,
   onSubmit,
-  batchOptions,
-  batchValue,
-  onBatchChange,
+  selectValue,
+  onSelectChange,
 }) => {
   const fieldWrapperRef = useRef(null);
 
@@ -58,20 +57,16 @@ const LaunchHireInlineForm = ({
           </span>
         </div>
 
-        {batchOptions && batchOptions.length > 0 && (
+        {onSelectChange && (
           <div className="crew-launch-hire-panel__field">
-            <label className="crew-launch-hire-panel__label">Batch *</label>
+            <label className="crew-launch-hire-panel__label">Select</label>
             <select
               className="crew-launch-hire-panel__select"
-              value={batchValue}
+              value={selectValue}
               disabled={isSubmitting}
-              onChange={(e) => onBatchChange(e.target.value)}
+              onChange={(e) => onSelectChange(e.target.value)}
             >
-              {batchOptions.map((batch) => (
-                <option key={batch.value} value={batch.value}>
-                  {batch.label}
-                </option>
-              ))}
+              <option value="">Select</option>
             </select>
           </div>
         )}
@@ -133,11 +128,8 @@ LaunchHireInlineForm.propTypes = {
   onDateTimeChange: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
-  batchOptions: PropTypes.arrayOf(
-    PropTypes.shape({ value: PropTypes.string, label: PropTypes.string })
-  ),
-  batchValue: PropTypes.string,
-  onBatchChange: PropTypes.func,
+  selectValue: PropTypes.string,
+  onSelectChange: PropTypes.func,
 };
 
 export default LaunchHireInlineForm;

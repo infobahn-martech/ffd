@@ -2514,26 +2514,6 @@
   border-top: 1px dashed #e2e8f0;
 }
 
-.crew-immigration-add-batch-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  padding: 8px 14px;
-  border-radius: 10px;
-  border: 1.5px dashed var(--card-color, #00368c);
-  background: #ffffff;
-  color: var(--card-color, #00368c);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.crew-immigration-add-batch-btn:hover {
-  background: color-mix(in srgb, var(--card-color, #00368c) 8%, #ffffff);
-}
-
 /* Crew Immigration's Crew Listing table has 6 columns and no leading
    checkbox column, unlike Crew Management's 14-column .crew-summary-table
    (whose nth-child width rules it would otherwise inherit via the shared
@@ -2703,6 +2683,13 @@
   border: 1px solid #e2e8f0;
   background: #ffffff;
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+}
+
+.crew-uploaded-lists-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
 }
 
 .crew-uploaded-lists-panel__empty {

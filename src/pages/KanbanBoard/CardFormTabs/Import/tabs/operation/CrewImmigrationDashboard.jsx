@@ -21,14 +21,6 @@ const createUploadSteps = () => ({
   visa: { status: "pending", files: [], progress: 0 },
 });
 
-const createBatch = (id) => ({
-  id,
-  label: `Batch ${id}`,
-  uploadSteps: createUploadSteps(),
-  crewCount: 0,
-  fileMeta: null,
-});
-
 const getCrewOptionId = (crew, index) =>
   String(crew?.crew_change_id ?? crew?.crew_id ?? crew?.id ?? index);
 
@@ -80,67 +72,43 @@ DocStatusIcon.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-// One uploaded batch's crew-list summary card — same visual language as
-// CrewUploadedCard in CrewUploadedListsPanel (husbandry Crew Management),
-// grouped here by batch instead of movement type.
-const BatchUploadedCard = ({ batch, onPreview, onReplace }) => {
-  const isUploading = batch.uploadSteps.crewList.status === "uploading";
-  const isFailed = batch.uploadSteps.crewList.status === "failed";
-
-  return (
-    <div className="crew-uploaded-card">
-      <span className="crew-uploaded-card__icon" aria-hidden="true">
-        <FileIcon />
-      </span>
-      <div className="crew-uploaded-card__details">
-        <span className="crew-uploaded-card__title">{batch.label} Crew List</span>
-        <div className="crew-uploaded-card__filename" title={batch.fileMeta?.name}>
-          {batch.fileMeta?.name || batch.uploadSteps.crewList.files?.[0]?.name || ""}
-        </div>
-        <div className="crew-uploaded-card__meta">
-          {batch.crewCount} crew member{batch.crewCount === 1 ? "" : "s"}
-          {batch.fileMeta?.uploadedAt ? ` · Uploaded ${batch.fileMeta.uploadedAt}` : ""}
-        </div>
-        {isUploading && <span className="crew-uploaded-card__status crew-uploaded-card__status--uploading">Uploading…</span>}
-        {!isUploading && isFailed && <span className="crew-uploaded-card__status crew-uploaded-card__status--failed">Upload failed</span>}
-        {!isUploading && !isFailed && <span className="crew-uploaded-card__status crew-uploaded-card__status--success">Uploaded successfully</span>}
+// One uploaded crew-list file's summary card — same visual language as
+// CrewUploadedCard in CrewUploadedListsPanel (husbandry Crew Management).
+// There's no per-file Preview/Replace here since crew/get_immigration_crew_list
+// only accepts call_id — it can't scope to a single upload.
+const UploadedCrewFileCard = ({ file }) => (
+  <div className="crew-uploaded-card">
+    <span className="crew-uploaded-card__icon" aria-hidden="true">
+      <FileIcon />
+    </span>
+    <div className="crew-uploaded-card__details">
+      <span className="crew-uploaded-card__title">Crew List</span>
+      <div className="crew-uploaded-card__filename" title={file.name}>{file.name}</div>
+      <div className="crew-uploaded-card__meta">
+        {file.crewCount} crew member{file.crewCount === 1 ? "" : "s"}
+        {file.uploadedAt ? ` · Uploaded ${file.uploadedAt}` : ""}
       </div>
-      <span className="crew-uploaded-card__badge">{batch.label}</span>
-      <div className="crew-uploaded-card__actions">
-        <button type="button" className="crew-uploaded-card__action" onClick={() => onPreview(batch.id)} disabled={isUploading}>
-          Preview
-        </button>
-        <button type="button" className="crew-uploaded-card__action" onClick={() => onReplace(batch.id)} disabled={isUploading}>
-          Replace
-        </button>
-      </div>
+      <span className="crew-uploaded-card__status crew-uploaded-card__status--success">Uploaded successfully</span>
     </div>
-  );
-};
+  </div>
+);
 
-BatchUploadedCard.propTypes = {
-  batch: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    label: PropTypes.string.isRequired,
+UploadedCrewFileCard.propTypes = {
+  file: PropTypes.shape({
+    name: PropTypes.string,
     crewCount: PropTypes.number,
-    fileMeta: PropTypes.object,
-    uploadSteps: PropTypes.object.isRequired,
+    uploadedAt: PropTypes.string,
   }).isRequired,
-  onPreview: PropTypes.func.isRequired,
-  onReplace: PropTypes.func.isRequired,
 };
 
-// Crew Immigration — batch-based crew document intake for the Operation
-// section. Each batch bundles a Crew List + Passport + Iqama + Visa upload;
-// a new batch only unlocks once the previous batch's crew list has been
-// imported. Crew list import/replace/listing use the dedicated Crew
-// Immigration APIs via useCrewImmigrationReducer — crew/import_crew_immigration
-// only accepts {call_id, file} and crew/get_immigration_crew_list only
-// accepts {call_id}, so there's no server-side batch tag, pagination, or
-// search: batches are a client-side-only grouping of upload actions, and
-// the Crew Listing table paginates/searches the full list in memory.
-// Passport/iqama copies still reuse the existing Crew Management APIs via
-// useCrewReducer.
+// Crew Immigration — crew document intake for the Operation section.
+// There's no batch concept: the Crew List box can be used repeatedly to
+// upload as many files as needed, each one calling crew/import_crew_immigration
+// (which only accepts {call_id, file}) and then refreshing the combined
+// list via crew/get_immigration_crew_list (which only accepts {call_id} —
+// no pagination/search), so the Crew Listing table paginates/searches the
+// full list in memory. Passport/iqama copies still reuse the existing Crew
+// Management APIs via useCrewReducer.
 const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
@@ -148,11 +116,10 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const fetchCallCrewList = useCrewImmigrationReducer((state) => state.fetchCallCrewList);
   const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
 
-  const [batches, setBatches] = useState(() => [createBatch(1)]);
-  const [previewBatchId, setPreviewBatchId] = useState(null);
+  const [uploadSteps, setUploadSteps] = useState(() => createUploadSteps());
+  const [uploadedCrewFiles, setUploadedCrewFiles] = useState([]);
+  const [showCrewPreview, setShowCrewPreview] = useState(false);
   const [previewCrewRows, setPreviewCrewRows] = useState([]);
-  const [replaceTargetBatchId, setReplaceTargetBatchId] = useState(null);
-  const replaceFileInputRef = useRef(null);
 
   const [listingSearch, setListingSearch] = useState("");
   const [debouncedListingSearch, setDebouncedListingSearch] = useState("");
@@ -178,8 +145,9 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [launchDateTimeError, setLaunchDateTimeError] = useState("");
   const [isSubmittingLaunchHire, setIsSubmittingLaunchHire] = useState(false);
   const [launchHireRequested, setLaunchHireRequested] = useState(false);
-  const [launchBatch, setLaunchBatch] = useState("");
   const [launchHireEnabled, setLaunchHireEnabled] = useState(false);
+  // Placeholder field for the Launch Hire form — no options defined yet.
+  const [launchSelect, setLaunchSelect] = useState("");
 
   const resolveCallAndVesselIds = useCallback(async () => {
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId);
@@ -200,10 +168,9 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     return { resolvedCallId, resolvedVesselId };
   }, [formValues?.call_id, formValues?.callId, formValues?.vessel_id, formValues?.vesselId, card?.call_id, card?.callId, card?.vessel_id, card?.vesselId]);
 
-  // Reconstructs upload state for a call reopened in a later session.
-  // crew/get_immigration_crew_list only accepts call_id (no movement_type),
-  // so individual prior batches can't be told apart — if any crew already
-  // exists for this call, collapse it into a single completed Batch 1.
+  // Reconstructs upload state for a call reopened in a later session —
+  // if any crew already exists for this call, mark the crew list step
+  // completed and show a single reconstructed entry with the total count.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -213,14 +180,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       const list = await fetchCallCrewList({ payload: { call_id: resolvedCallId } });
       if (cancelled || !Array.isArray(list) || list.length === 0) return;
 
-      const batch = createBatch(1);
-      batch.crewCount = list.length;
-      batch.fileMeta = { name: "Crew List", uploadedAt: undefined, fileUrl: undefined };
-      batch.uploadSteps = {
-        ...batch.uploadSteps,
+      setUploadSteps((prev) => ({
+        ...prev,
         crewList: { status: "completed", files: [{ name: "Crew List" }], progress: 100 },
-      };
-      setBatches([batch]);
+      }));
+      setUploadedCrewFiles([{ name: "Crew List", crewCount: list.length, uploadedAt: undefined }]);
     })();
     return () => {
       cancelled = true;
@@ -290,21 +254,15 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     [filteredListingCrewList, effectiveListingPage]
   );
 
-  const handleBatchCrewListFile = useCallback(
-    async (batchId, file, mode = "import") => {
-      const label = `Batch ${batchId}`;
-      const targetBatch = batches.find((b) => b.id === batchId);
-      if (!file || targetBatch?.uploadSteps.crewList.status === "uploading") return;
+  const handleCrewListFile = useCallback(
+    async (file) => {
+      if (!file || uploadSteps.crewList.status === "uploading") return;
 
-      setBatches((prev) =>
-        prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, crewList: { ...b.uploadSteps.crewList, status: "uploading" } } } : b))
-      );
+      setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "uploading" } }));
 
       const { resolvedCallId } = await resolveCallAndVesselIds();
       if (!resolvedCallId) {
-        setBatches((prev) =>
-          prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, crewList: { ...b.uploadSteps.crewList, status: "failed" } } } : b))
-        );
+        setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
         notify("Unable to upload: missing call information.", "error");
         return;
       }
@@ -318,42 +276,28 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         const importRoot = importResult?.data ?? importResult ?? {};
         const crewCount = extractImportedCrewCount(importResult);
 
-        setBatches((prev) =>
-          prev.map((b) =>
-            b.id === batchId
-              ? {
-                  ...b,
-                  crewCount,
-                  fileMeta: {
-                    name: importRoot?.crew_file || file.name,
-                    uploadedAt: importRoot?.uploaded_at,
-                    fileUrl: importRoot?.crew_file_url,
-                  },
-                  uploadSteps: { ...b.uploadSteps, crewList: { status: "completed", files: [{ name: file.name }], progress: 100 } },
-                }
-              : b
-          )
-        );
+        setUploadedCrewFiles((prev) => [
+          ...prev,
+          {
+            name: importRoot?.crew_file || file.name,
+            uploadedAt: importRoot?.uploaded_at,
+            crewCount,
+          },
+        ]);
+        setUploadSteps((prev) => ({ ...prev, crewList: { status: "completed", files: [{ name: file.name }], progress: 100 } }));
 
         setListingRefreshTick((tick) => tick + 1);
-        notify(`${label} crew list ${mode === "replace" ? "replaced" : "uploaded"} — ${crewCount} crew member(s) loaded.`, "success");
+        notify(`Crew list uploaded — ${crewCount} crew member(s) loaded.`, "success");
       } catch {
-        setBatches((prev) =>
-          prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, crewList: { ...b.uploadSteps.crewList, status: "failed" } } } : b))
-        );
-        notify(`Failed to ${mode === "replace" ? "replace" : "upload"} ${label.toLowerCase()} crew list. Please try again.`, "error");
+        setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
+        notify("Failed to upload crew list. Please try again.", "error");
       }
     },
-    [batches, resolveCallAndVesselIds, importCrewImmigrationFile]
+    [uploadSteps, resolveCallAndVesselIds, importCrewImmigrationFile]
   );
 
-  const handleAddBatch = () => {
-    setBatches((prev) => [...prev, createBatch(prev.length + 1)]);
-  };
-
-  const handleBatchDocCopyUpload = (batchId, kind) => async (fileList) => {
-    const batch = batches.find((b) => b.id === batchId);
-    if (!batch || batch.uploadSteps.crewList.status !== "completed") return;
+  const handleDocCopyUpload = (kind) => async (fileList) => {
+    if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
 
@@ -362,44 +306,33 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
     const label = kind === "passport" ? "Passport" : "Iqama";
 
-    setBatches((prev) =>
-      prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, [stepKey]: { ...b.uploadSteps[stepKey], status: "uploading" } } } : b))
-    );
+    setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "uploading" } }));
 
     const formData = new FormData();
     files.forEach((file) => formData.append(fileFieldName, file));
 
     try {
       await uploadAction({ formData });
-      setBatches((prev) =>
-        prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, [stepKey]: { status: "completed", files, progress: 100 } } } : b))
-      );
+      setUploadSteps((prev) => ({ ...prev, [stepKey]: { status: "completed", files, progress: 100 } }));
       setListingRefreshTick((tick) => tick + 1);
       notify(`${label} uploaded — ${files.length} file(s).`, "success");
     } catch {
-      setBatches((prev) =>
-        prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, [stepKey]: { ...b.uploadSteps[stepKey], status: "failed" } } } : b))
-      );
+      setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
     }
   };
 
   // No bulk backend endpoint exists yet for visa files (same limitation as
-  // Crew Management), so this step stays local-only per batch.
-  const handleBatchVisaFiles = (batchId) => (fileList) => {
-    const batch = batches.find((b) => b.id === batchId);
-    if (!batch || batch.uploadSteps.crewList.status !== "completed") return;
+  // Crew Management), so this step stays local-only.
+  const handleVisaFiles = (fileList) => {
+    if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
-    setBatches((prev) =>
-      prev.map((b) => (b.id === batchId ? { ...b, uploadSteps: { ...b.uploadSteps, visa: { status: "completed", files, progress: 100 } } } : b))
-    );
+    setUploadSteps((prev) => ({ ...prev, visa: { status: "completed", files, progress: 100 } }));
   };
 
-  // crew/get_immigration_crew_list only accepts call_id, so batches can't be
-  // previewed individually — Preview shows the full crew list for the call.
-  const handlePreviewBatch = async (batchId) => {
-    setPreviewBatchId(batchId);
+  const handlePreviewCrew = async () => {
+    setShowCrewPreview(true);
     const { resolvedCallId } = await resolveCallAndVesselIds();
     if (!resolvedCallId) {
       setPreviewCrewRows([]);
@@ -419,21 +352,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   };
 
   const handleClosePreview = () => {
-    setPreviewBatchId(null);
+    setShowCrewPreview(false);
     setPreviewCrewRows([]);
-  };
-
-  const handleReplaceBatchClick = (batchId) => {
-    setReplaceTargetBatchId(batchId);
-    replaceFileInputRef.current?.click();
-  };
-
-  const handleReplaceFileChange = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !replaceTargetBatchId) return;
-    handleBatchCrewListFile(replaceTargetBatchId, file, "replace");
-    setReplaceTargetBatchId(null);
   };
 
   const listingRows = useMemo(
@@ -507,18 +427,13 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     });
   };
 
-  const completedBatches = useMemo(
-    () => batches.filter((b) => b.uploadSteps.crewList.status === "completed"),
-    [batches]
-  );
-
   const handleCancelLaunchHire = () => {
     if (isSubmittingLaunchHire) return;
     setShowLaunchHireForm(false);
     setLaunchDate("");
     setLaunchTime("");
     setLaunchDateTimeError("");
-    setLaunchBatch("");
+    setLaunchSelect("");
   };
 
   const handleLaunchHireButtonClick = () => {
@@ -526,7 +441,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     if (showLaunchHireForm) {
       handleCancelLaunchHire();
     } else {
-      setLaunchBatch(completedBatches[0]?.label ?? "");
       setShowLaunchHireForm(true);
     }
   };
@@ -543,10 +457,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
   const handleSubmitLaunchHire = async () => {
     if (isSubmittingLaunchHire) return;
-    if (!launchBatch) {
-      notify("Select a batch.", "error");
-      return;
-    }
     if (!launchDate) {
       setLaunchDateTimeError("Select a launch date and time.");
       return;
@@ -568,7 +478,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       await createLaunchHireRequest({
         call_id: resolvedCallId,
         vessel_id: resolvedVesselId,
-        movement_type: launchBatch,
         launch_datetime: buildApiDateTime(launchDate, launchTime),
       });
 
@@ -577,7 +486,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       setLaunchDate("");
       setLaunchTime("");
       setLaunchDateTimeError("");
-      setLaunchBatch("");
+      setLaunchSelect("");
       setLaunchHireRequested(true);
     } catch (err) {
       notify(err?.response?.data?.message ?? "Failed to submit launch hire request. Please try again.", "error");
@@ -600,9 +509,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     return pages;
   }, [effectiveListingPage, totalListingPages]);
 
-  const lastBatch = batches[batches.length - 1];
-  const canAddBatch = Boolean(lastBatch) && lastBatch.uploadSteps.crewList.status === "completed";
-  const previewBatchLabel = previewBatchId ? "All" : "";
   const hasCallInfo = Boolean(formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId);
 
   return (
@@ -616,66 +522,54 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
               </div>
 
               <div className="crew-mgmt-hero-middle crew-immigration-batches">
-                {batches.map((batch) => (
-                  <div key={batch.id} className="crew-mgmt-crewlist-block">
-                    <span className="crew-mgmt-section-label">{batch.label}</span>
-                    <CrewListUploadBox
-                      movementType={batch.label}
-                      movementTypeLabel={batch.label}
-                      otherMovementTypeLabel="the next batch"
-                      status={batch.uploadSteps.crewList.status}
-                      onSelectFile={(file) => handleBatchCrewListFile(batch.id, file)}
-                    />
-                    <CrewUploadDropzones
-                      steps={batch.uploadSteps}
-                      onSelectPassportFiles={handleBatchDocCopyUpload(batch.id, "passport")}
-                      onSelectIqamaFiles={handleBatchDocCopyUpload(batch.id, "iqama")}
-                      onSelectVisaFiles={handleBatchVisaFiles(batch.id)}
-                    />
-                  </div>
-                ))}
-
-                {canAddBatch && (
-                  <button type="button" className="crew-immigration-add-batch-btn" onClick={handleAddBatch}>
-                    <span aria-hidden="true">+</span> Add Batch
-                  </button>
-                )}
+                <div className="crew-mgmt-crewlist-block">
+                  <CrewListUploadBox
+                    movementType="crew-list"
+                    movementTypeLabel="Crew List"
+                    otherMovementTypeLabel="the next file"
+                    status={uploadSteps.crewList.status}
+                    onSelectFile={handleCrewListFile}
+                  />
+                  <CrewUploadDropzones
+                    steps={uploadSteps}
+                    onSelectPassportFiles={handleDocCopyUpload("passport")}
+                    onSelectIqamaFiles={handleDocCopyUpload("iqama")}
+                    onSelectVisaFiles={handleVisaFiles}
+                  />
+                </div>
               </div>
             </div>
 
             <div className="crew-uploaded-lists-panel" style={{ "--card-color": cardColor }}>
-              <span className="crew-mgmt-section-label">Uploaded Crew Lists</span>
-              {batches.every((b) => b.uploadSteps.crewList.status !== "completed") ? (
+              <div className="crew-uploaded-lists-panel__header">
+                <span className="crew-mgmt-section-label">Uploaded Crew Lists</span>
+                {uploadedCrewFiles.length > 0 && (
+                  <button type="button" className="crew-uploaded-card__action" onClick={handlePreviewCrew}>
+                    Preview
+                  </button>
+                )}
+              </div>
+              {uploadedCrewFiles.length === 0 ? (
                 <div className="crew-uploaded-lists-panel__empty">
                   <span className="crew-uploaded-lists-panel__empty-title">No crew lists uploaded yet</span>
-                  <span className="crew-uploaded-lists-panel__empty-subtitle">Upload Batch 1's crew list to get started.</span>
+                  <span className="crew-uploaded-lists-panel__empty-subtitle">Upload a crew list to get started.</span>
                 </div>
               ) : (
                 <div className="crew-uploaded-lists-panel__stack">
-                  {batches
-                    .filter((b) => b.uploadSteps.crewList.status === "completed")
-                    .map((batch) => (
-                      <BatchUploadedCard key={batch.id} batch={batch} onPreview={handlePreviewBatch} onReplace={handleReplaceBatchClick} />
-                    ))}
+                  {uploadedCrewFiles.map((file, index) => (
+                    <UploadedCrewFileCard key={`${file.name}-${index}`} file={file} />
+                  ))}
                 </div>
               )}
             </div>
           </div>
-
-          <input
-            ref={replaceFileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            className="crew-doc-input"
-            onChange={handleReplaceFileChange}
-          />
         </div>
 
         <div className="crew-mgmt-summary-section">
           <div className="crew-listing-header">
             <div>
               <h2 className="crew-listing-title">Crew Listing</h2>
-              <p className="crew-listing-subtitle">Crew documents uploaded across all batches.</p>
+              <p className="crew-listing-subtitle">Crew documents uploaded so far.</p>
             </div>
 
             <div className="crew-summary-header-actions">
@@ -776,16 +670,15 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             onDateTimeChange={handleLaunchDateTimeChange}
             onCancel={handleCancelLaunchHire}
             onSubmit={handleSubmitLaunchHire}
-            batchOptions={completedBatches.map((b) => ({ value: b.label, label: b.label }))}
-            batchValue={launchBatch}
-            onBatchChange={setLaunchBatch}
+            selectValue={launchSelect}
+            onSelectChange={setLaunchSelect}
           />
 
           {isListingLoading && listingRows.length === 0 ? (
             <p className="crew-summary-empty">Loading crew…</p>
           ) : !isListingLoading && totalListingItems === 0 ? (
             <p className="crew-summary-empty">
-              {debouncedListingSearch ? "No crew match your search." : "No crew uploaded yet. Upload a batch's crew list to see it here."}
+              {debouncedListingSearch ? "No crew match your search." : "No crew uploaded yet. Upload a crew list to see it here."}
             </p>
           ) : (
             <div className="crew-table-wrapper">
@@ -886,8 +779,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       </div>
 
       <CrewUploadPreviewModal
-        show={Boolean(previewBatchId)}
-        movementTypeLabel={previewBatchLabel}
+        show={showCrewPreview}
+        movementTypeLabel="All"
         crewRows={previewCrewRows}
         cardColor={cardColor}
         onClose={handleClosePreview}
