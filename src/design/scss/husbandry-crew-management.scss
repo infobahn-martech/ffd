@@ -2514,49 +2514,56 @@
   border-top: 1px dashed #e2e8f0;
 }
 
-/* Crew Immigration's Crew Listing table has 6 columns and no leading
-   checkbox column, unlike Crew Management's 14-column .crew-summary-table
-   (whose nth-child width rules it would otherwise inherit via the shared
-   .crew-table class, throwing the columns badly out of balance — Crew name
-   picking up every leftover pixel). Compound selectors here so they win
-   over .crew-table's own nth-child widths regardless of source order. */
+/* Crew Immigration's Crew Listing table (8 columns: checkbox, name, DOB,
+   nationality, rank, passport/iqama, visa, action) doesn't share Crew
+   Management's 14-column .crew-summary-table layout, so every column gets
+   an explicit width here, in DOM order (checkbox first) — compound
+   selectors so they win over .crew-table's own nth-child widths regardless
+   of source order. */
 .crew-table.crew-immigration-listing-table {
   min-width: 0;
 }
 
 .crew-table.crew-immigration-listing-table th:nth-child(1),
 .crew-table.crew-immigration-listing-table td:nth-child(1) {
-  width: 26%;
-  min-width: 0;
-  text-align: left;
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
 }
 
 .crew-table.crew-immigration-listing-table th:nth-child(2),
 .crew-table.crew-immigration-listing-table td:nth-child(2) {
-  width: 14%;
+  width: 20%;
   min-width: 0;
   text-align: left;
 }
 
 .crew-table.crew-immigration-listing-table th:nth-child(3),
 .crew-table.crew-immigration-listing-table td:nth-child(3) {
-  width: 18%;
+  width: 13%;
   min-width: 0;
   text-align: left;
 }
 
 .crew-table.crew-immigration-listing-table th:nth-child(4),
 .crew-table.crew-immigration-listing-table td:nth-child(4) {
-  width: 18%;
+  width: 15%;
   min-width: 0;
   text-align: left;
 }
 
 .crew-table.crew-immigration-listing-table th:nth-child(5),
-.crew-table.crew-immigration-listing-table td:nth-child(5),
+.crew-table.crew-immigration-listing-table td:nth-child(5) {
+  width: 13%;
+  min-width: 0;
+  text-align: left;
+}
+
 .crew-table.crew-immigration-listing-table th:nth-child(6),
-.crew-table.crew-immigration-listing-table td:nth-child(6) {
-  width: 12%;
+.crew-table.crew-immigration-listing-table td:nth-child(6),
+.crew-table.crew-immigration-listing-table th:nth-child(7),
+.crew-table.crew-immigration-listing-table td:nth-child(7) {
+  width: 10%;
   min-width: 0;
   text-align: center;
 }
@@ -2568,21 +2575,24 @@
   text-align: center;
 }
 
-// Batch bar shown above the Crew Immigration listing table for the page's
+// Batch badge shown above the Crew Immigration listing table for the page's
 // first batch (dynamic "Batch 1", "Batch 2"… label, see CrewImmigrationDashboard.jsx).
-// Sized to its label (not a full-width block) so it reads as a compact tag.
+// Pill-shaped and tinted with the shared blue accent, sized to its label
+// (not a full-width block) so it reads as a compact tag, not a bar.
 .crew-batch-group-bar {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   width: fit-content;
-  padding: 8px 12px;
-  margin-bottom: 6px;
-  font-size: 12px;
+  padding: 5px 14px;
+  margin: 5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #475569;
-  background: #f1f5f9;
-  border-radius: 8px;
+  color: var(--card-color, #00368c);
+  background: color-mix(in srgb, var(--card-color, #00368c) 10%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--card-color, #00368c) 30%, #ffffff);
+  border-radius: $radius-pill;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 // Inline divider row used only when a later batch starts mid-page (the
