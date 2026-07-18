@@ -929,8 +929,9 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
 
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
   const displayWorkspaces = useMemo(() => workspaces ?? [], [workspaces]);
-  const boards = displayWorkspaces.flatMap((w) =>
-    (w.boards ?? []).map((b) => ({ ...b, workspace_name: w.workspace_name }))
+  const boards = useMemo(
+    () => displayWorkspaces.flatMap((w) => (w.boards ?? []).map((b) => ({ ...b, workspace_name: w.workspace_name }))),
+    [displayWorkspaces]
   );
 
   const boardFilterQuery = boardFilterText.trim().toLowerCase();
@@ -962,9 +963,14 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
 
   useEffect(() => {
     if (!show || boardId || initialBoardId) return;
-    const firstBoard = displayWorkspaces[0]?.boards?.[0];
+    // Falls back to the first board across ALL workspaces, not displayWorkspaces[0] —
+    // that index-0 lookup silently no-ops (leaving the trigger stuck on "Select a
+    // board") whenever the first workspace in the raw API order happens to have no
+    // boards, even though a later workspace (e.g. the first one the dropdown actually
+    // shows, since it filters out empty groups) does.
+    const firstBoard = boards[0];
     if (firstBoard) setBoardId(firstBoard.board_id);
-  }, [show, boardId, initialBoardId, displayWorkspaces]);
+  }, [show, boardId, initialBoardId, boards]);
 
   useEffect(() => {
     if (!isBoardPickerOpen) return undefined;
@@ -994,10 +1000,12 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
     [boardId, boardStructure]
   );
 
-  const handlePickCell = (swimlane, leafColumn) => {
+  const handlePickCell = (workflow, swimlane, leafColumn) => {
     onSave({
       boardId,
       boardName: selectedBoard?.board_name ?? '',
+      workflowId: workflow.id,
+      workflowName: workflow.name,
       swimlaneId: swimlane.id,
       swimlaneName: swimlane.name,
       stageId: leafColumn.id,
@@ -1007,10 +1015,12 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   };
 
   // Column header pick: matches this stage in any swimlane (row left blank).
-  const handlePickColumn = (leafColumn) => {
+  const handlePickColumn = (workflow, leafColumn) => {
     onSave({
       boardId,
       boardName: selectedBoard?.board_name ?? '',
+      workflowId: workflow.id,
+      workflowName: workflow.name,
       swimlaneId: '',
       swimlaneName: '',
       stageId: leafColumn.id,
@@ -1020,10 +1030,12 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   };
 
   // Row header pick: matches any stage within this swimlane (column left blank).
-  const handlePickRow = (swimlane) => {
+  const handlePickRow = (workflow, swimlane) => {
     onSave({
       boardId,
       boardName: selectedBoard?.board_name ?? '',
+      workflowId: workflow.id,
+      workflowName: workflow.name,
       swimlaneId: swimlane.id,
       swimlaneName: swimlane.name,
       stageId: '',
@@ -1149,7 +1161,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                         tabIndex={0}
                         onMouseEnter={() => setHoveredLeafColumnId(column.id)}
                         onMouseLeave={() => setHoveredLeafColumnId(null)}
-                        onClick={() => handlePickColumn(column)}
+                        onClick={() => handlePickColumn(workflow, column)}
                       >
                         {column.name}
                       </div>
@@ -1167,7 +1179,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                         tabIndex={0}
                         onMouseEnter={() => setHoveredSwimlaneId(swimlane.id)}
                         onMouseLeave={() => setHoveredSwimlaneId(null)}
-                        onClick={() => handlePickRow(swimlane)}
+                        onClick={() => handlePickRow(workflow, swimlane)}
                       >
                         {swimlane.name}
                       </div>
@@ -1179,7 +1191,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
                             className={`board-minimap-cell${hoveredLeafColumnId === column.id ? ' board-minimap-cell--col-active' : ''}${hoveredSwimlaneId === swimlane.id ? ' board-minimap-cell--row-active' : ''}`}
                             onMouseEnter={() => setHoveredLeafColumnId(column.id)}
                             onMouseLeave={() => setHoveredLeafColumnId(null)}
-                            onClick={() => handlePickCell(swimlane, column)}
+                            onClick={() => handlePickCell(workflow, swimlane, column)}
                             aria-label={`Move to ${workflow.name}, ${swimlane.name}, ${column.name}`}
                           />
                         ))}
@@ -5108,7 +5120,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
       ...prev,
       {
         id: Date.now(), key: option.key, label: option.label,
-        boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
+        boardId: '', boardName: '', workflowId: '', workflowName: '',
+        swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
         filterProperties: [],
       },
     ]);
@@ -5135,7 +5148,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
       ...prev,
       {
         id: Date.now(), key: option.key, label: option.label,
-        boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
+        boardId: '', boardName: '', workflowId: '', workflowName: '',
+        swimlaneId: '', swimlaneName: '', stageId: '', stageName: '',
       },
     ]);
   };
@@ -6565,7 +6579,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenMoveDestination(action.id)}
                         >
                           {action.boardName
-                            ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            ? `${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
                             : 'Choose where to move'}
                         </button>
 
@@ -6615,7 +6629,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenConvertDestination(action.id)}
                         >
                           {action.boardName
-                            ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            ? `${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
                             : 'Choose where to move'}
                         </button>
                       </div>
