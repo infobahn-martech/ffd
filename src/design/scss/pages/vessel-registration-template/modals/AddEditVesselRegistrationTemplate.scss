@@ -23,6 +23,82 @@
   line-height: 1.5;
 }
 
+// Appended to document.body by the custom image controls (not scoped inside the
+// modal), so these have to be top-level rules too — see attachImageControls in
+// AddEditVesselRegistrationTemplate.jsx. Modeled after Microsoft Word's image
+// selection UI: an outline box, 8 resize handles at the corners/edge midpoints,
+// and a small "Layout Options" icon that opens a wrap/align dropdown.
+.ql-image-selection-box {
+  position: fixed;
+  border: 1px solid #2B7DE9;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.ql-image-resize-handle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #2B7DE9;
+  border-radius: 50%;
+  background: #fff;
+  z-index: 10000;
+}
+
+.ql-image-layout-icon {
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7dee5;
+  border-radius: 4px;
+  background: #fff;
+  color: #35475E;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 10000;
+
+  &:hover {
+    background: #f2f6fa;
+  }
+}
+
+.ql-image-layout-dropdown {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #d7dee5;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+}
+
+.ql-image-layout-dropdown-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #35475E;
+  cursor: pointer;
+
+  &:hover {
+    background: #f2f6fa;
+  }
+}
+
+.ql-image-layout-dropdown-divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: #e5eaf0;
+}
+
 .appointment-acceptance-modal-lg {
   .react-quill-wrapper .ql-toolbar {
     direction: ltr;
