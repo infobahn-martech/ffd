@@ -212,10 +212,10 @@ const GROCardView = forwardRef(function GROCardView(
     [taskPanelTitle]
   );
 
-  const isAllGroDocumentsVerified = useMemo(
-    () => documents.length > 0 && documents.every((doc) => getGroDocumentVerifyStatus(doc) === 2),
-    [documents]
-  );
+  const isAllGroDocumentsVerified = useMemo(() => {
+    if (import.meta.env.VITE_GRO_ENABLE_DOC_VERIFY_GATE === "false") return true;
+    return documents.length > 0 && documents.every((doc) => getGroDocumentVerifyStatus(doc) === 2);
+  }, [documents]);
 
   const groCallTypeId = useMemo(() => {
     const raw = callDetail?.call_type_id;
