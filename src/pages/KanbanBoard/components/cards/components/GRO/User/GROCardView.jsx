@@ -212,6 +212,11 @@ const GROCardView = forwardRef(function GROCardView(
     [taskPanelTitle]
   );
 
+  const isAllGroDocumentsVerified = useMemo(
+    () => documents.length > 0 && documents.every((doc) => getGroDocumentVerifyStatus(doc) === 2),
+    [documents]
+  );
+
   const groCallTypeId = useMemo(() => {
     const raw = callDetail?.call_type_id;
     if (raw == null || String(raw).trim() === "") return null;
@@ -1592,6 +1597,7 @@ const GROCardView = forwardRef(function GROCardView(
                         aria-selected={activeTab === GRO_ACTIVE_TABS.crewImmigration}
                         className={`gro-pass-segment${activeTab === GRO_ACTIVE_TABS.crewImmigration ? " gro-pass-segment--active" : ""}`}
                         onClick={selectCrewImmigrationTab}
+                        disabled={!isAllGroDocumentsVerified}
                       >
                         {taskPanelTitle}
                       </button>
@@ -1603,6 +1609,7 @@ const GROCardView = forwardRef(function GROCardView(
                         aria-selected={activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration}
                         className={`gro-pass-segment${activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? " gro-pass-segment--active" : ""}`}
                         onClick={selectVesselInwardRegistrationTab}
+                        disabled={!isAllGroDocumentsVerified}
                       >
                         {taskPanelTitle}
                       </button>
@@ -1670,7 +1677,12 @@ const GROCardView = forwardRef(function GROCardView(
                   onInwardSubmit={handleInwardSubmit}
                   isSavingInward={isSavingArrivalDocument}
                   isGroLoadingDisabled={
-                    isGroLoading || isSavingArrivalDocument || callId == null || callId === "" || !taskId
+                    isGroLoading ||
+                    isSavingArrivalDocument ||
+                    callId == null ||
+                    callId === "" ||
+                    !taskId ||
+                    !isAllGroDocumentsVerified
                   }
                 />
               ) : !hidePassTabs &&
