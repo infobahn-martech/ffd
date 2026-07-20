@@ -1,12 +1,15 @@
-  import { useState, useCallback, useEffect, useRef } from "react";
+  import { useState, useCallback, useEffect, useMemo, useRef } from "react";
   import PropTypes from "prop-types";
-  import { FiCheckCircle, FiArrowRight, FiClock } from "react-icons/fi";
+  import { debounce } from "lodash";
+  import { FiCheckCircle, FiArrowRight, FiClock, FiLoader, FiAlertCircle } from "react-icons/fi";
   import DateTimePickerField from "../../../shared/components/DateTimePickerField";
   import useExportApprovalReducer from "../../../../../../store/ExportApprovalReducer";
-  import { splitApiDateTimeParts } from "../../../../../../shared/helpers/dateTimeFieldUtils";
+  import { splitApiDateTimeParts, buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
   import "../../../../../../design/scss/general.scss";
   import "../../../../../../design/css/common/CardForm.css";
   import "../../../../../../design/scss/approval.scss";
+
+  const AUTO_SAVE_DEBOUNCE_MS = 1200;
 
   const formatToday = () =>
     new Date().toLocaleDateString("en-GB", {
@@ -66,6 +69,111 @@ const createEmptyPartySection = () => ({
     vesselEtdTime: "",
     billingEntity: formValues?.billing_entity || "",
   });
+
+  const buildBasicDetailsPayload = (basicDetails) => ({
+    date: basicDetails.date || "",
+    requested_by: basicDetails.requestedBy || "",
+    branch: basicDetails.branch || "",
+    vessel_name: basicDetails.vesselName || "",
+    vessel_etd: buildApiDateTime(basicDetails.vesselEtdDate, basicDetails.vesselEtdTime),
+    billing_entity: basicDetails.billingEntity || "",
+  });
+
+  const buildPartySectionPayload = (values, detailsKey) => ({
+    [detailsKey]: values.details || "",
+    no_of_vessels_chartered: values.vesselCountUnderAgency || "",
+    outstanding_balance_soa: values.outstandingBalanceSoa || "",
+    latest_payment_amount: values.latestPayment || "",
+    latest_payment_received_date: buildApiDateTime(values.latestPaymentDate, values.latestPaymentTime),
+  });
+
+  const buildRoleSectionPayload = (textKey, text, action) => {
+    const section = { [textKey]: text || "" };
+    if (action) section.action = action;
+    return section;
+  };
+
+  // Builds a plain JSON payload when there are no new document uploads, or
+  // multipart FormData (nested sections JSON-stringified) when there are —
+  // Gateway strips the Content-Type header for FormData automatically.
+  const buildExportApprovalSavePayload = ({
+    callId,
+    basicDetails,
+    vesselOwner,
+    vesselPrincipal,
+    vesselCharterer,
+    creditControllerRemarks,
+    creditControllerDocument,
+    managerComments,
+    managerDocument,
+    ceoComments,
+    ceoDocument,
+    actionOverride,
+  }) => {
+    const creditControllerAction =
+      actionOverride?.section === "credit_controller" ? actionOverride.value : undefined;
+    const managerAction = actionOverride?.section === "manager_ofm" ? actionOverride.value : undefined;
+    const ceoAction = actionOverride?.section === "ceo" ? actionOverride.value : undefined;
+
+    const payload = {
+      call_id: callId,
+      basic_details: buildBasicDetailsPayload(basicDetails),
+      vessel_owner: buildPartySectionPayload(vesselOwner, "owner_details"),
+      vessel_principal: buildPartySectionPayload(vesselPrincipal, "principal_details"),
+      vessel_charterer: buildPartySectionPayload(vesselCharterer, "charterer_details"),
+      credit_controller: buildRoleSectionPayload("remarks", creditControllerRemarks, creditControllerAction),
+      manager_ofm: buildRoleSectionPayload("comments", managerComments, managerAction),
+      ceo: buildRoleSectionPayload("comments", ceoComments, ceoAction),
+    };
+
+    const files = {
+      credit_controller_documents: creditControllerDocument,
+      manager_ofm_documents: managerDocument,
+      ceo_documents: ceoDocument,
+    };
+    const hasFiles = Object.values(files).some(Boolean);
+    if (!hasFiles) return payload;
+
+    const formData = new FormData();
+    formData.append("call_id", callId == null ? "" : String(callId));
+    Object.entries(payload).forEach(([key, value]) => {
+      if (key === "call_id") return;
+      formData.append(key, JSON.stringify(value));
+    });
+    Object.entries(files).forEach(([key, file]) => {
+      if (file) formData.append(`${key}[]`, file);
+    });
+    return formData;
+  };
+
+  function AutoSaveStatus({ status }) {
+    if (status === "saving") {
+      return (
+        <span className="approval-save-status approval-save-status--saving">
+          <FiLoader size={13} className="approval-save-status-spin" /> Saving…
+        </span>
+      );
+    }
+    if (status === "saved") {
+      return (
+        <span className="approval-save-status approval-save-status--saved">
+          <FiCheckCircle size={13} /> All changes saved
+        </span>
+      );
+    }
+    if (status === "error") {
+      return (
+        <span className="approval-save-status approval-save-status--error">
+          <FiAlertCircle size={13} /> Couldn't save changes
+        </span>
+      );
+    }
+    return null;
+  }
+
+  AutoSaveStatus.propTypes = {
+    status: PropTypes.oneOf(["idle", "saving", "saved", "error"]),
+  };
 
   function FormField({ label, children, className = "", fullWidth = false }) {
     return (
@@ -139,6 +247,7 @@ const createEmptyPartySection = () => ({
     secondaryLabel,
     onPrimaryClick,
     onSecondaryClick,
+    disabled,
   }) {
     const secondaryButtonClass =
       secondaryLabel === "On Hold" ? "btn-onhold" : "btn-proceed";
@@ -149,6 +258,7 @@ const createEmptyPartySection = () => ({
           type="button"
           className="action-btn btn-approved"
           onClick={onPrimaryClick}
+          disabled={disabled}
         >
           <FiCheckCircle size={22} />
           {primaryLabel}
@@ -158,6 +268,7 @@ const createEmptyPartySection = () => ({
           type="button"
           className={`action-btn ${secondaryButtonClass}`}
           onClick={onSecondaryClick}
+          disabled={disabled}
         >
           {secondaryLabel === "On Hold" ? (
             <FiClock size={22} />
@@ -175,6 +286,7 @@ const createEmptyPartySection = () => ({
     secondaryLabel: PropTypes.string.isRequired,
     onPrimaryClick: PropTypes.func.isRequired,
     onSecondaryClick: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
   };
 
   function DocumentUploadField({ file, onChange }) {
@@ -289,6 +401,7 @@ const createEmptyPartySection = () => ({
     onPrimaryAction,
     onSecondaryAction,
     helperText,
+    actionsDisabled,
   }) {
     return (
       <section className="approval-form-card approval-party-card approval-action-card">
@@ -315,6 +428,7 @@ const createEmptyPartySection = () => ({
             secondaryLabel={secondaryActionLabel}
             onPrimaryClick={onPrimaryAction}
             onSecondaryClick={onSecondaryAction}
+            disabled={actionsDisabled}
           />
         </div>
       </section>
@@ -336,6 +450,7 @@ const createEmptyPartySection = () => ({
     onPrimaryAction: PropTypes.func.isRequired,
     onSecondaryAction: PropTypes.func.isRequired,
     helperText: PropTypes.string,
+    actionsDisabled: PropTypes.bool,
   };
 
   function PartySectionCard({ title, fields, values, onChange }) {
@@ -462,11 +577,17 @@ const createEmptyPartySection = () => ({
     const [ceoComments, setCeoComments] = useState("");
     const [ceoDocument, setCeoDocument] = useState(null);
 
+    // "saving" | "saved" | "error" | "idle" — drives the inline autosave indicator
+    const [saveStatus, setSaveStatus] = useState("idle");
+
     const callId = getCallId(card, formValues);
     const details = useExportApprovalReducer((state) => state.details);
     const isLoadingDetails = useExportApprovalReducer((state) => state.isLoadingDetails);
     const getExportApprovalDetails = useExportApprovalReducer(
       (state) => state.getExportApprovalDetails
+    );
+    const saveExportApprovalDetails = useExportApprovalReducer(
+      (state) => state.saveExportApprovalDetails
     );
 
     useEffect(() => {
@@ -475,8 +596,14 @@ const createEmptyPartySection = () => ({
       }
     }, [callId, getExportApprovalDetails]);
 
+    // Skips the very next autosave-triggering effect run — used whenever form
+    // state is being programmatically hydrated (initial mount, data reload)
+    // rather than typed by the user.
+    const skipNextAutoSaveRef = useRef(true);
+
     useEffect(() => {
       if (!details) return;
+      skipNextAutoSaveRef.current = true;
 
       const basic = details.basic_details || {};
       const { date: vesselEtdDate, time: vesselEtdTime } = splitApiDateTimeParts(
@@ -496,27 +623,109 @@ const createEmptyPartySection = () => ({
       setVesselPrincipal(mapPartySection(details.vessel_principal, "principal_details"));
       setVesselCharterer(mapPartySection(details.vessel_charterer, "charterer_details"));
       setCreditControllerRemarks(details.credit_controller?.remarks || "");
-      setManagerComments(details.manager_ofm?.remarks || "");
-      setCeoComments(details.ceo?.remarks || "");
+      setManagerComments(details.manager_ofm?.comments || "");
+      setCeoComments(details.ceo?.comments || "");
     }, [details]);
 
+    // Always holds the latest form values so the debounced save (and the
+    // action-button saves) read current data without recreating the debounce
+    // timer on every keystroke.
+    const latestFormRef = useRef(null);
+    latestFormRef.current = {
+      basicDetails,
+      vesselOwner,
+      vesselPrincipal,
+      vesselCharterer,
+      creditControllerRemarks,
+      creditControllerDocument,
+      managerComments,
+      managerDocument,
+      ceoComments,
+      ceoDocument,
+    };
+
+    const runSave = useCallback(
+      (actionOverride) => {
+        if (!callId) return Promise.resolve();
+        const payload = buildExportApprovalSavePayload({
+          callId,
+          ...latestFormRef.current,
+          actionOverride,
+        });
+        setSaveStatus("saving");
+        return saveExportApprovalDetails(payload, { silent: !actionOverride })
+          .then(() => {
+            setSaveStatus("saved");
+            // Action clicks move the workflow forward server-side — refresh so
+            // the tab reflects the new stage/documents. Plain field autosave
+            // stays local-only to avoid the form fighting the user's typing.
+            if (actionOverride) {
+              getExportApprovalDetails(callId);
+            }
+          })
+          .catch(() => {
+            setSaveStatus("error");
+          });
+      },
+      [callId, saveExportApprovalDetails, getExportApprovalDetails]
+    );
+
+    const debouncedAutoSave = useMemo(
+      () => debounce(() => runSave(), AUTO_SAVE_DEBOUNCE_MS),
+      [runSave]
+    );
+
+    useEffect(() => () => debouncedAutoSave.cancel(), [debouncedAutoSave]);
+
+    useEffect(() => {
+      if (skipNextAutoSaveRef.current) {
+        skipNextAutoSaveRef.current = false;
+        return;
+      }
+      debouncedAutoSave();
+    }, [
+      basicDetails,
+      vesselOwner,
+      vesselPrincipal,
+      vesselCharterer,
+      creditControllerRemarks,
+      creditControllerDocument,
+      managerComments,
+      managerDocument,
+      ceoComments,
+      ceoDocument,
+      debouncedAutoSave,
+    ]);
+
     const handleCreditControllerApproved = useCallback(() => {
-    }, []);
+      debouncedAutoSave.cancel();
+      runSave({ section: "credit_controller", value: "approved" });
+    }, [debouncedAutoSave, runSave]);
 
     const handleCreditControllerProceedToOperator = useCallback(() => {
-    }, []);
+      debouncedAutoSave.cancel();
+      runSave({ section: "credit_controller", value: "proceed_to_operator" });
+    }, [debouncedAutoSave, runSave]);
 
     const handleManagerApproved = useCallback(() => {
-    }, []);
+      debouncedAutoSave.cancel();
+      runSave({ section: "manager_ofm", value: "approved" });
+    }, [debouncedAutoSave, runSave]);
 
     const handleManagerProceedToCeo = useCallback(() => {
-    }, []);
+      debouncedAutoSave.cancel();
+      runSave({ section: "manager_ofm", value: "proceed_to_ceo" });
+    }, [debouncedAutoSave, runSave]);
 
     const handleCeoApproved = useCallback(() => {
-    }, []);
+      debouncedAutoSave.cancel();
+      runSave({ section: "ceo", value: "approved" });
+    }, [debouncedAutoSave, runSave]);
 
     const handleCeoOnHold = useCallback(() => {
-    }, []);
+      debouncedAutoSave.cancel();
+      runSave({ section: "ceo", value: "on_hold" });
+    }, [debouncedAutoSave, runSave]);
 
     const handleBasicChange = useCallback((field, value) => {
       setBasicDetails((prev) => ({ ...prev, [field]: value }));
@@ -545,7 +754,10 @@ const createEmptyPartySection = () => ({
           ) : null}
           <div className="approval-sections-wrapper">
             <section className="approval-form-card approval-section--full">
-              <h3 className="form-group-title">Basic Details</h3>
+              <div className="approval-section-header">
+                <h3 className="form-group-title">Basic Details</h3>
+                <AutoSaveStatus status={saveStatus} />
+              </div>
               <div className="approval-fields-grid approval-basic-fields-grid">
                 <FormField label="Date">
                   <FormInput
@@ -638,6 +850,7 @@ const createEmptyPartySection = () => ({
                 secondaryActionLabel="Proceed to Operator"
                 onPrimaryAction={handleCreditControllerApproved}
                 onSecondaryAction={handleCreditControllerProceedToOperator}
+                actionsDisabled={saveStatus === "saving"}
               />
 
               <ApprovalCard
@@ -655,6 +868,7 @@ const createEmptyPartySection = () => ({
                 onPrimaryAction={handleManagerApproved}
                 onSecondaryAction={handleManagerProceedToCeo}
                 helperText="Require Digital Signature of OFM department Manager"
+                actionsDisabled={saveStatus === "saving"}
               />
 
               <ApprovalCard
@@ -672,6 +886,7 @@ const createEmptyPartySection = () => ({
                 onPrimaryAction={handleCeoApproved}
                 onSecondaryAction={handleCeoOnHold}
                 helperText="Require Digital Signature of CEO"
+                actionsDisabled={saveStatus === "saving"}
               />
             </div>
           </div>
