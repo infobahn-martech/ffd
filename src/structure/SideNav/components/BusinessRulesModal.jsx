@@ -4,6 +4,7 @@ import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import BusinessRuleIcon from './BusinessRuleIcon';
 import BusinessRuleFormModal from './BusinessRuleFormModal';
+import BusinessRuleDetailsModal from '../../../pages/BusinessRules/Modals/BusinessRuleDetailsModal';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import '../../../design/scss/business-rules-modal.scss';
 
@@ -58,6 +59,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [view, setView] = useState('table');
   const [selectedRule, setSelectedRule] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedRuleId, setSelectedRuleId] = useState(null);
 
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
@@ -89,6 +92,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setView('table');
       setSelectedRule(null);
       setShowFormModal(false);
+      setShowDetailsModal(false);
+      setSelectedRuleId(null);
       return;
     }
     const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
@@ -305,7 +310,15 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                   &#8942;
                                 </button>
                                 <ul className="dropdown-menu dropdown-menu-end">
-                                  <li><button className="dropdown-item" type="button">Edit</button></li>
+                                  <li>
+                                    <button
+                                      className="dropdown-item"
+                                      type="button"
+                                      onClick={() => { setSelectedRuleId(ruleId); setShowDetailsModal(true); }}
+                                    >
+                                      Edit
+                                    </button>
+                                  </li>
                                   <li><button className="dropdown-item text-danger" type="button">Delete</button></li>
                                 </ul>
                               </div>
@@ -403,6 +416,12 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         onClose={handleCancelFormModal}
         onSave={handleSaveFormModal}
         isSaving={isCreatingBusinessRule}
+      />
+
+      <BusinessRuleDetailsModal
+        show={show && showDetailsModal}
+        businessRuleId={selectedRuleId}
+        onClose={() => { setShowDetailsModal(false); setSelectedRuleId(null); }}
       />
     </>
   );
