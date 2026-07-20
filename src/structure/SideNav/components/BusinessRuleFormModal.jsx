@@ -3288,6 +3288,29 @@ const extractTestErrorDetail = (responseBody) => {
     : detail;
 };
 
+// data.message on a failed test is the backend's raw exception text (e.g. a Guzzle
+// "Client error: `GET ...` resulted in a `401 UNAUTHORIZED` response" dump) — not
+// something a non-technical user configuring a business rule can act on. Status code
+// is the one reliably structured signal we get back, so it drives a plain-language
+// message instead; the invoked service's own response detail (if any and reasonably
+// short) is shown alongside it as the actionable specifics.
+const TEST_ERROR_STATUS_MESSAGES = {
+  400: 'The request was invalid. Please check the URL, headers, and parameters.',
+  401: 'Authentication failed. Please check the username/password or API key.',
+  403: 'Access denied. The service rejected this request.',
+  404: 'The service URL could not be found. Please check the URL.',
+  405: 'The service does not support this request method.',
+  408: 'The request timed out. Please try again.',
+  429: 'Too many requests were sent. Please try again later.',
+  500: 'The service encountered an internal error.',
+  502: 'The service is temporarily unreachable.',
+  503: 'The service is currently unavailable. Please try again later.',
+  504: 'The service took too long to respond.',
+};
+const getFriendlyTestErrorMessage = (statusCode) =>
+  TEST_ERROR_STATUS_MESSAGES[statusCode]
+  ?? (statusCode ? `The service returned an error (status ${statusCode}).` : 'The request could not be completed. Please check your service settings.');
+
 function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetchedSettings, isLoadingSettings, triggerTypeId }) {
   const [serviceName, setServiceName] = useState('');
   const [method, setMethod] = useState(DUMMY_INVOKE_METHOD_OPTIONS[1]);
@@ -3542,14 +3565,20 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
         const result = data?.data ?? {};
         const statusCode = result.status_code ?? null;
         const ok = data?.status !== 'error' && (statusCode == null || statusCode < 400);
-        const message = stripHtmlTags(data?.message);
-        const errorDetail = ok ? '' : extractTestErrorDetail(result.response_body);
+        let message;
+        if (ok) {
+          message = stripHtmlTags(data?.message);
+        } else {
+          const friendlyMessage = getFriendlyTestErrorMessage(statusCode);
+          const errorDetail = extractTestErrorDetail(result.response_body);
+          message = errorDetail && errorDetail !== friendlyMessage ? `${friendlyMessage} ${errorDetail}`.trim() : friendlyMessage;
+        }
         setTestResult({
           ok,
           statusCode,
           durationMs: result.duration_ms ?? null,
           responseBody: result.response_body ?? '',
-          message: errorDetail && errorDetail !== message ? `${message} ${errorDetail}`.trim() : message,
+          message,
         });
       },
       onError: (err) => {
