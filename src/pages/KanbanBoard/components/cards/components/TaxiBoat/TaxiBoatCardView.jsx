@@ -990,16 +990,6 @@ function TaxiBoatCardView({ card }) {
             </>
           )}
           <h3 className="tb-section-title">Movement Timestamps</h3>
-          <div className="tb-guide-name-row">
-            <label className="tb-guide-name-label"><FiUser size={13} />Taxi Boat Guide</label>
-            <input
-              type="text"
-              className="tb-guide-name-input"
-              placeholder="Enter guide name..."
-              value={operatorName}
-              onChange={(e) => setOperatorName(e.target.value)}
-            />
-          </div>
           <TimestampStepper
             timestamps={STANDARD_TIMESTAMPS}
             tsState={crewTs}
