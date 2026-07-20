@@ -48,6 +48,7 @@ const OwnerCell = ({ owner }) => {
 
 const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [searchValue, setSearchValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'enabled' | 'disabled'
   const [triggerSearch, setTriggerSearch] = useState('');
   const [debouncedTriggerSearch, setDebouncedTriggerSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -63,18 +64,25 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     triggerTypes, isLoadingGet, getTriggerTypes,
     getBusinessRuleStats, businessRuleStats,
     createBusinessRule, isCreatingBusinessRule,
+    toggleBusinessRuleStatus,
   } = useBusinessRuleReducer((s) => s);
 
-  // UI-only toggle until the backend endpoint is ready - not persisted, keyed by rule id.
+  // Optimistic override, keyed by rule id, reconciled once the toggle API call settles.
   const [localStatusOverrides, setLocalStatusOverrides] = useState({});
+  const [togglingRuleId, setTogglingRuleId] = useState(null);
 
   const handleToggleStatus = (ruleId, currentValue) => {
-    setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue }));
+    setTogglingRuleId(ruleId);
+    toggleBusinessRuleStatus(ruleId, {
+      cb: () => setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue })),
+      onSettled: () => setTogglingRuleId(null),
+    });
   };
 
   useEffect(() => {
     if (!show) {
       setSearchValue('');
+      setStatusFilter('all');
       setTriggerSearch('');
       setDebouncedTriggerSearch('');
       setPage(1);
@@ -83,8 +91,9 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setShowFormModal(false);
       return;
     }
-    getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined } });
-  }, [show, page, searchValue]);
+    const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
+    getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined, is_enabled: isEnabled } });
+  }, [show, page, searchValue, statusFilter]);
 
   useEffect(() => {
     if (!show) return;
@@ -112,6 +121,11 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     description: item.description,
   }));
 
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
+
   const handleTriggerCardClick = (trigger) => {
     setSelectedRule(trigger);
     setShowFormModal(true);
@@ -123,7 +137,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         setShowFormModal(false);
         setSelectedRule(null);
         setView('table');
-        getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined } });
+        const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
+        getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined, is_enabled: isEnabled } });
         getBusinessRuleStats();
       },
     });
@@ -186,6 +201,16 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
             <>
               <div className="br-table-toolbar">
                 <div className="br-table-toolbar-left">
+                  <select
+                    className="form-select form-select-sm br-table-status-select"
+                    value={statusFilter}
+                    onChange={(e) => handleStatusFilterChange(e.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="enabled">Enabled</option>
+                    <option value="disabled">Disabled</option>
+                  </select>
+
                   <div className="business-rules-search-wrapper br-table-search-wrap">
                     <FiSearch className="business-rules-search-icon" />
                     <input
@@ -247,6 +272,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                   className="form-check-input"
                                   type="checkbox"
                                   checked={isEnabled}
+                                  disabled={togglingRuleId === ruleId}
                                   onChange={() => handleToggleStatus(ruleId, isEnabled)}
                                 />
                               </div>

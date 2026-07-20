@@ -6,6 +6,11 @@ import useAlertReducer from './AlertReducer';
 // filters change again before an in-flight request resolves, an older response landing
 // after the newer one would otherwise silently overwrite the store with stale data.
 let customFieldsRequestId = 0;
+// Separate request-id guard for recipientCustomFields (below) — kept as its own
+// counter/slice so resolving a saved notify action's to/cc custom-field labels on
+// reopen never races with or clobbers the board-filtered list the "add custom
+// fields" picker modal loads into the shared `customFields` slice above.
+let recipientCustomFieldsRequestId = 0;
 
 const useBusinessRuleReducer = create((set) => ({
     isLoadingGet: false,
@@ -72,6 +77,30 @@ const useBusinessRuleReducer = create((set) => ({
         } catch (err) {
             if (requestId !== customFieldsRequestId) return;
             set({ customFields: [], isLoadingCustomFields: false });
+        }
+    },
+
+    // Unscoped (no board filter) custom-field list, fetched once a saved notify action's
+    // settings load, used only to resolve to_custom_fields/cc_custom_fields ids back to a
+    // real label on reopen — get_field_details/{type}/{id} returns operator/config info,
+    // not a display label, so it can't be relied on for this the way it can for a
+    // condition row's operator dropdown.
+    isLoadingRecipientCustomFields: false,
+    recipientCustomFields: [],
+
+    getRecipientCustomFields: async ({ params } = {}) => {
+        const requestId = ++recipientCustomFieldsRequestId;
+        try {
+            set({ isLoadingRecipientCustomFields: true });
+            const { data } = await businessRuleService.getCustomFields({ params });
+            if (requestId !== recipientCustomFieldsRequestId) return;
+            set({
+                recipientCustomFields: data?.data ?? [],
+                isLoadingRecipientCustomFields: false,
+            });
+        } catch (err) {
+            if (requestId !== recipientCustomFieldsRequestId) return;
+            set({ recipientCustomFields: [], isLoadingRecipientCustomFields: false });
         }
     },
 
