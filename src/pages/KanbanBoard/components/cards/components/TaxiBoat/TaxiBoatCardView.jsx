@@ -7,7 +7,7 @@ import { FaShip } from "react-icons/fa";
 import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-service-scenarios.scss";
-import GroSummaryCard from "../GRO/User/GroSummaryCard";
+import GroSummaryCard, { GroSummaryFieldCard } from "../GRO/User/GroSummaryCard";
 
 const CREW_CHANGE_SERVICES = ["Crew Change"];
 const MATERIAL_SERVICES   = ["Material Delivery", "Provision Delivery", "Garbage Collection"];
@@ -45,6 +45,8 @@ const STANDARD_TIMESTAMPS = [
 ];
 
 const BATCH_ORDINALS = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+
+const isBatchDone = (batch) => STANDARD_TIMESTAMPS.every((t) => batch.ts[t.key] !== null);
 
 const makeTsState = (keys) =>
   keys.reduce((acc, key) => ({ ...acc, [key]: null }), {});
@@ -679,7 +681,228 @@ TaxiFleetAssignPanel.propTypes = {
   onAssign:      PropTypes.func.isRequired,
 };
 
-function TaxiBoatCardView({ card }) {
+function CrewListBatchwisePanel({
+  batches, setBatches, activeBatchTab, setActiveBatchTab, handleAddBatch,
+  opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
+  captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip,
+}) {
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Crew List — Batchwise</h3>
+      <div className="tb-batch-summary-bar">
+        <span className="tb-batch-summary-stat">
+          <strong>{batches.filter((b) => b.completed).length}</strong> / {batches.length} batches complete
+        </span>
+      </div>
+
+      <div className="tb-batch-tab-strip">
+        {batches.map((batch, i) => (
+          <button
+            key={batch.id}
+            className={[
+              "tb-batch-tab",
+              activeBatchTab === i ? "tb-batch-tab--active" : "",
+              isBatchDone(batch) ? "tb-batch-tab--done" : "",
+            ].filter(Boolean).join(" ")}
+            onClick={() => setActiveBatchTab(i)}
+          >
+            {isBatchDone(batch) && <FiCheckCircle size={12} />}
+            Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
+          </button>
+        ))}
+        <button className="tb-add-batch-btn" onClick={handleAddBatch}>
+          <FiPlus size={13} />
+          Add Batch
+        </button>
+      </div>
+
+      {batches.map((batch, i) => {
+        if (i !== activeBatchTab) return null;
+        const done = isBatchDone(batch);
+        const crewRows = getBatchCrewRows(batch.crewCount);
+        return (
+          <div key={batch.id} className="tb-batch-tab-content">
+            {/* Batch meta: crew count + operator */}
+            <div className="tb-batch-meta-row">
+              <div className="tb-batch-field-row">
+                <span className="tb-batch-field-label">Crew Count</span>
+                <input
+                  type="number"
+                  min="0"
+                  className="tb-batch-field-input"
+                  value={batch.crewCount}
+                  onChange={(e) =>
+                    setBatches((prev) =>
+                      prev.map((b, idx) => idx === i ? { ...b, crewCount: e.target.value } : b)
+                    )
+                  }
+                />
+              </div>
+              <div className="tb-batch-field-row">
+                <span className="tb-batch-field-label">Boat Operator</span>
+                <div className="tb-op-autocomplete-wrap">
+                  <input
+                    type="text"
+                    className="tb-batch-field-input tb-batch-operator-input"
+                    placeholder="Enter operator name..."
+                    value={batch.operator}
+                    onChange={(e) =>
+                      setBatches((prev) =>
+                        prev.map((b, idx) => idx === i ? { ...b, operator: e.target.value } : b)
+                      )
+                    }
+                    onFocus={() => setOpFocusedBatch(i)}
+                    onBlur={() => handleOpBlur(batch.operator)}
+                  />
+                  {opFocusedBatch === i && recentOps.length > 0 && (
+                    <div className="tb-op-chips">
+                      {recentOps.map((op) => (
+                        <button
+                          key={op}
+                          className="tb-op-chip"
+                          onMouseDown={(e) => { e.preventDefault(); handleOpChipClick(i, op); }}
+                        >
+                          {op}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {crewRows.length > 0 && (
+              <div className="tb-crew-table-wrapper">
+                <table className="tb-crew-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Rank</th>
+                      <th>Nationality</th>
+                      <th>Passport No.</th>
+                      <th>Seaman Book No.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {crewRows.map((row, ri) => (
+                      <tr key={ri}>
+                        <td>{ri + 1}</td>
+                        <td>{row.name}</td>
+                        <td>{row.rank}</td>
+                        <td>{row.nationality}</td>
+                        <td>{row.passportNo}</td>
+                        <td>{row.seamanBookNo}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <TimestampStepper
+              timestamps={STANDARD_TIMESTAMPS}
+              tsState={batch.ts}
+              tsOps={batch.tsOps}
+              shipName={vesselName}
+              onCapture={(key) => captureBatchTs(i, key)}
+              onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
+              jobCompleted={batch.completed}
+              canFinish={isBatchDone(batch)}
+              now={now}
+              onUndo={(key, label) => setUndoPending({
+                label,
+                resetter: () => setBatches((prev) =>
+                  prev.map((b, idx) =>
+                    idx === i ? { ...b, ts: { ...b.ts, [key]: null }, completed: false } : b
+                  )
+                ),
+                addToLog: (reason) => setBatches((prev) =>
+                  prev.map((b, idx) =>
+                    idx === i ? { ...b, stepBackLog: [...b.stepBackLog, { step: label, reason, time: new Date().toISOString() }] } : b
+                  )
+                ),
+              })}
+            />
+
+            <TimestampSummaryTable
+              timestamps={STANDARD_TIMESTAMPS}
+              tsState={batch.ts}
+              jobCompletedAt={batch.completedAt}
+              cobTime={batch.cobTime}
+              stepsAllDone={isBatchDone(batch)}
+              stepBackLog={batch.stepBackLog}
+              onCaptureCob={() =>
+                setBatches((prev) =>
+                  prev.map((b, idx) =>
+                    idx === i ? { ...b, cobTime: new Date().toISOString() } : b
+                  )
+                )
+              }
+            />
+
+            {batch.completed && (
+              <div className="tb-batch-actions">
+                <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(batch.ts, `Immigration Batch ${BATCH_ORDINALS[i] ?? i + 1}`, batch.operator, batch.completedAt)}>
+                  <FiPrinter size={14} />
+                  Print Launch Slip
+                </button>
+                <div>
+                  <input
+                    type="file"
+                    id={`tb-batch-file-${batch.id}`}
+                    className="tb-launch-slip-input"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) =>
+                      setBatches((prev) =>
+                        prev.map((b, idx) =>
+                          idx === i ? { ...b, file: e.target.files?.[0] ?? null } : b
+                        )
+                      )
+                    }
+                  />
+                  <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
+                    <FiUpload size={14} />
+                    {batch.file ? batch.file.name : "Upload Launch Slip"}
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {done && (
+              <div className="tb-batch-done-badge">
+                <FiCheckCircle size={16} />
+                Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`} Complete
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+CrewListBatchwisePanel.propTypes = {
+  batches:          PropTypes.array.isRequired,
+  setBatches:       PropTypes.func.isRequired,
+  activeBatchTab:   PropTypes.number.isRequired,
+  setActiveBatchTab: PropTypes.func.isRequired,
+  handleAddBatch:   PropTypes.func.isRequired,
+  opFocusedBatch:   PropTypes.number,
+  setOpFocusedBatch: PropTypes.func.isRequired,
+  recentOps:        PropTypes.array,
+  handleOpBlur:     PropTypes.func.isRequired,
+  handleOpChipClick: PropTypes.func.isRequired,
+  captureBatchTs:   PropTypes.func.isRequired,
+  setUndoPending:   PropTypes.func.isRequired,
+  vesselName:       PropTypes.string,
+  now:              PropTypes.instanceOf(Date),
+  printLaunchSlip:  PropTypes.func.isRequired,
+};
+
+const TAXI_BOAT_OPERATOR_ROLE_ID = "20";
+const TAXI_BOAT_CAPTAIN_ROLE_ID = "21";
+
+function TaxiBoatCardView({ card, userRoleId = null }) {
   const serviceType = card?.typeOfService ?? "—";
   const assignedUser = card?.user ?? "—";
   const requestedOperator = card?.requestedOperator ?? "—";
@@ -690,6 +913,11 @@ function TaxiBoatCardView({ card }) {
   const isCrewChange     = CREW_CHANGE_SERVICES.includes(serviceType);
   const isMaterialService = MATERIAL_SERVICES.includes(serviceType);
   const isImmigration    = IMMIGRATION_SERVICES.includes(serviceType);
+  const isTaxiBoatOperator = String(userRoleId ?? "") === TAXI_BOAT_OPERATOR_ROLE_ID;
+  const isTaxiBoatCaptain  = String(userRoleId ?? "") === TAXI_BOAT_CAPTAIN_ROLE_ID;
+
+  const [assignedUserEdit, setAssignedUserEdit] = useState(() => card?.user ?? "");
+  const [locationEdit, setLocationEdit] = useState(() => card?.location ?? "");
 
   const [dropTs, setDropTs] = useState(() =>
     makeTsState(STANDARD_TIMESTAMPS.map((t) => t.key))
@@ -832,7 +1060,6 @@ function TaxiBoatCardView({ card }) {
   }, [batches.length]);
 
   const allDone = (tsState, keys) => keys.every((k) => tsState[k] !== null);
-  const isBatchDone = (batch) => STANDARD_TIMESTAMPS.every((t) => batch.ts[t.key] !== null);
 
   const tsKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
   const canComplete = isImmigration
@@ -900,27 +1127,82 @@ function TaxiBoatCardView({ card }) {
 
   return (
     <div className="tb-card-view">
-      <div className="gro-summary-grid gro-summary-grid--six-col">
-        <GroSummaryCard label="Requested Operator" value={requestedOperator}  />
-        <GroSummaryCard label="Billing Entity"     value={billingEntity}      />
-        <GroSummaryCard label="Vessel Name"        value={vesselName}         />
-        <GroSummaryCard label="Location"           value={location}           />
-        <GroSummaryCard label="Booking Date"       value={bookingDate}        />
-        <GroSummaryCard label="Assigned Captian"      value={assignedUser}       />
+      <div className={`gro-summary-grid${isTaxiBoatOperator ? "" : " gro-summary-grid--six-col"}`}>
+        {!isTaxiBoatOperator && (
+          <GroSummaryCard label="Requested Operator" value={requestedOperator} />
+        )}
+        <GroSummaryCard label="Billing Entity" value={billingEntity} />
+        <GroSummaryCard label="Vessel Name"    value={vesselName}    />
+        {isTaxiBoatOperator ? (
+          <GroSummaryFieldCard label="Location">
+            <input
+              type="text"
+              className="tb-summary-input"
+              value={locationEdit}
+              onChange={(e) => setLocationEdit(e.target.value)}
+            />
+          </GroSummaryFieldCard>
+        ) : (
+          <GroSummaryCard label="Location" value={location} />
+        )}
+        {isTaxiBoatOperator ? (
+          <GroSummaryFieldCard label="Booking Date">
+            <input
+              type="date"
+              className="tb-summary-input"
+              value={bookingDateEdit}
+              onChange={(e) => setBookingDateEdit(e.target.value)}
+            />
+          </GroSummaryFieldCard>
+        ) : (
+          <GroSummaryCard label="Booking Date" value={bookingDate} />
+        )}
+        {isTaxiBoatOperator ? (
+          <GroSummaryFieldCard label="Assigned Captian">
+            <input
+              type="text"
+              className="tb-summary-input"
+              value={assignedUserEdit}
+              onChange={(e) => setAssignedUserEdit(e.target.value)}
+            />
+          </GroSummaryFieldCard>
+        ) : (
+          <GroSummaryCard label="Assigned Captian" value={assignedUser} />
+        )}
       </div>
 
-      <TaxiFleetAssignPanel
-        operatorName={requestedOperator}
-        operatorPhone={card?.requestedOperatorPhone ?? card?.operatorPhone ?? card?.phone ?? null}
-        bookingDate={bookingDateEdit}
-        bookingTime={bookingTimeEdit}
-        onDateChange={setBookingDateEdit}
-        onTimeChange={setBookingTimeEdit}
-        selectedFleet={selectedFleet}
-        onSelectFleet={setSelectedFleet}
-        assigned={fleetAssigned}
-        onAssign={() => setFleetAssigned(true)}
-      />
+      {isTaxiBoatCaptain ? (
+        <CrewListBatchwisePanel
+          batches={batches}
+          setBatches={setBatches}
+          activeBatchTab={activeBatchTab}
+          setActiveBatchTab={setActiveBatchTab}
+          handleAddBatch={handleAddBatch}
+          opFocusedBatch={opFocusedBatch}
+          setOpFocusedBatch={setOpFocusedBatch}
+          recentOps={recentOps}
+          handleOpBlur={handleOpBlur}
+          handleOpChipClick={handleOpChipClick}
+          captureBatchTs={captureBatchTs}
+          setUndoPending={setUndoPending}
+          vesselName={vesselName}
+          now={now}
+          printLaunchSlip={printLaunchSlip}
+        />
+      ) : (
+        <TaxiFleetAssignPanel
+          operatorName={requestedOperator}
+          operatorPhone={card?.requestedOperatorPhone ?? card?.operatorPhone ?? card?.phone ?? null}
+          bookingDate={bookingDateEdit}
+          bookingTime={bookingTimeEdit}
+          onDateChange={setBookingDateEdit}
+          onTimeChange={setBookingTimeEdit}
+          selectedFleet={selectedFleet}
+          onSelectFleet={setSelectedFleet}
+          assigned={fleetAssigned}
+          onAssign={() => setFleetAssigned(true)}
+        />
+      )}
 
       {/* Scenario A: Crew Change */}
       {isCrewChange && (
@@ -1100,202 +1382,48 @@ function TaxiBoatCardView({ card }) {
         </div>
       )}
 
-      {/* Scenario C: Immigration Clearance — per-batch tabs */}
-      {isImmigration && (
-        <div className="tb-scenario-section">
-          {/* Batch summary bar */}
-          <div className="tb-batch-summary-bar">
-            <span className="tb-batch-summary-stat">
-              <strong>{batches.filter((b) => b.completed).length}</strong> / {batches.length} batches complete
-            </span>
-          </div>
-
-          <div className="tb-batch-tab-strip">
-            {batches.map((batch, i) => (
-              <button
-                key={batch.id}
-                className={[
-                  "tb-batch-tab",
-                  activeBatchTab === i ? "tb-batch-tab--active" : "",
-                  isBatchDone(batch) ? "tb-batch-tab--done" : "",
-                ].filter(Boolean).join(" ")}
-                onClick={() => setActiveBatchTab(i)}
-              >
-                {isBatchDone(batch) && <FiCheckCircle size={12} />}
-                Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
-              </button>
-            ))}
-            <button className="tb-add-batch-btn" onClick={handleAddBatch}>
-              <FiPlus size={13} />
-              Add Batch
-            </button>
-          </div>
-
-          {batches.map((batch, i) => {
-            if (i !== activeBatchTab) return null;
-            const done = isBatchDone(batch);
-            const crewRows = getBatchCrewRows(batch.crewCount);
-            return (
-              <div key={batch.id} className="tb-batch-tab-content">
-                {/* Batch meta: crew count + operator */}
-                <div className="tb-batch-meta-row">
-                  <div className="tb-batch-field-row">
-                    <span className="tb-batch-field-label">Crew Count</span>
-                    <input
-                      type="number"
-                      min="0"
-                      className="tb-batch-field-input"
-                      value={batch.crewCount}
-                      onChange={(e) =>
-                        setBatches((prev) =>
-                          prev.map((b, idx) => idx === i ? { ...b, crewCount: e.target.value } : b)
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="tb-batch-field-row">
-                    <span className="tb-batch-field-label">Boat Operator</span>
-                    <div className="tb-op-autocomplete-wrap">
-                      <input
-                        type="text"
-                        className="tb-batch-field-input tb-batch-operator-input"
-                        placeholder="Enter operator name..."
-                        value={batch.operator}
-                        onChange={(e) =>
-                          setBatches((prev) =>
-                            prev.map((b, idx) => idx === i ? { ...b, operator: e.target.value } : b)
-                          )
-                        }
-                        onFocus={() => setOpFocusedBatch(i)}
-                        onBlur={() => handleOpBlur(batch.operator)}
-                      />
-                      {opFocusedBatch === i && recentOps.length > 0 && (
-                        <div className="tb-op-chips">
-                          {recentOps.map((op) => (
-                            <button
-                              key={op}
-                              className="tb-op-chip"
-                              onMouseDown={(e) => { e.preventDefault(); handleOpChipClick(i, op); }}
-                            >
-                              {op}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {crewRows.length > 0 && (
-                  <div className="tb-crew-table-wrapper">
-                    <table className="tb-crew-table">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Name</th>
-                          <th>Rank</th>
-                          <th>Nationality</th>
-                          <th>Passport No.</th>
-                          <th>Seaman Book No.</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {crewRows.map((row, ri) => (
-                          <tr key={ri}>
-                            <td>{ri + 1}</td>
-                            <td>{row.name}</td>
-                            <td>{row.rank}</td>
-                            <td>{row.nationality}</td>
-                            <td>{row.passportNo}</td>
-                            <td>{row.seamanBookNo}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                <TimestampStepper
-                  timestamps={STANDARD_TIMESTAMPS}
-                  tsState={batch.ts}
-                  tsOps={batch.tsOps}
-                  shipName={vesselName}
-                  onCapture={(key) => captureBatchTs(i, key)}
-                  onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
-                  jobCompleted={batch.completed}
-                  canFinish={isBatchDone(batch)}
-                  now={now}
-                  onUndo={(key, label) => setUndoPending({
-                    label,
-                    resetter: () => setBatches((prev) =>
-                      prev.map((b, idx) =>
-                        idx === i ? { ...b, ts: { ...b.ts, [key]: null }, completed: false } : b
-                      )
-                    ),
-                    addToLog: (reason) => setBatches((prev) =>
-                      prev.map((b, idx) =>
-                        idx === i ? { ...b, stepBackLog: [...b.stepBackLog, { step: label, reason, time: new Date().toISOString() }] } : b
-                      )
-                    ),
-                  })}
-                />
-
-                <TimestampSummaryTable
-                  timestamps={STANDARD_TIMESTAMPS}
-                  tsState={batch.ts}
-                  jobCompletedAt={batch.completedAt}
-                  cobTime={batch.cobTime}
-                  stepsAllDone={isBatchDone(batch)}
-                  stepBackLog={batch.stepBackLog}
-                  onCaptureCob={() =>
-                    setBatches((prev) =>
-                      prev.map((b, idx) =>
-                        idx === i ? { ...b, cobTime: new Date().toISOString() } : b
-                      )
-                    )
-                  }
-                />
-
-                {batch.completed && (
-                  <div className="tb-batch-actions">
-                    <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(batch.ts, `Immigration Batch ${BATCH_ORDINALS[i] ?? i + 1}`, batch.operator, batch.completedAt)}>
-                      <FiPrinter size={14} />
-                      Print Launch Slip
-                    </button>
-                    <div>
-                      <input
-                        type="file"
-                        id={`tb-batch-file-${batch.id}`}
-                        className="tb-launch-slip-input"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) =>
-                          setBatches((prev) =>
-                            prev.map((b, idx) =>
-                              idx === i ? { ...b, file: e.target.files?.[0] ?? null } : b
-                            )
-                          )
-                        }
-                      />
-                      <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
-                        <FiUpload size={14} />
-                        {batch.file ? batch.file.name : "Upload Launch Slip"}
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {done && (
-                  <div className="tb-batch-done-badge">
-                    <FiCheckCircle size={16} />
-                    Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`} Complete
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+      {/* Scenario C: Immigration Clearance — per-batch tabs (Captain already sees this above, in place of Fleet Assignment) */}
+      {isImmigration && !isTaxiBoatCaptain && (
+        <CrewListBatchwisePanel
+          batches={batches}
+          setBatches={setBatches}
+          activeBatchTab={activeBatchTab}
+          setActiveBatchTab={setActiveBatchTab}
+          handleAddBatch={handleAddBatch}
+          opFocusedBatch={opFocusedBatch}
+          setOpFocusedBatch={setOpFocusedBatch}
+          recentOps={recentOps}
+          handleOpBlur={handleOpBlur}
+          handleOpChipClick={handleOpChipClick}
+          captureBatchTs={captureBatchTs}
+          setUndoPending={setUndoPending}
+          vesselName={vesselName}
+          now={now}
+          printLaunchSlip={printLaunchSlip}
+        />
       )}
 
-      {!isImmigration && !isCrewChange && (
+      {!isImmigration && !isCrewChange && isTaxiBoatOperator && (
+        <CrewListBatchwisePanel
+          batches={batches}
+          setBatches={setBatches}
+          activeBatchTab={activeBatchTab}
+          setActiveBatchTab={setActiveBatchTab}
+          handleAddBatch={handleAddBatch}
+          opFocusedBatch={opFocusedBatch}
+          setOpFocusedBatch={setOpFocusedBatch}
+          recentOps={recentOps}
+          handleOpBlur={handleOpBlur}
+          handleOpChipClick={handleOpChipClick}
+          captureBatchTs={captureBatchTs}
+          setUndoPending={setUndoPending}
+          vesselName={vesselName}
+          now={now}
+          printLaunchSlip={printLaunchSlip}
+        />
+      )}
+
+      {!isImmigration && !isCrewChange && !isTaxiBoatOperator && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
           <div className="tb-tabs">
@@ -1479,6 +1607,7 @@ function TaxiBoatCardView({ card }) {
 
 TaxiBoatCardView.propTypes = {
   card: PropTypes.object,
+  userRoleId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default TaxiBoatCardView;
