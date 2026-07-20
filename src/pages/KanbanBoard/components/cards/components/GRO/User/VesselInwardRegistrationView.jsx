@@ -1,13 +1,13 @@
-import { useState, useRef, useCallback, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import PropTypes from "prop-types";
-import { FiSave, FiPrinter } from "react-icons/fi";
+import { FiSave, FiDownload } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
 import { extractVesselRegTemplateFields } from "./vesselRegTemplateFields";
 import groService from "../../../../../../../services/groService";
 
 /** Vessel Inward Registration boarding view — vessel particulars (from the port's pass template) + Arabic document preview. */
 const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
-  { onSave, isSaving = false, portId },
+  { onSave, isSaving = false, onDownload, isDownloading = false, portId },
   ref
 ) {
   const [templateData, setTemplateData] = useState(null);
@@ -53,27 +53,6 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
   const handleFieldChange = (fieldKey, value) => {
     setFieldValues((prev) => ({ ...prev, [fieldKey]: value }));
   };
-
-  const handlePrint = useCallback(() => {
-    const html = previewRef.current?.outerHTML;
-    if (!html) return;
-    const printWindow = window.open("", "_blank", "noopener,noreferrer");
-    if (!printWindow) return;
-    const styles = Array.from(
-      document.querySelectorAll('link[rel="stylesheet"], style')
-    )
-      .map((node) => node.outerHTML)
-      .join("");
-    printWindow.document.write(
-      `<!DOCTYPE html><html><head><title>Vessel_Registration</title>${styles}</head><body>${html}</body></html>`
-    );
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 300);
-  }, []);
 
   return (
     <div className="gro-crew-immigration-panel">
@@ -139,12 +118,18 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
               <button
                 type="button"
                 className="gro-vessel-reg-icon-btn"
-                title="Print"
-                aria-label="Print"
-                onClick={handlePrint}
-                disabled={isSaving}
+                title="Download Vessel Registration PDF"
+                aria-label="Download Vessel Registration PDF"
+                onClick={onDownload}
+                disabled={isDownloading || isSaving || !onDownload}
               >
-                <FiPrinter />
+                {isDownloading ? (
+                  <span className="spinner-border spinner-border-sm" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </span>
+                ) : (
+                  <FiDownload />
+                )}
               </button>
             </div>
           </div>
@@ -160,6 +145,8 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
 VesselInwardRegistrationView.propTypes = {
   onSave: PropTypes.func,
   isSaving: PropTypes.bool,
+  onDownload: PropTypes.func,
+  isDownloading: PropTypes.bool,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 

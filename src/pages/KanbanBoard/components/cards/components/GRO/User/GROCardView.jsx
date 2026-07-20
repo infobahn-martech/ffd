@@ -114,6 +114,7 @@ const GROCardView = forwardRef(function GROCardView(
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [isGeneratingVesselPdf, setIsGeneratingVesselPdf] = useState(false);
+  const [isDownloadingVesselPdf, setIsDownloadingVesselPdf] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [taskDocumentsData, setTaskDocumentsData] = useState(null);
@@ -1208,12 +1209,41 @@ const GROCardView = forwardRef(function GROCardView(
         html: vesselRegistrationRef.current?.getPreviewHtml(),
       });
       notify("Vessel Registration PDF generated successfully.", "success");
+      await refreshGroDocuments();
     } catch (err) {
       notify(groApiErrorMessage(err, "Failed to generate Vessel Registration PDF."), "error");
     } finally {
       setIsGeneratingVesselPdf(false);
     }
-  }, [isGeneratingVesselPdf, callId, cardId, taskId, userRoleId]);
+  }, [isGeneratingVesselPdf, callId, cardId, taskId, userRoleId, refreshGroDocuments]);
+
+  const handleDownloadVesselRegistrationPdf = useCallback(async () => {
+    if (isDownloadingVesselPdf) return;
+    const doc = documents.find(
+      (d) => String(d?.document_name ?? "").trim().toLowerCase() === "vessel registration"
+    );
+    const callTaskDocumentId = doc?.call_task_document_id;
+    if (callTaskDocumentId == null || String(callTaskDocumentId).trim() === "") {
+      notify("Generate the Vessel Registration document first.", "warn");
+      return;
+    }
+
+    setIsDownloadingVesselPdf(true);
+    try {
+      const res = await groService.getVesselRegPdf(callTaskDocumentId);
+      const body = res?.data?.data ?? res?.data ?? {};
+      const url = body?.file_url;
+      if (!url) {
+        notify("File not available.", "error");
+        return;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      notify(groApiErrorMessage(err, "Failed to download Vessel Registration PDF."), "error");
+    } finally {
+      setIsDownloadingVesselPdf(false);
+    }
+  }, [isDownloadingVesselPdf, documents]);
 
   const isVesselInwardRegistrationActive =
     hidePassTabs &&
@@ -1657,6 +1687,8 @@ const GROCardView = forwardRef(function GROCardView(
             ref={vesselRegistrationRef}
             onSave={handleGenerateVesselRegistrationPdf}
             isSaving={isGeneratingVesselPdf}
+            onDownload={handleDownloadVesselRegistrationPdf}
+            isDownloading={isDownloadingVesselPdf}
             portId={groPortId}
           />
         ) : hidePassTabs || groMainView === GRO_MAIN_VIEWS.inward ? (
