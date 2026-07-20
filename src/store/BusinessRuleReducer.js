@@ -410,11 +410,10 @@ const useBusinessRuleReducer = create((set) => ({
 
     isTestingWebServiceSettings: false,
 
-    // Unlike the other actions here, the result (status code / duration / response
-    // body) is rendered inline in the modal rather than as a toast, so this reports
-    // outcome via cb/onError instead of useAlertReducer — except on a hard failure
-    // to reach our own backend, where there's nothing to render inline and a toast
-    // is the only way to surface it.
+    // Unlike the other actions here, both the rich result (status code / duration /
+    // response body) and a hard failure to reach our own backend are rendered inline
+    // in the modal, so this reports outcome via cb/onError only — no useAlertReducer
+    // toast, to avoid duplicating what the modal already shows.
     //
     // The backend mirrors the invoked service's outcome onto the outer HTTP status
     // (e.g. a target that returns 422 makes this call itself reject with 422), so a
@@ -433,8 +432,6 @@ const useBusinessRuleReducer = create((set) => ({
             if (errData?.data) {
                 cb && cb(errData);
             } else {
-                const { error } = useAlertReducer.getState();
-                error(errData?.message ?? err.message);
                 onError && onError(err);
             }
         } finally {
