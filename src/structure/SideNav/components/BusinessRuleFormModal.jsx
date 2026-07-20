@@ -2732,8 +2732,14 @@ function NotificationSettingsModal({
       });
     } else {
       saveNotificationSettings(payload, {
+        // The create response's id has shown up both flat ({ notification_id }, matching
+        // the web-service/create-subtask siblings) and nested under data.data (matching
+        // get_notification_settings' own shape) depending on backend build — check both so
+        // a mismatch here doesn't silently drop the id and break every later GET/update/delete
+        // for this action (symptom: reopening shows blank fields, "Remove" doesn't call the API).
         cb: (data) => {
-          onSave({ from: fromEmail, to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId: data?.notification_id ?? null });
+          const notificationId = data?.notification_id ?? data?.data?.notification_id ?? null;
+          onSave({ from: fromEmail, to: toTokens, cc: ccTokens, subjectParts, bodyContent, notificationId });
           onClose();
         },
       });
@@ -5357,7 +5363,6 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     // notification_id) needs the delete call — one still unconfigured/unsaved
     // has nothing to remove server-side.
     const action = notifyActions.find((a) => a.id === id);
-    console.log('[DEBUG] handleRemoveNotifyAction', { id, action, notifyActions });
     if (action?.notification_id) {
       deleteNotificationSettings(action.notification_id, {
         cb: () => setNotifyActions((prev) => prev.filter((a) => a.id !== id)),
