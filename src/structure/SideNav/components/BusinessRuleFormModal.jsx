@@ -1642,7 +1642,7 @@ function UserPill({ pillKey, label, selected, onClick }) {
 function InternalUsersPickerModal({ show, onClose, onApply }) {
   const [filterText, setFilterText] = useState('');
   const [expanded, setExpanded] = useState(true);
-  const [selectedNames, setSelectedNames] = useState([]);
+  const [selectedKeys, setSelectedKeys] = useState([]);
 
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
 
@@ -1650,33 +1650,41 @@ function InternalUsersPickerModal({ show, onClose, onApply }) {
     if (!show) return;
     setFilterText('');
     setExpanded(true);
-    setSelectedNames([]);
+    setSelectedKeys([]);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
   }, [show]);
 
-  const realUserNames = users.map((u) => u.name).filter(Boolean);
-  const displayUserNames = realUserNames.length > 0 ? realUserNames : (import.meta.env.DEV ? DUMMY_INTERNAL_USERS : []);
-  const allOptions = [...INTERNAL_USER_ROLE_OPTIONS, ...displayUserNames];
+  // Options are keyed by user_id (role options by their own label, which is always
+  // unique) rather than by display name — two different users can share the same
+  // name, and a name-keyed list collapses them into one selectable entry, silently
+  // dropping whichever one the user picked second.
+  const realUserOptions = users
+    .filter((u) => u.name)
+    .map((u) => ({ key: `user-${u.user_id}`, label: u.name, id: u.user_id }));
+  const displayUserOptions = realUserOptions.length > 0
+    ? realUserOptions
+    : (import.meta.env.DEV ? DUMMY_INTERNAL_USERS.map((name, idx) => ({ key: `dummy-${idx}`, label: name, id: null })) : []);
+  const roleOptions = INTERNAL_USER_ROLE_OPTIONS.map((label) => ({ key: `role-${label}`, label, id: null }));
+  const allOptions = [...roleOptions, ...displayUserOptions];
 
   const filterQuery = filterText.trim().toLowerCase();
   const filteredOptions = filterQuery
-    ? allOptions.filter((name) => name.toLowerCase().includes(filterQuery))
+    ? allOptions.filter((option) => option.label.toLowerCase().includes(filterQuery))
     : allOptions;
 
-  const handleToggle = (name) => {
-    setSelectedNames((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+  const handleToggle = (key) => {
+    setSelectedKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
 
   const handleApply = () => {
-    if (selectedNames.length === 0) return;
+    if (selectedKeys.length === 0) return;
     // Role options (Self, Owner, Watchers, ...) have no backing user record, so they
     // carry id: null and are dropped when the caller builds an id list for the API.
-    const items = selectedNames.map((name) => ({
-      label: name,
-      id: users.find((u) => u.name === name)?.user_id ?? null,
-    }));
+    const items = allOptions
+      .filter((option) => selectedKeys.includes(option.key))
+      .map((option) => ({ label: option.label, id: option.id }));
     onApply(items);
     onClose();
   };
@@ -1733,13 +1741,13 @@ function InternalUsersPickerModal({ show, onClose, onApply }) {
                 ) : filteredOptions.length === 0 ? (
                   <div className="br-property-picker-empty">No users found</div>
                 ) : (
-                  filteredOptions.map((name) => (
+                  filteredOptions.map((option) => (
                     <UserPill
-                      key={name}
-                      pillKey={name}
-                      label={name}
-                      selected={selectedNames.includes(name)}
-                      onClick={() => handleToggle(name)}
+                      key={option.key}
+                      pillKey={option.key}
+                      label={option.label}
+                      selected={selectedKeys.includes(option.key)}
+                      onClick={() => handleToggle(option.key)}
                     />
                   ))
                 )}
@@ -1752,7 +1760,7 @@ function InternalUsersPickerModal({ show, onClose, onApply }) {
           <button
             type="button"
             className="br-property-add-btn"
-            disabled={selectedNames.length === 0}
+            disabled={selectedKeys.length === 0}
             onClick={handleApply}
           >
             Apply
@@ -2316,6 +2324,7 @@ const NOTIFICATION_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function NotificationSettingsModal({
   show, onClose, onSave, initialSettings, triggerTypeId,
   fetchedSettings, isLoadingSettings, users, getFieldDetails, fieldDetailsByKey,
+  getRecipientCustomFields, recipientCustomFields,
 }) {
   const [from, setFrom] = useState('');
   const [toRecipientError, setToRecipientError] = useState(false);
@@ -2354,6 +2363,22 @@ function NotificationSettingsModal({
     });
   }, [show, fetchedSettings]);
 
+  // get_field_details/custom/{id} (above) only ever returns operator/config info, never a
+  // display label — it's used everywhere else purely for a condition row's operator
+  // dropdown, and getFieldLabel(details) on its response reliably comes back empty, which
+  // is why a saved custom-field recipient pill was stuck showing the raw numeric id forever
+  // instead of its name. The unscoped custom-fields list (same endpoint the "add custom
+  // fields" picker uses, which does return real labels) is the reliable source instead.
+  useEffect(() => {
+    if (!show || !fetchedSettings) return;
+    if (toCustomFieldIds.length === 0 && ccCustomFieldIds.length === 0) return;
+    getRecipientCustomFields({ params: { trigger_type_id: triggerTypeId } });
+  }, [show, fetchedSettings]);
+
+  const recipientCustomFieldById = new Map(
+    (recipientCustomFields ?? []).map((field) => [String(field.custom_field_id), field])
+  );
+
   // Tokens keep their backend id (not just the display label) so a resave of
   // untouched to/cc tokens still sends valid to_users/to_custom_fields ids.
   //
@@ -2369,12 +2394,13 @@ function NotificationSettingsModal({
   });
 
   const resolveCustomFieldTokens = (fieldIds) => fieldIds.map((fieldId) => {
+    const listField = recipientCustomFieldById.get(String(fieldId));
     const details = fieldDetailsByKey[`custom-${fieldId}`];
-    return {
-      label: (details && getFieldLabel(details)) || String(fieldId),
-      id: fieldId,
-      type: 'field',
-    };
+    // Placeholder while recipientCustomFields/get_field_details are still in flight (first
+    // open of an action with saved custom-field recipients) — never the raw numeric id,
+    // which reads like broken/leaked data to the user. Patched in place once resolved.
+    const label = (listField && getFieldLabel(listField)) || (details && getFieldLabel(details)) || '…';
+    return { label, id: fieldId, type: 'field' };
   });
 
   // Populated from the same non-vendor users list the To/Cc pickers use, so "From"
@@ -2423,8 +2449,16 @@ function NotificationSettingsModal({
     return span;
   };
 
-  const isDuplicateRecipientLabel = (el, label) => Array.from(el.querySelectorAll('.notification-user-pill'))
-    .some((pillEl) => pillEl.dataset.label === label);
+  // Identity is the backend id (type + id), not the display label: two different
+  // internal users (or two different custom fields) can share the exact same label
+  // (e.g. a generic shared account name like "GRO user" used by more than one
+  // record) — matching by label alone would treat the second, distinct one as a
+  // duplicate and silently refuse to add it. Only typed emails (id: null) have no
+  // backend id to key on, so those still fall back to matching by label/address.
+  const isDuplicateRecipientToken = (el, { label, type, id }) => Array.from(el.querySelectorAll('.notification-user-pill'))
+    .some((pillEl) => (id != null
+      ? pillEl.dataset.tokenType === type && pillEl.dataset.tokenId === String(id)
+      : pillEl.dataset.label === label));
 
   // To/Cc are contentEditable boxes (same pattern as Subject below) so the browser's own
   // caret placement handles "click anywhere to type" natively — no custom position tracking,
@@ -2465,11 +2499,11 @@ function NotificationSettingsModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show, initialSettings, fetchedSettings]);
 
-  // Custom-field pills seeded above before get_field_details resolves render with the
-  // raw field id as a placeholder (see resolveCustomFieldTokens). The seeding effect
-  // deliberately doesn't re-run when fieldDetailsByKey updates (that would wipe anything
-  // typed/clicked in since), so once the label resolves, patch just those specific pills
-  // in place instead of re-seeding the whole box.
+  // Custom-field pills seeded above before recipientCustomFields/get_field_details resolve
+  // render with the raw field id as a placeholder (see resolveCustomFieldTokens). The
+  // seeding effect deliberately doesn't re-run when those update (that would wipe anything
+  // typed/clicked in since), so once a label resolves, patch just those specific pills in
+  // place instead of re-seeding the whole box.
   useEffect(() => {
     if (!show) return;
     [toBoxRef.current, ccBoxRef.current].forEach((boxEl) => {
@@ -2477,14 +2511,15 @@ function NotificationSettingsModal({
       boxEl.querySelectorAll('.notification-user-pill--field').forEach((pillEl) => {
         const fieldId = pillEl.dataset.tokenId;
         if (!fieldId) return;
+        const listField = recipientCustomFieldById.get(fieldId);
         const details = fieldDetailsByKey[`custom-${fieldId}`];
-        const resolvedLabel = details && getFieldLabel(details);
+        const resolvedLabel = (listField && getFieldLabel(listField)) || (details && getFieldLabel(details));
         if (!resolvedLabel || resolvedLabel === pillEl.dataset.label) return;
         pillEl.dataset.label = resolvedLabel;
         pillEl.textContent = resolvedLabel;
       });
     });
-  }, [show, fieldDetailsByKey]);
+  }, [show, fieldDetailsByKey, recipientCustomFields]);
 
   // Same idea for user pills: seeded above with a "User #<id>" placeholder when the
   // non-vendor users list hadn't loaded yet at seed time (see resolveUserTokens) — once
@@ -2564,32 +2599,19 @@ function NotificationSettingsModal({
     quill._pillMatcherAdded = true;
   }, [show]);
 
-  // Inserts pill(s) at the current caret position inside the target contentEditable box
-  // (falling back to appending at the end if the selection isn't inside it) — same
-  // insert-at-selection approach as handleAddSubjectField below.
+  // Always appends at the end of the box — never at the caret position. Inserting into
+  // an arbitrary caret risked landing inside/around an existing pill (contentEditable=false
+  // "island" nested in the editable box triggers several browser caret quirks: selecting
+  // the box's entire content, or trapping the caret inside the pill's own DOM node), which
+  // could silently wipe or orphan existing pills. Appending is always a plain, direct-child
+  // insert with no such risk.
   const insertRecipientPills = (boxEl, items, type) => {
     if (!boxEl) return;
-    const selection = window.getSelection();
     items.forEach((item) => {
-      if (isDuplicateRecipientLabel(boxEl, item.label)) return;
+      if (isDuplicateRecipientToken(boxEl, { label: item.label, type, id: item.id ?? null })) return;
       const pill = buildRecipientPill(item.label, type, item.id ?? null);
-      const existingRange = selection?.rangeCount > 0 && boxEl.contains(selection.getRangeAt(0).commonAncestorContainer)
-        ? selection.getRangeAt(0)
-        : null;
-      if (existingRange) {
-        existingRange.deleteContents();
-        existingRange.insertNode(pill);
-        const spaceNode = document.createTextNode(' ');
-        pill.after(spaceNode);
-        const newRange = document.createRange();
-        newRange.setStartAfter(spaceNode);
-        newRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      } else {
-        boxEl.appendChild(pill);
-        boxEl.appendChild(document.createTextNode(' '));
-      }
+      boxEl.appendChild(pill);
+      boxEl.appendChild(document.createTextNode(' '));
     });
     boxEl.focus();
   };
@@ -2612,7 +2634,7 @@ function NotificationSettingsModal({
     const trimmed = before.trim().replace(/,+$/, '').trim();
     if (!trimmed) return;
 
-    if (isDuplicateRecipientLabel(boxEl, trimmed)) {
+    if (isDuplicateRecipientToken(boxEl, { label: trimmed, type: 'email', id: null })) {
       node.textContent = after;
       setError(false);
       return;
@@ -2754,19 +2776,27 @@ function NotificationSettingsModal({
   // isn't silently lost just because Save was clicked instead.
   const parseRecipientTokens = (el) => {
     if (!el) return [];
-    return Array.from(el.childNodes).reduce((acc, node) => {
-      if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('notification-user-pill')) {
-        const rawId = node.dataset.tokenId;
-        const id = rawId ? (Number.isNaN(Number(rawId)) ? rawId : Number(rawId)) : null;
-        acc.push({ label: node.dataset.label ?? node.textContent, id, type: node.dataset.tokenType });
-      } else if (node.nodeType === Node.TEXT_NODE) {
+    const acc = [];
+    // querySelectorAll (not just direct childNodes): inserting a pill next to an
+    // existing contentEditable=false pill can land the caret *inside* that existing
+    // pill's own DOM node (a browser caret-trap quirk around non-editable islands —
+    // see the getSemanticHTML() comment on bodyContentToText for the same issue in
+    // Quill). A pill nested that way is still a real selected recipient and must not
+    // be silently dropped from the save payload just because it isn't a direct child.
+    el.querySelectorAll('.notification-user-pill').forEach((node) => {
+      const rawId = node.dataset.tokenId;
+      const id = rawId ? (Number.isNaN(Number(rawId)) ? rawId : Number(rawId)) : null;
+      acc.push({ label: node.dataset.label ?? node.textContent, id, type: node.dataset.tokenType });
+    });
+    Array.from(el.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
         const trimmed = node.textContent.trim().replace(/,+$/, '').trim();
         if (trimmed && NOTIFICATION_EMAIL_REGEX.test(trimmed) && !acc.some((t) => t.label === trimmed)) {
           acc.push({ label: trimmed, id: null, type: 'email' });
         }
       }
-      return acc;
-    }, []);
+    });
+    return acc;
   };
 
   // ReactQuill's onChange is wired directly to setBodyContent, so bodyContent is an HTML
@@ -4654,6 +4684,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
     getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
+    getRecipientCustomFields, recipientCustomFields,
     deleteNotificationSettings,
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
     timeUnits, getTimeUnits,
@@ -5519,6 +5550,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     setUpdateActions((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handleClearUpdateActions = () => {
+    setUpdateActions([]);
+  };
+
   const handleChangeUpdateActionValue = (id, value) => {
     setUpdateActions((prev) => prev.map((a) => (a.id === id ? { ...a, value } : a)));
   };
@@ -5560,6 +5595,10 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     } else {
       setNotifyActions((prev) => prev.filter((a) => a.id !== id));
     }
+  };
+
+  const handleClearNotifyActions = () => {
+    setNotifyActions([]);
   };
 
   const handleOpenNotificationSettings = (id) => {
@@ -6666,6 +6705,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                       );
                     })}
 
+                    {section.id === 'update' && updateActions.length > 0 && (
+                      <button
+                        type="button"
+                        className="business-rule-form-add-link"
+                        onClick={handleClearUpdateActions}
+                      >
+                        Clear all
+                      </button>
+                    )}
+
                     {section.id === 'update_related' && updateRelatedActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-detail-card">
                         <button
@@ -6889,6 +6938,16 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                         </button>
                       </div>
                     ))}
+
+                    {section.id === 'notify' && notifyActions.length > 0 && (
+                      <button
+                        type="button"
+                        className="business-rule-form-add-link"
+                        onClick={handleClearNotifyActions}
+                      >
+                        Clear all
+                      </button>
+                    )}
 
                     {section.id === 'execute' && (
                       <div className="business-rule-form-action-detail-card">
@@ -7133,6 +7192,8 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
       users={users}
       getFieldDetails={getFieldDetails}
       fieldDetailsByKey={fieldDetailsByKey}
+      getRecipientCustomFields={getRecipientCustomFields}
+      recipientCustomFields={recipientCustomFields}
     />
 
     <WebInvokeSettingsModal
@@ -7288,6 +7349,8 @@ NotificationSettingsModal.propTypes = {
   users: PropTypes.array,
   getFieldDetails: PropTypes.func,
   fieldDetailsByKey: PropTypes.object,
+  getRecipientCustomFields: PropTypes.func,
+  recipientCustomFields: PropTypes.array,
 };
 
 export default BusinessRuleFormModal;
