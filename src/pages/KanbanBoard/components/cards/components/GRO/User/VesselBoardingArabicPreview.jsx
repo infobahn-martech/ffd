@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
+import { injectVesselRegFieldValues } from "./vesselRegTemplateFields";
 
 const SANITIZE_CONFIG = {
   FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
@@ -33,15 +34,16 @@ const FALLBACK_MORE_DESCRIPTION =
 
 /** Read-only Arabic vessel boarding document preview. */
 export default function VesselBoardingArabicPreview({
-  rows,
+  fieldValues = {},
   vesselName = "",
   date = "",
   templateData = null,
 }) {
   const title = templateData?.template_name || FALLBACK_TITLE;
   const description = templateData?.description || FALLBACK_DESCRIPTION;
-  // more_description is rich HTML from the template editor (tables, <p>, <strong> …) when it comes
-  // from the API; the fallback is plain text, so wrap its paragraphs in <p> to match before sanitizing.
+  // more_description is rich HTML from the template editor (a vessel-particulars table plus
+  // closing paragraphs) when it comes from the API; the fallback is plain text, so wrap its
+  // paragraphs in <p> to match before sanitizing.
   const moreDescriptionHtml = templateData?.more_description
     ? templateData.more_description
     : FALLBACK_MORE_DESCRIPTION.split("\n")
@@ -49,8 +51,9 @@ export default function VesselBoardingArabicPreview({
         .map((para) => `<p>${para}</p>`)
         .join("");
   const sanitizedMoreDescription = useMemo(
-    () => DOMPurify.sanitize(moreDescriptionHtml, SANITIZE_CONFIG),
-    [moreDescriptionHtml]
+    () =>
+      DOMPurify.sanitize(injectVesselRegFieldValues(moreDescriptionHtml, fieldValues), SANITIZE_CONFIG),
+    [moreDescriptionHtml, fieldValues]
   );
 
   const today = new Date();
@@ -92,39 +95,6 @@ export default function VesselBoardingArabicPreview({
 
         <div className="bulk-pass-arabic-divider" />
 
-        <table className="bulk-pass-arabic-table">
-          <thead>
-            <tr>
-              <th>العدد</th>
-              <th>اسم البحار</th>
-              <th>الجنسية</th>
-              <th>رقم الجواز/إقامة</th>
-              <th>رقم زاول</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="bulk-pass-arabic-empty">
-                  لا يوجد بحارة محددون.
-                </td>
-              </tr>
-            ) : (
-              rows.map((row, index) => (
-                <tr key={String(row.id)}>
-                  <td>{index + 1}</td>
-                  <td>{row.crewName || "—"}</td>
-                  <td>{row.nationality || "—"}</td>
-                  <td>{row.passportIqama || "—"}</td>
-                  <td>{row.zawilNo || "—"}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        <div className="bulk-pass-arabic-divider" />
-
         <div className="bulk-pass-arabic-sign">
           <span>الختم</span>
           <span>التوقيع</span>
@@ -135,7 +105,7 @@ export default function VesselBoardingArabicPreview({
 }
 
 VesselBoardingArabicPreview.propTypes = {
-  rows: PropTypes.arrayOf(PropTypes.object).isRequired,
+  fieldValues: PropTypes.objectOf(PropTypes.string),
   vesselName: PropTypes.string,
   date: PropTypes.string,
   templateData: PropTypes.shape({

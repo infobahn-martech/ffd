@@ -1,24 +1,17 @@
-import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import PropTypes from "prop-types";
 import { FiSave, FiPrinter } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
-import { GRO_STATIC_VESSEL_INWARD_CREW_ROWS } from "./groCardUtils";
+import { extractVesselRegTemplateFields } from "./vesselRegTemplateFields";
 import groService from "../../../../../../../services/groService";
 
-const EDITABLE_FIELDS = [
-  { key: "crewName", label: "Crew Name" },
-  { key: "nationality", label: "Nationality" },
-  { key: "passportIqama", label: "Passport / Iqama No" },
-  { key: "zawilNo", label: "Zawil No" },
-];
-
-/** Vessel Inward Registration boarding view — crew details + Arabic document preview. */
+/** Vessel Inward Registration boarding view — vessel particulars (from the port's pass template) + Arabic document preview. */
 const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
-  { initialRows = GRO_STATIC_VESSEL_INWARD_CREW_ROWS, onSave, isSaving = false, portId },
+  { onSave, isSaving = false, portId },
   ref
 ) {
-  const [rows, setRows] = useState(initialRows);
   const [templateData, setTemplateData] = useState(null);
+  const [fieldValues, setFieldValues] = useState({});
   const previewRef = useRef(null);
 
   useEffect(() => {
@@ -40,6 +33,15 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
     };
   }, [portId]);
 
+  const vesselFields = useMemo(
+    () => extractVesselRegTemplateFields(templateData?.more_description),
+    [templateData]
+  );
+
+  useEffect(() => {
+    setFieldValues({});
+  }, [templateData]);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -48,10 +50,8 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
     []
   );
 
-  const handleFieldChange = (rowId, field, value) => {
-    setRows((prev) =>
-      prev.map((row) => (String(row.id) === String(rowId) ? { ...row, [field]: value } : row))
-    );
+  const handleFieldChange = (fieldKey, value) => {
+    setFieldValues((prev) => ({ ...prev, [fieldKey]: value }));
   };
 
   const handlePrint = useCallback(() => {
@@ -79,39 +79,35 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
     <div className="gro-crew-immigration-panel">
       <div className="gro-crew-immigration-bulk-body">
         <div className="gro-crew-immigration-bulk-left">
-          <p className="gro-crew-immigration-bulk-section-title">Crew Details</p>
+          <p className="gro-crew-immigration-bulk-section-title">Vessel Particulars</p>
           <div className="gro-crew-immigration-bulk-table-wrap">
             <table className="gro-crew-immigration-bulk-table">
               <thead>
                 <tr>
-                  <th className="gro-crew-immigration-bulk-th-sl">Sl No</th>
-                  {EDITABLE_FIELDS.map((field) => (
-                    <th key={field.key}>{field.label}</th>
-                  ))}
+                  <th>Field</th>
+                  <th>Value</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 ? (
+                {vesselFields.length === 0 ? (
                   <tr>
-                    <td colSpan={EDITABLE_FIELDS.length + 1} className="gro-crew-immigration-bulk-empty">
-                      No crew available.
+                    <td colSpan={2} className="gro-crew-immigration-bulk-empty">
+                      No fields available.
                     </td>
                   </tr>
                 ) : (
-                  rows.map((row, index) => (
-                    <tr key={String(row.id)}>
-                      <td className="gro-crew-immigration-bulk-td-sl">{index + 1}</td>
-                      {EDITABLE_FIELDS.map((field) => (
-                        <td key={field.key}>
-                          <input
-                            type="text"
-                            className="gro-crew-immigration-bulk-input"
-                            value={row[field.key] ?? ""}
-                            onChange={(e) => handleFieldChange(row.id, field.key, e.target.value)}
-                            placeholder={field.label}
-                          />
-                        </td>
-                      ))}
+                  vesselFields.map((field) => (
+                    <tr key={field.fieldKey}>
+                      <td>{field.displayLabel}</td>
+                      <td>
+                        <input
+                          type="text"
+                          className="gro-crew-immigration-bulk-input"
+                          value={fieldValues[field.fieldKey] ?? ""}
+                          onChange={(e) => handleFieldChange(field.fieldKey, e.target.value)}
+                          placeholder={field.displayLabel}
+                        />
+                      </td>
                     </tr>
                   ))
                 )}
@@ -153,7 +149,7 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
             </div>
           </div>
           <div ref={previewRef}>
-            <VesselBoardingArabicPreview rows={rows} templateData={templateData} />
+            <VesselBoardingArabicPreview fieldValues={fieldValues} templateData={templateData} />
           </div>
         </div>
       </div>
@@ -162,7 +158,6 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
 });
 
 VesselInwardRegistrationView.propTypes = {
-  initialRows: PropTypes.arrayOf(PropTypes.object),
   onSave: PropTypes.func,
   isSaving: PropTypes.bool,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
