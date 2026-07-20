@@ -271,8 +271,9 @@ export const DUMMY_SHARE_USERS = [
 ];
 
 export const DUMMY_NOTIFICATION_SUBJECT_PARTS = [
+  { type: 'text', value: '{' },
   { type: 'pill', value: 'Title' },
-  { type: 'text', value: ' - {' },
+  { type: 'text', value: '} - {' },
   { type: 'pill', value: 'Board Name' },
   { type: 'text', value: '}{' },
   { type: 'pill', value: 'Internal Card Id' },

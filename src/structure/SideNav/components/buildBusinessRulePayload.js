@@ -168,28 +168,36 @@ const buildThenActions = (formState, ctx) => {
     thenActions.push({ action_type_id: findActionTypeId(triggerActions, 'link'), link_card: linkCard });
   }
 
+  // Destination picker also lets the user pin a workflow and swimlane (a board can have
+  // several active workflows, each with its own stages/swimlanes — see boardMinimap.utils.js
+  // — and the board minimap row/cell pick records which one), so target_workflow_id and
+  // target_swimlane_id have to ride along with board/column. Left out when the user picked
+  // a whole column (any-lane) or when the picker only ever surfaced one workflow, matching
+  // handlePickColumn's blank swimlaneId.
+  const buildDestinationProperties = (action) => {
+    const properties = [
+      { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
+      { property_key: 'target_column_id', property_value: action.stageId, property_value_type: 'number' },
+    ];
+    if (action.workflowId) {
+      properties.push({ property_key: 'target_workflow_id', property_value: action.workflowId, property_value_type: 'number' });
+    }
+    if (action.swimlaneId) {
+      properties.push({ property_key: 'target_swimlane_id', property_value: action.swimlaneId, property_value_type: 'number' });
+    }
+    return properties;
+  };
+
   const moveActionTypeId = findActionTypeId(triggerActions, 'move');
   moveActions.forEach((action) => {
-    thenActions.push({
-      action_type_id: moveActionTypeId,
-      properties: [
-        { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
-        { property_key: 'target_column_id', property_value: action.stageId, property_value_type: 'number' },
-      ],
-    });
+    thenActions.push({ action_type_id: moveActionTypeId, properties: buildDestinationProperties(action) });
   });
 
   // Convert subtasks to — best-effort, reuses the move destination shape since it's the
-  // same board/column picker; unverified against a real example.
+  // same board/workflow/swimlane/column picker; unverified against a real example.
   const convertActionTypeId = findActionTypeId(triggerActions, 'convert');
   convertSubtaskActions.forEach((action) => {
-    thenActions.push({
-      action_type_id: convertActionTypeId,
-      properties: [
-        { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
-        { property_key: 'target_column_id', property_value: action.stageId, property_value_type: 'number' },
-      ],
-    });
+    thenActions.push({ action_type_id: convertActionTypeId, properties: buildDestinationProperties(action) });
   });
 
   // Update related (parent/child) card fields: skipped. Those field chips have no value
