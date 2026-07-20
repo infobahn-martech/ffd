@@ -2302,10 +2302,17 @@ function NotificationSettingsModal({
 
   // Tokens keep their backend id (not just the display label) so a resave of
   // untouched to/cc tokens still sends valid to_users/to_custom_fields ids.
-  const resolveUserTokens = (userIds) => userIds
-    .map((userId) => (users ?? []).find((u) => String(u.user_id) === String(userId)))
-    .filter(Boolean)
-    .map((u) => ({ label: u.name, id: u.user_id, type: 'user' }));
+  //
+  // `users` is the non-vendor user list (get_non_vendor_users) — a saved to_users/cc_users
+  // id can reference a user outside that list (vendor, deactivated, paginated out, ...), in
+  // which case .find() below finds nothing. That must still render as a pill (falling back
+  // to a placeholder label, same as resolveCustomFieldTokens does for an unresolved field)
+  // rather than being silently dropped — dropping it is what made saved CC recipients
+  // disappear on reopen even though the backend still had them.
+  const resolveUserTokens = (userIds) => userIds.map((userId) => {
+    const user = (users ?? []).find((u) => String(u.user_id) === String(userId));
+    return { label: user ? user.name : `User #${userId}`, id: userId, type: 'user' };
+  });
 
   const resolveCustomFieldTokens = (fieldIds) => fieldIds.map((fieldId) => {
     const details = fieldDetailsByKey[`custom-${fieldId}`];
@@ -2424,6 +2431,24 @@ function NotificationSettingsModal({
       });
     });
   }, [show, fieldDetailsByKey]);
+
+  // Same idea for user pills: seeded above with a "User #<id>" placeholder when the
+  // non-vendor users list hadn't loaded yet at seed time (see resolveUserTokens) — once
+  // it does, patch those specific pills to the real name in place.
+  useEffect(() => {
+    if (!show) return;
+    [toBoxRef.current, ccBoxRef.current].forEach((boxEl) => {
+      if (!boxEl) return;
+      boxEl.querySelectorAll('.notification-user-pill--user').forEach((pillEl) => {
+        const userId = pillEl.dataset.tokenId;
+        if (!userId) return;
+        const user = (users ?? []).find((u) => String(u.user_id) === String(userId));
+        if (!user || user.name === pillEl.dataset.label) return;
+        pillEl.dataset.label = user.name;
+        pillEl.textContent = user.name;
+      });
+    });
+  }, [show, users]);
 
   // Mirrors buildRecipientPill: a non-editable field pill, with the value kept in a
   // data attribute (not just textContent) so parseSubjectParts can read it back. No
@@ -2692,7 +2717,15 @@ function NotificationSettingsModal({
 
   // ReactQuill's onChange is wired directly to setBodyContent, so bodyContent is an HTML
   // string once the user has typed anything; it's only ever the initial Delta before that.
+  // That onChange string is Quill's live root.innerHTML, which — for contenteditable=false
+  // embeds like the pill blot — can include the browser's own caret-trap artifacts (an
+  // extra nested span and stray zero-width characters Blink inserts so the cursor has
+  // somewhere to land next to a non-editable node). Prefer quill.getSemanticHTML() at save
+  // time instead: it re-serializes straight from each blot's own create(), producing the
+  // same clean markup the pill blot actually defines, with no browser-DOM noise baked in.
   const bodyContentToText = (content) => {
+    const quill = quillRef.current?.getEditor();
+    if (quill) return quill.getSemanticHTML();
     if (typeof content === 'string') return content;
     if (content?.ops) {
       return content.ops
