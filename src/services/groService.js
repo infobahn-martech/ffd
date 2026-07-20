@@ -31,12 +31,6 @@ export const saveArrivalDocument = groArrivalService.saveArrivalDocument;
 export const getPassRequests = (callId) =>
   Gateway.get(`crew_pass/get_pass_requests/${encodeURIComponent(String(callId))}`);
 
-export const getCgRequests = (callId) =>
-  Gateway.get(`crew_pass/get_cg_requests/${encodeURIComponent(String(callId))}`);
-
-export const getZawilRequests = (callId) =>
-  Gateway.get(`crew_pass/get_zawil_requests/${encodeURIComponent(String(callId))}`);
-
 export const uploadZawilPass = (formData) => Gateway.post("crew_pass/upload_zawil_pass", formData);
 
 export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass", formData);
@@ -60,8 +54,6 @@ const groService = {
   getTemplatesByPort,
   saveArrivalDocument,
   getPassRequests,
-  getCgRequests,
-  getZawilRequests,
   uploadZawilPass,
   uploadCgPass,
   reuploadVesselRegDocument,

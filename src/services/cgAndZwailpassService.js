@@ -103,26 +103,25 @@ export const mapCrewRecordsToOptions = (crewArray) => {
 export const mapAxiosResponseToCrewOptions = (response) =>
   mapCrewRecordsToOptions(extractCrewArrayFromEnvelope(response));
 
+/** POST — immigration crew list grouped by batch, for a call */
+export const getImmigrationCrewList = (callId) =>
+  Gateway.post("crew/get_immigration_crew_list", { call_id: Number(callId) });
+
 /**
- * Normalize crew immigration rows from get_cg_requests / get_zawil_requests responses
- * into the shape expected by CrewImmigrationPanel.
+ * Normalize get_immigration_crew_list response into batch groups for CrewImmigrationPanel.
  */
-export const normalizeCrewImmigrationRows = (data) => {
-  const raw =
-    Array.isArray(data) ? data :
-    Array.isArray(data?.crew) ? data.crew :
-    Array.isArray(data?.data) ? data.data :
-    [];
-  return raw.map((item, i) => ({
-    id: item.id ?? item.crew_change_id ?? item.crew_id ?? `ci-${i}`,
-    crewName: item.crew_name ?? item.crewName ?? "",
-    nationality: item.nationality ?? "",
-    rank: item.rank ?? "",
-    movementType: item.movement_type ?? item.movementType ?? "",
-    passport: item.passport ?? "",
-    iqama: item.iqama ?? "",
-    visa: item.visa ?? "",
-    cgPass: item.cg_pass ?? item.cgPass ?? null,
-    zawilPass: item.zawil_pass ?? item.zawilPass ?? null,
+export const normalizeImmigrationCrewBatches = (data) => {
+  const batches = Array.isArray(data?.batches) ? data.batches : [];
+  return batches.map((b, bi) => ({
+    batch: b?.batch || `Batch ${bi + 1}`,
+    rows: (Array.isArray(b?.crew) ? b.crew : []).map((item, i) => ({
+      id: item.crew_id ?? `${bi}-${i}`,
+      crewName: item.crew_name ?? "",
+      dateOfBirth: item.date_of_birth ?? "",
+      nationality: item.nationality ?? "",
+      rank: item.rank ?? "",
+      passportIqama: [item.passport_no, item.iqama_no].filter(Boolean).join(" / "),
+      visa: item.visa_no ?? "",
+    })),
   }));
 };

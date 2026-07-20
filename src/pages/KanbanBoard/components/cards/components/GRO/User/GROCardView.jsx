@@ -15,7 +15,7 @@ import {
   PRE_ARRIVAL_MWP_USER_ROLE_ID,
 } from "../../../../../CardFormTabs/Import/tabs/operation/operationConstants";
 import groService from "../../../../../../../services/groService";
-import { normalizeCrewImmigrationRows } from "../../../../../../../services/cgAndZwailpassService";
+import { getImmigrationCrewList, normalizeImmigrationCrewBatches } from "../../../../../../../services/cgAndZwailpassService";
 import useGROReducer from "../../../../../../../store/GROReducer";
 import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
 import InwardClearanceView, { DocumentActionConfirmModal, InwardClearanceToolbar } from "./InwardClearanceView";
@@ -37,7 +37,6 @@ import {
 import {
   GRO_ACTIVE_TABS,
   GRO_MAIN_VIEWS,
-  GRO_STATIC_CREW_IMMIGRATION_ROWS,
   enrichGroDocWithRowKey,
   normalizeGroApiDocuments,
   parseDocumentsByTaskPayload,
@@ -68,7 +67,6 @@ import {
 } from "./groCardUtils";
 
 const EMPTY_WORK_ORDERS = [];
-const CREW_IMMIGRATION_ROWS_PER_PAGE = 5;
 
 const GROCardView = forwardRef(function GROCardView(
   { card, mode = "gro", userRoleId = null, selectedTask: selectedTaskProp = null },
@@ -142,12 +140,8 @@ const GROCardView = forwardRef(function GROCardView(
   const [groUserOptions, setGroUserOptions] = useState([]);
   const [groUsersLoading, setGroUsersLoading] = useState(false);
   const [isAssigningUser, setIsAssigningUser] = useState(false);
-  const [crewImmigrationSelectedRowIds, setCrewImmigrationSelectedRowIds] = useState(() => new Set());
-  const [crewImmigrationRows, setCrewImmigrationRows] = useState(() => GRO_STATIC_CREW_IMMIGRATION_ROWS);
-  const [crewImmigrationPage, setCrewImmigrationPage] = useState(1);
-  const [crewImmigrationPassType, setCrewImmigrationPassType] = useState("cg");
-  const [crewImmigrationPassLoading, setCrewImmigrationPassLoading] = useState(false);
-  const [crewUploadAction, setCrewUploadAction] = useState({ variant: null, rowId: null });
+  const [crewImmigrationBatches, setCrewImmigrationBatches] = useState([]);
+  const [crewImmigrationLoading, setCrewImmigrationLoading] = useState(false);
   const [showDynamicUploadModal, setShowDynamicUploadModal] = useState(false);
   const [dynamicUploadFile, setDynamicUploadFile] = useState(null);
   const [dynamicUploadType, setDynamicUploadType] = useState(null);
@@ -156,9 +150,6 @@ const GROCardView = forwardRef(function GROCardView(
   const bulkPassUploadBtnRef = useRef(null);
   const bulkPassPopoverPortalRef = useRef(null);
   const bulkPassFileInputRef = useRef(null);
-  const crewImmigrationHeaderCheckboxRef = useRef(null);
-  const crewImmigrationCgFileInputRef = useRef(null);
-  const crewImmigrationZawilFileInputRef = useRef(null);
 
   const callId = resolveGroCallId(card);
   const cardId = resolveGroCardId(card);
@@ -720,53 +711,6 @@ const GROCardView = forwardRef(function GROCardView(
 
   const passWorkOrdersForTable = Array.isArray(passTableForFlat) ? passTableForFlat : EMPTY_WORK_ORDERS;
 
-  const crewImmigrationTotalRows = crewImmigrationRows.length;
-  const crewImmigrationTotalPages = Math.max(
-    1,
-    Math.ceil(crewImmigrationTotalRows / CREW_IMMIGRATION_ROWS_PER_PAGE)
-  );
-  const crewImmigrationCurrentPage = Math.min(crewImmigrationPage, crewImmigrationTotalPages);
-  const crewImmigrationStartIndex =
-    (crewImmigrationCurrentPage - 1) * CREW_IMMIGRATION_ROWS_PER_PAGE;
-  const crewImmigrationPageRows = useMemo(
-    () =>
-      crewImmigrationRows.slice(
-        crewImmigrationStartIndex,
-        crewImmigrationStartIndex + CREW_IMMIGRATION_ROWS_PER_PAGE
-      ),
-    [crewImmigrationRows, crewImmigrationStartIndex]
-  );
-  const crewImmigrationCurrentPageRowIds = useMemo(
-    () => crewImmigrationPageRows.map((row) => String(row.id)),
-    [crewImmigrationPageRows]
-  );
-  const crewImmigrationPageStartDisplay = crewImmigrationTotalRows === 0 ? 0 : crewImmigrationStartIndex + 1;
-  const crewImmigrationPageEndDisplay = Math.min(
-    crewImmigrationStartIndex + CREW_IMMIGRATION_ROWS_PER_PAGE,
-    crewImmigrationTotalRows
-  );
-  const crewImmigrationPageNumbers = useMemo(
-    () => Array.from({ length: crewImmigrationTotalPages }, (_, i) => i + 1),
-    [crewImmigrationTotalPages]
-  );
-  const isAllCrewImmigrationSelected = useMemo(
-    () =>
-      crewImmigrationCurrentPageRowIds.length > 0 &&
-      crewImmigrationCurrentPageRowIds.every((id) => crewImmigrationSelectedRowIds.has(id)),
-    [crewImmigrationCurrentPageRowIds, crewImmigrationSelectedRowIds]
-  );
-  const isCrewImmigrationPartiallySelected = useMemo(
-    () =>
-      crewImmigrationCurrentPageRowIds.some((id) => crewImmigrationSelectedRowIds.has(id)) &&
-      !isAllCrewImmigrationSelected,
-    [crewImmigrationCurrentPageRowIds, crewImmigrationSelectedRowIds, isAllCrewImmigrationSelected]
-  );
-
-  useEffect(() => {
-    if (!crewImmigrationHeaderCheckboxRef.current) return;
-    crewImmigrationHeaderCheckboxRef.current.indeterminate = isCrewImmigrationPartiallySelected;
-  }, [isCrewImmigrationPartiallySelected]);
-
   const resetBulkPassUploadForm = useCallback(() => {
     setBulkPassForm({ passNo: "", issuePickerParts: { date: "", time: "" }, file: null });
     setBulkPassFormError("");
@@ -785,13 +729,6 @@ const GROCardView = forwardRef(function GROCardView(
   }, [groMainView, passTableForFlat, clearPassRowSelection]);
 
   useEffect(() => {
-    if (activeTab !== GRO_ACTIVE_TABS.crewImmigration) {
-      setCrewImmigrationSelectedRowIds(new Set());
-      setCrewImmigrationPage(1);
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
     if (
       (activeTab === GRO_ACTIVE_TABS.crewImmigration && !isCrewImmigrationStage) ||
       (activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration && !isVesselInwardRegistrationStage)
@@ -801,91 +738,26 @@ const GROCardView = forwardRef(function GROCardView(
   }, [activeTab, isCrewImmigrationStage, isVesselInwardRegistrationStage]);
 
   useEffect(() => {
-    if (crewImmigrationPage > crewImmigrationTotalPages) {
-      setCrewImmigrationPage(crewImmigrationTotalPages);
-    }
-  }, [crewImmigrationPage, crewImmigrationTotalPages]);
-
-  useEffect(() => {
     if (activeTab !== GRO_ACTIVE_TABS.crewImmigration) return undefined;
     if (callId == null || callId === "") return undefined;
     let cancelled = false;
-    setCrewImmigrationPassLoading(true);
-    const request =
-      crewImmigrationPassType === "cg"
-        ? groService.getCgRequests(callId)
-        : groService.getZawilRequests(callId);
-    request
+    setCrewImmigrationLoading(true);
+    getImmigrationCrewList(callId)
       .then((res) => {
         if (cancelled) return;
-        const envelope = res?.data?.data ?? res?.data ?? [];
-        const rows = normalizeCrewImmigrationRows(envelope);
-        setCrewImmigrationRows(rows.length > 0 ? rows : GRO_STATIC_CREW_IMMIGRATION_ROWS);
+        const envelope = res?.data?.data ?? res?.data ?? {};
+        setCrewImmigrationBatches(normalizeImmigrationCrewBatches(envelope));
       })
       .catch(() => {
-        if (!cancelled) setCrewImmigrationRows(GRO_STATIC_CREW_IMMIGRATION_ROWS);
+        if (!cancelled) setCrewImmigrationBatches([]);
       })
       .finally(() => {
-        if (!cancelled) setCrewImmigrationPassLoading(false);
+        if (!cancelled) setCrewImmigrationLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [activeTab, callId, crewImmigrationPassType]);
-
-  const updateCrewPassStatus = useCallback((ids, variant, file) => {
-    const idSet = new Set((Array.isArray(ids) ? ids : []).map((id) => String(id)));
-    if (idSet.size === 0) return;
-    const uploadedPayload = {
-      fileName: String(file?.name ?? "").trim() || "uploaded-file",
-      fileUrl: file ? URL.createObjectURL(file) : "",
-      uploadedAt: Date.now(),
-    };
-    setCrewImmigrationRows((prev) =>
-      prev.map((row) => {
-        if (!idSet.has(String(row.id))) return row;
-        if (variant === "cg") return { ...row, cgPass: uploadedPayload };
-        return { ...row, zawilPass: uploadedPayload };
-      })
-    );
-  }, []);
-
-  const triggerCrewUploadInput = useCallback((variant, rowId = null) => {
-    setCrewUploadAction({ variant, rowId });
-    const inputRef =
-      variant === "cg" ? crewImmigrationCgFileInputRef.current : crewImmigrationZawilFileInputRef.current;
-    if (inputRef) {
-      inputRef.value = "";
-      inputRef.click();
-    }
-  }, []);
-
-  const handleCrewFileInputChange = useCallback(
-    (variant, event) => {
-      const file = event?.target?.files?.[0];
-      if (!file) return;
-      if (crewUploadAction.rowId != null) {
-        updateCrewPassStatus([crewUploadAction.rowId], variant, file);
-        notify(
-          `${variant === "cg" ? "CG Pass" : "Zawil Pass"} uploaded successfully for selected crew.`,
-          "success"
-        );
-      } else {
-        const selectedIds = Array.from(crewImmigrationSelectedRowIds);
-        if (selectedIds.length === 0) {
-          notify("Select at least one crew row.", "warn");
-          return;
-        }
-        updateCrewPassStatus(selectedIds, variant, file);
-        notify(
-          `${variant === "cg" ? "CG Pass" : "Zawil Pass"} uploaded successfully for ${selectedIds.length} crew.`,
-          "success"
-        );
-      }
-      setCrewUploadAction({ variant: null, rowId: null });
-    },
-    [crewUploadAction.rowId, crewImmigrationSelectedRowIds, updateCrewPassStatus]
-  );
+  }, [activeTab, callId]);
 
   const handleBulkPassSubmit = useCallback(
     async (e) => {
@@ -1714,57 +1586,7 @@ const GROCardView = forwardRef(function GROCardView(
         </div>
 
         {hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewImmigration ? (
-          <CrewImmigrationPanel
-            passType={crewImmigrationPassType}
-            onPassTypeChange={(type) => {
-              setCrewImmigrationPassType(type);
-              setCrewImmigrationPage(1);
-              setCrewImmigrationSelectedRowIds(new Set());
-            }}
-            passLoading={crewImmigrationPassLoading}
-            portId={groPortId}
-            selectedRowIds={crewImmigrationSelectedRowIds}
-            onBulkUploadCg={() => triggerCrewUploadInput("cg")}
-            onBulkUploadZawil={() => triggerCrewUploadInput("zawil")}
-            headerCheckboxRef={crewImmigrationHeaderCheckboxRef}
-            isAllSelected={isAllCrewImmigrationSelected}
-            onSelectAllChange={(checked) => {
-              setCrewImmigrationSelectedRowIds((prev) => {
-                const next = new Set(prev);
-                if (checked) {
-                  crewImmigrationCurrentPageRowIds.forEach((id) => next.add(id));
-                } else {
-                  crewImmigrationCurrentPageRowIds.forEach((id) => next.delete(id));
-                }
-                return next;
-              });
-            }}
-            rows={crewImmigrationPageRows}
-            onRowSelectionChange={(rowId, checked) => {
-              setCrewImmigrationSelectedRowIds((prev) => {
-                const next = new Set(prev);
-                if (checked) next.add(rowId);
-                else next.delete(rowId);
-                return next;
-              });
-            }}
-            pageStartDisplay={crewImmigrationPageStartDisplay}
-            pageEndDisplay={crewImmigrationPageEndDisplay}
-            totalRows={crewImmigrationTotalRows}
-            currentPage={crewImmigrationCurrentPage}
-            totalPages={crewImmigrationTotalPages}
-            pageNumbers={crewImmigrationPageNumbers}
-            onPrevPage={() => setCrewImmigrationPage((prev) => Math.max(1, prev - 1))}
-            onPageChange={setCrewImmigrationPage}
-            onNextPage={() =>
-              setCrewImmigrationPage((prev) => Math.min(crewImmigrationTotalPages, prev + 1))
-            }
-            cgFileInputRef={crewImmigrationCgFileInputRef}
-            zawilFileInputRef={crewImmigrationZawilFileInputRef}
-            onCgFileChange={(e) => handleCrewFileInputChange("cg", e)}
-            onZawilFileChange={(e) => handleCrewFileInputChange("zawil", e)}
-            onRowUploadClick={triggerCrewUploadInput}
-          />
+          <CrewImmigrationPanel batches={crewImmigrationBatches} loading={crewImmigrationLoading} />
         ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? (
           <VesselInwardRegistrationView
             ref={vesselRegistrationRef}
