@@ -129,6 +129,66 @@ export const appendGroArrivalStageFieldsToFormData = (formData, stageId, fields 
 /** @deprecated Use appendGroArrivalStageFieldsToFormData */
 export const appendGroExtraStageFieldsToFormData = appendGroArrivalStageFieldsToFormData;
 
+/** Normalizes an arrival/get_task_details file value (URL string, or {file_name|name, file_url|url}) for display. */
+const resolveGroSavedFileInfo = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const url = value.trim();
+    if (!url) return null;
+    return { file_name: url.split("/").pop() || "Uploaded file", file_url: url };
+  }
+  if (typeof value === "object") {
+    const url = value.file_url ?? value.url ?? value.document_url ?? "";
+    if (!String(url).trim()) return null;
+    return {
+      file_name: value.file_name ?? value.name ?? String(url).split("/").pop() ?? "Uploaded file",
+      file_url: url,
+    };
+  }
+  return null;
+};
+
+/**
+ * arrival/get_task_details — reverse of appendGroArrivalStageFieldsToFormData: maps the saved response
+ * back onto { scalarValues } (text/select fields) and { fileInfo } (previously-uploaded file display info).
+ */
+export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
+  const t = taskDetails ?? {};
+  const scalarValues = {};
+  const fileInfo = {};
+
+  if (stageId === 7) {
+    if (t.immigration_status) scalarValues.crew_immigration_status = t.immigration_status;
+    if (t.immigration_remarks) scalarValues.on_hold_reason = t.immigration_remarks;
+  }
+
+  if (stageId === 8) {
+    fileInfo.inward_clearance_copy = resolveGroSavedFileInfo(t.inward_clearance_doc);
+  }
+
+  if (stageId === 9) {
+    if (t.customs_status) scalarValues.custom_inspection_status = t.customs_status;
+    if (t.immigration_remarks) scalarValues.failed_reason = t.immigration_remarks;
+    fileInfo.initial_bayan_doc = resolveGroSavedFileInfo(t.initial_bayan_doc);
+    fileInfo.final_bayan_doc = resolveGroSavedFileInfo(t.final_bayan_doc);
+  }
+
+  if (stageId === 10) {
+    if (t.mwp_ticket_no) scalarValues.mwp_application_no = t.mwp_ticket_no;
+    if (t.sadad_no) scalarValues.sadad_no = t.sadad_no;
+    if (t.mwp_subscription_sadad_no) scalarValues.mwp_subscription_sadad_no = t.mwp_subscription_sadad_no;
+    fileInfo.sadad_doc = resolveGroSavedFileInfo(t.sadad_doc);
+    fileInfo.mwp_subscription_sadad_doc = resolveGroSavedFileInfo(t.mwp_subscription_sadad_doc);
+    fileInfo.mwp_copy = resolveGroSavedFileInfo(t.mwp_doc);
+  }
+
+  if (stageId === 11) {
+    fileInfo.mwp_subscription_tax_invoice = resolveGroSavedFileInfo(t.mwp_subscription_tax_invoice_doc);
+  }
+
+  return { scalarValues, fileInfo };
+};
+
 export const groStageHasExtraFields = (stageId) => [7, 8, 9, 10, 11].includes(Number(stageId));
 
 export const buildGroArrivalSaveFormData = ({

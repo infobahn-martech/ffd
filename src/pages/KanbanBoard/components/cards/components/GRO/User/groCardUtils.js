@@ -674,3 +674,26 @@ export const validateGroRequiredTimeObjects = (timeObjects, timeObjectValues) =>
   });
   return errors;
 };
+
+/** Reverse of formatGroTimeObjectValue: "YYYY-MM-DD HH:MM:SS" (or with a "T") → { date, time }. */
+const parseGroTimeObjectValue = (value) => {
+  const match = String(value ?? "").trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+  return match ? { date: match[1], time: match[2] } : null;
+};
+
+/**
+ * arrival/get_task_details — maps its saved `time_objects: [{ time_object_id, time_object_value }]`
+ * onto the current stage's time-object field definitions, producing the same shape as timeObjectValues.
+ */
+export const applyGroSavedTimeObjectValues = (timeObjectDefs, savedTimeObjects) => {
+  const saved = Array.isArray(savedTimeObjects) ? savedTimeObjects : [];
+  const values = {};
+  (Array.isArray(timeObjectDefs) ? timeObjectDefs : []).forEach((item) => {
+    const id = item?.time_object_id;
+    if (id == null) return;
+    const match = saved.find((s) => String(s?.time_object_id) === String(id));
+    const parsed = parseGroTimeObjectValue(match?.time_object_value);
+    if (parsed) values[resolveGroTimeObjectValueKey(item)] = parsed;
+  });
+  return values;
+};

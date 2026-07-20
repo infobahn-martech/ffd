@@ -32,6 +32,7 @@ import {
   buildGroArrivalSaveFormData,
   appendGroArrivalStageFieldsToFormData,
   groStageHasExtraFields,
+  extractGroSavedExtraStageFields,
   GRO_CREW_IMMIGRATION_STATUS,
   GRO_CUSTOM_INSPECTION_STATUS,
 } from "./groStageExtraFields";
@@ -53,6 +54,7 @@ import {
   parseGroStageTimeObjectsResponse,
   validateGroRequiredTimeObjects,
   buildGroArrivalTimeObjectsPayload,
+  applyGroSavedTimeObjectValues,
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
   parseGroUsersByRoleResponse,
@@ -108,6 +110,8 @@ const GROCardView = forwardRef(function GROCardView(
   const [capturingTimeObjectKey, setCapturingTimeObjectKey] = useState(null);
   const [extraStageFields, setExtraStageFields] = useState(() => createEmptyExtraStageFields());
   const [extraStageFieldErrors, setExtraStageFieldErrors] = useState({});
+  const [taskDetails, setTaskDetails] = useState(null);
+  const [existingStageFiles, setExistingStageFiles] = useState({});
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmRemarks, setConfirmRemarks] = useState("");
@@ -440,6 +444,7 @@ const GROCardView = forwardRef(function GROCardView(
       onFieldChange: handleExtraStageFieldChange,
       onFileChange: handleExtraStageFileChange,
       fileInputRefs: extraStageFileInputRefs,
+      existingFiles: existingStageFiles,
       disabled: isDisabled,
     };
 
@@ -519,6 +524,7 @@ const GROCardView = forwardRef(function GROCardView(
     inwardTimeObjectFields,
     stage11InwardTimeObjectFields,
     timeObjectsLoading,
+    existingStageFiles,
   ]);
 
   useEffect(() => {
@@ -530,6 +536,7 @@ const GROCardView = forwardRef(function GROCardView(
     setStage11TimeObjectErrors({});
     setExtraStageFields(createEmptyExtraStageFields());
     setExtraStageFieldErrors({});
+    setExistingStageFiles({});
     resetExtraStageFileInputs();
 
     const portId = Number(groPortId);
@@ -579,6 +586,68 @@ const GROCardView = forwardRef(function GROCardView(
       cancelled = true;
     };
   }, [groStageId, groPortId, groCallTypeId, callId, resetExtraStageFileInputs]);
+
+  // Previously saved arrival popover values for this task (any stage) — bound into the editable
+  // state below once loaded, without clobbering anything the user has already typed in this session.
+  useEffect(() => {
+    setTaskDetails(null);
+    if (callId == null || callId === "" || cardId == null || cardId === "" || !taskId) return undefined;
+    let cancelled = false;
+    groService
+      .getTaskDetails({ call_id: Number(callId), card_id: Number(cardId), task_id: Number(taskId) })
+      .then((res) => {
+        if (cancelled) return;
+        setTaskDetails(res?.data?.data ?? res?.data ?? {});
+      })
+      .catch(() => {
+        if (!cancelled) setTaskDetails(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [callId, cardId, taskId]);
+
+  useEffect(() => {
+    if (!taskDetails || groStageId == null) return;
+
+    if (timeObjects.length > 0) {
+      const saved = applyGroSavedTimeObjectValues(timeObjects, taskDetails.time_objects);
+      if (Object.keys(saved).length > 0) {
+        setTimeObjectValues((prev) => {
+          const next = { ...prev };
+          Object.entries(saved).forEach(([key, value]) => {
+            if (!next[key]?.date) next[key] = value;
+          });
+          return next;
+        });
+      }
+    }
+
+    if (groStageId === 10 && stage11TimeObjects.length > 0) {
+      const savedStage11 = applyGroSavedTimeObjectValues(stage11TimeObjects, taskDetails.time_objects);
+      if (Object.keys(savedStage11).length > 0) {
+        setStage11TimeObjectValues((prev) => {
+          const next = { ...prev };
+          Object.entries(savedStage11).forEach(([key, value]) => {
+            if (!next[key]?.date) next[key] = value;
+          });
+          return next;
+        });
+      }
+    }
+
+    const { scalarValues, fileInfo } = extractGroSavedExtraStageFields(groStageId, taskDetails);
+    if (Object.keys(scalarValues).length > 0) {
+      setExtraStageFields((prev) => {
+        const next = { ...prev };
+        Object.entries(scalarValues).forEach(([key, value]) => {
+          if (!next[key]) next[key] = value;
+        });
+        return next;
+      });
+    }
+    setExistingStageFiles(fileInfo);
+  }, [taskDetails, timeObjects, stage11TimeObjects, groStageId]);
 
   useEffect(() => {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });

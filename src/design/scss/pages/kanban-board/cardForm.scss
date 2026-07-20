@@ -1985,6 +1985,15 @@
   cursor: not-allowed;
 }
 
+.gro-premium-upload-filename--uploaded {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+
+.gro-premium-upload-filename--uploaded:hover {
+  text-decoration: underline;
+}
+
 /* GRO document approve/reject — matches logout confirmation modal */
 body .gro-doc-action-modal {
   z-index: 20000 !important;

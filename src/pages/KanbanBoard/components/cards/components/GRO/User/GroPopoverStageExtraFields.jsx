@@ -9,6 +9,7 @@ function PopoverFileUploadField({
   label,
   fieldKey,
   file,
+  existingFile,
   error,
   disabled,
   fileInputRefs,
@@ -43,9 +44,23 @@ function PopoverFileUploadField({
         >
           Choose file
         </button>
-        <span className="gro-premium-upload-filename" title={file?.name || ""}>
-          {file?.name || "No file chosen"}
-        </span>
+        {file ? (
+          <span className="gro-premium-upload-filename" title={file.name}>
+            {file.name}
+          </span>
+        ) : existingFile ? (
+          <a
+            className="gro-premium-upload-filename gro-premium-upload-filename--uploaded"
+            href={existingFile.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={existingFile.file_name}
+          >
+            {existingFile.file_name}
+          </a>
+        ) : (
+          <span className="gro-premium-upload-filename">No file chosen</span>
+        )}
       </div>
       {error ? <span className="gro-inward-popover-field-error">{error}</span> : null}
     </div>
@@ -56,6 +71,10 @@ PopoverFileUploadField.propTypes = {
   label: PropTypes.string.isRequired,
   fieldKey: PropTypes.string.isRequired,
   file: PropTypes.any,
+  existingFile: PropTypes.shape({
+    file_name: PropTypes.string,
+    file_url: PropTypes.string,
+  }),
   error: PropTypes.string,
   disabled: PropTypes.bool,
   fileInputRefs: PropTypes.shape({ current: PropTypes.object }),
@@ -70,6 +89,7 @@ function GroPopoverStageExtraFields({
   onFieldChange,
   onFileChange,
   fileInputRefs,
+  existingFiles,
   disabled = false,
 }) {
   if (!groStageHasExtraFields(stageId)) return null;
@@ -120,6 +140,7 @@ function GroPopoverStageExtraFields({
         label="Inward Clearance Copy"
         fieldKey="inward_clearance_copy"
         file={values?.inward_clearance_copy}
+        existingFile={existingFiles?.inward_clearance_copy}
         error={errors?.inward_clearance_copy}
         disabled={disabled}
         fileInputRefs={fileInputRefs}
@@ -136,6 +157,7 @@ function GroPopoverStageExtraFields({
           label="Initial Bayan Doc"
           fieldKey="initial_bayan_doc"
           file={values?.initial_bayan_doc}
+          existingFile={existingFiles?.initial_bayan_doc}
           error={errors?.initial_bayan_doc}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
@@ -146,6 +168,7 @@ function GroPopoverStageExtraFields({
           label="Final Bayan Doc"
           fieldKey="final_bayan_doc"
           file={values?.final_bayan_doc}
+          existingFile={existingFiles?.final_bayan_doc}
           error={errors?.final_bayan_doc}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
@@ -177,6 +200,7 @@ function GroPopoverStageExtraFields({
           label="SADAD Attachment"
           fieldKey="sadad_doc"
           file={values?.sadad_doc}
+          existingFile={existingFiles?.sadad_doc}
           error={errors?.sadad_doc}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
@@ -200,6 +224,7 @@ function GroPopoverStageExtraFields({
           label="MWP Subscription SADAD"
           fieldKey="mwp_subscription_sadad_doc"
           file={values?.mwp_subscription_sadad_doc}
+          existingFile={existingFiles?.mwp_subscription_sadad_doc}
           error={errors?.mwp_subscription_sadad_doc}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
@@ -209,6 +234,7 @@ function GroPopoverStageExtraFields({
           label="MWP Copy"
           fieldKey="mwp_copy"
           file={values?.mwp_copy}
+          existingFile={existingFiles?.mwp_copy}
           error={errors?.mwp_copy}
           disabled={disabled}
           fileInputRefs={fileInputRefs}
@@ -224,6 +250,7 @@ function GroPopoverStageExtraFields({
         label="MWP Subscription Tax Invoice"
         fieldKey="mwp_subscription_tax_invoice"
         file={values?.mwp_subscription_tax_invoice}
+        existingFile={existingFiles?.mwp_subscription_tax_invoice}
         error={errors?.mwp_subscription_tax_invoice}
         disabled={disabled}
         fileInputRefs={fileInputRefs}
@@ -242,6 +269,12 @@ GroPopoverStageExtraFields.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   onFileChange: PropTypes.func.isRequired,
   fileInputRefs: PropTypes.shape({ current: PropTypes.object }),
+  existingFiles: PropTypes.objectOf(
+    PropTypes.shape({
+      file_name: PropTypes.string,
+      file_url: PropTypes.string,
+    })
+  ),
   disabled: PropTypes.bool,
 };
 
