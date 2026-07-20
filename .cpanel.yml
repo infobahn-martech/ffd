@@ -2,9 +2,6 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/onlirdcv/sedres.onlinebareed.com
-    - source /opt/alt/alt-nodejs20/enable
-    - npm ci
-    - npm run build
     - /bin/rm -rf $DEPLOYPATH/assets
     - /bin/find $DEPLOYPATH -maxdepth 1 -type f -delete
     - /bin/cp -R dist/. $DEPLOYPATH/
