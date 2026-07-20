@@ -32,6 +32,25 @@
     });
   };
 
+  const MONTH_ABBR_TO_NUM = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+    jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  };
+
+  // basicDetails.date is kept as a display string ("20 Jul 2026") for the
+  // free-text input; the API expects plain dates as YYYY-MM-DD like every
+  // other date field in this payload, so convert before sending.
+  const displayDateToApiDate = (raw) => {
+    const trimmed = String(raw ?? "").trim();
+    if (!trimmed) return "";
+    const match = trimmed.match(/^(\d{1,2})[\s-/]+([A-Za-z]{3,})[\s-/]+(\d{4})$/);
+    if (!match) return trimmed;
+    const [, day, monthName, year] = match;
+    const month = MONTH_ABBR_TO_NUM[monthName.slice(0, 3).toLowerCase()];
+    if (!month) return trimmed;
+    return `${year}-${String(month).padStart(2, "0")}-${String(Number(day)).padStart(2, "0")}`;
+  };
+
   const getCallId = (card, formValues) =>
     formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId ?? null;
 
@@ -71,7 +90,7 @@ const createEmptyPartySection = () => ({
   });
 
   const buildBasicDetailsPayload = (basicDetails) => ({
-    date: basicDetails.date || "",
+    date: displayDateToApiDate(basicDetails.date),
     requested_by: basicDetails.requestedBy || "",
     branch: basicDetails.branch || "",
     vessel_name: basicDetails.vesselName || "",
@@ -675,7 +694,10 @@ const createEmptyPartySection = () => ({
       [runSave]
     );
 
-    useEffect(() => () => debouncedAutoSave.cancel(), [debouncedAutoSave]);
+    // Flush (not cancel) on unmount — if the user closes the tab/modal while
+    // a debounced autosave is still pending, the edit must still be sent
+    // instead of silently dropped.
+    useEffect(() => () => debouncedAutoSave.flush(), [debouncedAutoSave]);
 
     useEffect(() => {
       if (skipNextAutoSaveRef.current) {
