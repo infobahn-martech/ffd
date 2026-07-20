@@ -144,6 +144,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         show={show && !showFormModal}
         onHide={onClose}
         className="business-rules-modal"
+        backdropClassName="business-rules-modal-backdrop"
         centered
         size="xl"
       >
