@@ -3346,6 +3346,14 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const [testResult, setTestResult] = useState(null);
   const [saveError, setSaveError] = useState('');
   const urlBoxRef = useRef(null);
+  // Clicking "add card fields" moves focus to that button before its onClick even
+  // fires, which collapses/loses the Url box's caret — so by the time
+  // handleInsertUrlField runs (after the picker modal closes), window.getSelection()
+  // no longer points into the box and the field falls back to being appended at the
+  // end instead of landing where the user was typing. Continuously mirroring the
+  // live caret position into this ref (while the box still has focus) gives
+  // handleInsertUrlField something valid to fall back to.
+  const urlCaretRangeRef = useRef(null);
 
   const { saveWebServiceSettings, updateWebServiceSettings, testWebServiceSettings, isSavingWebServiceSettings, isUpdatingWebServiceSettings, isTestingWebServiceSettings } = useBusinessRuleReducer((s) => s);
 
@@ -3411,17 +3419,35 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
     setParams((prev) => withTrailingBlankParam(withDefaultPayloadRow(prev, supportsBody)));
   };
 
+  // Mirrors the live selection into urlCaretRangeRef whenever the box still has
+  // the caret, so it survives the focus jump to the "add card fields" button.
+  const captureUrlCaretRange = () => {
+    const el = urlBoxRef.current;
+    const selection = window.getSelection();
+    if (el && selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+      urlCaretRangeRef.current = selection.getRangeAt(0).cloneRange();
+    }
+  };
+
   // Mirrors handleAddSubjectField's cursor-based insert so a card field lands
   // exactly where the caret is, instead of always being appended at the end.
+  // Falls back to the last captured caret position (urlCaretRangeRef) when the
+  // live selection no longer points into the box — which is the normal case here,
+  // since clicking "add card fields" focuses that button (collapsing/losing the
+  // box's selection) before the picker modal even opens.
   const handleInsertUrlField = (field) => {
     const el = urlBoxRef.current;
     if (!el) return;
     const span = buildUrlFieldPill(field);
 
     const selection = window.getSelection();
-    const existingRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
+    const liveRange = selection?.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)
       ? selection.getRangeAt(0)
       : null;
+    const savedRange = !liveRange && urlCaretRangeRef.current && el.contains(urlCaretRangeRef.current.commonAncestorContainer)
+      ? urlCaretRangeRef.current
+      : null;
+    const existingRange = liveRange ?? savedRange;
     if (existingRange) {
       existingRange.deleteContents();
       existingRange.insertNode(span);
@@ -3435,6 +3461,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
     newRange.collapse(true);
     selection.removeAllRanges();
     selection.addRange(newRange);
+    urlCaretRangeRef.current = newRange.cloneRange();
   };
 
   // Url is a single-line field: block Enter from inserting a line break, and strip
@@ -3447,7 +3474,10 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   // caret placement for clicks anywhere else.
   const handleUrlBoxClick = (e) => {
     const removeBtn = e.target.closest('.br-invoke-value-pill-remove');
-    if (!removeBtn) return;
+    if (!removeBtn) {
+      captureUrlCaretRange();
+      return;
+    }
     e.preventDefault();
     removeBtn.closest('.br-invoke-value-pill')?.remove();
   };
@@ -3690,8 +3720,9 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
               aria-label="Service url"
               onClick={handleUrlBoxClick}
               onKeyDown={handleUrlKeyDown}
+              onKeyUp={captureUrlCaretRange}
               onPaste={handleUrlPaste}
-              onInput={() => setSaveError('')}
+              onInput={() => { setSaveError(''); captureUrlCaretRange(); }}
             />
           </div>
 
@@ -5050,13 +5081,13 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
     setConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  // Clears every AND-column filter (Board is / Position is / custom property boxes)
-  // back to their untouched default state in one action, same as the Create/Link
-  // "Clear all" footers. Guards against the first-board auto-fill effect (see
-  // boardConditionDefaultAppliedRef above) reinstating a board after this explicit clear.
+  // Clears every AND-column addition (Position is / custom property boxes, and any
+  // extra "Board is" rows) back to their untouched default state, same as the
+  // Create/Link "Clear all" footers. The remaining single "Board is" row keeps its
+  // selected board — clearing it here would drop the board, which users don't expect
+  // from this button.
   const handleClearAndConditions = () => {
-    boardConditionDefaultAppliedRef.current = true;
-    setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
+    setBoardConditionRows((prev) => (prev.length > 1 ? [prev[0]] : prev));
     setPositionConditionRows([
       { id: 'position-0', boardId: '', boardName: '', swimlaneId: '', swimlaneName: '', stageId: '', stageName: '', joinWord: 'OR' },
     ]);
@@ -5669,6 +5700,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
 
   const activePositionRow = positionConditionRows.find((row) => row.id === activePositionRowId);
 
+  // "Clear all" only makes sense to show once the user has actually added something
+  // beyond the trigger's untouched defaults — an extra "Board is" row, a configured
+  // "Position is" row, or a custom property box.
+  const hasAndAdditions =
+    conditions.length > 0 ||
+    boardConditionRows.length > 1 ||
+    positionConditionRows.length > 1 ||
+    positionConditionRows.some((row) => row.boardId);
+
   const handleCloseAttempt = () => {
     setShowCancelConfirm(true);
   };
@@ -6209,13 +6249,15 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                       <FiPlus size={14} aria-hidden />
                       Add new property
                     </button>
-                    <button
-                      type="button"
-                      className="business-rule-form-add-link"
-                      onClick={handleClearAndConditions}
-                    >
-                      Clear all
-                    </button>
+                    {hasAndAdditions && (
+                      <button
+                        type="button"
+                        className="business-rule-form-add-link"
+                        onClick={handleClearAndConditions}
+                      >
+                        Clear all
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

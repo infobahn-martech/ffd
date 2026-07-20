@@ -3377,12 +3377,18 @@
   min-height: 44px;
 
   &--editable {
-    flex-wrap: wrap;
+    // Same fix as .notification-subject-box--editable below: flex (inherited from
+    // .br-invoke-value-box above) gives the pill <span> and surrounding text nodes
+    // separate flex items with no reachable text node between them, so the browser
+    // caret can't land before/between/after pills once one is inserted — typing
+    // into the box then appears to stop working entirely.
+    display: block;
     cursor: text;
     padding-top: 6px;
     padding-bottom: 6px;
     font: normal normal 400 14px/1.4 $font-primary;
     color: $txtColor;
+    line-height: 1.8;
 
     &:focus {
       outline: none;
