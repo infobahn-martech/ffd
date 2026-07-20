@@ -926,6 +926,30 @@
   color: #1f2937;
 }
 
+.gro-card-view .bulk-pass-arabic-more-description {
+  font-size: 13px;
+  color: #1f2937;
+  overflow-x: auto;
+}
+
+.gro-card-view .bulk-pass-arabic-more-description p {
+  margin: 0 0 8px;
+  text-align: right;
+}
+
+.gro-card-view .bulk-pass-arabic-more-description table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  max-width: 100%;
+}
+
+.gro-card-view .bulk-pass-arabic-more-description td,
+.gro-card-view .bulk-pass-arabic-more-description th {
+  border: 1px solid #1f2937;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
 .gro-card-view .bulk-pass-handwriting-labels {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

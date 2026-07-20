@@ -1,4 +1,12 @@
+import { useMemo } from "react";
 import PropTypes from "prop-types";
+import DOMPurify from "dompurify";
+
+const SANITIZE_CONFIG = {
+  FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
+  FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus"],
+  ALLOW_DATA_ATTR: false,
+};
 
 function formatGregorianDate(date) {
   const y = date.getFullYear();
@@ -32,7 +40,18 @@ export default function VesselBoardingArabicPreview({
 }) {
   const title = templateData?.template_name || FALLBACK_TITLE;
   const description = templateData?.description || FALLBACK_DESCRIPTION;
-  const moreDescription = templateData?.more_description || FALLBACK_MORE_DESCRIPTION;
+  // more_description is rich HTML from the template editor (tables, <p>, <strong> …) when it comes
+  // from the API; the fallback is plain text, so wrap its paragraphs in <p> to match before sanitizing.
+  const moreDescriptionHtml = templateData?.more_description
+    ? templateData.more_description
+    : FALLBACK_MORE_DESCRIPTION.split("\n")
+        .filter(Boolean)
+        .map((para) => `<p>${para}</p>`)
+        .join("");
+  const sanitizedMoreDescription = useMemo(
+    () => DOMPurify.sanitize(moreDescriptionHtml, SANITIZE_CONFIG),
+    [moreDescriptionHtml]
+  );
 
   const today = new Date();
   const gregorianDate = formatGregorianDate(today);
@@ -66,9 +85,10 @@ export default function VesselBoardingArabicPreview({
           <p key={i} className="bulk-pass-arabic-paragraph">{para}</p>
         ))}
 
-        {moreDescription.split("\n").filter(Boolean).map((para, i) => (
-          <p key={`more-${i}`} className="bulk-pass-arabic-paragraph">{para}</p>
-        ))}
+        <div
+          className="bulk-pass-arabic-more-description"
+          dangerouslySetInnerHTML={{ __html: sanitizedMoreDescription }}
+        />
 
         <div className="bulk-pass-arabic-divider" />
 
