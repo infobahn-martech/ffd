@@ -466,6 +466,11 @@
       white-space: nowrap;
     }
 
+    .br-table-status-select {
+      width: auto;
+      flex-shrink: 0;
+    }
+
     .br-table-search-wrap {
       flex: 1;
       max-width: 420px;
