@@ -65,6 +65,13 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     createBusinessRule, isCreatingBusinessRule,
   } = useBusinessRuleReducer((s) => s);
 
+  // UI-only toggle until the backend endpoint is ready - not persisted, keyed by rule id.
+  const [localStatusOverrides, setLocalStatusOverrides] = useState({});
+
+  const handleToggleStatus = (ruleId, currentValue) => {
+    setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue }));
+  };
+
   useEffect(() => {
     if (!show) {
       setSearchValue('');
@@ -225,7 +232,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                         const name = rule?.name ?? rule?.rule_name ?? '-';
                         const execOrder = rule?.execution_order ?? '-';
                         const tags = rule?.tags || '-';
-                        const isEnabled = String(rule?.status) === '1';
+                        const isEnabled = localStatusOverrides[ruleId] ?? (String(rule?.status) === '1');
                         const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                           ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                           : '-';
@@ -239,7 +246,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                   className="form-check-input"
                                   type="checkbox"
                                   checked={isEnabled}
-                                  readOnly
+                                  onChange={() => handleToggleStatus(ruleId, isEnabled)}
                                 />
                               </div>
                             </td>
