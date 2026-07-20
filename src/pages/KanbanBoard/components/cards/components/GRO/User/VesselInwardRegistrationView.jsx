@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import PropTypes from "prop-types";
-import { FiSave, FiDownload } from "react-icons/fi";
+import { FiSave } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
 import { extractVesselRegTemplateFields } from "./vesselRegTemplateFields";
 import groService from "../../../../../../../services/groService";
 
 /** Vessel Inward Registration boarding view — vessel particulars (from the port's pass template) + Arabic document preview. */
 const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
-  { onSave, isSaving = false, onDownload, isDownloading = false, portId },
+  { onSave, isSaving = false, portId },
   ref
 ) {
   const [templateData, setTemplateData] = useState(null);
@@ -102,8 +102,8 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
               <button
                 type="button"
                 className="gro-vessel-reg-icon-btn"
-                title="Save Vessel Registration PDF"
-                aria-label="Save Vessel Registration PDF"
+                title="Generate & Download Vessel Registration PDF"
+                aria-label="Generate & Download Vessel Registration PDF"
                 onClick={onSave}
                 disabled={isSaving || !onSave}
               >
@@ -113,22 +113,6 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
                   </span>
                 ) : (
                   <FiSave />
-                )}
-              </button>
-              <button
-                type="button"
-                className="gro-vessel-reg-icon-btn"
-                title="Download Vessel Registration PDF"
-                aria-label="Download Vessel Registration PDF"
-                onClick={onDownload}
-                disabled={isDownloading || isSaving || !onDownload}
-              >
-                {isDownloading ? (
-                  <span className="spinner-border spinner-border-sm" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </span>
-                ) : (
-                  <FiDownload />
                 )}
               </button>
             </div>
@@ -145,8 +129,6 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
 VesselInwardRegistrationView.propTypes = {
   onSave: PropTypes.func,
   isSaving: PropTypes.bool,
-  onDownload: PropTypes.func,
-  isDownloading: PropTypes.bool,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
