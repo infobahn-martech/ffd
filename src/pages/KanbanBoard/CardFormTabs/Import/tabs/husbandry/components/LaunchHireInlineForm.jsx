@@ -18,6 +18,7 @@ const LaunchHireInlineForm = ({
   onSubmit,
   selectValue,
   onSelectChange,
+  selectOptions = [],
 }) => {
   const fieldWrapperRef = useRef(null);
 
@@ -59,14 +60,19 @@ const LaunchHireInlineForm = ({
 
         {onSelectChange && (
           <div className="crew-launch-hire-panel__field">
-            <label className="crew-launch-hire-panel__label">Select</label>
+            <label className="crew-launch-hire-panel__label">Batch</label>
             <select
               className="crew-launch-hire-panel__select"
               value={selectValue}
               disabled={isSubmitting}
               onChange={(e) => onSelectChange(e.target.value)}
             >
-              <option value="">Select</option>
+              <option value="">Select batch</option>
+              {selectOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
           </div>
         )}
@@ -130,6 +136,7 @@ LaunchHireInlineForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   selectValue: PropTypes.string,
   onSelectChange: PropTypes.func,
+  selectOptions: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default LaunchHireInlineForm;

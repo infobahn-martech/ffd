@@ -78,8 +78,9 @@ DocStatusIcon.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-// One uploaded crew-list file's summary card — same visual language as
-// CrewUploadedCard in CrewUploadedListsPanel (husbandry Crew Management).
+// One uploaded crew-list file's summary card — sourced directly from
+// crew/get_immigration_crew_list's uploaded_crew_files, same visual language
+// as CrewUploadedCard in CrewUploadedListsPanel (husbandry Crew Management).
 // There's no per-file Preview/Replace here since crew/get_immigration_crew_list
 // only accepts call_id — it can't scope to a single upload.
 const UploadedCrewFileCard = ({ file }) => (
@@ -89,11 +90,20 @@ const UploadedCrewFileCard = ({ file }) => (
     </span>
     <div className="crew-uploaded-card__details">
       <span className="crew-uploaded-card__title">Crew List</span>
-      <div className="crew-uploaded-card__filename" title={file.name}>{file.name}</div>
-      <div className="crew-uploaded-card__meta">
-        {file.crewCount} crew member{file.crewCount === 1 ? "" : "s"}
-        {file.uploadedAt ? ` · Uploaded ${file.uploadedAt}` : ""}
-      </div>
+      {file.crew_file_url ? (
+        <a
+          className="crew-uploaded-card__filename"
+          href={file.crew_file_url}
+          target="_blank"
+          rel="noreferrer"
+          title={file.crew_file}
+        >
+          {file.crew_file}
+        </a>
+      ) : (
+        <div className="crew-uploaded-card__filename" title={file.crew_file}>{file.crew_file}</div>
+      )}
+      {file.uploaded_at && <div className="crew-uploaded-card__meta">Uploaded {file.uploaded_at}</div>}
       <span className="crew-uploaded-card__status crew-uploaded-card__status--success">Uploaded successfully</span>
     </div>
   </div>
@@ -101,9 +111,10 @@ const UploadedCrewFileCard = ({ file }) => (
 
 UploadedCrewFileCard.propTypes = {
   file: PropTypes.shape({
-    name: PropTypes.string,
-    crewCount: PropTypes.number,
-    uploadedAt: PropTypes.string,
+    crew_excel_upload_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    crew_file: PropTypes.string,
+    uploaded_at: PropTypes.string,
+    crew_file_url: PropTypes.string,
   }).isRequired,
 };
 
@@ -122,12 +133,13 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const deleteCrew = useCrewReducer((state) => state.deleteCrew);
   const importCrewImmigrationFile = useCrewImmigrationReducer((state) => state.importCrewImmigrationFile);
   const fetchCallCrewList = useCrewImmigrationReducer((state) => state.fetchCallCrewList);
+  const uploadedCrewFiles = useCrewImmigrationReducer((state) => state.uploadedCrewFiles);
+  const batchOptions = useCrewImmigrationReducer((state) => state.batchOptions);
   const nationalities = useCommonReducer((state) => state.nationalities);
   const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
-  const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
+  const createCrewImmigrationBooking = useLaunchHireServiceReducer((state) => state.createCrewImmigrationBooking);
 
   const [uploadSteps, setUploadSteps] = useState(() => createUploadSteps());
-  const [uploadedCrewFiles, setUploadedCrewFiles] = useState([]);
   const [showCrewPreview, setShowCrewPreview] = useState(false);
   const [previewCrewRows, setPreviewCrewRows] = useState([]);
 
@@ -195,30 +207,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     [nationalities]
   );
 
-  // Reconstructs upload state for a call reopened in a later session —
-  // if any crew already exists for this call, mark the crew list step
-  // completed and show a single reconstructed entry with the total count.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { resolvedCallId } = await resolveCallAndVesselIds();
-      if (cancelled || !resolvedCallId) return;
-
-      const list = await fetchCallCrewList({ payload: { call_id: resolvedCallId } });
-      if (cancelled || !Array.isArray(list) || list.length === 0) return;
-
-      setUploadSteps((prev) => ({
-        ...prev,
-        crewList: { status: "completed", files: [{ name: "Crew List" }], progress: 100 },
-      }));
-      setUploadedCrewFiles([{ name: "Crew List", crewCount: list.length, uploadedAt: undefined }]);
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Fetches call detail to check the `launch_hire` flag — the "Request
   // Launch Hire" action only applies to calls the backend has flagged for it.
   useEffect(() => {
@@ -249,6 +237,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setListingPage(1);
   }, [debouncedListingSearch]);
 
+  // Also reconstructs upload state for a call reopened in a later session —
+  // if any crew already exists for this call, mark the crew list step completed.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -257,8 +247,16 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       setIsListingLoading(true);
       const list = await fetchCallCrewList({ payload: { call_id: resolvedCallId } });
       if (cancelled) return;
-      setListingCrewList(Array.isArray(list) ? list : []);
+      const crewList = Array.isArray(list) ? list : [];
+      setListingCrewList(crewList);
       setIsListingLoading(false);
+      if (crewList.length > 0) {
+        setUploadSteps((prev) =>
+          prev.crewList.status === "completed"
+            ? prev
+            : { ...prev, crewList: { status: "completed", files: [{ name: "Crew List" }], progress: 100 } }
+        );
+      }
     })();
     return () => {
       cancelled = true;
@@ -300,19 +298,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
       try {
         const importResult = await importCrewImmigrationFile({ formData });
-        const importRoot = importResult?.data ?? importResult ?? {};
         const crewCount = extractImportedCrewCount(importResult);
 
-        setUploadedCrewFiles((prev) => [
-          ...prev,
-          {
-            name: importRoot?.crew_file || file.name,
-            uploadedAt: importRoot?.uploaded_at,
-            crewCount,
-          },
-        ]);
         setUploadSteps((prev) => ({ ...prev, crewList: { status: "completed", files: [{ name: file.name }], progress: 100 } }));
 
+        // Refetching also refreshes the store's uploadedCrewFiles/batchOptions from the API.
         setListingRefreshTick((tick) => tick + 1);
         notify(`Crew list uploaded — ${crewCount} crew member(s) loaded.`, "success");
       } catch {
@@ -581,6 +571,10 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
   const handleSubmitLaunchHire = async () => {
     if (isSubmittingLaunchHire) return;
+    if (!launchSelect) {
+      setLaunchDateTimeError("Select a batch.");
+      return;
+    }
     if (!launchDate) {
       setLaunchDateTimeError("Select a launch date and time.");
       return;
@@ -593,16 +587,16 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
     setIsSubmittingLaunchHire(true);
     try {
-      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-      if (!resolvedCallId || !resolvedVesselId) {
-        notify("Unable to submit: missing call or vessel information.", "error");
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (!resolvedCallId) {
+        notify("Unable to submit: missing call information.", "error");
         return;
       }
 
-      await createLaunchHireRequest({
+      await createCrewImmigrationBooking({
         call_id: resolvedCallId,
-        vessel_id: resolvedVesselId,
-        launch_datetime: buildApiDateTime(launchDate, launchTime),
+        booking_datetime: buildApiDateTime(launchDate, launchTime),
+        batches: [launchSelect],
       });
 
       notify("Launch hire request submitted successfully.", "success");
@@ -680,8 +674,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                 </div>
               ) : (
                 <div className="crew-uploaded-lists-panel__stack">
-                  {uploadedCrewFiles.map((file, index) => (
-                    <UploadedCrewFileCard key={`${file.name}-${index}`} file={file} />
+                  {uploadedCrewFiles.map((file) => (
+                    <UploadedCrewFileCard key={file.crew_excel_upload_id ?? file.crew_file} file={file} />
                   ))}
                 </div>
               )}
@@ -796,6 +790,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             onSubmit={handleSubmitLaunchHire}
             selectValue={launchSelect}
             onSelectChange={setLaunchSelect}
+            selectOptions={batchOptions}
           />
 
           {isListingLoading && listingRows.length === 0 ? (

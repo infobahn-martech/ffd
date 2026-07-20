@@ -5,6 +5,10 @@ import crewImmigrationService from '../services/crewImmigrationService';
 const useCrewImmigrationReducer = create((set) => ({
     /** Crew rows from POST crew/get_immigration_crew_list; null = not loaded yet */
     callCrewList: null,
+    /** Batch names as returned by the API, e.g. ["Unassigned", "BATCH 1"] */
+    batchOptions: [],
+    /** uploaded_crew_files from the same response, for the "Uploaded Crew Lists" panel */
+    uploadedCrewFiles: [],
     isCallCrewListLoading: false,
     isBeingUpdated: false,
     errorMessage: '',
@@ -16,17 +20,22 @@ const useCrewImmigrationReducer = create((set) => ({
             set({ isCallCrewListLoading: true });
             const { data } = await crewImmigrationService.getImmigrationCrewList(payload || {});
             const root = data?.data ?? data;
-            const crew = Array.isArray(root?.batches)
-                ? root.batches.flatMap((batch, batchIndex) =>
+            const batches = Array.isArray(root?.batches) ? root.batches : [];
+            const crew = batches.length
+                ? batches.flatMap((batch) =>
                       (Array.isArray(batch?.crew) ? batch.crew : []).map((member) => ({
                           ...member,
-                          batchLabel: `Batch ${batchIndex + 1}`,
+                          batchLabel: batch?.batch || 'Unassigned',
                       }))
                   )
                 : root?.crew ?? (Array.isArray(root) ? root : []);
             const list = Array.isArray(crew) ? crew : [];
+            const batchOptions = batches.map((batch) => batch?.batch).filter(Boolean);
+            const uploadedCrewFiles = Array.isArray(root?.uploaded_crew_files) ? root.uploaded_crew_files : [];
             set({
                 callCrewList: list,
+                batchOptions,
+                uploadedCrewFiles,
                 isCallCrewListLoading: false,
             });
             cb && cb(list);
