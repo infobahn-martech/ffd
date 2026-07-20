@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
+import { FiClock } from "react-icons/fi";
 import { notify } from "../../../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
 import userService from "../../../../../../../services/userService";
@@ -51,6 +52,7 @@ import {
   resolveGroTimeObjectValueKey,
   parseGroStageTimeObjectsResponse,
   validateGroRequiredTimeObjects,
+  buildGroArrivalTimeObjectsPayload,
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
   parseGroUsersByRoleResponse,
@@ -103,6 +105,7 @@ const GROCardView = forwardRef(function GROCardView(
   const [stage11TimeObjects, setStage11TimeObjects] = useState([]);
   const [stage11TimeObjectValues, setStage11TimeObjectValues] = useState({});
   const [stage11TimeObjectErrors, setStage11TimeObjectErrors] = useState({});
+  const [capturingTimeObjectKey, setCapturingTimeObjectKey] = useState(null);
   const [extraStageFields, setExtraStageFields] = useState(() => createEmptyExtraStageFields());
   const [extraStageFieldErrors, setExtraStageFieldErrors] = useState({});
   const [selectedDocument, setSelectedDocument] = useState(null);
@@ -301,6 +304,42 @@ const GROCardView = forwardRef(function GROCardView(
     []
   );
 
+  /** Clock icon next to a time-object field: stamps "now" and saves just that one field via arrival/save_arrival_document. */
+  const captureTimeObjectNow = useCallback(
+    async (item, fieldKey, applyLocalChange) => {
+      if (callId == null || callId === "" || !taskId) {
+        notify("Call id or task id is missing.", "error");
+        return;
+      }
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const nowParts = {
+        date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+        time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      };
+
+      setCapturingTimeObjectKey(fieldKey);
+      try {
+        const formData = new FormData();
+        formData.append("call_id", String(callId));
+        formData.append("task_id", String(taskId));
+        formData.append(
+          "time_objects",
+          JSON.stringify(buildGroArrivalTimeObjectsPayload([item], { [fieldKey]: nowParts }))
+        );
+        await saveArrivalDocument({ formData });
+        applyLocalChange(nowParts);
+        const label = String(item?.time_object ?? "Time").trim() || "Time";
+        notify(`${label} captured.`, "success");
+      } catch (err) {
+        notify(groApiErrorMessage(err, "Failed to capture time."), "error");
+      } finally {
+        setCapturingTimeObjectKey(null);
+      }
+    },
+    [callId, taskId, saveArrivalDocument]
+  );
+
   const inwardTimeObjectFields = useMemo(
     () =>
       (Array.isArray(timeObjects) ? timeObjects : [])
@@ -317,10 +356,19 @@ const GROCardView = forwardRef(function GROCardView(
             pickerParts: fieldValue,
             onDateTimeChange: handleTimeObjectChange(valueKey),
             error: timeObjectErrors?.[valueKey] ?? "",
+            onCaptureNow: () => captureTimeObjectNow(item, valueKey, handleTimeObjectChange(valueKey)),
+            capturing: capturingTimeObjectKey === valueKey,
           };
         })
         .filter(Boolean),
-    [timeObjects, timeObjectValues, timeObjectErrors, handleTimeObjectChange]
+    [
+      timeObjects,
+      timeObjectValues,
+      timeObjectErrors,
+      handleTimeObjectChange,
+      captureTimeObjectNow,
+      capturingTimeObjectKey,
+    ]
   );
 
   const stage11InwardTimeObjectFields = useMemo(
@@ -339,10 +387,19 @@ const GROCardView = forwardRef(function GROCardView(
             pickerParts: fieldValue,
             onDateTimeChange: handleStage11TimeObjectChange(valueKey),
             error: stage11TimeObjectErrors?.[valueKey] ?? "",
+            onCaptureNow: () => captureTimeObjectNow(item, valueKey, handleStage11TimeObjectChange(valueKey)),
+            capturing: capturingTimeObjectKey === valueKey,
           };
         })
         .filter(Boolean),
-    [stage11TimeObjects, stage11TimeObjectValues, stage11TimeObjectErrors, handleStage11TimeObjectChange]
+    [
+      stage11TimeObjects,
+      stage11TimeObjectValues,
+      stage11TimeObjectErrors,
+      handleStage11TimeObjectChange,
+      captureTimeObjectNow,
+      capturingTimeObjectKey,
+    ]
   );
 
   const handleExtraStageFieldChange = useCallback((field, value) => {
@@ -398,15 +455,29 @@ const GROCardView = forwardRef(function GROCardView(
         <span className="gro-inward-popover-label">
           {field.label}{field.isRequired ? " *" : ""}
         </span>
-        <DateTimePickerField
-          dateValue={field.pickerParts?.date ?? ""}
-          timeValue={field.pickerParts?.time ?? ""}
-          onDateTimeChange={field.onDateTimeChange}
-          placeholder="YYYY-MM-DD hh:mm"
-          popperClassName="gro-inward-datetime-popper"
-          disabled={isDisabled}
-          hasError={Boolean(field.error)}
-        />
+        <div className="gro-inward-popover-datetime-row">
+          <DateTimePickerField
+            dateValue={field.pickerParts?.date ?? ""}
+            timeValue={field.pickerParts?.time ?? ""}
+            onDateTimeChange={field.onDateTimeChange}
+            placeholder="YYYY-MM-DD hh:mm"
+            popperClassName="gro-inward-datetime-popper"
+            disabled={isDisabled}
+            hasError={Boolean(field.error)}
+          />
+          {field.onCaptureNow ? (
+            <button
+              type="button"
+              className="gro-inward-time-capture-btn"
+              title={`Set ${field.label} to now`}
+              aria-label={`Set ${field.label} to now`}
+              disabled={isDisabled || field.capturing}
+              onClick={field.onCaptureNow}
+            >
+              <FiClock size={16} />
+            </button>
+          ) : null}
+        </div>
         {field.error ? <span className="gro-inward-popover-field-error">{field.error}</span> : null}
       </div>
     );

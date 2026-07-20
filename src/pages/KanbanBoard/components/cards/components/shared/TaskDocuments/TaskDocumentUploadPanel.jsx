@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import PropTypes from "prop-types";
+import { FiClock } from "react-icons/fi";
 import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
 
 /** Task document upload popover (anchored beside segmented tabs). */
@@ -83,15 +84,29 @@ function TaskDocumentUploadPanel({
                       {field.label}
                       {field.isRequired ? " *" : ""}
                     </span>
-                    <DateTimePickerField
-                      dateValue={field.pickerParts?.date ?? ""}
-                      timeValue={field.pickerParts?.time ?? ""}
-                      onDateTimeChange={field.onDateTimeChange}
-                      placeholder="YYYY-MM-DD hh:mm"
-                      popperClassName="gro-inward-datetime-popper"
-                      disabled={isSaving}
-                      hasError={Boolean(field.error)}
-                    />
+                    <div className="gro-inward-popover-datetime-row">
+                      <DateTimePickerField
+                        dateValue={field.pickerParts?.date ?? ""}
+                        timeValue={field.pickerParts?.time ?? ""}
+                        onDateTimeChange={field.onDateTimeChange}
+                        placeholder="YYYY-MM-DD hh:mm"
+                        popperClassName="gro-inward-datetime-popper"
+                        disabled={isSaving}
+                        hasError={Boolean(field.error)}
+                      />
+                      {field.onCaptureNow ? (
+                        <button
+                          type="button"
+                          className="gro-inward-time-capture-btn"
+                          title={`Set ${field.label} to now`}
+                          aria-label={`Set ${field.label} to now`}
+                          disabled={isSaving || field.capturing}
+                          onClick={field.onCaptureNow}
+                        >
+                          <FiClock size={16} />
+                        </button>
+                      ) : null}
+                    </div>
                     {field.error ? <span className="gro-inward-popover-field-error">{field.error}</span> : null}
                   </div>
               ))
@@ -151,6 +166,8 @@ TaskDocumentUploadPanel.propTypes = {
       }),
       onDateTimeChange: PropTypes.func.isRequired,
       error: PropTypes.string,
+      onCaptureNow: PropTypes.func,
+      capturing: PropTypes.bool,
     })
   ),
   onCancel: PropTypes.func.isRequired,

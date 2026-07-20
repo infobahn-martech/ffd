@@ -1970,6 +1970,44 @@
   z-index: 16000 !important;
 }
 
+.gro-inward-popover-datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gro-inward-popover-datetime-row > *:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.gro-inward-time-capture-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1.5px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.gro-inward-time-capture-btn:hover:not(:disabled) {
+  background: #bbdefb;
+  border-color: #64b5f6;
+  color: #0d47a1;
+}
+
+.gro-inward-time-capture-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* GRO document approve/reject — matches logout confirmation modal */
 body .gro-doc-action-modal {
   z-index: 20000 !important;
