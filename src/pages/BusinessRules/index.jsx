@@ -54,10 +54,17 @@ const BusinessRules = () => {
   const { getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules } =
     useBusinessRuleReducer((s) => s);
 
+  // UI-only toggle until the backend endpoint is ready - not persisted, keyed by rule id.
+  const [localStatusOverrides, setLocalStatusOverrides] = useState({});
+
   useEffect(() => {
     const is_enabled = filter === 'enabled' ? 1 : filter === 'disabled' ? 0 : undefined;
     getBusinessRules({ params: { page, per_page: limit, search: searchTerm || undefined, is_enabled } });
   }, [page, limit, searchTerm, filter]);
+
+  const handleToggleStatus = (ruleId, currentValue) => {
+    setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue }));
+  };
 
   const totalPages = Math.max(1, Math.ceil(businessRulesCount / limit));
 
@@ -138,7 +145,7 @@ const BusinessRules = () => {
                   const name = rule?.name ?? rule?.rule_name ?? '-';
                   const execOrder = rule?.execution_order ?? '-';
                   const tags = rule?.tags || '-';
-                  const isEnabled = String(rule?.status) === '1';
+                  const isEnabled = localStatusOverrides[ruleId] ?? (String(rule?.status) === '1');
                   const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                     ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                     : '-';
@@ -151,7 +158,7 @@ const BusinessRules = () => {
                             className="form-check-input"
                             type="checkbox"
                             checked={isEnabled}
-                            readOnly
+                            onChange={() => handleToggleStatus(ruleId, isEnabled)}
                           />
                         </div>
                       </td>

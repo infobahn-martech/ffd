@@ -6002,7 +6002,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenPositionDestination(row.id)}
                         >
                           {row.boardName
-                            ? `${row.workspaceName ? `${row.workspaceName} / ` : ''}${row.boardName}${row.workflowName ? ` (${row.workflowName})` : ''} → ${row.swimlaneName || 'Any lane'} / ${row.stageName || 'Any stage'}`
+                            ? `${row.workspaceName ? `${row.workspaceName} / ` : ''}${row.boardName}${row.workflowName ? ` (${row.workflowName})` : ''} → ${row.stageName || 'Any stage'} / ${row.swimlaneName || 'Any lane'}`
                             : 'Not Set'}
                           <FiChevronDown size={16} aria-hidden />
                         </button>
@@ -6318,7 +6318,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                                   onClick={() => handleOpenCreateDetails(action.id)}
                                 >
                                   {action.boardName
-                                    ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                                    ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.stageName || 'Any stage'} / ${action.swimlaneName || 'Any lane'}`
                                     : 'Configure details'}
                                 </button>
                               ) : (
@@ -6763,7 +6763,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenMoveDestination(action.id)}
                         >
                           {action.boardName
-                            ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.stageName || 'Any stage'} / ${action.swimlaneName || 'Any lane'}`
                             : 'Choose where to move'}
                         </button>
 
@@ -6813,7 +6813,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenConvertDestination(action.id)}
                         >
                           {action.boardName
-                            ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.stageName || 'Any stage'} / ${action.swimlaneName || 'Any lane'}`
                             : 'Choose where to move'}
                         </button>
                       </div>
