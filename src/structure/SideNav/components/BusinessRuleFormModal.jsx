@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCalendar } from 'react-icons/fi';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCalendar, FiDownload } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import ReactQuill, { Quill } from 'react-quill-new';
@@ -4700,6 +4700,8 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     getCreateSubtaskSettings, createSubtaskSettings, isLoadingCreateSubtaskSettings, resetCreateSubtaskSettings,
     getBusinessRuleById, businessRuleDetails, isLoadingBusinessRuleDetails, resetBusinessRuleDetails,
     regularFields, getRegularFields,
+    getExecutionLogs, executionLogs, isLoadingExecutionLogs, resetExecutionLogs,
+    getBusinessRuleHistory, businessRuleHistory, isLoadingBusinessRuleHistory, resetBusinessRuleHistory,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -4735,6 +4737,23 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const isEditDataLoading = isEditMode && (isLoadingBusinessRuleDetails || !businessRuleDetailsReady);
   const [activeTab, setActiveTab] = useState('details');
 
+  // Execution logs tab — defaults to the trailing 7 days, matching the reference UI.
+  const toDateInputValue = (date) => date.toISOString().slice(0, 10);
+  const [logsFromDate, setLogsFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return toDateInputValue(d);
+  });
+  const [logsFromTime, setLogsFromTime] = useState('00:00');
+  const [logsToDate, setLogsToDate] = useState(() => toDateInputValue(new Date()));
+  const [logsToTime, setLogsToTime] = useState('23:59');
+  const [logsSearch, setLogsSearch] = useState('');
+  const [debouncedLogsSearch, setDebouncedLogsSearch] = useState('');
+
+  // History tab
+  const [historySearch, setHistorySearch] = useState('');
+  const [debouncedHistorySearch, setDebouncedHistorySearch] = useState('');
+
   // Edit mode needs the full regular/custom field catalog up front to resolve a saved
   // condition's/when-field's regular_field_id or custom_field_id back into a display
   // label — the create flow never needs this at the top level since CardPropertyMatchModal
@@ -4760,6 +4779,40 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   useEffect(() => {
     if (show) setActiveTab('details');
   }, [show, businessRuleId]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setDebouncedLogsSearch(logsSearch.trim()), 400);
+    return () => clearTimeout(timeoutId);
+  }, [logsSearch]);
+
+  useEffect(() => {
+    if (!show || !isEditMode || activeTab !== 'logs' || !businessRuleId) return;
+    getExecutionLogs(businessRuleId, {
+      params: {
+        search: debouncedLogsSearch || undefined,
+        from: logsFromDate || undefined,
+        to: logsToDate || undefined,
+      },
+    });
+  }, [show, isEditMode, activeTab, businessRuleId, debouncedLogsSearch, logsFromDate, logsToDate]);
+
+  useEffect(() => {
+    if (!show) resetExecutionLogs();
+  }, [show]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setDebouncedHistorySearch(historySearch.trim()), 400);
+    return () => clearTimeout(timeoutId);
+  }, [historySearch]);
+
+  useEffect(() => {
+    if (!show || !isEditMode || activeTab !== 'history' || !businessRuleId) return;
+    getBusinessRuleHistory(businessRuleId, { params: { search: debouncedHistorySearch || undefined } });
+  }, [show, isEditMode, activeTab, businessRuleId, debouncedHistorySearch]);
+
+  useEffect(() => {
+    if (!show) resetBusinessRuleHistory();
+  }, [show]);
 
   // The WHEN card is seeded from the picker's already-fetched trigger (get_trigger_types),
   // but once get_trigger_config resolves for this trigger_type_id, its trigger_name is the
@@ -7514,17 +7567,178 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           </section>
         </div>
 
-        {isEditMode && activeTab === 'logs' && (
-          <div className="business-rule-form-tab-placeholder">
-            <p>Execution logs aren&apos;t available yet — no backend endpoint has been confirmed for this rule&apos;s run history.</p>
-          </div>
-        )}
+        {isEditMode && activeTab === 'logs' && (() => {
+          // get_execution_logs has a confirmed endpoint/params (search, from, to) but no
+          // documented response field names yet — best-effort fallback across a few
+          // likely keys per column, same convention as the rest of this file's
+          // unconfirmed-shape handling.
+          const normalizeLogRow = (row, idx) => ({
+            key: row.execution_log_id ?? row.id ?? idx,
+            ruleName: row.business_rule_name ?? row.rule_name ?? name,
+            ruleId: row.business_rule_id ?? businessRuleId,
+            cardId: row.card_id ?? row.executed_on_card_id ?? row.executed_card_id ?? '-',
+            executedAt: row.executed_at ?? row.execution_time ?? row.executed_at_local ?? row.created_at ?? '-',
+          });
+          const logRows = (executionLogs ?? []).map(normalizeLogRow);
 
-        {isEditMode && activeTab === 'history' && (
-          <div className="business-rule-form-tab-placeholder">
-            <p>History isn&apos;t available yet — no backend endpoint has been confirmed for this rule&apos;s change history.</p>
-          </div>
-        )}
+          const handleExportLogs = () => {
+            const header = ['Business Rule Name', 'Business Rule ID', 'Executed on Card ID', 'Executed at (Asia/Dubai)'];
+            const csvRows = logRows.map((r) => [r.ruleName, r.ruleId, r.cardId, r.executedAt]);
+            const csv = [header, ...csvRows]
+              .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+              .join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `business-rule-${businessRuleId}-execution-logs.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+          };
+
+          return (
+            <div className="business-rule-form-tab-panel">
+              <div className="business-rule-form-tab-filters">
+                <div className="business-rule-form-tab-date-group">
+                  <label className="business-rule-form-label business-rule-form-label--hint">From</label>
+                  <div className="business-rule-form-tab-date-inputs">
+                    <input
+                      type="date"
+                      className="business-rule-form-input"
+                      value={logsFromDate}
+                      onChange={(e) => setLogsFromDate(e.target.value)}
+                    />
+                    <input
+                      type="time"
+                      className="business-rule-form-input"
+                      value={logsFromTime}
+                      onChange={(e) => setLogsFromTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="business-rule-form-tab-date-group">
+                  <label className="business-rule-form-label business-rule-form-label--hint">To</label>
+                  <div className="business-rule-form-tab-date-inputs">
+                    <input
+                      type="date"
+                      className="business-rule-form-input"
+                      value={logsToDate}
+                      onChange={(e) => setLogsToDate(e.target.value)}
+                    />
+                    <input
+                      type="time"
+                      className="business-rule-form-input"
+                      value={logsToTime}
+                      onChange={(e) => setLogsToTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="business-rule-form-tab-export-btn"
+                  onClick={handleExportLogs}
+                  disabled={logRows.length === 0}
+                >
+                  <FiDownload size={14} aria-hidden />
+                  Export
+                </button>
+              </div>
+
+              <input
+                type="text"
+                className="business-rule-form-input business-rule-form-tab-search"
+                placeholder="Filter"
+                value={logsSearch}
+                onChange={(e) => setLogsSearch(e.target.value)}
+              />
+
+              <div className="business-rule-form-tab-table-wrap">
+                <table className="business-rule-form-tab-table">
+                  <thead>
+                    <tr>
+                      <th>Business Rule Name</th>
+                      <th>Business Rule ID</th>
+                      <th>Executed on Card ID</th>
+                      <th>Executed at (Asia/Dubai)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoadingExecutionLogs ? (
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">Loading...</td></tr>
+                    ) : logRows.length === 0 ? (
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">No items</td></tr>
+                    ) : (
+                      logRows.map((row) => (
+                        <tr key={row.key}>
+                          <td>{row.ruleName}</td>
+                          <td>{row.ruleId}</td>
+                          <td>{row.cardId}</td>
+                          <td>{row.executedAt}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
+
+        {isEditMode && activeTab === 'history' && (() => {
+          // get_business_rule_history is an unconfirmed guessed endpoint (see
+          // businessRuleService.js) — both existence and response shape are best-effort;
+          // falls back across a few likely field names per column, same convention as
+          // the execution-logs tab above.
+          const normalizeHistoryRow = (row, idx) => ({
+            key: row.history_id ?? row.id ?? idx,
+            eventType: row.event_type ?? row.action_type ?? row.type ?? '-',
+            details: row.details ?? row.description ?? row.message ?? '-',
+            author: row.author ?? row.author_name ?? row.user_name ?? row.updated_by ?? '-',
+            time: row.time ?? row.created_at ?? row.event_time ?? row.updated_at ?? '-',
+          });
+          const historyRows = (businessRuleHistory ?? []).map(normalizeHistoryRow);
+
+          return (
+            <div className="business-rule-form-tab-panel">
+              <input
+                type="text"
+                className="business-rule-form-input business-rule-form-tab-search"
+                placeholder="Filter"
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+              />
+
+              <div className="business-rule-form-tab-table-wrap">
+                <table className="business-rule-form-tab-table">
+                  <thead>
+                    <tr>
+                      <th>Event Type</th>
+                      <th>Details</th>
+                      <th>Author</th>
+                      <th>Time (Asia/Dubai)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoadingBusinessRuleHistory ? (
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">Loading...</td></tr>
+                    ) : historyRows.length === 0 ? (
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">No items</td></tr>
+                    ) : (
+                      historyRows.map((row) => (
+                        <tr key={row.key}>
+                          <td>{row.eventType}</td>
+                          <td>{row.details}</td>
+                          <td>{row.author}</td>
+                          <td>{row.time}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
 
         <footer className="business-rule-form-modal-footer">
           {saveError && <p className="text-danger mb-2">{saveError}</p>}
