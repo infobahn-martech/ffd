@@ -196,11 +196,12 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
+  const uploadVisaCopies = useCrewReducer((state) => state.uploadVisaCopies);
   const updateCrewInfo = useCrewReducer((state) => state.updateCrewInfo);
   const deleteCrew = useCrewReducer((state) => state.deleteCrew);
   const nationalities = useCommonReducer((state) => state.nationalities);
   const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
-  const createLaunchHireRequest = useLaunchHireServiceReducer((state) => state.createLaunchHireRequest);
+  const createCrewImmigrationBooking = useLaunchHireServiceReducer((state) => state.createCrewImmigrationBooking);
 
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
@@ -245,18 +246,13 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // Bumped after any mutation (upload, inline edit, bulk doc upload) that
   // should be reflected in the Crew Summary table on its next fetch.
   const [summaryRefreshTick, setSummaryRefreshTick] = useState(0);
-  // Local-only override so the bulk "Upload Visa" action can flip a crew's
-  // doc status icon on even though Crew Summary rows are otherwise derived
-  // straight from the real uploaded crew list. Passport/Iqama no longer use
-  // this — they're backed by real upload endpoints (see handleBulkCopyUpload
-  // below) and the crew list is refetched after each upload instead.
-  const [manualDocOverrides, setManualDocOverrides] = useState({});
   const [editingRowId, setEditingRowId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deletingRowId, setDeletingRowId] = useState(null);
   const [isUploadingPassports, setIsUploadingPassports] = useState(false);
   const [isUploadingIqamas, setIsUploadingIqamas] = useState(false);
+  const [isUploadingVisas, setIsUploadingVisas] = useState(false);
   const summaryPassportInputRef = useRef(null);
   const summaryIqamaInputRef = useRef(null);
   const summaryVisaInputRef = useRef(null);
@@ -582,17 +578,58 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const handlePassportFiles = handleCrewDocCopyUpload("passport");
   const handleIqamaFiles = handleCrewDocCopyUpload("iqama");
 
-  // No bulk backend endpoint exists yet for visa files, so this step stays
-  // local-only — files are kept in formValues to be submitted with the rest
-  // of the card, same as CrewContent's own wizard.
-  const handleVisaFiles = (fileList) => {
+  // Visa — crew/upload_visa_copies + visas[]. Unlike Passport/Iqama (one call
+  // with every file batched into a single FormData), each file here gets its
+  // own API call so one file failing doesn't block the rest; refetches
+  // crew/get_crew_list once afterwards so the doc icons reflect the real
+  // result. Shared by the dropzone and the Crew Summary bulk action below.
+  const uploadVisaFiles = async (files) => {
+    let successCount = 0;
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("visas[]", file);
+      try {
+        await uploadVisaCopies({ formData });
+        successCount += 1;
+      } catch {
+        // this file failed — continue with the rest
+      }
+    }
+
+    const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+    if (resolvedCallId && resolvedVesselId) {
+      const list = await fetchCallCrewList({
+        payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
+      });
+      if (Array.isArray(list)) {
+        setUploadedCrewList(list);
+        handleChange("crewList")({ target: { value: list } });
+        handleChange("crewCount")({ target: { value: list.length } });
+      }
+    }
+    setSummaryRefreshTick((tick) => tick + 1);
+
+    if (successCount === files.length) {
+      notify(`Visa uploaded — ${successCount} file(s).`, "success");
+    } else if (successCount > 0) {
+      notify(`Visa uploaded — ${successCount} of ${files.length} file(s). Some uploads failed.`, "error");
+    } else {
+      notify("Failed to upload visa copies. Please try again.", "error");
+    }
+    return successCount;
+  };
+
+  const handleVisaFiles = async (fileList) => {
     if (uploadSteps.crewList.status !== "completed") return;
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
-    handleChange("crewVisaFiles")({
-      target: { value: files.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type })) },
-    });
-    setUploadSteps((prev) => ({ ...prev, visa: { status: "completed", files, progress: 100 } }));
+
+    setUploadSteps((prev) => ({ ...prev, visa: { ...prev.visa, status: "uploading" } }));
+    const successCount = await uploadVisaFiles(files);
+    setUploadSteps((prev) => ({
+      ...prev,
+      visa: successCount > 0 ? { status: "completed", files, progress: 100 } : { ...prev.visa, status: "failed" },
+    }));
   };
 
   const handleServiceCardClick = (card) => {
@@ -637,13 +674,11 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
   // Shared row-shaping for both the full crew list (preview modal, "select
   // all" default) and the server-paginated Crew Summary table below.
-  // manualDocOverrides layers local-only doc-flag edits on top since there's
-  // no per-crew document-flag update endpoint yet. Name/DOB/nationality/rank
-  // are backed by crew/update_crew (see handleSaveEdit), so those come
+  // Passport/Iqama/Visa are all backed by real upload endpoints and
+  // crew/update_crew (see handleSaveEdit), so every field here comes
   // straight from the refetched crew list with no client-side override.
   const toCrewSummaryRow = useCallback(
     (crew, id) => {
-      const docOverrides = manualDocOverrides[id] || {};
       const movementTypeRaw = crew?.movement_type || "";
       const movementTypeValue = movementTypeRaw.toLowerCase().trim().replace(/\s+/g, "_");
       const assignedTo = (tabName) => Boolean(selectedServiceCrewMap[tabName]?.includes(id));
@@ -657,9 +692,9 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         rank: crew?.rank ?? "",
         movementType: movementTypeRaw,
         movementTypeValue,
-        passport: hasDocumentUrl(crew?.passport_copy_url) || Boolean(docOverrides.passport),
-        iqama: hasDocumentUrl(crew?.iqama_copy_url) || Boolean(docOverrides.iqama),
-        visa: hasDocumentUrl(crew?.visa_copy_url) || Boolean(docOverrides.visa),
+        passport: hasDocumentUrl(crew?.passport_copy_url),
+        iqama: hasDocumentUrl(crew?.iqama_copy_url),
+        visa: hasDocumentUrl(crew?.visa_copy_url),
         cgPass: false,
         zawilPass: false,
         transportCount: assignedTo("transport") ? 1 : 0,
@@ -667,7 +702,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         medicalCount: assignedTo("medicalService") ? 1 : 0,
       };
     },
-    [manualDocOverrides, selectedServiceCrewMap]
+    [selectedServiceCrewMap]
   );
 
   // Full, unfiltered crew list — feeds the per-movement-type preview modal
@@ -721,20 +756,17 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     );
   };
 
-  // Marks the given doc field(s) as available for every currently-checked
-  // summary row — stands in for a real per-crew document upload until the
-  // backend supports one, so picking a file just flips the status icon on.
-  const handleSummaryBulkDocUpload = (fields) => (event) => {
-    const file = event.target.files?.[0];
+  // Visa bulk upload — crew/upload_visa_copies + visas[], one API call per
+  // selected file via the shared uploadVisaFiles helper (see handleVisaFiles
+  // above), unlike Passport/Iqama which batch every file into a single call.
+  const handleBulkVisaUpload = async (event) => {
+    const files = Array.from(event.target.files || []);
     event.target.value = "";
-    if (!file || summarySelectedIds.length === 0) return;
-    setManualDocOverrides((prev) => {
-      const next = { ...prev };
-      summarySelectedIds.forEach((id) => {
-        next[id] = { ...(next[id] || {}), ...Object.fromEntries(fields.map((field) => [field, true])) };
-      });
-      return next;
-    });
+    if (files.length === 0) return;
+
+    setIsUploadingVisas(true);
+    await uploadVisaFiles(files);
+    setIsUploadingVisas(false);
   };
 
   // Passport/Iqama bulk upload — crew/upload_passport_copies + passports[],
@@ -930,16 +962,15 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
     setIsSubmittingLaunchHire(true);
     try {
-      const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
-      if (!resolvedCallId || !resolvedVesselId) {
-        notify("Unable to submit: missing call or vessel information.", "error");
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (!resolvedCallId) {
+        notify("Unable to submit: missing call information.", "error");
         return;
       }
 
-      await createLaunchHireRequest({
+      await createCrewImmigrationBooking({
         call_id: resolvedCallId,
-        vessel_id: resolvedVesselId,
-        launch_datetime: buildApiDateTime(launchDate, launchTime),
+        booking_datetime: buildApiDateTime(launchDate, launchTime),
       });
 
       notify("Launch hire request submitted successfully.", "success");
@@ -1184,15 +1215,19 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                   <button
                     type="button"
                     className="crew-header-btn"
+                    disabled={isUploadingVisas}
                     onClick={() => summaryVisaInputRef.current?.click()}
                   >
-                    <span className="crew-header-btn__label">Upload Visa</span>
+                    <span className="crew-header-btn__label">
+                      {isUploadingVisas ? "Uploading Visa…" : "Upload Visa"}
+                    </span>
                   </button>
                   <input
                     ref={summaryVisaInputRef}
                     type="file"
+                    multiple
                     className="crew-doc-input"
-                    onChange={handleSummaryBulkDocUpload(["visa"])}
+                    onChange={handleBulkVisaUpload}
                   />
                 </div>
               )}

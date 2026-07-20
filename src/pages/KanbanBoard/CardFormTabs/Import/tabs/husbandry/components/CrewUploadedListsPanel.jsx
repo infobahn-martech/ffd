@@ -122,7 +122,7 @@ const CrewUploadedListsPanel = ({ movementTypeOptions, crewUploads, cardColor, o
           </span>
         </div>
       ) : (
-        <div className="crew-uploaded-lists-panel__stack">
+        <div className="crew-uploaded-lists-panel__stack crew-uploaded-lists-panel__stack--grid">
           {uploadedOptions.map((option) => (
             <CrewUploadedCard
               key={option.value}

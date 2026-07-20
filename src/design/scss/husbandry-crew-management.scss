@@ -2782,11 +2782,13 @@
   gap: 10px;
 }
 
-// Compact grid variant (Crew Immigration) — cards have no actions row, so
-// several fit per line instead of stacking one per row.
+// Compact grid variant (Crew Immigration's file cards, Crew Management's
+// Sign On/Sign Off cards) — auto-fit collapses empty tracks so a handful of
+// cards expand to fill the row instead of stacking one per line with a gap
+// left dangling beside them.
 .crew-uploaded-lists-panel__stack--grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
 
