@@ -921,6 +921,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
   const [boardId, setBoardId] = useState('');
   const [isBoardPickerOpen, setIsBoardPickerOpen] = useState(false);
   const [boardFilterText, setBoardFilterText] = useState('');
+  const [workspaceFilterId, setWorkspaceFilterId] = useState('');
   const [hoveredLeafColumnId, setHoveredLeafColumnId] = useState(null);
   const [hoveredSwimlaneId, setHoveredSwimlaneId] = useState(null);
 
@@ -936,6 +937,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
 
   const boardFilterQuery = boardFilterText.trim().toLowerCase();
   const filteredWorkspaceGroups = displayWorkspaces
+    .filter((w) => !workspaceFilterId || String(w.workspace_id) === String(workspaceFilterId))
     .map((w) => {
       const wsMatch = w.workspace_name.toLowerCase().includes(boardFilterQuery);
       const groupBoards = wsMatch
@@ -958,6 +960,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
     setBoardId(initialBoardId ?? '');
     setIsBoardPickerOpen(false);
     setBoardFilterText('');
+    setWorkspaceFilterId('');
     if (workspaces.length === 0) listAllWorkspaces();
   }, [show]);
 
@@ -1004,6 +1007,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
     onSave({
       boardId,
       boardName: selectedBoard?.board_name ?? '',
+      workspaceName: selectedBoard?.workspace_name ?? '',
       workflowId: workflow.id,
       workflowName: workflow.name,
       swimlaneId: swimlane.id,
@@ -1019,6 +1023,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
     onSave({
       boardId,
       boardName: selectedBoard?.board_name ?? '',
+      workspaceName: selectedBoard?.workspace_name ?? '',
       workflowId: workflow.id,
       workflowName: workflow.name,
       swimlaneId: '',
@@ -1034,6 +1039,7 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
     onSave({
       boardId,
       boardName: selectedBoard?.board_name ?? '',
+      workspaceName: selectedBoard?.workspace_name ?? '',
       workflowId: workflow.id,
       workflowName: workflow.name,
       swimlaneId: swimlane.id,
@@ -1085,6 +1091,17 @@ function BoardMinimapModal({ show, onClose, onSave, initialBoardId }) {
 
             {isBoardPickerOpen && (
               <div className="board-minimap-picker-panel" ref={boardPickerPanelRef}>
+                <select
+                  className="business-rule-form-select board-minimap-picker-workspace-select"
+                  value={workspaceFilterId}
+                  onChange={(e) => setWorkspaceFilterId(e.target.value)}
+                >
+                  <option value="">All workspaces</option>
+                  {displayWorkspaces.map((w) => (
+                    <option key={w.workspace_id} value={w.workspace_id}>{w.workspace_name}</option>
+                  ))}
+                </select>
+
                 <div className="board-minimap-picker-search">
                   <FiFilter size={20} className="board-minimap-picker-search-icon" aria-hidden />
                   <input
@@ -5985,7 +6002,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenPositionDestination(row.id)}
                         >
                           {row.boardName
-                            ? `${row.boardName} → ${row.swimlaneName || 'Any lane'} / ${row.stageName || 'Any stage'}`
+                            ? `${row.workspaceName ? `${row.workspaceName} / ` : ''}${row.boardName}${row.workflowName ? ` (${row.workflowName})` : ''} → ${row.swimlaneName || 'Any lane'} / ${row.stageName || 'Any stage'}`
                             : 'Not Set'}
                           <FiChevronDown size={16} aria-hidden />
                         </button>
@@ -6301,7 +6318,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                                   onClick={() => handleOpenCreateDetails(action.id)}
                                 >
                                   {action.boardName
-                                    ? `${action.boardName} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                                    ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
                                     : 'Configure details'}
                                 </button>
                               ) : (
@@ -6746,7 +6763,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenMoveDestination(action.id)}
                         >
                           {action.boardName
-                            ? `${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
                             : 'Choose where to move'}
                         </button>
 
@@ -6796,7 +6813,7 @@ function BusinessRuleFormModal({ show, rule, boardName, onClose, onSave, isSavin
                           onClick={() => handleOpenConvertDestination(action.id)}
                         >
                           {action.boardName
-                            ? `${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
+                            ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}${action.workflowName ? ` (${action.workflowName})` : ''} → ${action.swimlaneName || 'Any lane'} / ${action.stageName || 'Any stage'}`
                             : 'Choose where to move'}
                         </button>
                       </div>

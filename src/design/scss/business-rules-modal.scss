@@ -2713,6 +2713,10 @@
   max-height: 70vh;
 }
 
+.board-minimap-picker-workspace-select {
+  flex-shrink: 0;
+}
+
 .board-minimap-picker-search {
   display: flex;
   align-items: center;
