@@ -906,7 +906,7 @@ function TaxiBoatCardView({ card }) {
         <GroSummaryCard label="Vessel Name"        value={vesselName}         />
         <GroSummaryCard label="Location"           value={location}           />
         <GroSummaryCard label="Booking Date"       value={bookingDate}        />
-        <GroSummaryCard label="Assigned User"      value={assignedUser}       />
+        <GroSummaryCard label="Assigned Captian"      value={assignedUser}       />
       </div>
 
       <TaxiFleetAssignPanel
