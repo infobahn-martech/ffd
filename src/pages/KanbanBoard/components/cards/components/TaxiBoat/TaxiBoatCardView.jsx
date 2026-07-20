@@ -901,12 +901,12 @@ function TaxiBoatCardView({ card }) {
   return (
     <div className="tb-card-view">
       <div className="gro-summary-grid gro-summary-grid--six-col">
-        <GroSummaryCard label="Assigned User"      value={assignedUser}       />
         <GroSummaryCard label="Requested Operator" value={requestedOperator}  />
         <GroSummaryCard label="Billing Entity"     value={billingEntity}      />
         <GroSummaryCard label="Vessel Name"        value={vesselName}         />
         <GroSummaryCard label="Location"           value={location}           />
         <GroSummaryCard label="Booking Date"       value={bookingDate}        />
+        <GroSummaryCard label="Assigned User"      value={assignedUser}       />
       </div>
 
       <TaxiFleetAssignPanel
@@ -1298,19 +1298,6 @@ function TaxiBoatCardView({ card }) {
       {!isImmigration && !isCrewChange && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
-          <div className="tb-guide-name-row">
-            <label className="tb-guide-name-label">
-              <FiUser size={13} />
-              Taxi Boat Guide
-            </label>
-            <input
-              type="text"
-              className="tb-guide-name-input"
-              placeholder="Enter guide name..."
-              value={operatorName}
-              onChange={(e) => setOperatorName(e.target.value)}
-            />
-          </div>
           <div className="tb-tabs">
             <button
               className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
