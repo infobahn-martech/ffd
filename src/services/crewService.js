@@ -25,6 +25,10 @@ const uploadIqamaCopies = (formData) =>
   Gateway.post("crew/upload_iqama_copies", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+const uploadVisaCopies = (formData) =>
+  Gateway.post("crew/upload_visa_copies", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
 export default {
   saveCrew,
@@ -39,4 +43,5 @@ export default {
   deleteCrew,
   uploadPassportCopies,
   uploadIqamaCopies,
+  uploadVisaCopies,
 };

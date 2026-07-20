@@ -129,12 +129,20 @@ UploadedCrewFileCard.propTypes = {
 const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
+  const uploadVisaCopies = useCrewReducer((state) => state.uploadVisaCopies);
   const updateCrewInfo = useCrewReducer((state) => state.updateCrewInfo);
   const deleteCrew = useCrewReducer((state) => state.deleteCrew);
   const importCrewImmigrationFile = useCrewImmigrationReducer((state) => state.importCrewImmigrationFile);
   const fetchCallCrewList = useCrewImmigrationReducer((state) => state.fetchCallCrewList);
   const uploadedCrewFiles = useCrewImmigrationReducer((state) => state.uploadedCrewFiles);
   const batchOptions = useCrewImmigrationReducer((state) => state.batchOptions);
+  // Shared config for the passport/iqama/visa doc-copy upload actions —
+  // both the top dropzones and the Crew Listing bulk actions use these.
+  const docUploadConfig = {
+    passport: { uploadAction: uploadPassportCopies, fileFieldName: "passports[]", label: "Passport" },
+    iqama: { uploadAction: uploadIqamaCopies, fileFieldName: "iqamas[]", label: "Iqama" },
+    visa: { uploadAction: uploadVisaCopies, fileFieldName: "visas[]", label: "Visa" },
+  };
   const nationalities = useCommonReducer((state) => state.nationalities);
   const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
   const createCrewImmigrationBooking = useLaunchHireServiceReducer((state) => state.createCrewImmigrationBooking);
@@ -150,12 +158,9 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [isListingLoading, setIsListingLoading] = useState(true);
   const [listingRefreshTick, setListingRefreshTick] = useState(0);
   const [listingSelectedIds, setListingSelectedIds] = useState([]);
-  // Local-only override so the bulk "Upload Visa" action can flip a crew's
-  // visa status icon on — mirrors CrewManagementDashboard's manualDocOverrides,
-  // since there's no bulk visa upload endpoint yet.
-  const [manualDocOverrides, setManualDocOverrides] = useState({});
   const [isUploadingPassports, setIsUploadingPassports] = useState(false);
   const [isUploadingIqamas, setIsUploadingIqamas] = useState(false);
+  const [isUploadingVisas, setIsUploadingVisas] = useState(false);
   const listingPassportInputRef = useRef(null);
   const listingIqamaInputRef = useRef(null);
   const listingVisaInputRef = useRef(null);
@@ -318,34 +323,22 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
 
-    const stepKey = kind === "passport" ? "passport" : "iqama";
-    const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
-    const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
-    const label = kind === "passport" ? "Passport" : "Iqama";
+    const { uploadAction, fileFieldName, label } = docUploadConfig[kind];
 
-    setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "uploading" } }));
+    setUploadSteps((prev) => ({ ...prev, [kind]: { ...prev[kind], status: "uploading" } }));
 
     const formData = new FormData();
     files.forEach((file) => formData.append(fileFieldName, file));
 
     try {
       await uploadAction({ formData });
-      setUploadSteps((prev) => ({ ...prev, [stepKey]: { status: "completed", files, progress: 100 } }));
+      setUploadSteps((prev) => ({ ...prev, [kind]: { status: "completed", files, progress: 100 } }));
       setListingRefreshTick((tick) => tick + 1);
       notify(`${label} uploaded — ${files.length} file(s).`, "success");
     } catch {
-      setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "failed" } }));
+      setUploadSteps((prev) => ({ ...prev, [kind]: { ...prev[kind], status: "failed" } }));
       notify(`Failed to upload ${label.toLowerCase()} copies. Please try again.`, "error");
     }
-  };
-
-  // No bulk backend endpoint exists yet for visa files (same limitation as
-  // Crew Management), so this step stays local-only.
-  const handleVisaFiles = (fileList) => {
-    if (uploadSteps.crewList.status !== "completed") return;
-    const files = Array.from(fileList || []);
-    if (files.length === 0) return;
-    setUploadSteps((prev) => ({ ...prev, visa: { status: "completed", files, progress: 100 } }));
   };
 
   const handlePreviewCrew = async () => {
@@ -377,7 +370,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     () =>
       pagedListingCrewList.map((crew, index) => {
         const id = getCrewOptionId(crew, index);
-        const docOverrides = manualDocOverrides[id] || {};
         return {
           id,
           crewId: crew?.crew_id ?? crew?.crew_change_id ?? id,
@@ -386,11 +378,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
           nationality: crew?.nationality ?? "N/A",
           rank: crew?.rank ?? "",
           passportOrIqama: hasDocumentUrl(crew?.passport_copy_url) || hasDocumentUrl(crew?.iqama_copy_url),
-          visa: hasDocumentUrl(crew?.visa_copy_url) || Boolean(docOverrides.visa),
+          visa: hasDocumentUrl(crew?.visa_copy_url),
           batchLabel: crew?.batchLabel || "Batch 1",
         };
       }),
-    [pagedListingCrewList, manualDocOverrides]
+    [pagedListingCrewList]
   );
 
   // Groups the current page's rows by batch so the table can show a
@@ -416,19 +408,22 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setListingSelectedIds((prev) => (prev.length === listingRows.length ? [] : listingRows.map((row) => row.id)));
   };
 
-  // Passport/Iqama bulk upload — same real endpoints as CrewManagementDashboard
-  // (crew/upload_passport_copies + passports[], crew/upload_iqama_copies +
-  // iqamas[]); refetches the listing afterwards so the doc icons reflect the
-  // real result.
+  // Passport/Iqama/Visa bulk upload — real endpoints (crew/upload_passport_copies +
+  // passports[], crew/upload_iqama_copies + iqamas[], crew/upload_visa_copies +
+  // visas[]); refetches the listing afterwards so the doc icons reflect the real result.
+  const listingBulkUploadSetters = {
+    passport: setIsUploadingPassports,
+    iqama: setIsUploadingIqamas,
+    visa: setIsUploadingVisas,
+  };
+
   const handleListingBulkCopyUpload = (kind) => async (event) => {
     const files = Array.from(event.target.files || []);
     event.target.value = "";
     if (files.length === 0) return;
 
-    const setUploading = kind === "passport" ? setIsUploadingPassports : setIsUploadingIqamas;
-    const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
-    const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
-    const label = kind === "passport" ? "Passport" : "Iqama";
+    const setUploading = listingBulkUploadSetters[kind];
+    const { uploadAction, fileFieldName, label } = docUploadConfig[kind];
 
     const formData = new FormData();
     files.forEach((file) => formData.append(fileFieldName, file));
@@ -443,22 +438,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     } finally {
       setUploading(false);
     }
-  };
-
-  // No bulk backend endpoint exists yet for visa files (same limitation as
-  // Crew Management), so this just flips the local override on for the
-  // currently-checked rows.
-  const handleListingBulkVisaUpload = (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || listingSelectedIds.length === 0) return;
-    setManualDocOverrides((prev) => {
-      const next = { ...prev };
-      listingSelectedIds.forEach((id) => {
-        next[id] = { ...(next[id] || {}), visa: true };
-      });
-      return next;
-    });
   };
 
   const handleStartEdit = (row) => {
@@ -652,7 +631,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                     steps={uploadSteps}
                     onSelectPassportFiles={handleDocCopyUpload("passport")}
                     onSelectIqamaFiles={handleDocCopyUpload("iqama")}
-                    onSelectVisaFiles={handleVisaFiles}
+                    onSelectVisaFiles={handleDocCopyUpload("visa")}
                   />
                 </div>
               </div>
@@ -763,15 +742,19 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   <button
                     type="button"
                     className="crew-header-btn"
+                    disabled={isUploadingVisas}
                     onClick={() => listingVisaInputRef.current?.click()}
                   >
-                    <span className="crew-header-btn__label">Upload Visa</span>
+                    <span className="crew-header-btn__label">
+                      {isUploadingVisas ? "Uploading Visa…" : "Upload Visa"}
+                    </span>
                   </button>
                   <input
                     ref={listingVisaInputRef}
                     type="file"
+                    multiple
                     className="crew-doc-input"
-                    onChange={handleListingBulkVisaUpload}
+                    onChange={handleListingBulkCopyUpload("visa")}
                   />
                 </div>
               )}
