@@ -7,12 +7,6 @@ const UploadIcon = () => (
   </svg>
 );
 
-const CheckIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 8.5L6.5 12L13 4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const WarningIcon = () => (
   <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M8 5V9M8 11.5H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -27,7 +21,6 @@ const WarningIcon = () => (
 const CrewListUploadBox = ({
   movementType,
   movementTypeLabel,
-  otherMovementTypeLabel,
   status,
   onSelectFile,
   onBlocked,
@@ -71,10 +64,13 @@ const CrewListUploadBox = ({
       return;
     }
     if (status === "uploading") return;
-    const file = e.dataTransfer.files?.[0];
-    if (file) onSelectFile(file);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) onSelectFile(files);
   };
 
+  // Multiple crew list files can be uploaded for the same movement type, so
+  // the box always stays in its "ready to upload" prompt state — it never
+  // switches to a persistent "Uploaded" state, only "uploading"/"failed".
   let title = "Crew List";
   let subtitle = "Select a movement type to enable upload";
   let Icon = UploadIcon;
@@ -83,17 +79,13 @@ const CrewListUploadBox = ({
     if (status === "uploading") {
       title = `Uploading ${movementTypeLabel} Crew List…`;
       subtitle = "Please wait";
-    } else if (status === "completed") {
-      title = `${movementTypeLabel} Crew List Uploaded`;
-      subtitle = `Upload another or select ${otherMovementTypeLabel}`;
-      Icon = CheckIcon;
     } else if (status === "failed") {
       title = `${movementTypeLabel} Crew List Upload Failed`;
       subtitle = "Tap to try again";
       Icon = WarningIcon;
     } else {
       title = `Upload ${movementTypeLabel} Crew List`;
-      subtitle = "Excel or CSV";
+      subtitle = "Excel or CSV — multiple files supported";
     }
   }
 
@@ -112,13 +104,14 @@ const CrewListUploadBox = ({
       <input
         ref={fileInputRef}
         type="file"
+        multiple
         accept=".xlsx,.xls,.csv"
         className="crew-dropzone__input"
         disabled={disabled}
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = Array.from(e.target.files || []);
           e.target.value = "";
-          if (file) onSelectFile(file);
+          if (files.length > 0) onSelectFile(files);
         }}
       />
       <span className={`crew-list-upload-box__icon crew-list-upload-box__icon--${status}`}>
@@ -135,7 +128,6 @@ const CrewListUploadBox = ({
 CrewListUploadBox.propTypes = {
   movementType: PropTypes.string,
   movementTypeLabel: PropTypes.string,
-  otherMovementTypeLabel: PropTypes.string,
   status: PropTypes.oneOf(["pending", "uploading", "completed", "failed"]),
   onSelectFile: PropTypes.func.isRequired,
   onBlocked: PropTypes.func,
@@ -144,7 +136,6 @@ CrewListUploadBox.propTypes = {
 CrewListUploadBox.defaultProps = {
   movementType: "",
   movementTypeLabel: "",
-  otherMovementTypeLabel: "",
   status: "pending",
 };
 

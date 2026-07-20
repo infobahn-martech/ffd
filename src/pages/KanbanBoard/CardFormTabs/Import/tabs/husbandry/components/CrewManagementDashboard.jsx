@@ -192,7 +192,6 @@ MovementTypeRadioCard.propTypes = {
 // existing service form is opened via onNavigateToTab.
 const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNavigateToTab }) => {
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
-  const replaceCrewFile = useCrewReducer((state) => state.replaceCrewFile);
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const uploadPassportCopies = useCrewReducer((state) => state.uploadPassportCopies);
   const uploadIqamaCopies = useCrewReducer((state) => state.uploadIqamaCopies);
@@ -212,8 +211,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   // Each entry: { name, size, movementType, status, crewCount, crewIds }.
   const [crewUploads, setCrewUploads] = useState({ "Sign On": null, "Sign Off": null });
   const [previewMovementType, setPreviewMovementType] = useState(null);
-  const [replaceTargetType, setReplaceTargetType] = useState(null);
-  const replaceFileInputRef = useRef(null);
 
   const [selectedServiceForCrew, setSelectedServiceForCrew] = useState(null);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
@@ -417,13 +414,14 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     notify("Select a movement type before uploading the crew list.", "error");
   };
 
-  // `targetType` defaults to the currently-selected radio, but Replace passes
-  // an explicit type so it can re-upload a specific movement type's file
-  // without disturbing the current selection. `mode: "replace"` (set by the
-  // Uploaded Crew Lists panel's Replace action) hits crew/replace_crew_file
-  // instead of the normal crew/import_crew_ai import endpoint.
-  const handleCrewListFile = async (file, targetType = movementType, mode = "import") => {
-    if (!file) return;
+  // Accepts one or more crew list files for the currently-selected movement
+  // type — each is imported via its own crew/import_crew_ai call (so
+  // multiple crew list files can be uploaded into the same movement type,
+  // and one bad file doesn't block the rest), then a single combined
+  // refresh/notification covers the whole batch.
+  const handleCrewListFiles = async (fileList, targetType = movementType) => {
+    const files = Array.isArray(fileList) ? fileList : Array.from(fileList || []);
+    if (files.length === 0) return;
     if (!targetType) {
       handleCrewListBlocked();
       return;
@@ -435,8 +433,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       ...prev,
       [targetType]: {
         ...(prev[targetType] || {}),
-        name: file.name,
-        size: file.size,
+        name: files[0].name,
+        size: files[0].size,
         movementType: targetType,
         status: "uploading",
         crewCount: prev[targetType]?.crewCount ?? 0,
@@ -452,82 +450,77 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       return;
     }
 
-    const formData = new FormData();
-    formData.append("call_id", String(resolvedCallId));
-    formData.append("vessel_id", String(resolvedVesselId));
-    formData.append("movement_type", targetType);
-    formData.append("file", file);
+    let successCount = 0;
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("call_id", String(resolvedCallId));
+      formData.append("vessel_id", String(resolvedVesselId));
+      formData.append("movement_type", targetType);
+      formData.append("file", file);
+      try {
+        await importCrewFile({ formData });
+        successCount += 1;
+      } catch {
+        // this file failed — continue with the rest
+      }
+    }
 
-    try {
-      const uploadAction = mode === "replace" ? replaceCrewFile : importCrewFile;
-      await uploadAction({ formData });
-      const list = await fetchCallCrewList({
-        payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
-      });
-      const refreshedList = Array.isArray(list) ? list : [];
-      setUploadedCrewList(refreshedList);
-      handleChange("crewList")({ target: { value: refreshedList } });
-      handleChange("crewCount")({ target: { value: refreshedList.length } });
-      setUploadSteps((prev) => ({
-        ...prev,
-        crewList: { status: "completed", files: [{ name: file.name }], progress: 100 },
-      }));
+    const list = await fetchCallCrewList({
+      payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
+    });
+    const refreshedList = Array.isArray(list) ? list : [];
+    setUploadedCrewList(refreshedList);
+    handleChange("crewList")({ target: { value: refreshedList } });
+    handleChange("crewCount")({ target: { value: refreshedList.length } });
 
-      // Crew belonging to this batch = everything not already known to
-      // belong to the other movement type (prefers a real movement_type
-      // field from the backend when present).
-      const otherType = targetType === "Sign On" ? "Sign Off" : "Sign On";
-      const otherIds = new Set(crewUploads[otherType]?.crewIds || []);
-      const idsForThisType = [];
-      refreshedList.forEach((crew, index) => {
-        const id = getCrewOptionId(crew, index);
-        const backendTag = crew?.movement_type ?? crew?.movementType;
-        const belongsHere = backendTag === targetType || (!backendTag && !otherIds.has(id));
-        if (belongsHere) idsForThisType.push(id);
-      });
-
-      setCrewUploads((prev) => ({
-        ...prev,
-        [targetType]: {
-          name: file.name,
-          size: file.size,
-          movementType: targetType,
-          status: "completed",
-          crewCount: idsForThisType.length,
-          crewIds: idsForThisType,
-        },
-      }));
-      setSummarySelectedIds([]);
-      setSummaryRefreshTick((tick) => tick + 1);
-
-      const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === targetType)?.label || "";
-      const actionLabel = mode === "replace" ? "replaced" : "uploaded";
-      notify(`${movementTypeLabel} crew list ${actionLabel} — ${idsForThisType.length} crew member(s) loaded.`, "success");
-    } catch {
+    if (successCount === 0) {
       setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
       setCrewUploads((prev) => ({ ...prev, [targetType]: { ...(prev[targetType] || {}), status: "failed" } }));
-      notify(`Failed to ${mode === "replace" ? "replace" : "upload"} crew list. Please try again.`, "error");
+      notify("Failed to upload crew list. Please try again.", "error");
+      return;
     }
-  };
 
-  const handleReplaceClick = (type) => {
-    setReplaceTargetType(type);
-    replaceFileInputRef.current?.click();
-  };
+    setUploadSteps((prev) => ({
+      ...prev,
+      crewList: { status: "completed", files: files.map((f) => ({ name: f.name })), progress: 100 },
+    }));
 
-  const handleReplaceFileChange = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !replaceTargetType) return;
-    handleCrewListFile(file, replaceTargetType, "replace");
-    setReplaceTargetType(null);
-  };
+    // Crew belonging to this batch = everything not already known to
+    // belong to the other movement type (prefers a real movement_type
+    // field from the backend when present).
+    const otherType = targetType === "Sign On" ? "Sign Off" : "Sign On";
+    const otherIds = new Set(crewUploads[otherType]?.crewIds || []);
+    const idsForThisType = [];
+    refreshedList.forEach((crew, index) => {
+      const id = getCrewOptionId(crew, index);
+      const backendTag = crew?.movement_type ?? crew?.movementType;
+      const belongsHere = backendTag === targetType || (!backendTag && !otherIds.has(id));
+      if (belongsHere) idsForThisType.push(id);
+    });
 
-  const handleRemoveUpload = (type) => {
-    const label = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === type)?.label || type;
-    if (!window.confirm(`Remove the ${label} crew list? This only clears it from this view.`)) return;
-    setCrewUploads((prev) => ({ ...prev, [type]: null }));
+    setCrewUploads((prev) => ({
+      ...prev,
+      [targetType]: {
+        name: files[files.length - 1].name,
+        size: files[files.length - 1].size,
+        movementType: targetType,
+        status: "completed",
+        crewCount: idsForThisType.length,
+        crewIds: idsForThisType,
+      },
+    }));
     setSummarySelectedIds([]);
+    setSummaryRefreshTick((tick) => tick + 1);
+
+    const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === targetType)?.label || "";
+    if (successCount === files.length) {
+      notify(`${movementTypeLabel} crew list uploaded — ${idsForThisType.length} crew member(s) loaded.`, "success");
+    } else {
+      notify(
+        `${movementTypeLabel} crew list uploaded ${successCount} of ${files.length} file(s) — ${idsForThisType.length} crew member(s) loaded.`,
+        "error"
+      );
+    }
   };
 
   const handlePreviewClick = (type) => setPreviewMovementType(type);
@@ -1004,8 +997,6 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   }
 
   const selectedMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === movementType)?.label || "";
-  const otherMovementType = movementType === "Sign On" ? "Sign Off" : "Sign On";
-  const otherMovementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === otherMovementType)?.label || "";
   const crewListStatus = movementType ? crewUploads[movementType]?.status || "pending" : "pending";
 
   return (
@@ -1041,9 +1032,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
                   <CrewListUploadBox
                     movementType={movementType}
                     movementTypeLabel={selectedMovementTypeLabel}
-                    otherMovementTypeLabel={otherMovementTypeLabel}
                     status={crewListStatus}
-                    onSelectFile={handleCrewListFile}
+                    onSelectFile={handleCrewListFiles}
                     onBlocked={handleCrewListBlocked}
                   />
                   <CrewUploadDropzones
@@ -1061,18 +1051,8 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
               crewUploads={crewUploads}
               cardColor={cardColor}
               onPreview={handlePreviewClick}
-              onReplace={handleReplaceClick}
-              onRemove={handleRemoveUpload}
             />
           </div>
-
-          <input
-            ref={replaceFileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            className="crew-doc-input"
-            onChange={handleReplaceFileChange}
-          />
 
           <div className="crew-mgmt-service-grid">
             {CREW_SERVICE_CARDS.map((card) => {

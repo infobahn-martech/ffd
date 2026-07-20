@@ -24,10 +24,11 @@ const formatFileSize = (bytes) => {
 
 // Wide horizontal preview card for one movement type's uploaded crew list —
 // icon | file details (grows, filename truncates with a title tooltip) |
-// movement-type badge (top-right), with Preview/Replace/Remove spanning the
-// full width on their own row below. All three actions act only on this
-// movement type's file.
-const CrewUploadedCard = ({ upload, movementTypeLabel, onPreview, onReplace, onRemove }) => {
+// movement-type badge (top-right), with Preview spanning the full width on
+// its own row below. Multiple crew list files can be uploaded into the same
+// movement type, so there's no Replace/Remove here — just keep uploading
+// more via the box above.
+const CrewUploadedCard = ({ upload, movementTypeLabel, onPreview }) => {
   const isUploading = upload.status === "uploading";
   const isFailed = upload.status === "failed";
 
@@ -64,22 +65,6 @@ const CrewUploadedCard = ({ upload, movementTypeLabel, onPreview, onReplace, onR
         >
           Preview
         </button>
-        <button
-          type="button"
-          className="crew-uploaded-card__action"
-          onClick={() => onReplace(upload.movementType)}
-          disabled={isUploading}
-        >
-          Replace
-        </button>
-        <button
-          type="button"
-          className="crew-uploaded-card__action crew-uploaded-card__action--danger"
-          onClick={() => onRemove(upload.movementType)}
-          disabled={isUploading}
-        >
-          Remove
-        </button>
       </div>
     </div>
   );
@@ -97,15 +82,13 @@ CrewUploadedCard.propTypes = {
   }).isRequired,
   movementTypeLabel: PropTypes.string.isRequired,
   onPreview: PropTypes.func.isRequired,
-  onReplace: PropTypes.func.isRequired,
-  onRemove: PropTypes.func.isRequired,
 };
 
 // Right-side "Uploaded Crew Lists" panel — the single place Sign On / Sign
 // Off upload state is shown. Renders an empty state until at least one
 // movement type has an uploaded file, then a compact stacked card per
 // uploaded type (never an empty card for a type that hasn't been uploaded).
-const CrewUploadedListsPanel = ({ movementTypeOptions, crewUploads, cardColor, onPreview, onReplace, onRemove }) => {
+const CrewUploadedListsPanel = ({ movementTypeOptions, crewUploads, cardColor, onPreview }) => {
   const uploadedOptions = movementTypeOptions.filter((option) => crewUploads[option.value]);
 
   return (
@@ -129,8 +112,6 @@ const CrewUploadedListsPanel = ({ movementTypeOptions, crewUploads, cardColor, o
               upload={crewUploads[option.value]}
               movementTypeLabel={option.label}
               onPreview={onPreview}
-              onReplace={onReplace}
-              onRemove={onRemove}
             />
           ))}
         </div>
@@ -146,8 +127,6 @@ CrewUploadedListsPanel.propTypes = {
   crewUploads: PropTypes.object.isRequired,
   cardColor: PropTypes.string,
   onPreview: PropTypes.func.isRequired,
-  onReplace: PropTypes.func.isRequired,
-  onRemove: PropTypes.func.isRequired,
 };
 
 export default CrewUploadedListsPanel;

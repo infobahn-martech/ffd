@@ -284,9 +284,14 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     [filteredListingCrewList, effectiveListingPage]
   );
 
+  // Accepts one or more crew list files — crew/import_crew_immigration only
+  // takes a single {call_id, file}, so each file gets its own API call (one
+  // bad file doesn't block the rest), then a single combined refresh/
+  // notification covers the whole batch.
   const handleCrewListFile = useCallback(
-    async (file) => {
-      if (!file || uploadSteps.crewList.status === "uploading") return;
+    async (fileList) => {
+      const files = Array.isArray(fileList) ? fileList : Array.from(fileList || []);
+      if (files.length === 0 || uploadSteps.crewList.status === "uploading") return;
 
       setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "uploading" } }));
 
@@ -297,22 +302,39 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         return;
       }
 
-      const formData = new FormData();
-      formData.append("call_id", String(resolvedCallId));
-      formData.append("file", file);
+      let successCount = 0;
+      let totalCrewCount = 0;
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("call_id", String(resolvedCallId));
+        formData.append("file", file);
+        try {
+          const importResult = await importCrewImmigrationFile({ formData });
+          totalCrewCount += extractImportedCrewCount(importResult);
+          successCount += 1;
+        } catch {
+          // this file failed — continue with the rest
+        }
+      }
 
-      try {
-        const importResult = await importCrewImmigrationFile({ formData });
-        const crewCount = extractImportedCrewCount(importResult);
+      // Refetching also refreshes the store's uploadedCrewFiles/batchOptions from the API.
+      setListingRefreshTick((tick) => tick + 1);
 
-        setUploadSteps((prev) => ({ ...prev, crewList: { status: "completed", files: [{ name: file.name }], progress: 100 } }));
-
-        // Refetching also refreshes the store's uploadedCrewFiles/batchOptions from the API.
-        setListingRefreshTick((tick) => tick + 1);
-        notify(`Crew list uploaded — ${crewCount} crew member(s) loaded.`, "success");
-      } catch {
+      if (successCount === 0) {
         setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
         notify("Failed to upload crew list. Please try again.", "error");
+        return;
+      }
+
+      setUploadSteps((prev) => ({
+        ...prev,
+        crewList: { status: "completed", files: files.map((f) => ({ name: f.name })), progress: 100 },
+      }));
+
+      if (successCount === files.length) {
+        notify(`Crew list uploaded — ${totalCrewCount} crew member(s) loaded.`, "success");
+      } else {
+        notify(`Crew list uploaded ${successCount} of ${files.length} file(s) — ${totalCrewCount} crew member(s) loaded.`, "error");
       }
     },
     [uploadSteps, resolveCallAndVesselIds, importCrewImmigrationFile]
@@ -623,7 +645,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   <CrewListUploadBox
                     movementType="crew-list"
                     movementTypeLabel="Crew List"
-                    otherMovementTypeLabel="the next file"
                     status={uploadSteps.crewList.status}
                     onSelectFile={handleCrewListFile}
                   />
