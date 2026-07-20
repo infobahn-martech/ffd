@@ -32,10 +32,11 @@
     flex-direction: column;
   }
 
-  .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-  }
+}
+
+.business-rules-modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .business-rules-modal-header {
@@ -639,8 +640,14 @@
 }
 
 // Add / Edit Business Rule form modal
+// !important on background-color: a plain-class backdrop selector like this
+// can lose to other pages' `.modal-backdrop.show { ... }` rules (2-class
+// selector = higher specificity, wins regardless of source order) if that
+// page's CSS happens to already be loaded in the bundle.
 .business-rule-form-modal-backdrop {
   z-index: 1065 !important;
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .business-rule-form-modal {
@@ -2020,9 +2027,16 @@
   gap: 16px;
 }
 
-// Card property match modal
+// Card property match modal — this is the backdrop for a modal opened from
+// *inside* another modal (business-rule-form-modal), so it must reliably win
+// the darkening so the parent modal reads as dimmed behind the popup.
+// !important guards against other pages' higher-specificity
+// `.modal-backdrop.show { ... }` rules (2-class selector beats this 1-class
+// one regardless of source order) if that page's CSS is already bundled in.
 .card-property-match-modal-backdrop {
   z-index: 1075 !important;
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .card-property-match-modal {
@@ -3521,7 +3535,8 @@
 }
 
 .br-cancel-confirm-backdrop {
-  background-color: rgba(15, 23, 42, 0.7);
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .br-cancel-confirm-content {
@@ -3760,5 +3775,163 @@ body .modal.br-invoke-test-result-modal.show {
 
 .br-subtask-description-textarea {
   min-height: 64px;
+}
+
+/* ================================
+   APP DARK MODE — Business rule modals
+   (when layoutView === 'dark', body.app-dark-mode)
+   Scope: popup backdrop + modal box surfaces only
+   (header/footer/body background, borders, title/base text).
+   Inner widgets (inputs, tables, pills, buttons, etc.) are left
+   as-is for now — can be extended modal-by-modal if required.
+================================ */
+
+body.app-dark-mode {
+
+  // Add / Edit business rule form modal
+  .business-rule-form-modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+  }
+
+  .business-rule-form-modal .modal-content {
+    background: #18181b;
+  }
+
+  .business-rule-form-modal-header,
+  .business-rule-form-modal-footer {
+    background: #18181b;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .business-rule-form-modal-title {
+    color: #fafafa;
+  }
+
+  .business-rule-form-modal-body {
+    background: #0c0f14;
+    color: #e4e4e7;
+  }
+
+  .business-rule-form-footer-note {
+    color: #a1a1aa;
+
+    strong {
+      color: #e4e4e7;
+    }
+  }
+
+  .business-rule-form-modal-close {
+    background: rgba(255, 255, 255, 0.06);
+    color: #a1a1aa;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fafafa;
+    }
+  }
+
+  // Card property match modal family — property match, board minimap,
+  // internal users picker, notification settings, subtask settings
+  // (all share these base classes with modifier classes on top)
+  .card-property-match-modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+  }
+
+  .card-property-match-modal .modal-content {
+    background: #18181b;
+  }
+
+  .card-property-match-modal-header,
+  .card-property-match-modal-footer {
+    background: #18181b;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .card-property-match-modal-title {
+    color: #fafafa;
+  }
+
+  .card-property-match-modal-body {
+    color: #e4e4e7;
+  }
+
+  .br-floating-modal-close {
+    background: #27272a;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #a1a1aa;
+
+    &:hover {
+      background: #3f3f46;
+      color: #fafafa;
+    }
+  }
+
+  // Remove-parameter cancel confirm dialog
+  .br-cancel-confirm-backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  .br-cancel-confirm-content {
+    background: #18181b;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .br-cancel-confirm-close-btn {
+    background: #27272a;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #a1a1aa;
+
+    &:hover {
+      background: #3f3f46;
+      color: #fafafa;
+    }
+  }
+
+  .br-cancel-confirm-text {
+    color: #e4e4e7;
+  }
+
+  .br-cancel-confirm-btn--no {
+    background: #27272a;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #93c5fd;
+
+    &:hover {
+      background: #3f3f46;
+    }
+  }
+
+  // Invoke test result dialog
+  .br-invoke-test-result-overlay {
+    background-color: rgba(0, 0, 0, 0.85);
+  }
+
+  .br-invoke-test-result-content {
+    background: #18181b;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .br-invoke-test-result-close-btn {
+    background: #27272a;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #a1a1aa;
+
+    &:hover {
+      background: #3f3f46;
+      color: #fafafa;
+    }
+  }
+
+  .br-invoke-test-result-title {
+    color: #fafafa;
+  }
+
+  .br-invoke-test-result-message {
+    color: #a1a1aa;
+
+    &--error {
+      color: $status-danger;
+    }
+  }
 }
 
