@@ -44,7 +44,7 @@ export function injectVesselRegFieldValues(html, fieldValues) {
       valueCells.forEach((cell) => {
         cell.textContent = value;
       });
-    });
+                                                                                                                                                                                                                                                                                                                                        });
   }
 
   return doc.body.innerHTML;
