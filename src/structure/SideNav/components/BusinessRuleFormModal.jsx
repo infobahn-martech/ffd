@@ -3257,7 +3257,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
   const [authentication, setAuthentication] = useState(DUMMY_INVOKE_AUTH_OPTIONS[0]);
   const [authUsername, setAuthUsername] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authToken, setAuthToken] = useState('');
+  const [authKeyHeaderName, setAuthKeyHeaderName] = useState('');
+  const [authKeyHeaderValue, setAuthKeyHeaderValue] = useState('');
   const [sendParamsInBody, setSendParamsInBody] = useState(false);
   const [expandedHeaders, setExpandedHeaders] = useState(true);
   const [expandedParams, setExpandedParams] = useState(true);
@@ -3280,7 +3281,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       setAuthentication(fetchedSettings.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
       setAuthUsername(fetchedSettings.auth_username ?? '');
       setAuthPassword(fetchedSettings.auth_password ?? '');
-      setAuthToken(fetchedSettings.auth_token ?? '');
+      setAuthKeyHeaderName(fetchedSettings.auth_key_header_name ?? '');
+      setAuthKeyHeaderValue(fetchedSettings.auth_key_header_value ?? '');
       setSendParamsInBody(supportsBody ? Boolean(Number(fetchedSettings.send_params_in_body ?? 0)) : false);
       setHeaders(withTrailingBlankHeader(mapFetchedHeaders(fetchedSettings.headers)));
       setParams(buildInitialInvokeParams(mapFetchedParams(fetchedSettings.params), supportsBody, true));
@@ -3292,7 +3294,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       setAuthentication(initialSettings?.authentication ?? DUMMY_INVOKE_AUTH_OPTIONS[0]);
       setAuthUsername(initialSettings?.authUsername ?? '');
       setAuthPassword(initialSettings?.authPassword ?? '');
-      setAuthToken(initialSettings?.authToken ?? '');
+      setAuthKeyHeaderName(initialSettings?.authKeyHeaderName ?? '');
+      setAuthKeyHeaderValue(initialSettings?.authKeyHeaderValue ?? '');
       setSendParamsInBody(supportsBody ? (initialSettings?.sendParamsInBody ?? false) : false);
       setHeaders(withTrailingBlankHeader(initialSettings?.headers ?? []));
       setParams(buildInitialInvokeParams(initialSettings?.params, supportsBody, initialSettings?.params !== undefined));
@@ -3451,15 +3454,16 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
 
   const buildWebServicePayload = () => {
     const urlValue = urlPartsToString(parseUrlBoxParts(urlBoxRef.current));
+    const supportsBody = INVOKE_METHODS_WITH_BODY.includes(method);
     const payload = {
       service_name: serviceName,
       url: urlValue,
       method,
       authentication,
       send_params_in_body: sendParamsInBody ? 1 : 0,
-      headers: headers
-        .filter((h) => !isBlankHeaderRow(h))
-        .map((h) => ({ key: h.key, value: h.value })),
+      headers: supportsBody
+        ? headers.filter((h) => !isBlankHeaderRow(h)).map((h) => ({ key: h.key, value: h.value }))
+        : [],
       params: params
         .filter((p) => !isBlankParamRow(p))
         .map((p) => ({ key: p.key, value: p.fields.length > 0 ? joinUrlFields('', p.fields) : p.value })),
@@ -3468,7 +3472,8 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       payload.auth_username = authUsername;
       payload.auth_password = authPassword;
     } else if (authentication === 'API_KEY') {
-      payload.auth_token = authToken;
+      payload.auth_key_header_name = authKeyHeaderName;
+      payload.auth_key_header_value = authKeyHeaderValue;
     }
     return { payload, urlValue };
   };
@@ -3515,13 +3520,15 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
       cb: (data) => {
         onSave({
           serviceName, url: urlValue, method, authentication,
-          authUsername, authPassword, authToken,
+          authUsername, authPassword, authKeyHeaderName, authKeyHeaderValue,
           sendParamsInBody, headers, params, webServiceId: data?.web_service_id ?? existingWebServiceId ?? null,
         });
         onClose();
       },
     });
   };
+
+  const supportsBody = INVOKE_METHODS_WITH_BODY.includes(method);
 
   return (
     <>
@@ -3637,66 +3644,80 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
           )}
 
           {authentication === 'API_KEY' && (
-            <div className="notification-field">
-              <label className="business-rule-form-label br-invoke-field-label">API Key</label>
-              <input
-                type="password"
-                className="business-rule-form-input"
-                placeholder="Enter API key"
-                value={authToken}
-                onChange={(e) => setAuthToken(e.target.value)}
-              />
+            <div className="br-invoke-two-col">
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">API KEY header name</label>
+                <input
+                  type="text"
+                  className="business-rule-form-input"
+                  placeholder="Enter header name"
+                  value={authKeyHeaderName}
+                  onChange={(e) => setAuthKeyHeaderName(e.target.value)}
+                />
+              </div>
+              <div className="notification-field">
+                <label className="business-rule-form-label br-invoke-field-label">API KEY header value</label>
+                <input
+                  type="text"
+                  className="business-rule-form-input"
+                  placeholder="Enter header value"
+                  value={authKeyHeaderValue}
+                  onChange={(e) => setAuthKeyHeaderValue(e.target.value)}
+                />
+              </div>
             </div>
           )}
 
-          <div className="br-property-section">
-            <button
-              type="button"
-              className="br-property-section-toggle"
-              onClick={() => setExpandedHeaders((v) => !v)}
-            >
-              <span className="br-property-section-toggle-icon">
-                {expandedHeaders ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
-              </span>
-              Headers
-            </button>
-            {expandedHeaders && (
-              <>
-                <div className="br-invoke-kv-columns">
-                  <span>Header</span>
-                  <span>Value</span>
-                </div>
-                <div className="br-invoke-kv-list">
-                  {headers.map((h) => (
-                    <div key={h.id} className="br-invoke-kv-row">
-                      <input
-                        type="text"
-                        className="business-rule-form-input"
-                        value={h.key}
-                        onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
-                        onFocus={() => handleHeaderFocus(h.id)}
-                      />
-                      <input
-                        type="text"
-                        className="business-rule-form-input"
-                        value={h.value}
-                        onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
-                        onFocus={() => handleHeaderFocus(h.id)}
-                      />
-                      <button
-                        type="button"
-                        className="br-invoke-row-delete"
-                        onClick={() => handleRemoveHeader(h.id)}
-                        aria-label="Remove header"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          {supportsBody && (
+            <div className="br-property-section">
+              <button
+                type="button"
+                className="br-property-section-toggle"
+                onClick={() => setExpandedHeaders((v) => !v)}
+              >
+                <span className="br-property-section-toggle-icon">
+                  {expandedHeaders ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                </span>
+                Headers
+              </button>
+              {expandedHeaders && (
+                <>
+                  <div className="br-invoke-kv-columns">
+                    <span>Header</span>
+                    <span>Value</span>
+                  </div>
+                  <div className="br-invoke-kv-list">
+                    {headers.map((h) => (
+                      <div key={h.id} className="br-invoke-kv-row">
+                        <input
+                          type="text"
+                          className="business-rule-form-input"
+                          value={h.key}
+                          onChange={(e) => handleHeaderChange(h.id, 'key', e.target.value)}
+                          onFocus={() => handleHeaderFocus(h.id)}
+                        />
+                        <input
+                          type="text"
+                          className="business-rule-form-input"
+                          value={h.value}
+                          onChange={(e) => handleHeaderChange(h.id, 'value', e.target.value)}
+                          onFocus={() => handleHeaderFocus(h.id)}
+                        />
+                        <button
+                          type="button"
+                          className="br-invoke-row-delete"
+                          onClick={() => handleRemoveHeader(h.id)}
+                          aria-label="Remove header"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="br-property-section">
             <button
@@ -3884,7 +3905,8 @@ WebInvokeSettingsModal.propTypes = {
     authentication: PropTypes.string,
     authUsername: PropTypes.string,
     authPassword: PropTypes.string,
-    authToken: PropTypes.string,
+    authKeyHeaderName: PropTypes.string,
+    authKeyHeaderValue: PropTypes.string,
     sendParamsInBody: PropTypes.bool,
     headers: PropTypes.array,
     params: PropTypes.array,
@@ -3899,7 +3921,8 @@ WebInvokeSettingsModal.propTypes = {
     authentication: PropTypes.string,
     auth_username: PropTypes.string,
     auth_password: PropTypes.string,
-    auth_token: PropTypes.string,
+    auth_key_header_name: PropTypes.string,
+    auth_key_header_value: PropTypes.string,
     send_params_in_body: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     headers: PropTypes.array,
     params: PropTypes.array,
