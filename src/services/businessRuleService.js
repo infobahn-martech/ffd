@@ -24,6 +24,9 @@ const getBusinessRules = ({ params } = {}) =>
 const getBusinessRuleById = (businessRuleId) =>
   Gateway.get(`/business_rule/get_business_rule_by_id/${businessRuleId}`);
 
+const getExecutionLogs = (businessRuleId, { params } = {}) =>
+  Gateway.get(`/business_rule/get_execution_logs/${businessRuleId}`, { params });
+
 // TODO: backend has no confirmed endpoint for this yet - path/payload below is a
 // guess mirroring kanban_workflow/enable_disable_workflow; update once backend is ready.
 const toggleBusinessRuleStatus = (businessRuleId) =>
@@ -87,7 +90,7 @@ const getCreateSubtaskSettings = (createSubtaskId) =>
   Gateway.get(`/business_rule/get_create_subtask_settings/${createSubtaskId}`);
 
 export default {
-  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getBusinessRuleById, toggleBusinessRuleStatus, createBusinessRule, getTriggerConfig,
+  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getBusinessRuleById, getExecutionLogs, toggleBusinessRuleStatus, createBusinessRule, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
   getNotificationSettings, saveNotificationSettings, updateNotificationSettings, deleteNotificationSettings, updateWebServiceSettings, deleteWebServiceSettings, saveWebServiceSettings, getWebServiceSettings, testWebServiceSettings,
   saveCreateSubtaskSettings, updateCreateSubtaskSettings, deleteCreateSubtaskSettings, getCreateSubtaskSettings,
