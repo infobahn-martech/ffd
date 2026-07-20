@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-const ROWS_PER_PAGE = 5;
+const ROWS_PER_PAGE = 10;
 
 export default function CrewImmigrationPanel({ batches, loading }) {
   const safeBatches = Array.isArray(batches) ? batches : [];
