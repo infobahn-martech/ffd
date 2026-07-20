@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialData, TASK_WORKFLOW_TEMPLATE } from "../../../shared/helpers/data";
-import { ensureStaticWorkflows, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
+import { ensureStaticWorkflows, injectGROCrewChangeCard, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
 import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
 import {
   mapFullBoardApiResponse,
@@ -40,7 +40,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       const res = await kanbanBoardService.getFullBoard(selectedBoardId);
       const payload = res?.data;
       const mapped = mapFullBoardApiResponse(payload);
-      setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
+      setWorkflows(injectGROCrewChangeCard(ensureStaticWorkflows(mapped.length ? mapped : [])));
       setBoardBackground(extractFullBoardBackground(payload));
       setSelectedCard((prev) => {
         if (!prev?.id) return prev;
@@ -85,7 +85,7 @@ export default function useKanbanBoardState(selectedBoardId) {
         const payload = res?.data;
         const mapped = mapFullBoardApiResponse(payload);
         if (cancelled) return;
-        setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
+        setWorkflows(injectGROCrewChangeCard(ensureStaticWorkflows(mapped.length ? mapped : [])));
         setBoardBackground(extractFullBoardBackground(payload));
         setBoardLoadError(null);
       } catch (e) {
