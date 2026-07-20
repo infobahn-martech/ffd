@@ -620,41 +620,6 @@ function TaxiFleetAssignPanel({
   return (
     <div className="tb-fleet-panel">
       <h3 className="tb-fleet-panel-title">Taxi Fleet Assignment</h3>
-
-      <div className="tb-fleet-operator-row">
-        <div className="tb-fleet-operator-field">
-          <span className="tb-fleet-operator-label">Requested Operator</span>
-          <span className="tb-fleet-operator-value">{operatorName || "—"}</span>
-        </div>
-        <div className="tb-fleet-operator-field">
-          <span className="tb-fleet-operator-label">Phone Number</span>
-          <span className="tb-fleet-operator-value tb-fleet-operator-phone">{operatorPhone || "—"}</span>
-        </div>
-      </div>
-
-      <div className="tb-fleet-booking-row">
-        <div className="tb-fleet-booking-field">
-          <label className="tb-fleet-booking-label">Booking Date</label>
-          <input
-            type="date"
-            className="tb-fleet-booking-input"
-            value={bookingDate}
-            onChange={(e) => onDateChange(e.target.value)}
-            disabled={assigned}
-          />
-        </div>
-        <div className="tb-fleet-booking-field">
-          <label className="tb-fleet-booking-label">Booking Time</label>
-          <input
-            type="time"
-            className="tb-fleet-booking-input"
-            value={bookingTime}
-            onChange={(e) => onTimeChange(e.target.value)}
-            disabled={assigned}
-          />
-        </div>
-      </div>
-
       <span className="tb-fleet-select-label">Select Fleet</span>
       <div className="tb-fleet-cards">
         {TAXI_FLEETS.map((fleet) => {

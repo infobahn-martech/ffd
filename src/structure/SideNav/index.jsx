@@ -234,7 +234,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       .filter((workflow) => workflow?.role_id === null)
       .filter((workflow) => {
         const name = workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? '';
-        return name !== 'Task Workflow' && name !== 'Taxi Board Workflow';
+        return name !== 'Task Workflow';
       })
       .map((workflow) => ({
         id: workflow?.workflow_id ?? workflow?.id,
