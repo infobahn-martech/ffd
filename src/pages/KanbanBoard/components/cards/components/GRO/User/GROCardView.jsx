@@ -1535,7 +1535,7 @@ const GROCardView = forwardRef(function GROCardView(
                   showInwardClearance={showInwardClearance}
                   onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
                   inwardActionLabel={
-                    activeTab === GRO_ACTIVE_TABS.crewImmigration ? "Crew Immigration" : inwardPanelLabel
+                    activeTab === GRO_ACTIVE_TABS.crewImmigration ? "Update Status" : inwardPanelLabel
                   }
                   inwardPopoverTitle={
                     activeTab === GRO_ACTIVE_TABS.crewImmigration ? "Crew Immigration" : taskPanelTitle
