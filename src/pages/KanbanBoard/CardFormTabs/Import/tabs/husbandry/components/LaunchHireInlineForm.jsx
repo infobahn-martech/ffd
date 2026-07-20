@@ -54,7 +54,7 @@ const LaunchHireInlineForm = ({
           </span>
           <span className="crew-launch-hire-panel__text">
             <span className="crew-launch-hire-panel__title">Schedule Launch Hire</span>
-            <span className="crew-launch-hire-panel__hint">Choose the required launch date and time.</span>
+            <span className="crew-launch-hire-panel__hint">Choose the required launch hire details.</span>
           </span>
         </div>
 

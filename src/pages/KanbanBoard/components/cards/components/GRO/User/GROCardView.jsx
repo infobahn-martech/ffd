@@ -1148,28 +1148,21 @@ const GROCardView = forwardRef(function GROCardView(
     }
   }, [isGeneratingVesselPdf, callId, cardId, taskId, userRoleId]);
 
-  const isCrewImmigrationActive =
-    hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewImmigration && isCrewImmigrationStage;
   const isVesselInwardRegistrationActive =
     hidePassTabs &&
     activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration &&
     isVesselInwardRegistrationStage;
-  const showDynamicUploadIcon = isCrewImmigrationActive || isVesselInwardRegistrationActive;
+  const showDynamicUploadIcon = isVesselInwardRegistrationActive;
 
   const dynamicUploadTitle = "Upload Signed Document";
 
   const openDynamicUploadModal = useCallback(() => {
-    const type = isCrewImmigrationActive
-      ? "crew_immigration"
-      : isVesselInwardRegistrationActive
-        ? "vessel_inward_registration"
-        : null;
-    if (!type) return;
-    setDynamicUploadType(type);
+    if (!isVesselInwardRegistrationActive) return;
+    setDynamicUploadType("vessel_inward_registration");
     setDynamicUploadFile(null);
     if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
     setShowDynamicUploadModal(true);
-  }, [isCrewImmigrationActive, isVesselInwardRegistrationActive]);
+  }, [isVesselInwardRegistrationActive]);
 
   const closeDynamicUploadModal = useCallback(() => {
     if (isDynamicUploadSubmitting) return;
@@ -1534,14 +1527,19 @@ const GROCardView = forwardRef(function GROCardView(
                 !isCrewImmigrationStage &&
                 !isVesselInwardRegistrationStage &&
                 activeTab === GRO_ACTIVE_TABS.documents) ||
+                (hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewImmigration) ||
                 (!hidePassTabs && groMainView === GRO_MAIN_VIEWS.inward) ? (
                 <InwardClearanceToolbar
                   inwardAnchorRef={inwardAnchorRef}
                   showMainFileUpload={false}
                   showInwardClearance={showInwardClearance}
                   onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
-                  inwardActionLabel={inwardPanelLabel}
-                  inwardPopoverTitle={taskPanelTitle}
+                  inwardActionLabel={
+                    activeTab === GRO_ACTIVE_TABS.crewImmigration ? "Crew Immigration" : inwardPanelLabel
+                  }
+                  inwardPopoverTitle={
+                    activeTab === GRO_ACTIVE_TABS.crewImmigration ? "Crew Immigration" : taskPanelTitle
+                  }
                   timeObjectFields={groStageId === 10 ? [] : inwardTimeObjectFields}
                   timeObjectsLoading={groStageId === 10 ? false : timeObjectsLoading}
                   extraStageFieldsContent={extraStageFieldsContent}
