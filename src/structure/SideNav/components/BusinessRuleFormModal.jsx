@@ -3553,13 +3553,7 @@ function WebInvokeSettingsModal({ show, onClose, onSave, initialSettings, fetche
         });
       },
       onError: (err) => {
-        setTestResult({
-          ok: false,
-          statusCode: null,
-          durationMs: null,
-          responseBody: '',
-          message: stripHtmlTags(err?.response?.data?.message ?? err.message) || 'Test request failed.',
-        });
+        setSaveError(stripHtmlTags(err?.response?.data?.message ?? err.message) || 'Test request failed.');
       },
     });
   };
