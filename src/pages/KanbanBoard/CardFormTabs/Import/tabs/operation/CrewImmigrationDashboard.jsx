@@ -673,7 +673,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   <span className="crew-uploaded-lists-panel__empty-subtitle">Upload a crew list to get started.</span>
                 </div>
               ) : (
-                <div className="crew-uploaded-lists-panel__stack">
+                <div className="crew-uploaded-lists-panel__stack crew-uploaded-lists-panel__stack--grid">
                   {uploadedCrewFiles.map((file) => (
                     <UploadedCrewFileCard key={file.crew_excel_upload_id ?? file.crew_file} file={file} />
                   ))}

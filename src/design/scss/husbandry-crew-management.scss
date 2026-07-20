@@ -2782,6 +2782,14 @@
   gap: 10px;
 }
 
+// Compact grid variant (Crew Immigration) — cards have no actions row, so
+// several fit per line instead of stacking one per row.
+.crew-uploaded-lists-panel__stack--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
 // icon | details (grows) | badge, with actions spanning the full width on
 // their own row below — see the "Suggested preview card structure" this
 // mirrors: [icon] [file details.....] [badge] / [Preview] [Replace] [Remove]
