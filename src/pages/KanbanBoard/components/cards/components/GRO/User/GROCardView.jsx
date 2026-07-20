@@ -356,8 +356,12 @@ const GROCardView = forwardRef(function GROCardView(
             pickerParts: fieldValue,
             onDateTimeChange: handleTimeObjectChange(valueKey),
             error: timeObjectErrors?.[valueKey] ?? "",
-            onCaptureNow: () => captureTimeObjectNow(item, valueKey, handleTimeObjectChange(valueKey)),
-            capturing: capturingTimeObjectKey === valueKey,
+            // Capture-now icon is an Inward Clearance-only affordance (stage_id 8).
+            onCaptureNow:
+              groStageId === 8
+                ? () => captureTimeObjectNow(item, valueKey, handleTimeObjectChange(valueKey))
+                : undefined,
+            capturing: groStageId === 8 && capturingTimeObjectKey === valueKey,
           };
         })
         .filter(Boolean),
@@ -368,6 +372,7 @@ const GROCardView = forwardRef(function GROCardView(
       handleTimeObjectChange,
       captureTimeObjectNow,
       capturingTimeObjectKey,
+      groStageId,
     ]
   );
 
@@ -387,19 +392,10 @@ const GROCardView = forwardRef(function GROCardView(
             pickerParts: fieldValue,
             onDateTimeChange: handleStage11TimeObjectChange(valueKey),
             error: stage11TimeObjectErrors?.[valueKey] ?? "",
-            onCaptureNow: () => captureTimeObjectNow(item, valueKey, handleStage11TimeObjectChange(valueKey)),
-            capturing: capturingTimeObjectKey === valueKey,
           };
         })
         .filter(Boolean),
-    [
-      stage11TimeObjects,
-      stage11TimeObjectValues,
-      stage11TimeObjectErrors,
-      handleStage11TimeObjectChange,
-      captureTimeObjectNow,
-      capturingTimeObjectKey,
-    ]
+    [stage11TimeObjects, stage11TimeObjectValues, stage11TimeObjectErrors, handleStage11TimeObjectChange]
   );
 
   const handleExtraStageFieldChange = useCallback((field, value) => {
