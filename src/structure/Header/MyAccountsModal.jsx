@@ -506,7 +506,7 @@ function MyAccountsModal({ show, onClose }) {
       }}
       header={
         <div className="modal-header my-accounts-premium-header border-0 pb-0">
-          <h5 className="modal-title my-accounts-premium-title">My Accountssss</h5>
+          <h5 className="modal-title my-accounts-premium-title">My Accounts</h5>
         </div>
       }
       body={renderBody()}
