@@ -1703,6 +1703,47 @@ $tb-space-2xl:  32px;
   }
 }
 
+/* Fleet / captain loading & empty state hint */
+.tb-fleet-empty-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Assign Captain box */
+.tb-captain-assign-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.tb-captain-assign-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tb-captain-select {
+  flex: 1;
+  min-width: 180px;
+  padding: 7px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: #6366f1; }
+  &:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+}
+
 /* Assigned success banner */
 .tb-fleet-assigned-banner {
   display: inline-flex;
