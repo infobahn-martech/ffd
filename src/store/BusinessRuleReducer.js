@@ -206,9 +206,8 @@ const useBusinessRuleReducer = create((set) => ({
     isLoadingBusinessRuleHistory: false,
     businessRuleHistory: [],
 
-    // TODO: endpoint itself is an unconfirmed guess (see businessRuleService.js) and the
-    // response shape is unconfirmed too — same best-effort list/row fallback pattern as
-    // getExecutionLogs above.
+    // Confirmed endpoint (business_rule/get_history/{business_rule_id}, param: search).
+    // Response is a flat array under data.data; fallback keys kept as a safety net.
     getBusinessRuleHistory: async (businessRuleId, { params } = {}) => {
         try {
             set({ isLoadingBusinessRuleHistory: true });
