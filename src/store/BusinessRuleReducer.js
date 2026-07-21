@@ -203,6 +203,28 @@ const useBusinessRuleReducer = create((set) => ({
 
     resetExecutionLogs: () => set({ executionLogs: [], isLoadingExecutionLogs: false }),
 
+    isLoadingBusinessRuleHistory: false,
+    businessRuleHistory: [],
+
+    // TODO: endpoint itself is an unconfirmed guess (see businessRuleService.js) and the
+    // response shape is unconfirmed too — same best-effort list/row fallback pattern as
+    // getExecutionLogs above.
+    getBusinessRuleHistory: async (businessRuleId, { params } = {}) => {
+        try {
+            set({ isLoadingBusinessRuleHistory: true });
+            const { data } = await businessRuleService.getBusinessRuleHistory(businessRuleId, { params });
+            const list = Array.isArray(data?.data) ? data.data
+                : Array.isArray(data?.data?.items) ? data.data.items
+                    : Array.isArray(data?.data?.history) ? data.data.history
+                        : [];
+            set({ businessRuleHistory: list, isLoadingBusinessRuleHistory: false });
+        } catch (err) {
+            set({ businessRuleHistory: [], isLoadingBusinessRuleHistory: false });
+        }
+    },
+
+    resetBusinessRuleHistory: () => set({ businessRuleHistory: [], isLoadingBusinessRuleHistory: false }),
+
     isTogglingBusinessRuleStatus: false,
 
     toggleBusinessRuleStatus: async (businessRuleId, { cb, onSettled } = {}) => {

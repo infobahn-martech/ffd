@@ -2345,6 +2345,18 @@ function NotificationSettingsModal({
   const ccBoxRef = useRef(null);
 
   const { saveNotificationSettings, updateNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+
+  // get_custom_fields comes back empty when called unscoped (see the DUMMY_CUSTOM_FIELDS
+  // fallback in CustomFieldPickerModal, needed for the exact same reason) — it only ever
+  // returns real data when filtered by board_ids. A saved recipient custom field can belong
+  // to any board, not just whichever one was selected in the picker at add-time and never
+  // persisted back, so every known board id has to be sent to have a chance of covering it.
+  useEffect(() => {
+    if (!show) return;
+    if (workspaces.length === 0) listAllWorkspaces();
+  }, [show]);
+  const allBoardIds = workspaces.flatMap((w) => (w.boards ?? []).map((b) => b.board_id));
 
   // A previously-saved notify action carries a backend notification_id: its To/Cc/Subject/Body
   // come from get_notification_settings (user + custom-field ids) instead of the plain
@@ -2369,13 +2381,15 @@ function NotificationSettingsModal({
   // display label — it's used everywhere else purely for a condition row's operator
   // dropdown, and getFieldLabel(details) on its response reliably comes back empty, which
   // is why a saved custom-field recipient pill was stuck showing the raw numeric id forever
-  // instead of its name. The unscoped custom-fields list (same endpoint the "add custom
-  // fields" picker uses, which does return real labels) is the reliable source instead.
+  // instead of its name. The custom-fields list (same endpoint the "add custom fields"
+  // picker uses, which does return real labels) is the reliable source instead — but only
+  // once board_ids is sent (see allBoardIds above), so wait for workspaces to load first.
   useEffect(() => {
     if (!show || !fetchedSettings) return;
     if (toCustomFieldIds.length === 0 && ccCustomFieldIds.length === 0) return;
-    getRecipientCustomFields({ params: { trigger_type_id: triggerTypeId } });
-  }, [show, fetchedSettings]);
+    if (allBoardIds.length === 0) return;
+    getRecipientCustomFields({ params: { trigger_type_id: triggerTypeId, board_ids: allBoardIds } });
+  }, [show, fetchedSettings, allBoardIds.length]);
 
   const recipientCustomFieldById = new Map(
     (recipientCustomFields ?? []).map((field) => [String(field.custom_field_id), field])
@@ -2479,12 +2493,26 @@ function NotificationSettingsModal({
     toEl.replaceChildren();
     ccEl.replaceChildren();
 
-    const seedTo = fetchedSettings
-      ? [...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds), ...resolveEmailTokens(toEmails)]
-      : (initialSettings?.to ?? []);
-    const seedCc = fetchedSettings
-      ? [...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds), ...resolveEmailTokens(ccEmails)]
-      : (initialSettings?.cc ?? []);
+    // initialSettings.to/cc (set by handleSaveNotificationSettings right after a save, from
+    // parseRecipientTokens reading the box that was just on screen) already carries correct
+    // labels for every token, custom fields included — unlike fetchedSettings, which only
+    // carries raw ids that still need an async label lookup. Re-resolving from fetchedSettings
+    // whenever it's present (the old behavior) clobbered those already-correct pills with '…'
+    // placeholders on every reopen right after a save, and only ever got patched back if/when
+    // that lookup resolved — this is why a saved custom-field recipient looked stuck on
+    // reopen. initialSettings.to is only undefined the very first time a notify action's
+    // settings are opened (never saved this session yet), which is the one case that still
+    // needs the id-based fetchedSettings resolution below.
+    const seedTo = initialSettings?.to !== undefined
+      ? initialSettings.to
+      : (fetchedSettings
+        ? [...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds), ...resolveEmailTokens(toEmails)]
+        : []);
+    const seedCc = initialSettings?.cc !== undefined
+      ? initialSettings.cc
+      : (fetchedSettings
+        ? [...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds), ...resolveEmailTokens(ccEmails)]
+        : []);
 
     // A trailing space (real text node) after every pill gives the browser a valid
     // caret anchor next to it — back-to-back pills with nothing but CSS gap between
@@ -4701,6 +4729,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     getBusinessRuleById, businessRuleDetails, isLoadingBusinessRuleDetails, resetBusinessRuleDetails,
     regularFields, getRegularFields,
     getExecutionLogs, executionLogs, isLoadingExecutionLogs, resetExecutionLogs,
+    getBusinessRuleHistory, businessRuleHistory, isLoadingBusinessRuleHistory, resetBusinessRuleHistory,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
@@ -4749,6 +4778,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const [logsSearch, setLogsSearch] = useState('');
   const [debouncedLogsSearch, setDebouncedLogsSearch] = useState('');
 
+  // History tab
+  const [historySearch, setHistorySearch] = useState('');
+  const [debouncedHistorySearch, setDebouncedHistorySearch] = useState('');
+
   // Edit mode needs the full regular/custom field catalog up front to resolve a saved
   // condition's/when-field's regular_field_id or custom_field_id back into a display
   // label — the create flow never needs this at the top level since CardPropertyMatchModal
@@ -4793,6 +4826,20 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
   useEffect(() => {
     if (!show) resetExecutionLogs();
+  }, [show]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setDebouncedHistorySearch(historySearch.trim()), 400);
+    return () => clearTimeout(timeoutId);
+  }, [historySearch]);
+
+  useEffect(() => {
+    if (!show || !isEditMode || activeTab !== 'history' || !businessRuleId) return;
+    getBusinessRuleHistory(businessRuleId, { params: { search: debouncedHistorySearch || undefined } });
+  }, [show, isEditMode, activeTab, businessRuleId, debouncedHistorySearch]);
+
+  useEffect(() => {
+    if (!show) resetBusinessRuleHistory();
   }, [show]);
 
   // The WHEN card is seeded from the picker's already-fetched trigger (get_trigger_types),
@@ -7587,11 +7634,11 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           };
 
           return (
-            <div className="business-rule-form-logs">
-              <div className="business-rule-form-logs-filters">
-                <div className="business-rule-form-logs-date-group">
+            <div className="business-rule-form-tab-panel">
+              <div className="business-rule-form-tab-filters">
+                <div className="business-rule-form-tab-date-group">
                   <label className="business-rule-form-label business-rule-form-label--hint">From</label>
-                  <div className="business-rule-form-logs-date-inputs">
+                  <div className="business-rule-form-tab-date-inputs">
                     <input
                       type="date"
                       className="business-rule-form-input"
@@ -7606,9 +7653,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                     />
                   </div>
                 </div>
-                <div className="business-rule-form-logs-date-group">
+                <div className="business-rule-form-tab-date-group">
                   <label className="business-rule-form-label business-rule-form-label--hint">To</label>
-                  <div className="business-rule-form-logs-date-inputs">
+                  <div className="business-rule-form-tab-date-inputs">
                     <input
                       type="date"
                       className="business-rule-form-input"
@@ -7625,7 +7672,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                 </div>
                 <button
                   type="button"
-                  className="business-rule-form-logs-export-btn"
+                  className="business-rule-form-tab-export-btn"
                   onClick={handleExportLogs}
                   disabled={logRows.length === 0}
                 >
@@ -7636,14 +7683,14 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
               <input
                 type="text"
-                className="business-rule-form-input business-rule-form-logs-search"
+                className="business-rule-form-input business-rule-form-tab-search"
                 placeholder="Filter"
                 value={logsSearch}
                 onChange={(e) => setLogsSearch(e.target.value)}
               />
 
-              <div className="business-rule-form-logs-table-wrap">
-                <table className="business-rule-form-logs-table">
+              <div className="business-rule-form-tab-table-wrap">
+                <table className="business-rule-form-tab-table">
                   <thead>
                     <tr>
                       <th>Business Rule Name</th>
@@ -7654,9 +7701,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   </thead>
                   <tbody>
                     {isLoadingExecutionLogs ? (
-                      <tr><td colSpan={4} className="business-rule-form-logs-state">Loading...</td></tr>
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">Loading...</td></tr>
                     ) : logRows.length === 0 ? (
-                      <tr><td colSpan={4} className="business-rule-form-logs-state">No items</td></tr>
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">No items</td></tr>
                     ) : (
                       logRows.map((row) => (
                         <tr key={row.key}>
@@ -7674,11 +7721,61 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           );
         })()}
 
-        {isEditMode && activeTab === 'history' && (
-          <div className="business-rule-form-tab-placeholder">
-            <p>History isn&apos;t available yet — no backend endpoint has been confirmed for this rule&apos;s change history.</p>
-          </div>
-        )}
+        {isEditMode && activeTab === 'history' && (() => {
+          // get_business_rule_history is an unconfirmed guessed endpoint (see
+          // businessRuleService.js) — both existence and response shape are best-effort;
+          // falls back across a few likely field names per column, same convention as
+          // the execution-logs tab above.
+          const normalizeHistoryRow = (row, idx) => ({
+            key: row.history_id ?? row.id ?? idx,
+            eventType: row.event_type ?? row.action_type ?? row.type ?? '-',
+            details: row.details ?? row.description ?? row.message ?? '-',
+            author: row.author ?? row.author_name ?? row.user_name ?? row.updated_by ?? '-',
+            time: row.time ?? row.created_at ?? row.event_time ?? row.updated_at ?? '-',
+          });
+          const historyRows = (businessRuleHistory ?? []).map(normalizeHistoryRow);
+
+          return (
+            <div className="business-rule-form-tab-panel">
+              <input
+                type="text"
+                className="business-rule-form-input business-rule-form-tab-search"
+                placeholder="Filter"
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+              />
+
+              <div className="business-rule-form-tab-table-wrap">
+                <table className="business-rule-form-tab-table">
+                  <thead>
+                    <tr>
+                      <th>Event Type</th>
+                      <th>Details</th>
+                      <th>Author</th>
+                      <th>Time (Asia/Dubai)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoadingBusinessRuleHistory ? (
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">Loading...</td></tr>
+                    ) : historyRows.length === 0 ? (
+                      <tr><td colSpan={4} className="business-rule-form-tab-table-state">No items</td></tr>
+                    ) : (
+                      historyRows.map((row) => (
+                        <tr key={row.key}>
+                          <td>{row.eventType}</td>
+                          <td>{row.details}</td>
+                          <td>{row.author}</td>
+                          <td>{row.time}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
 
         <footer className="business-rule-form-modal-footer">
           {saveError && <p className="text-danger mb-2">{saveError}</p>}
