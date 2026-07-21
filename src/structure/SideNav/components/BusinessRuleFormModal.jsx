@@ -2343,6 +2343,18 @@ function NotificationSettingsModal({
   const ccBoxRef = useRef(null);
 
   const { saveNotificationSettings, updateNotificationSettings, isSavingNotificationSettings } = useBusinessRuleReducer((s) => s);
+  const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+
+  // get_custom_fields comes back empty when called unscoped (see the DUMMY_CUSTOM_FIELDS
+  // fallback in CustomFieldPickerModal, needed for the exact same reason) — it only ever
+  // returns real data when filtered by board_ids. A saved recipient custom field can belong
+  // to any board, not just whichever one was selected in the picker at add-time and never
+  // persisted back, so every known board id has to be sent to have a chance of covering it.
+  useEffect(() => {
+    if (!show) return;
+    if (workspaces.length === 0) listAllWorkspaces();
+  }, [show]);
+  const allBoardIds = workspaces.flatMap((w) => (w.boards ?? []).map((b) => b.board_id));
 
   // A previously-saved notify action carries a backend notification_id: its To/Cc/Subject/Body
   // come from get_notification_settings (user + custom-field ids) instead of the plain
@@ -2367,13 +2379,15 @@ function NotificationSettingsModal({
   // display label — it's used everywhere else purely for a condition row's operator
   // dropdown, and getFieldLabel(details) on its response reliably comes back empty, which
   // is why a saved custom-field recipient pill was stuck showing the raw numeric id forever
-  // instead of its name. The unscoped custom-fields list (same endpoint the "add custom
-  // fields" picker uses, which does return real labels) is the reliable source instead.
+  // instead of its name. The custom-fields list (same endpoint the "add custom fields"
+  // picker uses, which does return real labels) is the reliable source instead — but only
+  // once board_ids is sent (see allBoardIds above), so wait for workspaces to load first.
   useEffect(() => {
     if (!show || !fetchedSettings) return;
     if (toCustomFieldIds.length === 0 && ccCustomFieldIds.length === 0) return;
-    getRecipientCustomFields({ params: { trigger_type_id: triggerTypeId } });
-  }, [show, fetchedSettings]);
+    if (allBoardIds.length === 0) return;
+    getRecipientCustomFields({ params: { trigger_type_id: triggerTypeId, board_ids: allBoardIds } });
+  }, [show, fetchedSettings, allBoardIds.length]);
 
   const recipientCustomFieldById = new Map(
     (recipientCustomFields ?? []).map((field) => [String(field.custom_field_id), field])
@@ -2477,12 +2491,26 @@ function NotificationSettingsModal({
     toEl.replaceChildren();
     ccEl.replaceChildren();
 
-    const seedTo = fetchedSettings
-      ? [...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds), ...resolveEmailTokens(toEmails)]
-      : (initialSettings?.to ?? []);
-    const seedCc = fetchedSettings
-      ? [...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds), ...resolveEmailTokens(ccEmails)]
-      : (initialSettings?.cc ?? []);
+    // initialSettings.to/cc (set by handleSaveNotificationSettings right after a save, from
+    // parseRecipientTokens reading the box that was just on screen) already carries correct
+    // labels for every token, custom fields included — unlike fetchedSettings, which only
+    // carries raw ids that still need an async label lookup. Re-resolving from fetchedSettings
+    // whenever it's present (the old behavior) clobbered those already-correct pills with '…'
+    // placeholders on every reopen right after a save, and only ever got patched back if/when
+    // that lookup resolved — this is why a saved custom-field recipient looked stuck on
+    // reopen. initialSettings.to is only undefined the very first time a notify action's
+    // settings are opened (never saved this session yet), which is the one case that still
+    // needs the id-based fetchedSettings resolution below.
+    const seedTo = initialSettings?.to !== undefined
+      ? initialSettings.to
+      : (fetchedSettings
+        ? [...resolveUserTokens(toUserIds), ...resolveCustomFieldTokens(toCustomFieldIds), ...resolveEmailTokens(toEmails)]
+        : []);
+    const seedCc = initialSettings?.cc !== undefined
+      ? initialSettings.cc
+      : (fetchedSettings
+        ? [...resolveUserTokens(ccUserIds), ...resolveCustomFieldTokens(ccCustomFieldIds), ...resolveEmailTokens(ccEmails)]
+        : []);
 
     // A trailing space (real text node) after every pill gives the browser a valid
     // caret anchor next to it — back-to-back pills with nothing but CSS gap between
