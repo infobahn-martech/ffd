@@ -4818,8 +4818,8 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     getExecutionLogs(businessRuleId, {
       params: {
         search: debouncedLogsSearch || undefined,
-        from: logsFromDate || undefined,
-        to: logsToDate || undefined,
+        from: logsFromDate ? `${logsFromDate}` : undefined,
+        to: logsToDate ? `${logsToDate}` : undefined,
       },
     });
   }, [show, isEditMode, activeTab, businessRuleId, debouncedLogsSearch, logsFromDate, logsToDate]);
@@ -5098,7 +5098,16 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     });
     const nextConditions = Array.from(boxesByField.values());
     setConditions(nextConditions);
-    nextConditions.forEach((box) => getFieldDetails(box.fieldType, box.fieldId));
+    // Guarded — this effect re-runs as regularFields/editModeCustomFields resolve
+    // progressively, and re-fetching a field's details it already has (or is already
+    // fetching) on every pass just re-triggers a store update that re-renders this
+    // whole component (useBusinessRuleReducer selects the whole store), which then
+    // recomputes this effect's other deps and churns.
+    nextConditions.forEach((box) => {
+      const key = `${box.fieldType}-${box.fieldId}`;
+      if (fieldDetailsByKey[key] !== undefined || isLoadingFieldDetails[key]) return;
+      getFieldDetails(box.fieldType, box.fieldId);
+    });
   }, [isEditMode, businessRuleDetailsReady, businessRuleDetails, triggerConfig, regularFields, editModeCustomFields]);
 
   // Routes each saved then_groups[] entry into whichever of the 9 THEN action arrays it
