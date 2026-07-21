@@ -6,6 +6,7 @@ import BusinessRuleIcon from './BusinessRuleIcon';
 import BusinessRuleFormModal from './BusinessRuleFormModal';
 import { TRIGGER_CODE_TO_ICON } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
+import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import '../../../design/scss/business-rules-modal.scss';
 
 const OwnerCell = ({ owner }) => {
@@ -38,6 +39,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [selectedRule, setSelectedRule] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedRuleId, setSelectedRuleId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteRuleId, setDeleteRuleId] = useState(null);
 
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
@@ -45,6 +48,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     getBusinessRuleStats, businessRuleStats,
     createBusinessRule, isCreatingBusinessRule,
     updateBusinessRule, isUpdatingBusinessRule,
+    deleteBusinessRule, isDeletingBusinessRule,
   } = useBusinessRuleReducer((s) => s);
 
   // UI-only for now: no confirmed enable/disable endpoint yet, so the switch just
@@ -67,6 +71,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setSelectedRule(null);
       setShowFormModal(false);
       setSelectedRuleId(null);
+      setShowDeleteModal(false);
+      setDeleteRuleId(null);
       return;
     }
     const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
@@ -124,6 +130,23 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     } else {
       createBusinessRule(payload, { cb: onSaved });
     }
+  };
+
+  const fetchBusinessRules = () => {
+    const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
+    getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined, is_enabled: isEnabled } });
+  };
+
+  const handleDelete = (ruleId) => {
+    setDeleteRuleId(ruleId);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteBusinessRule(deleteRuleId, {
+      cb: () => { fetchBusinessRules(); getBusinessRuleStats(); },
+      onSettled: () => { setShowDeleteModal(false); setDeleteRuleId(null); },
+    });
   };
 
   const handleCancelFormModal = () => {
@@ -228,25 +251,32 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                       <th>EXECUTION ORDER</th>
                       <th>TAGS</th>
                       <th>SHARED WITH</th>
+                      <th>STATUS</th>
                       <th style={{ width: 44 }} />
                     </tr>
                   </thead>
                   <tbody>
                     {isLoadingBusinessRules ? (
-                      <tr><td colSpan={9} className="br-table-state">Loading...</td></tr>
+                      <tr><td colSpan={10} className="br-table-state">Loading...</td></tr>
                     ) : businessRules.length === 0 ? (
-                      <tr><td colSpan={9} className="br-table-state">No business rules found</td></tr>
+                      <tr><td colSpan={10} className="br-table-state">No business rules found</td></tr>
                     ) : (
                       businessRules.map((rule) => {
                         const ruleId = rule?.business_rule_id ?? rule?.id;
                         const name = rule?.name ?? rule?.rule_name ?? '-';
                         const execOrder = rule?.execution_order ?? '-';
                         const tags = rule?.tags || '-';
-                        const isEnabled = localStatusOverrides[ruleId] ?? (String(rule?.status) === '1');
+                        const isEnabled = localStatusOverrides[ruleId] ?? (rule?.is_enabled === 1 || rule?.is_enabled === '1' || rule?.is_enabled === true);
                         const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                           ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                           : '-';
                         const boards = rule?.board_name ?? [];
+                        // `status` is a reference-validity flag from the API ("OK" / "Missing reference"),
+                        // not an enabled/disabled flag - that's `is_enabled` above. Only flag red when the
+                        // value explicitly signals a missing reference - other/unexpected status values
+                        // (e.g. leftover numeric codes) must not be treated as an error.
+                        const isMissingReference = typeof rule?.status === 'string' && /missing/i.test(rule.status);
+                        const statusText = isMissingReference ? rule.status : 'OK';
 
                         return (
                           <tr key={ruleId}>
@@ -261,7 +291,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                               </div>
                             </td>
                             <td className="br-table-id">{ruleId}</td>
-                            <td><span className="br-table-rule-name">{name}</span></td>
+                            <td><span className={`br-table-rule-name${isMissingReference ? ' text-danger' : ''}`}>{name}</span></td>
                             <td><OwnerCell owner={rule?.owner} /></td>
                             <td>
                               {Array.isArray(boards) && boards.length > 0
@@ -277,6 +307,11 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                             <td>{execOrder}</td>
                             <td>{tags}</td>
                             <td>{sharedWith}</td>
+                            <td>
+                              <span className={isMissingReference ? 'text-danger' : ''}>
+                                {statusText}
+                              </span>
+                            </td>
                             <td>
                               <div className="dropdown">
                                 <button
@@ -297,7 +332,15 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                       Edit
                                     </button>
                                   </li>
-                                  <li><button className="dropdown-item text-danger" type="button">Delete</button></li>
+                                  <li>
+                                    <button
+                                      className="dropdown-item text-danger"
+                                      type="button"
+                                      onClick={() => handleDelete(ruleId)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </li>
                                 </ul>
                               </div>
                             </td>
@@ -396,6 +439,16 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         onSave={handleSaveFormModal}
         isSaving={isCreatingBusinessRule || isUpdatingBusinessRule}
       />
+
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          show={showDeleteModal}
+          isLoading={isDeletingBusinessRule}
+          deleteText="Are you sure you want to delete this business rule?"
+          onCancel={() => { setShowDeleteModal(false); setDeleteRuleId(null); }}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </>
   );
 };

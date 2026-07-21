@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import useBusinessRuleReducer from '../../store/BusinessRuleReducer';
 import BusinessRulesModal from '../../structure/SideNav/components/BusinessRulesModal';
 import BusinessRuleDetailsModal from './Modals/BusinessRuleDetailsModal';
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import './business-rules-page.scss';
 
 const FILTER_OPTIONS = [
@@ -50,20 +51,38 @@ const BusinessRules = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedRuleId, setSelectedRuleId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteRuleId, setDeleteRuleId] = useState(null);
 
-  const { getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules } =
+  const { getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules, deleteBusinessRule, isDeletingBusinessRule } =
     useBusinessRuleReducer((s) => s);
 
   // UI-only toggle until the backend endpoint is ready - not persisted, keyed by rule id.
   const [localStatusOverrides, setLocalStatusOverrides] = useState({});
 
-  useEffect(() => {
+  const fetchBusinessRules = () => {
     const is_enabled = filter === 'enabled' ? 1 : filter === 'disabled' ? 0 : undefined;
     getBusinessRules({ params: { page, per_page: limit, search: searchTerm || undefined, is_enabled } });
+  };
+
+  useEffect(() => {
+    fetchBusinessRules();
   }, [page, limit, searchTerm, filter]);
 
   const handleToggleStatus = (ruleId, currentValue) => {
     setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue }));
+  };
+
+  const handleDelete = (ruleId) => {
+    setDeleteRuleId(ruleId);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteBusinessRule(deleteRuleId, {
+      cb: fetchBusinessRules,
+      onSettled: () => { setShowDeleteModal(false); setDeleteRuleId(null); },
+    });
   };
 
   const totalPages = Math.max(1, Math.ceil(businessRulesCount / limit));
@@ -127,17 +146,18 @@ const BusinessRules = () => {
                 <th>EXECUTION ORDER</th>
                 <th>TAGS</th>
                 <th>SHARED WITH</th>
+                <th>STATUS</th>
                 <th style={{ width: 40 }} />
               </tr>
             </thead>
             <tbody>
               {isLoadingBusinessRules ? (
                 <tr>
-                  <td colSpan={9} className="br-loading">Loading...</td>
+                  <td colSpan={10} className="br-loading">Loading...</td>
                 </tr>
               ) : businessRules.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="br-empty">No business rules found</td>
+                  <td colSpan={10} className="br-empty">No business rules found</td>
                 </tr>
               ) : (
                 businessRules.map((rule) => {
@@ -145,10 +165,16 @@ const BusinessRules = () => {
                   const name = rule?.name ?? rule?.rule_name ?? '-';
                   const execOrder = rule?.execution_order ?? '-';
                   const tags = rule?.tags || '-';
-                  const isEnabled = localStatusOverrides[ruleId] ?? (String(rule?.status) === '1');
+                  const isEnabled = localStatusOverrides[ruleId] ?? (rule?.is_enabled === 1 || rule?.is_enabled === '1' || rule?.is_enabled === true);
                   const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                     ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                     : '-';
+                  // `status` is a reference-validity flag from the API ("OK" / "Missing reference"),
+                  // not an enabled/disabled flag - that's `is_enabled` above. Only flag red when the
+                  // value explicitly signals a missing reference - other/unexpected status values
+                  // (e.g. leftover numeric codes) must not be treated as an error.
+                  const isMissingReference = typeof rule?.status === 'string' && /missing/i.test(rule.status);
+                  const statusText = isMissingReference ? rule.status : 'OK';
 
                   return (
                     <tr key={ruleId}>
@@ -163,12 +189,17 @@ const BusinessRules = () => {
                         </div>
                       </td>
                       <td>{ruleId}</td>
-                      <td><span className="br-rule-name">{name}</span></td>
+                      <td><span className={`br-rule-name${isMissingReference ? ' text-danger' : ''}`}>{name}</span></td>
                       <td><OwnerCell owner={rule?.owner} /></td>
                       <td><BoardNameCell boards={rule?.board_name} /></td>
                       <td>{execOrder}</td>
                       <td>{tags}</td>
                       <td>{sharedWith}</td>
+                      <td>
+                        <span className={isMissingReference ? 'text-danger' : ''}>
+                          {statusText}
+                        </span>
+                      </td>
                       <td>
                         <div className="dropdown">
                           <button
@@ -189,7 +220,15 @@ const BusinessRules = () => {
                                 Edit
                               </button>
                             </li>
-                            <li><button className="dropdown-item text-danger" type="button">Delete</button></li>
+                            <li>
+                              <button
+                                className="dropdown-item text-danger"
+                                type="button"
+                                onClick={() => handleDelete(ruleId)}
+                              >
+                                Delete
+                              </button>
+                            </li>
                           </ul>
                         </div>
                       </td>
@@ -237,6 +276,16 @@ const BusinessRules = () => {
         businessRuleId={selectedRuleId}
         onClose={() => { setShowDetailsModal(false); setSelectedRuleId(null); }}
       />
+
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          show={showDeleteModal}
+          isLoading={isDeletingBusinessRule}
+          deleteText="Are you sure you want to delete this business rule?"
+          onCancel={() => { setShowDeleteModal(false); setDeleteRuleId(null); }}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </div>
   );
 };
