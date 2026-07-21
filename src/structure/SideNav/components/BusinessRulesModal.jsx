@@ -44,6 +44,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     triggerTypes, isLoadingGet, getTriggerTypes,
     getBusinessRuleStats, businessRuleStats,
     createBusinessRule, isCreatingBusinessRule,
+    updateBusinessRule, isUpdatingBusinessRule,
   } = useBusinessRuleReducer((s) => s);
 
   // UI-only for now: no confirmed enable/disable endpoint yet, so the switch just
@@ -109,17 +110,20 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   };
 
   const handleSaveFormModal = (payload) => {
-    createBusinessRule(payload, {
-      cb: () => {
-        setShowFormModal(false);
-        setSelectedRule(null);
-        setSelectedRuleId(null);
-        setView('table');
-        const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
-        getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined, is_enabled: isEnabled } });
-        getBusinessRuleStats();
-      },
-    });
+    const onSaved = () => {
+      setShowFormModal(false);
+      setSelectedRule(null);
+      setSelectedRuleId(null);
+      setView('table');
+      const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
+      getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined, is_enabled: isEnabled } });
+      getBusinessRuleStats();
+    };
+    if (selectedRuleId) {
+      updateBusinessRule(selectedRuleId, payload, { cb: onSaved });
+    } else {
+      createBusinessRule(payload, { cb: onSaved });
+    }
   };
 
   const handleCancelFormModal = () => {
@@ -390,7 +394,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         boardName={boardName}
         onClose={handleCancelFormModal}
         onSave={handleSaveFormModal}
-        isSaving={isCreatingBusinessRule}
+        isSaving={isCreatingBusinessRule || isUpdatingBusinessRule}
       />
     </>
   );

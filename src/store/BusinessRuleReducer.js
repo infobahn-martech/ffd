@@ -260,6 +260,25 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isUpdatingBusinessRule: false,
+
+    updateBusinessRule: async (businessRuleId, payload, { cb, onSettled } = {}) => {
+        try {
+            set({ isUpdatingBusinessRule: true });
+            const { data } = await businessRuleService.updateBusinessRule(businessRuleId, payload);
+            set({ isUpdatingBusinessRule: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Business rule updated.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isUpdatingBusinessRule: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isLoadingTriggerConfig: false,
     triggerConfig: null,
 
