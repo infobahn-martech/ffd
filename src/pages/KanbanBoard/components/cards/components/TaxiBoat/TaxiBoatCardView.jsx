@@ -761,7 +761,7 @@ TaxiFleetAssignPanel.propTypes = {
 };
 
 function CrewListBatchwisePanel({
-  batches, setBatches, activeBatchTab, setActiveBatchTab, handleAddBatch,
+  batches, setBatches, activeBatchTab, setActiveBatchTab,
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
   captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
 }) {
@@ -820,10 +820,6 @@ function CrewListBatchwisePanel({
               {batch.batchLabel ?? `Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
             </button>
           ))}
-          <button className="tb-add-batch-btn" onClick={handleAddBatch}>
-            <FiPlus size={13} />
-            Add Batch
-          </button>
         </div>
 
         {activeBatch?.completed && (
@@ -978,7 +974,6 @@ CrewListBatchwisePanel.propTypes = {
   setBatches:       PropTypes.func.isRequired,
   activeBatchTab:   PropTypes.number.isRequired,
   setActiveBatchTab: PropTypes.func.isRequired,
-  handleAddBatch:   PropTypes.func.isRequired,
   opFocusedBatch:   PropTypes.number,
   setOpFocusedBatch: PropTypes.func.isRequired,
   recentOps:        PropTypes.array,
@@ -1238,15 +1233,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     setAddTripOpen(false);
   }, [addTripPurpose, addTripBillingEntity, addTripDestShip, billingEntity, vesselName, addPendingCard]);
 
-  const handleAddBatch = useCallback(() => {
-    const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
-    setBatches((prev) => [
-      ...prev,
-      { id: prev.length + 1, crewCount: "", operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
-    ]);
-    setActiveBatchTab(batches.length);
-  }, [batches.length]);
-
   const allDone = (tsState, keys) => keys.every((k) => tsState[k] !== null);
 
   const tsKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
@@ -1365,7 +1351,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           setBatches={setBatches}
           activeBatchTab={activeBatchTab}
           setActiveBatchTab={setActiveBatchTab}
-          handleAddBatch={handleAddBatch}
           opFocusedBatch={opFocusedBatch}
           setOpFocusedBatch={setOpFocusedBatch}
           recentOps={recentOps}
@@ -1582,7 +1567,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           setBatches={setBatches}
           activeBatchTab={activeBatchTab}
           setActiveBatchTab={setActiveBatchTab}
-          handleAddBatch={handleAddBatch}
           opFocusedBatch={opFocusedBatch}
           setOpFocusedBatch={setOpFocusedBatch}
           recentOps={recentOps}
@@ -1603,7 +1587,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           setBatches={setBatches}
           activeBatchTab={activeBatchTab}
           setActiveBatchTab={setActiveBatchTab}
-          handleAddBatch={handleAddBatch}
           opFocusedBatch={opFocusedBatch}
           setOpFocusedBatch={setOpFocusedBatch}
           recentOps={recentOps}
@@ -1622,32 +1605,70 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
           <div className="tb-tabs">
-            <button
-              className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
-              onClick={() => setActiveTab("drop")}
-            >
-              <span
-                key={`drop-${activeTab}`}
-                className={`tb-tab-vessel-wrap${activeTab === "drop" ? " tb-tab-vessel-wrap--drop-firing" : ""}`}
+            <div className="tb-tabs-group">
+              <button
+                className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
+                onClick={() => setActiveTab("drop")}
               >
-                <FaShip size={12} />
-                <span className="tb-tab-cargo-dot" />
-              </span>
-              Drop
-            </button>
-            <button
-              className={`tb-tab${activeTab === "pickup" ? " tb-tab--active" : ""}`}
-              onClick={() => setActiveTab("pickup")}
-            >
-              <span
-                key={`pickup-${activeTab}`}
-                className={`tb-tab-vessel-wrap${activeTab === "pickup" ? " tb-tab-vessel-wrap--pickup-firing" : ""}`}
+                <span
+                  key={`drop-${activeTab}`}
+                  className={`tb-tab-vessel-wrap${activeTab === "drop" ? " tb-tab-vessel-wrap--drop-firing" : ""}`}
+                >
+                  <FaShip size={12} />
+                  <span className="tb-tab-cargo-dot" />
+                </span>
+                Drop
+              </button>
+              <button
+                className={`tb-tab${activeTab === "pickup" ? " tb-tab--active" : ""}`}
+                onClick={() => setActiveTab("pickup")}
               >
-                <FaShip size={12} />
-                <span className="tb-tab-cargo-dot" />
+                <span
+                  key={`pickup-${activeTab}`}
+                  className={`tb-tab-vessel-wrap${activeTab === "pickup" ? " tb-tab-vessel-wrap--pickup-firing" : ""}`}
+                >
+                  <FaShip size={12} />
+                  <span className="tb-tab-cargo-dot" />
+                </span>
+                Pickup
+              </button>
+            </div>
+
+            {tripAdded ? (
+              <span className="tb-add-trip-done tb-add-trip-done--compact">
+                <FiCheckCircle size={13} />Trip Added
               </span>
-              Pickup
-            </button>
+            ) : (activeTab === "drop" ? dropTs.boatCastOffShip : pickupTs.boatCastOffShip) && (
+              <div className="tb-add-trip-anchor">
+                <button
+                  className="tb-add-trip-btn"
+                  onClick={() => {
+                    setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : "");
+                    setAddTripDestShip(vesselName !== "—" ? vesselName : "");
+                    setAddTripOpen((open) => !open);
+                  }}
+                >
+                  <FiPlus size={13} />Add Intermediate Trip
+                </button>
+                {addTripOpen && (
+                  <div className="tb-add-trip-popover">
+                    <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
+                    <div className="tb-add-trip-fields">
+                      <label className="tb-add-trip-label">Billing Entity</label>
+                      <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={addTripBillingEntity} onChange={(e) => setAddTripBillingEntity(e.target.value)} />
+                      <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
+                      <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={addTripPurpose} onChange={(e) => setAddTripPurpose(e.target.value)} />
+                      <label className="tb-add-trip-label">Destination Ship</label>
+                      <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={addTripDestShip} onChange={(e) => setAddTripDestShip(e.target.value)} />
+                    </div>
+                    <div className="tb-add-trip-btns">
+                      <button className="tb-add-trip-submit" onClick={handleAddTrip} disabled={!addTripPurpose.trim()}>Add to Board</button>
+                      <button className="tb-add-trip-cancel" onClick={() => setAddTripOpen(false)}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div key={activeTab} className={`tb-ts-panel tb-ts-panel--${activeTab}`}>
             {activeTab === "drop" ? (
@@ -1669,31 +1690,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                     addToLog: (reason) => setDropStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
                   })}
                 />
-                {dropTs.boatCastOffShip && (
-                  tripAdded ? (
-                    <div className="tb-add-trip-done"><FiCheckCircle size={13} />New task added to Coordinator Board</div>
-                  ) : addTripOpen ? (
-                    <div className="tb-add-trip-form">
-                      <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
-                      <div className="tb-add-trip-fields">
-                        <label className="tb-add-trip-label">Billing Entity</label>
-                        <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={addTripBillingEntity} onChange={(e) => setAddTripBillingEntity(e.target.value)} />
-                        <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
-                        <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={addTripPurpose} onChange={(e) => setAddTripPurpose(e.target.value)} />
-                        <label className="tb-add-trip-label">Destination Ship</label>
-                        <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={addTripDestShip} onChange={(e) => setAddTripDestShip(e.target.value)} />
-                      </div>
-                      <div className="tb-add-trip-btns">
-                        <button className="tb-add-trip-submit" onClick={handleAddTrip} disabled={!addTripPurpose.trim()}>Add to Board</button>
-                        <button className="tb-add-trip-cancel" onClick={() => setAddTripOpen(false)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button className="tb-add-trip-btn" onClick={() => { setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : ""); setAddTripDestShip(vesselName !== "—" ? vesselName : ""); setAddTripOpen(true); }}>
-                      <FiPlus size={13} />Add Intermediate Trip
-                    </button>
-                  )
-                )}
                 <TimestampSummaryTable
                   timestamps={STANDARD_TIMESTAMPS}
                   tsState={dropTs}
@@ -1723,31 +1719,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                     addToLog: (reason) => setPickupStepBackLog((prev) => [...prev, { step: label, reason, time: new Date().toISOString() }]),
                   })}
                 />
-                {pickupTs.boatCastOffShip && (
-                  tripAdded ? (
-                    <div className="tb-add-trip-done"><FiCheckCircle size={13} />New task added to Coordinator Board</div>
-                  ) : addTripOpen ? (
-                    <div className="tb-add-trip-form">
-                      <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
-                      <div className="tb-add-trip-fields">
-                        <label className="tb-add-trip-label">Billing Entity</label>
-                        <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={addTripBillingEntity} onChange={(e) => setAddTripBillingEntity(e.target.value)} />
-                        <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
-                        <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={addTripPurpose} onChange={(e) => setAddTripPurpose(e.target.value)} />
-                        <label className="tb-add-trip-label">Destination Ship</label>
-                        <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={addTripDestShip} onChange={(e) => setAddTripDestShip(e.target.value)} />
-                      </div>
-                      <div className="tb-add-trip-btns">
-                        <button className="tb-add-trip-submit" onClick={handleAddTrip} disabled={!addTripPurpose.trim()}>Add to Board</button>
-                        <button className="tb-add-trip-cancel" onClick={() => setAddTripOpen(false)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button className="tb-add-trip-btn" onClick={() => { setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : ""); setAddTripDestShip(vesselName !== "—" ? vesselName : ""); setAddTripOpen(true); }}>
-                      <FiPlus size={13} />Add Intermediate Trip
-                    </button>
-                  )
-                )}
                 <TimestampSummaryTable
                   timestamps={STANDARD_TIMESTAMPS}
                   tsState={pickupTs}

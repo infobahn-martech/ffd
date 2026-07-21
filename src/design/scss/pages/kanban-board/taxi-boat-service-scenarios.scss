@@ -372,37 +372,6 @@
   }
 }
 
-.tb-add-batch-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: 8px;
-  border: 2px dashed #2666be;
-  background: #eff6ff;
-  color: #2666be;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  margin-top: 4px;
-  align-self: flex-start;
-
-  &:hover {
-    background: #dbeafe;
-    border-color: #1d4ed8;
-  }
-
-  svg {
-    animation: tb-plus-pulse 2.4s ease-in-out infinite;
-  }
-}
-
-@keyframes tb-plus-pulse {
-  0%, 65%, 100% { transform: scale(1); }
-  35%            { transform: scale(1.4); }
-}
-
 /* ---- Batch Tab Panel (Scenario C: Immigration Clearance) ---- */
 .tb-batch-header-row {
   display: flex;
