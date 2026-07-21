@@ -479,6 +479,10 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+
+  &.tb-batch-actions--top {
+    justify-content: flex-end;
+  }
 }
 
 .tb-batch-print-btn {

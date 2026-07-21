@@ -34,6 +34,12 @@ const createCrewImmigrationBooking = (payload) =>
 const getCrewImmigrationBooking = (bookingId) =>
   Gateway.get(`/launch_hire/get_crew_immigration_booking/${encodeURIComponent(String(bookingId))}`);
 
+// Multipart FormData — { booking_id, file } → { booking_id, launch_hire_slip, file_url }
+const uploadLaunchHireSlip = (formData) =>
+  Gateway.post("/launch_hire/upload_launch_hire_slip", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -44,4 +50,5 @@ export default {
   createLaunchHireRequest,
   createCrewImmigrationBooking,
   getCrewImmigrationBooking,
+  uploadLaunchHireSlip,
 };

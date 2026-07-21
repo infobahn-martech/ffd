@@ -3,6 +3,7 @@ import { useCTPendingCards } from "../../../../../../shared/store/ctStore";
 import { useTaxiBoatStore } from "../../../../../../shared/store/taxiBoatStore";
 import useTaxiBoatAssignmentReducer from "../../../../../../store/TaxiBoatAssignmentReducer";
 import useAuthReducer from "../../../../../../store/AuthReducer";
+import useAlertReducer from "../../../../../../store/AlertReducer";
 import groService from "../../../../../../services/groService";
 import launchHireService from "../../../../../../services/launchHireService";
 import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
@@ -762,14 +763,41 @@ TaxiFleetAssignPanel.propTypes = {
 function CrewListBatchwisePanel({
   batches, setBatches, activeBatchTab, setActiveBatchTab, handleAddBatch,
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
-  captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip,
+  captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
 }) {
   const [crewPage, setCrewPage] = useState(1);
+  const [uploadingBatchId, setUploadingBatchId] = useState(null);
   const activeBatchId = batches[activeBatchTab]?.id;
+  const notifySuccess = useAlertReducer((s) => s.success);
+  const notifyError = useAlertReducer((s) => s.error);
 
   useEffect(() => {
     setCrewPage(1);
   }, [activeBatchId]);
+
+  const handleUploadLaunchSlip = useCallback(async (batchIdx, batchIdVal, file) => {
+    setBatches((prev) => prev.map((b, idx) => (idx === batchIdx ? { ...b, file } : b)));
+    if (!file || bookingId == null) return;
+    const formData = new FormData();
+    formData.append("booking_id", bookingId);
+    formData.append("file", file);
+    try {
+      setUploadingBatchId(batchIdVal);
+      const { data } = await launchHireService.uploadLaunchHireSlip(formData);
+      setBatches((prev) =>
+        prev.map((b, idx) =>
+          idx === batchIdx
+            ? { ...b, file, fileUrl: data?.file_url ?? null, fileName: data?.launch_hire_slip ?? file.name }
+            : b
+        )
+      );
+      notifySuccess(data?.message ?? "Launch hire slip uploaded successfully");
+    } catch (err) {
+      notifyError(err?.response?.data?.message ?? err.message ?? "Failed to upload launch hire slip");
+    } finally {
+      setUploadingBatchId(null);
+    }
+  }, [bookingId, setBatches, notifySuccess, notifyError]);
 
   return (
     <div className="tb-scenario-section">
@@ -807,6 +835,31 @@ function CrewListBatchwisePanel({
         );
         return (
           <div key={batch.id} className="tb-batch-tab-content">
+            {batch.completed && (
+              <div className="tb-batch-actions tb-batch-actions--top">
+                <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(batch.ts, `Immigration Batch ${BATCH_ORDINALS[i] ?? i + 1}`, batch.operator, batch.completedAt)}>
+                  <FiPrinter size={14} />
+                  Print Launch Slip
+                </button>
+                <div>
+                  <input
+                    type="file"
+                    id={`tb-batch-file-${batch.id}`}
+                    className="tb-launch-slip-input"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    disabled={uploadingBatchId === batch.id}
+                    onChange={(e) => handleUploadLaunchSlip(i, batch.id, e.target.files?.[0] ?? null)}
+                  />
+                  <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
+                    <FiUpload size={14} />
+                    {uploadingBatchId === batch.id
+                      ? "Uploading…"
+                      : batch.file ? batch.file.name : "Upload Launch Slip"}
+                  </label>
+                </div>
+              </div>
+            )}
+
             {crewRows.length > 0 && (
               <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
                 <table className="tb-crew-table">
@@ -900,34 +953,6 @@ function CrewListBatchwisePanel({
               }
             />
 
-            {batch.completed && (
-              <div className="tb-batch-actions">
-                <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(batch.ts, `Immigration Batch ${BATCH_ORDINALS[i] ?? i + 1}`, batch.operator, batch.completedAt)}>
-                  <FiPrinter size={14} />
-                  Print Launch Slip
-                </button>
-                <div>
-                  <input
-                    type="file"
-                    id={`tb-batch-file-${batch.id}`}
-                    className="tb-launch-slip-input"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) =>
-                      setBatches((prev) =>
-                        prev.map((b, idx) =>
-                          idx === i ? { ...b, file: e.target.files?.[0] ?? null } : b
-                        )
-                      )
-                    }
-                  />
-                  <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
-                    <FiUpload size={14} />
-                    {batch.file ? batch.file.name : "Upload Launch Slip"}
-                  </label>
-                </div>
-              </div>
-            )}
-
             {done && (
               <div className="tb-batch-done-badge">
                 <FiCheckCircle size={16} />
@@ -957,6 +982,7 @@ CrewListBatchwisePanel.propTypes = {
   vesselName:       PropTypes.string,
   now:              PropTypes.instanceOf(Date),
   printLaunchSlip:  PropTypes.func.isRequired,
+  bookingId:        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const TAXI_BOAT_OPERATOR_ROLE_ID = "20";
@@ -1343,6 +1369,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           vesselName={vesselName}
           now={now}
           printLaunchSlip={printLaunchSlip}
+          bookingId={bookingId}
         />
       ) : (
         <TaxiFleetAssignPanel
@@ -1559,6 +1586,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           vesselName={vesselName}
           now={now}
           printLaunchSlip={printLaunchSlip}
+          bookingId={bookingId}
         />
       )}
 
@@ -1579,6 +1607,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           vesselName={vesselName}
           now={now}
           printLaunchSlip={printLaunchSlip}
+          bookingId={bookingId}
         />
       )}
 
