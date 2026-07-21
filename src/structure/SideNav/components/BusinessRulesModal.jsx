@@ -7,6 +7,7 @@ import BusinessRuleFormModal from './BusinessRuleFormModal';
 import { TRIGGER_CODE_TO_ICON } from './businessRulesData';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
+import { resolveKanbanBoardPath } from '../../../shared/helpers/kanbanBoardLink';
 import '../../../design/scss/business-rules-modal.scss';
 
 const OwnerCell = ({ owner }) => {
@@ -162,6 +163,14 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     setView(wasEditing ? 'table' : 'picker');
   };
 
+  const handleBoardNameClick = (board) => {
+    const label = typeof board === 'object' ? board?.name : board;
+    const boardId = typeof board === 'object' ? (board?.board_id ?? board?.id ?? board?.boardId) : null;
+    const path = resolveKanbanBoardPath(label, boardId);
+    if (!path) return;
+    window.open(path, '_blank', 'noopener,noreferrer');
+  };
+
   const handleAddNewRule = () => {
     setTriggerSearch('');
     setView('picker');
@@ -299,16 +308,40 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                               </div>
                             </td>
                             <td className="br-table-id">{ruleId}</td>
-                            <td><span className={`br-table-rule-name${isMissingReference ? ' text-danger' : ''}`}>{name}</span></td>
+                            <td>
+                              <button
+                                type="button"
+                                className={`br-table-rule-name-btn${isMissingReference ? ' text-danger' : ''}`}
+                                onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setHighlightedRuleId(ruleId); setShowFormModal(true); }}
+                              >
+                                {name}
+                              </button>
+                            </td>
                             <td><OwnerCell owner={rule?.owner} /></td>
                             <td>
                               {Array.isArray(boards) && boards.length > 0
-                                ? boards.map((b, i) => (
-                                  <span key={i} className="br-table-board-link">
-                                    {typeof b === 'object' ? b?.name : b}
-                                    {i < boards.length - 1 && ', '}
-                                  </span>
-                                ))
+                                ? boards.map((b, i) => {
+                                  const label = typeof b === 'object' ? b?.name : b;
+                                  const boardId = typeof b === 'object'
+                                    ? (b?.board_id ?? b?.id ?? b?.boardId) : null;
+                                  const clickable = resolveKanbanBoardPath(label, boardId) != null;
+                                  return (
+                                    <span key={i}>
+                                      {clickable ? (
+                                        <button
+                                          type="button"
+                                          className="br-table-board-link-btn"
+                                          onClick={() => handleBoardNameClick(b)}
+                                        >
+                                          {label}
+                                        </button>
+                                      ) : (
+                                        <span className="br-table-board-link">{label}</span>
+                                      )}
+                                      {i < boards.length - 1 && ', '}
+                                    </span>
+                                  );
+                                })
                                 : <span>-</span>
                               }
                             </td>

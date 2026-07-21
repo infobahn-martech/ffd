@@ -559,6 +559,23 @@
   font-weight: 500;
 }
 
+.br-table-rule-name-btn {
+  display: inline-block;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  color: #1d4ed8;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  text-align: left;
+  vertical-align: baseline;
+}
+
 .br-table-owner {
   display: flex;
   align-items: center;
@@ -595,6 +612,20 @@
   color: #1d4ed8;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.br-table-board-link-btn {
+  display: inline;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  color: #1d4ed8;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
 }
 
 .br-table-action-btn {
@@ -4136,7 +4167,7 @@ body .modal.card-property-match-modal.show {
 }
 
 .br-cancel-confirm-dialog {
-  max-width: 360px;
+  max-width: 500px;
   margin: 1.75rem auto;
 }
 
@@ -4150,7 +4181,8 @@ body .modal.card-property-match-modal.show {
   border-radius: 4px;
   position: relative;
   padding: 14px 18px;
-  width: 40%;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
