@@ -1566,6 +1566,12 @@ function CardForm({
     ) {
       return "custom";
     }
+    // Taxi Boat Captain (role 21) always works through the taxi-boat card UI,
+    // regardless of which workflow the card itself belongs to — same reasoning
+    // as the GRO/Custom Clearance Supervisor overrides above.
+    if (String(userRoleId ?? "") === "21") {
+      return "taxi-boat";
+    }
     return variant;
   })();
 
