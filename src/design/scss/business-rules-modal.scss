@@ -645,17 +645,26 @@
 }
 
 // Add / Edit Business Rule form modal
-// !important on background-color: a plain-class backdrop selector like this
-// can lose to other pages' `.modal-backdrop.show { ... }` rules (2-class
-// selector = higher specificity, wins regardless of source order) if that
-// page's CSS happens to already be loaded in the bundle.
-.business-rule-form-modal-backdrop {
+// A plain single-class selector here loses its z-index (not just background-color)
+// to other pages' higher-specificity `body .modal-backdrop.show { z-index: 1299 !important }`
+// / `body .modal.show { z-index: 1300 !important }` catch-alls — !important does not
+// override specificity among competing !important declarations. Left uncorrected,
+// this modal was being forced to the same global 1300/1299 as EVERY nested picker
+// built on .card-property-match-modal (BoardMinimapModal, CreateActionModal, ...),
+// whose OWN z-index (1076/1075, matching specificity fix applied where that class is
+// defined) then rendered *below* this form instead of on top of it — the nested
+// picker was mounting but invisible/unclickable behind the form. Boosting this
+// selector's specificity the same way keeps the outer form reliably under the
+// nested pickers instead of both collapsing onto the same global value.
+body .modal-backdrop.fade.business-rule-form-modal-backdrop,
+body .modal-backdrop.business-rule-form-modal-backdrop.show {
   z-index: 1065 !important;
   background-color: rgba(15, 23, 42, 0.6) !important;
   backdrop-filter: blur(4px) !important;
 }
 
-.business-rule-form-modal {
+body .modal.fade.business-rule-form-modal,
+body .modal.business-rule-form-modal.show {
   --bs-modal-padding: 0;
   z-index: 1066 !important;
 
@@ -2185,6 +2194,16 @@
   margin: 0;
 }
 
+// "Execute at" clock time + timezone read as one phrase (e.g. "00:00 (Asia/Dubai)")
+// even though they're two independent pickers, so they sit on the same row with a
+// small gap instead of the timezone button trailing off on its own line.
+.br-execute-at-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 .business-rule-form-action-detail-link {
   border: none;
   background: transparent;
@@ -2300,6 +2319,39 @@
   .br-create-template-option {
     display: block;
     width: 100%;
+  }
+
+  // Scaled down from the shared pill-shaped board search (padding 14px 20px, 17px
+  // font) — that size fits its own full-width board picker, but reads oversized in
+  // this compact 280px "Execute at" panel.
+  .board-minimap-picker-search {
+    padding: 8px 12px;
+    border-radius: 8px;
+    gap: 8px;
+    padding-right: 32px;
+
+    input {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+.br-timezone-panel-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  cursor: pointer;
+
+  &:hover {
+    color: #6b7280;
   }
 }
 
@@ -2560,16 +2612,25 @@
 // Card property match modal — this is the backdrop for a modal opened from
 // *inside* another modal (business-rule-form-modal), so it must reliably win
 // the darkening so the parent modal reads as dimmed behind the popup.
-// !important guards against other pages' higher-specificity
-// `.modal-backdrop.show { ... }` rules (2-class selector beats this 1-class
-// one regardless of source order) if that page's CSS is already bundled in.
-.card-property-match-modal-backdrop {
+// A plain single-class selector here loses to other pages' higher-specificity
+// `body .modal-backdrop.show { z-index: 1299 !important }` (e.g. operations.scss)
+// even with !important — among competing !important declarations specificity
+// still decides the winner, not source order or !important itself. That was
+// silently collapsing every nested picker built on this class (BoardMinimapModal,
+// CreateActionModal, LinkActionModal, RefineUpdateCriteriaModal, ...) onto the
+// same global 1300/1299 z-index as the page's other modals, so a picker opened
+// from inside another modal could render/behave inconsistently depending on
+// DOM mount order. Matching specificity (0,3,1) via `body .modal...` — same
+// fix already applied to .br-invoke-test-result-modal below — reliably wins.
+body .modal-backdrop.fade.card-property-match-modal-backdrop,
+body .modal-backdrop.card-property-match-modal-backdrop.show {
   z-index: 1075 !important;
   background-color: rgba(15, 23, 42, 0.6) !important;
   backdrop-filter: blur(4px) !important;
 }
 
-.card-property-match-modal {
+body .modal.fade.card-property-match-modal,
+body .modal.card-property-match-modal.show {
   z-index: 1076 !important;
 
   .modal-dialog {
