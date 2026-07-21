@@ -9439,20 +9439,22 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           );
         })()}
 
-        <footer className="business-rule-form-modal-footer">
-          {saveError && <p className="text-danger mb-2">{saveError}</p>}
-          <p className="business-rule-form-footer-note">
-            <strong>Note:</strong> Due to their asynchronous nature, the business rules may sometimes run with a short delay. In rare cases it may take up to 30 minutes.
-          </p>
-          <button
-            type="button"
-            className="business-rule-form-save-btn"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Save'}
-          </button>
-        </footer>
+        {(!isEditMode || activeTab === 'details') && (
+          <footer className="business-rule-form-modal-footer">
+            {saveError && <p className="text-danger mb-2">{saveError}</p>}
+            <p className="business-rule-form-footer-note">
+              <strong>Note:</strong> Due to their asynchronous nature, the business rules may sometimes run with a short delay. In rare cases it may take up to 30 minutes.
+            </p>
+            <button
+              type="button"
+              className="business-rule-form-save-btn"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+          </footer>
+        )}
       </div>
     </Modal>
 
