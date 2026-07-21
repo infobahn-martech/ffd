@@ -681,7 +681,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
               <h2 className="crew-listing-title">Crew Listing</h2>
               <p className="crew-listing-subtitle">Crew documents uploaded so far.</p>
             </div>
-
             <div className="crew-summary-header-actions">
               {launchHireEnabled && (
                 <div className="crew-launch-hire-trigger">
