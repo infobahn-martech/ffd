@@ -18,7 +18,7 @@ import {
   TRIGGER_CODE_TO_ICON,
 } from './businessRulesData';
 import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
-import { buildCreateBusinessRulePayload, getUnconfiguredActionLabels } from './buildBusinessRulePayload';
+import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels } from './buildBusinessRulePayload';
 import ThenGroupRawSummary from './ThenGroupRawSummary';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
@@ -5519,6 +5519,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       copyValuesActions,
       notifyActions,
       invokeActions,
+      // Then-groups the routing effect couldn't invert into editable state (create-subtask,
+      // update_parent/child_card, copy_values_to_*, execute_at) — passed through as-is by
+      // buildThenActions' raw fallback so an edit save doesn't wipe them from the rule.
+      rawThenActionGroups: Object.values(rawSummaryBySectionId).flat(),
     };
 
     const unconfigured = getUnconfiguredActionLabels(formState);
@@ -5528,7 +5532,17 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     }
     setSaveError('');
 
-    const payload = buildCreateBusinessRulePayload(formState, { loggedInUserId, triggerConfig, fieldDetailsByKey });
+    const payload = isEditMode
+      ? buildUpdateBusinessRulePayload(formState, {
+        loggedInUserId,
+        triggerConfig,
+        fieldDetailsByKey,
+        // Preserve the rule's current enabled state — this form has no enable/disable
+        // input of its own (that lives in the table row switch), so update must not
+        // silently flip it.
+        isEnabled: Number(businessRuleDetails?.is_enabled ?? businessRuleDetails?.status ?? 0) === 1,
+      })
+      : buildCreateBusinessRulePayload(formState, { loggedInUserId, triggerConfig, fieldDetailsByKey });
     onSave?.(payload);
   };
 
@@ -6354,7 +6368,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                 className="business-rule-form-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                readOnly={isEditMode}
               />
             </div>
 
@@ -6366,7 +6379,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                readOnly={isEditMode}
               />
             </div>
 
@@ -6376,15 +6388,13 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                 {tags.map((tag, idx) => (
                   <span key={`${tag}-${idx}`} className="business-rule-form-tag-pill">
                     {tag}
-                    {!isEditMode && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(idx)}
-                        aria-label={`Remove tag ${tag}`}
-                      >
-                        <FiX size={12} />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(idx)}
+                      aria-label={`Remove tag ${tag}`}
+                    >
+                      <FiX size={12} />
+                    </button>
                   </span>
                 ))}
                 <input
@@ -6396,7 +6406,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagInputKeyDown}
                   onBlur={handleAddTag}
-                  readOnly={isEditMode}
                 />
               </div>
             </div>
@@ -6412,7 +6421,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   onClick={() => setIsOwnerPickerOpen((v) => !v)}
                   aria-haspopup="listbox"
                   aria-expanded={isOwnerPickerOpen}
-                  disabled={isEditMode}
                 >
                   <span className="business-rule-form-owner-avatar" aria-hidden>
                     {getInitials(owner)}
@@ -6467,7 +6475,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   id="br-form-share"
                   className="business-rule-form-select-wrap business-rule-form-control business-rule-form-share-trigger"
                   onClick={() => setShowShareModal(true)}
-                  disabled={isEditMode}
                 >
                   {sharedUsers.length === 0 ? (
                     <span className="business-rule-form-share-placeholder">Add people</span>
@@ -6492,7 +6499,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   type="checkbox"
                   checked={disallowTriggerChain}
                   onChange={(e) => setDisallowTriggerChain(e.target.checked)}
-                  disabled={isEditMode}
                 />
                 <span className="business-rule-form-toggle-track" aria-hidden />
                 <span className="business-rule-form-toggle-label">
@@ -6503,7 +6509,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           </section>
 
           <section
-            className={`business-rule-form-flow${isEditMode ? ' business-rule-form-readonly-zone' : ''}`}
+            className="business-rule-form-flow"
             aria-label="Rule builder"
           >
             <div className="business-rule-form-column">
@@ -7816,21 +7822,14 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
         <footer className="business-rule-form-modal-footer">
           {saveError && <p className="text-danger mb-2">{saveError}</p>}
-          {isEditMode ? (
-            <p className="business-rule-form-footer-note">
-              Saving changes isn&apos;t wired up yet — the backend update endpoint hasn&apos;t been confirmed.
-            </p>
-          ) : (
-            <p className="business-rule-form-footer-note">
-              <strong>Note:</strong> Due to their asynchronous nature, the business rules may sometimes run with a short delay. In rare cases it may take up to 30 minutes.
-            </p>
-          )}
+          <p className="business-rule-form-footer-note">
+            <strong>Note:</strong> Due to their asynchronous nature, the business rules may sometimes run with a short delay. In rare cases it may take up to 30 minutes.
+          </p>
           <button
             type="button"
             className="business-rule-form-save-btn"
             onClick={handleSave}
-            disabled={isSaving || isEditMode}
-            title={isEditMode ? 'Update endpoint not yet available' : undefined}
+            disabled={isSaving}
           >
             {isSaving ? 'Saving...' : 'Save'}
           </button>

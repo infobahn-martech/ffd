@@ -83,6 +83,58 @@ const buildConditions = (formState, ctx) => {
   return entries;
 };
 
+// Then-action groups the edit-mode routing effect couldn't invert into editable UI state
+// (create-subtask, update_parent/child_card, copy_values_to_parent/child, execute_at —
+// see ThenGroupRawSummary / the THEN routing effect in BusinessRuleFormModal.jsx) are
+// shown read-only instead of being dropped from state entirely. Without this, saving an
+// edit would silently wipe them from the rule, since buildThenActions below only ever
+// walks the editable arrays. Resolves each group's action_type_id the same way
+// findActionTypeId already does for editable sections (via its group_type -> section
+// mapping) rather than trusting an unconfirmed action_type_id field on the raw action.
+const buildRawThenActions = (rawGroups, ctx) => {
+  const { triggerActions } = ctx;
+  const entries = [];
+
+  (rawGroups ?? []).forEach((group) => {
+    const sectionId = ACTION_GROUP_TYPE_TO_SECTION_ID[group.group_type] ?? group.group_type;
+    const actionTypeId = findActionTypeId(triggerActions, sectionId) ?? group.action_type_id ?? null;
+
+    (group.actions ?? []).forEach((action) => {
+      const entry = { action_type_id: actionTypeId ?? action.action_type_id ?? null };
+
+      const properties = (action.properties ?? [])
+        .filter((p) => p.property_value !== null && p.property_value !== undefined && p.property_value !== '')
+        .map((p) => ({
+          property_key: p.property_key,
+          property_value: p.property_value,
+          property_value_type: p.property_value_type ?? 'string',
+        }));
+      if (properties.length > 0) entry.properties = properties;
+
+      if (Array.isArray(action.link_card) && action.link_card.length > 0) {
+        entry.link_card = action.link_card.map((row) => ({
+          relation_type: row.relation_type,
+          operator_key: row.operator_key,
+          input_value: row.input_value,
+          remove_other: row.remove_other,
+          connector: row.connector,
+        }));
+      }
+
+      if (action.notification_id != null) entry.notification_id = action.notification_id;
+      if (action.web_service_id != null) entry.web_service_id = action.web_service_id;
+      // create-subtask's id is read from either shape on the way in (see the routing
+      // effect's own dual check) since which one the backend actually returns is
+      // unconfirmed — mirror that here so it isn't silently dropped either way.
+      if (action.create_subtask_id != null) entry.create_subtask_id = action.create_subtask_id;
+
+      entries.push(entry);
+    });
+  });
+
+  return entries;
+};
+
 const buildThenActions = (formState, ctx) => {
   const {
     createActions, linkActions, removeOtherLinksByType, moveActions, updateActions,
@@ -226,6 +278,8 @@ const buildThenActions = (formState, ctx) => {
     thenActions.push({ action_type_id: invokeActionTypeId, web_service_id: action.webServiceId });
   });
 
+  thenActions.push(...buildRawThenActions(formState.rawThenActionGroups, ctx));
+
   return thenActions;
 };
 
@@ -234,7 +288,7 @@ const buildSharedUsers = (sharePermissions) =>
     .filter(([, perm]) => perm?.viewer || perm?.editor)
     .map(([userId, perm]) => ({ user_id: Number(userId) || userId, permission_type: perm.editor ? 'edit' : 'view' }));
 
-export const buildCreateBusinessRulePayload = (formState, ctx) => {
+const buildBusinessRulePayload = (formState, ctx) => {
   const triggerActions = ctx.triggerConfig?.actions ?? [];
   const nextCtx = { ...ctx, triggerActions };
 
@@ -245,12 +299,26 @@ export const buildCreateBusinessRulePayload = (formState, ctx) => {
     owner_user_id: formState.ownerUserId ?? ctx.loggedInUserId,
     tags: formState.tags.join(', '),
     disallow_rule_action_trigger: formState.disallowTriggerChain ? 1 : 0,
-    is_enabled: 0,
     conditions: buildConditions(formState, nextCtx),
     then_actions: buildThenActions(formState, nextCtx),
     shared_users: buildSharedUsers(formState.sharePermissions),
   };
 };
+
+// New rules are always created disabled — there's no enable/disable input in the
+// add-rule flow, matching the picker/form having no such toggle.
+export const buildCreateBusinessRulePayload = (formState, ctx) => ({
+  ...buildBusinessRulePayload(formState, ctx),
+  is_enabled: 0,
+});
+
+// Edits must not silently flip an existing rule's enabled state, so ctx.isEnabled is
+// expected to carry the rule's current status through from businessRuleDetails.
+export const buildUpdateBusinessRulePayload = (formState, ctx) => ({
+  ...buildBusinessRulePayload(formState, ctx),
+  updated_by_user_id: ctx.loggedInUserId,
+  is_enabled: ctx.isEnabled ? 1 : 0,
+});
 
 // Notify/invoke actions, and the "create subtask" create-action, only get a real backend
 // id once their nested settings modal has been opened and saved — a row added but never
