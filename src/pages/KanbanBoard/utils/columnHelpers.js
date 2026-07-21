@@ -25,6 +25,37 @@ export const countCardsInColumn = (workflow, columnKey) => {
   return n;
 };
 
+/**
+ * Groups consecutive columns in `columnOrder` that share the same `parentColumnId` (children of
+ * a split column, e.g. API `column.children`) into one header group. Ungrouped columns are a
+ * group of one. Used to render a single merged header spanning N grid tracks.
+ */
+export const getColumnHeaderGroups = (workflow) => {
+  const order = workflow.columnOrder || [];
+  const groups = [];
+  let i = 0;
+  while (i < order.length) {
+    const colKey = order[i];
+    const parentColumnId = workflow.columns[colKey]?.parentColumnId ?? null;
+
+    if (parentColumnId == null) {
+      groups.push({ key: colKey, colKeys: [colKey], parentColumnId: null });
+      i += 1;
+      continue;
+    }
+
+    const colKeys = [colKey];
+    let j = i + 1;
+    while (j < order.length && workflow.columns[order[j]]?.parentColumnId === parentColumnId) {
+      colKeys.push(order[j]);
+      j += 1;
+    }
+    groups.push({ key: `group-${parentColumnId}`, colKeys, parentColumnId });
+    i = j;
+  }
+  return groups;
+};
+
 export const findLaneColumnLocationForCard = (workflow, cardId) => {
   if (!workflow.swimlaneOrder || !workflow.swimlanes) return null;
   for (const laneId of workflow.swimlaneOrder) {

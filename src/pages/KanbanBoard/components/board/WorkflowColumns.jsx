@@ -6,6 +6,7 @@ import SwimlaneColumnCell from "./SwimlaneColumnCell";
 import {
   countCardsInColumn,
   getSwimlaneColumnCards,
+  getColumnHeaderGroups,
 } from "../../utils/columnHelpers";
 import { BOARD_COLUMN_GAP_PX, getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
 import { sanitizeSwimlaneColorCode, pickForegroundOnSwimlaneBackground } from "../../../EditWorkflows/workflow.utils";
@@ -46,6 +47,11 @@ export default function WorkflowColumns({
     [workflow.columns, workflow.columnOrder, expandedColumnId, layoutView]
   );
 
+  const headerGroups = useMemo(
+    () => getColumnHeaderGroups(workflow),
+    [workflow.columns, workflow.columnOrder]
+  );
+
   const boardRowGridStyle = useMemo(
     () => ({
       display: "grid",
@@ -70,25 +76,39 @@ export default function WorkflowColumns({
         >
           {/* --- Column headers (workflow stages): same grid tracks as swimlane rows below --- */}
           <div className="kanban-board__header-row" style={boardRowGridStyle}>
-            {workflow.columnOrder.map((colKey) => {
-              const column = workflow.columns[colKey];
-              const isExpanded = expandedColumnId === column.id;
-              const isShrunk = expandedColumnId !== null && expandedColumnId !== column.id;
-              const cardCount = countCardsInColumn(workflow, colKey);
-              const wipLimit = column.wipLimit;
-              const wipDisplay = wipLimit ? `${cardCount} / ${wipLimit}` : String(cardCount);
+            {headerGroups.map((group) => {
+              const firstColumn = workflow.columns[group.colKeys[0]];
+              const isGrouped = group.colKeys.length > 1;
+              const displayColumn = isGrouped
+                ? {
+                    id: firstColumn.id,
+                    title: firstColumn.parentTitle || firstColumn.title,
+                    color: firstColumn.color,
+                    wipLimit: null,
+                  }
+                : firstColumn;
+
+              const groupColumnIds = group.colKeys.map((k) => workflow.columns[k].id);
+              const isExpanded = groupColumnIds.includes(expandedColumnId);
+              const isShrunk = expandedColumnId !== null && !isExpanded;
+              const cardCount = group.colKeys.reduce(
+                (sum, k) => sum + countCardsInColumn(workflow, k),
+                0
+              );
+              const wipDisplay = String(cardCount);
 
               return (
                 <div
-                  key={column.id}
+                  key={group.key}
                   className={`kanban-board__header-slot ${isExpanded ? "kanban-board__header-slot--expanded" : ""} ${isShrunk ? "kanban-board__header-slot--shrunk" : ""
                     }`}
+                  style={isGrouped ? { gridColumn: `span ${group.colKeys.length}` } : undefined}
                 >
                   <ColumnHeader
-                    column={column}
+                    column={displayColumn}
                     wipDisplay={wipDisplay}
                     isShrunk={isShrunk}
-                    onHeaderClick={() => onColumnHeaderClick(workflow.id, column.id)}
+                    onHeaderClick={() => onColumnHeaderClick(workflow.id, firstColumn.id)}
                     isClassicLayout={isClassicLayout}
                     isModernLayout={isModernLayout}
                     isDarkMode={isDarkMode}

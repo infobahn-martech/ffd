@@ -33,6 +33,29 @@ function safeArray(value) {
 }
 
 /**
+ * Flattens a stage's column tree into leaf columns (rendered as real board tracks).
+ * A column with a non-empty `children` array is a pure header group: it is not rendered
+ * itself, its children become the tracks, tagged with the parent's id/name for header grouping.
+ * @param {object[]} cols - `stage.columns` or a column's `children`
+ * @param {string|null} [parentColumnId]
+ * @param {string|null} [parentTitle]
+ * @returns {object[]} flat list of column nodes with `_parentColumnId` / `_parentTitle`
+ */
+function flattenStageColumns(cols, parentColumnId = null, parentTitle = null) {
+  const result = [];
+  for (const col of safeArray(cols)) {
+    const children = safeArray(col?.children);
+    if (children.length > 0) {
+      const colId = col?.column_id != null ? String(col.column_id) : parentColumnId;
+      result.push(...flattenStageColumns(children, colId, col?.column_name || parentTitle));
+    } else {
+      result.push({ ...col, _parentColumnId: parentColumnId, _parentTitle: parentTitle });
+    }
+  }
+  return result;
+}
+
+/**
  * Maps one workflow object from GET kanban_board/get_full_board/{board_id} into the FE board shape.
  * @param {object} workflow - single element of response.data
  * @returns {object|null}
@@ -57,7 +80,7 @@ export function mapBoardWorkflowFromApi(workflow) {
     const stageTitle = stage?.stage_name || "";
     const stageColor = normalizeHexColor(stage?.color_code, "#cccccc");
 
-    for (const col of safeArray(stage?.columns)) {
+    for (const col of flattenStageColumns(stage?.columns)) {
       const colId = col?.column_id;
       if (colId == null) continue;
       const colKey = String(colId);
@@ -73,6 +96,8 @@ export function mapBoardWorkflowFromApi(workflow) {
         wipLimit: null,
         cardsPerRow: Number(col?.cards_per_row) || 1,
         backgroundColor: normalizeHexColor(col?.background_color, "#ffffff"),
+        parentColumnId: col._parentColumnId ?? null,
+        parentTitle: col._parentTitle ?? null,
       };
     }
   }
@@ -136,7 +161,7 @@ export function mapBoardWorkflowFromApi(workflow) {
   for (const stage of stages) {
     const stageColor = normalizeHexColor(stage?.color_code, "#cccccc");
 
-    for (const col of safeArray(stage?.columns)) {
+    for (const col of flattenStageColumns(stage?.columns)) {
       const colId = col?.column_id;
       if (colId == null) continue;
       const colKey = String(colId);
