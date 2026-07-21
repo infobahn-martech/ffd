@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCalendar, FiDownload } from 'react-icons/fi';
+import { LuTriangle } from 'react-icons/lu';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import ReactQuill, { Quill } from 'react-quill-new';
@@ -8,7 +9,8 @@ import QuillTableBetter from 'quill-table-better';
 import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
-  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, RELATIONAL_CREATE_ACTION_LABELS, COPY_CARD_DETAIL_REGULAR_FIELDS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS,
+  THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, RELATIONAL_CREATE_ACTION_LABELS, COPY_CARD_DETAIL_REGULAR_FIELDS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS, STICKER_ACTION_FREQUENCY_OPTIONS,
+  LIST_UPDATE_MODE_OPTIONS, DEADLINE_MODE_OPTIONS, WEEKDAY_OPTIONS, PRIORITY_OPTIONS, classifyCustomFieldUiKind,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
   DUMMY_WORKSPACE_BOARDS,
@@ -20,9 +22,11 @@ import {
 import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
 import { buildCreateBusinessRulePayload, getUnconfiguredActionLabels } from './buildBusinessRulePayload';
 import ThenGroupRawSummary from './ThenGroupRawSummary';
+import DynamicIcon from './DynamicIcon';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import useCommonReducer from '../../../store/CommonReducer';
+import useKanbanManagementReducer, { isKanbanManagementRowDisabled } from '../../../store/KanbanManagementReducer';
 import useAuthReducer from '../../../store/AuthReducer';
 import useWorkFlowReducer from '../../../store/WorkFlowReducer';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
@@ -60,6 +64,66 @@ const RECURRENCE_UNIT_SINGULAR_LABEL = {
 // text input every other field uses. Keyed against UPDATE_ACTION_OPTIONS' dev-fallback
 // keys — the live backend's own field_key for these may differ, best-effort until confirmed.
 const USER_REFERENCE_UPDATE_KEYS = ['add_co_owners', 'remove_co_owners', 'add_watcher'];
+
+// Same idea as USER_REFERENCE_UPDATE_KEYS, but for the sticker-list update actions —
+// picks from the board-management sticker catalog (useKanbanManagementReducer's
+// cardStickers) instead of a free-text value.
+const STICKER_UPDATE_KEYS = ['add_stickers', 'remove_stickers'];
+
+// Same idea again, for the single-value blocker picker — picks from the board-management
+// blocker catalog (useKanbanManagementReducer's cardBlockers).
+const BLOCKER_UPDATE_KEYS = ['set_blocker'];
+
+// Same idea again, for the single-value type picker — picks from the board-management
+// type catalog (useKanbanManagementReducer's cardTypes).
+const TYPE_UPDATE_KEYS = ['set_type'];
+
+// Same idea again, for the single-value owner picker — picks from the same `users` list
+// USER_REFERENCE_UPDATE_KEYS already uses, just single-select instead of a repeatable list.
+const OWNER_UPDATE_KEYS = ['set_owner'];
+
+// Action keys whose header shows a small "mode" dropdown next to the label (append/replace
+// for list fields, relative/absolute for the deadline) — resolved to its option list via
+// updateActionModeOptions() below.
+const LIST_MODE_UPDATE_KEYS = ['set_milestones', 'set_tags'];
+const DEADLINE_UPDATE_KEYS = ['set_deadline'];
+
+// Contrast-aware icon color for a sticker/blocker color swatch — copied from
+// StickersModal's identical helper (that file duplicates it too, alongside
+// Tags/Types/Blockers modals, rather than sharing one, so this keeps the same
+// local-helper convention).
+const colorIconSwatchFg = (bg) => {
+  if (!bg || typeof bg !== 'string') return '#1a1a1a';
+  let r; let g; let b;
+  const trimmed = bg.trim();
+  if (trimmed.startsWith('#')) {
+    const h = trimmed.slice(1);
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    if (full.length < 6) return '#1a1a1a';
+    r = parseInt(full.slice(0, 2), 16);
+    g = parseInt(full.slice(2, 4), 16);
+    b = parseInt(full.slice(4, 6), 16);
+  } else {
+    const m = trimmed.match(/\d+/g);
+    if (!m || m.length < 3) return '#1a1a1a';
+    [r, g, b] = m.map(Number);
+  }
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
+};
+
+// Shared by the sticker picker (Add/Remove stickers), the blocker picker (Set blocker),
+// the type picker (Set type), and the tags picker (Set tags) — all are a color-coded
+// catalog item, though only stickers/blockers/types carry an icon (tags are color-only,
+// matching TagsModal's own swatch), so iconKey is optional.
+const ColorIconSwatch = ({ colorCode, iconKey }) => {
+  const hex = normalizeHexColor(colorCode || '#ffffff');
+  return (
+    <span className="br-color-icon-swatch" style={{ backgroundColor: hex }} aria-hidden>
+      {iconKey && <DynamicIcon iconKey={iconKey} size={14} color={colorIconSwatchFg(hex)} />}
+    </span>
+  );
+};
 
 // Custom embed (not inline format) for the "field pill" tokens (e.g. Title, Author) in
 // the notification body. An inline format only styles editable text — the characters
@@ -4624,6 +4688,68 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const [updateUserFilterText, setUpdateUserFilterText] = useState('');
   const updateUserTriggerRef = useRef(null);
   const updateUserPanelRef = useRef(null);
+  // Same pattern as the update-user picker above, for the sticker-list update actions
+  // (Add/Remove stickers).
+  const [openUpdateStickerRowId, setOpenUpdateStickerRowId] = useState(null);
+  const [updateStickerFilterText, setUpdateStickerFilterText] = useState('');
+  const updateStickerTriggerRef = useRef(null);
+  const updateStickerPanelRef = useRef(null);
+  // "once ⌄ / every time" frequency dropdown next to the sticker action label — one
+  // shared open-action id + filter text, mirroring the link-operator dropdown pattern.
+  const [openUpdateFrequencyActionId, setOpenUpdateFrequencyActionId] = useState(null);
+  const [updateFrequencyFilterText, setUpdateFrequencyFilterText] = useState('');
+  const updateFrequencyTriggerRef = useRef(null);
+  const updateFrequencyPanelRef = useRef(null);
+  // Single-value blocker picker for the "Set blocker" update action — one shared
+  // open-action id + filter text, same pattern as the frequency dropdown above (no
+  // per-row AND/trash since set_blocker only ever holds one value).
+  const [openUpdateBlockerActionId, setOpenUpdateBlockerActionId] = useState(null);
+  const [updateBlockerFilterText, setUpdateBlockerFilterText] = useState('');
+  const updateBlockerTriggerRef = useRef(null);
+  const updateBlockerPanelRef = useRef(null);
+  // Single-value color picker for the "Set color" update action — reuses the same
+  // SedresColorPicker popover already wired up for condition color values below,
+  // with its own open-action id so the two never fight over one piece of state.
+  const [openUpdateColorActionId, setOpenUpdateColorActionId] = useState(null);
+  const updateColorTriggerRef = useRef(null);
+  const updateColorPanelRef = useRef(null);
+  // Single-value type picker for the "Set type" update action — mirrors the blocker
+  // picker above, sourced from cardTypes instead of cardBlockers.
+  const [openUpdateTypeActionId, setOpenUpdateTypeActionId] = useState(null);
+  const [updateTypeFilterText, setUpdateTypeFilterText] = useState('');
+  const updateTypeTriggerRef = useRef(null);
+  const updateTypePanelRef = useRef(null);
+  // Single-value owner picker for the "Set owner" update action — same shape as the
+  // type/blocker pickers but against the `users` list (avatar initials instead of a
+  // color+icon swatch).
+  const [openUpdateOwnerActionId, setOpenUpdateOwnerActionId] = useState(null);
+  const [updateOwnerFilterText, setUpdateOwnerFilterText] = useState('');
+  const updateOwnerTriggerRef = useRef(null);
+  const updateOwnerPanelRef = useRef(null);
+  // Single-value priority picker for the "Set priority" update action — same shape as
+  // the type/blocker pickers but against the static PRIORITY_OPTIONS enum (no fetch).
+  const [openUpdatePriorityActionId, setOpenUpdatePriorityActionId] = useState(null);
+  const [updatePriorityFilterText, setUpdatePriorityFilterText] = useState('');
+  const updatePriorityTriggerRef = useRef(null);
+  const updatePriorityPanelRef = useRef(null);
+  // Shared "mode" dropdown for the actions whose header carries a small two-option
+  // picker next to the label (append/replace for Set milestones/Set tags, relative/
+  // absolute for Set deadline) — one shared open-action id, mirroring the frequency
+  // dropdown pattern but resolving its option list per action.key at render time.
+  const [openUpdateModeActionId, setOpenUpdateModeActionId] = useState(null);
+  const [updateModeFilterText, setUpdateModeFilterText] = useState('');
+  const updateModeTriggerRef = useRef(null);
+  const updateModePanelRef = useRef(null);
+  // Multi-select tag picker for the "Set tags" update action's value row.
+  const [openUpdateTagsActionId, setOpenUpdateTagsActionId] = useState(null);
+  const [updateTagsFilterText, setUpdateTagsFilterText] = useState('');
+  const updateTagsTriggerRef = useRef(null);
+  const updateTagsPanelRef = useRef(null);
+  // Multi-select weekday picker for the "Set deadline" action's Non-working days row.
+  const [openUpdateNonWorkingActionId, setOpenUpdateNonWorkingActionId] = useState(null);
+  const [updateNonWorkingFilterText, setUpdateNonWorkingFilterText] = useState('');
+  const updateNonWorkingTriggerRef = useRef(null);
+  const updateNonWorkingPanelRef = useRef(null);
   const [moveActions, setMoveActions] = useState([]);
   const [showMoveDestinationPicker, setShowMoveDestinationPicker] = useState(false);
   const [activeMoveActionId, setActiveMoveActionId] = useState(null);
@@ -4733,6 +4859,12 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
   const { workspaces, listAllWorkspaces } = useWorkSpaceReducer((s) => s);
+  const {
+    cardStickers, cardStickersLoading, fetchKanbanCardStickers,
+    cardBlockers, cardBlockersLoading, fetchKanbanCardBlockers,
+    cardTypes, cardTypesLoading, fetchKanbanCardTypes,
+    tags: kanbanTags, tagsLoading: kanbanTagsLoading, fetchKanbanTags,
+  } = useKanbanManagementReducer((s) => s);
   const userProfile = useAuthReducer((s) => s.userProfile);
   const loggedInUserId = userProfile?.user_id ?? userProfile?.userid ?? null;
   const loggedInUserName = userProfile?.name || userProfile?.username || 'You';
@@ -4913,6 +5045,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     if (!show || !rule) return;
     getTriggerConfig(rule.id);
     if (users.length === 0 && !usersLoading) getUsers({ params: { limit: 200 } });
+    if (cardStickers.length === 0 && !cardStickersLoading) fetchKanbanCardStickers({ limit: 200 });
+    if (cardBlockers.length === 0 && !cardBlockersLoading) fetchKanbanCardBlockers({ limit: 200 });
+    if (cardTypes.length === 0 && !cardTypesLoading) fetchKanbanCardTypes({ per_page: 200 });
+    if (kanbanTags.length === 0 && !kanbanTagsLoading) fetchKanbanTags({ per_page: 200 });
     if (workspaces.length === 0) listAllWorkspaces();
     setBoardConditionRows([{ id: 'board-0', boardId: '', joinWord: 'OR' }]);
     boardConditionDefaultAppliedRef.current = false;
@@ -5199,6 +5335,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
             (opt) => opt.field.toLowerCase() === String(fieldKey ?? '').trim().toLowerCase()
           );
           const isUserRef = matchedOption && USER_REFERENCE_UPDATE_KEYS.includes(matchedOption.key);
+          const isStickerRef = matchedOption && STICKER_UPDATE_KEYS.includes(matchedOption.key);
+          const isListModeRef = matchedOption && LIST_MODE_UPDATE_KEYS.includes(matchedOption.key);
+          const isDeadlineRef = matchedOption && DEADLINE_UPDATE_KEYS.includes(matchedOption.key);
           nextUpdateActions.push({
             id: `update-${action.then_action_id}`,
             category: matchedOption ? 'action' : 'custom',
@@ -5214,7 +5353,39 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   userName: users.find((u) => String(u.user_id) === String(userId))?.name ?? `User #${userId}`,
                 })),
               }
-              : { value: fieldValue ?? '' }),
+              : isStickerRef
+                ? {
+                  ...(matchedOption.key === 'add_stickers'
+                    ? { frequency: propVal(action, 'frequency') || STICKER_ACTION_FREQUENCY_OPTIONS[0].key }
+                    : {}),
+                  values: String(fieldValue ?? '').split(',').map((v) => v.trim()).filter(Boolean).map((stickerId) => {
+                    const sticker = cardStickers.find((s) => String(s.sticker_id) === String(stickerId));
+                    return {
+                      id: `${action.then_action_id}-${stickerId}`,
+                      stickerId,
+                      stickerName: sticker?.label ?? `Sticker #${stickerId}`,
+                      stickerColor: sticker?.color_code ?? '',
+                      stickerIcon: sticker?.icon ?? '',
+                    };
+                  }),
+                }
+                : isListModeRef
+                  ? {
+                    mode: propVal(action, 'list_mode') || LIST_UPDATE_MODE_OPTIONS[0].key,
+                    ...(matchedOption.key === 'set_tags'
+                      ? {
+                        tagIds: String(fieldValue ?? '').split(',').map((v) => v.trim()).filter(Boolean),
+                      }
+                      : { value: fieldValue ?? '' }),
+                  }
+                  : isDeadlineRef
+                    ? {
+                      mode: propVal(action, 'deadline_mode') || DEADLINE_MODE_OPTIONS[0].key,
+                      deadlineDays: propVal(action, 'deadline_days') || 0,
+                      deadlineDate: propVal(action, 'deadline_date') || '',
+                      nonWorkingDays: String(propVal(action, 'non_working_days') ?? '').split(',').map((v) => v.trim()).filter(Boolean),
+                    }
+                    : { value: fieldValue ?? '' }),
           });
         });
         return;
@@ -5303,7 +5474,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setNotifyActions(nextNotifyActions);
     setInvokeActions(nextInvokeActions);
     setRawSummaryBySectionId(nextRawSummaryBySectionId);
-  }, [isEditMode, businessRuleDetailsReady, businessRuleDetails, triggerConfig, workspaces, users]);
+  }, [isEditMode, businessRuleDetailsReady, businessRuleDetails, triggerConfig, workspaces, users, cardStickers]);
 
   useEffect(() => {
     if (!isOwnerPickerOpen) return undefined;
@@ -5389,6 +5560,126 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [openUpdateUserRowId]);
+
+  useEffect(() => {
+    if (openUpdateStickerRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateStickerPanelRef.current?.contains(t)) return;
+      if (updateStickerTriggerRef.current?.contains(t)) return;
+      setOpenUpdateStickerRowId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateStickerRowId]);
+
+  useEffect(() => {
+    if (openUpdateFrequencyActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateFrequencyPanelRef.current?.contains(t)) return;
+      if (updateFrequencyTriggerRef.current?.contains(t)) return;
+      setOpenUpdateFrequencyActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateFrequencyActionId]);
+
+  useEffect(() => {
+    if (openUpdateBlockerActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateBlockerPanelRef.current?.contains(t)) return;
+      if (updateBlockerTriggerRef.current?.contains(t)) return;
+      setOpenUpdateBlockerActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateBlockerActionId]);
+
+  useEffect(() => {
+    if (openUpdateColorActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateColorPanelRef.current?.contains(t)) return;
+      if (updateColorTriggerRef.current?.contains(t)) return;
+      setOpenUpdateColorActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateColorActionId]);
+
+  useEffect(() => {
+    if (openUpdateTypeActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateTypePanelRef.current?.contains(t)) return;
+      if (updateTypeTriggerRef.current?.contains(t)) return;
+      setOpenUpdateTypeActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateTypeActionId]);
+
+  useEffect(() => {
+    if (openUpdateOwnerActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateOwnerPanelRef.current?.contains(t)) return;
+      if (updateOwnerTriggerRef.current?.contains(t)) return;
+      setOpenUpdateOwnerActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateOwnerActionId]);
+
+  useEffect(() => {
+    if (openUpdatePriorityActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updatePriorityPanelRef.current?.contains(t)) return;
+      if (updatePriorityTriggerRef.current?.contains(t)) return;
+      setOpenUpdatePriorityActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdatePriorityActionId]);
+
+  useEffect(() => {
+    if (openUpdateModeActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateModePanelRef.current?.contains(t)) return;
+      if (updateModeTriggerRef.current?.contains(t)) return;
+      setOpenUpdateModeActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateModeActionId]);
+
+  useEffect(() => {
+    if (openUpdateTagsActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateTagsPanelRef.current?.contains(t)) return;
+      if (updateTagsTriggerRef.current?.contains(t)) return;
+      setOpenUpdateTagsActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateTagsActionId]);
+
+  useEffect(() => {
+    if (openUpdateNonWorkingActionId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (updateNonWorkingPanelRef.current?.contains(t)) return;
+      if (updateNonWorkingTriggerRef.current?.contains(t)) return;
+      setOpenUpdateNonWorkingActionId(null);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openUpdateNonWorkingActionId]);
 
   useEffect(() => {
     if (openCreateTemplateRowId == null) return undefined;
@@ -5874,6 +6165,46 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     ? linkOperatorOptions.filter((op) => op.operator_label.toLowerCase().includes(linkOperatorFilterQuery))
     : linkOperatorOptions;
 
+  const updateFrequencyFilterQuery = updateFrequencyFilterText.trim().toLowerCase();
+  const filteredUpdateFrequencyOptions = updateFrequencyFilterQuery
+    ? STICKER_ACTION_FREQUENCY_OPTIONS.filter((f) => f.label.toLowerCase().includes(updateFrequencyFilterQuery))
+    : STICKER_ACTION_FREQUENCY_OPTIONS;
+
+  const updateBlockerFilterQuery = updateBlockerFilterText.trim().toLowerCase();
+  const enabledUpdateBlockers = cardBlockers.filter((b) => !isKanbanManagementRowDisabled(b.status));
+  const filteredUpdateBlockers = updateBlockerFilterQuery
+    ? enabledUpdateBlockers.filter((b) => b.label.toLowerCase().includes(updateBlockerFilterQuery))
+    : enabledUpdateBlockers;
+
+  const updateTypeFilterQuery = updateTypeFilterText.trim().toLowerCase();
+  const enabledUpdateTypes = cardTypes.filter((t) => !isKanbanManagementRowDisabled(t.status));
+  const filteredUpdateTypes = updateTypeFilterQuery
+    ? enabledUpdateTypes.filter((t) => t.label.toLowerCase().includes(updateTypeFilterQuery))
+    : enabledUpdateTypes;
+
+  const updateOwnerFilterQuery = updateOwnerFilterText.trim().toLowerCase();
+  const filteredUpdateOwners = updateOwnerFilterQuery
+    ? users.filter((u) => u.name.toLowerCase().includes(updateOwnerFilterQuery))
+    : users;
+
+  const updatePriorityFilterQuery = updatePriorityFilterText.trim().toLowerCase();
+  const filteredUpdatePriorities = updatePriorityFilterQuery
+    ? PRIORITY_OPTIONS.filter((p) => p.label.toLowerCase().includes(updatePriorityFilterQuery))
+    : PRIORITY_OPTIONS;
+
+  // Resolves which two-option list the shared "mode" dropdown shows, per action key —
+  // append/replace for list fields, relative/absolute for the deadline.
+  const getUpdateModeOptions = (actionKey) => (
+    DEADLINE_UPDATE_KEYS.includes(actionKey) ? DEADLINE_MODE_OPTIONS : LIST_UPDATE_MODE_OPTIONS
+  );
+  const updateModeFilterQuery = updateModeFilterText.trim().toLowerCase();
+
+  const updateTagsFilterQuery = updateTagsFilterText.trim().toLowerCase();
+  const enabledUpdateTags = kanbanTags.filter((t) => !isKanbanManagementRowDisabled(t.status));
+  const filteredUpdateTags = updateTagsFilterQuery
+    ? enabledUpdateTags.filter((t) => t.label.toLowerCase().includes(updateTagsFilterQuery))
+    : enabledUpdateTags;
+
   const createTemplateFilterQuery = createTemplateFilterText.trim().toLowerCase();
   const filteredCreateTemplates = createTemplateFilterQuery
     ? DUMMY_CREATE_ACTION_TEMPLATES.filter((name) => name.toLowerCase().includes(createTemplateFilterQuery))
@@ -6018,6 +6349,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
         ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
         : a)));
+    } else if (section === 'update') {
+      setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
+        : a)));
     }
   };
 
@@ -6034,6 +6369,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
         ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
         : a)));
+    } else if (section === 'update') {
+      setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+        ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
+        : a)));
     }
   };
 
@@ -6043,7 +6382,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       ? updateRelatedActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
       : activeRelatedFilterTarget?.section === 'copy_values'
         ? copyValuesActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
-        : null;
+        : activeRelatedFilterTarget?.section === 'update'
+          ? updateActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
+          : null;
   const activeRelatedFilterExistingLabels = (activeRelatedFilterAction?.filterProperties ?? [])
     .map((p) => p.fieldLabel.trim().toLowerCase());
 
@@ -6061,6 +6402,32 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         {
           id, category: 'action', key: item.key, label: item.label, field: item.field,
           values: [{ id: `${id}-0`, userId: '', userName: '' }],
+        },
+      ]);
+    } else if (STICKER_UPDATE_KEYS.includes(item.key)) {
+      setUpdateActions((prev) => [
+        ...prev,
+        {
+          id, category: 'action', key: item.key, label: item.label, field: item.field,
+          ...(item.key === 'add_stickers' ? { frequency: STICKER_ACTION_FREQUENCY_OPTIONS[0].key } : {}),
+          values: [{ id: `${id}-0`, stickerId: '', stickerName: '', stickerColor: '', stickerIcon: '' }],
+        },
+      ]);
+    } else if (LIST_MODE_UPDATE_KEYS.includes(item.key)) {
+      setUpdateActions((prev) => [
+        ...prev,
+        {
+          id, category: 'action', key: item.key, label: item.label, field: item.field,
+          mode: LIST_UPDATE_MODE_OPTIONS[0].key,
+          ...(item.key === 'set_tags' ? { tagIds: [] } : {}),
+        },
+      ]);
+    } else if (DEADLINE_UPDATE_KEYS.includes(item.key)) {
+      setUpdateActions((prev) => [
+        ...prev,
+        {
+          id, category: 'action', key: item.key, label: item.label, field: item.field,
+          mode: DEADLINE_MODE_OPTIONS[0].key, deadlineDays: 0, deadlineDate: '', nonWorkingDays: [],
         },
       ]);
     } else {
@@ -6101,6 +6468,113 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       : a)));
     setOpenUpdateUserRowId(null);
     setUpdateUserFilterText('');
+  };
+
+  const handleAddUpdateActionStickerRow = (actionId) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, values: [...(a.values ?? []), { id: `${actionId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, stickerId: '', stickerName: '', stickerColor: '', stickerIcon: '' }] }
+      : a)));
+  };
+
+  const handleRemoveUpdateActionStickerRow = (actionId, rowId) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+      ? { ...a, values: (a.values ?? []).filter((v) => v.id !== rowId) }
+      : a)));
+  };
+
+  const handlePickUpdateActionSticker = (actionId, rowId, sticker) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId
+      ? {
+        ...a,
+        values: (a.values ?? []).map((v) => (v.id === rowId
+          ? { ...v, stickerId: sticker.sticker_id, stickerName: sticker.label, stickerColor: sticker.color_code, stickerIcon: sticker.icon }
+          : v)),
+      }
+      : a)));
+    setOpenUpdateStickerRowId(null);
+    setUpdateStickerFilterText('');
+  };
+
+  const handleToggleUpdateFrequency = (actionId) => {
+    setUpdateFrequencyFilterText('');
+    setOpenUpdateFrequencyActionId((prev) => (prev === actionId ? null : actionId));
+  };
+
+  const handleSelectUpdateFrequency = (actionId, freq) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId ? { ...a, frequency: freq.key } : a)));
+    setOpenUpdateFrequencyActionId(null);
+    setUpdateFrequencyFilterText('');
+  };
+
+  const handleSelectUpdateBlocker = (actionId, blocker) => {
+    handleChangeUpdateActionValue(actionId, blocker.blocker_id ?? '');
+    setOpenUpdateBlockerActionId(null);
+    setUpdateBlockerFilterText('');
+  };
+
+  const handleApplyUpdateActionColor = (actionId, hex) => {
+    handleChangeUpdateActionValue(actionId, normalizeHexColor(hex));
+    setOpenUpdateColorActionId(null);
+  };
+
+  const handleSelectUpdateType = (actionId, type) => {
+    handleChangeUpdateActionValue(actionId, type.card_type_id ?? '');
+    setOpenUpdateTypeActionId(null);
+    setUpdateTypeFilterText('');
+  };
+
+  const handleSelectUpdateOwner = (actionId, user) => {
+    handleChangeUpdateActionValue(actionId, user.user_id ?? '');
+    setOpenUpdateOwnerActionId(null);
+    setUpdateOwnerFilterText('');
+  };
+
+  const handleSelectUpdatePriority = (actionId, priority) => {
+    handleChangeUpdateActionValue(actionId, priority.key ?? '');
+    setOpenUpdatePriorityActionId(null);
+    setUpdatePriorityFilterText('');
+  };
+
+  const handleToggleUpdateMode = (actionId) => {
+    setUpdateModeFilterText('');
+    setOpenUpdateModeActionId((prev) => (prev === actionId ? null : actionId));
+  };
+
+  const handleSelectUpdateMode = (actionId, option) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId ? { ...a, mode: option.key } : a)));
+    setOpenUpdateModeActionId(null);
+    setUpdateModeFilterText('');
+  };
+
+  // Generic setter for the extra fields the deadline action carries (deadlineDays,
+  // deadlineDate) that don't fit the single action.value/action.values shape the other
+  // update actions use.
+  const handleSetUpdateActionField = (actionId, field, value) => {
+    setUpdateActions((prev) => prev.map((a) => (a.id === actionId ? { ...a, [field]: value } : a)));
+  };
+
+  const handleToggleUpdateTagSelection = (actionId, tag) => {
+    setUpdateActions((prev) => prev.map((a) => {
+      if (a.id !== actionId) return a;
+      const current = a.tagIds ?? [];
+      const isSelected = current.some((id) => String(id) === String(tag.id));
+      return {
+        ...a,
+        tagIds: isSelected ? current.filter((id) => String(id) !== String(tag.id)) : [...current, tag.id],
+      };
+    }));
+  };
+
+  const handleToggleUpdateNonWorkingDay = (actionId, day) => {
+    setUpdateActions((prev) => prev.map((a) => {
+      if (a.id !== actionId) return a;
+      const current = a.nonWorkingDays ?? [];
+      const isSelected = current.includes(day.key);
+      return {
+        ...a,
+        nonWorkingDays: isSelected ? current.filter((k) => k !== day.key) : [...current, day.key],
+      };
+    }));
   };
 
   const handleAddNotifyAction = () => {
@@ -6298,6 +6772,36 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   // added — showing all five regardless of selection is what the earlier version did.
   const activeLinkRemoveOptions = LINK_REMOVE_OTHERS_OPTIONS.filter((opt) =>
     linkActions.some((a) => a.key === opt.key)
+  );
+
+  // Shared by every "Update the card details" action card — a per-action "if card
+  // matches this filter" refinement, same CardPropertyMatchModal/filterProperties
+  // mechanism already used by Move/Update-related/Copy-values actions above, just
+  // scoped to section 'update' instead.
+  const renderRefineUpdateCriteria = (action) => (
+    <div className="br-refine-criteria">
+      {(action.filterProperties ?? []).map((prop) => (
+        <div key={prop.id} className="business-rule-form-action-chip">
+          <span className="business-rule-form-action-chip-label">{prop.fieldLabel}</span>
+          <button
+            type="button"
+            className="business-rule-form-condition-remove"
+            onClick={() => handleRemoveRelatedFilterProperty('update', action.id, prop.id)}
+            aria-label="Remove property"
+          >
+            <FiTrash2 size={14} />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        className="business-rule-form-add-link"
+        onClick={() => handleOpenRelatedFilterPicker('update', action.id)}
+      >
+        <FiPlus size={14} aria-hidden />
+        Refine Update Criteria
+      </button>
+    </div>
   );
 
   return (
@@ -7249,29 +7753,1144 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               );
                             })}
+                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
+                      if (STICKER_UPDATE_KEYS.includes(action.key)) {
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <div className="br-link-card-header">
+                              <span className="br-sticker-action-label">{action.label}</span>
+                              {action.key === 'add_stickers' && (
+                                <div className="board-minimap-picker-wrap br-link-operator-wrap">
+                                  <button
+                                    type="button"
+                                    ref={openUpdateFrequencyActionId === action.id ? updateFrequencyTriggerRef : undefined}
+                                    className="br-link-operator-trigger"
+                                    onClick={() => handleToggleUpdateFrequency(action.id)}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={openUpdateFrequencyActionId === action.id}
+                                  >
+                                    {STICKER_ACTION_FREQUENCY_OPTIONS.find((f) => f.key === action.frequency)?.label
+                                      ?? STICKER_ACTION_FREQUENCY_OPTIONS[0].label}
+                                    <FiChevronDown size={14} aria-hidden />
+                                  </button>
+
+                                  {openUpdateFrequencyActionId === action.id && (
+                                    <div className="board-minimap-picker-panel br-link-operator-panel" ref={updateFrequencyPanelRef}>
+                                      <div className="board-minimap-picker-search br-link-operator-search">
+                                        <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                        <input
+                                          type="text"
+                                          placeholder="Filter"
+                                          value={updateFrequencyFilterText}
+                                          onChange={(e) => setUpdateFrequencyFilterText(e.target.value)}
+                                          autoFocus
+                                        />
+                                      </div>
+                                      <div className="board-minimap-picker-scroll br-link-operator-scroll">
+                                        {filteredUpdateFrequencyOptions.length === 0 ? (
+                                          <div className="br-property-picker-empty">No matches</div>
+                                        ) : (
+                                          filteredUpdateFrequencyOptions.map((freq) => (
+                                            <button
+                                              type="button"
+                                              key={freq.key}
+                                              className="br-link-operator-option"
+                                              onClick={() => handleSelectUpdateFrequency(action.id, freq)}
+                                            >
+                                              {freq.label}
+                                            </button>
+                                          ))
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {(action.values ?? []).map((row) => {
+                              const rowKey = `${action.id}-${row.id}`;
+                              const isRowOpen = openUpdateStickerRowId === rowKey;
+                              const stickerFilterQuery = updateStickerFilterText.trim().toLowerCase();
+                              const enabledStickers = cardStickers.filter((s) => !isKanbanManagementRowDisabled(s.status));
+                              const filteredUpdateStickers = stickerFilterQuery
+                                ? enabledStickers.filter((s) => s.label.toLowerCase().includes(stickerFilterQuery))
+                                : enabledStickers;
+                              return (
+                                <div key={row.id} className="br-link-card-value-row">
+                                  <div className="board-minimap-picker-wrap br-update-user-wrap">
+                                    <button
+                                      type="button"
+                                      ref={isRowOpen ? updateStickerTriggerRef : undefined}
+                                      className="br-update-user-trigger"
+                                      onClick={() => {
+                                        setOpenUpdateStickerRowId((prev) => (prev === rowKey ? null : rowKey));
+                                        setUpdateStickerFilterText('');
+                                      }}
+                                      aria-haspopup="listbox"
+                                      aria-expanded={isRowOpen}
+                                    >
+                                      {row.stickerName ? (
+                                        <ColorIconSwatch colorCode={row.stickerColor} iconKey={row.stickerIcon} />
+                                      ) : (
+                                        <FiInfo size={16} className="br-update-user-placeholder-icon" aria-hidden />
+                                      )}
+                                      <span className="br-owner-picker-trigger-name">{row.stickerName || 'Not Set'}</span>
+                                      <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                                    </button>
+
+                                    {isRowOpen && (
+                                      <div className="br-owner-picker-panel" ref={updateStickerPanelRef}>
+                                        <div className="br-owner-picker-search">
+                                          <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                          <input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={updateStickerFilterText}
+                                            onChange={(e) => setUpdateStickerFilterText(e.target.value)}
+                                            autoFocus
+                                          />
+                                        </div>
+                                        <div className="br-owner-picker-list">
+                                          <div className="br-owner-picker-row">
+                                            <button
+                                              type="button"
+                                              className={`br-owner-picker-row-btn${row.stickerId ? '' : ' br-owner-picker-row-btn--selected'}`}
+                                              onClick={() => handlePickUpdateActionSticker(action.id, row.id, { sticker_id: '', label: '', color_code: '', icon: '' })}
+                                            >
+                                              Not Set
+                                            </button>
+                                          </div>
+                                          {cardStickersLoading ? (
+                                            <div className="br-property-picker-empty">Loading...</div>
+                                          ) : filteredUpdateStickers.length === 0 ? (
+                                            <div className="br-property-picker-empty">No matches</div>
+                                          ) : (
+                                            filteredUpdateStickers.map((s) => (
+                                              <div key={s.id} className="br-owner-picker-row">
+                                                <button
+                                                  type="button"
+                                                  className={`br-owner-picker-row-btn${String(row.stickerId) === String(s.sticker_id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                                  onClick={() => handlePickUpdateActionSticker(action.id, row.id, s)}
+                                                >
+                                                  <ColorIconSwatch colorCode={s.color_code} iconKey={s.icon} />
+                                                  <span className="br-owner-picker-row-name">{s.label}</span>
+                                                </button>
+                                              </div>
+                                            ))
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="business-rule-form-filter-row-actions">
+                                    <button
+                                      type="button"
+                                      className="business-rule-form-or-btn"
+                                      onClick={() => handleAddUpdateActionStickerRow(action.id)}
+                                    >
+                                      AND
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="business-rule-form-filter-row-delete"
+                                      onClick={() => handleRemoveUpdateActionStickerRow(action.id, row.id)}
+                                      aria-label="Remove row"
+                                    >
+                                      <FiTrash2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (BLOCKER_UPDATE_KEYS.includes(action.key)) {
+                        const selectedBlocker = cardBlockers.find((b) => String(b.blocker_id) === String(action.value));
+                        const isBlockerOpen = openUpdateBlockerActionId === action.id;
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label} to</span>
+                            <div className="board-minimap-picker-wrap br-update-user-wrap">
+                              <button
+                                type="button"
+                                ref={isBlockerOpen ? updateBlockerTriggerRef : undefined}
+                                className="br-update-user-trigger"
+                                onClick={() => {
+                                  setOpenUpdateBlockerActionId((prev) => (prev === action.id ? null : action.id));
+                                  setUpdateBlockerFilterText('');
+                                }}
+                                aria-haspopup="listbox"
+                                aria-expanded={isBlockerOpen}
+                              >
+                                {selectedBlocker ? (
+                                  <ColorIconSwatch colorCode={selectedBlocker.color_code} iconKey={selectedBlocker.icon} />
+                                ) : (
+                                  <FiInfo size={16} className="br-update-user-placeholder-icon" aria-hidden />
+                                )}
+                                <span className="br-owner-picker-trigger-name">{selectedBlocker?.label || 'Not Set'}</span>
+                                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                              </button>
+
+                              {isBlockerOpen && (
+                                <div className="br-owner-picker-panel" ref={updateBlockerPanelRef}>
+                                  <div className="br-owner-picker-search">
+                                    <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                    <input
+                                      type="text"
+                                      placeholder="Filter"
+                                      value={updateBlockerFilterText}
+                                      onChange={(e) => setUpdateBlockerFilterText(e.target.value)}
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="br-owner-picker-list">
+                                    <div className="br-owner-picker-row">
+                                      <button
+                                        type="button"
+                                        className={`br-owner-picker-row-btn${action.value ? '' : ' br-owner-picker-row-btn--selected'}`}
+                                        onClick={() => handleSelectUpdateBlocker(action.id, { blocker_id: '' })}
+                                      >
+                                        Not Set
+                                      </button>
+                                    </div>
+                                    {cardBlockersLoading ? (
+                                      <div className="br-property-picker-empty">Loading...</div>
+                                    ) : filteredUpdateBlockers.length === 0 ? (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    ) : (
+                                      filteredUpdateBlockers.map((b) => (
+                                        <div key={b.id} className="br-owner-picker-row">
+                                          <button
+                                            type="button"
+                                            className={`br-owner-picker-row-btn${String(action.value) === String(b.blocker_id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                            onClick={() => handleSelectUpdateBlocker(action.id, b)}
+                                          >
+                                            <ColorIconSwatch colorCode={b.color_code} iconKey={b.icon} />
+                                            <span className="br-owner-picker-row-name">{b.label}</span>
+                                          </button>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (action.key === 'set_color') {
+                        const isColorOpen = openUpdateColorActionId === action.id;
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label} to</span>
+                            <div className="board-minimap-picker-wrap br-color-condition-wrap">
+                              <button
+                                type="button"
+                                ref={isColorOpen ? updateColorTriggerRef : undefined}
+                                className="br-color-condition-trigger"
+                                onClick={() => setOpenUpdateColorActionId((prev) => (prev === action.id ? null : action.id))}
+                                aria-haspopup="dialog"
+                                aria-expanded={isColorOpen}
+                              >
+                                <span
+                                  className="br-color-condition-swatch"
+                                  style={{ backgroundColor: action.value ? normalizeHexColor(action.value) : '#e5e7eb' }}
+                                  aria-hidden
+                                />
+                                <span className="br-color-condition-hex">
+                                  {action.value ? normalizeHexColor(action.value) : 'Select color'}
+                                </span>
+                                <FiChevronDown size={14} aria-hidden />
+                              </button>
+
+                              {isColorOpen && (
+                                <div className="board-minimap-picker-panel br-color-condition-panel">
+                                  <SedresColorPicker
+                                    popoverRef={updateColorPanelRef}
+                                    initialHex={action.value || undefined}
+                                    onApply={(hex) => handleApplyUpdateActionColor(action.id, hex)}
+                                    onCancel={() => setOpenUpdateColorActionId(null)}
+                                    ariaLabel={`Pick ${action.label} color`}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (TYPE_UPDATE_KEYS.includes(action.key)) {
+                        const selectedType = cardTypes.find((t) => String(t.card_type_id) === String(action.value));
+                        const isTypeOpen = openUpdateTypeActionId === action.id;
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label} to</span>
+                            <div className="board-minimap-picker-wrap br-update-user-wrap">
+                              <button
+                                type="button"
+                                ref={isTypeOpen ? updateTypeTriggerRef : undefined}
+                                className="br-update-user-trigger"
+                                onClick={() => {
+                                  setOpenUpdateTypeActionId((prev) => (prev === action.id ? null : action.id));
+                                  setUpdateTypeFilterText('');
+                                }}
+                                aria-haspopup="listbox"
+                                aria-expanded={isTypeOpen}
+                              >
+                                {selectedType ? (
+                                  <ColorIconSwatch colorCode={selectedType.color_code} iconKey={selectedType.icon} />
+                                ) : (
+                                  <FiInfo size={16} className="br-update-user-placeholder-icon" aria-hidden />
+                                )}
+                                <span className="br-owner-picker-trigger-name">{selectedType?.label || 'Not Set'}</span>
+                                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                              </button>
+
+                              {isTypeOpen && (
+                                <div className="br-owner-picker-panel" ref={updateTypePanelRef}>
+                                  <div className="br-owner-picker-search">
+                                    <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                    <input
+                                      type="text"
+                                      placeholder="Filter"
+                                      value={updateTypeFilterText}
+                                      onChange={(e) => setUpdateTypeFilterText(e.target.value)}
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="br-owner-picker-list">
+                                    <div className="br-owner-picker-row">
+                                      <button
+                                        type="button"
+                                        className={`br-owner-picker-row-btn${action.value ? '' : ' br-owner-picker-row-btn--selected'}`}
+                                        onClick={() => handleSelectUpdateType(action.id, { card_type_id: '' })}
+                                      >
+                                        Not Set
+                                      </button>
+                                    </div>
+                                    {cardTypesLoading ? (
+                                      <div className="br-property-picker-empty">Loading...</div>
+                                    ) : filteredUpdateTypes.length === 0 ? (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    ) : (
+                                      filteredUpdateTypes.map((t) => (
+                                        <div key={t.id} className="br-owner-picker-row">
+                                          <button
+                                            type="button"
+                                            className={`br-owner-picker-row-btn${String(action.value) === String(t.card_type_id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                            onClick={() => handleSelectUpdateType(action.id, t)}
+                                          >
+                                            <ColorIconSwatch colorCode={t.color_code} iconKey={t.icon} />
+                                            <span className="br-owner-picker-row-name">{t.label}</span>
+                                          </button>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (OWNER_UPDATE_KEYS.includes(action.key)) {
+                        const selectedOwner = users.find((u) => String(u.user_id) === String(action.value));
+                        const isOwnerOpen = openUpdateOwnerActionId === action.id;
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label} to</span>
+                            <div className="board-minimap-picker-wrap br-update-user-wrap">
+                              <button
+                                type="button"
+                                ref={isOwnerOpen ? updateOwnerTriggerRef : undefined}
+                                className="br-update-user-trigger"
+                                onClick={() => {
+                                  setOpenUpdateOwnerActionId((prev) => (prev === action.id ? null : action.id));
+                                  setUpdateOwnerFilterText('');
+                                }}
+                                aria-haspopup="listbox"
+                                aria-expanded={isOwnerOpen}
+                              >
+                                {selectedOwner ? (
+                                  <span className="business-rule-form-owner-avatar" aria-hidden>
+                                    {getInitials(selectedOwner.name)}
+                                  </span>
+                                ) : (
+                                  <span className="business-rule-form-owner-avatar" aria-hidden>
+                                    {getInitials('None')}
+                                  </span>
+                                )}
+                                <span className="br-owner-picker-trigger-name">{selectedOwner?.name || 'None'}</span>
+                                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                              </button>
+
+                              {isOwnerOpen && (
+                                <div className="br-owner-picker-panel" ref={updateOwnerPanelRef}>
+                                  <div className="br-owner-picker-search">
+                                    <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                    <input
+                                      type="text"
+                                      placeholder="Filter"
+                                      value={updateOwnerFilterText}
+                                      onChange={(e) => setUpdateOwnerFilterText(e.target.value)}
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="br-owner-picker-list">
+                                    <div className="br-owner-picker-row">
+                                      <button
+                                        type="button"
+                                        className={`br-owner-picker-row-btn${action.value ? '' : ' br-owner-picker-row-btn--selected'}`}
+                                        onClick={() => handleSelectUpdateOwner(action.id, { user_id: '' })}
+                                      >
+                                        <span className="business-rule-form-owner-avatar" aria-hidden>
+                                          {getInitials('None')}
+                                        </span>
+                                        <span className="br-owner-picker-row-name">None</span>
+                                      </button>
+                                    </div>
+                                    {usersLoading ? (
+                                      <div className="br-property-picker-empty">Loading...</div>
+                                    ) : filteredUpdateOwners.length === 0 ? (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    ) : (
+                                      filteredUpdateOwners.map((u) => (
+                                        <div key={u.user_id} className="br-owner-picker-row">
+                                          <button
+                                            type="button"
+                                            className={`br-owner-picker-row-btn${String(action.value) === String(u.user_id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                            onClick={() => handleSelectUpdateOwner(action.id, u)}
+                                          >
+                                            <span className="business-rule-form-owner-avatar" aria-hidden>
+                                              {getInitials(u.name)}
+                                            </span>
+                                            <span className="br-owner-picker-row-name">{u.name}</span>
+                                          </button>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (action.key === 'set_priority') {
+                        const selectedPriority = PRIORITY_OPTIONS.find((p) => p.key === action.value);
+                        const isPriorityOpen = openUpdatePriorityActionId === action.id;
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label} to</span>
+                            <div className="board-minimap-picker-wrap br-update-user-wrap">
+                              <button
+                                type="button"
+                                ref={isPriorityOpen ? updatePriorityTriggerRef : undefined}
+                                className="br-update-user-trigger"
+                                onClick={() => {
+                                  setOpenUpdatePriorityActionId((prev) => (prev === action.id ? null : action.id));
+                                  setUpdatePriorityFilterText('');
+                                }}
+                                aria-haspopup="listbox"
+                                aria-expanded={isPriorityOpen}
+                              >
+                                {selectedPriority ? (
+                                  <LuTriangle
+                                    size={14}
+                                    color={selectedPriority.color}
+                                    className={`br-priority-icon${selectedPriority.key === 'low' ? ' br-priority-icon--low' : ''}`}
+                                    aria-hidden
+                                  />
+                                ) : (
+                                  <FiInfo size={16} className="br-update-user-placeholder-icon" aria-hidden />
+                                )}
+                                <span className="br-owner-picker-trigger-name">{selectedPriority?.label || 'Not Set'}</span>
+                                <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+                              </button>
+
+                              {isPriorityOpen && (
+                                <div className="br-owner-picker-panel" ref={updatePriorityPanelRef}>
+                                  <div className="br-owner-picker-search">
+                                    <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                    <input
+                                      type="text"
+                                      placeholder="Filter"
+                                      value={updatePriorityFilterText}
+                                      onChange={(e) => setUpdatePriorityFilterText(e.target.value)}
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="br-owner-picker-list">
+                                    {filteredUpdatePriorities.length === 0 ? (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    ) : (
+                                      filteredUpdatePriorities.map((p) => (
+                                        <div key={p.key} className="br-owner-picker-row">
+                                          <button
+                                            type="button"
+                                            className={`br-owner-picker-row-btn${action.value === p.key ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                            onClick={() => handleSelectUpdatePriority(action.id, p)}
+                                          >
+                                            <LuTriangle
+                                              size={14}
+                                              color={p.color}
+                                              className={`br-priority-icon${p.key === 'low' ? ' br-priority-icon--low' : ''}`}
+                                              aria-hidden
+                                            />
+                                            <span className="br-owner-picker-row-name">{p.label}</span>
+                                          </button>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (LIST_MODE_UPDATE_KEYS.includes(action.key)) {
+                        const modeOptions = getUpdateModeOptions(action.key);
+                        const isModeOpen = openUpdateModeActionId === action.id;
+                        const filteredModeOptions = updateModeFilterQuery
+                          ? modeOptions.filter((m) => m.label.toLowerCase().includes(updateModeFilterQuery))
+                          : modeOptions;
+                        const currentModeLabel = modeOptions.find((m) => m.key === action.mode)?.label ?? modeOptions[0].label;
+
+                        const modeHeader = (
+                          <div className="br-link-card-header">
+                            <span className="br-sticker-action-label">{action.label}</span>
+                            <div className="board-minimap-picker-wrap br-link-operator-wrap">
+                              <button
+                                type="button"
+                                ref={isModeOpen ? updateModeTriggerRef : undefined}
+                                className="br-link-operator-trigger"
+                                onClick={() => handleToggleUpdateMode(action.id)}
+                                aria-haspopup="listbox"
+                                aria-expanded={isModeOpen}
+                              >
+                                {currentModeLabel}
+                                <FiChevronDown size={14} aria-hidden />
+                              </button>
+
+                              {isModeOpen && (
+                                <div className="board-minimap-picker-panel br-link-operator-panel" ref={updateModePanelRef}>
+                                  <div className="board-minimap-picker-search br-link-operator-search">
+                                    <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                    <input
+                                      type="text"
+                                      placeholder="Filter"
+                                      value={updateModeFilterText}
+                                      onChange={(e) => setUpdateModeFilterText(e.target.value)}
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="board-minimap-picker-scroll br-link-operator-scroll">
+                                    {filteredModeOptions.length === 0 ? (
+                                      <div className="br-property-picker-empty">No matches</div>
+                                    ) : (
+                                      filteredModeOptions.map((opt) => (
+                                        <button
+                                          type="button"
+                                          key={opt.key}
+                                          className="br-link-operator-option"
+                                          onClick={() => handleSelectUpdateMode(action.id, opt)}
+                                        >
+                                          {opt.label}
+                                        </button>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+
+                        if (action.key === 'set_tags') {
+                          const isTagsOpen = openUpdateTagsActionId === action.id;
+                          const selectedTagLabels = (action.tagIds ?? [])
+                            .map((id) => kanbanTags.find((t) => String(t.id) === String(id))?.label)
+                            .filter(Boolean);
+                          return (
+                            <div key={action.id} className="br-link-card">
+                              <button
+                                type="button"
+                                className="business-rule-form-action-detail-close"
+                                onClick={() => handleRemoveUpdateAction(action.id)}
+                                aria-label="Remove action"
+                              >
+                                <FiX size={14} />
+                              </button>
+                              {modeHeader}
+                              <div className="board-minimap-picker-wrap br-update-user-wrap">
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  ref={isTagsOpen ? updateTagsTriggerRef : undefined}
+                                  className="business-rule-form-input business-rule-form-control business-rule-form-tags-input br-nonworking-trigger"
+                                  onClick={() => {
+                                    setOpenUpdateTagsActionId((prev) => (prev === action.id ? null : action.id));
+                                    setUpdateTagsFilterText('');
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      setOpenUpdateTagsActionId((prev) => (prev === action.id ? null : action.id));
+                                      setUpdateTagsFilterText('');
+                                    }
+                                  }}
+                                  aria-haspopup="listbox"
+                                  aria-expanded={isTagsOpen}
+                                >
+                                  {selectedTagLabels.length === 0 ? (
+                                    <span className="br-nonworking-placeholder">Not Set</span>
+                                  ) : (
+                                    (action.tagIds ?? []).map((tagId) => {
+                                      const tag = kanbanTags.find((t) => String(t.id) === String(tagId));
+                                      if (!tag) return null;
+                                      return (
+                                        <span key={tagId} className="business-rule-form-tag-pill">
+                                          {tag.label}
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleToggleUpdateTagSelection(action.id, tag);
+                                            }}
+                                            aria-label={`Remove ${tag.label}`}
+                                          >
+                                            <FiX size={12} />
+                                          </button>
+                                        </span>
+                                      );
+                                    })
+                                  )}
+                                  <FiChevronDown className="br-nonworking-trigger-chevron" size={14} aria-hidden />
+                                </div>
+
+                                {isTagsOpen && (
+                                  <div className="br-owner-picker-panel" ref={updateTagsPanelRef}>
+                                    <div className="br-owner-picker-search">
+                                      <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                      <input
+                                        type="text"
+                                        placeholder="Filter"
+                                        value={updateTagsFilterText}
+                                        onChange={(e) => setUpdateTagsFilterText(e.target.value)}
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div className="br-owner-picker-list">
+                                      {kanbanTagsLoading ? (
+                                        <div className="br-property-picker-empty">Loading...</div>
+                                      ) : filteredUpdateTags.length === 0 ? (
+                                        <div className="br-property-picker-empty">No matches</div>
+                                      ) : (
+                                        filteredUpdateTags.map((t) => (
+                                          <div key={t.id} className="br-owner-picker-row">
+                                            <button
+                                              type="button"
+                                              className={`br-owner-picker-row-btn${(action.tagIds ?? []).some((id) => String(id) === String(t.id)) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                                              onClick={() => handleToggleUpdateTagSelection(action.id, t)}
+                                            >
+                                              <ColorIconSwatch colorCode={t.color_code} />
+                                              <span className="br-owner-picker-row-name">{t.label}</span>
+                                            </button>
+                                          </div>
+                                        ))
+                                      )}
+                                    </div>
+                                    <div className="br-tags-picker-footer">
+                                      <button
+                                        type="button"
+                                        className="br-tags-picker-save"
+                                        onClick={() => setOpenUpdateTagsActionId(null)}
+                                      >
+                                        Save
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              {renderRefineUpdateCriteria(action)}
+                            </div>
+                          );
+                        }
+
+                        // set_milestones — no confirmed milestones catalog/endpoint exists yet
+                        // (unlike stickers/blockers/types/tags), so its value stays the plain
+                        // text fallback until one is.
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            {modeHeader}
+                            <input
+                              type="text"
+                              className="br-update-action-value-input"
+                              placeholder="New value"
+                              value={action.value ?? ''}
+                              onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
+                            />
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (DEADLINE_UPDATE_KEYS.includes(action.key)) {
+                        const modeOptions = DEADLINE_MODE_OPTIONS;
+                        const isModeOpen = openUpdateModeActionId === action.id;
+                        const filteredModeOptions = updateModeFilterQuery
+                          ? modeOptions.filter((m) => m.label.toLowerCase().includes(updateModeFilterQuery))
+                          : modeOptions;
+                        const currentMode = action.mode || modeOptions[0].key;
+                        const currentModeLabel = modeOptions.find((m) => m.key === currentMode)?.label ?? modeOptions[0].label;
+                        const isNonWorkingOpen = openUpdateNonWorkingActionId === action.id;
+                        const nonWorkingDayKeys = action.nonWorkingDays ?? [];
+                        const nonWorkingFilterQuery = updateNonWorkingFilterText.trim().toLowerCase();
+                        const nonWorkingFilteredOptions = nonWorkingFilterQuery
+                          ? WEEKDAY_OPTIONS.filter((d) => d.label.toLowerCase().includes(nonWorkingFilterQuery))
+                          : WEEKDAY_OPTIONS;
+                        const recentlySelectedDays = nonWorkingFilteredOptions.filter((d) => nonWorkingDayKeys.includes(d.key));
+                        const otherDays = nonWorkingFilteredOptions.filter((d) => !nonWorkingDayKeys.includes(d.key));
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <div className="br-link-card-header">
+                              <span className="br-sticker-action-label">{action.label}</span>
+                              <div className="board-minimap-picker-wrap br-link-operator-wrap">
+                                <button
+                                  type="button"
+                                  ref={isModeOpen ? updateModeTriggerRef : undefined}
+                                  className="br-link-operator-trigger"
+                                  onClick={() => handleToggleUpdateMode(action.id)}
+                                  aria-haspopup="listbox"
+                                  aria-expanded={isModeOpen}
+                                >
+                                  {currentModeLabel}
+                                  <FiChevronDown size={14} aria-hidden />
+                                </button>
+
+                                {isModeOpen && (
+                                  <div className="board-minimap-picker-panel br-link-operator-panel" ref={updateModePanelRef}>
+                                    <div className="board-minimap-picker-search br-link-operator-search">
+                                      <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                      <input
+                                        type="text"
+                                        placeholder="Filter"
+                                        value={updateModeFilterText}
+                                        onChange={(e) => setUpdateModeFilterText(e.target.value)}
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div className="board-minimap-picker-scroll br-link-operator-scroll">
+                                      {filteredModeOptions.length === 0 ? (
+                                        <div className="br-property-picker-empty">No matches</div>
+                                      ) : (
+                                        filteredModeOptions.map((opt) => (
+                                          <button
+                                            type="button"
+                                            key={opt.key}
+                                            className="br-link-operator-option"
+                                            onClick={() => handleSelectUpdateMode(action.id, opt)}
+                                          >
+                                            {opt.label}
+                                          </button>
+                                        ))
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {currentMode === 'relative' ? (
+                              <div className="br-deadline-relative-row">
+                                <input
+                                  type="number"
+                                  className="br-deadline-days-input"
+                                  value={action.deadlineDays ?? 0}
+                                  onChange={(e) => handleSetUpdateActionField(action.id, 'deadlineDays', e.target.value)}
+                                />
+                                <span className="br-deadline-days-label">days in the future</span>
+                              </div>
+                            ) : (
+                              <DatePickerField
+                                dateValue={action.deadlineDate || ''}
+                                onDateChange={(v) => handleSetUpdateActionField(action.id, 'deadlineDate', v)}
+                                placeholder="Select date"
+                              />
+                            )}
+
+                            <div className="br-deadline-nonworking">
+                              <span className="br-deadline-nonworking-label">
+                                Non-working days
+                                <FiInfo size={13} aria-hidden />
+                              </span>
+                              <div className="board-minimap-picker-wrap br-update-user-wrap">
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  ref={isNonWorkingOpen ? updateNonWorkingTriggerRef : undefined}
+                                  className="business-rule-form-input business-rule-form-control business-rule-form-tags-input br-nonworking-trigger"
+                                  onClick={() => {
+                                    setOpenUpdateNonWorkingActionId((prev) => (prev === action.id ? null : action.id));
+                                    setUpdateNonWorkingFilterText('');
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      setOpenUpdateNonWorkingActionId((prev) => (prev === action.id ? null : action.id));
+                                      setUpdateNonWorkingFilterText('');
+                                    }
+                                  }}
+                                  aria-haspopup="listbox"
+                                  aria-expanded={isNonWorkingOpen}
+                                >
+                                  {nonWorkingDayKeys.length === 0 ? (
+                                    <span className="br-nonworking-placeholder">Not Set</span>
+                                  ) : (
+                                    WEEKDAY_OPTIONS.filter((d) => nonWorkingDayKeys.includes(d.key)).map((day) => (
+                                      <span key={day.key} className="business-rule-form-tag-pill">
+                                        {day.label}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleUpdateNonWorkingDay(action.id, day);
+                                          }}
+                                          aria-label={`Remove ${day.label}`}
+                                        >
+                                          <FiX size={12} />
+                                        </button>
+                                      </span>
+                                    ))
+                                  )}
+                                </div>
+
+                                {isNonWorkingOpen && (
+                                  <div className="br-owner-picker-panel" ref={updateNonWorkingPanelRef}>
+                                    <div className="br-owner-picker-search">
+                                      <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                      <input
+                                        type="text"
+                                        placeholder="Filter"
+                                        value={updateNonWorkingFilterText}
+                                        onChange={(e) => setUpdateNonWorkingFilterText(e.target.value)}
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div className="br-owner-picker-list">
+                                      {recentlySelectedDays.length > 0 && (
+                                        <>
+                                          <div className="br-nonworking-section-title">Recently selected</div>
+                                          {recentlySelectedDays.map((day) => (
+                                            <label key={day.key} className="br-nonworking-toggle-row">
+                                              <span className="br-toggle-switch">
+                                                <input
+                                                  type="checkbox"
+                                                  checked
+                                                  onChange={() => handleToggleUpdateNonWorkingDay(action.id, day)}
+                                                />
+                                                <span className="br-toggle-slider" />
+                                              </span>
+                                              {day.label}
+                                            </label>
+                                          ))}
+                                        </>
+                                      )}
+                                      {otherDays.length > 0 && (
+                                        <>
+                                          <div className="br-nonworking-section-title">Other</div>
+                                          {otherDays.map((day) => (
+                                            <label key={day.key} className="br-nonworking-toggle-row">
+                                              <span className="br-toggle-switch">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={false}
+                                                  onChange={() => handleToggleUpdateNonWorkingDay(action.id, day)}
+                                                />
+                                                <span className="br-toggle-slider" />
+                                              </span>
+                                              {day.label}
+                                            </label>
+                                          ))}
+                                        </>
+                                      )}
+                                      {recentlySelectedDays.length === 0 && otherDays.length === 0 && (
+                                        <div className="br-property-picker-empty">No matches</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      // Custom fields carry no confirmed field_type, so which value UI they get
+                      // is guessed from the field's own label (classifyCustomFieldUiKind) —
+                      // best-effort, see the comment on that function.
+                      const customFieldKind = action.category === 'custom' ? classifyCustomFieldUiKind(action.rawLabel) : null;
+                      if (customFieldKind === 'date') {
+                        const customNonWorkingDayKeys = action.nonWorkingDays ?? [];
+                        const isCustomNonWorkingOpen = openUpdateNonWorkingActionId === action.id;
+                        const customNonWorkingFilterQuery = updateNonWorkingFilterText.trim().toLowerCase();
+                        const customNonWorkingFilteredOptions = customNonWorkingFilterQuery
+                          ? WEEKDAY_OPTIONS.filter((d) => d.label.toLowerCase().includes(customNonWorkingFilterQuery))
+                          : WEEKDAY_OPTIONS;
+                        const customRecentlySelectedDays = customNonWorkingFilteredOptions.filter((d) => customNonWorkingDayKeys.includes(d.key));
+                        const customOtherDays = customNonWorkingFilteredOptions.filter((d) => !customNonWorkingDayKeys.includes(d.key));
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label} to</span>
+                            <div className="br-deadline-relative-row">
+                              <input
+                                type="number"
+                                className="br-deadline-days-input"
+                                value={action.deadlineDays ?? 0}
+                                onChange={(e) => handleSetUpdateActionField(action.id, 'deadlineDays', e.target.value)}
+                              />
+                              <span className="br-deadline-days-label">days in the future</span>
+                            </div>
+                            <div className="br-deadline-nonworking">
+                              <span className="br-deadline-nonworking-label">
+                                Non-working days
+                                <FiInfo size={13} aria-hidden />
+                              </span>
+                              <div className="board-minimap-picker-wrap br-update-user-wrap">
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  ref={isCustomNonWorkingOpen ? updateNonWorkingTriggerRef : undefined}
+                                  className="business-rule-form-input business-rule-form-control business-rule-form-tags-input br-nonworking-trigger"
+                                  onClick={() => {
+                                    setOpenUpdateNonWorkingActionId((prev) => (prev === action.id ? null : action.id));
+                                    setUpdateNonWorkingFilterText('');
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      setOpenUpdateNonWorkingActionId((prev) => (prev === action.id ? null : action.id));
+                                      setUpdateNonWorkingFilterText('');
+                                    }
+                                  }}
+                                  aria-haspopup="listbox"
+                                  aria-expanded={isCustomNonWorkingOpen}
+                                >
+                                  {customNonWorkingDayKeys.length === 0 ? (
+                                    <span className="br-nonworking-placeholder">Not Set</span>
+                                  ) : (
+                                    WEEKDAY_OPTIONS.filter((d) => customNonWorkingDayKeys.includes(d.key)).map((day) => (
+                                      <span key={day.key} className="business-rule-form-tag-pill">
+                                        {day.label}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleUpdateNonWorkingDay(action.id, day);
+                                          }}
+                                          aria-label={`Remove ${day.label}`}
+                                        >
+                                          <FiX size={12} />
+                                        </button>
+                                      </span>
+                                    ))
+                                  )}
+                                </div>
+
+                                {isCustomNonWorkingOpen && (
+                                  <div className="br-owner-picker-panel" ref={updateNonWorkingPanelRef}>
+                                    <div className="br-owner-picker-search">
+                                      <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+                                      <input
+                                        type="text"
+                                        placeholder="Filter"
+                                        value={updateNonWorkingFilterText}
+                                        onChange={(e) => setUpdateNonWorkingFilterText(e.target.value)}
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div className="br-owner-picker-list">
+                                      {customRecentlySelectedDays.length > 0 && (
+                                        <>
+                                          <div className="br-nonworking-section-title">Recently selected</div>
+                                          {customRecentlySelectedDays.map((day) => (
+                                            <label key={day.key} className="br-nonworking-toggle-row">
+                                              <span className="br-toggle-switch">
+                                                <input
+                                                  type="checkbox"
+                                                  checked
+                                                  onChange={() => handleToggleUpdateNonWorkingDay(action.id, day)}
+                                                />
+                                                <span className="br-toggle-slider" />
+                                              </span>
+                                              {day.label}
+                                            </label>
+                                          ))}
+                                        </>
+                                      )}
+                                      {customOtherDays.length > 0 && (
+                                        <>
+                                          <div className="br-nonworking-section-title">Other</div>
+                                          {customOtherDays.map((day) => (
+                                            <label key={day.key} className="br-nonworking-toggle-row">
+                                              <span className="br-toggle-switch">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={false}
+                                                  onChange={() => handleToggleUpdateNonWorkingDay(action.id, day)}
+                                                />
+                                                <span className="br-toggle-slider" />
+                                              </span>
+                                              {day.label}
+                                            </label>
+                                          ))}
+                                        </>
+                                      )}
+                                      {customRecentlySelectedDays.length === 0 && customOtherDays.length === 0 && (
+                                        <div className="br-property-picker-empty">No matches</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      if (customFieldKind === 'card') {
+                        return (
+                          <div key={action.id} className="br-link-card">
+                            <button
+                              type="button"
+                              className="business-rule-form-action-detail-close"
+                              onClick={() => handleRemoveUpdateAction(action.id)}
+                              aria-label="Remove action"
+                            >
+                              <FiX size={14} />
+                            </button>
+                            <span className="br-sticker-action-label">{action.label}</span>
+                            <input
+                              type="text"
+                              className="br-update-user-trigger br-card-picker-input"
+                              placeholder="Pick a card"
+                              value={action.value ?? ''}
+                              onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
+                            />
+                            {renderRefineUpdateCriteria(action)}
+                          </div>
+                        );
+                      }
+                      // Plain scalar "Set X to [value]" fields (title, description, size, and
+                      // most custom fields) with no dedicated picker — same vertical card as
+                      // every other special-cased action above, just a plain text value.
+                      // customFieldKind === 'none' custom fields (best-effort guessed as
+                      // file/document-like) get no value control at all, same as unblock_card.
+                      const isSetPhrase = action.category === 'custom' || action.key.startsWith('set_');
+                      const hasValueControl = action.key !== 'unblock_card' && customFieldKind !== 'none';
                       return (
-                        <div key={action.id} className="business-rule-form-action-chip">
-                          <span className="business-rule-form-action-chip-label">
-                            {action.label}
-                          </span>
-                          <input
-                            type="text"
-                            className="br-update-action-value-input"
-                            placeholder="New value"
-                            value={action.value ?? ''}
-                            onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
-                          />
+                        <div key={action.id} className="br-link-card">
                           <button
                             type="button"
-                            className="business-rule-form-condition-remove"
+                            className="business-rule-form-action-detail-close"
                             onClick={() => handleRemoveUpdateAction(action.id)}
                             aria-label="Remove action"
                           >
-                            <FiTrash2 size={14} />
+                            <FiX size={14} />
                           </button>
+                          <span className="br-sticker-action-label">{isSetPhrase ? `${action.label} to` : action.label}</span>
+                          {hasValueControl && (
+                            <input
+                              type="text"
+                              className="br-update-action-value-input"
+                              placeholder="New value"
+                              value={action.value ?? ''}
+                              onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
+                            />
+                          )}
+                          {action.key !== 'unblock_card' && renderRefineUpdateCriteria(action)}
                         </div>
                       );
                     })}

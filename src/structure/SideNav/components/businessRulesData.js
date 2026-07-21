@@ -250,6 +250,73 @@ export const MOVE_ACTION_OPTIONS = [
   { key: 'move_to', label: 'Move card to' },
 ];
 
+// Execution-frequency picker shown next to the "Add stickers"/"Remove stickers" update
+// action label — whether the action fires only the first time the rule matches ('once')
+// or every time it matches ('every_time'). No documented backend property for this yet;
+// sent as a best-effort 'frequency' property alongside field_key/field_value.
+export const STICKER_ACTION_FREQUENCY_OPTIONS = [
+  { key: 'once', label: 'once' },
+  { key: 'every_time', label: 'every time' },
+];
+
+// List-update-mode picker shown next to "Set milestones"/"Set tags" — whether the picked
+// values are appended to the card's existing list or replace it outright. No documented
+// backend property for this yet; sent as a best-effort 'list_mode' property.
+export const LIST_UPDATE_MODE_OPTIONS = [
+  { key: 'append', label: 'append' },
+  { key: 'replace', label: 'replace' },
+];
+
+// "Set deadline to a relative/absolute date" picker. No documented backend property for
+// this yet; sent as best-effort 'deadline_mode'/'deadline_days'/'deadline_date' properties.
+export const DEADLINE_MODE_OPTIONS = [
+  { key: 'relative', label: 'to a relative date' },
+  { key: 'absolute', label: 'to an absolute date' },
+];
+
+// Static weekday catalog for the deadline action's "Non-working days" multi-select — no
+// backend catalog for this exists, so it's the fixed 7-day week rather than an invented
+// endpoint.
+export const WEEKDAY_OPTIONS = [
+  { key: 'sunday', label: 'Sunday' },
+  { key: 'monday', label: 'Monday' },
+  { key: 'tuesday', label: 'Tuesday' },
+  { key: 'wednesday', label: 'Wednesday' },
+  { key: 'thursday', label: 'Thursday' },
+  { key: 'friday', label: 'Friday' },
+  { key: 'saturday', label: 'Saturday' },
+];
+
+// Static priority catalog for the "Set priority" picker — a fixed 4-level enum, not a
+// backend-driven list (matches the fixed-option pattern used by CREATE_ACTION_OPTIONS etc).
+export const PRIORITY_OPTIONS = [
+  { key: 'critical', label: 'Critical', color: '#e5484d' },
+  { key: 'high', label: 'High', color: '#f5a623' },
+  { key: 'average', label: 'Average', color: '#9ca3af' },
+  { key: 'low', label: 'Low', color: '#2f80ed' },
+];
+
+// Custom fields carry no confirmed field_type anywhere in this app yet (nothing in the
+// codebase branches on get_custom_fields'/get_then_action_fields' field_type today), so
+// which value UI a "Set {custom field}" update action gets is guessed from the field's
+// own label instead — best-effort, easy to swap for a real field_type check once the
+// backend shape is confirmed.
+export const CUSTOM_FIELD_DATE_LABEL_HINTS = ['date', 'atd', 'ata', 'etd', 'eta'];
+export const CUSTOM_FIELD_NO_VALUE_LABEL_HINTS = ['copy', 'document', 'acknowledgment', 'acknowledgement', 'certificate', 'permit'];
+export const CUSTOM_FIELD_CARD_PICKER_LABEL = 'card picker';
+
+// Resolves which value UI a custom-field update action should render: 'date' (relative-
+// days + non-working-days, same as Set deadline minus the relative/absolute toggle),
+// 'card' (a "Pick a card" reference picker), 'none' (no settable value — e.g. a file/
+// document field), or the 'text' default.
+export function classifyCustomFieldUiKind(label) {
+  const l = String(label ?? '').trim().toLowerCase();
+  if (l === CUSTOM_FIELD_CARD_PICKER_LABEL) return 'card';
+  if (CUSTOM_FIELD_DATE_LABEL_HINTS.some((hint) => l === hint || l.includes(hint))) return 'date';
+  if (CUSTOM_FIELD_NO_VALUE_LABEL_HINTS.some((hint) => l.includes(hint))) return 'none';
+  return 'text';
+}
+
 export const CONVERT_SUBTASK_ACTION_OPTIONS = [
   { key: 'convert_to', label: 'Convert subtasks to' },
 ];
