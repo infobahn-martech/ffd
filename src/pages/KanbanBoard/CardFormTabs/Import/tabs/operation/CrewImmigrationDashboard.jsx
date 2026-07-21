@@ -177,8 +177,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [isSubmittingLaunchHire, setIsSubmittingLaunchHire] = useState(false);
   const [launchHireRequested, setLaunchHireRequested] = useState(false);
   const [launchHireEnabled, setLaunchHireEnabled] = useState(false);
-  // Placeholder field for the Launch Hire form — no options defined yet.
-  const [launchSelect, setLaunchSelect] = useState("");
+  const [launchBatches, setLaunchBatches] = useState([]);
+  const [launchLocation, setLaunchLocation] = useState("");
 
   const resolveCallAndVesselIds = useCallback(async () => {
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId);
@@ -533,7 +533,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setLaunchDate("");
     setLaunchTime("");
     setLaunchDateTimeError("");
-    setLaunchSelect("");
+    setLaunchBatches([]);
+    setLaunchLocation("");
   };
 
   const handleLaunchHireButtonClick = () => {
@@ -557,8 +558,12 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
 
   const handleSubmitLaunchHire = async () => {
     if (isSubmittingLaunchHire) return;
-    if (!launchSelect) {
-      setLaunchDateTimeError("Select a batch.");
+    if (launchBatches.length === 0) {
+      setLaunchDateTimeError("Select at least one batch.");
+      return;
+    }
+    if (!launchLocation) {
+      setLaunchDateTimeError("Select a location.");
       return;
     }
     if (!launchDate) {
@@ -582,7 +587,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       await createCrewImmigrationBooking({
         call_id: resolvedCallId,
         booking_datetime: buildApiDateTime(launchDate, launchTime),
-        batches: [launchSelect],
+        batches: launchBatches,
+        location: launchLocation,
       });
 
       notify("Launch hire request submitted successfully.", "success");
@@ -590,7 +596,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       setLaunchDate("");
       setLaunchTime("");
       setLaunchDateTimeError("");
-      setLaunchSelect("");
+      setLaunchBatches([]);
+      setLaunchLocation("");
       setLaunchHireRequested(true);
     } catch (err) {
       notify(err?.response?.data?.message ?? "Failed to submit launch hire request. Please try again.", "error");
@@ -777,9 +784,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             onDateTimeChange={handleLaunchDateTimeChange}
             onCancel={handleCancelLaunchHire}
             onSubmit={handleSubmitLaunchHire}
-            selectValue={launchSelect}
-            onSelectChange={setLaunchSelect}
+            selectValue={launchBatches}
+            onSelectChange={setLaunchBatches}
             selectOptions={batchOptions}
+            locationValue={launchLocation}
+            onLocationChange={setLaunchLocation}
           />
 
           {isListingLoading && listingRows.length === 0 ? (
