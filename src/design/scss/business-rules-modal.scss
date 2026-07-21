@@ -1874,6 +1874,17 @@
   }
 }
 
+// Wraps the "Refine Update Criteria" link + its filterProperties chips at the bottom of
+// every "Update the card details" action card (same filterProperties mechanism the
+// Move/Update-related/Copy-values sections already use, scoped to section 'update').
+.br-refine-criteria {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .business-rule-form-action-chip {
   display: flex;
   align-items: center;
@@ -1909,10 +1920,214 @@
   }
 }
 
+// Inside a vertical .br-link-card (Set milestones/Set tags value row) the value input
+// spans the card full-width instead of sitting inline between a label and a remove
+// button, so the horizontal chip's side margins don't apply here.
+.br-link-card > .br-update-action-value-input {
+  width: 100%;
+  margin: 0;
+}
+
+.br-tags-picker-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.br-tags-picker-save {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 20px;
+  font: normal normal 600 13px/1.4 $font-primary;
+  color: #ffffff;
+  background: #00368c;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #002a6e;
+  }
+}
+
+// Priority picker's triangle icon — "Low" points down, everything else points up
+// (the LuTriangle glyph itself points up, so Low is the only one that needs rotating).
+.br-priority-icon--low {
+  transform: rotate(180deg);
+}
+
+.br-deadline-relative-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.br-deadline-days-input {
+  width: 90px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: normal normal 400 14px/1.4 $font-primary;
+  color: $txtColor;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    border-color: #2f80ed;
+    box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.12);
+  }
+}
+
+.br-deadline-days-label {
+  font: normal normal 400 13px/1.4 $font-primary;
+  color: $txtColor;
+}
+
+.br-deadline-nonworking {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.br-deadline-nonworking-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: normal normal 500 12px/1.4 $font-primary;
+  color: #6b7280;
+}
+
+// Self-contained chip-input trigger, shared by Non-working days and Set tags — unlike
+// .business-rule-form-tags-input (which relies on a .business-rule-form-field ancestor
+// for its box chrome), this sits directly inside a .br-link-card, so it carries its own
+// border/padding instead. A <div role="button"> rather than a real <button> because it
+// has to contain each pill's own nested remove <button> (invalid inside a <button>).
+.br-nonworking-trigger {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+  }
+}
+
+.br-nonworking-placeholder {
+  font: normal normal 400 14px/1.5 $font-primary;
+  color: #9ca3af;
+}
+
+// Pushed to the trigger's right edge regardless of how many pills wrap before it
+// (also reused by the Set tags trigger, which shares .br-nonworking-trigger's chrome).
+.br-nonworking-trigger-chevron {
+  margin-left: auto;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.br-nonworking-section-title {
+  padding: 8px 10px 4px;
+  font: normal normal 700 12px/1.4 $font-primary;
+  color: #00368c;
+}
+
+.br-nonworking-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font: normal normal 400 13px/1.4 $font-primary;
+  color: $txtColor;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+// Toggle switch — same visual as ManagersModal's workspace-manager toggle, duplicated
+// locally (that file doesn't export a reusable component either) rather than importing
+// managers-modal.scss into this feature's stylesheet.
+.br-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .br-toggle-slider {
+      background-color: #00368c;
+
+      &:before {
+        transform: translateX(16px);
+      }
+    }
+  }
+}
+
+.br-toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  transition: 0.3s;
+  border-radius: 20px;
+
+  &:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+}
+
+// Color+icon swatch, shared by the sticker picker row (Add/Remove stickers) and the
+// blocker picker (Set blocker) — mirrors the admin Stickers/Blockers modals' own
+// swatch, sized to sit inside the trigger button.
+.br-color-icon-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
 // Self-contained trigger for the per-row user picker on "people list" update actions
 // (Add/Remove co-owners, Add watcher) — the app's other owner-picker trigger relies on
 // a `.business-rule-form-field` ancestor for its layout/chrome, which this repeatable
 // inline row doesn't have, so this is a standalone equivalent rather than reusing it.
+// "Pick a card" custom-field trigger — plain free-text entry (no card-search endpoint
+// exists yet to back a real picker panel), so unlike every other .br-update-user-trigger
+// use this is a real <input>, not a <button>.
+.br-card-picker-input {
+  cursor: text;
+}
+
 .br-update-user-trigger {
   position: relative;
   display: flex;
@@ -2175,6 +2390,14 @@
     color: #002a6e;
     text-decoration: underline;
   }
+}
+
+// Non-interactive equivalent of .br-link-card-as-label — the sticker update action's
+// label has no variant to switch between (unlike link actions), so it's plain text
+// styled the same rather than a button with a pointer cursor it doesn't back up.
+.br-sticker-action-label {
+  font: normal normal 600 14px/1.4 $font-primary;
+  color: #00368c;
 }
 
 .br-link-operator-wrap {

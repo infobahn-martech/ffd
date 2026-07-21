@@ -133,20 +133,43 @@ const buildThenActions = (formState, ctx) => {
   // Update field — each chip is one field+value pair, wrapped in the generic
   // field_key/field_value property pair the documented example uses for action_type_id 4.
   // User-reference fields (Add/Remove co-owners, Add watcher) carry an array of picked
-  // users instead of a single text value — best-effort joined into one comma-separated
+  // users, and sticker fields (Add/Remove stickers) carry an array of picked stickers,
+  // instead of a single text value — best-effort joined into one comma-separated
   // field_value, since the example only documents a single scalar value.
   const updateActionTypeId = findActionTypeId(triggerActions, 'update');
   updateActions.forEach((action) => {
     const fieldValue = Array.isArray(action.values)
-      ? action.values.map((v) => v.userId).filter(Boolean).join(', ')
-      : (action.value ?? '');
-    thenActions.push({
-      action_type_id: updateActionTypeId,
-      properties: [
-        { property_key: 'field_key', property_value: action.field, property_value_type: 'string' },
-        { property_key: 'field_value', property_value: fieldValue, property_value_type: 'string' },
-      ],
-    });
+      ? action.values.map((v) => v.userId ?? v.stickerId).filter(Boolean).join(', ')
+      : Array.isArray(action.tagIds)
+        ? action.tagIds.join(', ')
+        : (action.value ?? '');
+    const properties = [
+      { property_key: 'field_key', property_value: action.field, property_value_type: 'string' },
+      { property_key: 'field_value', property_value: fieldValue, property_value_type: 'string' },
+    ];
+    // Sticker actions' "once"/"every time" frequency picker — no documented property
+    // shape for this yet, best-effort until confirmed against a real example.
+    if (action.frequency) {
+      properties.push({ property_key: 'frequency', property_value: action.frequency, property_value_type: 'string' });
+    }
+    // Set milestones/Set tags' "append"/"replace" list-mode picker — same best-effort
+    // status as frequency above.
+    if (action.key === 'set_milestones' || action.key === 'set_tags') {
+      properties.push({ property_key: 'list_mode', property_value: action.mode ?? '', property_value_type: 'string' });
+    }
+    // Set deadline's relative/absolute + non-working-days pickers — no documented
+    // property shape for any of this yet, best-effort until confirmed.
+    if (action.key === 'set_deadline') {
+      properties.push({ property_key: 'deadline_mode', property_value: action.mode ?? '', property_value_type: 'string' });
+      properties.push({ property_key: 'deadline_days', property_value: action.deadlineDays ?? 0, property_value_type: 'number' });
+      properties.push({ property_key: 'deadline_date', property_value: action.deadlineDate ?? '', property_value_type: 'string' });
+      properties.push({
+        property_key: 'non_working_days',
+        property_value: (action.nonWorkingDays ?? []).join(', '),
+        property_value_type: 'string',
+      });
+    }
+    thenActions.push({ action_type_id: updateActionTypeId, properties });
   });
 
   // Link card — a single then_actions entry for the whole section; link_card is fanned
