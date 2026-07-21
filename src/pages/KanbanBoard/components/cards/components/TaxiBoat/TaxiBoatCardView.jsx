@@ -6,6 +6,7 @@ import useAuthReducer from "../../../../../../store/AuthReducer";
 import groService from "../../../../../../services/groService";
 import launchHireService from "../../../../../../services/launchHireService";
 import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
+import { formatGroDocumentDisplayName } from "../GRO/User/groCardUtils";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
@@ -46,9 +47,9 @@ function getBatchCrewRows(crewCount) {
 // confirmed on the backend yet, so fall back across likely field name variants.
 function normalizeImmigrationCrewRow(crew) {
   return {
-    name:         crew?.crew_name ?? crew?.name ?? "—",
-    rank:         crew?.rank ?? crew?.crew_rank ?? "—",
-    nationality:  crew?.nationality ?? "—",
+    name:         formatGroDocumentDisplayName(crew?.crew_name ?? crew?.name) || "—",
+    rank:         formatGroDocumentDisplayName(crew?.rank ?? crew?.crew_rank) || "—",
+    nationality:  formatGroDocumentDisplayName(crew?.nationality) || "—",
     passportNo:   crew?.passport_no ?? crew?.passportNo ?? "—",
     seamanBookNo: crew?.seaman_book_no ?? crew?.seamanBookNo ?? crew?.seaman_book_number ?? "—",
   };
@@ -60,7 +61,7 @@ function mapImmigrationBatches(apiBatches) {
     const crew = Array.isArray(b?.crew) ? b.crew.map(normalizeImmigrationCrewRow) : [];
     return {
       id: idx + 1,
-      batchLabel: b?.batch ?? null,
+      batchLabel: b?.batch ? formatGroDocumentDisplayName(b.batch) : null,
       crewCount: String(crew.length),
       crew,
       operator: "",
@@ -83,6 +84,7 @@ const STANDARD_TIMESTAMPS = [
 ];
 
 const BATCH_ORDINALS = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+const CREW_PAGE_SIZE = 10;
 
 const isBatchDone = (batch) => STANDARD_TIMESTAMPS.every((t) => batch.ts[t.key] !== null);
 
@@ -762,6 +764,13 @@ function CrewListBatchwisePanel({
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
   captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip,
 }) {
+  const [crewPage, setCrewPage] = useState(1);
+  const activeBatchId = batches[activeBatchTab]?.id;
+
+  useEffect(() => {
+    setCrewPage(1);
+  }, [activeBatchId]);
+
   return (
     <div className="tb-scenario-section">
       <h3 className="tb-section-title">Crew List — Batchwise</h3>
@@ -790,10 +799,16 @@ function CrewListBatchwisePanel({
         if (i !== activeBatchTab) return null;
         const done = isBatchDone(batch);
         const crewRows = batch.crew && batch.crew.length > 0 ? batch.crew : getBatchCrewRows(batch.crewCount);
+        const totalCrewPages = Math.max(1, Math.ceil(crewRows.length / CREW_PAGE_SIZE));
+        const crewPageSafe = Math.min(crewPage, totalCrewPages);
+        const pagedCrewRows = crewRows.slice(
+          (crewPageSafe - 1) * CREW_PAGE_SIZE,
+          crewPageSafe * CREW_PAGE_SIZE
+        );
         return (
           <div key={batch.id} className="tb-batch-tab-content">
             {crewRows.length > 0 && (
-              <div className="tb-crew-table-wrapper">
+              <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
                 <table className="tb-crew-table">
                   <thead>
                     <tr>
@@ -806,9 +821,9 @@ function CrewListBatchwisePanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {crewRows.map((row, ri) => (
+                    {pagedCrewRows.map((row, ri) => (
                       <tr key={ri}>
-                        <td>{ri + 1}</td>
+                        <td>{(crewPageSafe - 1) * CREW_PAGE_SIZE + ri + 1}</td>
                         <td>{row.name}</td>
                         <td>{row.rank}</td>
                         <td>{row.nationality}</td>
@@ -818,6 +833,29 @@ function CrewListBatchwisePanel({
                     ))}
                   </tbody>
                 </table>
+                {totalCrewPages > 1 && (
+                  <div className="tb-crew-pagination">
+                    <button
+                      type="button"
+                      className="tb-crew-page-btn"
+                      onClick={() => setCrewPage((p) => Math.max(1, p - 1))}
+                      disabled={crewPageSafe === 1}
+                    >
+                      Prev
+                    </button>
+                    <span className="tb-crew-page-status">
+                      Page {crewPageSafe} of {totalCrewPages}
+                    </span>
+                    <button
+                      type="button"
+                      className="tb-crew-page-btn"
+                      onClick={() => setCrewPage((p) => Math.min(totalCrewPages, p + 1))}
+                      disabled={crewPageSafe === totalCrewPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
