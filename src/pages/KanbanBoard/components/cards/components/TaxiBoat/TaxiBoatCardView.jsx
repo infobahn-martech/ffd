@@ -1607,19 +1607,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           <div className="tb-tabs">
             <div className="tb-tabs-group">
               <button
-                className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
-                onClick={() => setActiveTab("drop")}
-              >
-                <span
-                  key={`drop-${activeTab}`}
-                  className={`tb-tab-vessel-wrap${activeTab === "drop" ? " tb-tab-vessel-wrap--drop-firing" : ""}`}
-                >
-                  <FaShip size={12} />
-                  <span className="tb-tab-cargo-dot" />
-                </span>
-                Drop
-              </button>
-              <button
                 className={`tb-tab${activeTab === "pickup" ? " tb-tab--active" : ""}`}
                 onClick={() => setActiveTab("pickup")}
               >
@@ -1631,6 +1618,19 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   <span className="tb-tab-cargo-dot" />
                 </span>
                 Pickup
+              </button>
+                 <button
+                className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
+                onClick={() => setActiveTab("drop")}
+              >
+                <span
+                  key={`drop-${activeTab}`}
+                  className={`tb-tab-vessel-wrap${activeTab === "drop" ? " tb-tab-vessel-wrap--drop-firing" : ""}`}
+                >
+                  <FaShip size={12} />
+                  <span className="tb-tab-cargo-dot" />
+                </span>
+                Drop
               </button>
             </div>
 
