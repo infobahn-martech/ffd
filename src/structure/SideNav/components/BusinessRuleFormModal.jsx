@@ -39,15 +39,15 @@ import toastSuccessIcon from '../../../assets/images/toast-success.svg';
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 QuillTableBetter.register();
 
-// The backend has no timezone catalog for the "Execute at" recurring-schedule action —
-// the runtime's own IANA database is the only source, so it's read once at module load.
-const TIMEZONE_LIST = (() => {
-  try {
-    return Intl.supportedValuesOf('timeZone');
-  } catch {
-    return ['UTC', 'Asia/Dubai', 'Asia/Riyadh', 'Asia/Kolkata', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Asia/Shanghai', 'Australia/Sydney'];
-  }
-})();
+// The "Execute at" recurring-schedule action has exactly one section, one dropdown: the
+// clock time. There's no backend timezone catalog and no per-rule timezone picker — this
+// app's own business runs out of Dubai, so the timezone half of the card is a fixed label.
+const EXECUTE_AT_TIMEZONE = 'Asia/Dubai';
+
+// Same gap on the "Execute at" clock time itself — there's no backend list to page
+// through, so the picker offers the same on-the-hour options a native time input's
+// browser-drawn dropdown would, just styled to match the rest of the picker panels.
+const TIME_LIST = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`);
 
 // Same gap for the WHEN-side recurrence frequency: get_regular_fields returns nothing for
 // this trigger type, so "Every day/hour/minute/second" is built from the one shared
@@ -4829,17 +4829,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const recurrenceUnitTriggerRef = useRef(null);
   const recurrenceUnitPanelRef = useRef(null);
   const [executeAtTime, setExecuteAtTime] = useState('00:00');
-  const [executeAtTimezone, setExecuteAtTimezone] = useState(() => {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-    } catch {
-      return 'UTC';
-    }
-  });
-  const [showTimezonePicker, setShowTimezonePicker] = useState(false);
-  const [timezoneFilterText, setTimezoneFilterText] = useState('');
-  const timezoneTriggerRef = useRef(null);
-  const timezonePanelRef = useRef(null);
+  const [showExecuteTimePicker, setShowExecuteTimePicker] = useState(false);
+  const [executeTimeFilterText, setExecuteTimeFilterText] = useState('');
+  const executeTimeTriggerRef = useRef(null);
+  const executeTimePanelRef = useRef(null);
 
   const {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
@@ -5011,7 +5004,13 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   // Each THEN action section fetches its own regular/custom/time-unit field catalog
   // from get_then_action_fields, keyed by this trigger's action_type_id for that
   // group_type (get_trigger_config's actions[] carries one per group_type).
-  const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards' || a.group_type === 'create_card_recurring')?.action_type_id;
+  const createActionMeta = sortedTriggerActions.find((a) => a.group_type === 'create_cards' || a.group_type === 'create_card_recurring');
+  const createActionTypeId = createActionMeta?.action_type_id;
+  // A recurring/scheduled trigger has no originating card, so the relational create
+  // variants (child/parent/predecessor/relative/successor) in CREATE_ACTION_OPTIONS
+  // don't apply — only a plain "Create card" ever makes sense here. Skip the type
+  // picker entirely and go straight to "Add new action" → the board/destination picker.
+  const isRecurringCreateAction = createActionMeta?.group_type === 'create_card_recurring';
   const updateActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'update_card')?.action_type_id;
 
   // Resolved once per trigger: which cross-card direction (if any) this trigger's own
@@ -5112,8 +5111,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setRecurrenceUnit('days');
     setShowRecurrenceUnitPicker(false);
     setExecuteAtTime('00:00');
-    setShowTimezonePicker(false);
-    setTimezoneFilterText('');
     if (timeUnits.length === 0) getTimeUnits();
   }, [show, rule, loggedInUserName, loggedInUserId]);
 
@@ -5295,6 +5292,12 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       return match ? match.board_name : `Board #${boardId}`;
     };
 
+    const resolveWorkspaceName = (boardId) => {
+      if (boardId == null || boardId === '') return '';
+      const owner = (workspaces ?? []).find((w) => (w.boards ?? []).some((b) => String(b.board_id) === String(boardId)));
+      return owner?.workspace_name ?? '';
+    };
+
     groups.forEach((group) => {
       const sectionId = ACTION_GROUP_TYPE_TO_SECTION_ID[group.group_type];
       const actions = group.actions ?? [];
@@ -5311,12 +5314,23 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           const relationType = propVal(action, 'relation_type');
           const copyRegular = propVal(action, 'copy_regular_fields');
           const copyCustom = propVal(action, 'copy_custom_fields');
+          const createBoardId = propVal(action, 'target_board_id') ?? '';
           nextCreateActions.push({
             id: `create-${action.then_action_id}`,
             key: relationType ?? 'card',
             label: relationType ? `Create ${relationType}` : 'Create card',
-            boardId: propVal(action, 'target_board_id') ?? '',
+            boardId: createBoardId,
+            // Same board→workspace/board-name resolve the move/convert branch below already
+            // does — without it, the "Configure details" link never picks up the saved
+            // destination text and permanently reads as unconfigured after a reload.
+            boardName: resolveBoardName(createBoardId),
+            workspaceName: resolveWorkspaceName(createBoardId),
+            workflowId: propVal(action, 'target_workflow_id') ?? '',
+            workflowName: '',
+            swimlaneId: propVal(action, 'target_swimlane_id') ?? '',
+            swimlaneName: '',
             stageId: propVal(action, 'target_column_id') ?? '',
+            stageName: '',
             templateName: propVal(action, 'card_title') ?? '',
             copyFields: (copyRegular || copyCustom) ? {
               regularFields: copyRegular ? copyRegular.split(',').map((s) => s.trim()).filter(Boolean) : [],
@@ -5525,17 +5539,17 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   }, [showRecurrenceUnitPicker]);
 
   useEffect(() => {
-    if (!showTimezonePicker) return undefined;
+    if (!showExecuteTimePicker) return undefined;
     const onDocMouseDown = (event) => {
       const t = event.target;
-      if (timezonePanelRef.current?.contains(t)) return;
-      if (timezoneTriggerRef.current?.contains(t)) return;
-      setShowTimezonePicker(false);
-      setTimezoneFilterText('');
+      if (executeTimePanelRef.current?.contains(t)) return;
+      if (executeTimeTriggerRef.current?.contains(t)) return;
+      setShowExecuteTimePicker(false);
+      setExecuteTimeFilterText('');
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [showTimezonePicker]);
+  }, [showExecuteTimePicker]);
 
   useEffect(() => {
     if (openLinkOperatorRowId == null) return undefined;
@@ -6074,6 +6088,15 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const handleOpenCreateDetails = (id) => {
     setActiveCreateActionId(id);
     setShowCreateDetailsPicker(true);
+  };
+
+  // Recurring-schedule triggers only ever create a plain card (no originator to
+  // relate a child/parent/... to), so "Add new action" skips the create-type picker
+  // and goes straight to a "Create card" row. The board/destination picker (board
+  // minimap) only opens when the user clicks that row's "Configure details" link.
+  const handleAddRecurringCreateAction = () => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setCreateActions((prev) => [...prev, { id, key: 'card', label: 'Create card' }]);
   };
 
   const handleSaveCreateDetails = (destination) => {
@@ -7500,18 +7523,20 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                           <button
                             type="button"
                             className="business-rule-form-add-link"
-                            onClick={() => setShowCreateActionPicker(true)}
+                            onClick={() => (isRecurringCreateAction ? handleAddRecurringCreateAction() : setShowCreateActionPicker(true))}
                           >
                             <FiPlus size={14} aria-hidden />
                             Add new action
                           </button>
-                          <button
-                            type="button"
-                            className="business-rule-form-add-link"
-                            onClick={handleClearCreateActions}
-                          >
-                            Clear all
-                          </button>
+                          {createActions.length > 1 && (
+                            <button
+                              type="button"
+                              className="business-rule-form-add-link"
+                              onClick={handleClearCreateActions}
+                            >
+                              Clear all
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -7645,13 +7670,15 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                             <FiPlus size={14} aria-hidden />
                             Add new action
                           </button>
-                          <button
-                            type="button"
-                            className="business-rule-form-add-link"
-                            onClick={handleClearLinkActions}
-                          >
-                            Clear all
-                          </button>
+                          {linkActions.length > 1 && (
+                            <button
+                              type="button"
+                              className="business-rule-form-add-link"
+                              onClick={handleClearLinkActions}
+                            >
+                              Clear all
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -8901,7 +8928,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                       );
                     })}
 
-                    {section.id === 'update' && updateActions.length > 0 && (
+                    {section.id === 'update' && updateActions.length > 1 && (
                       <button
                         type="button"
                         className="business-rule-form-add-link"
@@ -9135,7 +9162,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                       </div>
                     ))}
 
-                    {section.id === 'notify' && notifyActions.length > 0 && (
+                    {section.id === 'notify' && notifyActions.length > 1 && (
                       <button
                         type="button"
                         className="business-rule-form-add-link"
@@ -9147,58 +9174,60 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
                     {section.id === 'execute' && (
                       <div className="business-rule-form-action-detail-card">
-                        <div className="board-minimap-picker-wrap">
-                          <input
-                            type="time"
-                            aria-label="Execute at time"
-                            className="business-rule-form-condition-input"
-                            value={executeAtTime}
-                            onChange={(e) => setExecuteAtTime(e.target.value)}
-                          />
-                        </div>
+                        <label className="business-rule-form-label">Execute at</label>
 
-                        <div className="board-minimap-picker-wrap">
-                          <button
-                            type="button"
-                            ref={showTimezonePicker ? timezoneTriggerRef : undefined}
-                            className="business-rule-form-action-detail-link"
-                            onClick={() => setShowTimezonePicker((prev) => !prev)}
-                            aria-haspopup="listbox"
-                            aria-expanded={showTimezonePicker}
-                          >
-                            {executeAtTimezone}
-                            <FiChevronDown size={14} aria-hidden />
-                          </button>
+                        <div className="br-execute-at-row">
+                          <div className="board-minimap-picker-wrap">
+                            <button
+                              type="button"
+                              ref={showExecuteTimePicker ? executeTimeTriggerRef : undefined}
+                              aria-label="Execute at time"
+                              className="business-rule-form-action-detail-link"
+                              onClick={() => setShowExecuteTimePicker((prev) => !prev)}
+                              aria-haspopup="listbox"
+                              aria-expanded={showExecuteTimePicker}
+                            >
+                              {executeAtTime} ({EXECUTE_AT_TIMEZONE})
+                              <FiChevronDown size={14} aria-hidden />
+                            </button>
 
-                          {showTimezonePicker && (
-                            <div className="board-minimap-picker-panel br-timezone-panel" ref={timezonePanelRef}>
-                              <div className="board-minimap-picker-search">
-                                <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
-                                <input
-                                  type="text"
-                                  placeholder="Filter"
-                                  value={timezoneFilterText}
-                                  onChange={(e) => setTimezoneFilterText(e.target.value)}
-                                  autoFocus
-                                />
+                            {showExecuteTimePicker && (
+                              <div className="board-minimap-picker-panel br-timezone-panel" ref={executeTimePanelRef}>
+                                <button
+                                  type="button"
+                                  className="br-timezone-panel-close"
+                                  onClick={() => { setShowExecuteTimePicker(false); setExecuteTimeFilterText(''); }}
+                                  aria-label="Close"
+                                >
+                                  <FiX size={14} />
+                                </button>
+                                <div className="board-minimap-picker-search">
+                                  <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                  <input
+                                    type="text"
+                                    placeholder="Filter"
+                                    value={executeTimeFilterText}
+                                    onChange={(e) => setExecuteTimeFilterText(e.target.value)}
+                                    autoFocus
+                                  />
+                                </div>
+                                <div className="board-minimap-picker-scroll">
+                                  {TIME_LIST
+                                    .filter((time) => time.includes(executeTimeFilterText.trim()))
+                                    .map((time) => (
+                                      <button
+                                        type="button"
+                                        key={time}
+                                        className="br-create-template-option"
+                                        onClick={() => { setExecuteAtTime(time); setShowExecuteTimePicker(false); setExecuteTimeFilterText(''); }}
+                                      >
+                                        <span className="br-timezone-option-label">{time}</span>
+                                      </button>
+                                    ))}
+                                </div>
                               </div>
-                              <div className="board-minimap-picker-scroll">
-                                {TIMEZONE_LIST
-                                  .filter((tz) => tz.toLowerCase().includes(timezoneFilterText.trim().toLowerCase()))
-                                  .slice(0, 200)
-                                  .map((tz) => (
-                                    <button
-                                      type="button"
-                                      key={tz}
-                                      className="br-create-template-option"
-                                      onClick={() => { setExecuteAtTimezone(tz); setShowTimezonePicker(false); setTimezoneFilterText(''); }}
-                                    >
-                                      <span className="br-timezone-option-label">{tz}</span>
-                                    </button>
-                                  ))}
-                              </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -9233,7 +9262,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                         type="button"
                         className="business-rule-form-add-action"
                         onClick={() => {
-                          if (section.id === 'create') setShowCreateActionPicker(true);
+                          if (section.id === 'create') {
+                            if (isRecurringCreateAction) handleAddRecurringCreateAction();
+                            else setShowCreateActionPicker(true);
+                          }
                           if (section.id === 'link') setShowLinkActionPicker(true);
                           if (section.id === 'move') handleAddMoveAction();
                           if (section.id === 'convert') handleAddConvertAction();
