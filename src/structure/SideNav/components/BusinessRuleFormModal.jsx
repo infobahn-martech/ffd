@@ -112,6 +112,26 @@ const colorIconSwatchFg = (bg) => {
   return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
 };
 
+// Turns a saved notification subject string (free text with `{Token}` card-field
+// placeholders) into the pill/text part list the THEN-column notify card and the
+// notification settings modal's subject box both render. Module-level (not just the
+// modal's own copy) so the THEN-column list preview can parse a freshly-fetched
+// subject without opening the settings modal first.
+const parseSubjectString = (text) => {
+  const parts = [];
+  const tokenRegex = /\{([^{}]+)\}/g;
+  let lastIndex = 0;
+  let match = tokenRegex.exec(text);
+  while (match) {
+    if (match.index > lastIndex) parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+    parts.push({ type: 'text', value: '{' }, { type: 'pill', value: match[1] }, { type: 'text', value: '}' });
+    lastIndex = match.index + match[0].length;
+    match = tokenRegex.exec(text);
+  }
+  if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) });
+  return parts;
+};
+
 // Shared by the sticker picker (Add/Remove stickers), the blocker picker (Set blocker),
 // the type picker (Set type), and the tags picker (Set tags) — all are a color-coded
 // catalog item, though only stickers/blockers/types carry an icon (tags are color-only,
@@ -2646,25 +2666,6 @@ function NotificationSettingsModal({
     return span;
   };
 
-  // A previously-saved subject comes back as a plain string with each card-field token
-  // written as "{Field Label}" (see handleAddSubjectField, which wraps every inserted
-  // pill in literal "{"/"}" text nodes) — split it back into pill/text parts so those
-  // tokens render as pills again instead of literal curly-brace text.
-  const parseSubjectString = (text) => {
-    const parts = [];
-    const tokenRegex = /\{([^{}]+)\}/g;
-    let lastIndex = 0;
-    let match = tokenRegex.exec(text);
-    while (match) {
-      if (match.index > lastIndex) parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
-      parts.push({ type: 'text', value: '{' }, { type: 'pill', value: match[1] }, { type: 'text', value: '}' });
-      lastIndex = match.index + match[0].length;
-      match = tokenRegex.exec(text);
-    }
-    if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) });
-    return parts;
-  };
-
   // Subject is a contentEditable box (free-typed text interleaved with non-editable
   // "card field" pills) rather than a controlled input, so its DOM only needs seeding
   // once per open — re-rendering it from React state on every keystroke would fight the
@@ -4838,6 +4839,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
     getNotificationSettings, notificationSettings, isLoadingNotificationSettings, resetNotificationSettings,
+    getNotificationSettingsPreview,
     getRecipientCustomFields, recipientCustomFields,
     deleteNotificationSettings,
     getWebServiceSettings, webServiceSettings, isLoadingWebServiceSettings, resetWebServiceSettings,
@@ -5458,6 +5460,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           nextNotifyActions.push({
             id: `notify-${action.then_action_id}`, key: 'send_notification', label: 'Send notification',
             notification_id: action.notification_id ?? null,
+            // Without this, a saved notify action always reads "Not Set" on reopen —
+            // `configured` only ever got set by handleSaveNotificationSettings (live
+            // edits), never by this restore-from-API path.
+            configured: action.notification_id != null,
           });
         });
         return;
@@ -5468,6 +5474,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           nextInvokeActions.push({
             id: `invoke-${action.then_action_id}`, key: 'invoke_web_service', label: 'Invoke web service',
             webServiceId: action.web_service_id ?? null,
+            // Same restore gap as notify actions above — configured only got set on
+            // live save, so a saved invoke action always read "Not Set" on reopen.
+            configured: action.web_service_id != null,
           });
         });
         return;
@@ -5489,6 +5498,26 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setInvokeActions(nextInvokeActions);
     setRawSummaryBySectionId(nextRawSummaryBySectionId);
   }, [isEditMode, businessRuleDetailsReady, businessRuleDetails, triggerConfig, workspaces, users, cardStickers]);
+
+  // The THEN-column notify card shows the actual saved subject (as pills) instead of a
+  // generic "Configured" label — needs each restored notify action's subject fetched up
+  // front rather than waiting for the user to open its settings modal. Uses the read-only
+  // preview fetch (not getNotificationSettings/notificationSettings) so this doesn't race
+  // or clobber whichever notify action the settings modal itself has open.
+  useEffect(() => {
+    if (!isEditMode) return;
+    notifyActions
+      .filter((a) => a.notification_id && a.subjectParts === undefined)
+      .forEach((action) => {
+        getNotificationSettingsPreview(action.notification_id).then((settings) => {
+          // Always resolve to at least [] (never leave subjectParts undefined) so a
+          // failed fetch doesn't get retried on every subsequent notifyActions change —
+          // it just falls back to the generic "Configured" label instead.
+          const subjectParts = settings ? parseSubjectString(settings.subject ?? '') : [];
+          setNotifyActions((prev) => prev.map((a) => (a.id === action.id ? { ...a, subjectParts } : a)));
+        });
+      });
+  }, [isEditMode, notifyActions]);
 
   useEffect(() => {
     if (!isOwnerPickerOpen) return undefined;
@@ -5753,6 +5782,13 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   // A prefilled (edit-mode) condition carries its own `desiredOperatorLabel` — the operator
   // label the saved rule actually used — so it's matched by label instead of defaulting to
   // the first option, once this trigger's own operator list for that field has loaded.
+  // Also re-runs when `conditions` itself changes (e.g. edit-mode restoring boxes for a
+  // field whose details were already cached from an earlier picker interaction) — keying
+  // this only on fieldDetailsByKey meant a restored box whose field details were already
+  // cached never got its operatorId resolved, since nothing would ever fire the effect
+  // again for it. Safe against loops: once every condition already has an operatorId,
+  // `changed` stays false and the updater returns the same `prev` reference, which bails
+  // out of the state update.
   useEffect(() => {
     setConditions((prev) => {
       let changed = false;
@@ -5769,7 +5805,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       });
       return changed ? next : prev;
     });
-  }, [fieldDetailsByKey]);
+  }, [fieldDetailsByKey, conditions]);
 
   if (isEditMode && show && isEditDataLoading) {
     return (

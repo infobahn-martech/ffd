@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import useBusinessRuleReducer from '../../store/BusinessRuleReducer';
 import BusinessRulesModal from '../../structure/SideNav/components/BusinessRulesModal';
 import BusinessRuleDetailsModal from './Modals/BusinessRuleDetailsModal';
+import { resolveKanbanBoardPath } from '../../shared/helpers/kanbanBoardLink';
 import './business-rules-page.scss';
 
 const FILTER_OPTIONS = [
@@ -32,12 +33,27 @@ const BoardNameCell = ({ boards }) => {
   if (!Array.isArray(items) || items.length === 0) return <span>-</span>;
   return (
     <>
-      {items.map((b, i) => (
-        <span key={i} className="br-board-link">
-          {typeof b === 'object' ? b?.name : b}
-          {i < items.length - 1 && ', '}
-        </span>
-      ))}
+      {items.map((b, i) => {
+        const label = typeof b === 'object' ? b?.name : b;
+        const boardId = typeof b === 'object' ? (b?.board_id ?? b?.id ?? b?.boardId) : null;
+        const path = resolveKanbanBoardPath(label, boardId);
+        return (
+          <span key={i}>
+            {path ? (
+              <button
+                type="button"
+                className="br-board-link-btn"
+                onClick={() => window.open(path, '_blank', 'noopener,noreferrer')}
+              >
+                {label}
+              </button>
+            ) : (
+              <span className="br-board-link">{label}</span>
+            )}
+            {i < items.length - 1 && ', '}
+          </span>
+        );
+      })}
     </>
   );
 };
