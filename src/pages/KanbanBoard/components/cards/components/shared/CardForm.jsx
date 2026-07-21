@@ -2333,7 +2333,7 @@ function CardForm({
         {isSubTaskCard ? (
           <TaskCardDetailView card={card} onClose={handleClose} />
         ) : isTaxiBoatVariant ? (
-          <TaxiBoatCardView card={card} />
+          <TaxiBoatCardView card={card} userRoleId={userRoleId} />
         ) : isDriverStyleView ? (
           <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (

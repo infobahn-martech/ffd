@@ -19,6 +19,23 @@ $tb-space-xl:   28px;
 $tb-space-2xl:  32px;
 // ––––––––––––––––––––––––––––––––––––––––––––––––––
 
+.tb-summary-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #e2e8f0;
+  outline: none;
+  padding: 0 0 2px;
+  font-size: 18px;
+  color: #0f172a;
+  background: transparent;
+  font-family: inherit;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: #2666be;
+  }
+}
+
 .tb-card-view {
   flex: 1;
   min-height: 0;
