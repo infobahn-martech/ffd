@@ -6683,6 +6683,18 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     }
   };
 
+  const handleClearInvokeActions = () => {
+    // Same rule as handleRemoveInvokeAction: only entries saved on the backend
+    // (webServiceId) need a delete call before they can be cleared.
+    const actionsToDelete = invokeActions.filter((a) => a.webServiceId);
+    setInvokeActions((prev) => prev.filter((a) => a.webServiceId));
+    actionsToDelete.forEach((action) => {
+      deleteWebServiceSettings(action.webServiceId, {
+        cb: () => setInvokeActions((prev) => prev.filter((a) => a.id !== action.id)),
+      });
+    });
+  };
+
   const handleOpenWebInvokeSettings = (id) => {
     setActiveInvokeActionId(id);
     setShowWebInvokeSettings(true);
@@ -8928,16 +8940,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                       );
                     })}
 
-                    {section.id === 'update' && updateActions.length > 1 && (
-                      <button
-                        type="button"
-                        className="business-rule-form-add-link"
-                        onClick={handleClearUpdateActions}
-                      >
-                        Clear all
-                      </button>
-                    )}
-
                     {section.id === 'update_related' && updateRelatedActions.map((action) => (
                       <div key={action.id} className="business-rule-form-action-detail-card">
                         <button
@@ -9162,16 +9164,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                       </div>
                     ))}
 
-                    {section.id === 'notify' && notifyActions.length > 1 && (
-                      <button
-                        type="button"
-                        className="business-rule-form-add-link"
-                        onClick={handleClearNotifyActions}
-                      >
-                        Clear all
-                      </button>
-                    )}
-
                     {section.id === 'execute' && (
                       <div className="business-rule-form-action-detail-card">
                         <label className="business-rule-form-label">Execute at</label>
@@ -9257,31 +9249,63 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                       <ThenGroupRawSummary key={group.then_group_id ?? group.group_type} group={group} />
                     ))}
 
-                    {section.id !== 'execute' && section.id !== 'generic' && !(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && (
-                      <button
-                        type="button"
-                        className="business-rule-form-add-action"
-                        onClick={() => {
-                          if (section.id === 'create') {
-                            if (isRecurringCreateAction) handleAddRecurringCreateAction();
-                            else setShowCreateActionPicker(true);
-                          }
-                          if (section.id === 'link') setShowLinkActionPicker(true);
-                          if (section.id === 'move') handleAddMoveAction();
-                          if (section.id === 'convert') handleAddConvertAction();
-                          if (section.id === 'update') setShowUpdateActionPicker(true);
-                          if (section.id === 'update_related') handleAddUpdateRelatedAction();
-                          if (section.id === 'copy_values') handleAddCopyValuesAction();
-                          if (section.id === 'notify') handleAddNotifyAction();
-                          if (section.id === 'invoke') handleAddInvokeAction();
-                        }}
-                      >
-                        <FiPlus size={14} aria-hidden />
-                        {section.id === 'move' ? 'Add new move action'
-                          : section.id === 'update_related' ? 'Add new update action'
-                            : section.id === 'copy_values' ? 'Add new copy values action'
-                              : 'Add new action'}
-                      </button>
+                    {section.id !== 'execute' && section.id !== 'generic' && !(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && !(section.id === 'move' && moveActions.length > 0) && (
+                      <div className="br-link-footer-actions">
+                        <button
+                          type="button"
+                          className="business-rule-form-add-action"
+                          onClick={() => {
+                            if (section.id === 'create') {
+                              if (isRecurringCreateAction) handleAddRecurringCreateAction();
+                              else setShowCreateActionPicker(true);
+                            }
+                            if (section.id === 'link') setShowLinkActionPicker(true);
+                            if (section.id === 'move') handleAddMoveAction();
+                            if (section.id === 'convert') handleAddConvertAction();
+                            if (section.id === 'update') setShowUpdateActionPicker(true);
+                            if (section.id === 'update_related') handleAddUpdateRelatedAction();
+                            if (section.id === 'copy_values') handleAddCopyValuesAction();
+                            if (section.id === 'notify') handleAddNotifyAction();
+                            if (section.id === 'invoke') handleAddInvokeAction();
+                          }}
+                        >
+                          <FiPlus size={14} aria-hidden />
+                          {section.id === 'move' ? 'Add new move action'
+                            : section.id === 'update_related' ? 'Add new update action'
+                              : section.id === 'copy_values' ? 'Add new copy values action'
+                                : 'Add new action'}
+                        </button>
+
+                        {section.id === 'update' && updateActions.length > 1 && (
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={handleClearUpdateActions}
+                          >
+                            Clear all
+                          </button>
+                        )}
+
+                        {section.id === 'notify' && notifyActions.length > 1 && (
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={handleClearNotifyActions}
+                          >
+                            Clear all
+                          </button>
+                        )}
+
+                        {section.id === 'invoke' && invokeActions.length > 1 && (
+                          <button
+                            type="button"
+                            className="business-rule-form-add-link"
+                            onClick={handleClearInvokeActions}
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
