@@ -4,6 +4,8 @@ import { useTaxiBoatStore } from "../../../../../../shared/store/taxiBoatStore";
 import useTaxiBoatAssignmentReducer from "../../../../../../store/TaxiBoatAssignmentReducer";
 import useAuthReducer from "../../../../../../store/AuthReducer";
 import groService from "../../../../../../services/groService";
+import launchHireService from "../../../../../../services/launchHireService";
+import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
@@ -38,6 +40,39 @@ function getBatchCrewRows(crewCount) {
   const n = Math.max(0, parseInt(crewCount, 10) || 0);
   if (n === 0) return [];
   return Array.from({ length: n }, (_, i) => ({ ...MOCK_CREW_ROWS[i % MOCK_CREW_ROWS.length] }));
+}
+
+// launch_hire/get_crew_immigration_booking/{booking_id} — crew row shape isn't fully
+// confirmed on the backend yet, so fall back across likely field name variants.
+function normalizeImmigrationCrewRow(crew) {
+  return {
+    name:         crew?.crew_name ?? crew?.name ?? "—",
+    rank:         crew?.rank ?? crew?.crew_rank ?? "—",
+    nationality:  crew?.nationality ?? "—",
+    passportNo:   crew?.passport_no ?? crew?.passportNo ?? "—",
+    seamanBookNo: crew?.seaman_book_no ?? crew?.seamanBookNo ?? crew?.seaman_book_number ?? "—",
+  };
+}
+
+function mapImmigrationBatches(apiBatches) {
+  const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
+  return (Array.isArray(apiBatches) ? apiBatches : []).map((b, idx) => {
+    const crew = Array.isArray(b?.crew) ? b.crew.map(normalizeImmigrationCrewRow) : [];
+    return {
+      id: idx + 1,
+      batchLabel: b?.batch ?? null,
+      crewCount: String(crew.length),
+      crew,
+      operator: "",
+      ts: makeTsState(initKeys),
+      tsOps: makeTsState(initKeys),
+      cobTime: null,
+      completedAt: null,
+      stepBackLog: [],
+      file: null,
+      completed: false,
+    };
+  });
 }
 
 const STANDARD_TIMESTAMPS = [
@@ -742,7 +777,7 @@ function CrewListBatchwisePanel({
             onClick={() => setActiveBatchTab(i)}
           >
             {isBatchDone(batch) && <FiCheckCircle size={12} />}
-            Batch {BATCH_ORDINALS[i] ?? `${i + 1}th`}
+            {batch.batchLabel ?? `Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
           </button>
         ))}
         <button className="tb-add-batch-btn" onClick={handleAddBatch}>
@@ -754,7 +789,7 @@ function CrewListBatchwisePanel({
       {batches.map((batch, i) => {
         if (i !== activeBatchTab) return null;
         const done = isBatchDone(batch);
-        const crewRows = getBatchCrewRows(batch.crewCount);
+        const crewRows = batch.crew && batch.crew.length > 0 ? batch.crew : getBatchCrewRows(batch.crewCount);
         return (
           <div key={batch.id} className="tb-batch-tab-content">
             {crewRows.length > 0 && (
@@ -932,8 +967,9 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const operatorId = card?.operator_id ?? card?.raw?.operator_id ?? card?.raw?.assigned_operator_id
     ?? callDetail?.assigned_operator_id
     ?? (isTaxiBoatOperator ? loggedInUserId : null);
-  const bookingId = card?.booking_id ?? card?.raw?.booking_id ?? card?.raw?.launch_hire_booking_id
-    ?? card?.raw?.crew_immigration_booking_id ?? callDetail?.launch_hire_booking_id ?? card?.callId ?? card?.id ?? null;
+  const bookingId = callDetail?.launch_hire_booking_id
+    ?? card?.booking_id ?? card?.raw?.booking_id ?? card?.raw?.launch_hire_booking_id
+    ?? card?.raw?.crew_immigration_booking_id ?? card?.callId ?? card?.id ?? null;
 
   const [assignedUserEdit, setAssignedUserEdit] = useState(() => card?.user ?? "");
   const [locationEdit, setLocationEdit] = useState(() => card?.location ?? "");
@@ -985,7 +1021,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const [fleetAssigned, setFleetAssigned] = useState(false);
   const [assignedCaptainName, setAssignedCaptainName] = useState(null);
   const [bookingDateEdit, setBookingDateEdit] = useState(() => parseToInputDate(card?.bookingDate));
-  const [bookingTimeEdit] = useState("");
+  const [bookingTimeEdit, setBookingTimeEdit] = useState("");
 
   useEffect(() => {
     if (!isTaxiBoatCaptain) getFleetsByOperator(operatorId);
@@ -1079,6 +1115,28 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       { id: 4, crewCount: "5",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
     ];
   });
+
+  // Crew List — Batchwise is shown for Immigration Clearance and as the Captain/Operator
+  // default view; load real batches from the booking wherever it's shown.
+  const showsBatchwisePanel = !isCrewChange && !isMaterialService;
+  useEffect(() => {
+    if (!showsBatchwisePanel || bookingId == null) return undefined;
+    let cancelled = false;
+    launchHireService.getCrewImmigrationBooking(bookingId)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res?.data?.data ?? res?.data ?? {};
+        const mapped = mapImmigrationBatches(data?.batches);
+        if (mapped.length > 0) {
+          setBatches(mapped);
+          setActiveBatchTab(0);
+        }
+      })
+      .catch(() => {
+        /* keep existing/mock batches on failure */
+      });
+    return () => { cancelled = true; };
+  }, [showsBatchwisePanel, bookingId]);
 
   const captureNow = useCallback((setter, key, opSetter, operator) => {
     setter((prev) => ({ ...prev, [key]: new Date().toISOString() }));
@@ -1206,11 +1264,11 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         )}
         {isTaxiBoatOperator ? (
           <GroSummaryFieldCard label="Booking Date">
-            <input
-              type="date"
-              className="tb-summary-input"
-              value={bookingDateEdit}
-              onChange={(e) => setBookingDateEdit(e.target.value)}
+            <DateTimePickerField
+              dateValue={bookingDateEdit}
+              timeValue={bookingTimeEdit}
+              onDateChange={(e) => setBookingDateEdit(e.target.value)}
+              onTimeChange={(e) => setBookingTimeEdit(e.target.value)}
             />
           </GroSummaryFieldCard>
         ) : (

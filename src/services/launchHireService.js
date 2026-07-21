@@ -30,6 +30,10 @@ const createLaunchHireRequest = (payload) =>
 const createCrewImmigrationBooking = (payload) =>
   Gateway.post("/launch_hire/create_crew_immigration_booking", payload);
 
+// Crew Immigration batches for a booking — { data: { location, batches: [{ batch, crew: [...] }] } }
+const getCrewImmigrationBooking = (bookingId) =>
+  Gateway.get(`/launch_hire/get_crew_immigration_booking/${encodeURIComponent(String(bookingId))}`);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -39,4 +43,5 @@ export default {
   getLaunchHireRequests,
   createLaunchHireRequest,
   createCrewImmigrationBooking,
+  getCrewImmigrationBooking,
 };
