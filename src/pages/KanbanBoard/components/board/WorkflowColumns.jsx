@@ -8,7 +8,11 @@ import {
   getSwimlaneColumnCards,
   getColumnHeaderGroups,
 } from "../../utils/columnHelpers";
-import { BOARD_COLUMN_GAP_PX, getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
+import {
+  BOARD_COLUMN_GAP_PX,
+  getBoardGridTemplateColumns,
+  getColumnWidth,
+} from "../../utils/boardGridHelpers";
 import { sanitizeSwimlaneColorCode, pickForegroundOnSwimlaneBackground } from "../../../EditWorkflows/workflow.utils";
 import "../../../../design/scss/pages/kanban-board/swimlaneBoard.scss";
 
@@ -81,7 +85,7 @@ export default function WorkflowColumns({
               const isGrouped = group.colKeys.length > 1;
               const displayColumn = isGrouped
                 ? {
-                    id: firstColumn.id,
+                    id: `group-${firstColumn.parentColumnId}`,
                     title: firstColumn.parentTitle || firstColumn.title,
                     color: firstColumn.color,
                     wipLimit: null,
@@ -108,11 +112,43 @@ export default function WorkflowColumns({
                     column={displayColumn}
                     wipDisplay={wipDisplay}
                     isShrunk={isShrunk}
-                    onHeaderClick={() => onColumnHeaderClick(workflow.id, firstColumn.id)}
+                    onHeaderClick={
+                      isGrouped ? undefined : () => onColumnHeaderClick(workflow.id, firstColumn.id)
+                    }
                     isClassicLayout={isClassicLayout}
                     isModernLayout={isModernLayout}
                     isDarkMode={isDarkMode}
                   />
+                  {isGrouped && (
+                    <div
+                      className="kanban-board__header-subrow"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: group.colKeys
+                          .map((k) => `${getColumnWidth(workflow.columns[k], expandedColumnId, layoutView)}px`)
+                          .join(" "),
+                        gap: `${BOARD_COLUMN_GAP_PX}px`,
+                      }}
+                    >
+                      {group.colKeys.map((colKey) => {
+                        const child = workflow.columns[colKey];
+                        const childIsExpanded = expandedColumnId === child.id;
+                        const childIsShrunk = expandedColumnId !== null && !childIsExpanded;
+                        return (
+                          <ColumnHeader
+                            key={child.id}
+                            column={child}
+                            wipDisplay={String(countCardsInColumn(workflow, colKey))}
+                            isShrunk={childIsShrunk}
+                            onHeaderClick={() => onColumnHeaderClick(workflow.id, child.id)}
+                            isClassicLayout={isClassicLayout}
+                            isModernLayout={isModernLayout}
+                            isDarkMode={isDarkMode}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}

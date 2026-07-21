@@ -41,6 +41,10 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const [selectedRuleId, setSelectedRuleId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteRuleId, setDeleteRuleId] = useState(null);
+  // Tracks the row last opened via Edit so it stays highlighted in the table after
+  // the edit form modal closes — separate from selectedRuleId, which drives the
+  // create-vs-update API call and gets cleared as soon as the form closes.
+  const [highlightedRuleId, setHighlightedRuleId] = useState(null);
 
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
@@ -73,6 +77,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setSelectedRuleId(null);
       setShowDeleteModal(false);
       setDeleteRuleId(null);
+      setHighlightedRuleId(null);
       return;
     }
     const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
@@ -279,7 +284,10 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                         const statusText = isMissingReference ? rule.status : 'OK';
 
                         return (
-                          <tr key={ruleId}>
+                          <tr
+                            key={ruleId}
+                            className={ruleId === highlightedRuleId ? 'br-table-row-selected' : undefined}
+                          >
                             <td>
                               <div className="form-check form-switch mb-0">
                                 <input
@@ -327,7 +335,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                     <button
                                       className="dropdown-item"
                                       type="button"
-                                      onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setShowFormModal(true); }}
+                                      onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setHighlightedRuleId(ruleId); setShowFormModal(true); }}
                                     >
                                       Edit
                                     </button>
