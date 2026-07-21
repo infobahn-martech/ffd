@@ -3,6 +3,7 @@ import { useCTPendingCards } from "../../../../../../shared/store/ctStore";
 import { useTaxiBoatStore } from "../../../../../../shared/store/taxiBoatStore";
 import useTaxiBoatAssignmentReducer from "../../../../../../store/TaxiBoatAssignmentReducer";
 import useAuthReducer from "../../../../../../store/AuthReducer";
+import groService from "../../../../../../services/groService";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
@@ -890,12 +891,6 @@ const TAXI_BOAT_CAPTAIN_ROLE_ID = "21";
 
 function TaxiBoatCardView({ card, userRoleId = null }) {
   const serviceType = card?.typeOfService ?? "—";
-  const assignedUser = card?.user ?? "—";
-  const requestedOperator = card?.requestedOperator ?? "—";
-  const vesselName = card?.vesselName ?? "—";
-  const bookingDate = card?.bookingDate ?? "—";
-  const location = card?.location ?? "—";
-  const billingEntity = card?.name ?? "—";
   const isCrewChange     = CREW_CHANGE_SERVICES.includes(serviceType);
   const isMaterialService = MATERIAL_SERVICES.includes(serviceType);
   const isImmigration    = IMMIGRATION_SERVICES.includes(serviceType);
@@ -906,15 +901,49 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   // backend that this login's own userid IS its operator_id (no dedicated field
   // exists on the user/login response, unlike e.g. vendor_id for vendor logins).
   const loggedInUserId = useAuthReducer((s) => s.userProfile?.userid ?? s.authData?.userid ?? null);
+
+  // Open Call — call_file/get_call_detail_by_id/{call_id}/{card_id}
+  const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
+  const cardId = card?.card_id ?? card?.cardId ?? card?.id ?? null;
+  const [callDetail, setCallDetail] = useState(null);
+
+  useEffect(() => {
+    if (callId == null || cardId == null) return undefined;
+    let cancelled = false;
+    groService.getCallDetailById(callId, cardId)
+      .then((res) => {
+        if (!cancelled) setCallDetail(res?.data?.data ?? res?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setCallDetail(null);
+      });
+    return () => { cancelled = true; };
+  }, [callId, cardId]);
+
+  const assignedUser = callDetail?.assigned_user_name ?? card?.user ?? "—";
+  const requestedOperator = callDetail?.assigned_operator ?? card?.requestedOperator ?? "—";
+  const vesselName = callDetail?.vessel_name ?? card?.vesselName ?? "—";
+  const bookingDate = card?.bookingDate ?? "—";
+  const location = callDetail?.port ?? card?.location ?? "—";
+  const billingEntity = callDetail?.billing_entity ?? card?.name ?? "—";
+
   // Not yet promoted to top-level card fields by the board mapper — read from the
   // raw backend card payload until the API contract for taxi boat cards is finalized.
   const operatorId = card?.operator_id ?? card?.raw?.operator_id ?? card?.raw?.assigned_operator_id
+    ?? callDetail?.assigned_operator_id
     ?? (isTaxiBoatOperator ? loggedInUserId : null);
   const bookingId = card?.booking_id ?? card?.raw?.booking_id ?? card?.raw?.launch_hire_booking_id
-    ?? card?.raw?.crew_immigration_booking_id ?? card?.callId ?? card?.id ?? null;
+    ?? card?.raw?.crew_immigration_booking_id ?? callDetail?.launch_hire_booking_id ?? card?.callId ?? card?.id ?? null;
 
   const [assignedUserEdit, setAssignedUserEdit] = useState(() => card?.user ?? "");
   const [locationEdit, setLocationEdit] = useState(() => card?.location ?? "");
+
+  useEffect(() => {
+    if (!callDetail) return;
+    setAssignedUserEdit(callDetail?.assigned_user_name ?? card?.user ?? "");
+    setLocationEdit(callDetail?.port ?? card?.location ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callDetail]);
 
   const [dropTs, setDropTs] = useState(() =>
     makeTsState(STANDARD_TIMESTAMPS.map((t) => t.key))
