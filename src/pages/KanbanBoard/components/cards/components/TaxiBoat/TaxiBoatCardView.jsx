@@ -689,12 +689,6 @@ function CrewListBatchwisePanel({
   return (
     <div className="tb-scenario-section">
       <h3 className="tb-section-title">Crew List — Batchwise</h3>
-      <div className="tb-batch-summary-bar">
-        <span className="tb-batch-summary-stat">
-          <strong>{batches.filter((b) => b.completed).length}</strong> / {batches.length} batches complete
-        </span>
-      </div>
-
       <div className="tb-batch-tab-strip">
         {batches.map((batch, i) => (
           <button
@@ -722,54 +716,6 @@ function CrewListBatchwisePanel({
         const crewRows = getBatchCrewRows(batch.crewCount);
         return (
           <div key={batch.id} className="tb-batch-tab-content">
-            {/* Batch meta: crew count + operator */}
-            <div className="tb-batch-meta-row">
-              <div className="tb-batch-field-row">
-                <span className="tb-batch-field-label">Crew Count</span>
-                <input
-                  type="number"
-                  min="0"
-                  className="tb-batch-field-input"
-                  value={batch.crewCount}
-                  onChange={(e) =>
-                    setBatches((prev) =>
-                      prev.map((b, idx) => idx === i ? { ...b, crewCount: e.target.value } : b)
-                    )
-                  }
-                />
-              </div>
-              <div className="tb-batch-field-row">
-                <span className="tb-batch-field-label">Boat Operator</span>
-                <div className="tb-op-autocomplete-wrap">
-                  <input
-                    type="text"
-                    className="tb-batch-field-input tb-batch-operator-input"
-                    placeholder="Enter operator name..."
-                    value={batch.operator}
-                    onChange={(e) =>
-                      setBatches((prev) =>
-                        prev.map((b, idx) => idx === i ? { ...b, operator: e.target.value } : b)
-                      )
-                    }
-                    onFocus={() => setOpFocusedBatch(i)}
-                    onBlur={() => handleOpBlur(batch.operator)}
-                  />
-                  {opFocusedBatch === i && recentOps.length > 0 && (
-                    <div className="tb-op-chips">
-                      {recentOps.map((op) => (
-                        <button
-                          key={op}
-                          className="tb-op-chip"
-                          onMouseDown={(e) => { e.preventDefault(); handleOpChipClick(i, op); }}
-                        >
-                          {op}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
             {crewRows.length > 0 && (
               <div className="tb-crew-table-wrapper">
                 <table className="tb-crew-table">
