@@ -4862,16 +4862,24 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const sortedTriggerActions = [...triggerActions].sort(
     (a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0)
   );
+  // group_types with no mapped section id still render (as a generic, read-only
+  // section) instead of silently vanishing — a backend action seeded with a
+  // group_type this form doesn't know how to build a picker for yet is a signal
+  // to add it to ACTION_GROUP_TYPE_TO_SECTION_ID, not something the user should
+  // see fewer actions than the API actually returned.
   const thenActionSections = sortedTriggerActions.length > 0
-    ? sortedTriggerActions
-      .map((action) => ({ id: ACTION_GROUP_TYPE_TO_SECTION_ID[action.group_type], title: action.action_name }))
-      .filter((section) => section.id)
+    ? sortedTriggerActions.map((action) => {
+      const mappedId = ACTION_GROUP_TYPE_TO_SECTION_ID[action.group_type];
+      return mappedId
+        ? { id: mappedId, title: action.action_name }
+        : { id: 'generic', key: `generic-${action.action_type_id}`, title: action.action_name, action };
+    })
     : (import.meta.env.DEV ? THEN_ACTION_SECTIONS : []);
 
   // Each THEN action section fetches its own regular/custom/time-unit field catalog
   // from get_then_action_fields, keyed by this trigger's action_type_id for that
   // group_type (get_trigger_config's actions[] carries one per group_type).
-  const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards')?.action_type_id;
+  const createActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'create_cards' || a.group_type === 'create_card_recurring')?.action_type_id;
   const updateActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'update_card')?.action_type_id;
 
   // Resolved once per trigger: which cross-card direction (if any) this trigger's own
@@ -4893,7 +4901,13 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     ? 'parent'
     : updateRelatedActionMeta?.has_child_filter === '1' ? 'child' : null;
 
-  const copyValuesActionTypeId = sortedTriggerActions.find((a) => a.group_type === 'copy_values_to_parent')?.action_type_id;
+  const copyValuesActionMeta = sortedTriggerActions.find((a) =>
+    a.group_type === 'copy_values_to_parent' || a.group_type === 'copy_values_to_child'
+  );
+  const copyValuesActionTypeId = copyValuesActionMeta?.action_type_id;
+  const copyValuesFilterLabel = copyValuesActionMeta?.has_child_filter === '1'
+    ? 'child'
+    : copyValuesActionMeta?.has_parent_filter === '1' ? 'parent' : 'parent';
 
   useEffect(() => {
     if (!show || !rule) return;
@@ -5422,7 +5436,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         }]
         : prev));
     }
-    if (actions.some((a) => a.group_type === 'copy_values_to_parent')) {
+    if (actions.some((a) => a.group_type === 'copy_values_to_parent' || a.group_type === 'copy_values_to_child')) {
       setCopyValuesActions((prev) => (prev.length === 0
         ? [{ id: Date.now(), fields: [], filterProperties: [] }]
         : prev));
@@ -5731,7 +5745,15 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   };
 
   const handleClearCreateActions = () => {
-    setCreateActions([]);
+    // Same rule as handleRemoveCreateAction: only "Create subtask" entries saved on
+    // the backend (createSubtaskId) need a delete call before they can be cleared.
+    const actionsToDelete = createActions.filter((a) => a.createSubtaskId);
+    setCreateActions((prev) => prev.filter((a) => a.createSubtaskId));
+    actionsToDelete.forEach((action) => {
+      deleteCreateSubtaskSettings(action.createSubtaskId, {
+        cb: () => setCreateActions((prev) => prev.filter((a) => a.id !== action.id)),
+      });
+    });
   };
 
   const handleToggleCreateTemplatePicker = (id) => {
@@ -6101,7 +6123,15 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   };
 
   const handleClearNotifyActions = () => {
-    setNotifyActions([]);
+    // Same rule as handleRemoveNotifyAction: only entries saved on the backend
+    // (notification_id) need a delete call before they can be cleared.
+    const actionsToDelete = notifyActions.filter((a) => a.notification_id);
+    setNotifyActions((prev) => prev.filter((a) => a.notification_id));
+    actionsToDelete.forEach((action) => {
+      deleteNotificationSettings(action.notification_id, {
+        cb: () => setNotifyActions((prev) => prev.filter((a) => a.id !== action.id)),
+      });
+    });
   };
 
   const handleOpenNotificationSettings = (id) => {
@@ -6842,8 +6872,16 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   <div className="br-property-picker-empty">Loading...</div>
                 )}
                 {thenActionSections.map((section) => (
-                  <div key={section.id} className="business-rule-form-action-section">
+                  <div key={section.key || section.id} className="business-rule-form-action-section">
                     <h4 className="business-rule-form-action-title">{section.title}</h4>
+
+                    {section.id === 'generic' && (
+                      <p className="business-rule-form-footer-note">
+                        This action type ({section.action?.group_type}) isn't supported in this form yet —
+                        it can't be configured or saved from here. Add it to ACTION_GROUP_TYPE_TO_SECTION_ID
+                        (and build its picker) to enable it.
+                      </p>
+                    )}
 
                     {section.id === 'create' && createActions.length > 0 && (
                       <div className="br-create-action-list">
@@ -7344,7 +7382,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                         </button>
 
                         <div>
-                          <p className="business-rule-form-when-fields-header">if parent card matches this filter</p>
+                          <p className="business-rule-form-when-fields-header">if {copyValuesFilterLabel} card matches this filter</p>
                           {(action.filterProperties ?? []).map((prop) => (
                             <div key={prop.id} className="business-rule-form-action-chip">
                               <span className="business-rule-form-action-chip-label">{prop.fieldLabel}</span>
@@ -7508,7 +7546,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                           </button>
 
                           {showTimezonePicker && (
-                            <div className="board-minimap-picker-panel" ref={timezonePanelRef}>
+                            <div className="board-minimap-picker-panel br-timezone-panel" ref={timezonePanelRef}>
                               <div className="board-minimap-picker-search">
                                 <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
                                 <input
@@ -7530,7 +7568,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                       className="br-create-template-option"
                                       onClick={() => { setExecuteAtTimezone(tz); setShowTimezonePicker(false); setTimezoneFilterText(''); }}
                                     >
-                                      {tz}
+                                      <span className="br-timezone-option-label">{tz}</span>
                                     </button>
                                   ))}
                               </div>
@@ -7565,7 +7603,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                       <ThenGroupRawSummary key={group.then_group_id ?? group.group_type} group={group} />
                     ))}
 
-                    {section.id !== 'execute' && !(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && (
+                    {section.id !== 'execute' && section.id !== 'generic' && !(section.id === 'link' && linkActions.length > 0) && !(section.id === 'create' && createActions.length > 0) && (
                       <button
                         type="button"
                         className="business-rule-form-add-action"

@@ -1952,15 +1952,14 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   gap: 6px;
   padding: 20px 16px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-  text-align: center;
+  text-align: left;
 }
 
 .business-rule-form-action-detail-close {
@@ -1997,6 +1996,7 @@
   padding: 0;
   font: normal normal 500 13px/1.4 $font-primary;
   color: #00368c;
+  text-align: left;
   cursor: pointer;
 
   &:hover {
@@ -2094,6 +2094,28 @@
 
 .br-create-template-scroll {
   gap: 2px;
+}
+
+.br-timezone-panel {
+  left: 0;
+  right: auto;
+  width: min(280px, calc(100vw - 120px));
+  max-height: 320px;
+
+  .br-create-template-option {
+    display: block;
+    width: 100%;
+  }
+}
+
+// Ellipsis lives on this inner span, not the button itself — Chrome clips a
+// <button>'s content box vertically when overflow/text-overflow/white-space
+// are applied directly to it, cropping the top of the glyphs.
+.br-timezone-option-label {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .br-create-template-option {

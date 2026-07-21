@@ -85,6 +85,10 @@ export const THEN_ACTION_SECTIONS = [
 // type's own action catalog instead of always showing every section.
 export const ACTION_GROUP_TYPE_TO_SECTION_ID = {
   create_cards: 'create',
+  // Recurring-schedule triggers (e.g. "Recurring create cards") carry the "what to
+  // create" action under this group_type instead of plain create_cards — same 'create'
+  // section/chip-list UI, just paired with the trigger's own 'execute' schedule section.
+  create_card_recurring: 'create',
   update_card: 'update',
   link_card: 'link',
   move_card: 'move',
@@ -119,6 +123,10 @@ export const ACTION_GROUP_TYPE_TO_SECTION_ID = {
   // there as of this writing), so this key is a best-effort guess pending the
   // backend seeding real action rows — update it if the real group_type differs.
   copy_values_to_parent: 'copy_values',
+  // Mirror direction of copy_values_to_parent (e.g. "Child card is updated" triggers) —
+  // same 'copy_values' section/chip-list UI, its own has_child_filter flag drives the
+  // nested "if child card matches this filter" wording instead of "if parent".
+  copy_values_to_child: 'copy_values',
 };
 
 export const CREATE_ACTION_OPTIONS = [

@@ -44,19 +44,15 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     triggerTypes, isLoadingGet, getTriggerTypes,
     getBusinessRuleStats, businessRuleStats,
     createBusinessRule, isCreatingBusinessRule,
-    toggleBusinessRuleStatus,
   } = useBusinessRuleReducer((s) => s);
 
-  // Optimistic override, keyed by rule id, reconciled once the toggle API call settles.
+  // UI-only for now: no confirmed enable/disable endpoint yet, so the switch just
+  // flips this local override. Swap for the toggleBusinessRuleStatus store call
+  // once the backend endpoint is confirmed.
   const [localStatusOverrides, setLocalStatusOverrides] = useState({});
-  const [togglingRuleId, setTogglingRuleId] = useState(null);
 
   const handleToggleStatus = (ruleId, currentValue) => {
-    setTogglingRuleId(ruleId);
-    toggleBusinessRuleStatus(ruleId, {
-      cb: () => setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue })),
-      onSettled: () => setTogglingRuleId(null),
-    });
+    setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue }));
   };
 
   useEffect(() => {
@@ -256,7 +252,6 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                   className="form-check-input"
                                   type="checkbox"
                                   checked={isEnabled}
-                                  disabled={togglingRuleId === ruleId}
                                   onChange={() => handleToggleStatus(ruleId, isEnabled)}
                                 />
                               </div>
