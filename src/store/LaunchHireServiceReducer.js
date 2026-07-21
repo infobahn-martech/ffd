@@ -116,10 +116,17 @@ const useLaunchHireServiceReducer = create((set) => ({
     return data;
   },
 
-  // Crew Immigration "Request Launch Hire" booking (call_id + booking_datetime + batches).
+  // Crew Immigration "Request Launch Hire" booking (call_id + booking_datetime + location + batches).
   // Caller owns its own submitting/error state, so this just performs the call.
   createCrewImmigrationBooking: async (payload) => {
     const { data } = await launchHireService.createCrewImmigrationBooking(payload);
+    return data;
+  },
+
+  // Crew Management "Request Launch Hire" booking (call_id + booking_datetime + location).
+  // Caller owns its own submitting/error state, so this just performs the call.
+  createCrewChangeBooking: async (payload) => {
+    const { data } = await launchHireService.createCrewChangeBooking(payload);
     return data;
   },
 

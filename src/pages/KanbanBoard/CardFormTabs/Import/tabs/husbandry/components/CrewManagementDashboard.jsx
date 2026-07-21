@@ -200,7 +200,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const deleteCrew = useCrewReducer((state) => state.deleteCrew);
   const nationalities = useCommonReducer((state) => state.nationalities);
   const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
-  const createCrewImmigrationBooking = useLaunchHireServiceReducer((state) => state.createCrewImmigrationBooking);
+  const createCrewChangeBooking = useLaunchHireServiceReducer((state) => state.createCrewChangeBooking);
 
   const [uploadedCrewList, setUploadedCrewList] = useState(
     Array.isArray(formValues?.crewList) ? formValues.crewList : []
@@ -967,7 +967,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
         return;
       }
 
-      await createCrewImmigrationBooking({
+      await createCrewChangeBooking({
         call_id: resolvedCallId,
         booking_datetime: buildApiDateTime(launchDate, launchTime),
         location: launchLocation,
