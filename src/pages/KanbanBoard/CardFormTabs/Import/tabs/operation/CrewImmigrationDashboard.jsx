@@ -120,9 +120,9 @@ UploadedCrewFileCard.propTypes = {
 
 // Crew Immigration — crew document intake for the Operation section.
 // There's no batch concept: the Crew List box can be used repeatedly to
-// upload as many files as needed, each one calling crew/import_crew_immigration
-// (which only accepts {call_id, file}) and then refreshing the combined
-// list via crew/get_immigration_crew_list (which only accepts {call_id} —
+// upload as many files as needed in one crew/import_crew_immigration call
+// (which accepts {call_id, "files[]": [...]}) and then refreshing the
+// combined list via crew/get_immigration_crew_list (which only accepts {call_id} —
 // no pagination/search), so the Crew Listing table paginates/searches the
 // full list in memory. Passport/iqama copies still reuse the existing Crew
 // Management APIs via useCrewReducer.
@@ -284,10 +284,9 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     [filteredListingCrewList, effectiveListingPage]
   );
 
-  // Accepts one or more crew list files — crew/import_crew_immigration only
-  // takes a single {call_id, file}, so each file gets its own API call (one
-  // bad file doesn't block the rest), then a single combined refresh/
-  // notification covers the whole batch.
+  // Accepts one or more crew list files — crew/import_crew_immigration now
+  // takes { call_id, "files[]": [...] }, so all files go up in a single
+  // request/notification instead of one call per file.
   const handleCrewListFile = useCallback(
     async (fileList) => {
       const files = Array.isArray(fileList) ? fileList : Array.from(fileList || []);
@@ -302,39 +301,25 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         return;
       }
 
-      let successCount = 0;
-      let totalCrewCount = 0;
-      for (const file of files) {
-        const formData = new FormData();
-        formData.append("call_id", String(resolvedCallId));
-        formData.append("file", file);
-        try {
-          const importResult = await importCrewImmigrationFile({ formData });
-          totalCrewCount += extractImportedCrewCount(importResult);
-          successCount += 1;
-        } catch {
-          // this file failed — continue with the rest
-        }
-      }
+      const formData = new FormData();
+      formData.append("call_id", String(resolvedCallId));
+      files.forEach((file) => formData.append("files[]", file));
 
-      // Refetching also refreshes the store's uploadedCrewFiles/batchOptions from the API.
-      setListingRefreshTick((tick) => tick + 1);
+      try {
+        const importResult = await importCrewImmigrationFile({ formData });
+        const totalCrewCount = extractImportedCrewCount(importResult);
 
-      if (successCount === 0) {
+        // Refetching also refreshes the store's uploadedCrewFiles/batchOptions from the API.
+        setListingRefreshTick((tick) => tick + 1);
+
+        setUploadSteps((prev) => ({
+          ...prev,
+          crewList: { status: "completed", files: files.map((f) => ({ name: f.name })), progress: 100 },
+        }));
+        notify(`Crew list uploaded — ${totalCrewCount} crew member(s) loaded.`, "success");
+      } catch {
         setUploadSteps((prev) => ({ ...prev, crewList: { ...prev.crewList, status: "failed" } }));
         notify("Failed to upload crew list. Please try again.", "error");
-        return;
-      }
-
-      setUploadSteps((prev) => ({
-        ...prev,
-        crewList: { status: "completed", files: files.map((f) => ({ name: f.name })), progress: 100 },
-      }));
-
-      if (successCount === files.length) {
-        notify(`Crew list uploaded — ${totalCrewCount} crew member(s) loaded.`, "success");
-      } else {
-        notify(`Crew list uploaded ${successCount} of ${files.length} file(s) — ${totalCrewCount} crew member(s) loaded.`, "error");
       }
     },
     [uploadSteps, resolveCallAndVesselIds, importCrewImmigrationFile]
