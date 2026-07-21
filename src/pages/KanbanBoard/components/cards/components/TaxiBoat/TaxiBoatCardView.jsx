@@ -1619,7 +1619,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                 </span>
                 Pickup
               </button>
-                 <button
+              <button
                 className={`tb-tab${activeTab === "drop" ? " tb-tab--active" : ""}`}
                 onClick={() => setActiveTab("drop")}
               >
@@ -1654,12 +1654,18 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   <div className="tb-add-trip-popover">
                     <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
                     <div className="tb-add-trip-fields">
-                      <label className="tb-add-trip-label">Billing Entity</label>
-                      <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={addTripBillingEntity} onChange={(e) => setAddTripBillingEntity(e.target.value)} />
-                      <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
-                      <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={addTripPurpose} onChange={(e) => setAddTripPurpose(e.target.value)} />
-                      <label className="tb-add-trip-label">Destination Ship</label>
-                      <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={addTripDestShip} onChange={(e) => setAddTripDestShip(e.target.value)} />
+                      <div className="tb-add-trip-field">
+                        <label className="tb-add-trip-label">Billing Entity</label>
+                        <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={addTripBillingEntity} onChange={(e) => setAddTripBillingEntity(e.target.value)} />
+                      </div>
+                      <div className="tb-add-trip-field">
+                        <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
+                        <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={addTripPurpose} onChange={(e) => setAddTripPurpose(e.target.value)} />
+                      </div>
+                      <div className="tb-add-trip-field">
+                        <label className="tb-add-trip-label">Destination Ship</label>
+                        <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={addTripDestShip} onChange={(e) => setAddTripDestShip(e.target.value)} />
+                      </div>
                     </div>
                     <div className="tb-add-trip-btns">
                       <button className="tb-add-trip-submit" onClick={handleAddTrip} disabled={!addTripPurpose.trim()}>Add to Board</button>

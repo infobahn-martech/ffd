@@ -1823,39 +1823,44 @@ $tb-space-2xl:  32px;
 /* Floats below the "Add Intermediate Trip" trigger, anchored top-right of the tabs row */
 .tb-add-trip-popover {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   z-index: 20;
   width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 18px;
+  padding: 22px;
   background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  border: 1px solid #eef1f5;
+  border-radius: 16px;
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.22), 0 4px 14px rgba(15, 23, 42, 0.06);
   animation: tb-batch-row-in 0.2s ease-out both;
 }
 
 .tb-add-trip-form-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  color: #475569;
-  letter-spacing: 0.06em;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .tb-add-trip-fields {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 8px 14px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tb-add-trip-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .tb-add-trip-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: #64748b;
   white-space: nowrap;
 }
 
@@ -1865,18 +1870,24 @@ $tb-space-2xl:  32px;
 }
 
 .tb-add-trip-input {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 2px solid #e2e8f0;
+  padding: 10px 13px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e9f0;
   font-size: 13px;
   color: #0f172a;
-  background: #ffffff;
+  background: #f8fafc;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
   width: 100%;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
 
   &:focus {
     border-color: #2666be;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(38, 102, 190, 0.12);
   }
 
   &::placeholder {
@@ -1895,25 +1906,26 @@ $tb-space-2xl:  32px;
 .tb-add-trip-submit {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 1;
   gap: 6px;
-  padding: 9px 20px;
-  border-radius: 8px;
-  border: 2px solid #2666be;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
   background: #2666be;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, box-shadow 0.15s;
 
   &:hover:not(:disabled) {
     background: #1d4ed8;
-    border-color: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(38, 102, 190, 0.3);
   }
 
   &:disabled {
     background: #e2e8f0;
-    border-color: #e2e8f0;
     color: #94a3b8;
     cursor: not-allowed;
   }
@@ -1922,9 +1934,10 @@ $tb-space-2xl:  32px;
 .tb-add-trip-cancel {
   display: inline-flex;
   align-items: center;
-  padding: 9px 20px;
-  border-radius: 8px;
-  border: 2px solid #cbd5e1;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e9f0;
   background: #ffffff;
   color: #475569;
   font-size: 13px;
@@ -1934,6 +1947,6 @@ $tb-space-2xl:  32px;
 
   &:hover {
     background: #f1f5f9;
-    border-color: #94a3b8;
+    border-color: #cbd5e1;
   }
 }
