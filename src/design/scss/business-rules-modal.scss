@@ -515,6 +515,15 @@
     }
   }
 
+  // Highlights the row last opened via the Edit action, and keeps it highlighted
+  // after the edit form modal closes (matches the shared row-selected tint used
+  // in husbandry-crew-management.scss's .crew-row-selected).
+  tbody tr.br-table-row-selected {
+    &, &:hover {
+      td { background: rgba(226, 230, 255, 0.6); }
+    }
+  }
+
   // Restores the pill-shaped switch look for the enabled/disabled column: a global
   // rule in form-designs.scss collapses every .form-check .form-check-input to a
   // 15x15 plain circle, which also flattens Bootstrap's .form-switch track/knob here.
