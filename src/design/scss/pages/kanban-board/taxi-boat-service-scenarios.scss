@@ -404,13 +404,21 @@
 }
 
 /* ---- Batch Tab Panel (Scenario C: Immigration Clearance) ---- */
+.tb-batch-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: -10px;
+}
+
 .tb-batch-tab-strip {
   display: flex;
   align-items: flex-end;
   gap: 4px;
   flex-wrap: wrap;
   padding-bottom: 0;
-  margin-bottom: -10px;
 }
 
 .tb-batch-tab {
@@ -479,10 +487,6 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-
-  &.tb-batch-actions--top {
-    justify-content: flex-end;
-  }
 }
 
 .tb-batch-print-btn {

@@ -799,28 +799,60 @@ function CrewListBatchwisePanel({
     }
   }, [bookingId, setBatches, notifySuccess, notifyError]);
 
+  const activeBatch = batches[activeBatchTab];
+
   return (
     <div className="tb-scenario-section">
       <h3 className="tb-section-title">Crew List — Batchwise</h3>
-      <div className="tb-batch-tab-strip">
-        {batches.map((batch, i) => (
-          <button
-            key={batch.id}
-            className={[
-              "tb-batch-tab",
-              activeBatchTab === i ? "tb-batch-tab--active" : "",
-              isBatchDone(batch) ? "tb-batch-tab--done" : "",
-            ].filter(Boolean).join(" ")}
-            onClick={() => setActiveBatchTab(i)}
-          >
-            {isBatchDone(batch) && <FiCheckCircle size={12} />}
-            {batch.batchLabel ?? `Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
+      <div className="tb-batch-header-row">
+        <div className="tb-batch-tab-strip">
+          {batches.map((batch, i) => (
+            <button
+              key={batch.id}
+              className={[
+                "tb-batch-tab",
+                activeBatchTab === i ? "tb-batch-tab--active" : "",
+                isBatchDone(batch) ? "tb-batch-tab--done" : "",
+              ].filter(Boolean).join(" ")}
+              onClick={() => setActiveBatchTab(i)}
+            >
+              {isBatchDone(batch) && <FiCheckCircle size={12} />}
+              {batch.batchLabel ?? `Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
+            </button>
+          ))}
+          <button className="tb-add-batch-btn" onClick={handleAddBatch}>
+            <FiPlus size={13} />
+            Add Batch
           </button>
-        ))}
-        <button className="tb-add-batch-btn" onClick={handleAddBatch}>
-          <FiPlus size={13} />
-          Add Batch
-        </button>
+        </div>
+
+        {activeBatch?.completed && (
+          <div className="tb-batch-actions">
+            <button
+              className="tb-batch-print-btn"
+              onClick={() => printLaunchSlip(activeBatch.ts, `Immigration Batch ${BATCH_ORDINALS[activeBatchTab] ?? activeBatchTab + 1}`, activeBatch.operator, activeBatch.completedAt)}
+            >
+              <FiPrinter size={14} />
+              Print Launch Slip
+            </button>
+            <div>
+              <input
+                type="file"
+                id={`tb-batch-file-${activeBatch.id}`}
+                className="tb-launch-slip-input"
+                accept=".pdf,.jpg,.jpeg,.png"
+                disabled={uploadingBatchId === activeBatch.id}
+                onChange={(e) => handleUploadLaunchSlip(activeBatchTab, activeBatch.id, e.target.files?.[0] ?? null)}
+              />
+              <label htmlFor={`tb-batch-file-${activeBatch.id}`} className="tb-batch-upload-btn">
+                <FiUpload size={14} />
+                {uploadingBatchId === activeBatch.id
+                  ? "Uploading…"
+                  : activeBatch.file ? activeBatch.file.name : "Upload Launch Slip"}
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       {batches.map((batch, i) => {
@@ -835,31 +867,6 @@ function CrewListBatchwisePanel({
         );
         return (
           <div key={batch.id} className="tb-batch-tab-content">
-            {batch.completed && (
-              <div className="tb-batch-actions tb-batch-actions--top">
-                <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(batch.ts, `Immigration Batch ${BATCH_ORDINALS[i] ?? i + 1}`, batch.operator, batch.completedAt)}>
-                  <FiPrinter size={14} />
-                  Print Launch Slip
-                </button>
-                <div>
-                  <input
-                    type="file"
-                    id={`tb-batch-file-${batch.id}`}
-                    className="tb-launch-slip-input"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    disabled={uploadingBatchId === batch.id}
-                    onChange={(e) => handleUploadLaunchSlip(i, batch.id, e.target.files?.[0] ?? null)}
-                  />
-                  <label htmlFor={`tb-batch-file-${batch.id}`} className="tb-batch-upload-btn">
-                    <FiUpload size={14} />
-                    {uploadingBatchId === batch.id
-                      ? "Uploading…"
-                      : batch.file ? batch.file.name : "Upload Launch Slip"}
-                  </label>
-                </div>
-              </div>
-            )}
-
             {crewRows.length > 0 && (
               <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
                 <table className="tb-crew-table">
