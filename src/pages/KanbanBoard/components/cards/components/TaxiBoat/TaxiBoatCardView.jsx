@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useCTPendingCards } from "../../../../../../shared/store/ctStore";
 import { useTaxiBoatStore } from "../../../../../../shared/store/taxiBoatStore";
 import useTaxiBoatAssignmentReducer from "../../../../../../store/TaxiBoatAssignmentReducer";
+import useAuthReducer from "../../../../../../store/AuthReducer";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
@@ -895,16 +896,22 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const bookingDate = card?.bookingDate ?? "—";
   const location = card?.location ?? "—";
   const billingEntity = card?.name ?? "—";
-  // Not yet promoted to top-level card fields by the board mapper — read from the
-  // raw backend card payload until the API contract for taxi boat cards is finalized.
-  const operatorId = card?.operator_id ?? card?.raw?.operator_id ?? card?.raw?.assigned_operator_id ?? null;
-  const bookingId = card?.booking_id ?? card?.raw?.booking_id ?? card?.raw?.launch_hire_booking_id
-    ?? card?.raw?.crew_immigration_booking_id ?? card?.callId ?? card?.id ?? null;
   const isCrewChange     = CREW_CHANGE_SERVICES.includes(serviceType);
   const isMaterialService = MATERIAL_SERVICES.includes(serviceType);
   const isImmigration    = IMMIGRATION_SERVICES.includes(serviceType);
   const isTaxiBoatOperator = String(userRoleId ?? "") === TAXI_BOAT_OPERATOR_ROLE_ID;
   const isTaxiBoatCaptain  = String(userRoleId ?? "") === TAXI_BOAT_CAPTAIN_ROLE_ID;
+
+  // A Taxi Boat Operator account has no separate operator record — confirmed with
+  // backend that this login's own userid IS its operator_id (no dedicated field
+  // exists on the user/login response, unlike e.g. vendor_id for vendor logins).
+  const loggedInUserId = useAuthReducer((s) => s.userProfile?.userid ?? s.authData?.userid ?? null);
+  // Not yet promoted to top-level card fields by the board mapper — read from the
+  // raw backend card payload until the API contract for taxi boat cards is finalized.
+  const operatorId = card?.operator_id ?? card?.raw?.operator_id ?? card?.raw?.assigned_operator_id
+    ?? (isTaxiBoatOperator ? loggedInUserId : null);
+  const bookingId = card?.booking_id ?? card?.raw?.booking_id ?? card?.raw?.launch_hire_booking_id
+    ?? card?.raw?.crew_immigration_booking_id ?? card?.callId ?? card?.id ?? null;
 
   const [assignedUserEdit, setAssignedUserEdit] = useState(() => card?.user ?? "");
   const [locationEdit, setLocationEdit] = useState(() => card?.location ?? "");
