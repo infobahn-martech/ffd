@@ -27,10 +27,8 @@ const getBusinessRuleById = (businessRuleId) =>
 const getExecutionLogs = (businessRuleId, { params } = {}) =>
   Gateway.get(`/business_rule/get_execution_logs/${businessRuleId}`, { params });
 
-// TODO: backend has no confirmed endpoint for this yet - path guessed as a sibling of
-// get_execution_logs; update once backend is ready.
 const getBusinessRuleHistory = (businessRuleId, { params } = {}) =>
-  Gateway.get(`/business_rule/get_business_rule_history/${businessRuleId}`, { params });
+  Gateway.get(`/business_rule/get_history/${businessRuleId}`, { params });
 
 // TODO: backend has no confirmed endpoint for this yet - path/payload below is a
 // guess mirroring kanban_workflow/enable_disable_workflow; update once backend is ready.

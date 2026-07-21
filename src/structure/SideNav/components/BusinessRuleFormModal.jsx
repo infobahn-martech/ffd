@@ -7760,16 +7760,15 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         })()}
 
         {isEditMode && activeTab === 'history' && (() => {
-          // get_business_rule_history is an unconfirmed guessed endpoint (see
-          // businessRuleService.js) — both existence and response shape are best-effort;
-          // falls back across a few likely field names per column, same convention as
-          // the execution-logs tab above.
+          // Confirmed endpoint: business_rule/get_history/{id} (param: search), response
+          // rows are { event_type, details, author, created_at }. No row id in the
+          // response, so key falls back to index.
           const normalizeHistoryRow = (row, idx) => ({
             key: row.history_id ?? row.id ?? idx,
-            eventType: row.event_type ?? row.action_type ?? row.type ?? '-',
-            details: row.details ?? row.description ?? row.message ?? '-',
-            author: row.author ?? row.author_name ?? row.user_name ?? row.updated_by ?? '-',
-            time: row.time ?? row.created_at ?? row.event_time ?? row.updated_at ?? '-',
+            eventType: row.event_type ?? '-',
+            details: row.details ?? '-',
+            author: row.author ?? '-',
+            time: row.created_at ?? '-',
           });
           const historyRows = (businessRuleHistory ?? []).map(normalizeHistoryRow);
 
