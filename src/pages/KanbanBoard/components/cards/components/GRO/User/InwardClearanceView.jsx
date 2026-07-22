@@ -182,7 +182,11 @@ function InwardClearanceView({
   onDocumentDownload,
 }) {
   return (
-    <TaskDocumentList isLoading={isGroLoading}>
+    <TaskDocumentList
+      isLoading={isGroLoading}
+      isEmpty={documents.length === 0}
+      emptyMessage="No documents found."
+    >
       {documents.map((doc) => (
         <TaskDocumentItem
           key={doc.__rowKey}
