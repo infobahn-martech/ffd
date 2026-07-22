@@ -18,7 +18,7 @@ const deleteLaunchHireService = (service_id) =>
   Gateway.delete(`/launch_hire/delete_launch_hire_service/${service_id}`);
 
 const getLaunchHireRequests = (callId) =>
-  Gateway.get(`/launch_hire/get_launch_hire_requests/${encodeURIComponent(String(callId))}`);
+  Gateway.get(`/launch_hire/get_launchhire_bookings_by_call/${encodeURIComponent(String(callId))}`);
 
 // Placeholder — the standalone "request launch hire" (call/vessel +
 // launch_datetime only) endpoint contract isn't finalized on the backend
