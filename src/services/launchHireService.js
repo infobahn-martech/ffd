@@ -26,9 +26,13 @@ const getLaunchHireRequests = (callId) =>
 const createLaunchHireRequest = (payload) =>
   Gateway.post("/launch_hire/create_launch_hire_request", payload);
 
-// Crew Immigration "Request Launch Hire" booking — { call_id, booking_datetime, batches }
+// Crew Immigration "Request Launch Hire" booking — { call_id, booking_datetime, location, batches }
 const createCrewImmigrationBooking = (payload) =>
   Gateway.post("/launch_hire/create_crew_immigration_booking", payload);
+
+// Crew Management "Request Launch Hire" booking — { call_id, booking_datetime, location }
+const createCrewChangeBooking = (payload) =>
+  Gateway.post("/launch_hire/create_crew_change_booking", payload);
 
 // Crew Immigration batches for a booking — { data: { location, batches: [{ batch, crew: [...] }] } }
 const getCrewImmigrationBooking = (bookingId) =>
@@ -49,6 +53,7 @@ export default {
   getLaunchHireRequests,
   createLaunchHireRequest,
   createCrewImmigrationBooking,
+  createCrewChangeBooking,
   getCrewImmigrationBooking,
   uploadLaunchHireSlip,
 };

@@ -12,7 +12,7 @@ import hotelService, {
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
-import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT } from "./Husbandry.constants";
+import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT, LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
 
 const HOTEL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
@@ -63,6 +63,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingHotelRequests, setLoadingHotelRequests] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+  const isLaunchHire = formValues.hotelLaunchHire !== false;
 
   const fetchHotelRequests = useCallback(async () => {
     if (!callId) {
@@ -267,6 +268,22 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       return;
     }
 
+    let launchHireBookingDatetime = "";
+    if (isLaunchHire) {
+      if (!formValues.hotelLaunchHireLocation) {
+        notify("Launch hire location is required.", "error", "top-center");
+        return;
+      }
+      launchHireBookingDatetime = buildPickupDateTime(
+        formValues.hotelLaunchHireBookingDate,
+        formValues.hotelLaunchHireBookingTime
+      );
+      if (!launchHireBookingDatetime) {
+        notify("Launch hire booking date and time are required.", "error", "top-center");
+        return;
+      }
+    }
+
     const payload = {
       call_id: Number(callId),
       hotel_id: Number(formValues.hotelId),
@@ -274,6 +291,9 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       checkout_datetime: checkoutDatetime,
       remarks: formValues.hotelDescription || "",
       crew: (formValues.hotelSelectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
+      launch_hire: isLaunchHire ? 1 : 0,
+      location: isLaunchHire ? formValues.hotelLaunchHireLocation || "" : "",
+      booking_datetime: isLaunchHire ? launchHireBookingDatetime : "",
     };
 
     const formData = new FormData();
@@ -312,7 +332,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     } finally {
       setIsSavingHotel(false);
     }
-  }, [callId, formValues, fetchHotelRequests]);
+  }, [callId, formValues, fetchHotelRequests, isLaunchHire]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -399,6 +419,45 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
                     </FormField>
                   </FieldRow>
+                </FormGroup>
+
+                <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={HOTEL_ACCENT}>
+                  <FormField>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={isLaunchHire}
+                        onChange={(e) => handleChange("hotelLaunchHire")({ target: { value: e.target.checked } })}
+                        style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
+                      />
+                      Launch hire required
+                    </label>
+                  </FormField>
+                  {isLaunchHire && (
+                    <FieldRow>
+                      <FormField label="Location">
+                        <FormSelect
+                          value={formValues.hotelLaunchHireLocation || ""}
+                          onChange={handleChange("hotelLaunchHireLocation")}
+                          options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                          placeholder="Select location..."
+                        />
+                      </FormField>
+                      <FormField label="Booking Date Time">
+                        <div className="transport-date-time-field">
+                          <DateTimePickerField
+                            dateValue={formValues.hotelLaunchHireBookingDate || ""}
+                            timeValue={formValues.hotelLaunchHireBookingTime || ""}
+                            onDateChange={handleChange("hotelLaunchHireBookingDate")}
+                            onTimeChange={handleChange("hotelLaunchHireBookingTime")}
+                            dateFieldName="hotelLaunchHireBookingDate"
+                            timeFieldName="hotelLaunchHireBookingTime"
+                            placeholder="Select date and time"
+                          />
+                        </div>
+                      </FormField>
+                    </FieldRow>
+                  )}
                 </FormGroup>
 
                 <FormGroup icon="folder" label="Documents *" accent={HOTEL_ACCENT}>
