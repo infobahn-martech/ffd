@@ -48,47 +48,47 @@ export default function DASmallCard({ card, index, setSelectedCard }) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="da-sc"
+          className="tb-sc"
           style={provided.draggableProps.style}
           onClick={() => setSelectedCard(card)}
         >
           {/* Top: accent line + logo merged in the same row */}
-          <div className="da-sc-top">
-            <div className="da-sc-accent-line" />
+          <div className="tb-sc-top">
+            <div className="tb-sc-accent-line" />
             {logoSrc ? (
-              <img src={logoSrc} alt={custName} className="da-sc-avatar-img" />
+              <img src={logoSrc} alt={custName} className="tb-sc-avatar-img" />
             ) : (
-              <div className="da-sc-avatar" style={{ background: avatarBg }}>
+              <div className="tb-sc-avatar" style={{ background: avatarBg }}>
                 {custInitial}
               </div>
             )}
           </div>
 
           {/* Text content */}
-          <div className="da-sc-content">
-            <div className="da-sc-title-row">
-              <span className="da-sc-vessel">{vesselName}</span>
+          <div className="tb-sc-content">
+            <div className="tb-sc-title-row">
+              <span className="tb-sc-vessel">{vesselName}</span>
               {svcInitial && (
-                <span className="da-sc-svc-badge">{svcInitial}</span>
+                <span className="tb-sc-svc-badge">{svcInitial}</span>
               )}
             </div>
-            {custName    && <div className="da-sc-customer">{custName}</div>}
-            {serviceType && <div className="da-sc-service">{serviceType}</div>}
+            {custName    && <div className="tb-sc-customer">{custName}</div>}
+            {serviceType && <div className="tb-sc-service">{serviceType}</div>}
           </div>
 
           {/* Footer: time left | circular progress */}
-          <div className="da-sc-footer">
-            {timeLeft && <span className="da-sc-time">{timeLeft}</span>}
-            <div className="da-sc-progress-wrap">
-              <svg className="da-sc-svg" viewBox="0 0 26 26">
-                <circle className="da-sc-svg-bg" cx="13" cy="13" r="11" />
+          <div className="tb-sc-footer">
+            {timeLeft && <span className="tb-sc-time">{timeLeft}</span>}
+            <div className="tb-sc-progress-wrap">
+              <svg className="tb-sc-svg" viewBox="0 0 26 26">
+                <circle className="tb-sc-svg-bg" cx="13" cy="13" r="11" />
                 <circle
-                  className="da-sc-svg-fill"
+                  className="tb-sc-svg-fill"
                   cx="13" cy="13" r="11"
                   style={{ strokeDashoffset: `calc(72 - (72 * ${progress}) / 100)` }}
                 />
               </svg>
-              <span className="da-sc-progress-text">{progress}%</span>
+              <span className="tb-sc-progress-text">{progress}%</span>
             </div>
           </div>
         </div>

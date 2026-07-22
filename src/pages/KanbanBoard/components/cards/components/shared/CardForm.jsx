@@ -1601,6 +1601,7 @@ function CardForm({
   const isGROVariant = effectiveVariant === "gro";
   const isCustomVariant = effectiveVariant === "custom";
   const isTaxiBoatVariant = effectiveVariant === "taxi-boat";
+  const isDAVariant = effectiveVariant === "da";
   const isGROStyleView = isGROVariant || isCustomVariant;
   const isDriverStyleView = isDriverVariant || isHotelVariant;
   const isSubTaskCard = card?.isSubTask === true;
@@ -2340,7 +2341,7 @@ function CardForm({
           <TaskCardDetailView card={card} onClose={handleClose} />
         ) : isTaxiBoatVariant ? (
           <TaxiBoatCardView card={card} userRoleId={userRoleId} />
-        ) : isDriverStyleView ? (
+        ) : isDAVariant ? null : isDriverStyleView ? (
           <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />

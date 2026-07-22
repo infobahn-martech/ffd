@@ -3,6 +3,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
 import TaxiBoatSmallCard from "../cards/components/TaxiBoat/TaxiBoatSmallCard";
+import DASmallCard from "../cards/components/DA/DASmallCard";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
 import { CARD_GAP, CELL_PADDING_X, getCardsPerRow, getCardWidth } from "../../utils/boardGridHelpers";
 import "../../../../design/scss/pages/kanban-board/column.scss";
@@ -125,6 +126,13 @@ export default function SwimlaneColumnCell({
             {cards.map((card, index) =>
               card.cardVariant === "taxi-boat" ? (
                 <TaxiBoatSmallCard
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  setSelectedCard={setSelectedCard}
+                />
+              ) : card.cardVariant === "da" ? (
+                <DASmallCard
                   key={card.id}
                   card={card}
                   index={index}
