@@ -245,6 +245,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     time: "",
     warehouse: "",
     remarks: "",
+    launchHire: false,
+    launchHireDate: "",
+    launchHireTime: "",
+    launchHireLocation: "",
     orders: [{
       id: 1,
       inbound_item_id: null,
@@ -260,9 +264,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       pickUpFrom: "",
       toLocation: "",
       driverName: "",
-      launchHireDate: "",
-      launchHireTime: "",
-      taxiBoat: "",
       slotNo: "",
       reason: "",
       dispatchDate: "",
@@ -424,10 +425,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
-        launchHire: false,
-        launchHireDate: "",
-        launchHireTime: "",
-        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -439,11 +436,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       order.inbound_time || order.time || ""
     );
 
+    const { date: launchHireDate, time: launchHireTime } = splitApiDateTimeParts(
+      order.launch_hire_date || "",
+      ""
+    );
+
     setFormData({
       date: editDate,
       time: editTime,
       warehouse: String(order.warehouse_id || order.warehouse || ""),
       remarks: order.remarks || "",
+      launchHire: Number(order.launch_hire) === 1,
+      launchHireDate,
+      launchHireTime,
+      launchHireLocation: order.launch_hire_location || order.location || "",
       orders: orderItems,
     });
     if (editDate) setEditOrderMinDate(editDate);
@@ -481,6 +487,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       time: "",
       warehouse: "",
       remarks: "",
+      launchHire: false,
+      launchHireDate: "",
+      launchHireTime: "",
+      launchHireLocation: "",
       orders: [{
         id: 1,
         inbound_item_id: null,
@@ -496,10 +506,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
-        launchHire: false,
-        launchHireDate: "",
-        launchHireTime: "",
-        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -520,6 +526,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       time: "",
       warehouse: "",
       remarks: "",
+      launchHire: false,
+      launchHireDate: "",
+      launchHireTime: "",
+      launchHireLocation: "",
       orders: [{
         id: 1,
         inbound_item_id: null,
@@ -535,10 +545,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
-        launchHire: false,
-        launchHireDate: "",
-        launchHireTime: "",
-        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -567,6 +573,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const errors = {};
     if (!formData.date) errors.date = "Date is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
+    if (formData.launchHire && !formData.launchHireDate) errors.launchHireDate = "Booking date & time is required";
     formData.orders.forEach((order, idx) => {
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
@@ -614,9 +621,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           pickUpFrom: "",
           toLocation: "",
           driverName: "",
-          launchHireDate: "",
-          launchHireTime: "",
-          taxiBoat: "",
           slotNo: "",
           reason: "",
           dispatchDate: "",
@@ -666,11 +670,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         package_type_id: Number(order.packageType) || 0,
         description: order.description || "",
         transportation_required: order.transportation ? 1 : 0,
-        launch_hire: order.launchHire ? 1 : 0,
-        ...(order.launchHire ? {
-          launch_hire_date: buildApiDateTime(order.launchHireDate, order.launchHireTime),
-          taxi_boat: order.taxiBoat || "",
-        } : {}),
       };
       if (order.transportation) {
         item.transportation = {
@@ -691,6 +690,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       inbound_date: buildApiDateTime(formData.date, formData.time),
       inbound_time: (formData.time || "").slice(0, 5),
       remarks: formData.remarks || "",
+      launch_hire: formData.launchHire ? 1 : 0,
+      ...(formData.launchHire ? {
+        launch_hire_date: buildApiDateTime(formData.launchHireDate, formData.launchHireTime),
+        launch_hire_location: formData.launchHireLocation || "",
+      } : {}),
       items,
     };
 
@@ -722,6 +726,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       time: "",
       warehouse: "",
       remarks: "",
+      launchHire: false,
+      launchHireDate: "",
+      launchHireTime: "",
+      launchHireLocation: "",
       orders: [{
         id: 1,
         inbound_item_id: null,
@@ -737,10 +745,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         pickUpFrom: "",
         toLocation: "",
         driverName: "",
-        launchHire: false,
-        launchHireDate: "",
-        launchHireTime: "",
-        taxiBoat: "",
         slotNo: "",
         reason: "",
         dispatchDate: "",
@@ -1219,6 +1223,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Transit", label: "Transit" },
   ];
 
+  const launchHireLocationOptions = [
+    { value: "Freighter Anchorage", label: "Freighter Anchorage" },
+    { value: "RT7", label: "RT7" },
+    { value: "Sea Island", label: "Sea Island" },
+    { value: "Juaymah", label: "Juaymah" },
+  ];
+
   const renderHeader = () => (
     <>
       <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
@@ -1284,17 +1295,19 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <div className="dispatch-edit-item-header" onClick={() => toggleOrderExpand(order.id)}>
                   <span className="dispatch-edit-item-label">Order {index + 1}</span>
                   <div className="dispatch-item-actions">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleAddNewOrder(); }}
-                      className="dispatch-order-icon-btn"
-                      title="Add order"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    </button>
+                    {index === formData.orders.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleAddNewOrder(); }}
+                        className="dispatch-order-icon-btn"
+                        title="Add order"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    )}
                     {formData.orders.length > 1 && (
                       <button
                         type="button"
@@ -1463,62 +1476,62 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
 
-                    {/* Launch Hire Section */}
-                    <div className="dispatch-transport-section">
-                      <div className="dispatch-edit-checkbox-group">
-                        <label className="dispatch-edit-checkbox-label">
-                          <input
-                            type="checkbox"
-                            className="dispatch-edit-checkbox"
-                            checked={order.launchHire || false}
-                            onChange={(e) => handleOrderChange(order.id, "launchHire", e.target.checked)}
-                          />
-                          <span>Launch Hire</span>
-                        </label>
-                      </div>
-
-                      {order.launchHire && (
-                        <div className="row g-2 mb-1">
-                          <div className="col-lg-6 col-md-6">
-                            <FormField label="Date &amp; Time">
-                              <DateTimePickerField
-                                dateValue={order.launchHireDate}
-                                timeValue={order.launchHireTime}
-                                onDateTimeChange={(nextValues) => {
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    orders: prev.orders.map((o) =>
-                                      o.id === order.id
-                                        ? { ...o, launchHireDate: nextValues.date, launchHireTime: nextValues.time }
-                                        : o
-                                    ),
-                                  }));
-                                }}
-                                dateFieldName={`launchHireDate_${order.id}`}
-                                timeFieldName={`launchHireTime_${order.id}`}
-                                placeholder="YYYY-MM-DD hh:mm"
-                              />
-                            </FormField>
-                          </div>
-
-                          <div className="col-lg-6 col-md-6">
-                            <FormField label="Taxi boat">
-                              <FormInput
-                                type="text"
-                                value={order.taxiBoat}
-                                onChange={(e) => handleOrderChange(order.id, "taxiBoat", e.target.value)}
-                                placeholder="Enter taxi boat..."
-                              />
-                            </FormField>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
                   </div>
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Launch Hire Section - form level */}
+          <div className="dispatch-edit-section">
+            <div className="dispatch-edit-checkbox-group">
+              <label className="dispatch-edit-checkbox-label">
+                <input
+                  type="checkbox"
+                  className="dispatch-edit-checkbox"
+                  checked={formData.launchHire || false}
+                  onChange={(e) => handleFormChange("launchHire", e.target.checked)}
+                />
+                <span>Launch Hire</span>
+              </label>
+            </div>
+
+            {formData.launchHire && (
+              <div className="row g-2 mb-1">
+                <div className="col-lg-6 col-md-6">
+                  <FormField label="Booking Date &amp; Time *">
+                    <DateTimePickerField
+                      dateValue={formData.launchHireDate}
+                      timeValue={formData.launchHireTime}
+                      onDateTimeChange={(nextValues) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          launchHireDate: nextValues.date,
+                          launchHireTime: nextValues.time,
+                        }));
+                        if (formErrors.launchHireDate) setFormErrors((prev) => { const e = { ...prev }; delete e.launchHireDate; return e; });
+                      }}
+                      dateFieldName="launchHireDate"
+                      timeFieldName="launchHireTime"
+                      placeholder="YYYY-MM-DD hh:mm"
+                      hasError={!!formErrors.launchHireDate}
+                    />
+                  </FormField>
+                  {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
+                </div>
+
+                <div className="col-lg-6 col-md-6">
+                  <FormField label="Location">
+                    <FormSelect
+                      value={formData.launchHireLocation}
+                      onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
+                      options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
+                      placeholder="Select location..."
+                    />
+                  </FormField>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Remarks - after order details */}
