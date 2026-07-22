@@ -2297,6 +2297,21 @@ body .modal.business-rule-form-modal.show {
   }
 }
 
+.br-create-action-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .business-rule-form-action-chip {
+    flex-wrap: wrap;
+  }
+
+  .business-rule-form-select-wrap {
+    flex: 1;
+    min-width: 160px;
+  }
+}
+
 .br-create-action-title {
   display: inline-flex;
   align-items: center;
