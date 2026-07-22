@@ -279,6 +279,25 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    isDeletingBusinessRule: false,
+
+    deleteBusinessRule: async (businessRuleId, { cb, onSettled } = {}) => {
+        try {
+            set({ isDeletingBusinessRule: true });
+            const { data } = await businessRuleService.deleteBusinessRule(businessRuleId);
+            set({ isDeletingBusinessRule: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Business rule deleted successfully.');
+            cb && cb(data);
+        } catch (err) {
+            set({ isDeletingBusinessRule: false });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isLoadingTriggerConfig: false,
     triggerConfig: null,
 
