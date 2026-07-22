@@ -333,6 +333,36 @@
   }
 }
 
+/* Add Item Popover — anchored under the "+ Add Item" button instead of
+   pushing the header/table layout down */
+.sales-order-add-popover-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  animation: salesOrderFadeIn 0.15s ease-out;
+}
+
+.sales-order-add-popover {
+  position: absolute;
+  top: 74px;
+  right: 22px;
+  left: 22px;
+  margin: 0;
+  width: auto;
+  max-height: calc(100% - 82px);
+  overflow-y: auto;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  z-index: 60;
+}
+
+@media (max-width: 900px) {
+  .sales-order-add-popover {
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
 .sales-order-add-accordion-header {
   display: flex;
   justify-content: space-between;

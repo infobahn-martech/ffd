@@ -1460,9 +1460,11 @@ const SalesOrderList = ({
         </div>
       </div> */}
 
-      {/* Add Item Accordion */}
+      {/* Add Item Popover */}
       {!readOnly && isAccordionOpen && (
-        <div className="sales-order-add-accordion" style={{ "--card-color": cardColor }}>
+        <>
+          <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
+          <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
           <div className="sales-order-add-accordion-header">
             <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
             <button
@@ -1620,7 +1622,8 @@ const SalesOrderList = ({
               </button>
             </div>
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       {/* Sticky Bulk Action Bar */}
