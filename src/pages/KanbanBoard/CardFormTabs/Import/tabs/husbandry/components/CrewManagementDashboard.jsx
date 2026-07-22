@@ -416,10 +416,9 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   };
 
   // Accepts one or more crew list files for the currently-selected movement
-  // type — each is imported via its own crew/import_crew_ai call (so
-  // multiple crew list files can be uploaded into the same movement type,
-  // and one bad file doesn't block the rest), then a single combined
-  // refresh/notification covers the whole batch.
+  // type — all files are sent together in one crew/import_crew_ai call via
+  // repeated files[] fields, so multiple crew list files can be uploaded
+  // into the same movement type in a single request.
   const handleCrewListFiles = async (fileList, targetType = movementType) => {
     const files = Array.isArray(fileList) ? fileList : Array.from(fileList || []);
     if (files.length === 0) return;
@@ -451,19 +450,18 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
       return;
     }
 
+    const formData = new FormData();
+    formData.append("call_id", String(resolvedCallId));
+    formData.append("vessel_id", String(resolvedVesselId));
+    formData.append("movement_type", targetType);
+    files.forEach((file) => formData.append("files[]", file));
+
     let successCount = 0;
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append("call_id", String(resolvedCallId));
-      formData.append("vessel_id", String(resolvedVesselId));
-      formData.append("movement_type", targetType);
-      formData.append("file", file);
-      try {
-        await importCrewFile({ formData });
-        successCount += 1;
-      } catch {
-        // this file failed — continue with the rest
-      }
+    try {
+      await importCrewFile({ formData });
+      successCount = files.length;
+    } catch {
+      // handled below via successCount === 0
     }
 
     const list = await fetchCallCrewList({
@@ -514,14 +512,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
     setSummaryRefreshTick((tick) => tick + 1);
 
     const movementTypeLabel = MOVEMENT_TYPE_OPTIONS.find((opt) => opt.value === targetType)?.label || "";
-    if (successCount === files.length) {
-      notify(`${movementTypeLabel} crew list uploaded — ${idsForThisType.length} crew member(s) loaded.`, "success");
-    } else {
-      notify(
-        `${movementTypeLabel} crew list uploaded ${successCount} of ${files.length} file(s) — ${idsForThisType.length} crew member(s) loaded.`,
-        "error"
-      );
-    }
+    notify(`${movementTypeLabel} crew list uploaded — ${idsForThisType.length} crew member(s) loaded.`, "success");
   };
 
   const handlePreviewClick = (type) => setPreviewMovementType(type);
