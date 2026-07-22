@@ -44,6 +44,27 @@ const uploadLaunchHireSlip = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+// Capture a taxi boat movement checkpoint — { booking_item_id, trip_type: "Drop"|"Pickup", checkpoint }
+const recordTaxiboatTimestamp = (payload) =>
+  Gateway.post("/launch_hire/record_taxiboat_timestamp", payload);
+
+// Undo/clear a captured checkpoint — { booking_id, trip_type: "Drop"|"Pickup", checkpoint,
+// reason_code: "Wrong time captured"|"Operator error"|"Re-capture required"|"Other", reason_text (required if Other) }
+const cancelTaxiboatTimestamp = (payload) =>
+  Gateway.post("/launch_hire/cancel_taxiboat_timestamp", payload);
+
+// Create an intermediate launch hire trip — { booking_id, taxi_boat_id, taxiboat_captain_id, booking_datetime, location }
+const createIntermediateTrip = (payload) =>
+  Gateway.post("/launch_hire/create_intermediate_trip", payload);
+
+// Taxi boat booking detail — { data: { booking_datetime, location, captain_assigned, operator, fleet: { taxi_boat_id }, captain: { taxiboat_captain_id, taxi_boat_id }, batches: [...] } }
+const getTaxiboatBookingDetail = (bookingId) =>
+  Gateway.get(`/launch_hire/get_taxiboat_booking_detail/${encodeURIComponent(String(bookingId))}`);
+
+// Booking-level Drop/Pickup movement checkpoints (non-batch bookings) — { data: { drop: {...}|null, pickup: {...}|null } }
+const getBookingTimestamps = (bookingId) =>
+  Gateway.get(`/launch_hire/get_booking_timestamps/${encodeURIComponent(String(bookingId))}`);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -56,4 +77,9 @@ export default {
   createCrewChangeBooking,
   getCrewImmigrationBooking,
   uploadLaunchHireSlip,
+  recordTaxiboatTimestamp,
+  cancelTaxiboatTimestamp,
+  createIntermediateTrip,
+  getTaxiboatBookingDetail,
+  getBookingTimestamps,
 };

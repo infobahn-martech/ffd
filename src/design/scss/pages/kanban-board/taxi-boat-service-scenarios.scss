@@ -456,6 +456,10 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+
+  &.tb-batch-actions--end {
+    justify-content: flex-end;
+  }
 }
 
 .tb-batch-print-btn {
@@ -499,6 +503,33 @@
 
   &:hover {
     background: #eff6ff;
+  }
+}
+
+.tb-crewlist-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.tb-crewlist-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: none;
+  background: #2666be;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #1d4ed8;
   }
 }
 

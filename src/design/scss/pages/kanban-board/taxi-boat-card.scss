@@ -36,6 +36,40 @@ $tb-space-2xl:  32px;
   }
 }
 
+.tb-summary-select {
+  width: 100%;
+
+  // .gro-summary-card--field .cf-multi-select-email-input (cardForm.scss) flattens this
+  // box to a borderless inline look for other GRO summary fields; re-box it here at
+  // higher specificity (3 classes vs. their 2) since Location/Assigned Captain need to
+  // match the bordered Booking Date field in this card.
+  .gro-summary-card--field & .cf-multi-select-email-input {
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: none;
+
+    &:hover {
+      border-color: #c5c5d1;
+      box-shadow: none;
+    }
+
+    &:focus-within {
+      border-color: #2666be;
+      box-shadow: none;
+    }
+  }
+
+  .cf-multi-select-placeholder,
+  .cf-multi-select-selected-value,
+  .cf-searchable-select-input {
+    font-size: 14px;
+    font-weight: $tb-font-weight-medium;
+  }
+}
+
 .tb-card-view {
   flex: 1;
   min-height: 0;
@@ -1339,10 +1373,9 @@ $tb-space-2xl:  32px;
 }
 
 .tb-ts-summary-title {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   color: #64748b;
-  letter-spacing: 0.07em;
 }
 
 .tb-ts-summary-table {
@@ -1615,8 +1648,8 @@ $tb-space-2xl:  32px;
 }
 
 .tb-fleet-card {
-  flex: 1;
-  min-width: 110px;
+  flex: 0 0 250px;
+  width: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1935,6 +1968,7 @@ $tb-space-2xl:  32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 1;
   padding: 10px 20px;
   border-radius: 10px;
   border: 1.5px solid #e5e9f0;

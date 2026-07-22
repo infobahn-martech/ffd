@@ -18,7 +18,7 @@
 
 .sales-order-content-wrapper {
   padding: 0 0 14px;
-  background: #ffffff;
+  background: linear-gradient(180deg, #fbfcff 0%, #ffffff 220px);
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
   display: flex;
@@ -33,6 +33,19 @@
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: #9ca8c3 #eef1f7;
+  animation: salesOrderFadeIn 0.25s ease-out;
+}
+
+@keyframes salesOrderFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .sales-order-list-header {
@@ -41,7 +54,7 @@
   align-items: center;
   gap: 12px;
   padding: 18px 22px 16px;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff, #fbfcff);
   border-bottom: 1px solid #edf0f6;
   position: sticky;
   top: 0;
@@ -78,22 +91,22 @@
 .sales-order-list-title-bar {
   width: 4px;
   height: 18px;
-  background: #1a1a1a !important;
+  background: linear-gradient(180deg, #4c68d7, #2a00ff) !important;
   border-radius: 2px;
   display: inline-block;
 }
 
 .sales-order-add-button {
-  background: #e2e6ff !important;
+  background: linear-gradient(135deg, #2a00ff, #4c68d7) !important;
   border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 9px;
   font-size: 13px;
   font-weight: 600;
-  color: #111827;
+  color: #ffffff;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(30, 64, 175, 0.14);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  box-shadow: 0 3px 10px rgba(42, 0, 255, 0.28);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -102,39 +115,67 @@
 }
 
 .sales-order-add-button:hover {
-  transform: translateY(-1px);
-  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(42, 0, 255, 0.36);
+  filter: brightness(1.05);
 }
 
 .sales-order-add-button:active {
   transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.3);
 }
 
 /* SO Header */
 .so-header-panel {
-  background: #ffffff;
+  position: relative;
+  background: linear-gradient(90deg, #2a00ff, #4c68d7, #8b93ff) top left / 100% 3px no-repeat,
+    #f6f7fb;
   border: 1px solid #e7eaf2;
-  border-radius: 12px;
-  padding: 16px 20px;
+  border-radius: 14px;
+  padding: 20px 18px 16px;
   margin: 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   box-shadow: 0 1px 6px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.so-header-panel:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
 }
 
 .so-header-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  align-items: end;
+  gap: 12px;
+  align-items: stretch;
 }
 
 .so-header-field {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
+  background: #ffffff;
+  border: 1px solid #eaedf5;
+  border-radius: 10px;
+  padding: 9px 13px 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.so-header-field:hover {
+  border-color: #dde2f0;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
+}
+
+.so-header-field:focus-within {
+  border-color: #8890ff;
+  box-shadow: 0 0 0 3px rgba(124, 134, 255, 0.16);
+  transform: translateY(-1px);
 }
 
 .so-header-field-wide {
@@ -146,11 +187,10 @@
 }
 
 .so-header-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0.3px;
-  color: #8a8fa8;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #99a1b7;
   white-space: nowrap;
 }
 
@@ -162,64 +202,82 @@
 .so-header-input,
 .so-header-select {
   width: 100%;
-  height: 34px;
-  padding: 7px 11px;
-  font-size: 13px;
-  border: 1px solid #dbe1ec;
-  border-radius: 7px;
-  background: #fff;
+  height: auto;
+  padding: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: #1a1a2e;
   box-sizing: border-box;
   font-family: "Manrope", sans-serif;
-  transition: border-color 0.18s, box-shadow 0.18s;
 }
 
 .so-header-input:focus,
 .so-header-select:focus {
   outline: none;
-  border-color: #b3baff;
-  box-shadow: 0 0 0 2px rgba(226, 230, 255, 0.6);
+}
+
+.so-header-input::placeholder {
+  font-weight: 500;
+  color: #b3bace;
 }
 
 .so-header-input-readonly {
-  background: #f6f7fb;
-  color: #555b7a;
+  color: #5b6178;
   cursor: default;
 }
 
 .so-input-required {
-  border-color: #f4a9a8 !important;
-  background: #fff8f8 !important;
+  color: #c0392b;
+}
+
+.so-header-field:has(.so-input-required) {
+  border-color: #f4b3b2;
+  background: linear-gradient(135deg, #fff8f8, #ffffff);
+  animation: salesOrderRequiredPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes salesOrderRequiredPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.05);
+  }
 }
 
 .so-header-select {
   cursor: pointer;
-  appearance: auto;
+  appearance: none;
+  padding-right: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2399a1b7' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
 }
 
 .so-header-select:disabled {
-  background: #f6f7fb;
-  color: #555b7a;
+  color: #5b6178;
   cursor: default;
+  background-image: none;
 }
 
 .so-currency-rate {
-  font-size: 12px;
-  color: #555b7a;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1a1a2e;
   white-space: nowrap;
-  background: #f0f2ff;
-  border: 1px solid #dde0ea;
-  border-radius: 6px;
-  padding: 5px 10px;
   font-family: "Manrope", sans-serif;
 }
 
 .so-currency-rate-block {
   display: inline-flex;
   align-items: center;
-  height: 33px;
-  font-size: 13px;
-  font-weight: 500;
+  height: auto;
+  font-size: 13.5px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -272,6 +330,36 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Add Item Popover — anchored under the "+ Add Item" button instead of
+   pushing the header/table layout down */
+.sales-order-add-popover-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  animation: salesOrderFadeIn 0.15s ease-out;
+}
+
+.sales-order-add-popover {
+  position: absolute;
+  top: 74px;
+  right: 22px;
+  left: 22px;
+  margin: 0;
+  width: auto;
+  max-height: calc(100% - 82px);
+  overflow-y: auto;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  z-index: 60;
+}
+
+@media (max-width: 900px) {
+  .sales-order-add-popover {
+    right: 12px;
+    left: 12px;
+    width: auto;
   }
 }
 
@@ -450,12 +538,12 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  background: #e8edff !important;
-  color: #31406f;
+  background: linear-gradient(180deg, #eef1ff, #e2e7ff) !important;
+  color: #2c3a6e;
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.3px;
-  border-bottom: 1px solid #cfd8f0;
+  border-bottom: 2px solid #c7cff2;
   white-space: normal;
   overflow-wrap: break-word;
   line-height: 1.3;
@@ -548,6 +636,16 @@
   cursor: pointer;
   font-family: "Manrope", sans-serif;
   white-space: nowrap;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.sales-order-supplier-select-btn:hover:not(:disabled) {
+  background: #e2e6ff;
+  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.15);
+}
+
+.sales-order-supplier-select-btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 /* Supporting Documents cell (chip + action button) */
@@ -639,8 +737,16 @@
 }
 
 .so-third-party-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
   color: #16a34a;
-  font-size: 16px;
+  background: #e6f7ee;
+  border: 1px solid #b2dfce;
+  border-radius: 50%;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -655,6 +761,7 @@
 .so-row-status-badge {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   justify-content: center;
   padding: 3px 12px;
   border-radius: 14px;
@@ -664,12 +771,38 @@
   text-transform: capitalize;
   white-space: nowrap;
   border: 1px solid transparent;
+  transition: box-shadow 0.15s ease;
+}
+
+.so-row-status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
 }
 
 .so-row-status-pending {
   background: #fff4e5;
   color: #b76e00;
   border-color: #ffd9a0;
+}
+
+.so-row-status-pending::before {
+  animation: salesOrderStatusPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes salesOrderStatusPulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(183, 110, 0, 0.35);
+  }
+
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 3px rgba(183, 110, 0, 0);
+  }
 }
 
 .so-row-status-approved {
@@ -695,8 +828,9 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff, #f7f9ff);
   border-top: 2px solid #00368c;
+  box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.08);
   padding: 12px 20px;
   display: flex;
   align-items: center;
@@ -705,6 +839,19 @@
   gap: 16px;
   z-index: 100;
   margin-top: 16px;
+  animation: salesOrderBarSlideUp 0.22s ease-out;
+}
+
+@keyframes salesOrderBarSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .so-bulk-action-info {
@@ -741,7 +888,11 @@
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease,
-    color 0.15s ease, transform 0.1s ease;
+    color 0.15s ease, transform 0.15s ease;
+}
+
+.so-bulk-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .so-bulk-btn:active {
@@ -805,20 +956,30 @@
 
 /* Generate Work Order — primary solid */
 .so-bulk-btn-generate-wo {
-  background: #00368c;
+  background: linear-gradient(135deg, #00368c, #1a56db);
   color: #ffffff;
   border-color: #00368c;
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.2);
 }
 
 .so-bulk-btn-generate-wo:hover:not(:disabled) {
-  background: #002b6e;
+  background: linear-gradient(135deg, #002b6e, #164bc4);
   border-color: #002b6e;
-  box-shadow: 0 3px 8px rgba(0, 54, 140, 0.28);
+  box-shadow: 0 5px 14px rgba(0, 54, 140, 0.36);
 }
 
 .sales-order-table-cell-total {
-  font-weight: 600;
-  color: #4b5563;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(42, 0, 255, 0.06), rgba(76, 104, 215, 0.03));
+}
+
+.sales-order-table tbody tr {
+  transition: background 0.15s ease;
 }
 
 .sales-order-table tbody tr:nth-child(even) td {
@@ -826,7 +987,7 @@
 }
 
 .sales-order-table tbody tr:hover td {
-  background: #f3f7ff;
+  background: #f0f4ff;
 }
 
 .sales-order-table tbody tr:last-child td {
@@ -959,7 +1120,8 @@
 /* Accounting Summary */
 .so-accounting-summary {
   margin: 18px 14px 0;
-  background: #ffffff;
+  background: linear-gradient(90deg, #1d4ed8, #4c68d7, #8b93ff) top left / 100% 3px no-repeat,
+    #ffffff;
   border: 1px solid #dfe5f2;
   border-radius: 12px;
   padding: 16px;
@@ -1112,7 +1274,7 @@
 
 .so-accounting-grand {
   padding: 9px 0 5px;
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.03), rgba(42, 0, 255, 0.01));
+  background: linear-gradient(135deg, rgba(42, 0, 255, 0.06), rgba(76, 104, 215, 0.02));
   margin: 0 -20px;
   padding-left: 20px;
   padding-right: 20px;
@@ -1122,9 +1284,12 @@
 }
 
 .so-accounting-grand-value {
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  color: #1a1a2e !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #2a00ff, #1a56db);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
 }
 
 /* Responsive */

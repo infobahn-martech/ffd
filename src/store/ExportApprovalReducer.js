@@ -18,10 +18,10 @@ const useExportApprovalReducer = create((set) => ({
       showError(error?.response?.data?.message ?? error.message);
     }
   },
-  saveExportApprovalDetails: async (payload, { silent } = {}) => {
+  saveExportApprovalDetails: async (callId, payload, { silent } = {}) => {
     try {
       set({ isSavingDetails: true });
-      const { data } = await exportApprovalService.saveExportApprovalDetails(payload);
+      const { data } = await exportApprovalService.saveExportApprovalDetails(callId, payload);
       set({ isSavingDetails: false });
       if (!silent) {
         const { success } = useAlertReducer.getState();
