@@ -262,16 +262,37 @@ const useBusinessRuleReducer = create((set) => ({
 
     resetBusinessRuleHistory: () => set({ businessRuleHistory: [], isLoadingBusinessRuleHistory: false }),
 
-    isTogglingBusinessRuleStatus: false,
+    // Keyed by business_rule_id rather than a single flag, so toggling one row's
+    // switch doesn't disable every other row's switch while its request is in flight.
+    isTogglingBusinessRuleStatus: {},
 
     toggleBusinessRuleStatus: async (businessRuleId, { cb, onSettled } = {}) => {
         try {
-            set({ isTogglingBusinessRuleStatus: true });
+            set((state) => ({ isTogglingBusinessRuleStatus: { ...state.isTogglingBusinessRuleStatus, [businessRuleId]: true } }));
             const { data } = await businessRuleService.toggleBusinessRuleStatus(businessRuleId);
-            set({ isTogglingBusinessRuleStatus: false });
+            set((state) => ({
+                // get_business_rule_list has no is_enabled field - the table reads the enabled flag off
+                // `status` ("1"/"0"), which doubles as the reference-validity text ("Missing reference")
+                // for broken rules. Patch both: is_enabled for any consumer that does have that field
+                // (e.g. a future list shape, or get_business_rule_by_id), and status for the list table -
+                // but leave status alone if it was showing a "Missing reference" string, since the toggle
+                // response doesn't tell us whether that reference issue is still present.
+                businessRules: state.businessRules.map((rule) => {
+                    if ((rule?.business_rule_id ?? rule?.id) !== businessRuleId) return rule;
+                    const wasMissingReference = typeof rule?.status === 'string' && /missing/i.test(rule.status);
+                    return {
+                        ...rule,
+                        is_enabled: data?.is_enabled,
+                        status: wasMissingReference ? rule.status : String(data?.is_enabled),
+                    };
+                }),
+                isTogglingBusinessRuleStatus: { ...state.isTogglingBusinessRuleStatus, [businessRuleId]: false },
+            }));
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Business rule status updated.');
             cb && cb(data);
         } catch (err) {
-            set({ isTogglingBusinessRuleStatus: false });
+            set((state) => ({ isTogglingBusinessRuleStatus: { ...state.isTogglingBusinessRuleStatus, [businessRuleId]: false } }));
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
         } finally {
