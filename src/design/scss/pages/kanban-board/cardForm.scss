@@ -459,6 +459,17 @@
   margin-bottom: 12px;
 }
 
+.gro-card-view .gro-crew-change-toolbar {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.gro-card-view .gro-crew-change-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .gro-card-view .gro-crew-immigration-bulk-btn {
   height: 34px;
   padding: 0 12px;
@@ -1154,6 +1165,33 @@
 .gro-card-view .gro-stage-upload-icon-btn svg {
   width: 18px;
   height: 18px;
+}
+
+/* Crew Change roster — compact per-row CG/Zawil pass upload icon */
+.gro-card-view .gro-crew-change-row-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #00368c;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.gro-card-view .gro-crew-change-row-upload-btn:hover {
+  background: #00368c;
+  border-color: #00368c;
+  color: #ffffff;
+}
+
+.gro-card-view .gro-crew-change-row-upload-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .gro-stage-upload-modal-overlay {

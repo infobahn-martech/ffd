@@ -24,6 +24,7 @@ import PassRequestsView from "./PassRequestsView";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import GroPopoverStageExtraFields from "./GroPopoverStageExtraFields";
 import CrewImmigrationPanel from "./CrewImmigrationPanel";
+import CrewChangePassPanel from "./CrewChangePassPanel";
 import VesselInwardRegistrationView from "./VesselInwardRegistrationView";
 import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
 import {
@@ -207,6 +208,11 @@ const GROCardView = forwardRef(function GROCardView(
 
   const isVesselInwardRegistrationStage = useMemo(
     () => String(taskPanelTitle ?? "").trim().toLowerCase() === "vessel inward registration",
+    [taskPanelTitle]
+  );
+
+  const isCrewChangeStage = useMemo(
+    () => String(taskPanelTitle ?? "").trim().toLowerCase() === "crew change",
     [taskPanelTitle]
   );
 
@@ -786,6 +792,11 @@ const GROCardView = forwardRef(function GROCardView(
     setActiveTab(GRO_ACTIVE_TABS.vesselInwardRegistration);
   }, []);
 
+  const selectCrewChangeTab = useCallback(() => {
+    setShowInwardClearance(false);
+    setActiveTab(GRO_ACTIVE_TABS.crewChange);
+  }, []);
+
   const retryPassRequests = useCallback(() => {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
     setPassRequestsError(null);
@@ -867,11 +878,12 @@ const GROCardView = forwardRef(function GROCardView(
   useEffect(() => {
     if (
       (activeTab === GRO_ACTIVE_TABS.crewImmigration && !isCrewImmigrationStage) ||
-      (activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration && !isVesselInwardRegistrationStage)
+      (activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration && !isVesselInwardRegistrationStage) ||
+      (activeTab === GRO_ACTIVE_TABS.crewChange && !isCrewChangeStage)
     ) {
       setActiveTab(GRO_ACTIVE_TABS.documents);
     }
-  }, [activeTab, isCrewImmigrationStage, isVesselInwardRegistrationStage]);
+  }, [activeTab, isCrewImmigrationStage, isVesselInwardRegistrationStage, isCrewChangeStage]);
 
   useEffect(() => {
     if (activeTab !== GRO_ACTIVE_TABS.crewImmigration) return undefined;
@@ -1642,6 +1654,18 @@ const GROCardView = forwardRef(function GROCardView(
                         {taskPanelTitle}
                       </button>
                     ) : null}
+                    {isCrewChangeStage ? (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === GRO_ACTIVE_TABS.crewChange}
+                        className={`gro-pass-segment${activeTab === GRO_ACTIVE_TABS.crewChange ? " gro-pass-segment--active" : ""}`}
+                        onClick={selectCrewChangeTab}
+                        disabled={!isAllGroDocumentsVerified}
+                      >
+                        {taskPanelTitle}
+                      </button>
+                    ) : null}
                   </>
                 ) : (
                   <>
@@ -1689,6 +1713,7 @@ const GROCardView = forwardRef(function GROCardView(
               {(hidePassTabs &&
                 !isCrewImmigrationStage &&
                 !isVesselInwardRegistrationStage &&
+                !isCrewChangeStage &&
                 activeTab === GRO_ACTIVE_TABS.documents) ||
                 (hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewImmigration) ||
                 (!hidePassTabs && groMainView === GRO_MAIN_VIEWS.inward) ? (
@@ -1755,6 +1780,8 @@ const GROCardView = forwardRef(function GROCardView(
             isSaving={isGeneratingVesselPdf}
             portId={groPortId}
           />
+        ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewChange ? (
+          <CrewChangePassPanel callId={callId} portId={groPortId} />
         ) : hidePassTabs || groMainView === GRO_MAIN_VIEWS.inward ? (
           <InwardClearanceView
             documents={documents}

@@ -22,6 +22,7 @@ export const GRO_ACTIVE_TABS = {
   documents: "documents",
   crewImmigration: "crewImmigration",
   vesselInwardRegistration: "vesselInwardRegistration",
+  crewChange: "crewChange",
 };
 
 /** Custom Clearance Supervisor desk (role_id 5) uses Documents + Bayan only — no CG/Zawil pass tabs. Role 9 (Custom Clearance User) uses GRO-style UI. */

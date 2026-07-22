@@ -2,29 +2,13 @@ import { useMemo } from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
 import { injectVesselRegFieldValues } from "./vesselRegTemplateFields";
+import { formatGregorianDate, formatHijriDate } from "./groArabicDate";
 
 const SANITIZE_CONFIG = {
   FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
   FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus"],
   ALLOW_DATA_ATTR: false,
 };
-
-function formatGregorianDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}/${m}/${d}`;
-}
-
-function formatHijriDate(date) {
-  const parts = new Intl.DateTimeFormat("en-SA-u-ca-islamic-umalqura", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("year")}/${get("month")}/${get("day")}`;
-}
 
 const FALLBACK_TITLE = "صعود بحار";
 const FALLBACK_DESCRIPTION =
