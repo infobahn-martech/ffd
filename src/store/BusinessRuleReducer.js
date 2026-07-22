@@ -203,6 +203,44 @@ const useBusinessRuleReducer = create((set) => ({
 
     resetExecutionLogs: () => set({ executionLogs: [], isLoadingExecutionLogs: false }),
 
+    isLoadingExportExecutionLogs: false,
+
+    // Confirmed endpoint: business_rule/export_execution_logs/{business_rule_id},
+    // params from/to (both optional). Responds 200 even on a backend-side failure
+    // (JSON error body instead of a file), so the content-type is read from the
+    // actual response headers rather than assumed, and a JSON body is treated as
+    // an error instead of downloaded as a broken file.
+    exportExecutionLogsFile: async (businessRuleId, { params, cb } = {}) => {
+        try {
+            set({ isLoadingExportExecutionLogs: true });
+            const response = await businessRuleService.exportExecutionLogs(businessRuleId, { params });
+            set({ isLoadingExportExecutionLogs: false });
+            const contentType = response.headers?.['content-type'] ?? '';
+            if (contentType.includes('json')) {
+                const text = await response.data.text();
+                const { error } = useAlertReducer.getState();
+                try { error(JSON.parse(text)?.message ?? 'Failed to export execution log report'); }
+                catch { error('Failed to export execution log report'); }
+                cb?.(null);
+                return;
+            }
+            const blob = new Blob([response.data], { type: contentType || 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            cb?.(url, contentType);
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({ isLoadingExportExecutionLogs: false });
+            if (err?.response?.data instanceof Blob) {
+                const text = await err.response.data.text();
+                try { error(JSON.parse(text)?.message ?? 'Failed to export execution log report'); }
+                catch { error('Failed to export execution log report'); }
+            } else {
+                error(err?.response?.data?.message ?? err.message);
+            }
+            cb?.(null);
+        }
+    },
+
     isLoadingBusinessRuleHistory: false,
     businessRuleHistory: [],
 
