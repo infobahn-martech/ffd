@@ -370,6 +370,20 @@ const useBusinessRuleReducer = create((set) => ({
 
     resetNotificationSettings: () => set({ notificationSettings: null, isLoadingNotificationSettings: false }),
 
+    // Read-only variant for the THEN-column list preview (subject pills shown on the
+    // collapsed notify action card). Deliberately does not touch notificationSettings —
+    // that single shared slot is bound to whichever notify action the settings modal
+    // currently has open, and previewing every saved notify action on an edit-mode
+    // reopen would otherwise race/clobber it.
+    getNotificationSettingsPreview: async (notificationId) => {
+        try {
+            const { data } = await businessRuleService.getNotificationSettings(notificationId);
+            return data?.data ?? null;
+        } catch (err) {
+            return null;
+        }
+    },
+
     isLoadingLinkCardActionOperators: false,
     linkCardActionOperators: [],
 
