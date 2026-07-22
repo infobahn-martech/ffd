@@ -48,6 +48,15 @@ const uploadLaunchHireSlip = (formData) =>
 const recordTaxiboatTimestamp = (payload) =>
   Gateway.post("/launch_hire/record_taxiboat_timestamp", payload);
 
+// Undo/clear a captured checkpoint — { booking_id, trip_type: "Drop"|"Pickup", checkpoint,
+// reason_code: "Wrong time captured"|"Operator error"|"Re-capture required"|"Other", reason_text (required if Other) }
+const cancelTaxiboatTimestamp = (payload) =>
+  Gateway.post("/launch_hire/cancel_taxiboat_timestamp", payload);
+
+// Create an intermediate launch hire trip — { booking_id, taxi_boat_id, taxiboat_captain_id, booking_datetime, location }
+const createIntermediateTrip = (payload) =>
+  Gateway.post("/launch_hire/create_intermediate_trip", payload);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -61,4 +70,6 @@ export default {
   getCrewImmigrationBooking,
   uploadLaunchHireSlip,
   recordTaxiboatTimestamp,
+  cancelTaxiboatTimestamp,
+  createIntermediateTrip,
 };

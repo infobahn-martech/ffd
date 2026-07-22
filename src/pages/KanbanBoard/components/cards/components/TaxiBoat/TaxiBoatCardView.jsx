@@ -8,6 +8,7 @@ import groService from "../../../../../../services/groService";
 import launchHireService from "../../../../../../services/launchHireService";
 import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
 import SearchableSelect from "../../../../../../components/form/SearchableSelect";
+import { buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import { formatGroDocumentDisplayName } from "../GRO/User/groCardUtils";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiArrowLeft, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
@@ -252,11 +253,11 @@ TimestampGrid.propTypes = {
   onCapture: PropTypes.func.isRequired,
 };
 
+// Backend reason_code enum for launch_hire/cancel_taxiboat_timestamp — "Other" requires reason_text.
 const UNDO_REASONS = [
   "Wrong time captured",
   "Operator error",
   "Re-capture required",
-  "System / technical error",
   "Other",
 ];
 
@@ -265,7 +266,6 @@ function ConfirmDialog({ label, onConfirm, onCancel }) {
   const [otherText, setOtherText] = useState("");
 
   const canConfirm = reason !== null && (reason !== "Other" || otherText.trim().length > 0);
-  const finalReason = reason === "Other" ? otherText.trim() : reason;
 
   return (
     <div className="tb-confirm-overlay" onClick={onCancel}>
@@ -304,7 +304,7 @@ function ConfirmDialog({ label, onConfirm, onCancel }) {
           <button
             className={`tb-confirm-btn tb-confirm-btn--yes${!canConfirm ? " tb-confirm-btn--disabled" : ""}`}
             disabled={!canConfirm}
-            onClick={() => canConfirm && onConfirm(finalReason)}
+            onClick={() => canConfirm && onConfirm(reason, reason === "Other" ? otherText.trim() : null)}
           >
             Yes, Go Back
           </button>
@@ -322,10 +322,11 @@ ConfirmDialog.propTypes = {
 };
 
 function AddIntermediateTripControl({
-  tripAdded, open, onToggle, onCancel, onSubmit,
-  billingEntity, setBillingEntity,
+  tripAdded, open, onToggle, onCancel, onSubmit, submitting,
   purpose, setPurpose,
-  destShip, setDestShip,
+  location, setLocation,
+  tripDate, setTripDate,
+  tripTime, setTripTime,
   compact,
 }) {
   if (tripAdded) {
@@ -335,6 +336,7 @@ function AddIntermediateTripControl({
       </span>
     );
   }
+  const canSubmit = purpose.trim() && location && tripDate && tripTime && !submitting;
   return (
     <div className="tb-add-trip-anchor">
       <button className="tb-add-trip-btn" onClick={onToggle}>
@@ -345,21 +347,34 @@ function AddIntermediateTripControl({
           <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
           <div className="tb-add-trip-fields">
             <div className="tb-add-trip-field">
-              <label className="tb-add-trip-label">Billing Entity</label>
-              <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={billingEntity} onChange={(e) => setBillingEntity(e.target.value)} />
-            </div>
-            <div className="tb-add-trip-field">
               <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
               <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={purpose} onChange={(e) => setPurpose(e.target.value)} />
             </div>
             <div className="tb-add-trip-field">
-              <label className="tb-add-trip-label">Destination Ship</label>
-              <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={destShip} onChange={(e) => setDestShip(e.target.value)} />
+              <label className="tb-add-trip-label">Location <span className="tb-add-trip-required">*</span></label>
+              <SearchableSelect
+                className="tb-add-trip-input"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                options={LOCATION_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+                placeholder="Select a location"
+              />
+            </div>
+            <div className="tb-add-trip-field">
+              <label className="tb-add-trip-label">Booking Date &amp; Time <span className="tb-add-trip-required">*</span></label>
+              <DateTimePickerField
+                dateValue={tripDate}
+                timeValue={tripTime}
+                onDateChange={(e) => setTripDate(e.target.value)}
+                onTimeChange={(e) => setTripTime(e.target.value)}
+              />
             </div>
           </div>
           <div className="tb-add-trip-btns">
             <button className="tb-add-trip-cancel" onClick={onCancel}>Cancel</button>
-            <button className="tb-add-trip-submit" onClick={onSubmit} disabled={!purpose.trim()}>Add</button>
+            <button className="tb-add-trip-submit" onClick={onSubmit} disabled={!canSubmit}>
+              {submitting ? "Adding…" : "Add"}
+            </button>
           </div>
         </div>
       )}
@@ -368,18 +383,21 @@ function AddIntermediateTripControl({
 }
 
 AddIntermediateTripControl.propTypes = {
-  tripAdded:        PropTypes.bool.isRequired,
-  open:             PropTypes.bool.isRequired,
-  onToggle:         PropTypes.func.isRequired,
-  onCancel:         PropTypes.func.isRequired,
-  onSubmit:         PropTypes.func.isRequired,
-  billingEntity:    PropTypes.string.isRequired,
-  setBillingEntity: PropTypes.func.isRequired,
-  purpose:          PropTypes.string.isRequired,
-  setPurpose:       PropTypes.func.isRequired,
-  destShip:         PropTypes.string.isRequired,
-  setDestShip:      PropTypes.func.isRequired,
-  compact:          PropTypes.bool,
+  tripAdded:   PropTypes.bool.isRequired,
+  open:        PropTypes.bool.isRequired,
+  onToggle:    PropTypes.func.isRequired,
+  onCancel:    PropTypes.func.isRequired,
+  onSubmit:    PropTypes.func.isRequired,
+  submitting:  PropTypes.bool,
+  purpose:     PropTypes.string.isRequired,
+  setPurpose:  PropTypes.func.isRequired,
+  location:    PropTypes.string.isRequired,
+  setLocation: PropTypes.func.isRequired,
+  tripDate:    PropTypes.string.isRequired,
+  setTripDate: PropTypes.func.isRequired,
+  tripTime:    PropTypes.string.isRequired,
+  setTripTime: PropTypes.func.isRequired,
+  compact:     PropTypes.bool,
 };
 
 function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish, onUndo, now, tsOps, shipName, intermediateTrip }) {
@@ -491,8 +509,7 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
                 <div className="tb-stepper-content">
                   <span className="tb-stepper-label tb-stepper-label--trip">Intermediate Trip</span>
                   {intermediateTrip.purpose && <span className="tb-trip-split-purpose">{intermediateTrip.purpose}</span>}
-                  {intermediateTrip.destShip && <span className="tb-trip-split-dest"><FaShip size={9} />{intermediateTrip.destShip}</span>}
-                  {intermediateTrip.billingEntity && <span className="tb-trip-split-billing">{intermediateTrip.billingEntity}</span>}
+                  {intermediateTrip.location && <span className="tb-trip-split-dest"><FaShip size={9} />{intermediateTrip.location}</span>}
                 </div>
               </div>
             </li>
@@ -566,9 +583,8 @@ TimestampStepper.propTypes = {
   tsOps:           PropTypes.object,
   shipName:        PropTypes.string,
   intermediateTrip: PropTypes.shape({
-    purpose:       PropTypes.string,
-    destShip:      PropTypes.string,
-    billingEntity: PropTypes.string,
+    purpose:  PropTypes.string,
+    location: PropTypes.string,
   }),
 };
 
@@ -783,13 +799,14 @@ TaxiFleetAssignPanel.propTypes = {
 function CrewListBatchwisePanel({
   batches, setBatches, activeBatchTab, setActiveBatchTab,
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
-  captureBatchTs, completeBatchLeg, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
+  captureBatchTs, completeBatchLeg, cancelBatchTs, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
   hideStepper, crewlistToggle, onCrewlistChange,
-  billingEntity, tripAdded, addTripOpen, setAddTripOpen,
-  addTripBillingEntity, setAddTripBillingEntity,
+  tripAdded, tripSubmitting, addTripOpen, setAddTripOpen,
   addTripPurpose, setAddTripPurpose,
-  addTripDestShip, setAddTripDestShip,
-  handleAddTrip,
+  addTripLocation, setAddTripLocation,
+  addTripDate, setAddTripDate,
+  addTripTime, setAddTripTime,
+  onAddTripToggle, handleAddTrip,
 }) {
   const [crewPage, setCrewPage] = useState(1);
   const [uploadingBatchId, setUploadingBatchId] = useState(null);
@@ -846,19 +863,18 @@ function CrewListBatchwisePanel({
             <AddIntermediateTripControl
               tripAdded={tripAdded}
               open={addTripOpen}
-              onToggle={() => {
-                setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : "");
-                setAddTripDestShip(vesselName !== "—" ? vesselName : "");
-                setAddTripOpen((open) => !open);
-              }}
+              onToggle={onAddTripToggle}
               onCancel={() => setAddTripOpen(false)}
               onSubmit={handleAddTrip}
-              billingEntity={addTripBillingEntity}
-              setBillingEntity={setAddTripBillingEntity}
+              submitting={tripSubmitting}
               purpose={addTripPurpose}
               setPurpose={setAddTripPurpose}
-              destShip={addTripDestShip}
-              setDestShip={setAddTripDestShip}
+              location={addTripLocation}
+              setLocation={setAddTripLocation}
+              tripDate={addTripDate}
+              setTripDate={setAddTripDate}
+              tripTime={addTripTime}
+              setTripTime={setAddTripTime}
               compact
             />
           )}
@@ -1045,6 +1061,7 @@ function CrewListBatchwisePanel({
                       idx === i ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], stepBackLog: [...b.legs[activeLeg].stepBackLog, { step: label, reason, time: new Date().toISOString() }] } } } : b
                     )
                   ),
+                  cancelApi: (reasonCode, reasonText) => cancelBatchTs(activeLeg, key, reasonCode, reasonText),
                 })}
               />
             )}
@@ -1120,6 +1137,7 @@ CrewListBatchwisePanel.propTypes = {
   handleOpChipClick: PropTypes.func.isRequired,
   captureBatchTs:   PropTypes.func.isRequired,
   completeBatchLeg: PropTypes.func.isRequired,
+  cancelBatchTs:    PropTypes.func,
   setUndoPending:   PropTypes.func.isRequired,
   vesselName:       PropTypes.string,
   now:              PropTypes.instanceOf(Date),
@@ -1128,17 +1146,20 @@ CrewListBatchwisePanel.propTypes = {
   onCrewlistChange: PropTypes.func,
   printLaunchSlip:  PropTypes.func.isRequired,
   bookingId:        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  billingEntity:        PropTypes.string,
-  tripAdded:            PropTypes.bool,
-  addTripOpen:          PropTypes.bool,
-  setAddTripOpen:       PropTypes.func,
-  addTripBillingEntity: PropTypes.string,
-  setAddTripBillingEntity: PropTypes.func,
-  addTripPurpose:       PropTypes.string,
-  setAddTripPurpose:    PropTypes.func,
-  addTripDestShip:      PropTypes.string,
-  setAddTripDestShip:   PropTypes.func,
-  handleAddTrip:        PropTypes.func,
+  tripAdded:        PropTypes.bool,
+  tripSubmitting:   PropTypes.bool,
+  addTripOpen:      PropTypes.bool,
+  setAddTripOpen:   PropTypes.func,
+  addTripPurpose:   PropTypes.string,
+  setAddTripPurpose: PropTypes.func,
+  addTripLocation:  PropTypes.string,
+  setAddTripLocation: PropTypes.func,
+  addTripDate:      PropTypes.string,
+  setAddTripDate:   PropTypes.func,
+  addTripTime:      PropTypes.string,
+  setAddTripTime:   PropTypes.func,
+  onAddTripToggle:  PropTypes.func,
+  handleAddTrip:    PropTypes.func,
 };
 
 const TAXI_BOAT_OPERATOR_ROLE_ID = "20";
@@ -1157,6 +1178,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   // exists on the user/login response, unlike e.g. vendor_id for vendor logins).
   const loggedInUserId = useAuthReducer((s) => s.userProfile?.userid ?? s.authData?.userid ?? null);
   const notifyError = useAlertReducer((s) => s.error);
+  const notifySuccess = useAlertReducer((s) => s.success);
 
   // Open Call — call_file/get_call_detail_by_id/{call_id}/{card_id}
   const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
@@ -1225,10 +1247,12 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   // Intermediate trip form
   const addPendingCard = useCTPendingCards((state) => state.addPendingCard);
   const [addTripOpen, setAddTripOpen] = useState(false);
-  const [addTripBillingEntity, setAddTripBillingEntity] = useState("");
   const [addTripPurpose, setAddTripPurpose] = useState("");
-  const [addTripDestShip, setAddTripDestShip] = useState("");
+  const [addTripLocation, setAddTripLocation] = useState("");
+  const [addTripDate, setAddTripDate] = useState("");
+  const [addTripTime, setAddTripTime] = useState("");
   const [tripAdded, setTripAdded] = useState(false);
+  const [tripSubmitting, setTripSubmitting] = useState(false);
 
   // Taxi fleet assignment
   const {
@@ -1435,19 +1459,73 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     recordCheckpoint(batchIdx, legKey, TRIP_COMPLETED_CHECKPOINT);
   }, [recordCheckpoint]);
 
+  const cancelBatchTs = useCallback((legKey, key, reasonCode, reasonText) => {
+    const checkpoint = CHECKPOINT_BY_KEY[key];
+    if (bookingId == null || !checkpoint) return;
+    launchHireService
+      .cancelTaxiboatTimestamp({
+        booking_id: bookingId,
+        trip_type: legKey === "drop" ? "Drop" : "Pickup",
+        checkpoint,
+        reason_code: reasonCode,
+        reason_text: reasonText || null,
+      })
+      .catch((err) => {
+        notifyError(err?.response?.data?.message ?? err.message ?? "Failed to undo timestamp");
+      });
+  }, [bookingId, notifyError]);
+
+  // create_intermediate_trip needs the fleet/captain already assigned to this booking —
+  // reuse the operator's live selection, falling back to whatever the call detail carries.
+  const intermediateTripTaxiBoatId = selectedFleet?.taxi_boat_id
+    ?? callDetail?.assigned_taxi_boat_id ?? callDetail?.taxi_boat_id ?? card?.raw?.taxi_boat_id ?? null;
+  const intermediateTripCaptainId = selectedCaptainId
+    ?? callDetail?.assigned_taxiboat_captain_id ?? callDetail?.taxiboat_captain_id ?? card?.raw?.taxiboat_captain_id ?? null;
+
+  const handleAddTripToggle = useCallback(() => {
+    setAddTripLocation((prev) => prev || (locationEdit || (location !== "—" ? location : "")));
+    setAddTripDate((prev) => prev || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
+    setAddTripTime((prev) => prev || `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
+    setAddTripOpen((open) => !open);
+  }, [locationEdit, location, now]);
+
   const handleAddTrip = useCallback(() => {
-    if (!addTripPurpose.trim()) return;
-    addPendingCard({
-      id: `ct-extra-${Date.now()}`,
-      typeOfService: addTripPurpose.trim(),
-      name: addTripBillingEntity.trim() || billingEntity,
-      vesselName: addTripDestShip.trim() || vesselName,
-      progress: 0,
-      timeLeft: "",
-    });
-    setTripAdded(true);
-    setAddTripOpen(false);
-  }, [addTripPurpose, addTripBillingEntity, addTripDestShip, billingEntity, vesselName, addPendingCard]);
+    if (!addTripPurpose.trim() || !addTripLocation || !addTripDate || !addTripTime) return;
+    if (bookingId == null || intermediateTripTaxiBoatId == null || intermediateTripCaptainId == null) {
+      notifyError("No taxi boat/captain assigned to this booking yet");
+      return;
+    }
+    setTripSubmitting(true);
+    launchHireService
+      .createIntermediateTrip({
+        booking_id: bookingId,
+        taxi_boat_id: intermediateTripTaxiBoatId,
+        taxiboat_captain_id: intermediateTripCaptainId,
+        booking_datetime: buildApiDateTime(addTripDate, addTripTime),
+        location: addTripLocation,
+      })
+      .then(({ data }) => {
+        notifySuccess(data?.message ?? "Intermediate trip added successfully");
+        addPendingCard({
+          id: `ct-extra-${Date.now()}`,
+          typeOfService: addTripPurpose.trim(),
+          name: billingEntity,
+          vesselName,
+          progress: 0,
+          timeLeft: "",
+        });
+        setTripAdded(true);
+        setAddTripOpen(false);
+      })
+      .catch((err) => {
+        notifyError(err?.response?.data?.message ?? err.message ?? "Failed to add intermediate trip");
+      })
+      .finally(() => setTripSubmitting(false));
+  }, [
+    addTripPurpose, addTripLocation, addTripDate, addTripTime,
+    bookingId, intermediateTripTaxiBoatId, intermediateTripCaptainId,
+    billingEntity, vesselName, addPendingCard, notifySuccess, notifyError,
+  ]);
 
   const allDone = (tsState, keys) => keys.every((k) => tsState[k] !== null);
 
@@ -1588,6 +1666,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           handleOpChipClick={handleOpChipClick}
           captureBatchTs={captureBatchTs}
           completeBatchLeg={completeBatchLeg}
+          cancelBatchTs={cancelBatchTs}
           setUndoPending={setUndoPending}
           vesselName={vesselName}
           now={now}
@@ -1595,16 +1674,19 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           bookingId={bookingId}
           crewlistToggle
           onCrewlistChange={setCaptainCrewlistOpen}
-          billingEntity={billingEntity}
           tripAdded={tripAdded}
+          tripSubmitting={tripSubmitting}
           addTripOpen={addTripOpen}
           setAddTripOpen={setAddTripOpen}
-          addTripBillingEntity={addTripBillingEntity}
-          setAddTripBillingEntity={setAddTripBillingEntity}
           addTripPurpose={addTripPurpose}
           setAddTripPurpose={setAddTripPurpose}
-          addTripDestShip={addTripDestShip}
-          setAddTripDestShip={setAddTripDestShip}
+          addTripLocation={addTripLocation}
+          setAddTripLocation={setAddTripLocation}
+          addTripDate={addTripDate}
+          setAddTripDate={setAddTripDate}
+          addTripTime={addTripTime}
+          setAddTripTime={setAddTripTime}
+          onAddTripToggle={handleAddTripToggle}
           handleAddTrip={handleAddTrip}
         />
       ) : (
@@ -1818,6 +1900,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           handleOpChipClick={handleOpChipClick}
           captureBatchTs={captureBatchTs}
           completeBatchLeg={completeBatchLeg}
+          cancelBatchTs={cancelBatchTs}
           setUndoPending={setUndoPending}
           vesselName={vesselName}
           now={now}
@@ -1840,6 +1923,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           handleOpChipClick={handleOpChipClick}
           captureBatchTs={captureBatchTs}
           completeBatchLeg={completeBatchLeg}
+          cancelBatchTs={cancelBatchTs}
           setUndoPending={setUndoPending}
           vesselName={vesselName}
           now={now}
@@ -1886,19 +1970,18 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
               <AddIntermediateTripControl
                 tripAdded={tripAdded}
                 open={addTripOpen}
-                onToggle={() => {
-                  setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : "");
-                  setAddTripDestShip(vesselName !== "—" ? vesselName : "");
-                  setAddTripOpen((open) => !open);
-                }}
+                onToggle={handleAddTripToggle}
                 onCancel={() => setAddTripOpen(false)}
                 onSubmit={handleAddTrip}
-                billingEntity={addTripBillingEntity}
-                setBillingEntity={setAddTripBillingEntity}
+                submitting={tripSubmitting}
                 purpose={addTripPurpose}
                 setPurpose={setAddTripPurpose}
-                destShip={addTripDestShip}
-                setDestShip={setAddTripDestShip}
+                location={addTripLocation}
+                setLocation={setAddTripLocation}
+                tripDate={addTripDate}
+                setTripDate={setAddTripDate}
+                tripTime={addTripTime}
+                setTripTime={setAddTripTime}
                 compact
               />
             )}
@@ -1911,7 +1994,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   tsState={dropTs}
                   tsOps={dropTsOps}
                   shipName={vesselName}
-                  intermediateTrip={tripAdded ? { purpose: addTripPurpose, destShip: addTripDestShip, billingEntity: addTripBillingEntity } : undefined}
+                  intermediateTrip={tripAdded ? { purpose: addTripPurpose, location: addTripLocation } : undefined}
                   onCapture={(key) => captureNow(setDropTs, key, setDropTsOps, operatorName)}
                   onComplete={() => { setJobCompleted(true); setJobCompletedAt(new Date().toISOString()); }}
                   jobCompleted={jobCompleted}
@@ -1940,7 +2023,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   tsState={pickupTs}
                   tsOps={pickupTsOps}
                   shipName={vesselName}
-                  intermediateTrip={tripAdded ? { purpose: addTripPurpose, destShip: addTripDestShip, billingEntity: addTripBillingEntity } : undefined}
+                  intermediateTrip={tripAdded ? { purpose: addTripPurpose, location: addTripLocation } : undefined}
                   onCapture={(key) => captureNow(setPickupTs, key, setPickupTsOps, operatorName)}
                   onComplete={() => { setJobCompleted(true); setJobCompletedAt(new Date().toISOString()); }}
                   jobCompleted={jobCompleted}
@@ -1993,7 +2076,12 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       {undoPending && (
         <ConfirmDialog
           label={undoPending.label}
-          onConfirm={(reason) => { undoPending.resetter(); undoPending.addToLog?.(reason); setUndoPending(null); }}
+          onConfirm={(reasonCode, reasonText) => {
+            undoPending.resetter();
+            undoPending.addToLog?.(reasonText ? `${reasonCode}: ${reasonText}` : reasonCode);
+            undoPending.cancelApi?.(reasonCode, reasonText);
+            setUndoPending(null);
+          }}
           onCancel={() => setUndoPending(null)}
         />
       )}
