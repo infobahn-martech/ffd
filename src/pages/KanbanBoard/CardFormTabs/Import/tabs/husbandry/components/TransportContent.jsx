@@ -3,7 +3,7 @@
   import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
   import { notify } from "../../../../../../../components/Toaster";
   import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
-  import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT, TRANSPORT_ROUTE_LOCATION_OPTIONS } from "./Husbandry.constants";
+  import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT, TRANSPORT_ROUTE_LOCATION_OPTIONS, LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
   import AttachmentsList from "../../appointment/AttachmentsList";
   import callFileService from "../../../../../../../services/callFileService";
   import transportContentService from "../../../../../../../services/transportContentService";
@@ -114,6 +114,7 @@
     const [isDraggingEmail, setIsDraggingEmail] = useState(false);
 
     const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+    const isLaunchHire = formValues.transportLaunchHire !== false;
 
     const [callDetails, setCallDetails] = useState(null);
 
@@ -332,6 +333,22 @@
         return;
       }
 
+      let launchHireBookingDatetime = "";
+      if (isLaunchHire) {
+        if (!formValues.transportLaunchHireLocation) {
+          notify("Launch hire location is required.", "error", "top-center");
+          return;
+        }
+        launchHireBookingDatetime = buildPickupDateTime(
+          formValues.transportLaunchHireBookingDate,
+          formValues.transportLaunchHireBookingTime
+        );
+        if (!launchHireBookingDatetime) {
+          notify("Launch hire booking date and time are required.", "error", "top-center");
+          return;
+        }
+      }
+
       const payload = {
         call_id: Number(callDetails?.call_id || ""),
         pickup_datetime: buildPickupDateTime(formValues.transportPickupDate, formValues.transportPickupTime),
@@ -341,6 +358,9 @@
         to_location_det: formValues.transportToLocation || "",
         remarks: formValues.transportDescription || "",
         crew: (formValues.selectedCrew || []).map((id) => ({ crew_change_id: Number(id) })),
+        launch_hire: isLaunchHire ? 1 : 0,
+        location: isLaunchHire ? formValues.transportLaunchHireLocation || "" : "",
+        booking_datetime: isLaunchHire ? launchHireBookingDatetime : "",
       };
 
       const formData = new FormData();
@@ -379,7 +399,7 @@
       } finally {
         setIsSavingTransport(false);
       }
-    }, [callId, callDetails, formValues, fetchTransportRequests]);
+    }, [callId, callDetails, formValues, fetchTransportRequests, isLaunchHire]);
 
     return (
       <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -465,6 +485,43 @@
                       />
                     </FormField>
                   </FieldRow>
+
+                  <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={TRANSPORT_ACCENT}>
+                    <FormField>
+                      <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={isLaunchHire}
+                          onChange={(e) => handleChange("transportLaunchHire")({ target: { value: e.target.checked } })}
+                          style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
+                        />
+                        Launch hire required
+                      </label>
+                    </FormField>
+                    {isLaunchHire && (
+                      <FieldRow>
+                        <FormField label="Location">
+                          <FormSelect
+                            value={formValues.transportLaunchHireLocation || ""}
+                            onChange={handleChange("transportLaunchHireLocation")}
+                            options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                            placeholder="Select location..."
+                          />
+                        </FormField>
+                        <FormField label="Booking Date Time">
+                          <DateTimePickerField
+                            dateValue={formValues.transportLaunchHireBookingDate || ""}
+                            timeValue={formValues.transportLaunchHireBookingTime || ""}
+                            onDateChange={handleChange("transportLaunchHireBookingDate")}
+                            onTimeChange={handleChange("transportLaunchHireBookingTime")}
+                            dateFieldName="transportLaunchHireBookingDate"
+                            timeFieldName="transportLaunchHireBookingTime"
+                            placeholder="Select date and time"
+                          />
+                        </FormField>
+                      </FieldRow>
+                    )}
+                  </FormGroup>
 
                   <FormGroup icon="folder" label="Documents *" accent={TRANSPORT_ACCENT}>
                     <FormField className="cf-field-full">
