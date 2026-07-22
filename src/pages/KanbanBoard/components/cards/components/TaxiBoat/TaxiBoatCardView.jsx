@@ -81,6 +81,34 @@ function mapImmigrationBatches(apiBatches) {
   });
 }
 
+// API sends "YYYY-MM-DD HH:mm:ss" (no timezone) — normalize to a `new Date()`-safe ISO-ish
+// string the same way locally-captured timestamps are stored.
+function normalizeApiDateTime(raw) {
+  return raw ? String(raw).replace(" ", "T") : null;
+}
+
+// launch_hire/get_booking_timestamps/{booking_id} — one Drop/Pickup leg, keyed by checkpoint field name.
+function mapBookingTimestampLeg(leg) {
+  const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
+  const ts = makeTsState(initKeys);
+  const tsOps = makeTsState(initKeys);
+  if (leg) {
+    STANDARD_TIMESTAMPS.forEach(({ key, checkpoint }) => {
+      const value = leg[checkpoint];
+      if (value) {
+        ts[key] = normalizeApiDateTime(value);
+        tsOps[key] = leg.updated_by ?? "—";
+      }
+    });
+  }
+  return {
+    ts,
+    tsOps,
+    completed: Boolean(leg?.trip_completed_time),
+    completedAt: normalizeApiDateTime(leg?.trip_completed_time),
+  };
+}
+
 const STANDARD_TIMESTAMPS = [
   { key: "castOff",           label: "Cast off Time",       icon: FiFlag,       animKey: "castOff",           checkpoint: "cast_off_time"      },
   { key: "boatAlongsideShip", label: "Boat Alongside Ship", icon: FiAnchor,     animKey: "boatAlongsideShip", showShip: true, checkpoint: "alongside_ship_time" },
@@ -1423,6 +1451,33 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       });
     return () => { cancelled = true; };
   }, [bookingId]);
+
+  // launch_hire/get_booking_timestamps/{booking_id} — booking-level Drop/Pickup checkpoints
+  // (non-batch bookings), shown by the generic Movement Timestamps section below.
+  const showsGenericTimestamps = !isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatOperator && !isTaxiBoatCaptain;
+  useEffect(() => {
+    if (!showsGenericTimestamps || bookingId == null) return undefined;
+    let cancelled = false;
+    launchHireService.getBookingTimestamps(bookingId)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res?.data?.data ?? res?.data ?? {};
+        const dropMapped = mapBookingTimestampLeg(data?.drop);
+        const pickupMapped = mapBookingTimestampLeg(data?.pickup);
+        setDropTs(dropMapped.ts);
+        setDropTsOps(dropMapped.tsOps);
+        setPickupTs(pickupMapped.ts);
+        setPickupTsOps(pickupMapped.tsOps);
+        if (dropMapped.completed || pickupMapped.completed) {
+          setJobCompleted(true);
+          setJobCompletedAt(dropMapped.completedAt ?? pickupMapped.completedAt);
+        }
+      })
+      .catch(() => {
+        /* keep existing/mock timestamps on failure */
+      });
+    return () => { cancelled = true; };
+  }, [showsGenericTimestamps, bookingId]);
 
   const captureNow = useCallback((setter, key, opSetter, operator) => {
     setter((prev) => ({ ...prev, [key]: new Date().toISOString() }));

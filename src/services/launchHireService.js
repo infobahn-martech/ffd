@@ -61,6 +61,10 @@ const createIntermediateTrip = (payload) =>
 const getTaxiboatBookingDetail = (bookingId) =>
   Gateway.get(`/launch_hire/get_taxiboat_booking_detail/${encodeURIComponent(String(bookingId))}`);
 
+// Booking-level Drop/Pickup movement checkpoints (non-batch bookings) — { data: { drop: {...}|null, pickup: {...}|null } }
+const getBookingTimestamps = (bookingId) =>
+  Gateway.get(`/launch_hire/get_booking_timestamps/${encodeURIComponent(String(bookingId))}`);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -77,4 +81,5 @@ export default {
   cancelTaxiboatTimestamp,
   createIntermediateTrip,
   getTaxiboatBookingDetail,
+  getBookingTimestamps,
 };
