@@ -677,6 +677,28 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
             </td>
             <td className="tb-ts-summary-dur">—</td>
           </tr>
+
+          {/* COB Complete row */}
+          <tr className={[
+            "tb-ts-summary-row--cob",
+            cobTime           ? "tb-ts-summary-row--done"   : "",
+            !jobCompletedAt   ? "tb-ts-summary-row--locked" : "",
+          ].filter(Boolean).join(" ")}>
+            <td className="tb-ts-summary-num">{cobTime ? "✓" : <FiClock size={11} />}</td>
+            <td className="tb-ts-summary-step tb-ts-summary-cob-label">COB Complete</td>
+            <td className="tb-ts-summary-time">
+              {cobTime ? (
+                formatDateTime(cobTime)
+              ) : jobCompletedAt ? (
+                <button className="tb-cob-capture-btn" onClick={onCaptureCob}>
+                  Tap to capture
+                </button>
+              ) : (
+                <span className="tb-ts-summary-blank">Mark job complete first</span>
+              )}
+            </td>
+            <td className="tb-ts-summary-dur">—</td>
+          </tr>
           {/* Step Back Log rows */}
           {stepBackLog && stepBackLog.length > 0 && stepBackLog.map((entry, idx) => (
             <tr key={`sb-${idx}`} className="tb-ts-summary-row--stepback">
@@ -785,6 +807,11 @@ function CrewListBatchwisePanel({
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
   captureBatchTs, completeBatchLeg, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
   hideStepper, crewlistToggle, onCrewlistChange,
+  billingEntity, tripAdded, addTripOpen, setAddTripOpen,
+  addTripBillingEntity, setAddTripBillingEntity,
+  addTripPurpose, setAddTripPurpose,
+  addTripDestShip, setAddTripDestShip,
+  handleAddTrip,
 }) {
   const [crewPage, setCrewPage] = useState(1);
   const [uploadingBatchId, setUploadingBatchId] = useState(null);
@@ -837,6 +864,26 @@ function CrewListBatchwisePanel({
     <div className="tb-scenario-section">
       {crewlistToggle && (
         <div className="tb-crewlist-toggle-row">
+          {!inCrewlistTab && (tripAdded || activeLegData?.ts?.boatCastOffShip) && (
+            <AddIntermediateTripControl
+              tripAdded={tripAdded}
+              open={addTripOpen}
+              onToggle={() => {
+                setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : "");
+                setAddTripDestShip(vesselName !== "—" ? vesselName : "");
+                setAddTripOpen((open) => !open);
+              }}
+              onCancel={() => setAddTripOpen(false)}
+              onSubmit={handleAddTrip}
+              billingEntity={addTripBillingEntity}
+              setBillingEntity={setAddTripBillingEntity}
+              purpose={addTripPurpose}
+              setPurpose={setAddTripPurpose}
+              destShip={addTripDestShip}
+              setDestShip={setAddTripDestShip}
+              compact
+            />
+          )}
           <button
             type="button"
             className="tb-crewlist-toggle-btn"
@@ -1103,6 +1150,17 @@ CrewListBatchwisePanel.propTypes = {
   onCrewlistChange: PropTypes.func,
   printLaunchSlip:  PropTypes.func.isRequired,
   bookingId:        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  billingEntity:        PropTypes.string,
+  tripAdded:            PropTypes.bool,
+  addTripOpen:          PropTypes.bool,
+  setAddTripOpen:       PropTypes.func,
+  addTripBillingEntity: PropTypes.string,
+  setAddTripBillingEntity: PropTypes.func,
+  addTripPurpose:       PropTypes.string,
+  setAddTripPurpose:    PropTypes.func,
+  addTripDestShip:      PropTypes.string,
+  setAddTripDestShip:   PropTypes.func,
+  handleAddTrip:        PropTypes.func,
 };
 
 const TAXI_BOAT_OPERATOR_ROLE_ID = "20";
@@ -1559,6 +1617,17 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           bookingId={bookingId}
           crewlistToggle
           onCrewlistChange={setCaptainCrewlistOpen}
+          billingEntity={billingEntity}
+          tripAdded={tripAdded}
+          addTripOpen={addTripOpen}
+          setAddTripOpen={setAddTripOpen}
+          addTripBillingEntity={addTripBillingEntity}
+          setAddTripBillingEntity={setAddTripBillingEntity}
+          addTripPurpose={addTripPurpose}
+          setAddTripPurpose={setAddTripPurpose}
+          addTripDestShip={addTripDestShip}
+          setAddTripDestShip={setAddTripDestShip}
+          handleAddTrip={handleAddTrip}
         />
       ) : (
         <TaxiFleetAssignPanel
@@ -1940,7 +2009,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           )}
         </div>
       )}
-
 
       {!isTaxiBoatOperator && !captainCrewlistOpen && (
         <div className="tb-card-footer-bar">
