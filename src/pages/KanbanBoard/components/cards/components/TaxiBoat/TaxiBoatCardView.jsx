@@ -1600,7 +1600,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         />
       )}
 
-      {!isImmigration && !isCrewChange && !isTaxiBoatOperator && (
+      {!isImmigration && !isCrewChange && !isTaxiBoatOperator && !isTaxiBoatCaptain && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
           <div className="tb-tabs">
