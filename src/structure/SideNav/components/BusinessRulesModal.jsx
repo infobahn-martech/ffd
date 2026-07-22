@@ -46,6 +46,10 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   // the edit form modal closes — separate from selectedRuleId, which drives the
   // create-vs-update API call and gets cleared as soon as the form closes.
   const [highlightedRuleId, setHighlightedRuleId] = useState(null);
+  // Copy reuses the edit form (same selectedRuleId/showFormModal flow, pointed at the
+  // newly duplicated rule's id) — this only flags the header/title to read "Copy
+  // Business Rule" instead of "Edit Business Rule".
+  const [isCopyMode, setIsCopyMode] = useState(false);
 
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
@@ -55,6 +59,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     updateBusinessRule, isUpdatingBusinessRule,
     deleteBusinessRule, isDeletingBusinessRule,
     toggleBusinessRuleStatus, isTogglingBusinessRuleStatus,
+    duplicateBusinessRule, isDuplicatingBusinessRule,
   } = useBusinessRuleReducer((s) => s);
 
   const handleToggleStatus = (ruleId) => {
@@ -79,6 +84,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setShowDeleteModal(false);
       setDeleteRuleId(null);
       setHighlightedRuleId(null);
+      setIsCopyMode(false);
       return;
     }
     const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
@@ -126,6 +132,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
       setShowFormModal(false);
       setSelectedRule(null);
       setSelectedRuleId(null);
+      setIsCopyMode(false);
       setView('table');
       const isEnabled = statusFilter === 'enabled' ? 1 : statusFilter === 'disabled' ? 0 : undefined;
       getBusinessRules({ params: { page, per_page: limit, search: searchValue || undefined, is_enabled: isEnabled } });
@@ -160,7 +167,22 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     setShowFormModal(false);
     setSelectedRule(null);
     setSelectedRuleId(null);
+    setIsCopyMode(false);
     setView(wasEditing ? 'table' : 'picker');
+  };
+
+  const handleCopy = (ruleId) => {
+    duplicateBusinessRule(ruleId, {
+      cb: (data) => {
+        const newRuleId = data?.business_rule_id;
+        if (!newRuleId) return;
+        setSelectedRule(null);
+        setSelectedRuleId(newRuleId);
+        setHighlightedRuleId(newRuleId);
+        setIsCopyMode(true);
+        setShowFormModal(true);
+      },
+    });
   };
 
   const handleBoardNameClick = (board) => {
@@ -317,7 +339,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                               <button
                                 type="button"
                                 className={`br-table-rule-name-btn${isMissingReference ? ' text-danger' : ''}`}
-                                onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setHighlightedRuleId(ruleId); setShowFormModal(true); }}
+                                onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setHighlightedRuleId(ruleId); setIsCopyMode(false); setShowFormModal(true); }}
                               >
                                 {name}
                               </button>
@@ -373,9 +395,19 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                     <button
                                       className="dropdown-item"
                                       type="button"
-                                      onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setHighlightedRuleId(ruleId); setShowFormModal(true); }}
+                                      onClick={() => { setSelectedRule(null); setSelectedRuleId(ruleId); setHighlightedRuleId(ruleId); setIsCopyMode(false); setShowFormModal(true); }}
                                     >
                                       Edit
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      className="dropdown-item"
+                                      type="button"
+                                      disabled={Boolean(isDuplicatingBusinessRule[ruleId])}
+                                      onClick={() => handleCopy(ruleId)}
+                                    >
+                                      {isDuplicatingBusinessRule[ruleId] ? 'Copying...' : 'Copy'}
                                     </button>
                                   </li>
                                   <li>
@@ -481,6 +513,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
         rule={selectedRule}
         businessRuleId={selectedRuleId}
         boardName={boardName}
+        isCopyMode={isCopyMode}
         onClose={handleCancelFormModal}
         onSave={handleSaveFormModal}
         isSaving={isCreatingBusinessRule || isUpdatingBusinessRule}

@@ -338,6 +338,27 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
+    // Keyed by business_rule_id, same reasoning as isTogglingBusinessRuleStatus - copying
+    // one row shouldn't disable the Copy action on every other row while it's in flight.
+    isDuplicatingBusinessRule: {},
+
+    duplicateBusinessRule: async (businessRuleId, { cb, onSettled } = {}) => {
+        try {
+            set((state) => ({ isDuplicatingBusinessRule: { ...state.isDuplicatingBusinessRule, [businessRuleId]: true } }));
+            const { data } = await businessRuleService.duplicateBusinessRule(businessRuleId);
+            set((state) => ({ isDuplicatingBusinessRule: { ...state.isDuplicatingBusinessRule, [businessRuleId]: false } }));
+            const { success } = useAlertReducer.getState();
+            success(data?.message || 'Business rule duplicated successfully.');
+            cb && cb(data);
+        } catch (err) {
+            set((state) => ({ isDuplicatingBusinessRule: { ...state.isDuplicatingBusinessRule, [businessRuleId]: false } }));
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     isDeletingBusinessRule: false,
 
     deleteBusinessRule: async (businessRuleId, { cb, onSettled } = {}) => {
