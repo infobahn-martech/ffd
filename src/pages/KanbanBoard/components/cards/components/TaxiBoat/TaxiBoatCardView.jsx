@@ -1028,10 +1028,10 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const location = callDetail?.port ?? card?.location ?? "—";
   const billingEntity = callDetail?.billing_entity ?? card?.name ?? "—";
 
-  // Not yet promoted to top-level card fields by the board mapper — read from the
-  // raw backend card payload until the API contract for taxi boat cards is finalized.
-  const operatorId = card?.operator_id ?? card?.raw?.operator_id ?? card?.raw?.assigned_operator_id
-    ?? callDetail?.assigned_operator_id
+  // get_fleet_by_operator expects the card's vendor_id (confirmed with backend), not an
+  // operator_id — read from the raw board card payload until it's promoted by the mapper.
+  const vendorId = card?.vendor_id ?? card?.raw?.vendor_id
+    ?? callDetail?.vendor_id
     ?? (isTaxiBoatOperator ? loggedInUserId : null);
   const bookingId = callDetail?.launch_hire_booking_id
     ?? card?.booking_id ?? card?.raw?.booking_id ?? card?.raw?.launch_hire_booking_id
@@ -1090,9 +1090,9 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const [bookingTimeEdit, setBookingTimeEdit] = useState("");
 
   useEffect(() => {
-    if (!isTaxiBoatCaptain) getFleetsByOperator(operatorId);
+    if (!isTaxiBoatCaptain) getFleetsByOperator(vendorId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTaxiBoatCaptain, operatorId]);
+  }, [isTaxiBoatCaptain, vendorId]);
 
   const handleSelectFleet = useCallback((fleet) => {
     setSelectedFleet(fleet);
