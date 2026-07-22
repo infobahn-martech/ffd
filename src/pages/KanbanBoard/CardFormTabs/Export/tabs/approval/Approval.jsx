@@ -672,7 +672,7 @@ const createEmptyPartySection = () => ({
           actionOverride,
         });
         setSaveStatus("saving");
-        return saveExportApprovalDetails(payload, { silent: !actionOverride })
+        return saveExportApprovalDetails(callId, payload, { silent: !actionOverride })
           .then(() => {
             setSaveStatus("saved");
             // Action clicks move the workflow forward server-side — refresh so
