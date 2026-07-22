@@ -4850,6 +4850,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     getBusinessRuleById, businessRuleDetails, isLoadingBusinessRuleDetails, resetBusinessRuleDetails,
     regularFields, getRegularFields,
     getExecutionLogs, executionLogs, isLoadingExecutionLogs, resetExecutionLogs,
+    exportExecutionLogsFile, isLoadingExportExecutionLogs,
     getBusinessRuleHistory, businessRuleHistory, isLoadingBusinessRuleHistory, resetBusinessRuleHistory,
   } = useBusinessRuleReducer((s) => s);
   const { users, usersLoading, getUsers } = useCommonReducer((s) => s);
@@ -9373,19 +9374,32 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           });
           const logRows = (executionLogs ?? []).map(normalizeLogRow);
 
+          // Extension inferred from the response's real content-type since the
+          // export endpoint's file format isn't documented/confirmed yet.
+          const EXPORT_CONTENT_TYPE_EXTENSIONS = {
+            'application/pdf': 'pdf',
+            'text/csv': 'csv',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+            'application/vnd.ms-excel': 'xls',
+          };
+
           const handleExportLogs = () => {
-            const header = ['Business Rule Name', 'Business Rule ID', 'Executed on Card ID', 'Executed at (Asia/Dubai)'];
-            const csvRows = logRows.map((r) => [r.ruleName, r.ruleId, r.cardId, r.executedAt]);
-            const csv = [header, ...csvRows]
-              .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
-              .join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `business-rule-${businessRuleId}-execution-logs.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
+            if (isLoadingExportExecutionLogs) return;
+            exportExecutionLogsFile(businessRuleId, {
+              params: {
+                from: logsFromDate ? `${logsFromDate}` : undefined,
+                to: logsToDate ? `${logsToDate}` : undefined,
+              },
+              cb: (fileUrl, contentType) => {
+                if (!fileUrl) return;
+                const ext = EXPORT_CONTENT_TYPE_EXTENSIONS[contentType?.split(';')[0]?.trim()] ?? 'pdf';
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = `business-rule-${businessRuleId}-execution-logs.${ext}`;
+                link.click();
+                URL.revokeObjectURL(fileUrl);
+              },
+            });
           };
 
           return (
@@ -9429,10 +9443,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   type="button"
                   className="business-rule-form-tab-export-btn"
                   onClick={handleExportLogs}
-                  disabled={logRows.length === 0}
+                  disabled={isLoadingExportExecutionLogs}
                 >
                   <FiDownload size={14} aria-hidden />
-                  Export
+                  {isLoadingExportExecutionLogs ? 'Exporting...' : 'Export'}
                 </button>
               </div>
 

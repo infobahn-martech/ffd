@@ -27,11 +27,12 @@ const getBusinessRuleById = (businessRuleId) =>
 const getExecutionLogs = (businessRuleId, { params } = {}) =>
   Gateway.get(`/business_rule/get_execution_logs/${businessRuleId}`, { params });
 
+const exportExecutionLogs = (businessRuleId, { params } = {}) =>
+  Gateway.get(`/business_rule/export_execution_logs/${businessRuleId}`, { responseType: 'blob', params });
+
 const getBusinessRuleHistory = (businessRuleId, { params } = {}) =>
   Gateway.get(`/business_rule/get_history/${businessRuleId}`, { params });
 
-// TODO: backend has no confirmed endpoint for this yet - path/payload below is a
-// guess mirroring kanban_workflow/enable_disable_workflow; update once backend is ready.
 const toggleBusinessRuleStatus = (businessRuleId) =>
   Gateway.post(`/business_rule/enable_disable_business_rule/${businessRuleId}`, { business_rule_id: businessRuleId });
 
@@ -99,7 +100,7 @@ const getCreateSubtaskSettings = (createSubtaskId) =>
   Gateway.get(`/business_rule/get_create_subtask_settings/${createSubtaskId}`);
 
 export default {
-  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getBusinessRuleById, getExecutionLogs, getBusinessRuleHistory, toggleBusinessRuleStatus, createBusinessRule, updateBusinessRule, deleteBusinessRule, getTriggerConfig,
+  getTriggerTypes, getFields, getTimeUnits, getCustomFields, getRegularFields, getThenActionFields, getBusinessRules, getBusinessRuleById, getExecutionLogs, exportExecutionLogs, getBusinessRuleHistory, toggleBusinessRuleStatus, createBusinessRule, updateBusinessRule, deleteBusinessRule, getTriggerConfig,
   getBusinessRuleStats, getLinkCardPossibleActions, getLinkCardPossibleActionOperators, getFieldDetails,
   getNotificationSettings, saveNotificationSettings, updateNotificationSettings, deleteNotificationSettings, updateWebServiceSettings, deleteWebServiceSettings, saveWebServiceSettings, getWebServiceSettings, testWebServiceSettings,
   saveCreateSubtaskSettings, updateCreateSubtaskSettings, deleteCreateSubtaskSettings, getCreateSubtaskSettings,

@@ -54,15 +54,15 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
     createBusinessRule, isCreatingBusinessRule,
     updateBusinessRule, isUpdatingBusinessRule,
     deleteBusinessRule, isDeletingBusinessRule,
+    toggleBusinessRuleStatus, isTogglingBusinessRuleStatus,
   } = useBusinessRuleReducer((s) => s);
 
-  // UI-only for now: no confirmed enable/disable endpoint yet, so the switch just
-  // flips this local override. Swap for the toggleBusinessRuleStatus store call
-  // once the backend endpoint is confirmed.
-  const [localStatusOverrides, setLocalStatusOverrides] = useState({});
-
-  const handleToggleStatus = (ruleId, currentValue) => {
-    setLocalStatusOverrides((prev) => ({ ...prev, [ruleId]: !currentValue }));
+  const handleToggleStatus = (ruleId) => {
+    // Enabled/Disabled/All is a server-side filter (is_enabled param) - a row that just
+    // changed state must be re-fetched under the current filter so it drops out of the
+    // Enabled view once disabled (and shows under Disabled), not just have its switch
+    // flip in place while staying listed under the wrong tab.
+    toggleBusinessRuleStatus(ruleId, { cb: () => { fetchBusinessRules(); getBusinessRuleStats(); } });
   };
 
   useEffect(() => {
@@ -280,17 +280,21 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                         const name = rule?.name ?? rule?.rule_name ?? '-';
                         const execOrder = rule?.execution_order ?? '-';
                         const tags = rule?.tags || '-';
-                        const isEnabled = localStatusOverrides[ruleId] ?? (rule?.is_enabled === 1 || rule?.is_enabled === '1' || rule?.is_enabled === true);
                         const sharedWith = Array.isArray(rule?.shared_with) && rule.shared_with.length > 0
                           ? rule.shared_with.map((s) => (typeof s === 'object' ? s?.name : s)).join(', ')
                           : '-';
                         const boards = rule?.board_name ?? [];
-                        // `status` is a reference-validity flag from the API ("OK" / "Missing reference"),
-                        // not an enabled/disabled flag - that's `is_enabled` above. Only flag red when the
-                        // value explicitly signals a missing reference - other/unexpected status values
-                        // (e.g. leftover numeric codes) must not be treated as an error.
+                        // `status` from get_business_rule_list is overloaded: "1"/"0" (as a string) is the
+                        // enable/disable flag, but flips to a descriptive string like "Missing reference"
+                        // when the rule has a broken reference - only flag red when it explicitly signals
+                        // "missing"; any other value (numeric flag included) must default to "OK"/black.
+                        // There is no separate is_enabled field on this endpoint (only on the
+                        // enable_disable_business_rule toggle response, which patches is_enabled here too).
                         const isMissingReference = typeof rule?.status === 'string' && /missing/i.test(rule.status);
                         const statusText = isMissingReference ? rule.status : 'OK';
+                        const enabledFlag = rule?.is_enabled ?? rule?.status;
+                        const isEnabled = !isMissingReference
+                          && (enabledFlag === 1 || enabledFlag === '1' || enabledFlag === true);
 
                         return (
                           <tr
@@ -303,7 +307,8 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                                   className="form-check-input"
                                   type="checkbox"
                                   checked={isEnabled}
-                                  onChange={() => handleToggleStatus(ruleId, isEnabled)}
+                                  disabled={Boolean(isTogglingBusinessRuleStatus[ruleId])}
+                                  onChange={() => handleToggleStatus(ruleId)}
                                 />
                               </div>
                             </td>
