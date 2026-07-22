@@ -30,8 +30,6 @@ const getExecutionLogs = (businessRuleId, { params } = {}) =>
 const getBusinessRuleHistory = (businessRuleId, { params } = {}) =>
   Gateway.get(`/business_rule/get_history/${businessRuleId}`, { params });
 
-// TODO: backend has no confirmed endpoint for this yet - path/payload below is a
-// guess mirroring kanban_workflow/enable_disable_workflow; update once backend is ready.
 const toggleBusinessRuleStatus = (businessRuleId) =>
   Gateway.post(`/business_rule/enable_disable_business_rule/${businessRuleId}`, { business_rule_id: businessRuleId });
 
