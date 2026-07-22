@@ -10,7 +10,7 @@ import DateTimePickerField from "../../../../CardFormTabs/shared/components/Date
 import SearchableSelect from "../../../../../../components/form/SearchableSelect";
 import { formatGroDocumentDisplayName } from "../GRO/User/groCardUtils";
 import PropTypes from "prop-types";
-import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
+import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiArrowLeft, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
 import { FaShip } from "react-icons/fa";
 import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
@@ -65,27 +65,34 @@ function mapImmigrationBatches(apiBatches) {
     const crew = Array.isArray(b?.crew) ? b.crew.map(normalizeImmigrationCrewRow) : [];
     return {
       id: idx + 1,
+      // launch_hire/record_taxiboat_timestamp expects booking_item_id — fall back
+      // across likely field name variants until the backend contract is confirmed.
+      bookingItemId: b?.booking_item_id ?? b?.launch_hire_booking_item_id ?? null,
       batchLabel: b?.batch ? formatGroDocumentDisplayName(b.batch) : null,
       crewCount: String(crew.length),
       crew,
       operator: "",
-      ts: makeTsState(initKeys),
-      tsOps: makeTsState(initKeys),
-      cobTime: null,
-      completedAt: null,
-      stepBackLog: [],
-      file: null,
-      completed: false,
+      legs: {
+        drop: makeLegState(initKeys),
+        pickup: makeLegState(initKeys),
+      },
     };
   });
 }
 
 const STANDARD_TIMESTAMPS = [
-  { key: "castOff",           label: "Cast off Time",       icon: FiFlag,       animKey: "castOff"                          },
-  { key: "boatAlongsideShip", label: "Boat Alongside Ship", icon: FiAnchor,     animKey: "boatAlongsideShip", showShip: true },
-  { key: "boatCastOffShip",   label: "Boat Cast off Ship",  icon: FiNavigation, animKey: "boatCastOffShip",   showShip: true },
-  { key: "backToJetty",       label: "Back to Jetty",       icon: FiHome,       animKey: "backToJetty"                      },
+  { key: "castOff",           label: "Cast off Time",       icon: FiFlag,       animKey: "castOff",           checkpoint: "cast_off_time"      },
+  { key: "boatAlongsideShip", label: "Boat Alongside Ship", icon: FiAnchor,     animKey: "boatAlongsideShip", showShip: true, checkpoint: "alongside_ship_time" },
+  { key: "boatCastOffShip",   label: "Boat Cast off Ship",  icon: FiNavigation, animKey: "boatCastOffShip",   showShip: true, checkpoint: "cast_off_ship_time"  },
+  { key: "backToJetty",       label: "Back to Jetty",       icon: FiHome,       animKey: "backToJetty",       checkpoint: "back_to_jetty_time" },
 ];
+
+const TRIP_COMPLETED_CHECKPOINT = "trip_completed_time";
+
+const CHECKPOINT_BY_KEY = STANDARD_TIMESTAMPS.reduce(
+  (acc, t) => ({ ...acc, [t.key]: t.checkpoint }),
+  {}
+);
 
 const BATCH_ORDINALS = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 const CREW_PAGE_SIZE = 10;
@@ -94,6 +101,23 @@ const isBatchDone = (batch) => STANDARD_TIMESTAMPS.every((t) => batch.ts[t.key] 
 
 const makeTsState = (keys) =>
   keys.reduce((acc, key) => ({ ...acc, [key]: null }), {});
+
+const LEG_TABS = [
+  { key: "pickup", label: "Pickup" },
+  { key: "drop",   label: "Drop"   },
+];
+
+const makeLegState = (keys) => ({
+  ts: makeTsState(keys),
+  tsOps: makeTsState(keys),
+  cobTime: null,
+  completedAt: null,
+  stepBackLog: [],
+  file: null,
+  completed: false,
+});
+
+const isBatchFullyDone = (batch) => LEG_TABS.every(({ key }) => isBatchDone(batch.legs[key]));
 
 const formatDuration = (ms) => {
   if (!ms || ms <= 0) return null;
@@ -295,6 +319,67 @@ ConfirmDialog.propTypes = {
   label:     PropTypes.string.isRequired,
   onConfirm: PropTypes.func.isRequired,
   onCancel:  PropTypes.func.isRequired,
+};
+
+function AddIntermediateTripControl({
+  tripAdded, open, onToggle, onCancel, onSubmit,
+  billingEntity, setBillingEntity,
+  purpose, setPurpose,
+  destShip, setDestShip,
+  compact,
+}) {
+  if (tripAdded) {
+    return (
+      <span className={`tb-add-trip-done${compact ? " tb-add-trip-done--compact" : ""}`}>
+        <FiCheckCircle size={13} />Trip Added
+      </span>
+    );
+  }
+  return (
+    <div className="tb-add-trip-anchor">
+      <button className="tb-add-trip-btn" onClick={onToggle}>
+        <FiPlus size={13} />Add Intermediate Trip
+      </button>
+      {open && (
+        <div className="tb-add-trip-popover">
+          <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
+          <div className="tb-add-trip-fields">
+            <div className="tb-add-trip-field">
+              <label className="tb-add-trip-label">Billing Entity</label>
+              <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={billingEntity} onChange={(e) => setBillingEntity(e.target.value)} />
+            </div>
+            <div className="tb-add-trip-field">
+              <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
+              <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            </div>
+            <div className="tb-add-trip-field">
+              <label className="tb-add-trip-label">Destination Ship</label>
+              <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={destShip} onChange={(e) => setDestShip(e.target.value)} />
+            </div>
+          </div>
+          <div className="tb-add-trip-btns">
+            <button className="tb-add-trip-submit" onClick={onSubmit} disabled={!purpose.trim()}>Add to Board</button>
+            <button className="tb-add-trip-cancel" onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+AddIntermediateTripControl.propTypes = {
+  tripAdded:        PropTypes.bool.isRequired,
+  open:             PropTypes.bool.isRequired,
+  onToggle:         PropTypes.func.isRequired,
+  onCancel:         PropTypes.func.isRequired,
+  onSubmit:         PropTypes.func.isRequired,
+  billingEntity:    PropTypes.string.isRequired,
+  setBillingEntity: PropTypes.func.isRequired,
+  purpose:          PropTypes.string.isRequired,
+  setPurpose:       PropTypes.func.isRequired,
+  destShip:         PropTypes.string.isRequired,
+  setDestShip:      PropTypes.func.isRequired,
+  compact:          PropTypes.bool,
 };
 
 function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompleted, canFinish, onUndo, now, tsOps, shipName, intermediateTrip }) {
@@ -592,28 +677,6 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
             </td>
             <td className="tb-ts-summary-dur">—</td>
           </tr>
-
-          {/* COB Complete row */}
-          <tr className={[
-            "tb-ts-summary-row--cob",
-            cobTime           ? "tb-ts-summary-row--done"   : "",
-            !jobCompletedAt   ? "tb-ts-summary-row--locked" : "",
-          ].filter(Boolean).join(" ")}>
-            <td className="tb-ts-summary-num">{cobTime ? "✓" : <FiClock size={11} />}</td>
-            <td className="tb-ts-summary-step tb-ts-summary-cob-label">COB Complete</td>
-            <td className="tb-ts-summary-time">
-              {cobTime ? (
-                formatDateTime(cobTime)
-              ) : jobCompletedAt ? (
-                <button className="tb-cob-capture-btn" onClick={onCaptureCob}>
-                  Tap to capture
-                </button>
-              ) : (
-                <span className="tb-ts-summary-blank">Mark job complete first</span>
-              )}
-            </td>
-            <td className="tb-ts-summary-dur">—</td>
-          </tr>
           {/* Step Back Log rows */}
           {stepBackLog && stepBackLog.length > 0 && stepBackLog.map((entry, idx) => (
             <tr key={`sb-${idx}`} className="tb-ts-summary-row--stepback">
@@ -720,11 +783,21 @@ TaxiFleetAssignPanel.propTypes = {
 function CrewListBatchwisePanel({
   batches, setBatches, activeBatchTab, setActiveBatchTab,
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
-  captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
-  hideStepper,
+  captureBatchTs, completeBatchLeg, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
+  hideStepper, crewlistToggle, onCrewlistChange,
 }) {
   const [crewPage, setCrewPage] = useState(1);
   const [uploadingBatchId, setUploadingBatchId] = useState(null);
+  const [activeLeg, setActiveLeg] = useState("drop");
+  const [showCrewlist, setShowCrewlist] = useState(false);
+  const crewlistOpen = !crewlistToggle || showCrewlist;
+  const inCrewlistTab = crewlistToggle && showCrewlist;
+
+  const toggleCrewlist = () => {
+    const next = !showCrewlist;
+    setShowCrewlist(next);
+    onCrewlistChange?.(next);
+  };
   const activeBatchId = batches[activeBatchTab]?.id;
   const notifySuccess = useAlertReducer((s) => s.success);
   const notifyError = useAlertReducer((s) => s.error);
@@ -734,7 +807,7 @@ function CrewListBatchwisePanel({
   }, [activeBatchId]);
 
   const handleUploadLaunchSlip = useCallback(async (batchIdx, batchIdVal, file) => {
-    setBatches((prev) => prev.map((b, idx) => (idx === batchIdx ? { ...b, file } : b)));
+    setBatches((prev) => prev.map((b, idx) => (idx === batchIdx ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], file } } } : b)));
     if (!file || bookingId == null) return;
     const formData = new FormData();
     formData.append("booking_id", bookingId);
@@ -745,7 +818,7 @@ function CrewListBatchwisePanel({
       setBatches((prev) =>
         prev.map((b, idx) =>
           idx === batchIdx
-            ? { ...b, file, fileUrl: data?.file_url ?? null, fileName: data?.launch_hire_slip ?? file.name }
+            ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], file, fileUrl: data?.file_url ?? null, fileName: data?.launch_hire_slip ?? file.name } } }
             : b
         )
       );
@@ -755,63 +828,91 @@ function CrewListBatchwisePanel({
     } finally {
       setUploadingBatchId(null);
     }
-  }, [bookingId, setBatches, notifySuccess, notifyError]);
+  }, [bookingId, setBatches, notifySuccess, notifyError, activeLeg]);
 
   const activeBatch = batches[activeBatchTab];
+  const activeLegData = activeBatch?.legs?.[activeLeg];
 
   return (
     <div className="tb-scenario-section">
-      <h3 className="tb-section-title">Crew List — Batchwise</h3>
-      <div className="tb-batch-header-row">
-        <div className="tb-batch-tab-strip">
-          {batches.map((batch, i) => (
-            <button
-              key={batch.id}
-              className={[
-                "tb-batch-tab",
-                activeBatchTab === i ? "tb-batch-tab--active" : "",
-                isBatchDone(batch) ? "tb-batch-tab--done" : "",
-              ].filter(Boolean).join(" ")}
-              onClick={() => setActiveBatchTab(i)}
-            >
-              {isBatchDone(batch) && <FiCheckCircle size={12} />}
-              {batch.batchLabel ?? `Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
-            </button>
-          ))}
+      {crewlistToggle && (
+        <div className="tb-crewlist-toggle-row">
+          <button
+            type="button"
+            className="tb-crewlist-toggle-btn"
+            onClick={toggleCrewlist}
+          >
+            {showCrewlist ? (
+              <>
+                <FiArrowLeft size={14} />
+                Back
+              </>
+            ) : (
+              <>
+                <FiUser size={14} />
+                Crewlist
+              </>
+            )}
+          </button>
         </div>
+      )}
 
-        {activeBatch?.completed && (
-          <div className="tb-batch-actions">
-            <button
-              className="tb-batch-print-btn"
-              onClick={() => printLaunchSlip(activeBatch.ts, `Immigration Batch ${BATCH_ORDINALS[activeBatchTab] ?? activeBatchTab + 1}`, activeBatch.operator, activeBatch.completedAt)}
-            >
-              <FiPrinter size={14} />
-              Print Launch Slip
-            </button>
-            <div>
-              <input
-                type="file"
-                id={`tb-batch-file-${activeBatch.id}`}
-                className="tb-launch-slip-input"
-                accept=".pdf,.jpg,.jpeg,.png"
-                disabled={uploadingBatchId === activeBatch.id}
-                onChange={(e) => handleUploadLaunchSlip(activeBatchTab, activeBatch.id, e.target.files?.[0] ?? null)}
-              />
-              <label htmlFor={`tb-batch-file-${activeBatch.id}`} className="tb-batch-upload-btn">
-                <FiUpload size={14} />
-                {uploadingBatchId === activeBatch.id
-                  ? "Uploading…"
-                  : activeBatch.file ? activeBatch.file.name : "Upload Launch Slip"}
-              </label>
+      {crewlistOpen && (
+        <>
+          <h3 className="tb-section-title">Crew List — Batchwise</h3>
+          <div className="tb-batch-header-row">
+            <div className="tb-batch-tab-strip">
+              {batches.map((batch, i) => (
+                <button
+                  key={batch.id}
+                  className={[
+                    "tb-batch-tab",
+                    activeBatchTab === i ? "tb-batch-tab--active" : "",
+                    isBatchFullyDone(batch) ? "tb-batch-tab--done" : "",
+                  ].filter(Boolean).join(" ")}
+                  onClick={() => setActiveBatchTab(i)}
+                >
+                  {isBatchFullyDone(batch) && <FiCheckCircle size={12} />}
+                  {batch.batchLabel ?? `Batch ${BATCH_ORDINALS[i] ?? `${i + 1}th`}`}
+                </button>
+              ))}
             </div>
+
+            {activeLegData?.completed && !inCrewlistTab && (
+              <div className="tb-batch-actions">
+                <button
+                  className="tb-batch-print-btn"
+                  onClick={() => printLaunchSlip(activeLegData.ts, `Immigration Batch ${BATCH_ORDINALS[activeBatchTab] ?? activeBatchTab + 1} — ${activeLeg === "drop" ? "Drop" : "Pickup"}`, activeBatch.operator, activeLegData.completedAt)}
+                >
+                  <FiPrinter size={14} />
+                  Print Launch Slip
+                </button>
+                <div>
+                  <input
+                    type="file"
+                    id={`tb-batch-file-${activeBatch.id}-${activeLeg}`}
+                    className="tb-launch-slip-input"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    disabled={uploadingBatchId === activeBatch.id}
+                    onChange={(e) => handleUploadLaunchSlip(activeBatchTab, activeBatch.id, e.target.files?.[0] ?? null)}
+                  />
+                  <label htmlFor={`tb-batch-file-${activeBatch.id}-${activeLeg}`} className="tb-batch-upload-btn">
+                    <FiUpload size={14} />
+                    {uploadingBatchId === activeBatch.id
+                      ? "Uploading…"
+                      : activeLegData.file ? activeLegData.file.name : "Upload Launch Slip"}
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {batches.map((batch, i) => {
         if (i !== activeBatchTab) return null;
-        const done = isBatchDone(batch);
+        const leg = batch.legs[activeLeg];
+        const done = isBatchDone(leg);
         const crewRows = batch.crew && batch.crew.length > 0 ? batch.crew : getBatchCrewRows(batch.crewCount);
         const totalCrewPages = Math.max(1, Math.ceil(crewRows.length / CREW_PAGE_SIZE));
         const crewPageSafe = Math.min(crewPage, totalCrewPages);
@@ -821,7 +922,7 @@ function CrewListBatchwisePanel({
         );
         return (
           <div key={batch.id} className="tb-batch-tab-content">
-            {crewRows.length > 0 && (
+            {crewlistOpen && crewRows.length > 0 && (
               <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
                 <table className="tb-crew-table">
                   <thead>
@@ -873,48 +974,101 @@ function CrewListBatchwisePanel({
               </div>
             )}
 
-            {!hideStepper && (
+            {!hideStepper && !inCrewlistTab && (
+              <div className="tb-tabs">
+                <div className="tb-tabs-group">
+                  {LEG_TABS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      className={`tb-tab${activeLeg === key ? " tb-tab--active" : ""}`}
+                      onClick={() => setActiveLeg(key)}
+                    >
+                      <span
+                        key={`${key}-${activeLeg}`}
+                        className={`tb-tab-vessel-wrap${activeLeg === key ? ` tb-tab-vessel-wrap--${key}-firing` : ""}`}
+                      >
+                        <FaShip size={12} />
+                        <span className="tb-tab-cargo-dot" />
+                      </span>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!hideStepper && !inCrewlistTab && (
               <TimestampStepper
                 timestamps={STANDARD_TIMESTAMPS}
-                tsState={batch.ts}
-                tsOps={batch.tsOps}
+                tsState={leg.ts}
+                tsOps={leg.tsOps}
                 shipName={vesselName}
-                onCapture={(key) => captureBatchTs(i, key)}
-                onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
-                jobCompleted={batch.completed}
-                canFinish={isBatchDone(batch)}
+                onCapture={(key) => captureBatchTs(i, activeLeg, key)}
+                onComplete={() => completeBatchLeg(i, activeLeg)}
+                jobCompleted={leg.completed}
+                canFinish={isBatchDone(leg)}
                 now={now}
                 onUndo={(key, label) => setUndoPending({
                   label,
                   resetter: () => setBatches((prev) =>
                     prev.map((b, idx) =>
-                      idx === i ? { ...b, ts: { ...b.ts, [key]: null }, completed: false } : b
+                      idx === i ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], ts: { ...b.legs[activeLeg].ts, [key]: null }, completed: false } } } : b
                     )
                   ),
                   addToLog: (reason) => setBatches((prev) =>
                     prev.map((b, idx) =>
-                      idx === i ? { ...b, stepBackLog: [...b.stepBackLog, { step: label, reason, time: new Date().toISOString() }] } : b
+                      idx === i ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], stepBackLog: [...b.legs[activeLeg].stepBackLog, { step: label, reason, time: new Date().toISOString() }] } } } : b
                     )
                   ),
                 })}
               />
             )}
 
-            <TimestampSummaryTable
-              timestamps={STANDARD_TIMESTAMPS}
-              tsState={batch.ts}
-              jobCompletedAt={batch.completedAt}
-              cobTime={batch.cobTime}
-              stepsAllDone={isBatchDone(batch)}
-              stepBackLog={batch.stepBackLog}
-              onCaptureCob={() =>
-                setBatches((prev) =>
-                  prev.map((b, idx) =>
-                    idx === i ? { ...b, cobTime: new Date().toISOString() } : b
+            {crewlistToggle && !inCrewlistTab && activeLegData?.completed && (
+              <div className="tb-batch-actions tb-batch-actions--end">
+                <button
+                  className="tb-batch-print-btn"
+                  onClick={() => printLaunchSlip(activeLegData.ts, `Immigration Batch ${BATCH_ORDINALS[activeBatchTab] ?? activeBatchTab + 1} — ${activeLeg === "drop" ? "Drop" : "Pickup"}`, activeBatch.operator, activeLegData.completedAt)}
+                >
+                  <FiPrinter size={14} />
+                  Print Launch Slip
+                </button>
+                <div>
+                  <input
+                    type="file"
+                    id={`tb-batch-file-${activeBatch.id}-${activeLeg}`}
+                    className="tb-launch-slip-input"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    disabled={uploadingBatchId === activeBatch.id}
+                    onChange={(e) => handleUploadLaunchSlip(activeBatchTab, activeBatch.id, e.target.files?.[0] ?? null)}
+                  />
+                  <label htmlFor={`tb-batch-file-${activeBatch.id}-${activeLeg}`} className="tb-batch-upload-btn">
+                    <FiUpload size={14} />
+                    {uploadingBatchId === activeBatch.id
+                      ? "Uploading…"
+                      : activeLegData.file ? activeLegData.file.name : "Upload Launch Slip"}
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {!inCrewlistTab && (
+              <TimestampSummaryTable
+                timestamps={STANDARD_TIMESTAMPS}
+                tsState={leg.ts}
+                jobCompletedAt={leg.completedAt}
+                cobTime={leg.cobTime}
+                stepsAllDone={isBatchDone(leg)}
+                stepBackLog={leg.stepBackLog}
+                onCaptureCob={() =>
+                  setBatches((prev) =>
+                    prev.map((b, idx) =>
+                      idx === i ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], cobTime: new Date().toISOString() } } } : b
+                    )
                   )
-                )
-              }
-            />
+                }
+              />
+            )}
 
             {done && (
               <div className="tb-batch-done-badge">
@@ -940,10 +1094,13 @@ CrewListBatchwisePanel.propTypes = {
   handleOpBlur:     PropTypes.func.isRequired,
   handleOpChipClick: PropTypes.func.isRequired,
   captureBatchTs:   PropTypes.func.isRequired,
+  completeBatchLeg: PropTypes.func.isRequired,
   setUndoPending:   PropTypes.func.isRequired,
   vesselName:       PropTypes.string,
   now:              PropTypes.instanceOf(Date),
   hideStepper:      PropTypes.bool,
+  crewlistToggle:   PropTypes.bool,
+  onCrewlistChange: PropTypes.func,
   printLaunchSlip:  PropTypes.func.isRequired,
   bookingId:        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
@@ -963,6 +1120,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   // backend that this login's own userid IS its operator_id (no dedicated field
   // exists on the user/login response, unlike e.g. vendor_id for vendor logins).
   const loggedInUserId = useAuthReducer((s) => s.userProfile?.userid ?? s.authData?.userid ?? null);
+  const notifyError = useAlertReducer((s) => s.error);
 
   // Open Call — call_file/get_call_detail_by_id/{call_id}/{card_id}
   const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
@@ -1021,6 +1179,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const [dropStepBackLog, setDropStepBackLog] = useState([]);
   const [pickupStepBackLog, setPickupStepBackLog] = useState([]);
   const [undoPending, setUndoPending] = useState(null); // { label, resetter }
+  const [captainCrewlistOpen, setCaptainCrewlistOpen] = useState(false);
 
   // Operator name recorded with each timestamp
   const [operatorName, setOperatorName] = useState(() => card?.requestedOperator ?? "");
@@ -1157,11 +1316,12 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const [activeBatchTab, setActiveBatchTab] = useState(0);
   const [batches, setBatches] = useState(() => {
     const initKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
+    const initLegs = () => ({ drop: makeLegState(initKeys), pickup: makeLegState(initKeys) });
     return [
-      { id: 1, crewCount: "10", operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
-      { id: 2, crewCount: "8",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
-      { id: 3, crewCount: "6",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
-      { id: 4, crewCount: "5",  operator: "", ts: makeTsState(initKeys), cobTime: null, completedAt: null, stepBackLog: [], file: null, completed: false },
+      { id: 1, crewCount: "10", operator: "", legs: initLegs() },
+      { id: 2, crewCount: "8",  operator: "", legs: initLegs() },
+      { id: 3, crewCount: "6",  operator: "", legs: initLegs() },
+      { id: 4, crewCount: "5",  operator: "", legs: initLegs() },
     ];
   });
 
@@ -1192,15 +1352,52 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     if (opSetter) opSetter((prev) => ({ ...prev, [key]: operator || "—" }));
   }, []);
 
-  const captureBatchTs = useCallback((batchIdx, key) => {
+  const recordCheckpoint = useCallback((batchIdx, legKey, checkpoint) => {
+    const batch = batches[batchIdx];
+    if (batch?.bookingItemId == null || !checkpoint) return;
+    launchHireService
+      .recordTaxiboatTimestamp({
+        booking_item_id: batch.bookingItemId,
+        trip_type: legKey === "drop" ? "Drop" : "Pickup",
+        checkpoint,
+      })
+      .catch((err) => {
+        notifyError(err?.response?.data?.message ?? err.message ?? "Failed to record timestamp");
+      });
+  }, [batches, notifyError]);
+
+  const captureBatchTs = useCallback((batchIdx, legKey, key) => {
     setBatches((prev) =>
       prev.map((b, i) =>
         i === batchIdx
-          ? { ...b, ts: { ...b.ts, [key]: new Date().toISOString() }, tsOps: { ...(b.tsOps ?? {}), [key]: b.operator || "—" } }
+          ? {
+              ...b,
+              legs: {
+                ...b.legs,
+                [legKey]: {
+                  ...b.legs[legKey],
+                  ts: { ...b.legs[legKey].ts, [key]: new Date().toISOString() },
+                  tsOps: { ...b.legs[legKey].tsOps, [key]: b.operator || "—" },
+                },
+              },
+            }
           : b
       )
     );
-  }, []);
+    recordCheckpoint(batchIdx, legKey, CHECKPOINT_BY_KEY[key]);
+  }, [recordCheckpoint]);
+
+  const completeBatchLeg = useCallback((batchIdx, legKey) => {
+    const completedAt = new Date().toISOString();
+    setBatches((prev) =>
+      prev.map((b, i) =>
+        i === batchIdx
+          ? { ...b, legs: { ...b.legs, [legKey]: { ...b.legs[legKey], completed: true, completedAt } } }
+          : b
+      )
+    );
+    recordCheckpoint(batchIdx, legKey, TRIP_COMPLETED_CHECKPOINT);
+  }, [recordCheckpoint]);
 
   const handleAddTrip = useCallback(() => {
     if (!addTripPurpose.trim()) return;
@@ -1220,7 +1417,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
 
   const tsKeys = STANDARD_TIMESTAMPS.map((t) => t.key);
   const canComplete = isImmigration
-    ? batches.every((b) => b.completed)
+    ? batches.every((b) => LEG_TABS.every(({ key }) => b.legs[key].completed))
     : allDone(dropTs, tsKeys) && allDone(pickupTs, tsKeys);
 
   const printLaunchSlip = useCallback((tsState, tabLabel, guide, completedAt) => {
@@ -1354,11 +1551,14 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           handleOpBlur={handleOpBlur}
           handleOpChipClick={handleOpChipClick}
           captureBatchTs={captureBatchTs}
+          completeBatchLeg={completeBatchLeg}
           setUndoPending={setUndoPending}
           vesselName={vesselName}
           now={now}
           printLaunchSlip={printLaunchSlip}
           bookingId={bookingId}
+          crewlistToggle
+          onCrewlistChange={setCaptainCrewlistOpen}
         />
       ) : (
         <TaxiFleetAssignPanel
@@ -1570,6 +1770,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           handleOpBlur={handleOpBlur}
           handleOpChipClick={handleOpChipClick}
           captureBatchTs={captureBatchTs}
+          completeBatchLeg={completeBatchLeg}
           setUndoPending={setUndoPending}
           vesselName={vesselName}
           now={now}
@@ -1591,6 +1792,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           handleOpBlur={handleOpBlur}
           handleOpChipClick={handleOpChipClick}
           captureBatchTs={captureBatchTs}
+          completeBatchLeg={completeBatchLeg}
           setUndoPending={setUndoPending}
           vesselName={vesselName}
           now={now}
@@ -1633,46 +1835,25 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
               </button>
             </div>
 
-            {tripAdded ? (
-              <span className="tb-add-trip-done tb-add-trip-done--compact">
-                <FiCheckCircle size={13} />Trip Added
-              </span>
-            ) : (activeTab === "drop" ? dropTs.boatCastOffShip : pickupTs.boatCastOffShip) && (
-              <div className="tb-add-trip-anchor">
-                <button
-                  className="tb-add-trip-btn"
-                  onClick={() => {
-                    setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : "");
-                    setAddTripDestShip(vesselName !== "—" ? vesselName : "");
-                    setAddTripOpen((open) => !open);
-                  }}
-                >
-                  <FiPlus size={13} />Add Intermediate Trip
-                </button>
-                {addTripOpen && (
-                  <div className="tb-add-trip-popover">
-                    <span className="tb-add-trip-form-title">Intermediate Trip Details</span>
-                    <div className="tb-add-trip-fields">
-                      <div className="tb-add-trip-field">
-                        <label className="tb-add-trip-label">Billing Entity</label>
-                        <input className="tb-add-trip-input" type="text" placeholder="Billing entity..." value={addTripBillingEntity} onChange={(e) => setAddTripBillingEntity(e.target.value)} />
-                      </div>
-                      <div className="tb-add-trip-field">
-                        <label className="tb-add-trip-label">Purpose <span className="tb-add-trip-required">*</span></label>
-                        <input className="tb-add-trip-input" type="text" placeholder="e.g. Material Delivery, Crew Change..." value={addTripPurpose} onChange={(e) => setAddTripPurpose(e.target.value)} />
-                      </div>
-                      <div className="tb-add-trip-field">
-                        <label className="tb-add-trip-label">Destination Ship</label>
-                        <input className="tb-add-trip-input" type="text" placeholder="Vessel name..." value={addTripDestShip} onChange={(e) => setAddTripDestShip(e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="tb-add-trip-btns">
-                      <button className="tb-add-trip-submit" onClick={handleAddTrip} disabled={!addTripPurpose.trim()}>Add to Board</button>
-                      <button className="tb-add-trip-cancel" onClick={() => setAddTripOpen(false)}>Cancel</button>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {(tripAdded || (activeTab === "drop" ? dropTs.boatCastOffShip : pickupTs.boatCastOffShip)) && (
+              <AddIntermediateTripControl
+                tripAdded={tripAdded}
+                open={addTripOpen}
+                onToggle={() => {
+                  setAddTripBillingEntity(billingEntity !== "—" ? billingEntity : "");
+                  setAddTripDestShip(vesselName !== "—" ? vesselName : "");
+                  setAddTripOpen((open) => !open);
+                }}
+                onCancel={() => setAddTripOpen(false)}
+                onSubmit={handleAddTrip}
+                billingEntity={addTripBillingEntity}
+                setBillingEntity={setAddTripBillingEntity}
+                purpose={addTripPurpose}
+                setPurpose={setAddTripPurpose}
+                destShip={addTripDestShip}
+                setDestShip={setAddTripDestShip}
+                compact
+              />
             )}
           </div>
           <div key={activeTab} className={`tb-ts-panel tb-ts-panel--${activeTab}`}>
@@ -1761,7 +1942,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       )}
 
 
-      {!isTaxiBoatOperator && (
+      {!isTaxiBoatOperator && !captainCrewlistOpen && (
         <div className="tb-card-footer-bar">
           <button className="tb-save-btn">Save</button>
         </div>

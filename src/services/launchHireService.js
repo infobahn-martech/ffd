@@ -44,6 +44,10 @@ const uploadLaunchHireSlip = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+// Capture a taxi boat movement checkpoint — { booking_item_id, trip_type: "Drop"|"Pickup", checkpoint }
+const recordTaxiboatTimestamp = (payload) =>
+  Gateway.post("/launch_hire/record_taxiboat_timestamp", payload);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -56,4 +60,5 @@ export default {
   createCrewChangeBooking,
   getCrewImmigrationBooking,
   uploadLaunchHireSlip,
+  recordTaxiboatTimestamp,
 };
