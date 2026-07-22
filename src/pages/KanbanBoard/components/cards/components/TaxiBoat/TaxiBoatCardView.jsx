@@ -358,8 +358,8 @@ function AddIntermediateTripControl({
             </div>
           </div>
           <div className="tb-add-trip-btns">
-            <button className="tb-add-trip-submit" onClick={onSubmit} disabled={!purpose.trim()}>Add to Board</button>
             <button className="tb-add-trip-cancel" onClick={onCancel}>Cancel</button>
+            <button className="tb-add-trip-submit" onClick={onSubmit} disabled={!purpose.trim()}>Add</button>
           </div>
         </div>
       )}
@@ -674,6 +674,28 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
               {jobCompletedAt
                 ? formatDateTime(jobCompletedAt)
                 : <span className="tb-ts-summary-blank">{stepsAllDone ? "Tap step 5 above" : "—"}</span>}
+            </td>
+            <td className="tb-ts-summary-dur">—</td>
+          </tr>
+
+          {/* COB Complete row */}
+          <tr className={[
+            "tb-ts-summary-row--cob",
+            cobTime           ? "tb-ts-summary-row--done"   : "",
+            !jobCompletedAt   ? "tb-ts-summary-row--locked" : "",
+          ].filter(Boolean).join(" ")}>
+            <td className="tb-ts-summary-num">{cobTime ? "✓" : <FiClock size={11} />}</td>
+            <td className="tb-ts-summary-step tb-ts-summary-cob-label">COB Complete</td>
+            <td className="tb-ts-summary-time">
+              {cobTime ? (
+                formatDateTime(cobTime)
+              ) : jobCompletedAt ? (
+                <button className="tb-cob-capture-btn" onClick={onCaptureCob}>
+                  Tap to capture
+                </button>
+              ) : (
+                <span className="tb-ts-summary-blank">Mark job complete first</span>
+              )}
             </td>
             <td className="tb-ts-summary-dur">—</td>
           </tr>
@@ -1988,6 +2010,12 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         </div>
       )}
 
+
+      {!isTaxiBoatOperator && !captainCrewlistOpen && (
+        <div className="tb-card-footer-bar">
+          <button className="tb-save-btn">Save</button>
+        </div>
+      )}
 
       {undoPending && (
         <ConfirmDialog
