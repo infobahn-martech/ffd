@@ -179,6 +179,18 @@ const buildThenActions = (formState, ctx) => {
     if (action.copyFields?.customFields?.length > 0) {
       properties.push({ property_key: 'copy_custom_fields', property_value: action.copyFields.customFields.join(', '), property_value_type: 'string' });
     }
+    // Initial field values to set on the created card (Owner, Deadline, Tags, custom
+    // fields, ...) — same field_key/field_value pair shape the update action uses below,
+    // best-effort until confirmed against a real create_cards example.
+    (action.fieldValues ?? []).forEach((fv) => {
+      const fieldValue = fv.type === 'tags'
+        ? (fv.tagIds ?? []).join(', ')
+        : (fv.type === 'user' || fv.type === 'sticker')
+          ? (fv.refId ?? '')
+          : (fv.value ?? '');
+      properties.push({ property_key: 'field_key', property_value: fv.field, property_value_type: 'string' });
+      properties.push({ property_key: 'field_value', property_value: fieldValue, property_value_type: 'string' });
+    });
     thenActions.push({ action_type_id: createActionTypeId, properties });
   });
 

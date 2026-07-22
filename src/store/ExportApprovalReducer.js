@@ -23,6 +23,11 @@ const useExportApprovalReducer = create((set) => ({
       set({ isSavingDetails: true });
       const { data } = await exportApprovalService.saveExportApprovalDetails(callId, payload);
       set({ isSavingDetails: false });
+      if (data?.status === 'error') {
+        const { error: showError } = useAlertReducer.getState();
+        showError(data?.message || 'Failed to save.');
+        throw new Error(data?.message || 'Failed to save.');
+      }
       if (!silent) {
         const { success } = useAlertReducer.getState();
         success(data?.message || 'Export approval details saved.');
@@ -30,8 +35,10 @@ const useExportApprovalReducer = create((set) => ({
       return data;
     } catch (error) {
       set({ isSavingDetails: false });
-      const { error: showError } = useAlertReducer.getState();
-      showError(error?.response?.data?.message ?? error.message);
+      if (error?.response || error?.request) {
+        const { error: showError } = useAlertReducer.getState();
+        showError(error?.response?.data?.message ?? error.message);
+      }
       throw error;
     }
   },
