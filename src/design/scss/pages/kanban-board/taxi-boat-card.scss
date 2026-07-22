@@ -1615,8 +1615,8 @@ $tb-space-2xl:  32px;
 }
 
 .tb-fleet-card {
-  flex: 1;
-  min-width: 110px;
+  flex: 0 0 250px;
+  width: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
