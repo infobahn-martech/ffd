@@ -677,28 +677,6 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
             </td>
             <td className="tb-ts-summary-dur">—</td>
           </tr>
-
-          {/* COB Complete row */}
-          <tr className={[
-            "tb-ts-summary-row--cob",
-            cobTime           ? "tb-ts-summary-row--done"   : "",
-            !jobCompletedAt   ? "tb-ts-summary-row--locked" : "",
-          ].filter(Boolean).join(" ")}>
-            <td className="tb-ts-summary-num">{cobTime ? "✓" : <FiClock size={11} />}</td>
-            <td className="tb-ts-summary-step tb-ts-summary-cob-label">COB Complete</td>
-            <td className="tb-ts-summary-time">
-              {cobTime ? (
-                formatDateTime(cobTime)
-              ) : jobCompletedAt ? (
-                <button className="tb-cob-capture-btn" onClick={onCaptureCob}>
-                  Tap to capture
-                </button>
-              ) : (
-                <span className="tb-ts-summary-blank">Mark job complete first</span>
-              )}
-            </td>
-            <td className="tb-ts-summary-dur">—</td>
-          </tr>
           {/* Step Back Log rows */}
           {stepBackLog && stepBackLog.length > 0 && stepBackLog.map((entry, idx) => (
             <tr key={`sb-${idx}`} className="tb-ts-summary-row--stepback">
@@ -2011,11 +1989,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       )}
 
 
-      {!isTaxiBoatOperator && !captainCrewlistOpen && (
-        <div className="tb-card-footer-bar">
-          <button className="tb-save-btn">Save</button>
-        </div>
-      )}
 
       {undoPending && (
         <ConfirmDialog
