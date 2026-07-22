@@ -57,6 +57,10 @@ const cancelTaxiboatTimestamp = (payload) =>
 const createIntermediateTrip = (payload) =>
   Gateway.post("/launch_hire/create_intermediate_trip", payload);
 
+// Taxi boat booking detail — { data: { booking_datetime, location, captain_assigned, operator, fleet: { taxi_boat_id }, captain: { taxiboat_captain_id, taxi_boat_id }, batches: [...] } }
+const getTaxiboatBookingDetail = (bookingId) =>
+  Gateway.get(`/launch_hire/get_taxiboat_booking_detail/${encodeURIComponent(String(bookingId))}`);
+
 export default {
   addLaunchHireService,
   getAllLaunchHireServices,
@@ -72,4 +76,5 @@ export default {
   recordTaxiboatTimestamp,
   cancelTaxiboatTimestamp,
   createIntermediateTrip,
+  getTaxiboatBookingDetail,
 };

@@ -1407,6 +1407,23 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     return () => { cancelled = true; };
   }, [showsBatchwisePanel, bookingId]);
 
+  // launch_hire/get_taxiboat_booking_detail/{booking_id} — carries the fleet/captain
+  // already assigned to this booking, needed as taxi_boat_id/taxiboat_captain_id for
+  // launch_hire/create_intermediate_trip.
+  const [taxiboatBookingDetail, setTaxiboatBookingDetail] = useState(null);
+  useEffect(() => {
+    if (bookingId == null) return undefined;
+    let cancelled = false;
+    launchHireService.getTaxiboatBookingDetail(bookingId)
+      .then((res) => {
+        if (!cancelled) setTaxiboatBookingDetail(res?.data?.data ?? res?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setTaxiboatBookingDetail(null);
+      });
+    return () => { cancelled = true; };
+  }, [bookingId]);
+
   const captureNow = useCallback((setter, key, opSetter, operator) => {
     setter((prev) => ({ ...prev, [key]: new Date().toISOString() }));
     if (opSetter) opSetter((prev) => ({ ...prev, [key]: operator || "—" }));
@@ -1476,11 +1493,13 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   }, [bookingId, notifyError]);
 
   // create_intermediate_trip needs the fleet/captain already assigned to this booking —
-  // reuse the operator's live selection, falling back to whatever the call detail carries.
-  const intermediateTripTaxiBoatId = selectedFleet?.taxi_boat_id
-    ?? callDetail?.assigned_taxi_boat_id ?? callDetail?.taxi_boat_id ?? card?.raw?.taxi_boat_id ?? null;
-  const intermediateTripCaptainId = selectedCaptainId
-    ?? callDetail?.assigned_taxiboat_captain_id ?? callDetail?.taxiboat_captain_id ?? card?.raw?.taxiboat_captain_id ?? null;
+  // prefer get_taxiboat_booking_detail's confirmed assignment, falling back to the
+  // operator's live in-session selection if the booking detail hasn't loaded yet.
+  const intermediateTripTaxiBoatId = taxiboatBookingDetail?.captain?.taxi_boat_id
+    ?? taxiboatBookingDetail?.fleet?.taxi_boat_id
+    ?? selectedFleet?.taxi_boat_id ?? null;
+  const intermediateTripCaptainId = taxiboatBookingDetail?.captain?.taxiboat_captain_id
+    ?? selectedCaptainId ?? null;
 
   const handleAddTripToggle = useCallback(() => {
     setAddTripLocation((prev) => prev || (locationEdit || (location !== "—" ? location : "")));
