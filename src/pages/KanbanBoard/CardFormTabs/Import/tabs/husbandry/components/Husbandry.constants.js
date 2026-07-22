@@ -71,10 +71,10 @@ export const SERVICE_ACCENT = {
 
 // Launch Hire - Trigger & Booking Interface
 export const LAUNCH_HIRE_LOCATION_OPTIONS = [
-  { value: "FREIGHTER_ANCHORAGE", label: "Freighter Anchorage" },
+  { value: "Freighter Anchorage", label: "Freighter Anchorage" },
   { value: "RT7", label: "RT7" },
-  { value: "SEA_ISLAND", label: "Sea Island" },
-  { value: "JUAYMAH", label: "Juaymah" },
+  { value: "Sea Island", label: "Sea Island" },
+  { value: "Juaymah", label: "Juaymah" },
 ];
 
 export const TRANSPORT_ROUTE_LOCATION_OPTIONS = [
