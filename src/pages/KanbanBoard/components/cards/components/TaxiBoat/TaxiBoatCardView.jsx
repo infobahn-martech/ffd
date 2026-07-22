@@ -7,6 +7,7 @@ import useAlertReducer from "../../../../../../store/AlertReducer";
 import groService from "../../../../../../services/groService";
 import launchHireService from "../../../../../../services/launchHireService";
 import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
+import SearchableSelect from "../../../../../../components/form/SearchableSelect";
 import { formatGroDocumentDisplayName } from "../GRO/User/groCardUtils";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
@@ -19,6 +20,8 @@ import GroSummaryCard, { GroSummaryFieldCard } from "../GRO/User/GroSummaryCard"
 const CREW_CHANGE_SERVICES = ["Crew Change"];
 const MATERIAL_SERVICES   = ["Material Delivery", "Provision Delivery", "Garbage Collection"];
 const IMMIGRATION_SERVICES = ["Immigration Clearance"];
+
+const LOCATION_OPTIONS = ["Freighter Anchorage", "RT7", "Sea Island", "Juaymah"];
 
 const MOCK_CREW_ROWS = [
   { name: "Ahmed Al-Rashid",  rank: "Chief Officer", nationality: "Saudi",    passportNo: "P1234567", seamanBookNo: "SB-10021" },
@@ -718,6 +721,7 @@ function CrewListBatchwisePanel({
   batches, setBatches, activeBatchTab, setActiveBatchTab,
   opFocusedBatch, setOpFocusedBatch, recentOps, handleOpBlur, handleOpChipClick,
   captureBatchTs, setUndoPending, vesselName, now, printLaunchSlip, bookingId,
+  hideStepper,
 }) {
   const [crewPage, setCrewPage] = useState(1);
   const [uploadingBatchId, setUploadingBatchId] = useState(null);
@@ -869,30 +873,32 @@ function CrewListBatchwisePanel({
               </div>
             )}
 
-            <TimestampStepper
-              timestamps={STANDARD_TIMESTAMPS}
-              tsState={batch.ts}
-              tsOps={batch.tsOps}
-              shipName={vesselName}
-              onCapture={(key) => captureBatchTs(i, key)}
-              onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
-              jobCompleted={batch.completed}
-              canFinish={isBatchDone(batch)}
-              now={now}
-              onUndo={(key, label) => setUndoPending({
-                label,
-                resetter: () => setBatches((prev) =>
-                  prev.map((b, idx) =>
-                    idx === i ? { ...b, ts: { ...b.ts, [key]: null }, completed: false } : b
-                  )
-                ),
-                addToLog: (reason) => setBatches((prev) =>
-                  prev.map((b, idx) =>
-                    idx === i ? { ...b, stepBackLog: [...b.stepBackLog, { step: label, reason, time: new Date().toISOString() }] } : b
-                  )
-                ),
-              })}
-            />
+            {!hideStepper && (
+              <TimestampStepper
+                timestamps={STANDARD_TIMESTAMPS}
+                tsState={batch.ts}
+                tsOps={batch.tsOps}
+                shipName={vesselName}
+                onCapture={(key) => captureBatchTs(i, key)}
+                onComplete={() => setBatches((prev) => prev.map((b, idx) => idx === i ? { ...b, completed: true, completedAt: new Date().toISOString() } : b))}
+                jobCompleted={batch.completed}
+                canFinish={isBatchDone(batch)}
+                now={now}
+                onUndo={(key, label) => setUndoPending({
+                  label,
+                  resetter: () => setBatches((prev) =>
+                    prev.map((b, idx) =>
+                      idx === i ? { ...b, ts: { ...b.ts, [key]: null }, completed: false } : b
+                    )
+                  ),
+                  addToLog: (reason) => setBatches((prev) =>
+                    prev.map((b, idx) =>
+                      idx === i ? { ...b, stepBackLog: [...b.stepBackLog, { step: label, reason, time: new Date().toISOString() }] } : b
+                    )
+                  ),
+                })}
+              />
+            )}
 
             <TimestampSummaryTable
               timestamps={STANDARD_TIMESTAMPS}
@@ -937,6 +943,7 @@ CrewListBatchwisePanel.propTypes = {
   setUndoPending:   PropTypes.func.isRequired,
   vesselName:       PropTypes.string,
   now:              PropTypes.instanceOf(Date),
+  hideStepper:      PropTypes.bool,
   printLaunchSlip:  PropTypes.func.isRequired,
   bookingId:        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
@@ -1285,11 +1292,12 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         <GroSummaryCard label="Vessel Name"    value={vesselName}    />
         {isTaxiBoatOperator ? (
           <GroSummaryFieldCard label="Location">
-            <input
-              type="text"
-              className="tb-summary-input"
+            <SearchableSelect
+              className="tb-summary-select"
               value={locationEdit}
               onChange={(e) => setLocationEdit(e.target.value)}
+              options={LOCATION_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+              placeholder="Select a location"
             />
           </GroSummaryFieldCard>
         ) : (
@@ -1309,25 +1317,25 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         )}
         {isTaxiBoatOperator && !fleetAssigned ? (
           <GroSummaryFieldCard label="Assigned Captian">
-            <select
-              className="tb-summary-input"
+            <SearchableSelect
+              className="tb-summary-select"
               value={selectedCaptainId ?? ""}
               onChange={(e) => handleSummaryCaptainSelect(e.target.value)}
-              disabled={isLoadingCaptains || isAssigning || captains.length === 0}
-            >
-              <option value="" disabled>
-                {isLoadingCaptains
+              options={captains.map((captain) => ({
+                value: captain.taxiboat_captain_id,
+                label: captain.captain_name,
+              }))}
+              placeholder={
+                !selectedFleet
+                  ? "Select a fleet first"
+                  : isLoadingCaptains
                   ? "Loading captains…"
                   : captains.length === 0
                   ? "No captains available"
-                  : "Select a captain"}
-              </option>
-              {captains.map((captain) => (
-                <option key={captain.taxiboat_captain_id} value={captain.taxiboat_captain_id}>
-                  {captain.captain_name}
-                </option>
-              ))}
-            </select>
+                  : "Select a captain"
+              }
+              disabled={!selectedFleet || isLoadingCaptains || isAssigning || captains.length === 0}
+            />
           </GroSummaryFieldCard>
         ) : (
           <GroSummaryCard label="Assigned Captian" value={isTaxiBoatOperator ? assignedCaptainName : assignedUser} />
@@ -1567,6 +1575,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           now={now}
           printLaunchSlip={printLaunchSlip}
           bookingId={bookingId}
+          hideStepper={isTaxiBoatOperator}
         />
       )}
 
@@ -1587,6 +1596,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           now={now}
           printLaunchSlip={printLaunchSlip}
           bookingId={bookingId}
+          hideStepper={isTaxiBoatOperator}
         />
       )}
 
@@ -1751,9 +1761,11 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       )}
 
 
-      <div className="tb-card-footer-bar">
-        <button className="tb-save-btn">Save</button>
-      </div>
+      {!isTaxiBoatOperator && (
+        <div className="tb-card-footer-bar">
+          <button className="tb-save-btn">Save</button>
+        </div>
+      )}
 
       {undoPending && (
         <ConfirmDialog
