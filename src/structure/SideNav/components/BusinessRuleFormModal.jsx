@@ -4746,7 +4746,7 @@ ShareWithModal.propTypes = {
   onSave: PropTypes.func,
 };
 
-function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName, onClose, onSave, isSaving }) {
+function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName, onClose, onSave, isSaving, isCopyMode }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
@@ -5922,7 +5922,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       >
         <div className="business-rule-form-modal-shell">
           <header className="business-rule-form-modal-header">
-            <h2 className="business-rule-form-modal-title">Edit Business Rule</h2>
+            <h2 className="business-rule-form-modal-title">{isCopyMode ? 'Copy Business Rule' : 'Edit Business Rule'}</h2>
             <button type="button" className="business-rule-form-modal-close" onClick={onClose} aria-label="Close">
               <FiX size={20} />
             </button>
@@ -7070,7 +7070,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     >
       <div className="business-rule-form-modal-shell">
         <header className="business-rule-form-modal-header">
-          <h2 className="business-rule-form-modal-title">{isEditMode ? 'Edit Business Rule' : 'Add business rule'}</h2>
+          <h2 className="business-rule-form-modal-title">
+            {isCopyMode ? 'Copy Business Rule' : (isEditMode ? 'Edit Business Rule' : 'Add business rule')}
+          </h2>
           <button
             type="button"
             className="business-rule-form-modal-close"
@@ -7081,7 +7083,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           </button>
         </header>
 
-        {isEditMode && (
+        {isEditMode && !isCopyMode && (
           <nav className="business-rule-form-tabs">
             {[
               { id: 'details', label: 'Details' },
@@ -7100,7 +7102,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           </nav>
         )}
 
-        <div className={`business-rule-form-modal-body${isEditMode && activeTab !== 'details' ? ' business-rule-form-tab-hidden' : ''}`}>
+        <div className={`business-rule-form-modal-body${isEditMode && !isCopyMode && activeTab !== 'details' ? ' business-rule-form-tab-hidden' : ''}`}>
           <section className="business-rule-form-meta">
             <div className="business-rule-form-field">
               <label htmlFor="br-form-name" className="business-rule-form-label business-rule-form-label--hint">Name</label>
@@ -10014,6 +10016,7 @@ BusinessRuleFormModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
   isSaving: PropTypes.bool,
+  isCopyMode: PropTypes.bool,
 };
 
 PropertyPill.propTypes = {

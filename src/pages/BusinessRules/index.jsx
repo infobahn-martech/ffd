@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useBusinessRuleReducer from '../../store/BusinessRuleReducer';
 import BusinessRulesModal from '../../structure/SideNav/components/BusinessRulesModal';
+import BusinessRuleFormModal from '../../structure/SideNav/components/BusinessRuleFormModal';
 import BusinessRuleDetailsModal from './Modals/BusinessRuleDetailsModal';
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import { resolveKanbanBoardPath } from '../../shared/helpers/kanbanBoardLink';
@@ -69,10 +70,14 @@ const BusinessRules = () => {
   const [selectedRuleId, setSelectedRuleId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteRuleId, setDeleteRuleId] = useState(null);
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [copyRuleId, setCopyRuleId] = useState(null);
 
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules, deleteBusinessRule, isDeletingBusinessRule,
     toggleBusinessRuleStatus, isTogglingBusinessRuleStatus,
+    duplicateBusinessRule, isDuplicatingBusinessRule,
+    updateBusinessRule, isUpdatingBusinessRule,
   } = useBusinessRuleReducer((s) => s);
 
   const fetchBusinessRules = () => {
@@ -101,6 +106,27 @@ const BusinessRules = () => {
     deleteBusinessRule(deleteRuleId, {
       cb: fetchBusinessRules,
       onSettled: () => { setShowDeleteModal(false); setDeleteRuleId(null); },
+    });
+  };
+
+  const handleCopy = (ruleId) => {
+    duplicateBusinessRule(ruleId, {
+      cb: (data) => {
+        const newRuleId = data?.business_rule_id;
+        if (!newRuleId) return;
+        setCopyRuleId(newRuleId);
+        setShowCopyModal(true);
+      },
+    });
+  };
+
+  const handleSaveCopyModal = (payload) => {
+    updateBusinessRule(copyRuleId, payload, {
+      cb: () => {
+        setShowCopyModal(false);
+        setCopyRuleId(null);
+        fetchBusinessRules();
+      },
     });
   };
 
@@ -246,6 +272,16 @@ const BusinessRules = () => {
                             </li>
                             <li>
                               <button
+                                className="dropdown-item"
+                                type="button"
+                                disabled={Boolean(isDuplicatingBusinessRule[ruleId])}
+                                onClick={() => handleCopy(ruleId)}
+                              >
+                                {isDuplicatingBusinessRule[ruleId] ? 'Copying...' : 'Copy'}
+                              </button>
+                            </li>
+                            <li>
+                              <button
                                 className="dropdown-item text-danger"
                                 type="button"
                                 onClick={() => handleDelete(ruleId)}
@@ -299,6 +335,15 @@ const BusinessRules = () => {
         show={showDetailsModal}
         businessRuleId={selectedRuleId}
         onClose={() => { setShowDetailsModal(false); setSelectedRuleId(null); }}
+      />
+
+      <BusinessRuleFormModal
+        show={showCopyModal}
+        businessRuleId={copyRuleId}
+        isCopyMode
+        onClose={() => { setShowCopyModal(false); setCopyRuleId(null); }}
+        onSave={handleSaveCopyModal}
+        isSaving={isUpdatingBusinessRule}
       />
 
       {showDeleteModal && (
