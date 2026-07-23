@@ -10,7 +10,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
   THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, RELATIONAL_CREATE_ACTION_LABELS, COPY_CARD_DETAIL_REGULAR_FIELDS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS, STICKER_ACTION_FREQUENCY_OPTIONS,
-  LIST_UPDATE_MODE_OPTIONS, DEADLINE_MODE_OPTIONS, WEEKDAY_OPTIONS, PRIORITY_OPTIONS, classifyCustomFieldUiKind,
+  LIST_UPDATE_MODE_OPTIONS, DEADLINE_MODE_OPTIONS, WHEN_DEADLINE_COMPARISON_OPTIONS, WEEKDAY_OPTIONS, PRIORITY_OPTIONS, classifyCustomFieldUiKind,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
   DUMMY_WORKSPACE_BOARDS,
@@ -174,7 +174,7 @@ class NotificationPillBlot extends QuillEmbedBlot {
 NotificationPillBlot.blotName = 'pill';
 NotificationPillBlot.tagName = 'span';
 NotificationPillBlot.className = 'notification-pill';
-Quill.register(NotificationPillBlot);
+Quill.register(NotificationPillBlot, true);
 const QuillDelta = Quill.import('delta');
 
 const PROPERTY_DOT_COLORS = [...PRIMARY_PRESET_COLORS, ...SECONDARY_PRESET_COLORS];
@@ -4937,6 +4937,17 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const executeTimeTriggerRef = useRef(null);
   const executeTimePanelRef = useRef(null);
 
+  // Deadline-based triggers (when_type 'deadline', e.g. "Time-based rule", trigger_type_id 9)
+  // — "Deadline is in/was more than [N] day(s)". No backend catalog for the comparison word
+  // or a when-side property shape yet, so the comparison list is a fixed local set and the
+  // day count is a plain number, both best-effort until confirmed against a real save payload.
+  const [whenDeadlineComparison, setWhenDeadlineComparison] = useState(WHEN_DEADLINE_COMPARISON_OPTIONS[0].key);
+  const [whenDeadlineDays, setWhenDeadlineDays] = useState(0);
+  const [showWhenDeadlineComparisonPicker, setShowWhenDeadlineComparisonPicker] = useState(false);
+  const [whenDeadlineComparisonFilterText, setWhenDeadlineComparisonFilterText] = useState('');
+  const whenDeadlineComparisonTriggerRef = useRef(null);
+  const whenDeadlineComparisonPanelRef = useRef(null);
+
   const {
     getTriggerConfig, triggerConfig, isLoadingTriggerConfig, getFieldDetails, fieldDetailsByKey, isLoadingFieldDetails,
     linkCardActionOperators, isLoadingLinkCardActionOperators, getLinkCardPossibleActionOperators,
@@ -5659,6 +5670,18 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [openConditionOperatorId]);
+
+  useEffect(() => {
+    if (!showWhenDeadlineComparisonPicker) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (whenDeadlineComparisonPanelRef.current?.contains(t)) return;
+      if (whenDeadlineComparisonTriggerRef.current?.contains(t)) return;
+      setShowWhenDeadlineComparisonPicker(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [showWhenDeadlineComparisonPicker]);
 
   useEffect(() => {
     if (!showExecuteTimePicker) return undefined;
@@ -6589,10 +6612,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
         ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
         : a)));
-    } else if (section === 'update') {
-      setUpdateActions((prev) => prev.map((a) => (a.id === actionId
-        ? { ...a, filterProperties: [...(a.filterProperties ?? []), prop] }
-        : a)));
     }
   };
 
@@ -6609,10 +6628,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       setCopyValuesActions((prev) => prev.map((a) => (a.id === actionId
         ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
         : a)));
-    } else if (section === 'update') {
-      setUpdateActions((prev) => prev.map((a) => (a.id === actionId
-        ? { ...a, filterProperties: (a.filterProperties ?? []).filter((p) => p.id !== propId) }
-        : a)));
     }
   };
 
@@ -6622,9 +6637,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       ? updateRelatedActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
       : activeRelatedFilterTarget?.section === 'copy_values'
         ? copyValuesActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
-        : activeRelatedFilterTarget?.section === 'update'
-          ? updateActions.find((a) => a.id === activeRelatedFilterTarget.actionId)
-          : null;
+        : null;
   const activeRelatedFilterExistingLabels = (activeRelatedFilterAction?.filterProperties ?? [])
     .map((p) => p.fieldLabel.trim().toLowerCase());
 
@@ -6637,13 +6650,28 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         { id, category: 'custom', key: `custom-${item.custom_field_id}`, label: `Set ${rawLabel}`, rawLabel, field: rawLabel },
       ]);
     } else if (USER_REFERENCE_UPDATE_KEYS.includes(item.key)) {
-      setUpdateActions((prev) => [
-        ...prev,
-        {
-          id, category: 'action', key: item.key, label: item.label, field: item.field,
-          values: [{ id: `${id}-0`, userId: '', userName: '' }],
-        },
-      ]);
+      setUpdateActions((prev) => {
+        // Add co-owners defaults its first row to whatever "Set owner" already
+        // picked in this same THEN list, since a co-owner is most often the
+        // current owner — user can still change/clear the row afterwards.
+        let defaultUserId = '';
+        let defaultUserName = '';
+        if (item.key === 'add_co_owners') {
+          const ownerAction = prev.find((a) => a.key === 'set_owner' && a.value);
+          const ownerUser = ownerAction && users.find((u) => String(u.user_id) === String(ownerAction.value));
+          if (ownerUser) {
+            defaultUserId = ownerUser.user_id;
+            defaultUserName = ownerUser.name;
+          }
+        }
+        return [
+          ...prev,
+          {
+            id, category: 'action', key: item.key, label: item.label, field: item.field,
+            values: [{ id: `${id}-0`, userId: defaultUserId, userName: defaultUserName }],
+          },
+        ];
+      });
     } else if (STICKER_UPDATE_KEYS.includes(item.key)) {
       setUpdateActions((prev) => [
         ...prev,
@@ -7026,36 +7054,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     linkActions.some((a) => a.key === opt.key)
   );
 
-  // Shared by every "Update the card details" action card — a per-action "if card
-  // matches this filter" refinement, same CardPropertyMatchModal/filterProperties
-  // mechanism already used by Move/Update-related/Copy-values actions above, just
-  // scoped to section 'update' instead.
-  const renderRefineUpdateCriteria = (action) => (
-    <div className="br-refine-criteria">
-      {(action.filterProperties ?? []).map((prop) => (
-        <div key={prop.id} className="business-rule-form-action-chip">
-          <span className="business-rule-form-action-chip-label">{prop.fieldLabel}</span>
-          <button
-            type="button"
-            className="business-rule-form-condition-remove"
-            onClick={() => handleRemoveRelatedFilterProperty('update', action.id, prop.id)}
-            aria-label="Remove property"
-          >
-            <FiTrash2 size={14} />
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        className="business-rule-form-add-link"
-        onClick={() => handleOpenRelatedFilterPicker('update', action.id)}
-      >
-        <FiPlus size={14} aria-hidden />
-        Refine Update Criteria
-      </button>
-    </div>
-  );
-
   return (
     <>
     <Modal
@@ -7269,6 +7267,71 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   >
                     {RECURRENCE_SCHEDULE_OPTIONS.find((o) => o.key === recurrenceSchedule)?.label ?? 'Every day'}
                   </button>
+                </div>
+              ) : triggerConfig?.when_type === 'deadline' ? (
+                <div className="business-rule-form-column-card business-rule-form-when-fields business-rule-form-when-deadline">
+                  <div className="business-rule-form-when-deadline-label-row business-rule-form-condition-operator-group">
+                    <span className="business-rule-form-condition-label">Deadline</span>
+                    <div className="board-minimap-picker-wrap br-condition-operator-wrap">
+                      <button
+                        type="button"
+                        ref={showWhenDeadlineComparisonPicker ? whenDeadlineComparisonTriggerRef : undefined}
+                        className="br-condition-operator-trigger"
+                        onClick={() => setShowWhenDeadlineComparisonPicker((prev) => !prev)}
+                        aria-haspopup="listbox"
+                        aria-expanded={showWhenDeadlineComparisonPicker}
+                      >
+                        {WHEN_DEADLINE_COMPARISON_OPTIONS.find((o) => o.key === whenDeadlineComparison)?.label
+                          ?? WHEN_DEADLINE_COMPARISON_OPTIONS[0].label}
+                        <FiChevronDown size={14} aria-hidden />
+                      </button>
+
+                      {showWhenDeadlineComparisonPicker && (
+                        <div className="board-minimap-picker-panel br-condition-operator-panel" ref={whenDeadlineComparisonPanelRef}>
+                          <div className="board-minimap-picker-search">
+                            <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                            <input
+                              type="text"
+                              placeholder="Filter"
+                              value={whenDeadlineComparisonFilterText}
+                              onChange={(e) => setWhenDeadlineComparisonFilterText(e.target.value)}
+                              autoFocus
+                            />
+                          </div>
+                          <div className="board-minimap-picker-scroll">
+                            {WHEN_DEADLINE_COMPARISON_OPTIONS
+                              .filter((opt) => opt.label.toLowerCase().includes(whenDeadlineComparisonFilterText.trim().toLowerCase()))
+                              .map((opt) => (
+                                <button
+                                  type="button"
+                                  key={opt.key}
+                                  className="br-condition-operator-option"
+                                  onClick={() => {
+                                    setWhenDeadlineComparison(opt.key);
+                                    setShowWhenDeadlineComparisonPicker(false);
+                                  }}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="business-rule-form-when-deadline-input-row">
+                    <input
+                      type="number"
+                      min="0"
+                      className="business-rule-form-when-deadline-input"
+                      value={whenDeadlineDays}
+                      onChange={(e) => setWhenDeadlineDays(e.target.value)}
+                    />
+                    <span className="business-rule-form-when-deadline-suffix">
+                      {whenDeadlineComparison === 'was_more_than' ? 'day(s) ago' : 'day(s)'}
+                    </span>
+                  </div>
                 </div>
               ) : triggerConfig?.has_when_fields === '1' && (
                 <div className="business-rule-form-column-card business-rule-form-when-fields">
@@ -8079,7 +8142,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               );
                             })}
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8240,7 +8302,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               );
                             })}
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8323,7 +8384,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               )}
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8372,7 +8432,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               )}
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8455,7 +8514,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               )}
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8547,7 +8605,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               )}
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8629,7 +8686,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 </div>
                               )}
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -8797,7 +8853,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                   </div>
                                 )}
                               </div>
-                              {renderRefineUpdateCriteria(action)}
                             </div>
                           );
                         }
@@ -8823,7 +8878,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                               value={action.value ?? ''}
                               onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
                             />
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -9022,7 +9076,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 )}
                               </div>
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -9162,7 +9215,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                 )}
                               </div>
                             </div>
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -9185,7 +9237,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                               value={action.value ?? ''}
                               onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
                             />
-                            {renderRefineUpdateCriteria(action)}
                           </div>
                         );
                       }
@@ -9216,7 +9267,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                               onChange={(e) => handleChangeUpdateActionValue(action.id, e.target.value)}
                             />
                           )}
-                          {action.key !== 'unblock_card' && renderRefineUpdateCriteria(action)}
                         </div>
                       );
                     })}
