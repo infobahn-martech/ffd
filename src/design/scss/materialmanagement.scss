@@ -271,14 +271,15 @@
 }
 
 .material-table-container .table.material-table thead {
-  background: var(--card-color, #2A00FF);
+  background: #e2e6ff;
+
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .material-table-container .table.material-table thead th {
-  background: var(--card-color, #2A00FF) !important;
+  background: #e2e6ff !important;
   color: #3e3633;
   font-weight: 600;
   font-size: 12px;

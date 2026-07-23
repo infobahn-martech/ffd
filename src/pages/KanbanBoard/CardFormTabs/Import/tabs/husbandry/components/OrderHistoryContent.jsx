@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from "react";
 import PropTypes from "prop-types";
+import { FiPackage, FiAnchor, FiTruck, FiCheck } from "react-icons/fi";
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
 import inboundOrderService from "../../../../../../../services/inboundOrderService";
 import orderHistoryService from "../../../../../../../services/orderHistoryService";
@@ -14,20 +15,6 @@ const formatDate = (dateStr) => {
     month: "short",
     year: "numeric",
   });
-};
-
-const FieldRow = ({ label, value }) => (
-  <div className="order-history-field">
-    <span className="order-history-field-label">{label}</span>
-    <span className="order-history-field-value">
-      {value !== null && value !== undefined && value !== "" ? value : "—"}
-    </span>
-  </div>
-);
-
-FieldRow.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const OrderHistoryContent = ({ formValues, cardColor }) => {
@@ -90,40 +77,114 @@ const OrderHistoryContent = ({ formValues, cardColor }) => {
     }
 
     const chain = chainCache[id];
-    if (!chain) {
-      return <p className="note-empty-td order-history-empty">No details available.</p>;
-    }
+    const landingNote = chain?.landing_note;
+    const dispatchNote = chain?.dispatch_note;
+    const entries = [
+      {
+        key: "landing",
+        type: "Landing Note",
+        documentNo: landingNote?.document_no,
+        date: formatDate(landingNote?.landing_date || landingNote?.date),
+        party: landingNote?.received_from,
+        quantity: landingNote?.quantity,
+        created: !!landingNote,
+      },
+      {
+        key: "dispatch",
+        type: "Dispatch Note",
+        documentNo: dispatchNote?.document_no,
+        date: formatDate(dispatchNote?.dispatch_date || dispatchNote?.date),
+        party: dispatchNote?.delivered_to,
+        quantity: dispatchNote?.quantity,
+        created: !!dispatchNote,
+      },
+    ];
 
-    const { landing_note: landingNote, dispatch_note: dispatchNote } = chain;
+    const steps = [
+      {
+        key: "inbound",
+        label: "Inbound Order",
+        icon: FiPackage,
+        done: true,
+        documentNo: order.inbound_no,
+        date: formatDate(order.inbound_date),
+      },
+      {
+        key: "landing",
+        label: "Landing Note",
+        icon: FiAnchor,
+        done: !!landingNote,
+        documentNo: landingNote?.document_no,
+        date: formatDate(landingNote?.landing_date || landingNote?.date),
+        party: landingNote?.received_from,
+      },
+      {
+        key: "dispatch",
+        label: "Dispatch Note",
+        icon: FiTruck,
+        done: !!dispatchNote,
+        documentNo: dispatchNote?.document_no,
+        date: formatDate(dispatchNote?.dispatch_date || dispatchNote?.date),
+        party: dispatchNote?.delivered_to,
+      },
+    ];
 
     return (
-      <div className="order-history-sections">
-        <div className="order-history-section">
-          <div className="order-history-section-title">Landing Note</div>
-          {landingNote ? (
-            <div className="order-history-fields">
-              <FieldRow label="Document No" value={landingNote.document_no} />
-              <FieldRow label="Date" value={formatDate(landingNote.landing_date || landingNote.date)} />
-              <FieldRow label="Received From" value={landingNote.received_from} />
-              <FieldRow label="Quantity" value={landingNote.quantity} />
-            </div>
-          ) : (
-            <p className="order-history-not-created">Not created yet.</p>
-          )}
+      <div className="order-history-panel">
+        <div className="order-history-panel-title">Order chain</div>
+        <div className="table-responsive order-history-table-wrap">
+          <table className="table table-sm table-bordered order-history-chain-table mb-0">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Document No</th>
+                <th>Date</th>
+                <th>Party</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry) => (
+                <tr key={entry.key}>
+                  <td>{entry.type}</td>
+                  <td>{entry.created ? entry.documentNo ?? "—" : "Not created yet"}</td>
+                  <td>{entry.created ? entry.date : "—"}</td>
+                  <td>{entry.created ? entry.party ?? "—" : "—"}</td>
+                  <td>{entry.created ? entry.quantity ?? "—" : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        <div className="order-history-section">
-          <div className="order-history-section-title">Dispatch Note</div>
-          {dispatchNote ? (
-            <div className="order-history-fields">
-              <FieldRow label="Document No" value={dispatchNote.document_no} />
-              <FieldRow label="Date" value={formatDate(dispatchNote.dispatch_date || dispatchNote.date)} />
-              <FieldRow label="Delivered To" value={dispatchNote.delivered_to} />
-              <FieldRow label="Quantity" value={dispatchNote.quantity} />
-            </div>
-          ) : (
-            <p className="order-history-not-created">Not created yet.</p>
-          )}
+        <div className="order-history-timeline order-history-timeline--sm">
+          {steps.map((step, idx) => {
+            const StepIcon = step.icon;
+            return (
+              <Fragment key={step.key}>
+                <div className={`order-history-step${step.done ? " is-done" : " is-pending"}`}>
+                  <div className="order-history-step-icon">
+                    {step.done ? <FiCheck /> : <StepIcon />}
+                  </div>
+                  <div className="order-history-step-body">
+                    <div className="order-history-step-label">{step.label}</div>
+                    {step.done ? (
+                      <>
+                        <div className="order-history-step-doc">{step.documentNo ?? "—"}</div>
+                        <div className="order-history-step-date">{step.date}</div>
+                        {step.party ? <div className="order-history-step-party">{step.party}</div> : null}
+                      </>
+                    ) : (
+                      <div className="order-history-step-empty">Not created yet</div>
+                    )}
+                  </div>
+                </div>
+                {idx < steps.length - 1 ? (
+                  <div className={`order-history-step-connector${steps[idx + 1].done ? " is-done" : ""}`} />
+                ) : null}
+              </Fragment>
+            );
+          })}
         </div>
       </div>
     );

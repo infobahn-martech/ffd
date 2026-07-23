@@ -216,6 +216,13 @@ const buildThenActions = (formState, ctx) => {
       properties.push({ property_key: 'field_key', property_value: key, property_value_type: 'string' });
       properties.push({ property_key: 'field_value', property_value: value, property_value_type: 'string' });
     });
+    // Subtask titles typed into CreateCardDetailsModal's Subtasks panel — a different
+    // concept from the separate "Create subtask" create-action (which owns its own
+    // saveCreateSubtaskSettings-backed id), so sent as plain titles alongside this card,
+    // best-effort property name, no documented shape.
+    (action.subtaskTitles ?? []).forEach((subtaskTitle) => {
+      properties.push({ property_key: 'subtask_title', property_value: subtaskTitle, property_value_type: 'string' });
+    });
     thenActions.push({ action_type_id: createActionTypeId, properties });
   });
 
