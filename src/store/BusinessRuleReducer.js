@@ -611,6 +611,20 @@ const useBusinessRuleReducer = create((set) => ({
 
     resetWebServiceSettings: () => set({ webServiceSettings: null, isLoadingWebServiceSettings: false }),
 
+    // Read-only variant for the THEN-column list preview (service name shown on the
+    // collapsed invoke action card). Deliberately does not touch webServiceSettings — that
+    // single shared slot is bound to whichever invoke action the settings modal currently
+    // has open, and previewing every saved invoke action on an edit-mode reopen would
+    // otherwise race/clobber it. Mirrors getNotificationSettingsPreview.
+    getWebServiceSettingsPreview: async (webServiceId) => {
+        try {
+            const { data } = await businessRuleService.getWebServiceSettings(webServiceId);
+            return data?.data ?? null;
+        } catch (err) {
+            return null;
+        }
+    },
+
     isSavingWebServiceSettings: false,
 
     saveWebServiceSettings: async (payload, { cb, onSettled } = {}) => {
@@ -734,6 +748,20 @@ const useBusinessRuleReducer = create((set) => ({
     },
 
     resetCreateSubtaskSettings: () => set({ createSubtaskSettings: null, isLoadingCreateSubtaskSettings: false }),
+
+    // Read-only variant for the THEN-column list preview (owner/deadline/description shown
+    // on the collapsed "Create subtask" action card). Deliberately does not touch
+    // createSubtaskSettings — that single shared slot is bound to whichever subtask action
+    // the settings modal currently has open, and previewing every saved subtask action on an
+    // edit-mode reopen would otherwise race/clobber it. Mirrors getNotificationSettingsPreview.
+    getCreateSubtaskSettingsPreview: async (createSubtaskId) => {
+        try {
+            const { data } = await businessRuleService.getCreateSubtaskSettings(createSubtaskId);
+            return data?.data ?? null;
+        } catch (err) {
+            return null;
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;

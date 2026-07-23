@@ -151,6 +151,16 @@ export const CREATE_ACTION_OPTIONS = [
 // once real backend data is in play.
 export const RELATIONAL_CREATE_ACTION_KEYWORDS = ['child', 'parent', 'predecessor', 'relative', 'successor'];
 
+// Inverse-relation wording for the THEN-column "title will be copied from..." note —
+// the originator (triggering) card is described from the *new* card's point of view,
+// e.g. creating a "child" means the originator is that new card's parent.
+export const RELATIONAL_CREATE_ACTION_ORIGIN_LABELS = {
+  child: 'the parent card',
+  parent: 'the child card',
+  relative: 'the relative card',
+  successor: 'the predecessor card',
+};
+
 // Fixed field list for the "Copy Card Details" step (no backend endpoint returns this
 // list today — best-effort, hardcoded to match the same fixed-option pattern as
 // CREATE_ACTION_OPTIONS/UPDATE_ACTION_OPTIONS above).
