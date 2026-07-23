@@ -9,6 +9,7 @@ import {
   MAIN_TABS,
   CREW_MANAGEMENT_SUBTABS,
   MATERIAL_MANAGEMENT_SUBTABS,
+  LAUNCH_HIRE_SUBTABS,
 } from "./components/Husbandry.constants";
 
 // Import shared components
@@ -356,12 +357,16 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   const getDispatchNotesTotal = useDispatchNoteReducer((state) => state.getDispatchNotesTotal);
 
   useEffect(() => {
-    if (activeMainTab !== MAIN_TABS.MATERIAL_MANAGEMENT) return;
+    const isMaterialManagement = activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT;
+    const isLaunchHire = activeMainTab === "LAUNCH_HIRE";
+    if (!isMaterialManagement && !isLaunchHire) return;
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
     if (!callId) return;
     getInboundOrdersTotal({ call_id: callId });
-    getLandingNotesTotal({ call_id: callId });
-    getDispatchNotesTotal({ call_id: callId });
+    if (isMaterialManagement) {
+      getLandingNotesTotal({ call_id: callId });
+      getDispatchNotesTotal({ call_id: callId });
+    }
   }, [
     activeMainTab,
     activeSubTab,
@@ -399,7 +404,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
       setIsLaunchHireMode(false);
       setSelectedServices(["LAUNCH_HIRE"]);
       setActiveMainTab("LAUNCH_HIRE");
-      setActiveSubTab(null);
+      setActiveSubTab(LAUNCH_HIRE_SUBTABS.REQUESTS);
     } else {
       // Single service selection
       setIsLaunchHireMode(false);
@@ -437,9 +442,10 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
       setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS);
+    } else if (tab === "LAUNCH_HIRE") {
+      setActiveSubTab(LAUNCH_HIRE_SUBTABS.REQUESTS);
     } else if (tab === MAIN_TABS.ON_STATION ||
-      tab === MAIN_TABS.WASTE_DISPOSAL ||
-      tab === "LAUNCH_HIRE") {
+      tab === MAIN_TABS.WASTE_DISPOSAL) {
       // These services have no subtabs
       setActiveSubTab(null);
     }
@@ -471,6 +477,8 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: "Landing Note",
               [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: "Dispatch Note",
               [MATERIAL_MANAGEMENT_SUBTABS.ORDER_HISTORY]: "Order History",
+              [LAUNCH_HIRE_SUBTABS.REQUESTS]: "Requests",
+              [LAUNCH_HIRE_SUBTABS.INBOUND_ORDERS]: "Inbound Orders",
             };
 
             return prev.map(bs =>
@@ -691,6 +699,30 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     }
   };
 
+  const renderLaunchHireContent = () => {
+    switch (activeSubTab) {
+      case LAUNCH_HIRE_SUBTABS.INBOUND_ORDERS:
+        return (
+          <InboundOrdersContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
+      case LAUNCH_HIRE_SUBTABS.REQUESTS:
+      default:
+        return (
+          <LaunchHireContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+            card={card}
+            onLaunchHireSaved={handleLaunchHireSaved}
+          />
+        );
+    }
+  };
+
   const renderMaterialManagementContent = () => {
     switch (activeSubTab) {
       case MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS:
@@ -809,6 +841,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             [MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS]: inboundOrdersCount,
             [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: landingNotesCount,
             [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: dispatchNotesCount,
+            [LAUNCH_HIRE_SUBTABS.INBOUND_ORDERS]: inboundOrdersCount,
             // Each crew service tracks its own selected-crew subset in
             // formValues — the sidebar badge should show how many crew are
             // actually assigned to that service, not the total crew list
@@ -824,15 +857,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           }}
         />
         <div className="operation-right">
-          {activeMainTab === "LAUNCH_HIRE" && (
-            <LaunchHireContent
-              formValues={formValues}
-              handleChange={handleChange}
-              cardColor={cardColor}
-              card={card}
-              onLaunchHireSaved={handleLaunchHireSaved}
-            />
-          )}
+          {activeMainTab === "LAUNCH_HIRE" && renderLaunchHireContent()}
           {activeMainTab === MAIN_TABS.CREW_MANAGEMENT &&
             renderCrewManagementContent()}
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&
