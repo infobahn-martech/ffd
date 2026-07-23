@@ -43,6 +43,7 @@ import StatusManagement from "../pages/StatusManagement";
 // import MaterialType from "../pages/MaterialType";
 import PackingType from "../pages/PackingType";
 import LogisticsWarehouse from "../pages/LogisticsWarehouse";
+import OrderHistory from "../pages/OrderHistory";
 import CustomFields from "../pages/CustomFields";
 import JobStatusBE from "../pages/JobStatusBE";
 import GroupEmailBE from "../pages/GroupEmailBE";
@@ -221,6 +222,8 @@ const router = createBrowserRouter(
                 { path: "/packing-type", element: <RouteGuard><PackingType /></RouteGuard> },
                 // Logistics Warehouse
                 { path: "/logistics-warehouse", element: <RouteGuard><LogisticsWarehouse /></RouteGuard> },
+                // Order History
+                { path: "/order-history", element: <RouteGuard><OrderHistory /></RouteGuard> },
                 // Document Checklist
                 { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
                 // Task Management

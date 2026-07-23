@@ -40,6 +40,40 @@
   color: #6b7280;
 }
 
+.order-history-panel {
+  min-width: 640px;
+}
+
+.order-history-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00368c;
+  margin-bottom: 8px;
+}
+
+.order-history-table-wrap {
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.order-history-table-wrap .order-history-chain-table {
+  font-size: 13px;
+  background: #fff;
+
+  thead th {
+    font-weight: 600;
+    font-size: 12px;
+    background: #00368c !important;
+    color: #ffffff !important;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    vertical-align: middle;
+  }
+}
+
 .order-history-sections {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -96,4 +130,164 @@
   font-size: 13px;
   color: #6b7280;
   margin: 0;
+}
+
+.order-history-timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 8px 4px 4px;
+  overflow-x: auto;
+}
+
+.order-history-timeline--sm {
+  padding: 4px 2px 0;
+
+  .order-history-step {
+    min-width: 96px;
+  }
+
+  .order-history-step-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    font-size: 11px;
+    margin-bottom: 4px;
+    border-width: 1.5px;
+  }
+
+  .order-history-step-label {
+    font-size: 10.5px;
+    margin-bottom: 0;
+  }
+
+  .order-history-step-doc,
+  .order-history-step-empty {
+    font-size: 10.5px;
+  }
+
+  .order-history-step-date,
+  .order-history-step-party {
+    font-size: 10px;
+  }
+
+  .order-history-step-connector {
+    flex-basis: 20px;
+    min-width: 20px;
+    margin-top: 12px;
+  }
+}
+
+.order-history-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 130px;
+  animation: order-history-step-in 0.3s ease both;
+}
+
+.order-history-step-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 8px;
+  background: #f1f3f6;
+  color: #9ca3af;
+  border: 2px solid #e0e3eb;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.order-history-step.is-done .order-history-step-icon {
+  background: #e2e6ff;
+  color: #00368c;
+  border-color: #00368c;
+  animation: order-history-check-pop 0.35s ease;
+}
+
+.order-history-step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #202225;
+  margin-bottom: 2px;
+}
+
+.order-history-step-doc {
+  font-size: 12px;
+  color: #00368c;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.order-history-step-date {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.order-history-step-party {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.order-history-step-empty {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.order-history-step-connector {
+  flex: 1 0 32px;
+  min-width: 32px;
+  height: 2px;
+  margin-top: 18px;
+  background: #e0e3eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.order-history-step-connector.is-done::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #00368c;
+  transform-origin: left;
+  animation: order-history-line-fill 0.4s ease forwards;
+}
+
+@keyframes order-history-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes order-history-check-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes order-history-line-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }

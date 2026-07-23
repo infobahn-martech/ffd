@@ -319,6 +319,11 @@ export const PRIORITY_OPTIONS = [
   { key: 'low', label: 'Low', color: '#2f80ed' },
 ];
 
+// Static size catalog for the "Create card with custom properties" panel's Size field —
+// no documented backend enum for card size exists yet, so this is the fixed T-shirt
+// scale (same best-effort-fixed-list pattern as PRIORITY_OPTIONS above).
+export const CREATE_CARD_SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL'];
+
 // Static size catalog for the card fields "Size" dropdown — no backend endpoint for this
 // today, same fixed-option pattern as PRIORITY_OPTIONS above.
 export const SIZE_OPTIONS = [

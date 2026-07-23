@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCalendar, FiDownload, FiCheck, FiFile } from 'react-icons/fi';
+import { FiX, FiPlus, FiChevronDown, FiChevronUp, FiTrash2, FiFilter, FiUsers, FiInfo, FiCalendar, FiDownload, FiMaximize2, FiShare2, FiCheck, FiFile } from 'react-icons/fi';
 import { LuTriangle } from 'react-icons/lu';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -10,7 +10,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import {
   THEN_ACTION_SECTIONS, ACTION_GROUP_TYPE_TO_SECTION_ID, CREATE_ACTION_OPTIONS, COPY_CARD_DETAIL_REGULAR_FIELDS, SIZE_OPTIONS, DUMMY_CREATE_ACTION_TEMPLATES, LINK_ACTION_OPTIONS, LINK_REMOVE_OTHERS_OPTIONS, MOVE_ACTION_OPTIONS, CONVERT_SUBTASK_ACTION_OPTIONS, NOTIFY_ACTION_OPTIONS, UPDATE_ACTION_OPTIONS, STICKER_ACTION_FREQUENCY_OPTIONS,
-  LIST_UPDATE_MODE_OPTIONS, DEADLINE_MODE_OPTIONS, WHEN_DEADLINE_COMPARISON_OPTIONS, WEEKDAY_OPTIONS, PRIORITY_OPTIONS, classifyCustomFieldUiKind,
+  LIST_UPDATE_MODE_OPTIONS, DEADLINE_MODE_OPTIONS, WHEN_DEADLINE_COMPARISON_OPTIONS, WEEKDAY_OPTIONS, PRIORITY_OPTIONS, CREATE_CARD_SIZE_OPTIONS, classifyCustomFieldUiKind,
   INVOKE_ACTION_OPTIONS, DUMMY_INVOKE_METHOD_OPTIONS, DUMMY_INVOKE_AUTH_OPTIONS, INVOKE_METHODS_WITH_BODY, DUMMY_URL_FIELD_OPTIONS,
   DUMMY_REGULAR_FIELDS, DUMMY_TIME_UNITS, DUMMY_CUSTOM_FIELDS,
   DUMMY_WORKSPACE_BOARDS,
@@ -134,6 +134,18 @@ const parseSubjectString = (text) => {
   }
   if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) });
   return parts;
+};
+
+// Formats a saved "YYYY-MM-DD HH:MM:00" subtask deadline into a short display label for
+// the THEN-column "Create subtask" preview chip (e.g. "20 Jul 2026, 14:00").
+const formatDeadlineDisplay = (deadline) => {
+  const [datePart, timePart] = String(deadline ?? '').split(' ');
+  if (!datePart) return '';
+  const date = new Date(`${datePart}T${(timePart || '00:00:00').slice(0, 8)}`);
+  if (Number.isNaN(date.getTime())) return datePart;
+  const dateLabel = date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+  const timeLabel = (timePart ?? '').slice(0, 5);
+  return timeLabel && timeLabel !== '00:00' ? `${dateLabel}, ${timeLabel}` : dateLabel;
 };
 
 // Shared by the sticker picker (Add/Remove stickers), the blocker picker (Set blocker),
@@ -5234,6 +5246,642 @@ CreateSubtaskSettingsModal.propTypes = {
   users: PropTypes.array,
 };
 
+// Single-user "Owner"/"Co-owners" picker — same floating, portaled panel behavior as
+// CreateSubtaskSettingsModal's own Owner picker above, generalized so CreateCardDetailsModal
+// can use it twice (Owner, Co-owners) without duplicating the positioning/outside-click logic.
+function UserPickerField({ label, users, valueUserId, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, placement: 'bottom' });
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+
+  const updatePosition = () => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 6;
+    const estimatedPanelHeight = 320;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const placeAbove = spaceBelow < estimatedPanelHeight && r.top > spaceBelow;
+    setCoords({
+      top: placeAbove ? r.top - gap : r.bottom + gap,
+      left: r.left,
+      width: Math.max(r.width, 260),
+      placement: placeAbove ? 'top' : 'bottom',
+    });
+  };
+
+  const handleToggle = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) updatePosition();
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onDocMouseDown = (e) => {
+      const t = e.target;
+      if (panelRef.current?.contains(t)) return;
+      if (triggerRef.current?.contains(t)) return;
+      setIsOpen(false);
+    };
+    const onReposition = () => updatePosition();
+    document.addEventListener('mousedown', onDocMouseDown);
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [isOpen]);
+
+  const selectedUser = (users ?? []).find((u) => String(u.user_id) === String(valueUserId));
+  const name = selectedUser?.name || 'None';
+  const query = filterText.trim().toLowerCase();
+  const filteredUsers = query ? (users ?? []).filter((u) => u.name?.toLowerCase().includes(query)) : (users ?? []);
+
+  const handlePick = (user) => {
+    onChange(user?.user_id ?? '');
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="business-rule-form-field">
+      <label className="business-rule-form-label">{label}</label>
+      <button
+        type="button"
+        ref={triggerRef}
+        className="business-rule-form-select-wrap business-rule-form-select-wrap--owner business-rule-form-control br-owner-picker-trigger"
+        onClick={handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className="business-rule-form-owner-avatar" aria-hidden>{getInitials(name)}</span>
+        <span className="br-owner-picker-trigger-name">{name}</span>
+        <FiChevronDown className="business-rule-form-select-icon" aria-hidden />
+      </button>
+
+      {isOpen && createPortal(
+        <div
+          className={`br-owner-picker-panel br-owner-picker-panel--floating br-owner-picker-panel--${coords.placement}`}
+          ref={panelRef}
+          style={{ top: coords.top, left: coords.left, width: coords.width }}
+        >
+          <div className="br-owner-picker-search">
+            <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+            <input type="text" placeholder="Filter" value={filterText} onChange={(e) => setFilterText(e.target.value)} autoFocus />
+          </div>
+          <div className="br-owner-picker-list">
+            <div className="br-owner-picker-row">
+              <button
+                type="button"
+                className={`br-owner-picker-row-btn${!valueUserId ? ' br-owner-picker-row-btn--selected' : ''}`}
+                onClick={() => handlePick(null)}
+              >
+                <span className="business-rule-form-owner-avatar" aria-hidden>{getInitials('None')}</span>
+                <span className="br-owner-picker-row-name">None</span>
+              </button>
+            </div>
+            {filteredUsers.length === 0 ? (
+              <div className="br-property-picker-empty">No matches</div>
+            ) : (
+              filteredUsers.map((user) => (
+                <div key={user.user_id} className="br-owner-picker-row">
+                  <button
+                    type="button"
+                    className={`br-owner-picker-row-btn${String(valueUserId) === String(user.user_id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                    onClick={() => handlePick(user)}
+                  >
+                    <span className="business-rule-form-owner-avatar" aria-hidden>{getInitials(user.name)}</span>
+                    <span className="br-owner-picker-row-name">{user.name}</span>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+UserPickerField.propTypes = {
+  label: PropTypes.string.isRequired,
+  users: PropTypes.array,
+  valueUserId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onChange: PropTypes.func.isRequired,
+};
+
+// Multi-select "Tags" field — same input-styled trigger + floating filterable panel as
+// UserPickerField, but toggles multiple kanban-board tags (board's own tag catalog, not the
+// rule's own free-text metadata tags at business-rule-form-tags-input elsewhere in this file).
+function TagPickerField({ label, tags, valueTagIds, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, placement: 'bottom' });
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+
+  const updatePosition = () => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 6;
+    const estimatedPanelHeight = 320;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const placeAbove = spaceBelow < estimatedPanelHeight && r.top > spaceBelow;
+    setCoords({
+      top: placeAbove ? r.top - gap : r.bottom + gap,
+      left: r.left,
+      width: Math.max(r.width, 260),
+      placement: placeAbove ? 'top' : 'bottom',
+    });
+  };
+
+  const handleToggle = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) updatePosition();
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onDocMouseDown = (e) => {
+      const t = e.target;
+      if (panelRef.current?.contains(t)) return;
+      if (triggerRef.current?.contains(t)) return;
+      setIsOpen(false);
+    };
+    const onReposition = () => updatePosition();
+    document.addEventListener('mousedown', onDocMouseDown);
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [isOpen]);
+
+  const activeTags = (tags ?? []).filter((t) => !isKanbanManagementRowDisabled(t.status));
+  const query = filterText.trim().toLowerCase();
+  const filteredTags = query ? activeTags.filter((t) => t.label?.toLowerCase().includes(query)) : activeTags;
+  const selectedTags = activeTags.filter((t) => (valueTagIds ?? []).includes(t.id));
+
+  const handleToggleTag = (tagId) => {
+    onChange((valueTagIds ?? []).includes(tagId) ? valueTagIds.filter((id) => id !== tagId) : [...(valueTagIds ?? []), tagId]);
+  };
+
+  const handleRemoveTag = (tagId, e) => {
+    e.stopPropagation();
+    onChange((valueTagIds ?? []).filter((id) => id !== tagId));
+  };
+
+  return (
+    <div className="business-rule-form-field">
+      <label className="business-rule-form-label">{label}</label>
+      <button
+        type="button"
+        ref={triggerRef}
+        className="business-rule-form-input business-rule-form-control business-rule-form-tags-input br-tag-picker-trigger"
+        onClick={handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        {selectedTags.length === 0 ? (
+          <span className="br-tag-picker-placeholder">Select tags</span>
+        ) : (
+          selectedTags.map((t) => (
+            <span key={t.id} className="business-rule-form-tag-pill">
+              {t.color_code && <span className="br-property-pill-dot" style={{ backgroundColor: t.color_code }} aria-hidden />}
+              {t.label}
+              <button type="button" onClick={(e) => handleRemoveTag(t.id, e)} aria-label={`Remove tag ${t.label}`}>
+                <FiX size={12} />
+              </button>
+            </span>
+          ))
+        )}
+      </button>
+
+      {isOpen && createPortal(
+        <div
+          className={`br-owner-picker-panel br-owner-picker-panel--floating br-owner-picker-panel--${coords.placement}`}
+          ref={panelRef}
+          style={{ top: coords.top, left: coords.left, width: coords.width }}
+        >
+          <div className="br-owner-picker-search">
+            <FiFilter size={14} className="br-owner-picker-search-icon" aria-hidden />
+            <input type="text" placeholder="Filter" value={filterText} onChange={(e) => setFilterText(e.target.value)} autoFocus />
+          </div>
+          <div className="br-owner-picker-list">
+            {filteredTags.length === 0 ? (
+              <div className="br-property-picker-empty">No tags found</div>
+            ) : (
+              filteredTags.map((t) => (
+                <div key={t.id} className="br-owner-picker-row">
+                  <button
+                    type="button"
+                    className={`br-owner-picker-row-btn${(valueTagIds ?? []).includes(t.id) ? ' br-owner-picker-row-btn--selected' : ''}`}
+                    onClick={() => handleToggleTag(t.id)}
+                  >
+                    <span className="br-property-pill-dot" style={{ backgroundColor: t.color_code || '#9ca3af' }} aria-hidden />
+                    <span className="br-owner-picker-row-name">{t.label}</span>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+TagPickerField.propTypes = {
+  label: PropTypes.string.isRequired,
+  tags: PropTypes.array,
+  valueTagIds: PropTypes.array,
+  onChange: PropTypes.func.isRequired,
+};
+
+// Regular-field labels CreateCardDetailsModal owns on the action's fieldValues list — used
+// to tell "fields this modal manages" apart from any leftover entries saved before the
+// freeform "Set card fields" picker was removed, so saving from this modal never silently
+// drops an unrelated chip that got in that other way.
+const CREATE_CARD_FIXED_FIELD_LABELS = ['Owner', 'Co-owners', 'Deadline', 'Size', 'Tags', 'Custom card ID'];
+
+// "Configure details" on a create-card action (see hasCustomProperties in the THEN column)
+// opens this instead of going straight from the Board Minimap destination pick to done —
+// title/description plus Owner/Deadline/Tags/... field values, presented as the fixed panel
+// the reference product itself uses, with the board's own custom fields and a simple
+// subtask-title list alongside it.
+function CreateCardDetailsModal({ show, onClose, onSave, action, users, kanbanTags, triggerTypeId }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [ownerUserId, setOwnerUserId] = useState('');
+  const [coOwnerUserId, setCoOwnerUserId] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState('');
+  const [size, setSize] = useState('');
+  const [tagIds, setTagIds] = useState([]);
+  const [customCardId, setCustomCardId] = useState('');
+  const [customFieldValues, setCustomFieldValues] = useState({});
+  const [subtaskTitles, setSubtaskTitles] = useState([]);
+  const [subtaskDraft, setSubtaskDraft] = useState('');
+  const [isCustomFieldsExpanded, setIsCustomFieldsExpanded] = useState(false);
+  const [isSubtasksExpanded, setIsSubtasksExpanded] = useState(true);
+
+  const boardId = action?.boardId;
+
+  const { customFields, isLoadingCustomFields } = useCustomFieldsByTrigger({
+    show, triggerTypeId, boardId, showDisabled: false, search: '',
+  });
+  // Dev-only fallback so the panel can be visually tested without a live backend, same as
+  // CopyCardDetailsModal's own displayCustomFields above.
+  const displayCustomFields = customFields.length > 0 ? customFields : (import.meta.env.DEV ? DUMMY_CUSTOM_FIELDS : []);
+
+  const { boardStructure, getBoardStructure } = useWorkFlowReducer((s) => s);
+  useEffect(() => {
+    if (!show || !boardId) return;
+    getBoardStructure({ boardId });
+  }, [show, boardId]);
+
+  // Same transform the Board Minimap itself uses, so the footer's stage strip reflects the
+  // actual picked workflow's real stage segments/colors instead of a re-invented palette.
+  const minimapWorkflows = useMemo(
+    () => (boardId ? buildBoardMinimapWorkflows(boardStructure) : []),
+    [boardId, boardStructure]
+  );
+  const activeWorkflow = minimapWorkflows.find((w) => String(w.id) === String(action?.workflowId));
+  const stageDots = activeWorkflow
+    ? activeWorkflow.stageSegments.flatMap((segment) => segment.columns.map((col) => ({ ...col, color: segment.color })))
+    : [];
+
+  useEffect(() => {
+    if (!show) return;
+    const fv = action?.fieldValues ?? [];
+    const findOne = (label) => fv.find((f) => f.field === label);
+    setTitle(action?.cardTitle ?? '');
+    setDescription(action?.cardDescription ?? '');
+    setOwnerUserId(findOne('Owner')?.refId ?? '');
+    setCoOwnerUserId(findOne('Co-owners')?.refId ?? '');
+    setDeadlineDate(findOne('Deadline')?.value ?? '');
+    setSize(findOne('Size')?.value ?? '');
+    setTagIds(findOne('Tags')?.tagIds ?? []);
+    setCustomCardId(findOne('Custom card ID')?.value ?? '');
+    setSubtaskTitles(action?.subtaskTitles ?? []);
+    setSubtaskDraft('');
+    setIsCustomFieldsExpanded(false);
+  }, [show, action?.id]);
+
+  // Separate effect: the board's custom-field catalog only resolves after boardId's fetch
+  // completes, which can land after the effect above already ran on open.
+  useEffect(() => {
+    if (!show || displayCustomFields.length === 0) return;
+    const fv = action?.fieldValues ?? [];
+    const next = {};
+    displayCustomFields.forEach((f) => {
+      const match = fv.find((x) => x.field === f.field_label);
+      if (match) next[f.field_label] = match.value ?? '';
+    });
+    setCustomFieldValues((prev) => ({ ...next, ...prev }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, displayCustomFields.length, action?.id]);
+
+  const handleAddSubtaskDraft = () => {
+    if (!subtaskDraft.trim()) return;
+    setSubtaskTitles((prev) => [...prev, subtaskDraft.trim()]);
+    setSubtaskDraft('');
+  };
+
+  const handleSubtaskDraftKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleAddSubtaskDraft();
+    }
+  };
+
+  const handleRemoveSubtask = (idx) => {
+    setSubtaskTitles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const renderDeadlineTrigger = ({ disabled, onOpen, displayValue }) => (
+    <button type="button" className="br-subtask-deadline-trigger" onClick={onOpen} disabled={disabled}>
+      <FiCalendar size={14} aria-hidden />
+      {displayValue || 'Not Set'}
+    </button>
+  );
+
+  const handleSave = () => {
+    const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const ownerUser = (users ?? []).find((u) => String(u.user_id) === String(ownerUserId));
+    const coOwnerUser = (users ?? []).find((u) => String(u.user_id) === String(coOwnerUserId));
+
+    const built = [
+      ownerUserId ? { id: makeId(), type: 'user', field: 'Owner', label: 'Owner', refId: ownerUserId, refName: ownerUser?.name ?? '' } : null,
+      coOwnerUserId ? { id: makeId(), type: 'user', field: 'Co-owners', label: 'Co-owners', refId: coOwnerUserId, refName: coOwnerUser?.name ?? '' } : null,
+      deadlineDate ? { id: makeId(), type: 'date', field: 'Deadline', label: 'Deadline', value: deadlineDate } : null,
+      size ? { id: makeId(), type: 'text', field: 'Size', label: 'Size', value: size } : null,
+      tagIds.length > 0 ? { id: makeId(), type: 'tags', field: 'Tags', label: 'Tags', tagIds } : null,
+      customCardId ? { id: makeId(), type: 'text', field: 'Custom card ID', label: 'Custom card ID', value: customCardId } : null,
+      ...displayCustomFields
+        .filter((f) => (customFieldValues[f.field_label] ?? '').trim() !== '')
+        .map((f) => ({
+          id: makeId(),
+          type: classifyCustomFieldUiKind(f.field_label) === 'date' ? 'date' : 'text',
+          field: f.field_label,
+          label: `Set ${f.field_label}`,
+          value: customFieldValues[f.field_label],
+        })),
+    ].filter(Boolean);
+
+    const managedLabels = new Set([...CREATE_CARD_FIXED_FIELD_LABELS, ...displayCustomFields.map((f) => f.field_label)]);
+    const untouchedExisting = (action?.fieldValues ?? []).filter((fv) => !managedLabels.has(fv.field));
+
+    onSave({
+      cardTitle: title,
+      cardDescription: description,
+      fieldValues: [...untouchedExisting, ...built],
+      subtaskTitles,
+    });
+    onClose();
+  };
+
+  const destinationLabel = action?.boardName
+    ? `${action.workspaceName ? `${action.workspaceName} / ` : ''}${action.boardName}`
+    : null;
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal br-create-card-details-modal"
+      dialogClassName="card-property-match-modal-dialog br-create-card-details-modal-dialog"
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+      scrollable
+    >
+      <div className="card-property-match-modal-shell br-ccd-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Create Card Details</h2>
+          <button type="button" className="business-rule-form-modal-close" onClick={onClose} aria-label="Close">
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="br-ccd-titlebar">
+          <input
+            type="text"
+            className="br-ccd-title-input"
+            placeholder="Enter card title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="card-property-match-modal-body br-ccd-body">
+          <div className="br-ccd-desc-col">
+            <textarea
+              className="br-ccd-desc-textarea"
+              placeholder="Enter card description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          <div className="br-ccd-fields-col">
+            <div className="br-ccd-fields-head">Card fields</div>
+
+            <div className="br-ccd-grid2">
+              <UserPickerField label="Owner" users={users} valueUserId={ownerUserId} onChange={setOwnerUserId} />
+              <UserPickerField label="Co-owners" users={users} valueUserId={coOwnerUserId} onChange={setCoOwnerUserId} />
+            </div>
+
+            <div className="br-ccd-grid2">
+              <div className="business-rule-form-field">
+                <label className="business-rule-form-label">Deadline</label>
+                <DatePickerField
+                  dateValue={deadlineDate}
+                  onDateChange={(e) => setDeadlineDate(e.target.value)}
+                  popperClassName="br-subtask-deadline-popper"
+                  renderTrigger={renderDeadlineTrigger}
+                />
+              </div>
+              <div className="business-rule-form-field">
+                <label className="business-rule-form-label">Size</label>
+                <div className="business-rule-form-select-wrap">
+                  <select className="business-rule-form-select" value={size} onChange={(e) => setSize(e.target.value)}>
+                    <option value="">Not Set</option>
+                    {CREATE_CARD_SIZE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <TagPickerField label="Tags" tags={kanbanTags} valueTagIds={tagIds} onChange={setTagIds} />
+
+            <div className="business-rule-form-field">
+              <label className="business-rule-form-label">Custom card ID</label>
+              <input
+                type="text"
+                className="business-rule-form-input"
+                value={customCardId}
+                onChange={(e) => setCustomCardId(e.target.value)}
+              />
+            </div>
+
+            <div className="br-ccd-subsection">
+              <div className="br-ccd-divider">
+                <button
+                  type="button"
+                  className="br-ccd-divider-pill"
+                  onClick={() => setIsCustomFieldsExpanded((v) => !v)}
+                  aria-expanded={isCustomFieldsExpanded}
+                >
+                  Custom fields
+                  {isCustomFieldsExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                </button>
+                <div className="br-ccd-divider-icons">
+                  <span className="br-ccd-divider-icon-btn" aria-hidden><FiMaximize2 size={13} /></span>
+                  <span className="br-ccd-divider-icon-btn" aria-hidden><FiShare2 size={13} /></span>
+                </div>
+              </div>
+              {isCustomFieldsExpanded && (
+                <div className="br-ccd-custom-fields-list">
+                  {isLoadingCustomFields ? (
+                    <div className="br-property-picker-empty">Loading...</div>
+                  ) : displayCustomFields.length === 0 ? (
+                    <div className="br-property-picker-empty">No custom fields found</div>
+                  ) : (
+                    displayCustomFields.map((field, idx) => {
+                      const key = field.custom_field_id ?? idx;
+                      const kind = classifyCustomFieldUiKind(field.field_label);
+                      return (
+                        <div key={key} className="business-rule-form-field br-ccd-custom-field-row">
+                          <label className="business-rule-form-label">{field.field_label}</label>
+                          {kind === 'none' ? (
+                            <div className="br-property-picker-empty">Not settable from this panel</div>
+                          ) : (
+                            <input
+                              type={kind === 'date' ? 'date' : 'text'}
+                              className="business-rule-form-input"
+                              value={customFieldValues[field.field_label] ?? ''}
+                              onChange={(e) => setCustomFieldValues((prev) => ({ ...prev, [field.field_label]: e.target.value }))}
+                            />
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="br-property-section br-ccd-subsection">
+              <button
+                type="button"
+                className="br-property-section-toggle"
+                onClick={() => setIsSubtasksExpanded((v) => !v)}
+              >
+                <span className="br-property-section-toggle-icon">
+                  {isSubtasksExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                </span>
+                Subtasks
+              </button>
+              {isSubtasksExpanded && (
+                <div className="br-ccd-subtasks">
+                  {subtaskTitles.length > 0 && (
+                    <ul className="br-ccd-subtask-list">
+                      {subtaskTitles.map((st, idx) => (
+                        <li key={`${st}-${idx}`} className="br-ccd-subtask-row">
+                          <span>{st}</span>
+                          <button type="button" onClick={() => handleRemoveSubtask(idx)} aria-label="Remove subtask">
+                            <FiX size={12} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <input
+                    type="text"
+                    className="br-ccd-subtask-input"
+                    placeholder="Press ctrl/cmd + enter to create new subtask"
+                    value={subtaskDraft}
+                    onChange={(e) => setSubtaskDraft(e.target.value)}
+                    onKeyDown={handleSubtaskDraftKeyDown}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <footer className="br-ccd-footer">
+          <div className="br-ccd-crumb">
+            {destinationLabel ? (
+              <>
+                Board <span className="br-ccd-crumb-value">{destinationLabel}</span>
+                {action?.workflowName && (<><span className="br-ccd-crumb-sep">/</span>Workflow <span className="br-ccd-crumb-value">{action.workflowName}</span></>)}
+                {action?.swimlaneName && (<><span className="br-ccd-crumb-sep">/</span>Swimlane <span className="br-ccd-crumb-value">{action.swimlaneName}</span></>)}
+              </>
+            ) : 'No destination picked yet'}
+          </div>
+
+          <div className="br-ccd-stagerow">
+            {stageDots.length > 0 && (
+              <div className="br-ccd-stages">
+                {stageDots.map((dot) => {
+                  const isCurrent = String(dot.id) === String(action?.stageId);
+                  return (
+                    <span key={dot.id} className={`br-ccd-dot${isCurrent ? ' br-ccd-dot--current' : ''}`} style={{ '--dot-color': dot.color }}>
+                      {isCurrent && <span className="br-ccd-dot-label">{dot.name}</span>}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            <button type="button" className="br-ccd-save-btn" onClick={handleSave}>
+              Save details
+            </button>
+          </div>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+CreateCardDetailsModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  action: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    boardName: PropTypes.string,
+    workspaceName: PropTypes.string,
+    workflowId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    workflowName: PropTypes.string,
+    stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    swimlaneName: PropTypes.string,
+    cardTitle: PropTypes.string,
+    cardDescription: PropTypes.string,
+    fieldValues: PropTypes.array,
+    subtaskTitles: PropTypes.array,
+  }),
+  users: PropTypes.array,
+  kanbanTags: PropTypes.array,
+  triggerTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
 function ShareWithModal({ show, onClose, permissions, onSave }) {
   const [filterText, setFilterText] = useState('');
   const [draftPermissions, setDraftPermissions] = useState(permissions);
@@ -5428,6 +6076,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const [showCreateActionPicker, setShowCreateActionPicker] = useState(false);
   const [showCreateTemplatePicker, setShowCreateTemplatePicker] = useState(false);
   const [showCreateDetailsPicker, setShowCreateDetailsPicker] = useState(false);
+  const [showCreateCardDetailsModal, setShowCreateCardDetailsModal] = useState(false);
   const [activeCreateActionId, setActiveCreateActionId] = useState(null);
   const [showCopyCardDetailsPicker, setShowCopyCardDetailsPicker] = useState(false);
   const [showCreateCardFieldsModal, setShowCreateCardFieldsModal] = useState(false);
@@ -6982,7 +7631,18 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
   const handleOpenCreateDetails = (id) => {
     setActiveCreateActionId(id);
-    setShowCreateDetailsPicker(true);
+    const action = createActions.find((a) => a.id === id);
+    const isRelational = getRelationTypeFromLabel(action?.label) != null;
+    // A destination already picked (boardId set) on a plain "Create card" action means the
+    // button now shows that destination instead of "Configure details" — re-clicking it goes
+    // straight to editing the card details rather than re-picking the board from scratch.
+    // Relational creates (child/parent/...) have no CreateCardDetailsModal step, so they
+    // always go back through the Board Minimap.
+    if (action?.boardId && !isRelational) {
+      setShowCreateCardDetailsModal(true);
+    } else {
+      setShowCreateDetailsPicker(true);
+    }
   };
 
   // The "title will be copied..." summary (shown once Title is in copyFields) re-opens
@@ -7028,6 +7688,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
   const handleSaveCreateCardFields = (values) => {
     setCreateActions((prev) => prev.map((a) => (a.id === activeCreateActionId ? { ...a, ...values } : a)));
+  };
+
+  const handleSaveCreateCardDetails = (details) => {
+    setCreateActions((prev) => prev.map((a) => (a.id === activeCreateActionId ? { ...a, ...details } : a)));
   };
 
   const activeCreateAction = createActions.find((a) => a.id === activeCreateActionId);
@@ -8449,9 +9113,32 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                   className="br-create-action-link br-create-action-link--btn"
                                   onClick={() => handleOpenCreateSubtaskSettings(action.id)}
                                 >
-                                  {action.configured
-                                    ? (action.previewLoaded ? (action.description?.trim() || 'Configured') : 'Loading...')
-                                    : 'Not Set'}
+                                  {action.configured ? (
+                                    action.previewLoaded ? (
+                                      (action.ownerUserId || action.deadline || action.description?.trim()) ? (
+                                        <span className="br-subtask-preview-row">
+                                          {action.ownerUserId && (
+                                            <span className="br-subtask-preview-pill">
+                                              <FiUsers size={12} aria-hidden />
+                                              {users.find((u) => String(u.user_id) === String(action.ownerUserId))?.name ?? 'Unknown user'}
+                                            </span>
+                                          )}
+                                          {action.deadline && (
+                                            <span className="br-subtask-preview-pill">
+                                              <FiCalendar size={12} aria-hidden />
+                                              {formatDeadlineDisplay(action.deadline)}
+                                            </span>
+                                          )}
+                                          {action.description?.trim() && (
+                                            <span className="br-subtask-preview-pill br-subtask-preview-pill--desc">
+                                              <FiInfo size={12} aria-hidden />
+                                              {action.description.trim()}
+                                            </span>
+                                          )}
+                                        </span>
+                                      ) : 'Configured'
+                                    ) : 'Loading...'
+                                  ) : 'Not Set'}
                                 </button>
                               )}
 
@@ -10532,6 +11219,16 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       onClose={() => setShowCreateCardFieldsModal(false)}
       onSave={handleSaveCreateCardFields}
       action={activeCreateAction}
+      triggerTypeId={rule.id}
+    />
+
+    <CreateCardDetailsModal
+      show={showCreateCardDetailsModal}
+      onClose={() => setShowCreateCardDetailsModal(false)}
+      onSave={handleSaveCreateCardDetails}
+      action={activeCreateAction}
+      users={users}
+      kanbanTags={kanbanTags}
       triggerTypeId={rule.id}
     />
 
