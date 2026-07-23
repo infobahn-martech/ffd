@@ -296,6 +296,11 @@ export const PRIORITY_OPTIONS = [
   { key: 'low', label: 'Low', color: '#2f80ed' },
 ];
 
+// Static size catalog for the "Create card with custom properties" panel's Size field —
+// no documented backend enum for card size exists yet, so this is the fixed T-shirt
+// scale (same best-effort-fixed-list pattern as PRIORITY_OPTIONS above).
+export const CREATE_CARD_SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL'];
+
 // Custom fields carry no confirmed field_type anywhere in this app yet (nothing in the
 // codebase branches on get_custom_fields'/get_then_action_fields' field_type today), so
 // which value UI a "Set {custom field}" update action gets is guessed from the field's

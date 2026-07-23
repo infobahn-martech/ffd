@@ -161,10 +161,16 @@ const buildThenActions = (formState, ctx) => {
     const properties = [
       { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
       { property_key: 'target_column_id', property_value: action.stageId, property_value_type: 'number' },
-      // No card-title input exists in the UI yet — falls back to the selected board
-      // template name as a best-effort placeholder.
-      { property_key: 'card_title', property_value: action.templateName ?? '', property_value_type: 'string' },
+      // CreateCardDetailsModal's title input (action.cardTitle) is the real value once set;
+      // the board template name remains a best-effort placeholder for actions saved before
+      // that panel existed, or left unconfigured.
+      { property_key: 'card_title', property_value: action.cardTitle ?? action.templateName ?? '', property_value_type: 'string' },
     ];
+    // CreateCardDetailsModal's description textarea — best-effort property name, same as
+    // card_title above (no documented create_cards example covers a description either).
+    if (action.cardDescription) {
+      properties.push({ property_key: 'card_description', property_value: action.cardDescription, property_value_type: 'string' });
+    }
     const relationType = getRelationTypeFromLabel(action.label);
     if (relationType) {
       // Cross-card create variants (child/parent/predecessor/relative/successor) aren't
@@ -190,6 +196,13 @@ const buildThenActions = (formState, ctx) => {
           : (fv.value ?? '');
       properties.push({ property_key: 'field_key', property_value: fv.field, property_value_type: 'string' });
       properties.push({ property_key: 'field_value', property_value: fieldValue, property_value_type: 'string' });
+    });
+    // Subtask titles typed into CreateCardDetailsModal's Subtasks panel — a different
+    // concept from the separate "Create subtask" create-action (which owns its own
+    // saveCreateSubtaskSettings-backed id), so sent as plain titles alongside this card,
+    // best-effort property name, no documented shape.
+    (action.subtaskTitles ?? []).forEach((subtaskTitle) => {
+      properties.push({ property_key: 'subtask_title', property_value: subtaskTitle, property_value_type: 'string' });
     });
     thenActions.push({ action_type_id: createActionTypeId, properties });
   });
