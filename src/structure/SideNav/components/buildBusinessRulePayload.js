@@ -1,4 +1,4 @@
-import { ACTION_GROUP_TYPE_TO_SECTION_ID, RELATIONAL_CREATE_ACTION_LABELS } from './businessRulesData';
+import { ACTION_GROUP_TYPE_TO_SECTION_ID, RELATIONAL_CREATE_ACTION_KEYWORDS } from './businessRulesData';
 
 const findActionTypeId = (triggerActions, sectionId) =>
   triggerActions.find((a) => ACTION_GROUP_TYPE_TO_SECTION_ID[a.group_type] === sectionId)?.action_type_id ?? null;
@@ -6,11 +6,24 @@ const findActionTypeId = (triggerActions, sectionId) =>
 // A create action's `key` is the DEV-fallback's literal 'child'/'parent'/... string, but a
 // live backend response keys it by its own field_key instead — so relation_type has to be
 // derived from the label ("Create child" -> "child") the same way hasCustomProperties does
-// in BusinessRuleFormModal.jsx, not from action.key.
-const getRelationTypeFromLabel = (label) => {
+// in BusinessRuleFormModal.jsx, not from action.key. Matched by keyword-in-label rather than
+// exact phrase, since a live label may carry extra wording (e.g. "Create Child Card"). Exported
+// — BusinessRuleFormModal.jsx's render side tries action.key first (the real saved
+// relation_type once an action has been restored) and falls back to this for an action
+// just picked this session, whose key is still the backend's opaque field_key.
+export const getRelationTypeFromLabel = (label) => {
   const normalized = label?.trim().toLowerCase() ?? '';
-  return RELATIONAL_CREATE_ACTION_LABELS.includes(normalized) ? normalized.replace(/^create /, '') : null;
+  return RELATIONAL_CREATE_ACTION_KEYWORDS.find((kw) => normalized.includes(kw)) ?? null;
 };
+
+// Same fragile-label problem as getRelationTypeFromLabel above, but matched with
+// `.includes()` rather than an exact string — a strict `=== 'create subtask'` broke
+// whenever the live field_label carried slightly different wording (e.g. "Create Sub Task"),
+// silently falling through to the plain create-card branch below and losing the
+// owner/deadline/description settings on save. Exported so BusinessRuleFormModal.jsx's
+// render-side hasCustomProperties check stays in sync with what actually gets saved here.
+export const isCreateSubtaskAction = (action) =>
+  action?.key === 'subtask' || (action?.label ?? '').trim().toLowerCase().includes('subtask');
 
 const getOperatorLabel = (fieldDetailsByKey, fieldType, fieldId, operatorId) => {
   if (!fieldType || fieldId == null) return null;
@@ -145,31 +158,35 @@ const buildThenActions = (formState, ctx) => {
 
   const createActionTypeId = findActionTypeId(triggerActions, 'create');
   createActions.forEach((action) => {
-    // Matched by label, not action.key — same reason as hasCustomProperties in
-    // BusinessRuleFormModal.jsx: a live backend response keys this field by its own
-    // field_key, not the dev-fallback's literal 'subtask' string.
-    if (action.label?.trim().toLowerCase() === 'create subtask') {
-      // Subtask owner/deadline/description are already saved server-side via
-      // saveCreateSubtaskSettings (action.createSubtaskId) — only referenced here.
-      // Property name is a best-effort guess, unverified against a real example.
-      thenActions.push({
-        action_type_id: createActionTypeId,
-        properties: [{ property_key: 'create_subtask_id', property_value: action.createSubtaskId, property_value_type: 'number' }],
-      });
+    if (isCreateSubtaskAction(action)) {
+      // No board/column/title to configure — a subtask has no destination picker in the
+      // UI (it's created under the current card, not a new board location). Only
+      // relation_type marks it as a subtask, plus create_subtask_id referencing the
+      // owner/deadline/description record already saved server-side via
+      // saveCreateSubtaskSettings.
+      const properties = [{ property_key: 'relation_type', property_value: 'subtask', property_value_type: 'string' }];
+      if (action.createSubtaskId != null) {
+        properties.push({ property_key: 'create_subtask_id', property_value: action.createSubtaskId, property_value_type: 'number' });
+      }
+      thenActions.push({ action_type_id: createActionTypeId, properties });
       return;
     }
     const properties = [
       { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
       { property_key: 'target_column_id', property_value: action.stageId, property_value_type: 'number' },
-      // CreateCardDetailsModal's title input (action.cardTitle) is the real value once set;
-      // the board template name remains a best-effort placeholder for actions saved before
-      // that panel existed, or left unconfigured.
-      { property_key: 'card_title', property_value: action.cardTitle ?? action.templateName ?? '', property_value_type: 'string' },
+      // The literal title typed in the green box (CreateCardFieldsModal) takes priority —
+      // falls back to the selected board template name when no title was typed.
+      { property_key: 'card_title', property_value: action.title?.trim() || action.templateName || '', property_value_type: 'string' },
     ];
-    // CreateCardDetailsModal's description textarea — best-effort property name, same as
-    // card_title above (no documented create_cards example covers a description either).
-    if (action.cardDescription) {
-      properties.push({ property_key: 'card_description', property_value: action.cardDescription, property_value_type: 'string' });
+    // Same board-can-have-several-workflows reasoning as buildDestinationProperties below
+    // (move/convert) — without these, a create action's workflow/swimlane pick is silently
+    // dropped on save, so it can never be resolved back into a name on reopen and always
+    // reads as "Any stage / Any lane".
+    if (action.workflowId) {
+      properties.push({ property_key: 'target_workflow_id', property_value: action.workflowId, property_value_type: 'number' });
+    }
+    if (action.swimlaneId) {
+      properties.push({ property_key: 'target_swimlane_id', property_value: action.swimlaneId, property_value_type: 'number' });
     }
     const relationType = getRelationTypeFromLabel(action.label);
     if (relationType) {
@@ -186,16 +203,18 @@ const buildThenActions = (formState, ctx) => {
       properties.push({ property_key: 'copy_custom_fields', property_value: action.copyFields.customFields.join(', '), property_value_type: 'string' });
     }
     // Initial field values to set on the created card (Owner, Deadline, Tags, custom
-    // fields, ...) — same field_key/field_value pair shape the update action uses below,
-    // best-effort until confirmed against a real create_cards example.
-    (action.fieldValues ?? []).forEach((fv) => {
-      const fieldValue = fv.type === 'tags'
-        ? (fv.tagIds ?? []).join(', ')
-        : (fv.type === 'user' || fv.type === 'sticker')
-          ? (fv.refId ?? '')
-          : (fv.value ?? '');
-      properties.push({ property_key: 'field_key', property_value: fv.field, property_value_type: 'string' });
-      properties.push({ property_key: 'field_value', property_value: fieldValue, property_value_type: 'string' });
+    // fields, ...), set via the green box (CreateCardFieldsModal) as flat { key: value }
+    // maps — same field_key/field_value pair shape the update action uses below, one pair
+    // per field, best-effort until confirmed against a real create_cards example.
+    Object.entries(action.fieldValues ?? {}).forEach(([key, value]) => {
+      if (value === '' || value == null) return;
+      properties.push({ property_key: 'field_key', property_value: key, property_value_type: 'string' });
+      properties.push({ property_key: 'field_value', property_value: value, property_value_type: 'string' });
+    });
+    Object.entries(action.customFieldValues ?? {}).forEach(([key, value]) => {
+      if (value === '' || value == null) return;
+      properties.push({ property_key: 'field_key', property_value: key, property_value_type: 'string' });
+      properties.push({ property_key: 'field_value', property_value: value, property_value_type: 'string' });
     });
     // Subtask titles typed into CreateCardDetailsModal's Subtasks panel — a different
     // concept from the separate "Create subtask" create-action (which owns its own
@@ -376,6 +395,6 @@ export const getUnconfiguredActionLabels = (formState) => {
   const labels = [];
   formState.notifyActions.forEach((a) => { if (!a.notification_id) labels.push(a.label ?? 'Send notification'); });
   formState.invokeActions.forEach((a) => { if (!a.webServiceId) labels.push(a.label ?? 'Invoke web service'); });
-  formState.createActions.forEach((a) => { if (a.key === 'subtask' && !a.createSubtaskId) labels.push(a.label ?? 'Create subtask'); });
+  formState.createActions.forEach((a) => { if (isCreateSubtaskAction(a) && !a.createSubtaskId) labels.push(a.label ?? 'Create subtask'); });
   return labels;
 };

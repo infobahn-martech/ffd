@@ -470,6 +470,21 @@
   gap: 10px;
 }
 
+.gro-card-view .gro-crew-change-action-btn {
+  border-color: #00368c !important;
+  color: #00368c !important;
+}
+
+.gro-card-view .gro-crew-change-action-btn:hover:not(:disabled) {
+  background: #00368c !important;
+  color: #ffffff !important;
+}
+
+.gro-card-view .gro-crew-change-action-btn:disabled {
+  border-color: #cbd5e1 !important;
+  color: #94a3b8 !important;
+}
+
 .gro-card-view .gro-crew-immigration-bulk-btn {
   height: 34px;
   padding: 0 12px;

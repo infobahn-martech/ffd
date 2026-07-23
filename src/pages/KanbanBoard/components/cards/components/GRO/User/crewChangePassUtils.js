@@ -9,7 +9,7 @@ export const normalizeCrewChangeListResponse = (res) => {
   const pagination = {
     total: Number(root?.pagination?.total ?? root?.total ?? rows.length ?? 0) || 0,
     page: Number(root?.pagination?.page ?? root?.page ?? 1) || 1,
-    limit: Number(root?.pagination?.limit ?? root?.limit ?? 5) || 5,
+    limit: Number(root?.pagination?.limit ?? root?.limit ?? 10) || 10,
   };
   return { rows, pagination };
 };

@@ -10,7 +10,7 @@ import { crewChangeRowFields, getCrewChangeCrewId, normalizeCrewChangeListRespon
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import CrewChangeCgPassGenerateView from "./CrewChangeCgPassGenerateView";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 const initialSingleForm = () => ({ passNo: "", issuePickerParts: { date: "", time: "" }, file: null });
 
@@ -278,13 +278,17 @@ export default function CrewChangePassPanel({ callId, portId }) {
         <div className="gro-crew-change-toolbar-actions">
           <button
             type="button"
-            className="gro-pass-segment"
+            className="gro-pass-segment gro-crew-change-action-btn"
             disabled={selectedCrewIds.size === 0}
             onClick={() => setView("generate")}
           >
             Generate CG Pass
           </button>
-          <button type="button" className="gro-pass-segment" onClick={() => setShowZawilBulkModal(true)}>
+          <button
+            type="button"
+            className="gro-pass-segment gro-crew-change-action-btn"
+            onClick={() => setShowZawilBulkModal(true)}
+          >
             Bulk Upload Zawil Pass
           </button>
         </div>
