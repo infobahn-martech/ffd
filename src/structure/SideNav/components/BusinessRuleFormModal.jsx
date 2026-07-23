@@ -134,6 +134,18 @@ const parseSubjectString = (text) => {
   return parts;
 };
 
+// Formats a saved "YYYY-MM-DD HH:MM:00" subtask deadline into a short display label for
+// the THEN-column "Create subtask" preview chip (e.g. "20 Jul 2026, 14:00").
+const formatDeadlineDisplay = (deadline) => {
+  const [datePart, timePart] = String(deadline ?? '').split(' ');
+  if (!datePart) return '';
+  const date = new Date(`${datePart}T${(timePart || '00:00:00').slice(0, 8)}`);
+  if (Number.isNaN(date.getTime())) return datePart;
+  const dateLabel = date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+  const timeLabel = (timePart ?? '').slice(0, 5);
+  return timeLabel && timeLabel !== '00:00' ? `${dateLabel}, ${timeLabel}` : dateLabel;
+};
+
 // Shared by the sticker picker (Add/Remove stickers), the blocker picker (Set blocker),
 // the type picker (Set type), and the tags picker (Set tags) — all are a color-coded
 // catalog item, though only stickers/blockers/types carry an icon (tags are color-only,
@@ -4843,17 +4855,16 @@ TagPickerField.propTypes = {
 };
 
 // Regular-field labels CreateCardDetailsModal owns on the action's fieldValues list — used
-// to tell "fields this modal manages" apart from ones added ad hoc via the create action's
-// own "+ Set card fields" picker (handleOpenCreateFieldsPicker), so saving from this modal
-// never silently drops an unrelated chip added that other way.
+// to tell "fields this modal manages" apart from any leftover entries saved before the
+// freeform "Set card fields" picker was removed, so saving from this modal never silently
+// drops an unrelated chip that got in that other way.
 const CREATE_CARD_FIXED_FIELD_LABELS = ['Owner', 'Co-owners', 'Deadline', 'Size', 'Tags', 'Custom card ID'];
 
 // "Configure details" on a create-card action (see hasCustomProperties in the THEN column)
 // opens this instead of going straight from the Board Minimap destination pick to done —
-// title/description plus the same Owner/Deadline/Tags/... field values the freeform
-// "+ Set card fields" chip list already supports (classifyCreateFieldType/handleSelectCreateField),
-// just presented as the fixed panel the reference product itself uses, with the board's own
-// custom fields and a simple subtask-title list alongside it.
+// title/description plus Owner/Deadline/Tags/... field values, presented as the fixed panel
+// the reference product itself uses, with the board's own custom fields and a simple
+// subtask-title list alongside it.
 function CreateCardDetailsModal({ show, onClose, onSave, action, users, kanbanTags, triggerTypeId }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -5412,11 +5423,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const [showCreateDetailsPicker, setShowCreateDetailsPicker] = useState(false);
   const [showCreateCardDetailsModal, setShowCreateCardDetailsModal] = useState(false);
   const [activeCreateActionId, setActiveCreateActionId] = useState(null);
-  // Field values to set on the card once it's created (Owner, Deadline, Tags, custom
-  // fields, ...) — same get_then_action_fields catalog as the "Update card details"
-  // section, but single-value-per-field since there's no existing card to add onto.
-  const [showCreateFieldsPicker, setShowCreateFieldsPicker] = useState(false);
-  const [activeCreateFieldsActionId, setActiveCreateFieldsActionId] = useState(null);
   const [showCopyCardDetailsPicker, setShowCopyCardDetailsPicker] = useState(false);
   const [linkActions, setLinkActions] = useState([]);
   const [showLinkActionPicker, setShowLinkActionPicker] = useState(false);
@@ -5587,6 +5593,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     deleteWebServiceSettings,
     deleteCreateSubtaskSettings,
     getCreateSubtaskSettings, createSubtaskSettings, isLoadingCreateSubtaskSettings, resetCreateSubtaskSettings,
+    getCreateSubtaskSettingsPreview,
     getBusinessRuleById, businessRuleDetails, isLoadingBusinessRuleDetails, resetBusinessRuleDetails,
     regularFields, getRegularFields,
     getExecutionLogs, executionLogs, isLoadingExecutionLogs, resetExecutionLogs,
@@ -5815,8 +5822,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setShowWhenFieldPicker(false);
     setCreateActions([]);
     setShowCreateActionPicker(false);
-    setShowCreateFieldsPicker(false);
-    setActiveCreateFieldsActionId(null);
     setShowCopyCardDetailsPicker(false);
     setLinkActions([]);
     setShowLinkActionPicker(false);
@@ -6049,11 +6054,19 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
 
       if (sectionId === 'create') {
         actions.forEach((action) => {
-          // Subtask owner/deadline/description live server-side (saveCreateSubtaskSettings)
-          // and have no confirmed property shape here — route to the raw summary instead
-          // of guessing.
-          if (action.create_subtask_id != null || propVal(action, 'create_subtask_id') != null) {
-            pushRaw('create', { ...group, actions: [action] });
+          // Subtask owner/deadline/description live server-side (saveCreateSubtaskSettings),
+          // not in this action's properties — same restore gap as the notify/invoke sections
+          // below, so this just carries the id forward and defers the actual fetch to
+          // handleOpenCreateSubtaskSettings (getCreateSubtaskSettings) when the user opens it.
+          const createSubtaskId = action.create_subtask_id ?? propVal(action, 'create_subtask_id');
+          if (createSubtaskId != null) {
+            nextCreateActions.push({
+              id: `create-${action.then_action_id}`,
+              key: 'subtask',
+              label: 'Create subtask',
+              createSubtaskId,
+              configured: true,
+            });
             return;
           }
           const relationType = propVal(action, 'relation_type');
@@ -6261,6 +6274,27 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         });
       });
   }, [isEditMode, notifyActions]);
+
+  // The THEN-column "Create subtask" card shows the actual saved owner/deadline/description
+  // instead of a generic "Configured" label — same restore-gap fix as the notify preview
+  // above. Merges straight into the same ownerUserId/deadline/description fields
+  // handleSaveCreateSubtaskSettings already writes on a live save, so the render below
+  // doesn't need to know whether the data came from this session or a reload.
+  useEffect(() => {
+    if (!isEditMode) return;
+    createActions
+      .filter((a) => a.key === 'subtask' && a.createSubtaskId && a.description === undefined)
+      .forEach((action) => {
+        getCreateSubtaskSettingsPreview(action.createSubtaskId).then((settings) => {
+          const patch = {
+            ownerUserId: settings?.owner_user_id ?? '',
+            deadline: settings?.deadline ?? '',
+            description: settings?.description ?? '',
+          };
+          setCreateActions((prev) => prev.map((a) => (a.id === action.id ? { ...a, ...patch } : a)));
+        });
+      });
+  }, [isEditMode, createActions]);
 
   useEffect(() => {
     if (!isOwnerPickerOpen) return undefined;
@@ -6910,71 +6944,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   };
 
   const activeCreateAction = createActions.find((a) => a.id === activeCreateActionId);
-
-  const handleOpenCreateFieldsPicker = (id) => {
-    setActiveCreateFieldsActionId(id);
-    setShowCreateFieldsPicker(true);
-  };
-
-  // No documented backend vocabulary yet for which create-action regular fields need
-  // which input widget, so this classifies by label text — same approach the AND column
-  // already uses for hasBoardDefaultCondition/hasPositionDefaultCondition above.
-  const classifyCreateFieldType = (label) => {
-    const l = label.trim().toLowerCase();
-    if (l.includes('owner')) return 'user';
-    if (l.includes('sticker')) return 'sticker';
-    if (l.includes('tag')) return 'tags';
-    if (l.includes('deadline')) return 'date';
-    return 'text';
-  };
-
-  const handleSelectCreateField = (item, meta) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const isCustom = meta.category_key === 'custom';
-    const rawLabel = isCustom ? getFieldLabel(item) : (item.label ?? getFieldLabel(item));
-    const field = isCustom ? rawLabel : (item.field ?? item.key);
-    const type = classifyCreateFieldType(rawLabel);
-    setCreateActions((prev) => prev.map((a) => (a.id !== activeCreateFieldsActionId ? a : {
-      ...a,
-      fieldValues: [
-        ...(a.fieldValues ?? []),
-        {
-          id, type, field, label: isCustom ? `Set ${rawLabel}` : rawLabel,
-          ...(type === 'tags' ? { tagIds: [] }
-            : (type === 'user' || type === 'sticker') ? { refId: '', refName: '' }
-              : { value: '' }),
-        },
-      ],
-    })));
-  };
-
-  const handleRemoveCreateFieldValue = (actionId, fieldValueId) => {
-    setCreateActions((prev) => prev.map((a) => (a.id === actionId
-      ? { ...a, fieldValues: (a.fieldValues ?? []).filter((f) => f.id !== fieldValueId) }
-      : a)));
-  };
-
-  const handleChangeCreateFieldValue = (actionId, fieldValueId, patch) => {
-    setCreateActions((prev) => prev.map((a) => (a.id === actionId
-      ? { ...a, fieldValues: (a.fieldValues ?? []).map((f) => (f.id === fieldValueId ? { ...f, ...patch } : f)) }
-      : a)));
-  };
-
-  const handleToggleCreateFieldTag = (actionId, fieldValueId, tagId) => {
-    setCreateActions((prev) => prev.map((a) => (a.id !== actionId ? a : {
-      ...a,
-      fieldValues: (a.fieldValues ?? []).map((f) => (f.id !== fieldValueId ? f : {
-        ...f,
-        tagIds: (f.tagIds ?? []).includes(tagId)
-          ? f.tagIds.filter((t) => t !== tagId)
-          : [...(f.tagIds ?? []), tagId],
-      })),
-    })));
-  };
-
-  const activeCreateFieldsAction = createActions.find((a) => a.id === activeCreateFieldsActionId);
-  const createFieldsExistingLabels = (activeCreateFieldsAction?.fieldValues ?? [])
-    .map((f) => f.label.trim().toLowerCase());
 
   const handleSelectLinkAction = (option) => {
     const editingId = editingLinkActionIdRef.current;
@@ -8364,107 +8333,33 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                                   className="br-create-action-link br-create-action-link--btn"
                                   onClick={() => handleOpenCreateSubtaskSettings(action.id)}
                                 >
-                                  {action.configured ? (action.description?.trim() || 'Configured') : 'Not Set'}
+                                  {action.configured && (action.ownerUserId || action.deadline || action.description?.trim()) ? (
+                                    <span className="br-subtask-preview-row">
+                                      {action.ownerUserId && (
+                                        <span className="br-subtask-preview-pill">
+                                          <FiUsers size={12} aria-hidden />
+                                          {users.find((u) => String(u.user_id) === String(action.ownerUserId))?.name ?? 'Unknown user'}
+                                        </span>
+                                      )}
+                                      {action.deadline && (
+                                        <span className="br-subtask-preview-pill">
+                                          <FiCalendar size={12} aria-hidden />
+                                          {formatDeadlineDisplay(action.deadline)}
+                                        </span>
+                                      )}
+                                      {action.description?.trim() && (
+                                        <span className="br-subtask-preview-pill br-subtask-preview-pill--desc">
+                                          <FiInfo size={12} aria-hidden />
+                                          {action.description.trim()}
+                                        </span>
+                                      )}
+                                    </span>
+                                  ) : (
+                                    action.configured ? 'Configured' : 'Not Set'
+                                  )}
                                 </button>
                               )}
 
-                              {hasCustomProperties && (
-                                <div className="br-create-action-fields">
-                                  {(action.fieldValues ?? []).map((fv) => (
-                                    <div key={fv.id} className="business-rule-form-action-chip">
-                                      <span className="business-rule-form-action-chip-label">{fv.label}</span>
-
-                                      {fv.type === 'user' && (
-                                        <div className="business-rule-form-select-wrap">
-                                          <select
-                                            className="business-rule-form-select"
-                                            value={fv.refId}
-                                            onChange={(e) => {
-                                              const u = users.find((x) => String(x.user_id) === e.target.value);
-                                              handleChangeCreateFieldValue(action.id, fv.id, { refId: e.target.value, refName: u?.name ?? '' });
-                                            }}
-                                          >
-                                            <option value="">Select user</option>
-                                            {users.map((u) => (
-                                              <option key={u.user_id} value={u.user_id}>{u.name}</option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                      )}
-
-                                      {fv.type === 'sticker' && (
-                                        <div className="business-rule-form-select-wrap">
-                                          <select
-                                            className="business-rule-form-select"
-                                            value={fv.refId}
-                                            onChange={(e) => {
-                                              const s = cardStickers.find((x) => String(x.sticker_id) === e.target.value);
-                                              handleChangeCreateFieldValue(action.id, fv.id, { refId: e.target.value, refName: s?.label ?? '' });
-                                            }}
-                                          >
-                                            <option value="">Select sticker</option>
-                                            {cardStickers.filter((s) => !isKanbanManagementRowDisabled(s.status)).map((s) => (
-                                              <option key={s.sticker_id} value={s.sticker_id}>{s.label}</option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                      )}
-
-                                      {fv.type === 'tags' && (
-                                        <div className="br-property-pill-grid">
-                                          {kanbanTags.filter((t) => !isKanbanManagementRowDisabled(t.status)).map((t) => (
-                                            <PropertyPill
-                                              key={t.id}
-                                              pillKey={t.id}
-                                              label={t.label}
-                                              dotColor={t.color_code}
-                                              selected={(fv.tagIds ?? []).includes(t.id)}
-                                              onClick={() => handleToggleCreateFieldTag(action.id, fv.id, t.id)}
-                                            />
-                                          ))}
-                                        </div>
-                                      )}
-
-                                      {fv.type === 'date' && (
-                                        <input
-                                          type="date"
-                                          className="br-update-action-value-input"
-                                          value={fv.value}
-                                          onChange={(e) => handleChangeCreateFieldValue(action.id, fv.id, { value: e.target.value })}
-                                        />
-                                      )}
-
-                                      {fv.type === 'text' && (
-                                        <input
-                                          type="text"
-                                          className="br-update-action-value-input"
-                                          placeholder="Value"
-                                          value={fv.value}
-                                          onChange={(e) => handleChangeCreateFieldValue(action.id, fv.id, { value: e.target.value })}
-                                        />
-                                      )}
-
-                                      <button
-                                        type="button"
-                                        className="business-rule-form-condition-remove"
-                                        onClick={() => handleRemoveCreateFieldValue(action.id, fv.id)}
-                                        aria-label="Remove field"
-                                      >
-                                        <FiTrash2 size={14} />
-                                      </button>
-                                    </div>
-                                  ))}
-
-                                  <button
-                                    type="button"
-                                    className="business-rule-form-add-link"
-                                    onClick={() => handleOpenCreateFieldsPicker(action.id)}
-                                  >
-                                    <FiPlus size={14} aria-hidden />
-                                    Set card fields
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           );
                         })}
@@ -10583,15 +10478,6 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       existingFieldLabels={copyValuesExistingFieldLabels}
       triggerTypeId={rule.id}
       actionTypeId={copyValuesActionTypeId}
-    />
-
-    <RefineUpdateCriteriaModal
-      show={showCreateFieldsPicker}
-      onClose={() => setShowCreateFieldsPicker(false)}
-      onSelect={handleSelectCreateField}
-      existingFieldLabels={createFieldsExistingLabels}
-      triggerTypeId={rule.id}
-      actionTypeId={createActionTypeId}
     />
 
     <CardPropertyMatchModal

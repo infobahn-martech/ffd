@@ -2350,6 +2350,38 @@ body .modal.business-rule-form-modal.show {
   }
 }
 
+.br-subtask-preview-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.br-subtask-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  font: normal normal 500 12px/1.4 $font-primary;
+  color: #3730a3;
+  text-decoration: none;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.br-subtask-preview-pill--desc {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #f3f4f6;
+  color: $txtColor;
+}
+
 .br-create-template-wrap {
   align-self: flex-start;
 }

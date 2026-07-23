@@ -536,6 +536,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         { menu: 'Waste Types', to: '/waste-types', hasPermission: true },
         { menu: 'Packaging Types', to: '/packing-type', hasPermission: true },
         { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
+        { menu: 'Order History', to: '/order-history', hasPermission: true },
       ],
     },
     {

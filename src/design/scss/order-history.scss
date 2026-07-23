@@ -64,14 +64,72 @@
   thead th {
     font-weight: 600;
     font-size: 12px;
-    background: #e2e6ff !important;
-    color: #202225 !important;
+    background: #00368c !important;
+    color: #ffffff !important;
     white-space: nowrap;
   }
 
   tbody td {
     vertical-align: middle;
   }
+}
+
+.order-history-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .order-history-sections {
+    grid-template-columns: 1fr;
+  }
+}
+
+.order-history-section {
+  background: #ffffff;
+  border: 1px solid #d5d9e2;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.order-history-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00368c;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e6ff;
+}
+
+.order-history-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.order-history-field {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.order-history-field-label {
+  color: #6b7280;
+}
+
+.order-history-field-value {
+  color: #1a1a1a;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word;
+}
+
+.order-history-not-created {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
 }
 
 .order-history-timeline {

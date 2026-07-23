@@ -734,6 +734,19 @@ const useBusinessRuleReducer = create((set) => ({
     },
 
     resetCreateSubtaskSettings: () => set({ createSubtaskSettings: null, isLoadingCreateSubtaskSettings: false }),
+
+    // Read-only variant for the THEN-column list preview (owner/deadline/description shown
+    // on the collapsed "Create subtask" action card) — same reasoning as
+    // getNotificationSettingsPreview: doesn't touch createSubtaskSettings, since that single
+    // shared slot is bound to whichever subtask action the settings modal currently has open.
+    getCreateSubtaskSettingsPreview: async (createSubtaskId) => {
+        try {
+            const { data } = await businessRuleService.getCreateSubtaskSettings(createSubtaskId);
+            return data?.data ?? null;
+        } catch (err) {
+            return null;
+        }
+    },
 }));
 
 export default useBusinessRuleReducer;
