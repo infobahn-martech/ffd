@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import CreateWorkflowModal from './CreateWorkflowModal';
 import WorkflowBoard from './WorkflowBoard';
 import {
@@ -85,6 +86,7 @@ function EditWorkflows() {
   const [workflows, setWorkflows] = useState(DEFAULT_WORKFLOWS);
   const [mutationTargets, setMutationTargets] = useState({});
   const [createWorkflowSaving, setCreateWorkflowSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(null);
   const mutationInflightRef = useRef(new Set());
   const boardId = searchParams.get('boardId');
 
@@ -508,9 +510,10 @@ function EditWorkflows() {
   };
 
   const handleDeleteWorkflow = (workflowId) => {
-    if (!window.confirm('Delete this workflow? This cannot be undone.')) {
-      return;
-    }
+    setDeleteModal({ type: 'workflow', workflowId });
+  };
+
+  const confirmDeleteWorkflow = (workflowId) => {
     const wfKey = `wf:${workflowId}`;
     if (!startMutation(wfKey, 'delete')) return;
     deleteWorkflow({
@@ -576,7 +579,10 @@ function EditWorkflows() {
   };
 
   const handleDeleteSwimlane = (workflowId, swimlaneId) => {
-    if (!window.confirm('Delete this swimlane? This cannot be undone.')) return;
+    setDeleteModal({ type: 'swimlane', workflowId, swimlaneId });
+  };
+
+  const confirmDeleteSwimlane = (swimlaneId) => {
     const slKey = `sl:${swimlaneId}`;
     if (!startMutation(slKey, 'deleting')) return;
     deleteSwimlane({
@@ -584,6 +590,16 @@ function EditWorkflows() {
       cb: refetchBoardWorkflows,
       onSettled: () => clearMutationKey(slKey),
     });
+  };
+
+  const handleConfirmDeleteModal = () => {
+    if (!deleteModal) return;
+    if (deleteModal.type === 'workflow') {
+      confirmDeleteWorkflow(deleteModal.workflowId);
+    } else if (deleteModal.type === 'swimlane') {
+      confirmDeleteSwimlane(deleteModal.swimlaneId);
+    }
+    setDeleteModal(null);
   };
 
   const handleSwimlaneColorChange = (workflowId, swimlaneId, colorHex) => {
@@ -852,6 +868,17 @@ function EditWorkflows() {
         onClose={() => setShowCreateWorkflowModal(false)}
         onSave={handleCreateWorkflow}
         isSaving={createWorkflowSaving}
+      />
+
+      <DeleteConfirmationModal
+        show={!!deleteModal}
+        onCancel={() => setDeleteModal(null)}
+        onConfirm={handleConfirmDeleteModal}
+        deleteText={
+          deleteModal?.type === 'workflow'
+            ? 'Delete this workflow? This cannot be undone.'
+            : 'Delete this swimlane? This cannot be undone.'
+        }
       />
     </div>
   );
