@@ -54,6 +54,24 @@
   const getCallId = (card, formValues) =>
     formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId ?? null;
 
+  const APPROVAL_STAGE_ORDER = ["credit_controller", "manager_ofm", "ceo"];
+
+  // Only the stage workflow.current_stage points at should have live action
+  // buttons — earlier stages are already actioned (locked), later stages
+  // haven't been reached yet (locked). No workflow data yet (e.g. first
+  // load before get_details resolves) defaults to the first stage active;
+  // an unrecognized/terminal stage (e.g. fully approved) locks all three.
+  const getApprovalStageGating = (workflow) => {
+    if (!workflow?.current_stage) {
+      return { credit_controller: true, manager_ofm: false, ceo: false };
+    }
+    const currentIndex = APPROVAL_STAGE_ORDER.indexOf(workflow.current_stage);
+    return APPROVAL_STAGE_ORDER.reduce((acc, stage, index) => {
+      acc[stage] = index === currentIndex;
+      return acc;
+    }, {});
+  };
+
 const createEmptyPartySection = () => ({
   details: "",
   vesselCountUnderAgency: "",
@@ -609,6 +627,11 @@ const createEmptyPartySection = () => ({
       (state) => state.saveExportApprovalDetails
     );
 
+    const stageActive = useMemo(
+      () => getApprovalStageGating(details?.workflow),
+      [details?.workflow]
+    );
+
     useEffect(() => {
       if (callId) {
         getExportApprovalDetails(callId);
@@ -872,7 +895,7 @@ const createEmptyPartySection = () => ({
                 secondaryActionLabel="Proceed to Operator"
                 onPrimaryAction={handleCreditControllerApproved}
                 onSecondaryAction={handleCreditControllerProceedToOperator}
-                actionsDisabled={saveStatus === "saving"}
+                actionsDisabled={saveStatus === "saving" || !stageActive.credit_controller}
               />
 
               <ApprovalCard
@@ -890,7 +913,7 @@ const createEmptyPartySection = () => ({
                 onPrimaryAction={handleManagerApproved}
                 onSecondaryAction={handleManagerProceedToCeo}
                 helperText="Require Digital Signature of OFM department Manager"
-                actionsDisabled={saveStatus === "saving"}
+                actionsDisabled={saveStatus === "saving" || !stageActive.manager_ofm}
               />
 
               <ApprovalCard
@@ -908,7 +931,7 @@ const createEmptyPartySection = () => ({
                 onPrimaryAction={handleCeoApproved}
                 onSecondaryAction={handleCeoOnHold}
                 helperText="Require Digital Signature of CEO"
-                actionsDisabled={saveStatus === "saving"}
+                actionsDisabled={saveStatus === "saving" || !stageActive.ceo}
               />
             </div>
           </div>
