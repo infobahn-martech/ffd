@@ -71,6 +71,9 @@ export function mapSalesOrderResponse(apiData) {
     supplierName: "",
     callFile: null,
     poStatus: "Draft",
+    is_third_party: item.is_third_party,
+    woStatus: Number(item.wo_status) || 0,
+    status: item.status || "",
   };
   });
 

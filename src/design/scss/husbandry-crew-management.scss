@@ -2575,38 +2575,6 @@
   text-align: center;
 }
 
-// Batch badge shown above the Crew Immigration listing table for the page's
-// first batch (dynamic "Batch 1", "Batch 2"… label, see CrewImmigrationDashboard.jsx).
-// Pill-shaped and tinted with the shared blue accent, sized to its label
-// (not a full-width block) so it reads as a compact tag, not a bar.
-.crew-batch-group-bar {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 5px 14px;
-  margin: 5px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--card-color, #00368c);
-  background: color-mix(in srgb, var(--card-color, #00368c) 10%, #ffffff);
-  border: 1px solid color-mix(in srgb, var(--card-color, #00368c) 30%, #ffffff);
-  border-radius: $radius-pill;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-// Inline divider row used only when a later batch starts mid-page (the
-// page's first batch is shown via .crew-batch-group-bar above instead).
-.crew-batch-group-row td.crew-batch-group-row__label {
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
-  background: #f1f5f9;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
 /* ==========================================================
    CREW LIST UPLOAD BOX (movement-type-aware — see CrewListUploadBox.jsx)
    ========================================================== */

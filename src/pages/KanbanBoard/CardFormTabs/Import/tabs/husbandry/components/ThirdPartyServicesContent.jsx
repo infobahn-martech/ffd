@@ -2,12 +2,14 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, FormGroup, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, FormGroup, FieldRow, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
+import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import thirdPartyService from "../../../../../../../services/thirdPartyService";
 import useThirdPartyServiceRequestReducer from "../../../../../../../store/ThirdPartyServiceRequestReducer";
-import { MAIN_TABS, SERVICE_ACCENT } from "./Husbandry.constants";
+import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
+import { MAIN_TABS, SERVICE_ACCENT, LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
 
 const THIRD_PARTY_ACCENT = SERVICE_ACCENT[MAIN_TABS.THIRD_PARTY_SERVICES];
 
@@ -40,6 +42,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingThirdPartyServiceCatalog, setLoadingThirdPartyServiceCatalog] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+  const isLaunchHire = formValues.thirdPartyServicesLaunchHire !== false;
   const {
     thirdPartyServiceRequests,
     isLoadingList,
@@ -218,10 +221,8 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
       value: String(row.third_party_service_id ?? row._id ?? ""),
       label: row.third_party_service ?? "",
     }));
-    return [...fromApi.filter((o) => o.value), { value: "Others", label: "Others" }];
+    return fromApi.filter((o) => o.value);
   }, [thirdPartyServiceCatalog]);
-
-  const isOthersSelected = formValues.thirdPartyServiceType === "Others";
 
   const handleSave = useCallback(async () => {
     if (!callId) {
@@ -233,15 +234,29 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
       return;
     }
 
-    const serviceTypeId = formValues.thirdPartyServiceType === "Others"
-      ? formValues.thirdPartyServiceType
-      : Number(formValues.thirdPartyServiceType);
+    let launchHireBookingDatetime = "";
+    if (isLaunchHire) {
+      if (!formValues.thirdPartyServicesLaunchHireLocation) {
+        notify("Launch hire location is required.", "error", "top-center");
+        return;
+      }
+      launchHireBookingDatetime = buildPickupDateTime(
+        formValues.thirdPartyServicesLaunchHireBookingDate,
+        formValues.thirdPartyServicesLaunchHireBookingTime
+      );
+      if (!launchHireBookingDatetime) {
+        notify("Launch hire booking date and time are required.", "error", "top-center");
+        return;
+      }
+    }
 
     const payload = {
       call_id: Number(callId),
-      third_party_service_id: serviceTypeId,
-      others: formValues.thirdPartyServiceTypeOther || "",
+      third_party_service_id: Number(formValues.thirdPartyServiceType),
       remarks: formValues.thirdPartyServicesDescription || "",
+      launch_hire: isLaunchHire ? 1 : 0,
+      location: isLaunchHire ? formValues.thirdPartyServicesLaunchHireLocation || "" : "",
+      booking_datetime: isLaunchHire ? launchHireBookingDatetime : "",
     };
 
     const formData = new FormData();
@@ -276,7 +291,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, createThirdPartyServiceRequest, getThirdPartyServiceRequests]);
+  }, [callId, formValues, isLaunchHire, createThirdPartyServiceRequest, getThirdPartyServiceRequests]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.thirdPartyServicesRequestEmailDocuments || []
@@ -298,21 +313,6 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                   titleClassName="crew-pass-request-details-card__title"
                 />
                 <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
-              
-
-                  {isOthersSelected && (
-                    <FormField label="Specify Other Service Type">
-                      <div className="cf-input">
-                        <input
-                          type="text"
-                          value={formValues.thirdPartyServiceTypeOther || ""}
-                          onChange={handleChange("thirdPartyServiceTypeOther")}
-                          placeholder="Enter other service type..."
-                        />
-                      </div>
-                    </FormField>
-                  )}
-
                   <FormGroup icon="mail" label="Request Email" accent={THIRD_PARTY_ACCENT}>
                     <FormField>
                       <div className="transport-upload-box">
@@ -348,6 +348,43 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                         disabled={loadingThirdPartyServiceCatalog}
                       />
                     </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={THIRD_PARTY_ACCENT}>
+                    <FormField>
+                      <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={isLaunchHire}
+                          onChange={(e) => handleChange("thirdPartyServicesLaunchHire")({ target: { value: e.target.checked } })}
+                          style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
+                        />
+                        Launch hire required
+                      </label>
+                    </FormField>
+                    {isLaunchHire && (
+                      <FieldRow>
+                        <FormField label="Location">
+                          <FormSelect
+                            value={formValues.thirdPartyServicesLaunchHireLocation || ""}
+                            onChange={handleChange("thirdPartyServicesLaunchHireLocation")}
+                            options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                            placeholder="Select location..."
+                          />
+                        </FormField>
+                        <FormField label="Booking Date Time">
+                          <DateTimePickerField
+                            dateValue={formValues.thirdPartyServicesLaunchHireBookingDate || ""}
+                            timeValue={formValues.thirdPartyServicesLaunchHireBookingTime || ""}
+                            onDateChange={handleChange("thirdPartyServicesLaunchHireBookingDate")}
+                            onTimeChange={handleChange("thirdPartyServicesLaunchHireBookingTime")}
+                            dateFieldName="thirdPartyServicesLaunchHireBookingDate"
+                            timeFieldName="thirdPartyServicesLaunchHireBookingTime"
+                            placeholder="Select date and time"
+                          />
+                        </FormField>
+                      </FieldRow>
+                    )}
                   </FormGroup>
 
                   <FormGroup icon="folder" label="Documents" accent={THIRD_PARTY_ACCENT}>

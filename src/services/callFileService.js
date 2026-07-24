@@ -8,6 +8,8 @@ const getCallDetail = (callId) => Gateway.get(`/call_file/get_call_detail/${call
 const allDetailByVesselId = (payload) => Gateway.post('/call_file/all_detail_by_vessel_id', payload);
 const getAllDetailByVesselId = allDetailByVesselId;
 const getAllTransportCoordinators = () => Gateway.get('/call_file/get_all_transport_coordinators');
+const getRequestedServicesSummary = (callId) =>
+  Gateway.get(`/call_file/get_requested_services_summary/${encodeURIComponent(String(callId))}`);
 const uploadEmailAttachments = (formData) =>
   Gateway.post('/call_file/upload_email_attachments', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -23,4 +25,5 @@ export default {
   getAllDetailByVesselId,
   getAllTransportCoordinators,
   uploadEmailAttachments,
+  getRequestedServicesSummary,
 };

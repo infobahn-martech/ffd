@@ -1089,7 +1089,7 @@ function CrewListBatchwisePanel({
                       idx === i ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], stepBackLog: [...b.legs[activeLeg].stepBackLog, { step: label, reason, time: new Date().toISOString() }] } } } : b
                     )
                   ),
-                  cancelApi: (reasonCode, reasonText) => cancelBatchTs(activeLeg, key, reasonCode, reasonText),
+                  cancelApi: (reasonCode, reasonText) => cancelBatchTs(i, activeLeg, key, reasonCode, reasonText),
                 })}
               />
             )}
@@ -1317,33 +1317,45 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
 
   const handleAssignCaptain = useCallback(() => {
     if (!selectedFleet || !selectedCaptainId) return;
+    if (!locationEdit || !bookingDateEdit || !bookingTimeEdit) {
+      notifyError("Location and booking date/time are required before assigning a captain.");
+      return;
+    }
     const captain = captains.find((c) => String(c.taxiboat_captain_id) === String(selectedCaptainId));
     assignCaptain({
       booking_id: bookingId,
       taxi_boat_id: selectedFleet.taxi_boat_id,
       taxiboat_captain_id: selectedCaptainId,
+      booking_datetime: buildApiDateTime(bookingDateEdit, bookingTimeEdit),
+      location: locationEdit,
       cb: () => {
         setFleetAssigned(true);
         setAssignedCaptainName(captain?.captain_name ?? null);
       },
     });
-  }, [selectedFleet, selectedCaptainId, captains, bookingId, assignCaptain]);
+  }, [selectedFleet, selectedCaptainId, captains, bookingId, assignCaptain, locationEdit, bookingDateEdit, bookingTimeEdit, notifyError]);
 
   const handleSummaryCaptainSelect = useCallback((captainId) => {
     const taxiBoatId = selectedFleet?.taxi_boat_id ?? fleets[0]?.taxi_boat_id;
     if (!captainId || !taxiBoatId) return;
+    if (!locationEdit || !bookingDateEdit || !bookingTimeEdit) {
+      notifyError("Location and booking date/time are required before assigning a captain.");
+      return;
+    }
     setSelectedCaptainId(captainId);
     const captain = captains.find((c) => String(c.taxiboat_captain_id) === String(captainId));
     assignCaptain({
       booking_id: bookingId,
       taxi_boat_id: taxiBoatId,
       taxiboat_captain_id: captainId,
+      booking_datetime: buildApiDateTime(bookingDateEdit, bookingTimeEdit),
+      location: locationEdit,
       cb: () => {
         setFleetAssigned(true);
         setAssignedCaptainName(captain?.captain_name ?? null);
       },
     });
-  }, [selectedFleet, fleets, captains, bookingId, assignCaptain]);
+  }, [selectedFleet, fleets, captains, bookingId, assignCaptain, locationEdit, bookingDateEdit, bookingTimeEdit, notifyError]);
 
   // Live clock — ticks every second for the live waiting timer on pending steps
   const [now, setNow] = useState(() => new Date());
@@ -1531,12 +1543,13 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     recordCheckpoint(batchIdx, legKey, TRIP_COMPLETED_CHECKPOINT);
   }, [recordCheckpoint]);
 
-  const cancelBatchTs = useCallback((legKey, key, reasonCode, reasonText) => {
+  const cancelBatchTs = useCallback((batchIdx, legKey, key, reasonCode, reasonText) => {
     const checkpoint = CHECKPOINT_BY_KEY[key];
-    if (bookingId == null || !checkpoint) return;
+    const bookingItemId = batches[batchIdx]?.bookingItemId;
+    if (bookingItemId == null || !checkpoint) return;
     launchHireService
       .cancelTaxiboatTimestamp({
-        booking_id: bookingId,
+        booking_item_id: bookingItemId,
         trip_type: legKey === "drop" ? "Drop" : "Pickup",
         checkpoint,
         reason_code: reasonCode,
@@ -1545,7 +1558,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       .catch((err) => {
         notifyError(err?.response?.data?.message ?? err.message ?? "Failed to undo timestamp");
       });
-  }, [bookingId, notifyError]);
+  }, [batches, notifyError]);
 
   // create_intermediate_trip needs the fleet/captain already assigned to this booking —
   // prefer get_taxiboat_booking_detail's confirmed assignment, falling back to the
@@ -1572,7 +1585,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     setTripSubmitting(true);
     launchHireService
       .createIntermediateTrip({
-        booking_id: bookingId,
+        booking_item_id: bookingId,
         taxi_boat_id: intermediateTripTaxiBoatId,
         taxiboat_captain_id: intermediateTripCaptainId,
         booking_datetime: buildApiDateTime(addTripDate, addTripTime),

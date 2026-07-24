@@ -379,7 +379,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
         transportation_id: item.transportation?.transportation_id ? Number(item.transportation.transportation_id) : null,
         orderNo: item.order_no || "",
-        poDo: item.po_no || "",
+        poDo: item.po_do_no ?? item.po_no ?? "",
         quantity: item.quantity || "",
         packageType: String(item.package_type_id || ""),
         description: item.description || "",
@@ -439,7 +439,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const launchHireBooking = order.launch_hire && typeof order.launch_hire === "object" ? order.launch_hire : null;
 
     const { date: launchHireDate, time: launchHireTime } = splitApiDateTimeParts(
-      launchHireBooking?.booking_datetime || order.launch_hire_date || "",
+      launchHireBooking?.booking_datetime || order.booking_datetime || order.launch_hire_date || "",
       ""
     );
 
@@ -451,7 +451,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       launchHire: launchHireBooking ? true : Number(order.launch_hire) === 1,
       launchHireDate,
       launchHireTime,
-      launchHireLocation: launchHireBooking?.location || order.launch_hire_location || order.location || "",
+      launchHireLocation: launchHireBooking?.location || order.location || order.launch_hire_location || "",
       orders: orderItems,
     });
     if (editDate) setEditOrderMinDate(editDate);
@@ -667,7 +667,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const items = formData.orders.map((order) => {
       const item = {
         ...(order.inbound_item_id ? { inbound_item_id: order.inbound_item_id } : {}),
-        po_no: order.poDo,
+        po_do_no: order.poDo,
         quantity: Number(order.quantity) || 0,
         package_type_id: Number(order.packageType) || 0,
         description: order.description || "",
@@ -881,7 +881,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       id: idx + 1,
       inbound_item_id: item.inbound_item_id ? Number(item.inbound_item_id) : null,
       orderNo: item.order_no || "",
-      poDo: item.po_no || "",
+      poDo: item.po_do_no ?? item.po_no ?? "",
       quantity: item.quantity ? String(item.quantity) : "",
       packageType: String(item.package_type_id || ""),
       description: item.description || "",
@@ -2037,7 +2037,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <div className="row g-2 mb-2">
                     <div className="col-md-3 col-6">
                       <label className="landing-view-label">PO/DO</label>
-                      <div className="landing-view-box">{item.po_no || "-"}</div>
+                      <div className="landing-view-box">{item.po_do_no ?? item.po_no ?? "-"}</div>
                     </div>
                     <div className="col-md-3 col-6">
                       <label className="landing-view-label">Quantity</label>
@@ -2185,7 +2185,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </div>
                       </td>
                       <td>
-                        <div className="material-table-cell">{firstItem?.po_no || ""}</div>
+                        <div className="material-table-cell">{firstItem?.po_do_no ?? firstItem?.po_no ?? ""}</div>
                       </td>
                       <td>
                         <div className="material-table-cell">{firstItem?.quantity ?? ""}</div>

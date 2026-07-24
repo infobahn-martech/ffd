@@ -33,6 +33,9 @@ export const getPassRequests = (callId) =>
 
 export const uploadZawilPass = (formData) => Gateway.post("crew_pass/upload_zawil_pass", formData);
 
+/** POST multipart FormData — zawil_document[] (Crew Change stage's AI-assisted Zawil Pass upload). */
+export const uploadZawilPassAi = (formData) => Gateway.post("zawil/upload_zawil_pass_ai", formData);
+
 export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass", formData);
 
 /** POST multipart FormData — { call_id, card_id, task_id, stage_id, file, upload_type, call_task_document_id } */
@@ -62,6 +65,7 @@ const groService = {
   saveArrivalDocument,
   getPassRequests,
   uploadZawilPass,
+  uploadZawilPassAi,
   uploadCgPass,
   reuploadVesselRegDocument,
   getStageTimeObjects,

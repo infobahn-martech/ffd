@@ -36,6 +36,11 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const singleFileInputRef = useRef(null);
   const singleTriggerRef = useRef(null);
 
+  // Zawil Pass single-row upload — no popover, just pick a file and it uploads immediately.
+  const [zawilSingleUploadCrewId, setZawilSingleUploadCrewId] = useState(null);
+  const zawilSingleUploadCrewRef = useRef(null);
+  const zawilSingleFileInputRef = useRef(null);
+
   const fetchCrewList = useCallback(
     (page) => {
       if (callId == null || callId === "") return;
@@ -135,6 +140,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
     };
   }, [singleUploadType, syncSinglePopoverRect]);
 
+  // CG Pass single-row upload — pass no / issue date / document via the popover form.
   const handleSingleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!singleUploadCrew) return;
@@ -148,17 +154,45 @@ export default function CrewChangePassPanel({ callId, portId }) {
       const formData = new FormData();
       formData.append("pass_no", String(singleForm.passNo).trim());
       formData.append("issue_date", issueDate);
-      formData.append("document_copy", singleForm.file);
       formData.append("crew_id", String(getCrewChangeCrewId(singleUploadCrew)));
-      const upload = singleUploadType === "cg" ? groService.uploadCgPass : groService.uploadZawilPass;
-      await upload(formData);
-      notify(singleUploadType === "cg" ? "CG Pass uploaded successfully." : "Zawil Pass uploaded successfully.", "success");
+      formData.append("document_copy", singleForm.file);
+      await groService.uploadCgPass(formData);
+      notify("CG Pass uploaded successfully.", "success");
       hideSingleUpload();
       fetchCrewList(pagination.page);
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
       setSingleSubmitting(false);
+    }
+  };
+
+  // Zawil Pass single-row upload — no popover, just pick a file and it uploads immediately.
+  const triggerZawilSingleUpload = (crew) => {
+    zawilSingleUploadCrewRef.current = crew;
+    if (zawilSingleFileInputRef.current) zawilSingleFileInputRef.current.value = "";
+    zawilSingleFileInputRef.current?.click();
+  };
+
+  const handleZawilSingleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const crew = zawilSingleUploadCrewRef.current;
+    if (!file || !crew) return;
+    const crewId = getCrewChangeCrewId(crew);
+    setZawilSingleUploadCrewId(crewId);
+    try {
+      const formData = new FormData();
+      formData.append("zawil_document[]", file);
+      formData.append("crew_id", String(crewId));
+      await groService.uploadZawilPassAi(formData);
+      notify("Zawil Pass uploaded successfully.", "success");
+      fetchCrewList(pagination.page);
+    } catch (err) {
+      notify(groApiErrorMessage(err, "Upload failed."), "error");
+    } finally {
+      setZawilSingleUploadCrewId(null);
+      zawilSingleUploadCrewRef.current = null;
     }
   };
 
@@ -170,7 +204,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
       ? createPortal(
           <div className="gro-pass-upload-popover" style={singlePopoverStyle} role="presentation">
             <GroPassUploadPopoverForm
-              title={singleUploadType === "cg" ? "Upload CG Pass" : "Upload Zawil Pass"}
+              title="Upload CG Pass"
               passNo={singleForm.passNo}
               onPassNoChange={(e) => setSingleForm((prev) => ({ ...prev, passNo: e.target.value }))}
               issuePickerParts={singleForm.issuePickerParts}
@@ -208,20 +242,15 @@ export default function CrewChangePassPanel({ callId, portId }) {
       notify("Please select a file to upload.", "warn");
       return;
     }
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-    const issueDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:00`;
 
     setZawilBulkSubmitting(true);
     try {
       await Promise.all(
         selectedRows.map((row) => {
           const formData = new FormData();
-          formData.append("pass_no", "");
-          formData.append("issue_date", issueDate);
-          formData.append("document_copy", zawilBulkFile);
+          formData.append("zawil_document[]", zawilBulkFile);
           formData.append("crew_id", String(getCrewChangeCrewId(row)));
-          return groService.uploadZawilPass(formData);
+          return groService.uploadZawilPassAi(formData);
         })
       );
       notify("Zawil Pass uploaded successfully.", "success");
@@ -367,9 +396,14 @@ export default function CrewChangePassPanel({ callId, portId }) {
                         className="gro-crew-change-row-upload-btn"
                         title={`Upload Zawil Pass for ${f.crewName}`}
                         aria-label={`Upload Zawil Pass for ${f.crewName}`}
-                        onClick={(e) => openSingleUpload("zawil", row, e)}
+                        disabled={zawilSingleUploadCrewId === f.crewId}
+                        onClick={() => triggerZawilSingleUpload(row)}
                       >
-                        <FiUpload />
+                        {zawilSingleUploadCrewId === f.crewId ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                        ) : (
+                          <FiUpload />
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -413,6 +447,13 @@ export default function CrewChangePassPanel({ callId, portId }) {
           </button>
         </div>
       </div>
+
+      <input
+        ref={zawilSingleFileInputRef}
+        type="file"
+        className="gro-premium-upload-input-hidden"
+        onChange={handleZawilSingleFileChange}
+      />
 
       {singlePortal}
 

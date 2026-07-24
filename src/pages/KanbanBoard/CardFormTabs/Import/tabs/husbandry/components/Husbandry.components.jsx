@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
-import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS, TAB_ICON_COLORS } from "./Husbandry.constants";
+import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS, LAUNCH_HIRE_SUBTABS, TAB_ICON_COLORS } from "./Husbandry.constants";
 import NavTabButton from "../../../../../../../components/NavTabButton";
 import { getInitials } from "../../../../../../../shared/utils/utils";
 
@@ -267,6 +267,11 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
         id: MATERIAL_MANAGEMENT_SUBTABS.ORDER_HISTORY,
         label: "Order History"
       },
+    ];
+  } else if (activeMainTab === "LAUNCH_HIRE") {
+    subTabs = [
+      { id: LAUNCH_HIRE_SUBTABS.REQUESTS, label: "Requests" },
+      { id: LAUNCH_HIRE_SUBTABS.INBOUND_ORDERS, label: "Inbound Orders" },
     ];
   } else if (activeMainTab === MAIN_TABS.WAREHOUSE) {
     // Warehouse - no sub-tabs for now

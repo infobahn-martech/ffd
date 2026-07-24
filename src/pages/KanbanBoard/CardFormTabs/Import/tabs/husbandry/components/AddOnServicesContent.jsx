@@ -1,12 +1,15 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, FormGroup, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, FormGroup, FieldRow, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
+import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+import addOnService from "../../../../../../../services/addOnService";
 import useAddOnServiceRequestReducer from "../../../../../../../store/AddOnServiceRequestReducer";
-import { MAIN_TABS, SERVICE_ACCENT, LAUNCH_HIRE_SERVICE_TYPE_OPTIONS } from "./Husbandry.constants";
+import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
+import { MAIN_TABS, SERVICE_ACCENT, LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
 
 const ADD_ON_SERVICE_ACCENT = SERVICE_ACCENT[MAIN_TABS.ADD_ON_SERVICES];
 
@@ -14,9 +17,12 @@ const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const DOCUMENTS_ACCEPT_ATTR = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
 
-// Same "Type of Service" option list LaunchHireContent uses, plus the
-// "Others" fallback that ThirdPartyServicesContent's Service Type field has.
-const ADD_ON_SERVICE_TYPE_OPTIONS = [...LAUNCH_HIRE_SERVICE_TYPE_OPTIONS, { value: "Others", label: "Others" }];
+const unwrapApiList = (axiosData) => {
+  const payload = axiosData?.data ?? axiosData;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
 
 const ADD_ON_SERVICE_REQUEST_COLUMNS = [
   { key: "service_name", header: "Service Type", accessor: (r) => r?.service_name },
@@ -32,7 +38,11 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
   const fileInputRef = useRef(null);
   const requestEmailInputRef = useRef(null);
 
+  const [addOnServiceCatalog, setAddOnServiceCatalog] = useState([]);
+  const [loadingAddOnServiceCatalog, setLoadingAddOnServiceCatalog] = useState(false);
+
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+  const isLaunchHire = formValues.addOnServicesLaunchHire !== false;
   const {
     addOnServiceRequests,
     isLoadingList,
@@ -49,6 +59,33 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
     ...row,
     document_url: row?.request_email_url || row?.documents?.[0]?.file_url || "",
   }));
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingAddOnServiceCatalog(true);
+        const { data } = await addOnService.getAllAddOnServices();
+        const list = unwrapApiList(data);
+        if (!cancelled) setAddOnServiceCatalog(list);
+      } catch {
+        if (!cancelled) setAddOnServiceCatalog([]);
+      } finally {
+        if (!cancelled) setLoadingAddOnServiceCatalog(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const addOnServiceTypeOptions = useMemo(() => {
+    const fromApi = addOnServiceCatalog.map((row) => ({
+      value: String(row.addon_service_id ?? row._id ?? ""),
+      label: row.service_name ?? "",
+    }));
+    return [...fromApi.filter((o) => o.value), { value: "Others", label: "Others" }];
+  }, [addOnServiceCatalog]);
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -191,12 +228,36 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
       notify("Service type is required.", "error", "top-center");
       return;
     }
+    if (isOthersSelected && !formValues.addOnServiceTypeOther) {
+      notify("Please specify the other service type.", "error", "top-center");
+      return;
+    }
+
+    let launchHireBookingDatetime = "";
+    if (isLaunchHire) {
+      if (!formValues.addOnServicesLaunchHireLocation) {
+        notify("Launch hire location is required.", "error", "top-center");
+        return;
+      }
+      launchHireBookingDatetime = buildPickupDateTime(
+        formValues.addOnServicesLaunchHireBookingDate,
+        formValues.addOnServicesLaunchHireBookingTime
+      );
+      if (!launchHireBookingDatetime) {
+        notify("Launch hire booking date and time are required.", "error", "top-center");
+        return;
+      }
+    }
 
     const payload = {
       call_id: Number(callId),
-      add_on_service_type: formValues.addOnServiceType,
-      add_on_service_type_other: formValues.addOnServiceTypeOther || "",
+      ...(isOthersSelected
+        ? { service_name: formValues.addOnServiceTypeOther || "" }
+        : { addon_service_id: Number(formValues.addOnServiceType) }),
       remarks: formValues.addOnServicesDescription || "",
+      launch_hire: isLaunchHire ? 1 : 0,
+      location: isLaunchHire ? formValues.addOnServicesLaunchHireLocation || "" : "",
+      booking_datetime: isLaunchHire ? launchHireBookingDatetime : "",
     };
 
     const formData = new FormData();
@@ -231,7 +292,7 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, createAddOnServiceRequest, getAddOnServiceRequests]);
+  }, [callId, formValues, isOthersSelected, isLaunchHire, createAddOnServiceRequest, getAddOnServiceRequests]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.addOnServicesRequestEmailDocuments || []
@@ -258,8 +319,13 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
                       <FormSelect
                         value={formValues.addOnServiceType || ""}
                         onChange={handleChange("addOnServiceType")}
-                        options={ADD_ON_SERVICE_TYPE_OPTIONS}
-                        placeholder="Select service type..."
+                        options={addOnServiceTypeOptions}
+                        placeholder={
+                          loadingAddOnServiceCatalog
+                            ? "Loading service types..."
+                            : "Select service type..."
+                        }
+                        disabled={loadingAddOnServiceCatalog}
                       />
                     </FormField>
                   </FormGroup>
@@ -297,6 +363,43 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
                         />
                       </div>
                     </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={ADD_ON_SERVICE_ACCENT}>
+                    <FormField>
+                      <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={isLaunchHire}
+                          onChange={(e) => handleChange("addOnServicesLaunchHire")({ target: { value: e.target.checked } })}
+                          style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
+                        />
+                        Launch hire required
+                      </label>
+                    </FormField>
+                    {isLaunchHire && (
+                      <FieldRow>
+                        <FormField label="Location">
+                          <FormSelect
+                            value={formValues.addOnServicesLaunchHireLocation || ""}
+                            onChange={handleChange("addOnServicesLaunchHireLocation")}
+                            options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                            placeholder="Select location..."
+                          />
+                        </FormField>
+                        <FormField label="Booking Date Time">
+                          <DateTimePickerField
+                            dateValue={formValues.addOnServicesLaunchHireBookingDate || ""}
+                            timeValue={formValues.addOnServicesLaunchHireBookingTime || ""}
+                            onDateChange={handleChange("addOnServicesLaunchHireBookingDate")}
+                            onTimeChange={handleChange("addOnServicesLaunchHireBookingTime")}
+                            dateFieldName="addOnServicesLaunchHireBookingDate"
+                            timeFieldName="addOnServicesLaunchHireBookingTime"
+                            placeholder="Select date and time"
+                          />
+                        </FormField>
+                      </FieldRow>
+                    )}
                   </FormGroup>
 
                   <FormGroup icon="folder" label="Documents" accent={ADD_ON_SERVICE_ACCENT}>
