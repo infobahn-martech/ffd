@@ -1089,7 +1089,7 @@ function CrewListBatchwisePanel({
                       idx === i ? { ...b, legs: { ...b.legs, [activeLeg]: { ...b.legs[activeLeg], stepBackLog: [...b.legs[activeLeg].stepBackLog, { step: label, reason, time: new Date().toISOString() }] } } } : b
                     )
                   ),
-                  cancelApi: (reasonCode, reasonText) => cancelBatchTs(activeLeg, key, reasonCode, reasonText),
+                  cancelApi: (reasonCode, reasonText) => cancelBatchTs(i, activeLeg, key, reasonCode, reasonText),
                 })}
               />
             )}
@@ -1543,12 +1543,13 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     recordCheckpoint(batchIdx, legKey, TRIP_COMPLETED_CHECKPOINT);
   }, [recordCheckpoint]);
 
-  const cancelBatchTs = useCallback((legKey, key, reasonCode, reasonText) => {
+  const cancelBatchTs = useCallback((batchIdx, legKey, key, reasonCode, reasonText) => {
     const checkpoint = CHECKPOINT_BY_KEY[key];
-    if (bookingId == null || !checkpoint) return;
+    const bookingItemId = batches[batchIdx]?.bookingItemId;
+    if (bookingItemId == null || !checkpoint) return;
     launchHireService
       .cancelTaxiboatTimestamp({
-        booking_id: bookingId,
+        booking_item_id: bookingItemId,
         trip_type: legKey === "drop" ? "Drop" : "Pickup",
         checkpoint,
         reason_code: reasonCode,
@@ -1557,7 +1558,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       .catch((err) => {
         notifyError(err?.response?.data?.message ?? err.message ?? "Failed to undo timestamp");
       });
-  }, [bookingId, notifyError]);
+  }, [batches, notifyError]);
 
   // create_intermediate_trip needs the fleet/captain already assigned to this booking —
   // prefer get_taxiboat_booking_detail's confirmed assignment, falling back to the
