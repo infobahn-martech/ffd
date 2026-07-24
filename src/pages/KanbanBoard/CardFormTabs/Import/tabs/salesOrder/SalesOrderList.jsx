@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
-import { FiFilePlus, FiFileText, FiClipboard, FiTool, FiCheck } from "react-icons/fi";
+import { FiFilePlus, FiFileText, FiClipboard, FiTool, FiCheck, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../../design/scss/salesOrder.scss";
@@ -13,6 +13,7 @@ import GoodsReceiptPOModal from "./GoodsReceiptPOModal";
 
 const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
 const USD_TO_SAR_RATE = 3.75;
+const SALES_ORDER_PAGE_SIZE = 10;
 
 // Group Checkbox Component with indeterminate support
 const GroupCheckbox = ({ checked, indeterminate, onChange, onClick }) => {
@@ -495,6 +496,84 @@ DocumentListModal.propTypes = {
   ),
 };
 
+// Premium pagination control for the sales order table
+const SalesOrderPagination = ({ page, total, limit, onPageChange }) => {
+  if (!total || total <= 0) return null;
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const start = (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
+
+  const getPageNumbers = () => {
+    const maxVisible = 5;
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages = [1];
+    let rangeStart = Math.max(2, page - 1);
+    let rangeEnd = Math.min(totalPages - 1, page + 1);
+    if (page <= 2) rangeEnd = 4;
+    if (page >= totalPages - 1) rangeStart = totalPages - 3;
+    if (rangeStart > 2) pages.push("ellipsis-start");
+    for (let i = rangeStart; i <= rangeEnd; i++) pages.push(i);
+    if (rangeEnd < totalPages - 1) pages.push("ellipsis-end");
+    pages.push(totalPages);
+    return pages;
+  };
+
+  return (
+    <div className="so-pagination">
+      <span className="so-pagination-info">
+        Showing <strong>{start}</strong>–<strong>{end}</strong> of <strong>{total}</strong> entries
+      </span>
+      <div className="so-pagination-controls">
+        <button
+          type="button"
+          className="so-pagination-btn so-pagination-nav"
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          disabled={page === 1}
+          aria-label="Previous page"
+        >
+          <FiChevronLeft size={16} />
+        </button>
+        {getPageNumbers().map((p) =>
+          typeof p === "number" ? (
+            <button
+              key={p}
+              type="button"
+              className={`so-pagination-btn so-pagination-page${page === p ? " is-active" : ""}`}
+              onClick={() => onPageChange(p)}
+              aria-current={page === p ? "page" : undefined}
+            >
+              {p}
+            </button>
+          ) : (
+            <span key={p} className="so-pagination-ellipsis">
+              &hellip;
+            </span>
+          )
+        )}
+        <button
+          type="button"
+          className="so-pagination-btn so-pagination-nav"
+          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+          disabled={page === totalPages}
+          aria-label="Next page"
+        >
+          <FiChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+SalesOrderPagination.propTypes = {
+  page: PropTypes.number.isRequired,
+  total: PropTypes.number.isRequired,
+  limit: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+};
+
 const SalesOrderList = ({
   formValues,
   handleChange,
@@ -535,6 +614,7 @@ const SalesOrderList = ({
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
   const [newItemForm, setNewItemForm] = useState({
     callFile: "",
     itemNo: "",
@@ -577,6 +657,16 @@ const SalesOrderList = ({
 
   const displayOrderList = Array.isArray(salesOrderList) ? salesOrderList : [];
 
+  const totalOrderCount = displayOrderList.length;
+  const totalOrderPages = Math.max(1, Math.ceil(totalOrderCount / SALES_ORDER_PAGE_SIZE));
+
+  useEffect(() => {
+    if (currentPage > totalOrderPages) setCurrentPage(totalOrderPages);
+  }, [currentPage, totalOrderPages]);
+
+  const paginationStart = (currentPage - 1) * SALES_ORDER_PAGE_SIZE;
+  const paginatedOrderList = displayOrderList.slice(paginationStart, paginationStart + SALES_ORDER_PAGE_SIZE);
+
   // Group items by callFile
   const groupByCallFile = (orders) => {
     const grouped = {};
@@ -597,7 +687,7 @@ const SalesOrderList = ({
     return { grouped, ungrouped };
   };
 
-  const { grouped, ungrouped } = groupByCallFile(displayOrderList);
+  const { grouped, ungrouped } = groupByCallFile(paginatedOrderList);
 
   // Toggle accordion for callFile
   const toggleCallFileAccordion = (callFile) => {
@@ -1199,15 +1289,6 @@ const SalesOrderList = ({
           <span className="sales-order-list-title-bar"></span>
           SALES ORDER LIST
         </h3>
-        {!readOnly && (
-          <button
-            type="button"
-            className="sales-order-add-button"
-            onClick={handleAddNewItem}
-          >
-            + Add Item
-          </button>
-        )}
       </div>
 
       {salesOrderError && (
@@ -1227,188 +1308,176 @@ const SalesOrderList = ({
         </div>
       )}
 
-      {/* SO Header Fields Panel */}
-      <div className="so-header-panel">
-        {/* Row 1: Customer Code | Customer Name | Contact Person | Contact Email */}
-        <div className="so-header-row">
-          <div className="so-header-field">
-            <label className="so-header-label">Customer Code</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={soCustomerCode}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Customer Name</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={soCustomerName}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Contact Person</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={soContactPerson}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Contact Email</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={soContactEmail}
-              readOnly
-            />
-          </div>
-        </div>
-
-        {/* Row 2: PO No | SRT Number | Project Name | Port */}
-        <div className="so-header-row">
-          <div className="so-header-field">
-            <label className="so-header-label">PO No <span className="so-required">*</span></label>
-            <input
-              type="text"
-              className={"so-header-input" + (!soPoNo && !readOnly ? " so-input-required" : "")}
-              placeholder="Enter PO No..."
-              value={soPoNo}
-              onChange={handleChange("soPoNo")}
-              readOnly={readOnly}
-              required
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">SRT Number</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={srtNumber}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Project Name <span className="so-required">*</span></label>
-            <input
-              type="text"
-              className={"so-header-input" + (!soProjectName && !readOnly ? " so-input-required" : "")}
-              placeholder="Enter project name..."
-              value={soProjectName}
-              onChange={handleChange("soProjectName")}
-              readOnly={readOnly}
-              required
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Port</label>
-            <select
-              className="so-header-select"
-              value={soPort}
-              onChange={handleChange("soPort")}
-              disabled={readOnly}
-            >
-              <option value="">Select Port...</option>
-              {portOptions.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Row 3: Branch | SO No | Posting Date | Delivery Date */}
-        <div className="so-header-row">
-          <div className="so-header-field">
-            <label className="so-header-label">Branch</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={branch}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">SO No</label>
-            <input
-              type="text"
-              className="so-header-input so-header-input-readonly"
-              value={soSoNo}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Posting Date</label>
-            <input
-              type="date"
-              className="so-header-input so-header-input-readonly"
-              value={soPostingDate}
-              readOnly
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Delivery Date</label>
-            <input
-              type="date"
-              className="so-header-input"
-              value={soDeliveryDate}
-              onChange={handleChange("soDeliveryDate")}
-              readOnly={readOnly}
-            />
-          </div>
-        </div>
-
-        {/* Row 4: Document Date | Ship Name | BP Currency | Conversion rate (USD/EURO/SAR placeholder) */}
-        <div className="so-header-row">
-          <div className="so-header-field">
-            <label className="so-header-label">Document Date</label>
-            <input
-              type="date"
-              className="so-header-input"
-              value={soDocumentDate}
-              onChange={handleChange("soDocumentDate")}
-              readOnly={readOnly}
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">Ship Name</label>
-            <input
-              type="text"
-              className="so-header-input"
-              placeholder="Enter ship name..."
-              value={soShipName}
-              onChange={handleChange("soShipName")}
-              readOnly={readOnly}
-            />
-          </div>
-          <div className="so-header-field">
-            <label className="so-header-label">BP Currency</label>
-            <select
-              className="so-header-select"
-              value={soBpCurrency}
-              onChange={handleChange("soBpCurrency")}
-              disabled={readOnly}
-            >
-              <option value="">—</option>
-              {BP_CURRENCY_OPTIONS.map((c) => (
-                <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
-              ))}
-            </select>
-          </div>
-          <div className="so-header-field">
+      <div className="so-main-layout">
+        {/* Left: SO Header Fields Panel — scrollable field list */}
+        <div className="so-left-panel">
+          <div className="so-left-panel-title">Order Details</div>
+          <div className="so-left-field-list">
+            <div className="so-header-field">
+              <label className="so-header-label">Customer Code</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={soCustomerCode}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Customer Name</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={soCustomerName}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Contact Person</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={soContactPerson}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Contact Email</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={soContactEmail}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">PO No <span className="so-required">*</span></label>
+              <input
+                type="text"
+                className={"so-header-input" + (!soPoNo && !readOnly ? " so-input-required" : "")}
+                placeholder="Enter PO No..."
+                value={soPoNo}
+                onChange={handleChange("soPoNo")}
+                readOnly={readOnly}
+                required
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">SRT Number</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={srtNumber}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Project Name <span className="so-required">*</span></label>
+              <input
+                type="text"
+                className={"so-header-input" + (!soProjectName && !readOnly ? " so-input-required" : "")}
+                placeholder="Enter project name..."
+                value={soProjectName}
+                onChange={handleChange("soProjectName")}
+                readOnly={readOnly}
+                required
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Port</label>
+              <select
+                className="so-header-select"
+                value={soPort}
+                onChange={handleChange("soPort")}
+                disabled={readOnly}
+              >
+                <option value="">Select Port...</option>
+                {portOptions.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Branch</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={branch}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">SO No</label>
+              <input
+                type="text"
+                className="so-header-input so-header-input-readonly"
+                value={soSoNo}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Posting Date</label>
+              <input
+                type="date"
+                className="so-header-input so-header-input-readonly"
+                value={soPostingDate}
+                readOnly
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Delivery Date</label>
+              <input
+                type="date"
+                className="so-header-input"
+                value={soDeliveryDate}
+                onChange={handleChange("soDeliveryDate")}
+                readOnly={readOnly}
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Document Date</label>
+              <input
+                type="date"
+                className="so-header-input"
+                value={soDocumentDate}
+                onChange={handleChange("soDocumentDate")}
+                readOnly={readOnly}
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">Ship Name</label>
+              <input
+                type="text"
+                className="so-header-input"
+                placeholder="Enter ship name..."
+                value={soShipName}
+                onChange={handleChange("soShipName")}
+                readOnly={readOnly}
+              />
+            </div>
+            <div className="so-header-field">
+              <label className="so-header-label">BP Currency</label>
+              <select
+                className="so-header-select"
+                value={soBpCurrency}
+                onChange={handleChange("soBpCurrency")}
+                disabled={readOnly}
+              >
+                <option value="">—</option>
+                {BP_CURRENCY_OPTIONS.map((c) => (
+                  <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
+                ))}
+              </select>
+            </div>
             {soBpCurrency === "USD" && (
-              <>
+              <div className="so-header-field">
                 <label className="so-header-label">USD → SAR Rate</label>
                 <span className="so-currency-rate so-currency-rate-block">
                   1 USD = {USD_TO_SAR_RATE} SAR
                 </span>
-              </>
+              </div>
             )}
             {soBpCurrency === "EURO" && (
-              <>
+              <div className="so-header-field">
                 <label className="so-header-label">Conversion Rate (€ → SAR) <span className="so-required">*</span></label>
                 <input
                   type="number"
@@ -1421,515 +1490,505 @@ const SalesOrderList = ({
                   readOnly={readOnly}
                   required
                 />
-              </>
-            )}
-            {soBpCurrency !== "USD" && soBpCurrency !== "EURO" && (
-              <>
-                <label className="so-header-label">&nbsp;</label>
-                <input
-                  type="text"
-                  className="so-header-input so-header-input-readonly"
-                  value=""
-                  readOnly
-                  tabIndex={-1}
-                  aria-hidden="true"
-                />
-              </>
+              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Summary Section */}
-      {/* <div className="sales-order-summary-section">
-        <div className="sales-order-summary-grid">
-          <div className="sales-order-summary-item">
-            <label className="sales-order-summary-label">Billing Entity</label>
-            <div className="sales-order-summary-value">{billingEntity}</div>
+        {/* Right: Table view + Accounting Summary — wider column */}
+        <div className="so-right-panel">
+          <div className="so-right-panel-header">
+            <h4 className="so-right-panel-title">Line Items</h4>
+            {!readOnly && (
+              <button
+                type="button"
+                className="sales-order-add-button"
+                onClick={handleAddNewItem}
+              >
+                + Add Item
+              </button>
+            )}
           </div>
-          <div className="sales-order-summary-item">
-            <label className="sales-order-summary-label">Email</label>
-            <div className="sales-order-summary-value">{soContactEmail}</div>
-          </div>
-          <div className="sales-order-summary-item sales-order-summary-item-highlight">
-            <label className="sales-order-summary-label">Line Item Total</label>
-            <div className="sales-order-summary-value sales-order-summary-total">
-              {formatCurrencySAR(calculatedLineItemTotal)}
-            </div>
-          </div>
-        </div>
-      </div> */}
 
-      {/* Add Item Popover */}
-      {!readOnly && isAccordionOpen && (
-        <>
-          <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
-          <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
-          <div className="sales-order-add-accordion-header">
-            <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="sales-order-add-accordion-close"
-              style={{ color: cardColor }}
-            >
-              ×
-            </button>
-          </div>
-          <div className="sales-order-add-accordion-body">
-            <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-              <div className="sales-order-add-form-field">
-                <label>Call File</label>
-                <select
-                  value={newItemForm.callFile}
-                  onChange={(e) => handleFormChange("callFile", e.target.value)}
-                  className="sales-order-add-form-input"
+          {/* Add Item Popover */}
+          {!readOnly && isAccordionOpen && (
+            <>
+              <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
+              <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
+              <div className="sales-order-add-accordion-header">
+                <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="sales-order-add-accordion-close"
+                  style={{ color: cardColor }}
                 >
-                  <option value="">Select Call File...</option>
-                  <option value="CALL-001">CALL-001</option>
-                  <option value="CALL-002">CALL-002</option>
-                  <option value="CALL-003">CALL-003</option>
-                  <option value="CALL-004">CALL-004</option>
-                  <option value="CALL-005">CALL-005</option>
-                </select>
+                  ×
+                </button>
               </div>
-              <div className="sales-order-add-form-field">
-                <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
-                <input
-                  type="text"
-                  value={newItemForm.itemNo}
-                  onChange={(e) => handleFormChange("itemNo", e.target.value)}
-                  placeholder="e.g., ITEM-001"
-                  className="sales-order-add-form-input"
-                  required
-                />
-              </div>
-              <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
-                <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
-                <input
-                  type="text"
-                  value={newItemForm.itemDescription}
-                  onChange={(e) => handleFormChange("itemDescription", e.target.value)}
-                  placeholder="e.g., Container Handling Service"
-                  className="sales-order-add-form-input"
-                  required
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Quantity</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={newItemForm.qty}
-                  onChange={(e) => handleFormChange("qty", e.target.value)}
-                  placeholder="1"
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Unit Price</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newItemForm.unitPrice}
-                  onChange={(e) => handleFormChange("unitPrice", e.target.value)}
-                  placeholder="0.00"
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Discount</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={newItemForm.discount}
-                  onChange={(e) => handleFormChange("discount", e.target.value)}
-                  placeholder="0"
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Tax Code</label>
-                <select
-                  value={newItemForm.taxCode}
-                  onChange={(e) => handleFormChange("taxCode", e.target.value)}
-                  className="sales-order-add-form-input"
-                >
-                  {TAX_CODE_OPTIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Type of PO</label>
-                <select
-                  value={newItemForm.typeOfPo}
-                  onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
-                  className="sales-order-add-form-input"
-                >
-                  <option value="">— Select —</option>
-                  {TYPE_OF_PO_OPTIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Supporting Documents</label>
-                <div className="sales-order-add-form-docs">
-                  {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
+              <div className="sales-order-add-accordion-body">
+                <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                  <div className="sales-order-add-form-field">
+                    <label>Call File</label>
+                    <select
+                      value={newItemForm.callFile}
+                      onChange={(e) => handleFormChange("callFile", e.target.value)}
+                      className="sales-order-add-form-input"
+                    >
+                      <option value="">Select Call File...</option>
+                      <option value="CALL-001">CALL-001</option>
+                      <option value="CALL-002">CALL-002</option>
+                      <option value="CALL-003">CALL-003</option>
+                      <option value="CALL-004">CALL-004</option>
+                      <option value="CALL-005">CALL-005</option>
+                    </select>
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
+                    <input
+                      type="text"
+                      value={newItemForm.itemNo}
+                      onChange={(e) => handleFormChange("itemNo", e.target.value)}
+                      placeholder="e.g., ITEM-001"
+                      className="sales-order-add-form-input"
+                      required
+                    />
+                  </div>
+                  <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
+                    <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
+                    <input
+                      type="text"
+                      value={newItemForm.itemDescription}
+                      onChange={(e) => handleFormChange("itemDescription", e.target.value)}
+                      placeholder="e.g., Container Handling Service"
+                      className="sales-order-add-form-input"
+                      required
+                    />
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Quantity</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={newItemForm.qty}
+                      onChange={(e) => handleFormChange("qty", e.target.value)}
+                      placeholder="1"
+                      className="sales-order-add-form-input"
+                    />
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Unit Price</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={newItemForm.unitPrice}
+                      onChange={(e) => handleFormChange("unitPrice", e.target.value)}
+                      placeholder="0.00"
+                      className="sales-order-add-form-input"
+                    />
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Discount</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={newItemForm.discount}
+                      onChange={(e) => handleFormChange("discount", e.target.value)}
+                      placeholder="0"
+                      className="sales-order-add-form-input"
+                    />
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Tax Code</label>
+                    <select
+                      value={newItemForm.taxCode}
+                      onChange={(e) => handleFormChange("taxCode", e.target.value)}
+                      className="sales-order-add-form-input"
+                    >
+                      {TAX_CODE_OPTIONS.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Type of PO</label>
+                    <select
+                      value={newItemForm.typeOfPo}
+                      onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
+                      className="sales-order-add-form-input"
+                    >
+                      <option value="">— Select —</option>
+                      {TYPE_OF_PO_OPTIONS.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Supporting Documents</label>
+                    <div className="sales-order-add-form-docs">
+                      {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
+                    </div>
+                  </div>
+                  <div className="sales-order-add-form-field">
+                    <label>Supplier Code</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <input
+                        type="text"
+                        value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
+                        readOnly
+                        placeholder="— Select vendor —"
+                        className="sales-order-add-form-input"
+                        style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setVendorModalTarget("new")}
+                        style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                      >
+                        {newItemForm.supplierCode ? "Change" : "Select"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Supplier Code</label>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <input
-                    type="text"
-                    value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
-                    readOnly
-                    placeholder="— Select vendor —"
-                    className="sales-order-add-form-input"
-                    style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
-                  />
+                <div className="sales-order-add-form-actions">
                   <button
                     type="button"
-                    onClick={() => setVendorModalTarget("new")}
-                    style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                    onClick={handleCancel}
+                    className="sales-order-add-form-cancel"
                   >
-                    {newItemForm.supplierCode ? "Change" : "Select"}
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveNewItem}
+                    className="btn btn-primary sales-order-add-form-save"
+                    style={{ backgroundColor: "#00368c" }}
+                  >
+                    Save
                   </button>
                 </div>
               </div>
-            </div>
-            <div className="sales-order-add-form-actions">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="sales-order-add-form-cancel"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveNewItem}
-                className="btn btn-primary sales-order-add-form-save"
-                style={{ backgroundColor: "#00368c" }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-          </div>
-        </>
-      )}
+              </div>
+            </>
+          )}
 
-      {/* Sticky Bulk Action Bar */}
-      {!isDAModule && selectedItems.size > 0 && (
-        <div ref={bulkActionBarRef} className="so-bulk-action-bar">
-          <div className="so-bulk-action-info">
-            <span className="so-bulk-action-count">
-              {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
-            </span>
-            <button
-              type="button"
-              onClick={handleClearSelection}
-              className="so-bulk-btn so-bulk-btn-clear"
-            >
-              Clear Selection
-            </button>
-          </div>
-          <div className="so-bulk-action-buttons">
-            <button
-              type="button"
-              onClick={handleClearSelection}
-              className="so-bulk-btn so-bulk-btn-cancel"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleGeneratePO}
-              className="so-bulk-btn so-bulk-btn-generate-po"
-            >
-              <FiClipboard className="so-bulk-btn-icon" />
-              Generate PO
-            </button>
-            <button
-              type="button"
-              onClick={handleGenerateWorkOrder}
-              className="so-bulk-btn so-bulk-btn-generate-wo"
-            >
-              <FiTool className="so-bulk-btn-icon" />
-              Generate Work Order
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="table-wrapper sales-order-table-container" style={{ position: "relative" }}>
-        {isLoadingSalesOrder && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 5,
-              backgroundColor: "rgba(255, 255, 255, 0.75)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-              gap: "12px",
-            }}
-            aria-busy="true"
-            aria-live="polite"
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                border: "3px solid #e2e8f0",
-                borderTopColor: cardColor || "#2A00FF",
-                borderRadius: "50%",
-                animation: "salesOrderSpin 0.8s linear infinite",
-              }}
-            />
-            <style>{`@keyframes salesOrderSpin { to { transform: rotate(360deg); } }`}</style>
-            <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>Loading sales order…</span>
-          </div>
-        )}
-        {/* Tooltips for table headers (DAModule only, labels > 10 chars) */}
-        {isDAModule && (
-          <>
-            <Tooltip id="header-tooltip-item-description" place="top" content="Item Description" className="small-header-tooltip" />
-            <Tooltip id="header-tooltip-total-amount" place="top" content="Total Amount" className="small-header-tooltip" />
-          </>
-        )}
-        <table className="table table-striped sales-order-table sales-order-list-table" style={{ "--card-color": "#e2e6ff" }}>
-          <thead>
-            <tr>
-              {!isDAModule && <th className="col-checkbox"></th>}
-              {renderTableHeader("Item No", "col-item-no")}
-              {renderTableHeader("Item Description", "col-item-desc")}
-              {renderTableHeader("Quantity", "col-qty")}
-              {renderTableHeader("Unit Price", "col-unit-price")}
-              {renderTableHeader("Discount", "col-discount")}
-              {renderTableHeader("Tax Code", "col-tax")}
-              {renderTableHeader("Total Amount", "col-total")}
-              {renderTableHeader("Work Order No.", "col-work-order")}
-              {renderTableHeader("Type of PO", "col-type-po")}
-              {renderTableHeader("Third Party", "col-third-party")}
-              {renderTableHeader("Supporting Documents", "col-documents")}
-              {renderTableHeader("Supplier Code", "col-supplier")}
-              {renderTableHeader("Status", "col-status")}
-            </tr>
-          </thead>
-          <tbody>
-            {displayOrderList.length === 0 && !isLoadingSalesOrder && (
-              <tr>
-                <td
-                  colSpan={isDAModule ? 13 : 14}
-                  style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
+          {/* Sticky Bulk Action Bar */}
+          {!isDAModule && selectedItems.size > 0 && (
+            <div ref={bulkActionBarRef} className="so-bulk-action-bar">
+              <div className="so-bulk-action-info">
+                <span className="so-bulk-action-count">
+                  {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClearSelection}
+                  className="so-bulk-btn so-bulk-btn-clear"
                 >
-                  No sales order line items for this call.
-                </td>
-              </tr>
+                  Clear Selection
+                </button>
+              </div>
+              <div className="so-bulk-action-buttons">
+                <button
+                  type="button"
+                  onClick={handleClearSelection}
+                  className="so-bulk-btn so-bulk-btn-cancel"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGeneratePO}
+                  className="so-bulk-btn so-bulk-btn-generate-po"
+                >
+                  <FiClipboard className="so-bulk-btn-icon" />
+                  Generate PO
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerateWorkOrder}
+                  className="so-bulk-btn so-bulk-btn-generate-wo"
+                >
+                  <FiTool className="so-bulk-btn-icon" />
+                  Generate Work Order
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="table-wrapper sales-order-table-container" style={{ position: "relative" }}>
+            {isLoadingSalesOrder && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 5,
+                  backgroundColor: "rgba(255, 255, 255, 0.75)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+                aria-busy="true"
+                aria-live="polite"
+              >
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    border: "3px solid #e2e8f0",
+                    borderTopColor: cardColor || "#2A00FF",
+                    borderRadius: "50%",
+                    animation: "salesOrderSpin 0.8s linear infinite",
+                  }}
+                />
+                <style>{`@keyframes salesOrderSpin { to { transform: rotate(360deg); } }`}</style>
+                <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>Loading sales order…</span>
+              </div>
             )}
-            {/* Render grouped items with accordion (2+ items per callFile) */}
-            {Object.entries(grouped).map(([callFile, orders]) => {
-              if (orders.length < 2) {
-                // If only 1 item, render as regular row
-                return renderOrderRow(orders[0]);
-              }
-
-              const isExpanded = expandedCallFiles.has(callFile);
-              const groupAllSelected = isGroupAllSelected(orders);
-              const groupSomeSelected = isGroupSomeSelected(orders);
-
-              return (
-                <React.Fragment key={callFile}>
-                  {/* Accordion header row */}
-                  <tr
-                    className="sales-order-accordion-header-row"
-                    onClick={(e) => {
-                      // Don't toggle if clicking on checkbox
-                      if (!isDAModule && e.target.type === "checkbox") {
-                        e.stopPropagation();
-                        return;
-                      }
-                      toggleCallFileAccordion(callFile);
-                    }}
-                    style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
-                  >
-                    <td colSpan={isDAModule ? 13 : 14} style={{ padding: "12px 16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                          {!isDAModule && (
-                            <GroupCheckbox
-                              checked={groupAllSelected}
-                              indeterminate={groupSomeSelected}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleGroupSelectAll(callFile, orders, e.target.checked);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          )}
-                          <span
-                            style={{
-                              transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                              transition: "transform 0.2s",
-                              display: "inline-block",
-                              color: cardColor,
-                              fontWeight: "bold",
-                              fontSize: "16px"
-                            }}
-                          >
-                            ▶
-                          </span>
-                          <span style={{ fontWeight: "600", color: "#1a1a1a" }}>
-                            Call File: {callFile}
-                          </span>
-                          <span style={{
-                            fontSize: "12px",
-                            color: "#666",
-                            backgroundColor: "rgba(42, 0, 255, 0.1)",
-                            padding: "2px 8px",
-                            borderRadius: "12px"
-                          }}>
-                            {orders.length} item{orders.length > 1 ? "s" : ""}
-                          </span>
-                        </div>
-                      </div>
+            {/* Tooltips for table headers (DAModule only, labels > 10 chars) */}
+            {isDAModule && (
+              <>
+                <Tooltip id="header-tooltip-item-description" place="top" content="Item Description" className="small-header-tooltip" />
+                <Tooltip id="header-tooltip-total-amount" place="top" content="Total Amount" className="small-header-tooltip" />
+              </>
+            )}
+            <table className="table table-striped sales-order-table sales-order-list-table" style={{ "--card-color": "#e2e6ff" }}>
+              <thead>
+                <tr>
+                  {!isDAModule && <th className="col-checkbox"></th>}
+                  {renderTableHeader("Item No", "col-item-no")}
+                  {renderTableHeader("Item Description", "col-item-desc")}
+                  {renderTableHeader("Quantity", "col-qty")}
+                  {renderTableHeader("Unit Price", "col-unit-price")}
+                  {renderTableHeader("Discount", "col-discount")}
+                  {renderTableHeader("Tax Code", "col-tax")}
+                  {renderTableHeader("Total Amount", "col-total")}
+                  {renderTableHeader("Work Order No.", "col-work-order")}
+                  {renderTableHeader("Type of PO", "col-type-po")}
+                  {renderTableHeader("Third Party", "col-third-party")}
+                  {renderTableHeader("Supporting Documents", "col-documents")}
+                  {renderTableHeader("Supplier Code", "col-supplier")}
+                  {renderTableHeader("Status", "col-status")}
+                </tr>
+              </thead>
+              <tbody>
+                {displayOrderList.length === 0 && !isLoadingSalesOrder && (
+                  <tr>
+                    <td
+                      colSpan={isDAModule ? 13 : 14}
+                      style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
+                    >
+                      No sales order line items for this call.
                     </td>
                   </tr>
-                  {/* Accordion content rows */}
-                  {isExpanded && orders.map((order) => renderOrderRow(order))}
-                </React.Fragment>
-              );
-            })}
-            {/* Render ungrouped items (no callFile) */}
-            {ungrouped.map((order) => renderOrderRow(order))}
-          </tbody>
-        </table>
-      </div>
+                )}
+                {/* Render grouped items with accordion (2+ items per callFile) */}
+                {Object.entries(grouped).map(([callFile, orders]) => {
+                  if (orders.length < 2) {
+                    // If only 1 item, render as regular row
+                    return renderOrderRow(orders[0]);
+                  }
 
-      {/* Accounting Summary Panel */}
-      {(() => {
-        const amountFromForm = (v) => {
-          if (v == null || v === "") return null;
-          const n = parseFloat(String(v).replace(/,/g, ""));
-          return Number.isFinite(n) ? n : null;
-        };
+                  const isExpanded = expandedCallFiles.has(callFile);
+                  const groupAllSelected = isGroupAllSelected(orders);
+                  const groupSomeSelected = isGroupSomeSelected(orders);
 
-        const subtotalCalc = displayOrderList.reduce((sum, item) => {
-          const qty = parseFloat(item.qty) || 0;
-          const unitPrice = parseFloat(item.unitPrice) || 0;
-          return sum + qty * unitPrice;
-        }, 0);
-        const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
-          const qty = parseFloat(item.qty) || 0;
-          const unitPrice = parseFloat(item.unitPrice) || 0;
-          const discount = parseFloat(item.discount) || 0;
-          return sum + qty * unitPrice * (discount / 100);
-        }, 0);
-        const totalTaxCalc = displayOrderList.reduce((sum, item) => {
-          const qty = parseFloat(item.qty) || 0;
-          const unitPrice = parseFloat(item.unitPrice) || 0;
-          const discount = parseFloat(item.discount) || 0;
-          const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
-          const discountedTotal = qty * unitPrice * (1 - discount / 100);
-          return sum + discountedTotal * taxRate;
-        }, 0);
-        const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
-
-        const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
-        const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
-        const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
-        const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
-        const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
-
-        return (
-          <div className="so-accounting-summary">
-            <div className="so-accounting-title">
-              <span className="so-accounting-title-bar"></span>
-              ACCOUNTING SUMMARY
-            </div>
-            <div className="so-accounting-body">
-              {/* Left: info fields */}
-              <div className="so-accounting-info">
-                <div className="so-accounting-info-field">
-                  <label className="so-accounting-info-label">Owner</label>
-                  <input
-                    type="text"
-                    className="so-accounting-info-value"
-                    value={formValues.soOwner || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="so-accounting-info-field">
-                  <label className="so-accounting-info-label">Project Name</label>
-                  <input
-                    type="text"
-                    className="so-accounting-info-value"
-                    value={formValues.soProjectName || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="so-accounting-info-field">
-                  <label className="so-accounting-info-label">Remarks</label>
-                  <textarea
-                    className="so-accounting-info-textarea"
-                    placeholder="Enter remarks..."
-                    value={formValues.soRemarks || ""}
-                    onChange={readOnly ? undefined : handleChange("soRemarks")}
-                    disabled={readOnly}
-                  />
-                </div>
-              </div>
-
-              {/* Right: accounting card */}
-              <div className="so-accounting-right">
-                <div className="so-accounting-card-title">Accounting</div>
-                <div className="so-accounting-grid">
-                  <div className="so-accounting-row">
-                    <span className="so-accounting-label">Currency</span>
-                    <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
-                  </div>
-                  <div className="so-accounting-divider" />
-                  <div className="so-accounting-row">
-                    <span className="so-accounting-label">Subtotal</span>
-                    <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
-                  </div>
-                  {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
-                    <div className="so-accounting-row">
-                      <span className="so-accounting-label">Discount</span>
-                      <span className="so-accounting-value">
-                        {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
-                      </span>
-                    </div>
-                  )}
-                  <div className="so-accounting-row">
-                    <span className="so-accounting-label">Total Discount</span>
-                    <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
-                  </div>
-                  <div className="so-accounting-row">
-                    <span className="so-accounting-label">Total Tax</span>
-                    <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
-                  </div>
-                  <div className="so-accounting-divider" />
-                  <div className="so-accounting-row so-accounting-grand">
-                    <span className="so-accounting-label">Grand Total</span>
-                    <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  return (
+                    <React.Fragment key={callFile}>
+                      {/* Accordion header row */}
+                      <tr
+                        className="sales-order-accordion-header-row"
+                        onClick={(e) => {
+                          // Don't toggle if clicking on checkbox
+                          if (!isDAModule && e.target.type === "checkbox") {
+                            e.stopPropagation();
+                            return;
+                          }
+                          toggleCallFileAccordion(callFile);
+                        }}
+                        style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
+                      >
+                        <td colSpan={isDAModule ? 13 : 14} style={{ padding: "12px 16px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                              {!isDAModule && (
+                                <GroupCheckbox
+                                  checked={groupAllSelected}
+                                  indeterminate={groupSomeSelected}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleGroupSelectAll(callFile, orders, e.target.checked);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              )}
+                              <span
+                                style={{
+                                  transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                                  transition: "transform 0.2s",
+                                  display: "inline-block",
+                                  color: cardColor,
+                                  fontWeight: "bold",
+                                  fontSize: "16px"
+                                }}
+                              >
+                                ▶
+                              </span>
+                              <span style={{ fontWeight: "600", color: "#1a1a1a" }}>
+                                Call File: {callFile}
+                              </span>
+                              <span style={{
+                                fontSize: "12px",
+                                color: "#666",
+                                backgroundColor: "rgba(42, 0, 255, 0.1)",
+                                padding: "2px 8px",
+                                borderRadius: "12px"
+                              }}>
+                                {orders.length} item{orders.length > 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      {/* Accordion content rows */}
+                      {isExpanded && orders.map((order) => renderOrderRow(order))}
+                    </React.Fragment>
+                  );
+                })}
+                {/* Render ungrouped items (no callFile) */}
+                {ungrouped.map((order) => renderOrderRow(order))}
+              </tbody>
+            </table>
           </div>
-        );
-      })()}
+
+          <SalesOrderPagination
+            page={currentPage}
+            total={totalOrderCount}
+            limit={SALES_ORDER_PAGE_SIZE}
+            onPageChange={setCurrentPage}
+          />
+
+          {/* Accounting Summary Panel */}
+          {(() => {
+            const amountFromForm = (v) => {
+              if (v == null || v === "") return null;
+              const n = parseFloat(String(v).replace(/,/g, ""));
+              return Number.isFinite(n) ? n : null;
+            };
+
+            const subtotalCalc = displayOrderList.reduce((sum, item) => {
+              const qty = parseFloat(item.qty) || 0;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              return sum + qty * unitPrice;
+            }, 0);
+            const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
+              const qty = parseFloat(item.qty) || 0;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              const discount = parseFloat(item.discount) || 0;
+              return sum + qty * unitPrice * (discount / 100);
+            }, 0);
+            const totalTaxCalc = displayOrderList.reduce((sum, item) => {
+              const qty = parseFloat(item.qty) || 0;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              const discount = parseFloat(item.discount) || 0;
+              const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
+              const discountedTotal = qty * unitPrice * (1 - discount / 100);
+              return sum + discountedTotal * taxRate;
+            }, 0);
+            const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
+
+            const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
+            const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
+            const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
+            const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
+            const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
+
+            return (
+              <div className="so-accounting-summary">
+                <div className="so-accounting-title">
+                  <span className="so-accounting-title-bar"></span>
+                  ACCOUNTING SUMMARY
+                </div>
+                <div className="so-accounting-body">
+                  {/* Left: info fields */}
+                  <div className="so-accounting-info">
+                    <div className="so-accounting-info-field">
+                      <label className="so-accounting-info-label">Owner</label>
+                      <input
+                        type="text"
+                        className="so-accounting-info-value"
+                        value={formValues.soOwner || ""}
+                        readOnly
+                      />
+                    </div>
+                    <div className="so-accounting-info-field">
+                      <label className="so-accounting-info-label">Project Name</label>
+                      <input
+                        type="text"
+                        className="so-accounting-info-value"
+                        value={formValues.soProjectName || ""}
+                        readOnly
+                      />
+                    </div>
+                    <div className="so-accounting-info-field">
+                      <label className="so-accounting-info-label">Remarks</label>
+                      <textarea
+                        className="so-accounting-info-textarea"
+                        placeholder="Enter remarks..."
+                        value={formValues.soRemarks || ""}
+                        onChange={readOnly ? undefined : handleChange("soRemarks")}
+                        disabled={readOnly}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right: accounting card */}
+                  <div className="so-accounting-right">
+                    <div className="so-accounting-card-title">Accounting</div>
+                    <div className="so-accounting-grid">
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Currency</span>
+                        <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+                      </div>
+                      <div className="so-accounting-divider" />
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Subtotal</span>
+                        <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+                      </div>
+                      {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
+                        <div className="so-accounting-row">
+                          <span className="so-accounting-label">Discount</span>
+                          <span className="so-accounting-value">
+                            {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                          </span>
+                        </div>
+                      )}
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Total Discount</span>
+                        <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+                      </div>
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Total Tax</span>
+                        <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+                      </div>
+                      <div className="so-accounting-divider" />
+                      <div className="so-accounting-row so-accounting-grand">
+                        <span className="so-accounting-label">Grand Total</span>
+                        <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </div>
 
       {/* Work Order Creation Modal */}
       {showWorkOrderModal && (
