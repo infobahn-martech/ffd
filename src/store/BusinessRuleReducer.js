@@ -695,7 +695,14 @@ const useBusinessRuleReducer = create((set) => ({
         }
     },
 
-    updateCreateSubtaskSettings: async (createSubtaskId, payload, { cb, onSettled } = {}) => {
+    // onError is optional: the backend sometimes reports its saved-earlier
+    // "temporary" create-subtask record (from a prior saveCreateSubtaskSettings
+    // call) as no longer found once the parent business rule has since been
+    // saved/promoted. When a caller passes onError, that failure is handed back
+    // instead of toasted here, so CreateSubtaskSettingsModal can recover by
+    // re-creating the record via saveCreateSubtaskSettings rather than dead-ending
+    // the user's edit.
+    updateCreateSubtaskSettings: async (createSubtaskId, payload, { cb, onError, onSettled } = {}) => {
         try {
             set({ isSavingCreateSubtaskSettings: true });
             const { data } = await businessRuleService.updateCreateSubtaskSettings(createSubtaskId, payload);
@@ -705,8 +712,12 @@ const useBusinessRuleReducer = create((set) => ({
             cb && cb(data);
         } catch (err) {
             set({ isSavingCreateSubtaskSettings: false });
-            const { error } = useAlertReducer.getState();
-            error(err?.response?.data?.message ?? err.message);
+            if (onError) {
+                onError(err);
+            } else {
+                const { error } = useAlertReducer.getState();
+                error(err?.response?.data?.message ?? err.message);
+            }
         } finally {
             onSettled && onSettled();
         }
