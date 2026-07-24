@@ -29,6 +29,11 @@ export const MATERIAL_MANAGEMENT_SUBTABS = {
   ORDER_HISTORY: "orderHistory",
 };
 
+export const LAUNCH_HIRE_SUBTABS = {
+  REQUESTS: "launchHireRequests",
+  INBOUND_ORDERS: "launchHireInboundOrders",
+};
+
 // Sidebar tab icon colors — single source of truth for each tab's color.
 // Shared by the left-nav TabIcon and by SERVICE_ACCENT below so a page's
 // section headers/icons always match its own sidebar tab.
