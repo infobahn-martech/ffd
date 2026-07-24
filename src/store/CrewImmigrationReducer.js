@@ -5,6 +5,7 @@ import crewImmigrationService from '../services/crewImmigrationService';
 const useCrewImmigrationReducer = create((set) => ({
     /** Crew rows from POST crew/get_immigration_crew_list; null = not loaded yet */
     callCrewList: null,
+    callCrewListPagination: null,
     /** Batch names as returned by the API, e.g. ["Unassigned", "BATCH 1"] */
     batchOptions: [],
     /** uploaded_crew_files from the same response, for the "Uploaded Crew Lists" panel */
@@ -13,8 +14,8 @@ const useCrewImmigrationReducer = create((set) => ({
     isBeingUpdated: false,
     errorMessage: '',
 
-    // crew/get_immigration_crew_list only accepts { call_id } — no
-    // pagination/search — so it always returns the full crew list for the call.
+    // crew/get_immigration_crew_list accepts { call_id, search, page, limit,
+    // immigration_batch } — search and pagination are server-side.
     fetchCallCrewList: async ({ payload, cb } = {}) => {
         try {
             set({ isCallCrewListLoading: true });
@@ -30,15 +31,22 @@ const useCrewImmigrationReducer = create((set) => ({
                   )
                 : root?.crew ?? (Array.isArray(root) ? root : []);
             const list = Array.isArray(crew) ? crew : [];
+            const pagination = {
+                total: Number(root?.pagination?.total ?? root?.total ?? list.length ?? 0) || 0,
+                page: Number(root?.pagination?.page ?? root?.page ?? payload?.page ?? 1) || 1,
+                limit: Number(root?.pagination?.limit ?? root?.limit ?? payload?.limit ?? 10) || 10,
+                total_pages: Number(root?.pagination?.total_pages ?? root?.total_pages ?? 1) || 1,
+            };
             const batchOptions = batches.map((batch) => batch?.batch).filter(Boolean);
             const uploadedCrewFiles = Array.isArray(root?.uploaded_crew_files) ? root.uploaded_crew_files : [];
             set({
                 callCrewList: list,
+                callCrewListPagination: pagination,
                 batchOptions,
                 uploadedCrewFiles,
                 isCallCrewListLoading: false,
             });
-            cb && cb(list);
+            cb && cb(list, pagination);
             return list;
         } catch (err) {
             const { error } = useAlertReducer.getState();
