@@ -63,7 +63,7 @@ export default function KanbanBoardPage() {
 
   const {
     expandedWorkflows,
-    expandedColumns,
+    collapsedColumns,
     toggleWorkflow,
     expandWorkflow,
     collapseWorkflow,
@@ -261,7 +261,7 @@ export default function KanbanBoardPage() {
           boardLoading={boardLoading}
           suppressEmptyMessage={isOperatorBoard}
           expandedWorkflows={expandedWorkflows}
-          expandedColumns={expandedColumns}
+          collapsedColumns={collapsedColumns}
           maxColumnHeights={maxColumnHeights}
           createDragEndHandler={createDragEndHandler}
           onSelectCard={handleSelectCard}

@@ -8,16 +8,30 @@ import "react-tooltip/dist/react-tooltip.css";
 export default function ColumnHeader({
   column,
   wipDisplay,
-  isShrunk = false,
+  isCollapsed = false,
   onHeaderClick,
   isClassicLayout = false,
   isModernLayout = false,
   isDarkMode = false,
 }) {
   const columnColor = column.color || "#2A00FF";
-  const displayTitle =
-    isShrunk && column.title.length > 8 ? `${column.title.substring(0, 5)}...` : column.title;
   const tooltipId = `column-title-${column.id}`;
+
+  if (isCollapsed) {
+    return (
+      <div
+        className="column-header column-header--collapsed"
+        style={{ "--column-color": columnColor }}
+        onClick={onHeaderClick}
+        data-tooltip-id={tooltipId}
+        data-tooltip-content={column.title}
+      >
+        <span className="column-header--collapsed__count">{wipDisplay}</span>
+        <span className="column-header--collapsed__title">{column.title}</span>
+        <Tooltip id={tooltipId} place="top" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -28,31 +42,17 @@ export default function ColumnHeader({
       onClick={onHeaderClick}
     >
       <div className="column-left">
-        {isShrunk && column.title.length > 8 ? (
-          <>
-            <h2
-              className="column-title"
-              data-tooltip-id={tooltipId}
-              data-tooltip-content={column.title}
-            >
-              {displayTitle}
-            </h2>
-            <Tooltip id={tooltipId} place="top" />
-          </>
-        ) : (
-          <h2 className="column-title">
-            {isClassicLayout && column.wipLimit ? (
-              <>
-                {column.title}{" "}
-                <span className="column-wip-badge">({wipDisplay})</span>
-              </>
-            ) : (
-              displayTitle
-            )}
-          </h2>
-        )}
+        <h2 className="column-title">
+          {isClassicLayout && column.wipLimit ? (
+            <>
+              {column.title} <span className="column-wip-badge">({wipDisplay})</span>
+            </>
+          ) : (
+            column.title
+          )}
+        </h2>
       </div>
-      {!isShrunk && !isClassicLayout && <span className="column-count">{wipDisplay}</span>}
+      {!isClassicLayout && <span className="column-count">{wipDisplay}</span>}
     </div>
   );
 }
@@ -65,7 +65,7 @@ ColumnHeader.propTypes = {
     wipLimit: PropTypes.number,
   }).isRequired,
   wipDisplay: PropTypes.string.isRequired,
-  isShrunk: PropTypes.bool,
+  isCollapsed: PropTypes.bool,
   onHeaderClick: PropTypes.func,
   isClassicLayout: PropTypes.bool,
   isModernLayout: PropTypes.bool,

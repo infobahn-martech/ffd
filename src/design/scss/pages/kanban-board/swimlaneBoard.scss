@@ -1,4 +1,5 @@
-// Swimlane board: outer grid = fixed px tracks from getColumnWidth; inner grid = fixed card width, auto row height.
+// Swimlane board: outer grid tracks (minmax(Wpx, 1fr), or a fixed narrow track when collapsed) from getColumnWidth;
+// inner grid = fixed card width, auto row height.
 
 .kanban-container--board-hscroll {
   overflow-x: auto;
@@ -26,7 +27,7 @@
   gap: 0;
 }
 
-/* Outer row: gridTemplateColumns from getBoardGridTemplateColumns (px tracks + BOARD_COLUMN_GAP_PX) */
+/* Outer row: gridTemplateColumns from getBoardGridTemplateColumns (minmax/fixed tracks + BOARD_COLUMN_GAP_PX) */
 .kanban-board__header-row {
   width: max-content;
   min-width: 100%;
@@ -90,9 +91,47 @@
   overflow: hidden;
 }
 
-.kanban-board--swimlanes .column--swimlane-cell.column-expanded,
-.kanban-board--swimlanes .column--swimlane-cell.column-shrunk {
-  width: 100% !important;
+/* Collapsed column: fixed narrow track (COLLAPSED_COLUMN_WIDTH), title rotated vertically */
+.kanban-board--swimlanes .column--swimlane-cell.column-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.column-collapsed__title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Manrope", sans-serif;
+  color: #3a3a3a;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.column-header.column-header--collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.column-header--collapsed__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.column-header--collapsed__count {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: "Manrope", sans-serif;
+  color: #5a5a5a;
 }
 
 /*

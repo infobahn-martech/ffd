@@ -6,10 +6,10 @@ export const createWorkflowBooleanState = (workflows, initialValue) => {
   return state;
 };
 
-export const createExpandedColumnsState = (workflows) => {
+export const createCollapsedColumnsState = (workflows) => {
   const state = {};
   workflows.forEach((workflow) => {
-    state[workflow.id] = null;
+    state[workflow.id] = new Set();
   });
   return state;
 };

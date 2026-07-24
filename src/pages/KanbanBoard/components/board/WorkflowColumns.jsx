@@ -16,9 +16,11 @@ import {
 import { sanitizeSwimlaneColorCode, pickForegroundOnSwimlaneBackground } from "../../../EditWorkflows/workflow.utils";
 import "../../../../design/scss/pages/kanban-board/swimlaneBoard.scss";
 
+const EMPTY_COLLAPSED_SET = new Set();
+
 export default function WorkflowColumns({
   workflow,
-  expandedColumns,
+  collapsedColumns,
   maxColumnHeights,
   onDragEnd,
   onSelectCard,
@@ -30,7 +32,7 @@ export default function WorkflowColumns({
   isDarkMode,
   layoutView,
 }) {
-  const expandedColumnId = expandedColumns[workflow.id];
+  const collapsedColumnIds = collapsedColumns[workflow.id] ?? EMPTY_COLLAPSED_SET;
   const maxHeight = maxColumnHeights[workflow.id] || 0;
 
   const swimlaneOrder = workflow.swimlaneOrder?.length
@@ -39,16 +41,17 @@ export default function WorkflowColumns({
 
   const shouldShowSwimlaneTitle = swimlaneOrder.length > 1;
 
-  /* Outer board grid: one fixed-px track per column (see getColumnWidth / getBoardGridTemplateColumns) */
+  /* Outer board grid: one track per column, collapsed columns get a fixed narrow track
+     (see getColumnWidth / getBoardGridTemplateColumns) */
   const boardGridTemplateColumns = useMemo(
     () =>
       getBoardGridTemplateColumns(
         workflow.columns,
         workflow.columnOrder,
-        expandedColumnId,
+        collapsedColumnIds,
         layoutView
       ),
-    [workflow.columns, workflow.columnOrder, expandedColumnId, layoutView]
+    [workflow.columns, workflow.columnOrder, collapsedColumnIds, layoutView]
   );
 
   const headerGroups = useMemo(
@@ -92,9 +95,7 @@ export default function WorkflowColumns({
                   }
                 : firstColumn;
 
-              const groupColumnIds = group.colKeys.map((k) => workflow.columns[k].id);
-              const isExpanded = groupColumnIds.includes(expandedColumnId);
-              const isShrunk = expandedColumnId !== null && !isExpanded;
+              const isCollapsed = !isGrouped && collapsedColumnIds.has(firstColumn.id);
               const cardCount = group.colKeys.reduce(
                 (sum, k) => sum + countCardsInColumn(workflow, k),
                 0
@@ -104,14 +105,13 @@ export default function WorkflowColumns({
               return (
                 <div
                   key={group.key}
-                  className={`kanban-board__header-slot ${isExpanded ? "kanban-board__header-slot--expanded" : ""} ${isShrunk ? "kanban-board__header-slot--shrunk" : ""
-                    }`}
+                  className={`kanban-board__header-slot ${isCollapsed ? "kanban-board__header-slot--collapsed" : ""}`}
                   style={isGrouped ? { gridColumn: `span ${group.colKeys.length}` } : undefined}
                 >
                   <ColumnHeader
                     column={displayColumn}
                     wipDisplay={wipDisplay}
-                    isShrunk={isShrunk}
+                    isCollapsed={isCollapsed}
                     onHeaderClick={
                       isGrouped ? undefined : () => onColumnHeaderClick(workflow.id, firstColumn.id)
                     }
@@ -125,21 +125,20 @@ export default function WorkflowColumns({
                       style={{
                         display: "grid",
                         gridTemplateColumns: group.colKeys
-                          .map((k) => `${getColumnWidth(workflow.columns[k], expandedColumnId, layoutView)}px`)
+                          .map((k) => `minmax(${getColumnWidth(workflow.columns[k], collapsedColumnIds, layoutView)}px, 1fr)`)
                           .join(" "),
                         gap: `${BOARD_COLUMN_GAP_PX}px`,
                       }}
                     >
                       {group.colKeys.map((colKey) => {
                         const child = workflow.columns[colKey];
-                        const childIsExpanded = expandedColumnId === child.id;
-                        const childIsShrunk = expandedColumnId !== null && !childIsExpanded;
+                        const childIsCollapsed = collapsedColumnIds.has(child.id);
                         return (
                           <ColumnHeader
                             key={child.id}
                             column={child}
                             wipDisplay={String(countCardsInColumn(workflow, colKey))}
-                            isShrunk={childIsShrunk}
+                            isCollapsed={childIsCollapsed}
                             onHeaderClick={() => onColumnHeaderClick(workflow.id, child.id)}
                             isClassicLayout={isClassicLayout}
                             isModernLayout={isModernLayout}
@@ -194,8 +193,7 @@ export default function WorkflowColumns({
                   {workflow.columnOrder.map((colKey) => {
                     const column = workflow.columns[colKey];
                     const cards = getSwimlaneColumnCards(workflow, laneId, colKey);
-                    const isExpanded = expandedColumnId === column.id;
-                    const isShrunk = expandedColumnId !== null && expandedColumnId !== column.id;
+                    const isCollapsed = collapsedColumnIds.has(column.id);
 
                     return (
                       <SwimlaneColumnCell
@@ -204,8 +202,7 @@ export default function WorkflowColumns({
                         column={column}
                         cards={cards}
                         setSelectedCard={onSelectCard}
-                        isExpanded={isExpanded}
-                        isShrunk={isShrunk}
+                        isCollapsed={isCollapsed}
                         onContextMenu={onContextMenu}
                         columnHeight={maxHeight > 0 ? maxHeight : undefined}
                         onHeightChange={onHeightChange}
