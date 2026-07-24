@@ -46,7 +46,7 @@ const useCrewImmigrationReducer = create((set) => ({
                 uploadedCrewFiles,
                 isCallCrewListLoading: false,
             });
-            cb && cb(list, pagination);
+            cb && cb(list, pagination, batchOptions);
             return list;
         } catch (err) {
             const { error } = useAlertReducer.getState();

@@ -136,7 +136,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const importCrewImmigrationFile = useCrewImmigrationReducer((state) => state.importCrewImmigrationFile);
   const fetchCallCrewList = useCrewImmigrationReducer((state) => state.fetchCallCrewList);
   const uploadedCrewFiles = useCrewImmigrationReducer((state) => state.uploadedCrewFiles);
-  const batchOptions = useCrewImmigrationReducer((state) => state.batchOptions);
   // Shared config for the passport/iqama/visa doc-copy upload actions —
   // both the top dropzones and the Crew Listing bulk actions use these.
   const docUploadConfig = {
@@ -155,9 +154,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [listingSearch, setListingSearch] = useState("");
   const [debouncedListingSearch, setDebouncedListingSearch] = useState("");
   const [listingBatchFilter, setListingBatchFilter] = useState("");
-  // Batch tab list — captured only from unfiltered fetches (see the effect
-  // below) so selecting a batch tab, which narrows the API response to that
-  // batch, doesn't collapse the tab bar down to just the selected batch.
+  // Batch tab list — populated by a dedicated unpaginated fetch below, since
+  // the per-page table fetch's batches are scoped to that page's crew only.
   const [availableBatches, setAvailableBatches] = useState([]);
   const [listingPage, setListingPage] = useState(1);
   const [listingCrewList, setListingCrewList] = useState([]);
@@ -249,11 +247,28 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setListingPage(1);
   }, [debouncedListingSearch, listingBatchFilter]);
 
-  // Batch tab list — only synced from unfiltered responses (immigration_batch
-  // omitted), since a filtered response's batches are scoped to that batch.
+  // Batch tab list — a dedicated, unpaginated fetch (mirrors the preview
+  // modal's limit: 1000 below), since the paginated table fetch's `batches`
+  // metadata is scoped to whatever crew are on that page, not the call's
+  // full batch set. Captured via cb rather than the shared store field so
+  // it can't be clobbered by the concurrent per-page table fetch.
   useEffect(() => {
-    if (!listingBatchFilter) setAvailableBatches(batchOptions);
-  }, [batchOptions, listingBatchFilter]);
+    let cancelled = false;
+    (async () => {
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (cancelled || !resolvedCallId) return;
+      await fetchCallCrewList({
+        payload: { call_id: resolvedCallId, page: 1, limit: 1000 },
+        cb: (_rows, _pagination, batches) => {
+          if (cancelled) return;
+          setAvailableBatches(Array.isArray(batches) ? batches : []);
+        },
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [resolveCallAndVesselIds, fetchCallCrewList, listingRefreshTick]);
 
   const totalListingPages = Math.max(1, Math.ceil(listingTotal / LISTING_PAGE_SIZE));
   const effectiveListingPage = Math.min(Math.max(listingPage, 1), totalListingPages);
@@ -812,7 +827,7 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             onSubmit={handleSubmitLaunchHire}
             selectValue={launchBatches}
             onSelectChange={setLaunchBatches}
-            selectOptions={batchOptions}
+            selectOptions={availableBatches}
             locationValue={launchLocation}
             onLocationChange={setLaunchLocation}
           />
