@@ -399,7 +399,11 @@ export default function CrewChangePassPanel({ callId, portId }) {
                         disabled={zawilSingleUploadCrewId === f.crewId}
                         onClick={() => triggerZawilSingleUpload(row)}
                       >
-                        <FiUpload />
+                        {zawilSingleUploadCrewId === f.crewId ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                        ) : (
+                          <FiUpload />
+                        )}
                       </button>
                     </td>
                   </tr>
