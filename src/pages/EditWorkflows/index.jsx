@@ -344,6 +344,10 @@ function EditWorkflows() {
   };
 
   const handleDeleteStage = (workflowId, swimlaneId, stageId) => {
+    setDeleteModal({ type: 'stage', workflowId, swimlaneId, stageId });
+  };
+
+  const confirmDeleteStage = (workflowId, swimlaneId, stageId) => {
     const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
     const swimlane = workflow?.swimlanes.find(
       (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
@@ -598,6 +602,8 @@ function EditWorkflows() {
       confirmDeleteWorkflow(deleteModal.workflowId);
     } else if (deleteModal.type === 'swimlane') {
       confirmDeleteSwimlane(deleteModal.swimlaneId);
+    } else if (deleteModal.type === 'stage') {
+      confirmDeleteStage(deleteModal.workflowId, deleteModal.swimlaneId, deleteModal.stageId);
     }
     setDeleteModal(null);
   };
@@ -877,7 +883,9 @@ function EditWorkflows() {
         deleteText={
           deleteModal?.type === 'workflow'
             ? 'Delete this workflow? This cannot be undone.'
-            : 'Delete this swimlane? This cannot be undone.'
+            : deleteModal?.type === 'swimlane'
+              ? 'Delete this swimlane? This cannot be undone.'
+              : 'Delete this stage? This cannot be undone.'
         }
       />
     </div>
