@@ -546,6 +546,13 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(String(dateString).replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return dateString;
+    return date.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
   const renderHeader = () => (
     <h1 className="modal-title">Edit Dispatch Note</h1>
   );
@@ -885,6 +892,34 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
               </div>
             )}
           </div>
+
+          {viewingNote.launch_hire && (
+            <div className="landing-view-items-section">
+              <h4 className="fw-semibold mb-3">Launch Hire</h4>
+              <div className="landing-view-item-card">
+                <div className="row g-2">
+                  <div className="col-md-3 col-6">
+                    <label className="landing-view-label">Booking Date/Time</label>
+                    <div className="landing-view-box">{formatDateTime(viewingNote.launch_hire.booking_datetime) || "-"}</div>
+                  </div>
+                  <div className="col-md-3 col-6">
+                    <label className="landing-view-label">Location</label>
+                    <div className="landing-view-box">{viewingNote.launch_hire.location || "-"}</div>
+                  </div>
+                  <div className="col-md-3 col-6">
+                    <label className="landing-view-label">Status</label>
+                    <div className="landing-view-box">{viewingNote.launch_hire.status || "-"}</div>
+                  </div>
+                  {viewingNote.launch_hire.remarks && (
+                    <div className="col-md-3 col-6">
+                      <label className="landing-view-label">Remarks</label>
+                      <div className="landing-view-box">{viewingNote.launch_hire.remarks}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {viewItems.length > 0 && (
             <div className="landing-view-items-section">
