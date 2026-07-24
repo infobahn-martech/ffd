@@ -8,10 +8,14 @@ const getDriverId = () =>
 const getDriverTripStats = () =>
   Gateway.get(`transport/get_driver_trip_stats/${getDriverId()}`);
 
-const getLatestRequestsByDriver = () =>
-  Gateway.get(`transport/get_latest_requests_by_driver/${getDriverId()}`);
+const getRequestsByDriver = () =>
+  Gateway.get(`transport/get_requests_by_driver/${getDriverId()}`);
+
+const updateTripStatus = (payload) =>
+  Gateway.post('transport/update_trip_status', payload);
 
 export default {
   getDriverTripStats,
-  getLatestRequestsByDriver,
+  getRequestsByDriver,
+  updateTripStatus,
 };

@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
 import CommonHeader from "../../../components/CommonHeader";
 import CustomTable from "../../../components/customTable";
+import useInhouseDriverReducer from "../../../store/InhouseDriverReducer";
 
 const RenderStatusBadge = ({ row }) => {
     const statusMap = {
@@ -28,15 +30,15 @@ const RenderStatusBadge = ({ row }) => {
     );
 };
 
-const mockInvoices = [
-    { _id: "1", refNo: "INV-2025-401", dateSubmitted: "01 Jun 2025", tripNo: "DT-2025-041", amount: "SAR240", status: "Completed" },
-    { _id: "2", refNo: "INV-2025-402", dateSubmitted: "02 Jun 2025", tripNo: "DT-2025-042", amount: "SAR180", status: "Completed" },
-    { _id: "3", refNo: "INV-2025-403", dateSubmitted: "03 Jun 2025", tripNo: "DT-2025-043", amount: "SAR320", status: "Submitted" },
-    { _id: "4", refNo: "INV-2025-404", dateSubmitted: "04 Jun 2025", tripNo: "DT-2025-044", amount: "SAR150", status: "Pending" },
-    { _id: "5", refNo: "INV-2025-405", dateSubmitted: "05 Jun 2025", tripNo: "DT-2025-045", amount: "SAR110", status: "Pending" },
-];
+const formatDate = (value) => {
+    if (!value) return "—";
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format("DD MMM YYYY") : value;
+};
 
 const Invoices = () => {
+    const { isRequestsLoading, requestsData, getRequestsByDriver } = useInhouseDriverReducer();
+
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
@@ -45,8 +47,25 @@ const Invoices = () => {
         sortOrder: 1,
     });
 
+    useEffect(() => {
+        getRequestsByDriver();
+    }, [getRequestsByDriver]);
+
+    const invoices = useMemo(
+        () =>
+            (requestsData || []).map((req) => ({
+                _id: String(req.transport_request_id),
+                refNo: req.call_id != null ? `CALL-${req.call_id}` : "—",
+                dateSubmitted: formatDate(req.created_date),
+                tripNo: `TR-${req.transport_request_id}`,
+                amount: "—",
+                status: req.status,
+            })),
+        [requestsData]
+    );
+
     const filteredInvoices = useMemo(() => {
-        let data = [...mockInvoices];
+        let data = [...invoices];
 
         if (params.searchTerm) {
             const search = params.searchTerm.toLowerCase();
@@ -69,7 +88,7 @@ const Invoices = () => {
         }
 
         return data;
-    }, [params]);
+    }, [invoices, params]);
 
     const paginatedInvoices = useMemo(() => {
         const start = (params.page - 1) * params.limit;
@@ -147,7 +166,7 @@ const Invoices = () => {
                     count={filteredInvoices.length}
                     columns={cols}
                     data={paginatedInvoices}
-                    isLoading={false}
+                    isLoading={isRequestsLoading}
                     onPageChange={(currentPage) =>
                         setParams((prev) => ({ ...prev, page: currentPage }))
                     }

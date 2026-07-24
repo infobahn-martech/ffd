@@ -1,8 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { FiNavigation, FiCheckCircle, FiClock, FiMapPin, FiList } from 'react-icons/fi';
 import PortalDashboard from '../../../components/PortalDashboard';
 import useInhouseDriverReducer from '../../../store/InhouseDriverReducer';
+
+const TRIP_STATUS_OPTIONS = ['Pending', 'In Progress', 'Completed'];
 
 const formatDateTime = (value) => {
     if (!value) return '—';
@@ -21,6 +23,7 @@ const tableColumns = [
     { label: 'To', key: 'to' },
     { label: 'Pickup', key: 'pickup' },
     { label: 'Drop-off', key: 'dropOff' },
+    { label: 'Vehicle', key: 'vehicle' },
     { label: 'Status', key: 'status', isStatus: true },
 ];
 
@@ -30,14 +33,31 @@ function InhouseDriverDashboard() {
         tripStatsData,
         isRequestsLoading,
         requestsData,
+        isUpdatingTripStatus,
         getDriverTripStats,
-        getLatestRequestsByDriver,
+        getRequestsByDriver,
+        updateTripStatus,
     } = useInhouseDriverReducer();
+
+    const [statusEdits, setStatusEdits] = useState({});
 
     useEffect(() => {
         getDriverTripStats();
-        getLatestRequestsByDriver();
-    }, [getDriverTripStats, getLatestRequestsByDriver]);
+        getRequestsByDriver();
+    }, [getDriverTripStats, getRequestsByDriver]);
+
+    const handleStatusSave = async (row) => {
+        const nextStatus = statusEdits[row.id] ?? row.status;
+        if (nextStatus === row.status) return;
+        await updateTripStatus({
+            transportRequestId: row.id,
+            status: nextStatus,
+            pickupDatetime: row.rawPickup,
+            dropOffDatetime: row.rawDropOff,
+        });
+        getDriverTripStats();
+        getRequestsByDriver();
+    };
 
     const summaryCards = useMemo(
         () => [
@@ -67,10 +87,18 @@ function InhouseDriverDashboard() {
                 to: req.to_location,
                 pickup: formatDateTime(req.pickup_datetime),
                 dropOff: formatDateTime(req.drop_offdatetime),
+                rawPickup: req.pickup_datetime,
+                rawDropOff: req.drop_offdatetime,
+                vehicle: [req.plate_no, req.vehicle_type].filter(Boolean).join(' · ') || '—',
                 status: req.status,
                 fromDet: req.from_location_det,
                 toDet: req.to_location_det,
                 remarks: req.remarks,
+                invoiceBranch: req.invoice_branch,
+                vesselName: req.vessel_name,
+                billingEntity: req.billing_entity,
+                seater: req.seater,
+                createdDate: formatDateTime(req.created_date),
                 crew: req.crew || [],
                 attachments: req.attachments || [],
             })),
@@ -103,6 +131,41 @@ function InhouseDriverDashboard() {
                             {row.remarks && <span><strong>Remarks:</strong> {row.remarks}</span>}
                         </p>
                     )}
+
+                    <p style={{ marginBottom: 12 }}>
+                        {row.vesselName && <span><strong>Vessel:</strong> {row.vesselName} — </span>}
+                        {row.billingEntity && <span><strong>Billing Entity:</strong> {row.billingEntity} — </span>}
+                        {row.invoiceBranch && <span><strong>Branch:</strong> {row.invoiceBranch} — </span>}
+                        {row.seater != null && <span><strong>Seater:</strong> {row.seater} — </span>}
+                        <span><strong>Created:</strong> {row.createdDate}</span>
+                    </p>
+
+                    <div className="d-flex align-items-center gap-2" style={{ marginBottom: 16 }}>
+                        <label className="form-label mb-0"><strong>Trip Status:</strong></label>
+                        <select
+                            className="form-control form-control-sm"
+                            style={{ width: 160 }}
+                            value={statusEdits[row.id] ?? row.status}
+                            onChange={(e) =>
+                                setStatusEdits((prev) => ({ ...prev, [row.id]: e.target.value }))
+                            }
+                        >
+                            {TRIP_STATUS_OPTIONS.map((option) => (
+                                <option key={option} value={option}>
+                                    {option}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            disabled={isUpdatingTripStatus || (statusEdits[row.id] ?? row.status) === row.status}
+                            onClick={() => handleStatusSave(row)}
+                        >
+                            {isUpdatingTripStatus ? 'Saving...' : 'Save'}
+                        </button>
+                    </div>
+
                     <table className="vendor-table" style={{ marginBottom: 0, minWidth: 720 }}>
                         <thead>
                             <tr>
@@ -134,15 +197,17 @@ function InhouseDriverDashboard() {
                     {!!row.attachments.length && (
                         <div style={{ marginTop: 12 }}>
                             <strong>Attachments:</strong>{' '}
-                            {row.attachments.map((att, i) => {
-                                const url = typeof att === 'string' ? att : att?.url || att?.file_url || att?.path;
-                                const label = typeof att === 'string' ? `Attachment ${i + 1}` : att?.name || att?.file_name || `Attachment ${i + 1}`;
-                                return url ? (
-                                    <a key={i} href={url} target="_blank" rel="noreferrer" style={{ marginRight: 12 }}>
-                                        {label}
-                                    </a>
-                                ) : null;
-                            })}
+                            {row.attachments.map((att) => (
+                                <a
+                                    key={att.attachment_id}
+                                    href={att.file_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ marginRight: 12 }}
+                                >
+                                    {att.file_name}
+                                </a>
+                            ))}
                         </div>
                     )}
                 </div>

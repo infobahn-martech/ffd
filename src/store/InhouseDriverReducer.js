@@ -28,11 +28,11 @@ const useInhouseDriverReducer = create((set) => ({
     }
   },
 
-  // GET_LATEST_REQUESTS_BY_DRIVER_REQUEST / SUCCESS / FAILURE
-  getLatestRequestsByDriver: async () => {
+  // GET_REQUESTS_BY_DRIVER_REQUEST / SUCCESS / FAILURE
+  getRequestsByDriver: async () => {
     try {
       set({ isRequestsLoading: true, requestsError: '' });
-      const { data } = await driverPortalService.getLatestRequestsByDriver();
+      const { data } = await driverPortalService.getRequestsByDriver();
       set({
         requestsData: data?.data ?? [],
         isRequestsLoading: false,
@@ -43,6 +43,29 @@ const useInhouseDriverReducer = create((set) => ({
         isRequestsLoading: false,
         requestsData: [],
       });
+    }
+  },
+
+  isUpdatingTripStatus: false,
+  updateTripStatusError: '',
+
+  // UPDATE_TRIP_STATUS_REQUEST / SUCCESS / FAILURE
+  updateTripStatus: async ({ transportRequestId, status, pickupDatetime, dropOffDatetime }) => {
+    try {
+      set({ isUpdatingTripStatus: true, updateTripStatusError: '' });
+      await driverPortalService.updateTripStatus({
+        transport_request_id: transportRequestId,
+        status,
+        pickup_datetime: pickupDatetime,
+        drop_offdatetime: dropOffDatetime,
+      });
+      set({ isUpdatingTripStatus: false });
+    } catch (error) {
+      set({
+        updateTripStatusError: error?.response?.data?.message ?? error.message,
+        isUpdatingTripStatus: false,
+      });
+      throw error;
     }
   },
 }));
