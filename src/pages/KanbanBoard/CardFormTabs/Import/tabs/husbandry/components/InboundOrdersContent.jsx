@@ -436,8 +436,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       order.inbound_time || order.time || ""
     );
 
+    const launchHireBooking = order.launch_hire && typeof order.launch_hire === "object" ? order.launch_hire : null;
+
     const { date: launchHireDate, time: launchHireTime } = splitApiDateTimeParts(
-      order.launch_hire_date || "",
+      launchHireBooking?.booking_datetime || order.launch_hire_date || "",
       ""
     );
 
@@ -446,10 +448,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       time: editTime,
       warehouse: String(order.warehouse_id || order.warehouse || ""),
       remarks: order.remarks || "",
-      launchHire: Number(order.launch_hire) === 1,
+      launchHire: launchHireBooking ? true : Number(order.launch_hire) === 1,
       launchHireDate,
       launchHireTime,
-      launchHireLocation: order.launch_hire_location || order.location || "",
+      launchHireLocation: launchHireBooking?.location || order.launch_hire_location || order.location || "",
       orders: orderItems,
     });
     if (editDate) setEditOrderMinDate(editDate);
@@ -692,8 +694,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       remarks: formData.remarks || "",
       launch_hire: formData.launchHire ? 1 : 0,
       ...(formData.launchHire ? {
-        launch_hire_date: buildApiDateTime(formData.launchHireDate, formData.launchHireTime),
-        launch_hire_location: formData.launchHireLocation || "",
+        booking_datetime: buildApiDateTime(formData.launchHireDate, formData.launchHireTime),
+        location: formData.launchHireLocation || "",
       } : {}),
       items,
     };
@@ -1997,6 +1999,32 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <div className="landing-view-box">{viewingOrder.remarks || "-"}</div>
             </div>
           </div>
+
+          {viewingOrder.launch_hire && (
+            <div className="landing-view-sub-section mb-3">
+              <div className="landing-view-sub-title">Launch Hire</div>
+              <div className="row g-2">
+                <div className="col-md-4 col-6">
+                  <label className="landing-view-label">Booking Date</label>
+                  <div className="landing-view-box">{formatDate(viewingOrder.launch_hire.booking_datetime) || "-"}</div>
+                </div>
+                <div className="col-md-4 col-6">
+                  <label className="landing-view-label">Location</label>
+                  <div className="landing-view-box">{viewingOrder.launch_hire.location || "-"}</div>
+                </div>
+                <div className="col-md-4 col-6">
+                  <label className="landing-view-label">Status</label>
+                  <div className="landing-view-box">{viewingOrder.launch_hire.status || "-"}</div>
+                </div>
+                {viewingOrder.launch_hire.remarks && (
+                  <div className="col-md-12">
+                    <label className="landing-view-label">Remarks</label>
+                    <div className="landing-view-box">{viewingOrder.launch_hire.remarks}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {items.length > 0 && (
             <div className="landing-view-items-section">

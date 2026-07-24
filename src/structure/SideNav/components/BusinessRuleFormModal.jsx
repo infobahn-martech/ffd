@@ -25,6 +25,7 @@ import ThenGroupRawSummary from './ThenGroupRawSummary';
 import DateTimePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DateTimePickerField';
 import DynamicIcon from './DynamicIcon';
 import useBusinessRuleReducer from '../../../store/BusinessRuleReducer';
+import useAlertReducer from '../../../store/AlertReducer';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import useCommonReducer from '../../../store/CommonReducer';
 import useKanbanManagementReducer, { isKanbanManagementRowDisabled } from '../../../store/KanbanManagementReducer';
@@ -5058,18 +5059,7 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
       ...(deadline ? { deadline } : {}),
       description,
     };
-    // A create-subtask action that already has a createSubtaskId (fetchedSettings was
-    // loaded for it in handleOpenCreateSubtaskSettings) was previously saved on the
-    // backend, so resaving it must update that record instead of creating a duplicate one.
-    const existingCreateSubtaskId = initialSettings?.createSubtaskId;
-    if (existingCreateSubtaskId) {
-      updateCreateSubtaskSettings(existingCreateSubtaskId, payload, {
-        cb: () => {
-          onSave({ ownerUserId, deadline, description, createSubtaskId: existingCreateSubtaskId });
-          onClose();
-        },
-      });
-    } else {
+    const createFresh = () => {
       saveCreateSubtaskSettings(payload, {
         cb: (data) => {
           onSave({
@@ -5081,6 +5071,38 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
           onClose();
         },
       });
+    };
+
+    // A create-subtask action that already has a createSubtaskId (fetchedSettings was
+    // loaded for it in handleOpenCreateSubtaskSettings) was previously saved on the
+    // backend, so resaving it must update that record instead of creating a duplicate one.
+    const existingCreateSubtaskId = initialSettings?.createSubtaskId;
+    if (existingCreateSubtaskId) {
+      updateCreateSubtaskSettings(existingCreateSubtaskId, payload, {
+        cb: () => {
+          onSave({ ownerUserId, deadline, description, createSubtaskId: existingCreateSubtaskId });
+          onClose();
+        },
+        // The backend can lose track of that id's "temporary" record once the
+        // business rule this action belongs to has since been saved (a stale
+        // reference restored via get_business_rule_by_id, not a live/editable
+        // one on the backend anymore) — it 404s as "Temporary create subtask
+        // record not found" instead of accepting the update. Recover by saving
+        // a brand-new record instead of dead-ending the user's edit; the new id
+        // gets attached to this action and reaches the backend for real the
+        // next time the whole business rule is saved.
+        onError: (err) => {
+          const message = err?.response?.data?.message ?? '';
+          if (/temporary/i.test(message) && /not found/i.test(message)) {
+            createFresh();
+          } else {
+            const { error } = useAlertReducer.getState();
+            error(message || err.message);
+          }
+        },
+      });
+    } else {
+      createFresh();
     }
   };
 
