@@ -42,13 +42,15 @@ const useTaxiBoatAssignmentReducer = create((set) => ({
     }
   },
 
-  assignCaptain: async ({ booking_id, taxi_boat_id, taxiboat_captain_id, cb }) => {
+  assignCaptain: async ({ booking_id, taxi_boat_id, taxiboat_captain_id, booking_datetime, location, cb }) => {
     try {
       set({ isAssigning: true });
       const { data } = await taxiBoatAssignmentService.assignCaptain({
         booking_id,
         taxi_boat_id,
         taxiboat_captain_id,
+        booking_datetime,
+        location,
       });
       set({ assignedResult: data, isAssigning: false });
       const { success } = useAlertReducer.getState();

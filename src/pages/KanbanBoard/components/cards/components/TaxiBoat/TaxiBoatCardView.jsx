@@ -1317,33 +1317,45 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
 
   const handleAssignCaptain = useCallback(() => {
     if (!selectedFleet || !selectedCaptainId) return;
+    if (!locationEdit || !bookingDateEdit || !bookingTimeEdit) {
+      notifyError("Location and booking date/time are required before assigning a captain.");
+      return;
+    }
     const captain = captains.find((c) => String(c.taxiboat_captain_id) === String(selectedCaptainId));
     assignCaptain({
       booking_id: bookingId,
       taxi_boat_id: selectedFleet.taxi_boat_id,
       taxiboat_captain_id: selectedCaptainId,
+      booking_datetime: buildApiDateTime(bookingDateEdit, bookingTimeEdit),
+      location: locationEdit,
       cb: () => {
         setFleetAssigned(true);
         setAssignedCaptainName(captain?.captain_name ?? null);
       },
     });
-  }, [selectedFleet, selectedCaptainId, captains, bookingId, assignCaptain]);
+  }, [selectedFleet, selectedCaptainId, captains, bookingId, assignCaptain, locationEdit, bookingDateEdit, bookingTimeEdit, notifyError]);
 
   const handleSummaryCaptainSelect = useCallback((captainId) => {
     const taxiBoatId = selectedFleet?.taxi_boat_id ?? fleets[0]?.taxi_boat_id;
     if (!captainId || !taxiBoatId) return;
+    if (!locationEdit || !bookingDateEdit || !bookingTimeEdit) {
+      notifyError("Location and booking date/time are required before assigning a captain.");
+      return;
+    }
     setSelectedCaptainId(captainId);
     const captain = captains.find((c) => String(c.taxiboat_captain_id) === String(captainId));
     assignCaptain({
       booking_id: bookingId,
       taxi_boat_id: taxiBoatId,
       taxiboat_captain_id: captainId,
+      booking_datetime: buildApiDateTime(bookingDateEdit, bookingTimeEdit),
+      location: locationEdit,
       cb: () => {
         setFleetAssigned(true);
         setAssignedCaptainName(captain?.captain_name ?? null);
       },
     });
-  }, [selectedFleet, fleets, captains, bookingId, assignCaptain]);
+  }, [selectedFleet, fleets, captains, bookingId, assignCaptain, locationEdit, bookingDateEdit, bookingTimeEdit, notifyError]);
 
   // Live clock — ticks every second for the live waiting timer on pending steps
   const [now, setNow] = useState(() => new Date());
