@@ -73,15 +73,6 @@ function InhouseDriverDashboard() {
         [tripStatsData]
     );
 
-    const statusCards = useMemo(
-        () => [
-            { label: 'Pending', value: tripStatsData?.pending ?? 0, statusClass: 'status-pending' },
-            { label: 'In Progress', value: tripStatsData?.in_progress ?? 0, statusClass: 'status-open' },
-            { label: 'Completed', value: tripStatsData?.completed ?? 0, statusClass: 'status-completed' },
-        ],
-        [tripStatsData]
-    );
-
     const tableRows = useMemo(
         () =>
             (requestsData || []).map((req) => ({
@@ -114,8 +105,6 @@ function InhouseDriverDashboard() {
             title="Inhouse Driver Dashboard"
             subtitle="Overview of your assigned, completed, and pending trips."
             summaryCards={summaryCards}
-            statusTitle="Trip Status Overview"
-            statusCards={statusCards}
             quickActions={quickActions}
             tableTitle="Recent Trips"
             tableColumns={tableColumns}
