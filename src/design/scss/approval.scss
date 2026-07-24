@@ -413,6 +413,28 @@
     height: 100%;
   }
 
+  // Grows just enough to fit a few stacked files (multi-upload), capped and
+  // scrollable so it never balloons back to the old default tall dropzone.
+  .approval-document-upload-zone--multi {
+    height: auto;
+    max-height: 96px;
+    align-items: flex-start;
+    padding: 8px 16px;
+  }
+
+  .approval-document-upload-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+
+  .approval-document-upload-zone--multi .approval-document-upload-file {
+    height: auto;
+  }
+
   .approval-document-upload-filename {
     font-size: 13px;
     color: #1a1a1a;

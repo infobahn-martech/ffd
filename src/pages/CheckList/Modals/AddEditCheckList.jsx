@@ -974,7 +974,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
       if (!(file instanceof File) || file.size === 0) return;
       formData.append(`documents[${key}][]`, file);
     });
-    logFormDataEntries(formData);
 
     if (isEdit) {
       editChecklist({ formData, cb });

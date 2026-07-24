@@ -6,7 +6,7 @@ export default function KanbanBoardContent({
   boardLoading = false,
   suppressEmptyMessage = false,
   expandedWorkflows,
-  expandedColumns,
+  collapsedColumns,
   maxColumnHeights,
   createDragEndHandler,
   onSelectCard,
@@ -46,7 +46,7 @@ export default function KanbanBoardContent({
     >
       <WorkflowColumns
         workflow={workflow}
-        expandedColumns={expandedColumns}
+        collapsedColumns={collapsedColumns}
         maxColumnHeights={maxColumnHeights}
         onDragEnd={createDragEndHandler(workflow.id)}
         onSelectCard={onSelectCard}

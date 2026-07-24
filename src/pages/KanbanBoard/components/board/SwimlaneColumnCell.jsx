@@ -16,8 +16,7 @@ export default function SwimlaneColumnCell({
   column,
   cards,
   setSelectedCard,
-  isExpanded = false,
-  isShrunk = false,
+  isCollapsed = false,
   onContextMenu,
   columnHeight,
   onHeightChange,
@@ -26,7 +25,7 @@ export default function SwimlaneColumnCell({
   isDarkMode = false,
   layoutView = null,
 }) {
-  const EMPTY_DROP_ZONE_MIN_HEIGHT = 220;
+  const EMPTY_DROP_ZONE_MIN_HEIGHT = 720;
   const cellRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
@@ -60,7 +59,7 @@ export default function SwimlaneColumnCell({
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [cards.length, column.id, laneId, onHeightChange, isExpanded, isShrunk]);
+  }, [cards.length, column.id, laneId, onHeightChange, isCollapsed]);
 
   useEffect(() => {
     if (!cellRef.current || !onHeightChange) return;
@@ -84,16 +83,32 @@ export default function SwimlaneColumnCell({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [cards.length, column.id, laneId, onHeightChange, isExpanded, isShrunk]);
+  }, [cards.length, column.id, laneId, onHeightChange, isCollapsed]);
+
+  if (isCollapsed) {
+    return (
+      <div
+        ref={cellRef}
+        className={`column column--swimlane-cell column-collapsed ${
+          isClassicLayout ? "column-classic" : ""
+        } ${isModernLayout ? "column-modern" : ""} ${isDarkMode ? "column-dark" : ""}`}
+        onContextMenu={handleContextMenu}
+        style={{
+          ...(columnHeight ? { minHeight: `${columnHeight}px` } : {}),
+          ...(column.backgroundColor ? { backgroundColor: column.backgroundColor } : {}),
+        }}
+      >
+        <span className="column-collapsed__title">{column.title}</span>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={cellRef}
-      className={`column column--swimlane-cell ${isExpanded ? "column-expanded" : ""} ${
-        isShrunk ? "column-shrunk" : ""
-      } ${isClassicLayout ? "column-classic" : ""} ${isModernLayout ? "column-modern" : ""} ${
-        isDarkMode ? "column-dark" : ""
-      }`}
+      className={`column column--swimlane-cell ${isClassicLayout ? "column-classic" : ""} ${
+        isModernLayout ? "column-modern" : ""
+      } ${isDarkMode ? "column-dark" : ""}`}
       onContextMenu={handleContextMenu}
       style={{
         ...(columnHeight ? { minHeight: `${columnHeight}px` } : {}),
@@ -111,9 +126,7 @@ export default function SwimlaneColumnCell({
             style={{
               /* Inner card grid: fixed column widths; row height = tallest card in that row (implicit auto rows) */
               display: "grid",
-              gridTemplateColumns: isShrunk
-                ? `${cardWidth}px`
-                : `repeat(${perRow}, ${cardWidth}px)`,
+              gridTemplateColumns: `repeat(${perRow}, ${cardWidth}px)`,
               gap: `${CARD_GAP}px`,
               padding: `${CELL_PADDING_X}px`,
               justifyItems: "start",
@@ -144,7 +157,6 @@ export default function SwimlaneColumnCell({
                   card={card}
                   index={index}
                   setSelectedCard={setSelectedCard}
-                  isShrunk={isShrunk}
                   isClassicLayout={isClassicLayout}
                   isModernLayout={isModernLayout}
                   columnTitle={column.title}
@@ -171,8 +183,7 @@ SwimlaneColumnCell.propTypes = {
   }).isRequired,
   cards: PropTypes.arrayOf(PropTypes.object).isRequired,
   setSelectedCard: PropTypes.func.isRequired,
-  isExpanded: PropTypes.bool,
-  isShrunk: PropTypes.bool,
+  isCollapsed: PropTypes.bool,
   onContextMenu: PropTypes.func,
   columnHeight: PropTypes.number,
   onHeightChange: PropTypes.func,

@@ -23,7 +23,7 @@ import {
 import useAuthReducer from "../../../../../../store/AuthReducer";
 
 // Import Tab Components
-import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../../../CardFormTabs/Import";
+import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes, DA } from "../../../../CardFormTabs/Import";
 import { Approval } from "../../../../CardFormTabs/Export";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/Import/tabs/operation/preArrivalDocumentHandling";
 import { isExportCall } from "../../../../CardFormTabs/shared/utils/callTypes";
@@ -51,6 +51,10 @@ const ALL_TOP_TABS = [
 ];
 
 const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "Document Library", "Comments", "Subtasks", "Notes"];
+
+// "DA" tab is only appended for cardVariant === "da" cards (e.g. MV Atlantic Star),
+// not the shared ALL_TOP_TABS used by every other default-tab-bar card.
+const DA_ONLY_TAB = "DA";
 
 const EXPORT_ONLY_TABS = ["Export Approval"];
 
@@ -1529,6 +1533,8 @@ const renderTabContent = (
         return <Subtasks {...commonProps} />;
       case "Notes":
         return <Notes {...commonProps} />;
+      case "DA":
+        return <DA {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
@@ -1923,15 +1929,17 @@ function CardForm({
 
   const TOP_TABS = useMemo(() => {
     const base = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
-    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
+    const withDAOnly = isDAVariant && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
+    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(withDAOnly) : withDAOnly;
     return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
-  }, [isDAModule, isSimplifiedMode, showExportTabs, isHusbandryCall]);
+  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, isHusbandryCall]);
 
   const ENABLED_TABS = useMemo(() => {
     const base = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
-    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(base) : base;
+    const withDAOnly = isDAVariant && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
+    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(withDAOnly) : withDAOnly;
     return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
-  }, [isDAModule, isSimplifiedMode, showExportTabs, isHusbandryCall]);
+  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, isHusbandryCall]);
 
   useEffect(() => {
     setActiveTopTab(defaultTab);
@@ -2341,7 +2349,7 @@ function CardForm({
           <TaskCardDetailView card={card} onClose={handleClose} />
         ) : isTaxiBoatVariant ? (
           <TaxiBoatCardView card={card} userRoleId={userRoleId} />
-        ) : isDAVariant ? null : isDriverStyleView ? (
+        ) : isDriverStyleView ? (
           <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />

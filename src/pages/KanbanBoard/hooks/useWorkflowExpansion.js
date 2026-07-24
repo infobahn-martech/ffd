@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  createExpandedColumnsState,
+  createCollapsedColumnsState,
   createWorkflowBooleanState,
 } from "../utils/workflowHelpers";
 
@@ -8,10 +8,9 @@ export default function useWorkflowExpansion(workflows) {
   const [expandedWorkflows, setExpandedWorkflows] = useState(() =>
     createWorkflowBooleanState(workflows, true)
   );
-  const [expandedColumns, setExpandedColumns] = useState(() =>
-    createExpandedColumnsState(workflows)
+  const [collapsedColumns, setCollapsedColumns] = useState(() =>
+    createCollapsedColumnsState(workflows)
   );
-  const [enableExpandShrink, setEnableExpandShrink] = useState(false);
 
   useEffect(() => {
     setExpandedWorkflows((prev) => {
@@ -24,11 +23,11 @@ export default function useWorkflowExpansion(workflows) {
       return next;
     });
 
-    setExpandedColumns((prev) => {
+    setCollapsedColumns((prev) => {
       const next = { ...prev };
       workflows.forEach((workflow) => {
         if (!(workflow.id in next)) {
-          next[workflow.id] = null;
+          next[workflow.id] = new Set();
         }
       });
       return next;
@@ -58,23 +57,31 @@ export default function useWorkflowExpansion(workflows) {
 
   const handleColumnHeaderClick = useCallback(
     (workflowId, columnId) => {
-      if (!enableExpandShrink) return;
-      setExpandedColumns((prev) => {
-        const currentExpanded = prev[workflowId];
-        return {
-          ...prev,
-          [workflowId]: currentExpanded === columnId ? null : columnId,
-        };
+      setCollapsedColumns((prev) => {
+        const currentSet = prev[workflowId] ?? new Set();
+        const nextSet = new Set(currentSet);
+        if (nextSet.has(columnId)) {
+          nextSet.delete(columnId);
+        } else {
+          nextSet.add(columnId);
+        }
+
+        /* Collapsing every column would leave nothing to expand back into — snap back to
+           the normal view instead of letting the whole board go narrow. */
+        const totalColumns = workflows.find((w) => w.id === workflowId)?.columnOrder?.length ?? 0;
+        if (totalColumns > 0 && nextSet.size >= totalColumns) {
+          return { ...prev, [workflowId]: new Set() };
+        }
+
+        return { ...prev, [workflowId]: nextSet };
       });
     },
-    [enableExpandShrink]
+    [workflows]
   );
 
   return {
     expandedWorkflows,
-    expandedColumns,
-    enableExpandShrink,
-    setEnableExpandShrink,
+    collapsedColumns,
     toggleWorkflow,
     expandWorkflow,
     collapseWorkflow,

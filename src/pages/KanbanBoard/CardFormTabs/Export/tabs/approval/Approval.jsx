@@ -148,11 +148,11 @@ const createEmptyPartySection = () => ({
     vesselPrincipal,
     vesselCharterer,
     creditControllerRemarks,
-    creditControllerDocument,
+    creditControllerDocuments,
     managerComments,
-    managerDocument,
+    managerDocuments,
     ceoComments,
-    ceoDocument,
+    ceoDocuments,
     actionOverride,
   }) => {
     const creditControllerAction =
@@ -172,9 +172,9 @@ const createEmptyPartySection = () => ({
     };
 
     const files = {
-      credit_controller_documents: creditControllerDocument,
-      manager_ofm_documents: managerDocument,
-      ceo_documents: ceoDocument,
+      credit_controller_documents: creditControllerDocuments,
+      manager_ofm_documents: managerDocuments,
+      ceo_documents: ceoDocuments,
     };
 
     const formData = new FormData();
@@ -186,8 +186,8 @@ const createEmptyPartySection = () => ({
     appendFormDataSection(formData, "credit_controller", payload.credit_controller);
     appendFormDataSection(formData, "manager_ofm", payload.manager_ofm);
     appendFormDataSection(formData, "ceo", payload.ceo);
-    Object.entries(files).forEach(([key, file]) => {
-      if (file) formData.append(`${key}[]`, file);
+    Object.entries(files).forEach(([key, fileList]) => {
+      (fileList || []).forEach((file) => formData.append(`${key}[]`, file));
     });
     return formData;
   };
@@ -335,30 +335,36 @@ const createEmptyPartySection = () => ({
     disabled: PropTypes.bool,
   };
 
-  function DocumentUploadField({ file, onChange }) {
+  // Backend accepts multiple files per section (e.g. credit_controller_documents[]
+  // can hold more than one upload), so the picker must accumulate files across
+  // multiple browse actions rather than replacing the previous selection.
+  function DocumentUploadField({ files, onChange }) {
     const inputRef = useRef(null);
 
     const handleFileChange = (event) => {
-      const selectedFile = event.target.files?.[0] || null;
-      onChange(selectedFile);
+      const picked = Array.from(event.target.files || []);
+      if (picked.length === 0) return;
+      onChange([...files, ...picked]);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     };
 
     const handleBrowseClick = () => {
       inputRef.current?.click();
     };
 
-    const handleRemove = (event) => {
+    const handleRemove = (event, index) => {
       event.stopPropagation();
-      onChange(null);
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
+      onChange(files.filter((_, i) => i !== index));
     };
 
     return (
       <div className="approval-document-upload approval-upload-field document-upload">
         <div
-          className="approval-document-upload-zone approval-upload-dropzone"
+          className={`approval-document-upload-zone approval-upload-dropzone ${
+            files.length > 1 ? "approval-document-upload-zone--multi" : ""
+          }`.trim()}
           onClick={handleBrowseClick}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -372,23 +378,28 @@ const createEmptyPartySection = () => ({
           <input
             ref={inputRef}
             type="file"
+            multiple
             className="approval-file-input-hidden"
             onChange={handleFileChange}
             onClick={(event) => event.stopPropagation()}
           />
-          {file ? (
-            <div className="approval-document-upload-file">
-              <span className="approval-document-upload-filename" title={file.name}>
-                {file.name}
-              </span>
-              <button
-                type="button"
-                className="approval-document-upload-remove"
-                onClick={handleRemove}
-                title="Remove file"
-              >
-                ×
-              </button>
+          {files.length > 0 ? (
+            <div className="approval-document-upload-file-list">
+              {files.map((file, index) => (
+                <div className="approval-document-upload-file" key={`${file.name}-${file.lastModified}-${index}`}>
+                  <span className="approval-document-upload-filename" title={file.name}>
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="approval-document-upload-remove"
+                    onClick={(event) => handleRemove(event, index)}
+                    title="Remove file"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           ) : (
             <p className="approval-document-upload-text">
@@ -402,7 +413,7 @@ const createEmptyPartySection = () => ({
   }
 
   DocumentUploadField.propTypes = {
-    file: PropTypes.instanceOf(File),
+    files: PropTypes.arrayOf(PropTypes.instanceOf(File)).isRequired,
     onChange: PropTypes.func.isRequired,
   };
 
@@ -439,8 +450,8 @@ const createEmptyPartySection = () => ({
     onCommentsChange,
     commentsPlaceholder,
     commentsClassName = "",
-    document,
-    onDocumentChange,
+    documents,
+    onDocumentsChange,
     existingDocuments,
     primaryActionLabel,
     secondaryActionLabel,
@@ -465,7 +476,7 @@ const createEmptyPartySection = () => ({
           </FormField>
           <FormField label="Document Upload">
             <ExistingDocumentsList documents={existingDocuments} />
-            <DocumentUploadField file={document} onChange={onDocumentChange} />
+            <DocumentUploadField files={documents} onChange={onDocumentsChange} />
           </FormField>
         </div>
         <div className="approval-card-actions">
@@ -488,8 +499,8 @@ const createEmptyPartySection = () => ({
     onCommentsChange: PropTypes.func.isRequired,
     commentsPlaceholder: PropTypes.string,
     commentsClassName: PropTypes.string,
-    document: PropTypes.instanceOf(File),
-    onDocumentChange: PropTypes.func.isRequired,
+    documents: PropTypes.arrayOf(PropTypes.instanceOf(File)).isRequired,
+    onDocumentsChange: PropTypes.func.isRequired,
     existingDocuments: ExistingDocumentsList.propTypes.documents,
     primaryActionLabel: PropTypes.string.isRequired,
     secondaryActionLabel: PropTypes.string.isRequired,
@@ -617,11 +628,11 @@ const createEmptyPartySection = () => ({
     const [vesselPrincipal, setVesselPrincipal] = useState(createEmptyPartySection);
     const [vesselCharterer, setVesselCharterer] = useState(createEmptyPartySection);
     const [creditControllerRemarks, setCreditControllerRemarks] = useState("");
-    const [creditControllerDocument, setCreditControllerDocument] = useState(null);
+    const [creditControllerDocuments, setCreditControllerDocuments] = useState([]);
     const [managerComments, setManagerComments] = useState("");
-    const [managerDocument, setManagerDocument] = useState(null);
+    const [managerDocuments, setManagerDocuments] = useState([]);
     const [ceoComments, setCeoComments] = useState("");
-    const [ceoDocument, setCeoDocument] = useState(null);
+    const [ceoDocuments, setCeoDocuments] = useState([]);
 
     // "saving" | "saved" | "error" | "idle" — drives the inline autosave indicator
     const [saveStatus, setSaveStatus] = useState("idle");
@@ -688,11 +699,11 @@ const createEmptyPartySection = () => ({
       vesselPrincipal,
       vesselCharterer,
       creditControllerRemarks,
-      creditControllerDocument,
+      creditControllerDocuments,
       managerComments,
-      managerDocument,
+      managerDocuments,
       ceoComments,
-      ceoDocument,
+      ceoDocuments,
     };
 
     const runSave = useCallback(
@@ -743,11 +754,11 @@ const createEmptyPartySection = () => ({
       vesselPrincipal,
       vesselCharterer,
       creditControllerRemarks,
-      creditControllerDocument,
+      creditControllerDocuments,
       managerComments,
-      managerDocument,
+      managerDocuments,
       ceoComments,
-      ceoDocument,
+      ceoDocuments,
       debouncedAutoSave,
     ]);
 
@@ -818,6 +829,7 @@ const createEmptyPartySection = () => ({
                     value={basicDetails.date}
                     onChange={(e) => handleBasicChange("date", e.target.value)}
                     placeholder="DD-MMM-YYYY"
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Requested by">
@@ -825,6 +837,7 @@ const createEmptyPartySection = () => ({
                     value={basicDetails.requestedBy}
                     onChange={(e) => handleBasicChange("requestedBy", e.target.value)}
                     placeholder="Requested by"
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Branch">
@@ -839,6 +852,7 @@ const createEmptyPartySection = () => ({
                     value={basicDetails.vesselName}
                     onChange={(e) => handleBasicChange("vesselName", e.target.value)}
                     placeholder="Vessel name"
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Vessel's ETD">
@@ -855,6 +869,7 @@ const createEmptyPartySection = () => ({
                     dateFieldName="vessel_etd_date"
                     timeFieldName="vessel_etd_time"
                     placeholder="Select date and time"
+                    disabled
                   />
                 </FormField>
                 <FormField label="Billing entity">
@@ -862,6 +877,7 @@ const createEmptyPartySection = () => ({
                     value={basicDetails.billingEntity}
                     onChange={(e) => handleBasicChange("billingEntity", e.target.value)}
                     placeholder="Billing entity"
+                    readOnly
                   />
                 </FormField>
               </div>
@@ -897,8 +913,8 @@ const createEmptyPartySection = () => ({
                 commentsValue={creditControllerRemarks}
                 onCommentsChange={(e) => setCreditControllerRemarks(e.target.value)}
                 commentsPlaceholder="Enter remarks / recommendation from Credit Controller"
-                document={creditControllerDocument}
-                onDocumentChange={setCreditControllerDocument}
+                documents={creditControllerDocuments}
+                onDocumentsChange={setCreditControllerDocuments}
                 existingDocuments={details?.documents?.credit_controller}
                 primaryActionLabel="Approved"
                 secondaryActionLabel="Proceed to Operator"
@@ -914,8 +930,8 @@ const createEmptyPartySection = () => ({
                 onCommentsChange={(e) => setManagerComments(e.target.value)}
                 commentsPlaceholder="Enter manager comments"
                 commentsClassName="approval-textarea--blue"
-                document={managerDocument}
-                onDocumentChange={setManagerDocument}
+                documents={managerDocuments}
+                onDocumentsChange={setManagerDocuments}
                 existingDocuments={details?.documents?.manager_ofm}
                 primaryActionLabel="Approved"
                 secondaryActionLabel="Proceed to CEO"
@@ -932,8 +948,8 @@ const createEmptyPartySection = () => ({
                 onCommentsChange={(e) => setCeoComments(e.target.value)}
                 commentsPlaceholder="Enter CEO comments"
                 commentsClassName="approval-textarea--blue"
-                document={ceoDocument}
-                onDocumentChange={setCeoDocument}
+                documents={ceoDocuments}
+                onDocumentsChange={setCeoDocuments}
                 existingDocuments={details?.documents?.ceo}
                 primaryActionLabel="Approved"
                 secondaryActionLabel="On Hold"

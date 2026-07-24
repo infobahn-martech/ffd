@@ -18,11 +18,8 @@ export const CELL_HORIZONTAL_PADDING_TOTAL = CELL_PADDING_X * 2;
 /** Gap between workflow columns on the outer board grid (not the same as CARD_GAP). */
 export const BOARD_COLUMN_GAP_PX = 6;
 
-/** When a column is expanded, scale its track width. */
-const EXPANDED_TRACK_MULTIPLIER = 4;
-
-/** When other columns shrink because one is expanded, scale their tracks (floored to one-card width). */
-const SHRUNK_TRACK_MULTIPLIER = 100 / 270;
+/** Fixed track width for a collapsed column (title rotated vertically, cards hidden). */
+export const COLLAPSED_COLUMN_WIDTH = 44;
 
 /**
  * @param {object | null | undefined} column
@@ -48,51 +45,48 @@ export function getCardWidth(viewMode) {
  * columnWidth = cardsPerRow * cardWidth + (cardsPerRow - 1) * CARD_GAP + horizontal padding
  *
  * @param {object} column
- * @param {string | null} [expandedColumnId] - column.id when expand/shrink mode is active
+ * @param {Set<string> | null | undefined} [collapsedColumnIds] - column ids currently collapsed
  * @param {string | null | undefined} [viewMode]
  * @returns {number} Rounded pixel width for one board column track
  */
-export function getColumnWidth(column, expandedColumnId = null, viewMode = null) {
+export function getColumnWidth(column, collapsedColumnIds = null, viewMode = null) {
+  if (column?.id && collapsedColumnIds?.has(column.id)) {
+    return COLLAPSED_COLUMN_WIDTH;
+  }
+
   const n = getCardsPerRow(column);
   const cardWidth = getCardWidth(viewMode);
-  let base =
+  const base =
     n * cardWidth +
     Math.max(0, n - 1) * CARD_GAP +
     CELL_HORIZONTAL_PADDING_TOTAL;
-
-  if (expandedColumnId != null && column?.id) {
-    if (expandedColumnId === column.id) {
-      base *= EXPANDED_TRACK_MULTIPLIER;
-    } else {
-      base = Math.max(
-        cardWidth + CELL_HORIZONTAL_PADDING_TOTAL,
-        base * SHRUNK_TRACK_MULTIPLIER
-      );
-    }
-  }
 
   return Math.round(base);
 }
 
 /**
- * Builds `grid-template-columns` for the header row and each swimlane row (px tracks).
+ * Builds `grid-template-columns` for the header row and each swimlane row.
+ * A collapsed column gets a fixed `COLLAPSED_COLUMN_WIDTH` track. Every other column gets
+ * `minmax(Wpx, 1fr)`: it stretches to absorb the space freed by collapsed columns (or any
+ * extra board width), and shrinks to its fixed px width (triggering horizontal scroll) once
+ * the columns no longer fit.
  *
  * @param {Record<string, object>} columns
  * @param {string[]} columnOrder
- * @param {string | null} expandedColumnId
+ * @param {Set<string> | null | undefined} collapsedColumnIds
  * @param {string | null | undefined} viewMode
- * @returns {string} e.g. "392px 204px 204px"
+ * @returns {string} e.g. "44px minmax(204px, 1fr) minmax(204px, 1fr)"
  */
 export function getBoardGridTemplateColumns(
   columns,
   columnOrder,
-  expandedColumnId = null,
+  collapsedColumnIds = null,
   viewMode = null
 ) {
   const parts = columnOrder.map((colKey) => {
     const column = columns[colKey];
-    const w = getColumnWidth(column, expandedColumnId, viewMode);
-    return `${w}px`;
+    const w = getColumnWidth(column, collapsedColumnIds, viewMode);
+    return collapsedColumnIds?.has(column?.id) ? `${w}px` : `minmax(${w}px, 1fr)`;
   });
   return parts.join(" ");
 }
