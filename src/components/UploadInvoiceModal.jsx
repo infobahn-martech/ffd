@@ -147,17 +147,21 @@ function UploadInvoiceModal({ show, closeModal, orderNo, contextLabel, onUploadC
                 type="button"
                 className="btn btn-primary"
                 disabled={isUploading}
-                onClick={() => {
+                onClick={async () => {
                     if (!selectedFiles.length) {
                         setError('Please select at least one invoice file');
                         return;
                     }
 
                     setIsUploading(true);
-                    setTimeout(() => {
-                        onUploadComplete?.(selectedFiles);
+                    setError('');
+                    try {
+                        await onUploadComplete?.(selectedFiles);
                         closeModal(null);
-                    }, 1500);
+                    } catch (err) {
+                        setIsUploading(false);
+                        setError(err?.response?.data?.message || err?.message || 'Upload failed. Please try again.');
+                    }
                 }}
             >
                 {isUploading ? 'Uploading...' : 'Upload'}

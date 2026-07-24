@@ -293,7 +293,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                   <FiLayout />
                 </NavTabButton>
                 <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
-                <NavTabButton
+                {/* <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
                   active={activePortal === 'vendor'}
                   locked={pathname === '/vendor-portal/dashboard'}
@@ -302,7 +302,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                   data-tooltip-id="vendor-portal"
                 >
                   <FiShoppingBag />
-                </NavTabButton>
+                </NavTabButton> */}
                 {/* <Tooltip id="medical-portal" place="bottom" content="Medical" />
                 <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
@@ -314,7 +314,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                 >
                   <FiActivity />
                 </NavTabButton> */}
-                <Tooltip id="transport-portal" place="bottom" content="Transport Company" />
+                {/* <Tooltip id="transport-portal" place="bottom" content="Transport Company" />
                 <NavTabButton
                   className="icon-btn icon-btn-hide-mobile"
                   active={activePortal === 'transport'}
@@ -335,7 +335,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                   data-tooltip-id="inhouse-driver-portal"
                 >
                   <FiNavigation />
-                </NavTabButton>
+                </NavTabButton> */}
               </>
             )}
             {/* <Tooltip id="board" place="bottom" content="Board" />

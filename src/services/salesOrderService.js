@@ -27,8 +27,14 @@ const generateWorkOrder = (soItemIds) =>
  */
 const generatePO = (payload) => Gateway.post("sales_order/generate_po", payload);
 
+/**
+ * @param {FormData} formData - purchase_order_id, invoice_number, invoice_amount, invoice_date, file
+ */
+const uploadInvoice = (formData) => Gateway.post("sales_order/upload_invoice", formData);
+
 export default {
   getSoItemsByCall,
   generateWorkOrder,
   generatePO,
+  uploadInvoice,
 };
