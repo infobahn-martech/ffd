@@ -26,7 +26,7 @@ export default function SwimlaneColumnCell({
   isDarkMode = false,
   layoutView = null,
 }) {
-  const EMPTY_DROP_ZONE_MIN_HEIGHT = 220;
+  const EMPTY_DROP_ZONE_MIN_HEIGHT = 660;
   const cellRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
