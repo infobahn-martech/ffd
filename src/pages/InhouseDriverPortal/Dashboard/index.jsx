@@ -55,8 +55,12 @@ function InhouseDriverDashboard() {
             pickupDatetime: row.rawPickup,
             dropOffDatetime: row.rawDropOff,
         });
+        setStatusEdits((prev) => {
+            const next = { ...prev };
+            delete next[row.id];
+            return next;
+        });
         getDriverTripStats();
-        getRequestsByDriver();
     };
 
     const summaryCards = useMemo(

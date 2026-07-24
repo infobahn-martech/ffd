@@ -7,7 +7,7 @@ import useInhouseDriverReducer from "../../../store/InhouseDriverReducer";
 const RenderStatusBadge = ({ row }) => {
     const statusMap = {
         Pending: { bg: "#FFF3CD", color: "#856404" },
-        Submitted: { bg: "#DDEBFF", color: "#1D4ED8" },
+        "In Progress": { bg: "#DDEBFF", color: "#1D4ED8" },
         Completed: { bg: "#D1FAE5", color: "#047857" },
     };
 

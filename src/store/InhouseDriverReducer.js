@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import driverPortalService from '../services/driverPortalService';
 
-const useInhouseDriverReducer = create((set) => ({
+const useInhouseDriverReducer = create((set, get) => ({
   isTripStatsLoading: false,
   tripStatsError: '',
   tripStatsData: null,
@@ -53,13 +53,25 @@ const useInhouseDriverReducer = create((set) => ({
   updateTripStatus: async ({ transportRequestId, status, pickupDatetime, dropOffDatetime }) => {
     try {
       set({ isUpdatingTripStatus: true, updateTripStatusError: '' });
-      await driverPortalService.updateTripStatus({
+      const { data } = await driverPortalService.updateTripStatus({
         transport_request_id: transportRequestId,
         status,
         pickup_datetime: pickupDatetime,
         drop_offdatetime: dropOffDatetime,
       });
-      set({ isUpdatingTripStatus: false });
+      set({
+        isUpdatingTripStatus: false,
+        requestsData: get().requestsData.map((req) =>
+          req.transport_request_id === transportRequestId
+            ? {
+                ...req,
+                status: data?.trip_status ?? status,
+                pickup_datetime: data?.pickup_datetime ?? req.pickup_datetime,
+                drop_offdatetime: data?.drop_offdatetime ?? req.drop_offdatetime,
+              }
+            : req
+        ),
+      });
     } catch (error) {
       set({
         updateTripStatusError: error?.response?.data?.message ?? error.message,
