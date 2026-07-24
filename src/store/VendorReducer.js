@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import vendorService from '../services/vendorService';
+import salesOrderService from '../services/salesOrderService';
 
 const useVendorReducer = create((set) => ({
   isDashboardLoading: false,
@@ -87,6 +88,30 @@ const useVendorReducer = create((set) => ({
         isHotelOrdersLoading: false,
         hotelOrdersData: [],
       });
+    }
+  },
+
+  isUploadingInvoice: false,
+  uploadInvoiceError: '',
+
+  // UPLOAD_INVOICE_REQUEST / SUCCESS / FAILURE
+  uploadInvoice: async ({ purchaseOrderId, invoiceAmount, invoiceDate, files }) => {
+    try {
+      set({ isUploadingInvoice: true, uploadInvoiceError: '' });
+      const formData = new FormData();
+      formData.append('purchase_order_id', purchaseOrderId ?? '');
+      formData.append('invoice_number', '');
+      formData.append('invoice_amount', invoiceAmount ?? '');
+      formData.append('invoice_date', invoiceDate ?? '');
+      (files || []).forEach((file) => formData.append('file', file));
+      await salesOrderService.uploadInvoice(formData);
+      set({ isUploadingInvoice: false });
+    } catch (error) {
+      set({
+        uploadInvoiceError: error?.response?.data?.message ?? error.message,
+        isUploadingInvoice: false,
+      });
+      throw error;
     }
   },
 }));

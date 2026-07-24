@@ -69,17 +69,19 @@ function PortalDashboard({
                 ))}
             </div>
 
-            <div className="vendor-dashboard-section">
-                <h3 className="vendor-section-title">{statusTitle}</h3>
-                <div className="vendor-invoice-status-cards">
-                    {statusCards.map((card, i) => (
-                        <div key={i} className={`vendor-status-card ${card.statusClass}`}>
-                            <p className="vendor-status-label">{card.label}</p>
-                            <p className="vendor-status-value">{card.value}</p>
-                        </div>
-                    ))}
+            {!!statusCards?.length && (
+                <div className="vendor-dashboard-section">
+                    <h3 className="vendor-section-title">{statusTitle}</h3>
+                    <div className="vendor-invoice-status-cards">
+                        {statusCards.map((card, i) => (
+                            <div key={i} className={`vendor-status-card ${card.statusClass}`}>
+                                <p className="vendor-status-label">{card.label}</p>
+                                <p className="vendor-status-value">{card.value}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">Quick Actions</h3>

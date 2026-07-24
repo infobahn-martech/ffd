@@ -51,9 +51,9 @@ function HotelDashboard() {
         hotelOrdersData,
         getHotelDashboard,
         getHotelOrders,
+        uploadInvoice,
     } = useVendorReducer();
 
-    const [orderOverrides, setOrderOverrides] = useState({});
     const [uploadOrder, setUploadOrder] = useState(null);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -140,22 +140,20 @@ function HotelDashboard() {
 
     const tableRows = useMemo(
         () =>
-            (hotelOrdersData || []).map((order) => {
-                const override = orderOverrides[order.po_number];
-                return {
-                    poNo: order.po_number,
-                    woNo: order.wo_number,
-                    subject: `${order.hotel_name || 'Hotel'} - Accommodation`,
-                    company: order.company,
-                    orderDate: formatDate(order.order_date),
-                    purchaser: order.requested_by,
-                    amount: order.amount,
-                    currency: order.currency,
-                    status: override?.status ?? order.status,
-                    crew: order.crew || [],
-                };
-            }),
-        [hotelOrdersData, orderOverrides]
+            (hotelOrdersData || []).map((order) => ({
+                poNo: order.po_number,
+                woNo: order.wo_number,
+                subject: `${order.hotel_name || 'Hotel'} - Accommodation`,
+                company: order.company,
+                orderDate: formatDate(order.order_date),
+                purchaser: order.requested_by,
+                amount: order.amount,
+                currency: order.currency,
+                status: order.status,
+                purchaseOrderId: order.purchase_order_id,
+                crew: order.crew || [],
+            })),
+        [hotelOrdersData]
     );
 
     return (
@@ -242,14 +240,18 @@ function HotelDashboard() {
                         setShowUploadModal(false);
                         setUploadOrder(null);
                     }}
-                    onUploadComplete={() => {
-                        if (!uploadOrder?.poNo) return;
-                        setOrderOverrides((prev) => ({
-                            ...prev,
-                            [uploadOrder.poNo]: { status: 'Completed' },
-                        }));
+                    onUploadComplete={async (files) => {
+                        if (!uploadOrder) return;
+                        await uploadInvoice({
+                            purchaseOrderId: uploadOrder.purchaseOrderId,
+                            invoiceAmount: uploadOrder.amount,
+                            invoiceDate: dayjs().format('YYYY-MM-DD'),
+                            files,
+                        });
                         setShowUploadModal(false);
                         setUploadOrder(null);
+                        getHotelDashboard();
+                        getHotelOrders();
                     }}
                 />
             )}

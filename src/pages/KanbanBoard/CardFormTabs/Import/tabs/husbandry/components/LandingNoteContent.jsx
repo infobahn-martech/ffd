@@ -5,6 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
+import { LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
 import { splitApiDateTimeParts, nextDayOf } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import LocationAutocomplete from "./LocationAutocomplete";
@@ -566,6 +567,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     documents: [],
     remarks: "",
     orders: [emptyConvertItem()],
+    launch_hire: false,
+    launch_hire_location: "",
+    launch_hire_booking_date: "",
+    launch_hire_booking_time: "",
   });
 
 
@@ -587,6 +592,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       documents: [],
       remarks: "",
       orders,
+      launch_hire: false,
+      launch_hire_location: "",
+      launch_hire_booking_date: "",
+      launch_hire_booking_time: "",
     });
     setExpandedConvertOrders(exp);
     setShowConvertModal(true);
@@ -633,6 +642,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       documents: [],
       remarks: "",
       orders: [emptyConvertItem()],
+      launch_hire: false,
+      launch_hire_location: "",
+      launch_hire_booking_date: "",
+      launch_hire_booking_time: "",
     });
   };
 
@@ -836,6 +849,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!convertFormData.warehouse_id) errors.warehouse_id = "Warehouse is required";
     if (!convertFormData.delivery_location) errors.delivery_location = "Delivery location is required";
     if (!convertFormData.delivered_to) errors.delivered_to = "Deliver to is required";
+    if (convertFormData.launch_hire) {
+      if (!convertFormData.launch_hire_location) errors.launch_hire_location = "Location is required";
+      if (!convertFormData.launch_hire_booking_date) errors.launch_hire_booking_date = "Booking date and time are required";
+    }
     convertFormData.orders.forEach((order, idx) => {
       if (!order.quantity) {
         errors[`co${idx}_quantity`] = "Quantity is required";
@@ -861,6 +878,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     fd.append("signature", convertFormData.signature || "");
     fd.append("delivery_location", convertFormData.delivery_location || "");
     fd.append("delivered_to", convertFormData.delivered_to || "");
+    fd.append("launch_hire", convertFormData.launch_hire ? 1 : 0);
+    fd.append("location", convertFormData.launch_hire ? (convertFormData.launch_hire_location || "") : "");
+    const launchHireBookingDatetime = convertFormData.launch_hire
+      ? convertFormData.launch_hire_booking_date + (convertFormData.launch_hire_booking_time ? ` ${convertFormData.launch_hire_booking_time}` : "")
+      : "";
+    fd.append("booking_datetime", launchHireBookingDatetime);
     fd.append("remarks", (convertFormData.remarks || "").replace(/<[^>]*>/g, "").trim());
     (convertFormData.documents || []).forEach((doc) => {
       const file = doc?.file ?? doc;
@@ -1384,6 +1407,56 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 </FormField>
               </div>
             </div>
+          </div>
+
+          {/* Launch Hire */}
+          <div className="landing-convert-section">
+            <h3 className="landing-convert-section-title">Launch Hire</h3>
+            <label className="landing-convert-checkbox-label">
+              <input
+                type="checkbox"
+                checked={convertFormData.launch_hire || false}
+                onChange={(e) => {
+                  handleConvertFormChange("launch_hire", e.target.checked);
+                  setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_location; delete n.launch_hire_booking_date; return n; });
+                }}
+                className="landing-convert-checkbox"
+              />
+              <span className="landing-convert-checkbox-text">Launch hire required</span>
+            </label>
+            {convertFormData.launch_hire && (
+              <div className="row g-2 mt-1">
+                <div className="col-md-6">
+                  <FormField label="Location *">
+                    <FormSelect
+                      value={convertFormData.launch_hire_location}
+                      onChange={(e) => { handleConvertFormChange("launch_hire_location", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_location; return n; }); }}
+                      options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                      placeholder="Select location..."
+                      className={convertFormErrors.launch_hire_location ? "is-invalid" : ""}
+                    />
+                    {convertFormErrors.launch_hire_location && <span className="landing-convert-error">{convertFormErrors.launch_hire_location}</span>}
+                  </FormField>
+                </div>
+                <div className="col-md-6">
+                  <FormField label="Booking Date & Time *">
+                    <DateTimePickerField
+                      dateValue={convertFormData.launch_hire_booking_date}
+                      timeValue={convertFormData.launch_hire_booking_time}
+                      onDateTimeChange={(v) => {
+                        setConvertFormData((p) => ({ ...p, launch_hire_booking_date: v.date, launch_hire_booking_time: v.time }));
+                        setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_booking_date; return n; });
+                      }}
+                      dateFieldName="launch_hire_booking_date"
+                      timeFieldName="launch_hire_booking_time"
+                      placeholder="YYYY-MM-DD hh:mm"
+                      hasError={Boolean(convertFormErrors.launch_hire_booking_date)}
+                    />
+                    {convertFormErrors.launch_hire_booking_date && <span className="landing-convert-error">{convertFormErrors.launch_hire_booking_date}</span>}
+                  </FormField>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Details */}
