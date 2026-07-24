@@ -1585,7 +1585,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     setTripSubmitting(true);
     launchHireService
       .createIntermediateTrip({
-        booking_id: bookingId,
+        booking_item_id: bookingId,
         taxi_boat_id: intermediateTripTaxiBoatId,
         taxiboat_captain_id: intermediateTripCaptainId,
         booking_datetime: buildApiDateTime(addTripDate, addTripTime),
