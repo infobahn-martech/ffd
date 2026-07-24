@@ -16,6 +16,7 @@ import {
 import { Modal } from 'react-bootstrap';
 import { Tooltip } from 'react-tooltip';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
+import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import { RESTRICTED_BOARD_HOME_PATH } from '../../../shared/helpers/restrictedBoardUser';
@@ -42,6 +43,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
   const [backgroundSubOpen, setBackgroundSubOpen] = useState(false);
   const [renameModal, setRenameModal] = useState(null);
   const [renameDraft, setRenameDraft] = useState('');
+  const [deleteModal, setDeleteModal] = useState(null);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const wallpaperInputRef = useRef(null);
   const menuBtnRef = useRef(null);
@@ -220,20 +222,19 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
   };
 
   const handleDelete = (d) => {
-    if (
-      !window.confirm(
-        `Delete dashboard "${d.name}"? This cannot be undone.`
-      )
-    ) {
-      return;
-    }
+    setDeleteModal(d);
+    closeMenus();
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteModal) return;
     deleteDashboard({
-      dashboard_id: d.id,
+      dashboard_id: deleteModal.id,
       cb: () => {
-        closeMenus();
-        if (selectedDashboardId != null && String(selectedDashboardId) === String(d.id)) {
+        if (selectedDashboardId != null && String(selectedDashboardId) === String(deleteModal.id)) {
           navigate('/workspaces');
         }
+        setDeleteModal(null);
       },
     });
   };
@@ -603,6 +604,14 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
           </div>
         </form>
       </Modal>
+
+      <DeleteConfirmationModal
+        show={!!deleteModal}
+        onCancel={() => setDeleteModal(null)}
+        onConfirm={handleConfirmDelete}
+        isLoading={addEditLoader}
+        deleteText={`Delete dashboard "${deleteModal?.name}"? This cannot be undone.`}
+      />
     </aside>
   );
 }
