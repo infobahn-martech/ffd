@@ -4,7 +4,7 @@ const getAllAddOnServices = () => Gateway.get('/addon_service/get_all_addon_serv
 const createAddOnServiceRequest = (formData) =>
   Gateway.post('/addon_service/create_addon_service_request', formData);
 const getAddOnServiceRequests = (callId) =>
-  Gateway.get(`/add_on_service/get_add_on_service_requests/${encodeURIComponent(String(callId))}`);
+  Gateway.get(`/add_on_service/get_addon_service_requests/${encodeURIComponent(String(callId))}`);
 
 export default {
   getAllAddOnServices,
