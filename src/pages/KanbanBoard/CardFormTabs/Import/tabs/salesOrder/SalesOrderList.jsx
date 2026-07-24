@@ -1014,7 +1014,7 @@ const SalesOrderList = ({
 
   // Render a single order row
   const renderOrderRow = (order) => {
-    const hasWorkOrder = Boolean(order.workOrder);
+    const hasWorkOrder = Boolean(order.workOrder) || Number(order.woStatus) === 1;
     const defaultTypeOfPo = !isThirdParty(order.is_third_party) ? "Inhouse" : "";
 
     return (
