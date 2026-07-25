@@ -1726,92 +1726,59 @@ const SalesOrderList = ({
             const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
 
             return (
-              <>
-                <div className="sales-order-add-popover-backdrop" onClick={() => setShowSummaryPopover(false)} />
-                <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
-                  <div className="sales-order-add-accordion-header">
-                    <h4 className="sales-order-add-accordion-title">Accounting Summary</h4>
+              <div
+                className="so-summary-modal-backdrop"
+                onClick={(e) => { if (e.target === e.currentTarget) setShowSummaryPopover(false); }}
+              >
+                <div className="so-summary-modal">
+                  <div className="so-summary-modal-header">
+                    <h3 className="so-summary-modal-title">Accounting Summary</h3>
                     <button
                       type="button"
                       onClick={() => setShowSummaryPopover(false)}
-                      className="sales-order-add-accordion-close"
-                      style={{ color: cardColor }}
+                      className="so-summary-modal-close"
+                      aria-label="Close"
                     >
                       ×
                     </button>
                   </div>
-                  <div className="so-accounting-body">
-                    {/* Left: info fields */}
-                    <div className="so-accounting-info">
-                      <div className="so-accounting-info-field">
-                        <label className="so-accounting-info-label">Owner</label>
-                        <input
-                          type="text"
-                          className="so-accounting-info-value"
-                          value={formValues.soOwner || ""}
-                          readOnly
-                        />
-                      </div>
-                      <div className="so-accounting-info-field">
-                        <label className="so-accounting-info-label">Project Name</label>
-                        <input
-                          type="text"
-                          className="so-accounting-info-value"
-                          value={formValues.soProjectName || ""}
-                          readOnly
-                        />
-                      </div>
-                      <div className="so-accounting-info-field">
-                        <label className="so-accounting-info-label">Remarks</label>
-                        <textarea
-                          className="so-accounting-info-textarea"
-                          placeholder="Enter remarks..."
-                          value={formValues.soRemarks || ""}
-                          onChange={readOnly ? undefined : handleChange("soRemarks")}
-                          disabled={readOnly}
-                        />
-                      </div>
-                    </div>
 
-                    {/* Right: accounting card */}
-                    <div className="so-accounting-right">
-                      <div className="so-accounting-card-title">Accounting</div>
-                      <div className="so-accounting-grid">
+                  <div className="so-summary-modal-body">
+                    <div className="so-accounting-grid">
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Currency</span>
+                        <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+                      </div>
+                      <div className="so-accounting-divider" />
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Subtotal</span>
+                        <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+                      </div>
+                      {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
                         <div className="so-accounting-row">
-                          <span className="so-accounting-label">Currency</span>
-                          <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+                          <span className="so-accounting-label">Discount</span>
+                          <span className="so-accounting-value">
+                            {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                          </span>
                         </div>
-                        <div className="so-accounting-divider" />
-                        <div className="so-accounting-row">
-                          <span className="so-accounting-label">Subtotal</span>
-                          <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
-                        </div>
-                        {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
-                          <div className="so-accounting-row">
-                            <span className="so-accounting-label">Discount</span>
-                            <span className="so-accounting-value">
-                              {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
-                            </span>
-                          </div>
-                        )}
-                        <div className="so-accounting-row">
-                          <span className="so-accounting-label">Total Discount</span>
-                          <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
-                        </div>
-                        <div className="so-accounting-row">
-                          <span className="so-accounting-label">Total Tax</span>
-                          <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
-                        </div>
-                        <div className="so-accounting-divider" />
-                        <div className="so-accounting-row so-accounting-grand">
-                          <span className="so-accounting-label">Grand Total</span>
-                          <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
-                        </div>
+                      )}
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Total Discount</span>
+                        <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+                      </div>
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Total Tax</span>
+                        <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+                      </div>
+                      <div className="so-accounting-divider" />
+                      <div className="so-accounting-row so-accounting-grand">
+                        <span className="so-accounting-label">Grand Total</span>
+                        <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </>
+              </div>
             );
           })()}
 
