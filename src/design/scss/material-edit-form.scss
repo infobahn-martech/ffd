@@ -1,0 +1,31 @@
+/* ===========================================================
+   MATERIAL MANAGEMENT — Inbound Order / Landing Note edit modals
+   Brings the same heading spacing, section gap and item-card hover
+   polish already used on the Edit Dispatch Note modal.
+   Dedicated override file — do not fold into materialmanagement.scss,
+   which is shared by other Husbandry sub-tabs.
+   =========================================================== */
+
+// Breathing room between each section heading and the fields below it.
+.material-edit-form .dispatch-edit-section-title {
+  margin-bottom: 14px;
+}
+
+// Landing Note's edit form uses its own title class (16px, no defined
+// gap) — bring it in line with the Dispatch Note look.
+.material-edit-form .landing-edit-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 14px;
+  color: #1a1a1a;
+}
+
+// Match the Dispatch Note item-card hover affordance.
+.material-edit-form .landing-edit-item-card {
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: #00368c;
+    box-shadow: 0 2px 6px rgba(0, 54, 140, 0.1);
+  }
+}
