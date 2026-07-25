@@ -63,14 +63,6 @@ const launchHireStatusIcon = (tone) => {
   return "flag";
 };
 
-const launchHireCompleteness = (launchHire) => {
-  const fields = [launchHire?.booking_datetime, launchHire?.location, launchHire?.status];
-  const filled = fields.filter((v) => v != null && String(v).trim() !== "").length;
-  if (filled >= fields.length) return "complete";
-  if (filled > 0) return "partial";
-  return "empty";
-};
-
 const renderLaunchHireStepIcon = (icon) => {
   switch (icon) {
     case "clock":
@@ -2148,8 +2140,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           </div>
 
           {viewingOrder.launch_hire && (() => {
-            const completeness = launchHireCompleteness(viewingOrder.launch_hire);
-            const badgeLabel = completeness === "complete" ? "Complete" : completeness === "partial" ? "Partial" : "Pending";
             const statusTone = launchHireStatusTone(viewingOrder.launch_hire.status);
             return (
               <div className="dispatch-edit-section dispatch-launch-hire-section mb-4">
@@ -2162,9 +2152,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </svg>
                   </span>
                   <span>Launch Hire</span>
-                  <span className={`dispatch-launch-hire-badge dispatch-launch-hire-badge--${completeness}`}>
-                    {badgeLabel}
-                  </span>
                 </h3>
                 <div className="dispatch-launch-hire-card">
                   <div className="dispatch-launch-hire-steps">
