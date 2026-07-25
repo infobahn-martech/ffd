@@ -497,7 +497,7 @@ DocumentListModal.propTypes = {
 };
 
 // Premium pagination control for the sales order table
-const SalesOrderPagination = ({ page, total, limit, onPageChange }) => {
+const SalesOrderPagination = ({ page, total, limit, onPageChange, compact = false }) => {
   if (!total || total <= 0) return null;
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -522,7 +522,7 @@ const SalesOrderPagination = ({ page, total, limit, onPageChange }) => {
   };
 
   return (
-    <div className="so-pagination">
+    <div className={`so-pagination${compact ? " so-pagination--compact" : ""}`}>
       <span className="so-pagination-info">
         Showing <strong>{start}</strong>–<strong>{end}</strong> of <strong>{total}</strong> entries
       </span>
@@ -572,6 +572,7 @@ SalesOrderPagination.propTypes = {
   total: PropTypes.number.isRequired,
   limit: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
+  compact: PropTypes.bool,
 };
 
 const SalesOrderList = ({
@@ -613,6 +614,7 @@ const SalesOrderList = ({
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [showSummaryPopover, setShowSummaryPopover] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [newItemForm, setNewItemForm] = useState({
@@ -1289,15 +1291,31 @@ const SalesOrderList = ({
           <span className="sales-order-list-title-bar"></span>
           SALES ORDER LIST
         </h3>
-        {!readOnly && (
+        <div className="sales-order-list-header-actions">
+          <SalesOrderPagination
+            page={currentPage}
+            total={totalOrderCount}
+            limit={SALES_ORDER_PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            compact
+          />
           <button
             type="button"
-            className="sales-order-add-button"
-            onClick={handleAddNewItem}
+            className="sales-order-add-button sales-order-summary-button"
+            onClick={() => setShowSummaryPopover(true)}
           >
-            + Add Item
+            Summary
           </button>
-        )}
+          {!readOnly && (
+            <button
+              type="button"
+              className="sales-order-add-button"
+              onClick={handleAddNewItem}
+            >
+              + Add Item
+            </button>
+          )}
+        </div>
       </div>
 
       {salesOrderError && (
@@ -1862,15 +1880,8 @@ const SalesOrderList = ({
             </table>
           </div>
 
-          <SalesOrderPagination
-            page={currentPage}
-            total={totalOrderCount}
-            limit={SALES_ORDER_PAGE_SIZE}
-            onPageChange={setCurrentPage}
-          />
-
-          {/* Accounting Summary Panel */}
-          {(() => {
+          {/* Accounting Summary Popover — opened via the Summary button in the header */}
+          {showSummaryPopover && (() => {
             const amountFromForm = (v) => {
               if (v == null || v === "") return null;
               const n = parseFloat(String(v).replace(/,/g, ""));
@@ -1905,10 +1916,19 @@ const SalesOrderList = ({
             const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
 
             return (
-              <div className="so-accounting-summary">
-                <div className="so-accounting-title">
-                  <span className="so-accounting-title-bar"></span>
-                  ACCOUNTING SUMMARY
+              <>
+                <div className="sales-order-add-popover-backdrop" onClick={() => setShowSummaryPopover(false)} />
+                <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
+                <div className="sales-order-add-accordion-header">
+                  <h4 className="sales-order-add-accordion-title">Accounting Summary</h4>
+                  <button
+                    type="button"
+                    onClick={() => setShowSummaryPopover(false)}
+                    className="sales-order-add-accordion-close"
+                    style={{ color: cardColor }}
+                  >
+                    ×
+                  </button>
                 </div>
                 <div className="so-accounting-body">
                   {/* Left: info fields */}
@@ -1980,7 +2000,8 @@ const SalesOrderList = ({
                     </div>
                   </div>
                 </div>
-              </div>
+                </div>
+              </>
             );
           })()}
         </div>
