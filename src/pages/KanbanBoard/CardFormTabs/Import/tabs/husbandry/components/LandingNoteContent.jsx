@@ -20,6 +20,8 @@ import logisticsWarehouseService from "../../../../../../../services/logisticsWa
 import vehicleService from "../../../../../../../services/vehicleService";
 import inboundOrderService from "../../../../../../../services/inboundOrderService";
 import landingNoteService from "../../../../../../../services/landingNoteService";
+import "../../../../../../../design/scss/material-edit-form.scss";
+import "../../../../../../../design/scss/dispatch-note.scss";
 
 // AttachmentsList Component (from Operation.jsx)
 const AttachmentsList = ({ attachments = [], onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
@@ -130,6 +132,107 @@ const mergeOptionForValue = (options, value) => {
   const s = String(value);
   if (options.some((o) => o.value === s)) return options;
   return [...options, { value: s, label: s }];
+};
+
+// Small icon set for the View Landing Note modal's info/field cards
+// (landing-view-info-card, landing-view-section-icon — see dispatch-note.scss).
+const renderViewIcon = (icon) => {
+  switch (icon) {
+    case "hash":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "calendar":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M8 3v4M16 3v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "building":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 21V10l9-6 9 6v11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 21v-6h6v6" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+      );
+    case "user":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+          <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "pin":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 22s7-7.05 7-12a7 7 0 1 0-14 0c0 4.95 7 12 7 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      );
+    case "signature":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 17c2-1 3-4 4-6 1.5-3 2.5-4 3.5-1 .6 1.7 1.5 1.8 2.5 0 1-1.8 2-1.8 3 0s2 2 4.5-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M3 20h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "list":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "package":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 8l-9-5-9 5 9 5 9-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M3 8v8l9 5 9-5V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 13v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "note":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "slot":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="4" width="7" height="16" rx="1.5" stroke="currentColor" strokeWidth="2" />
+          <rect x="14" y="4" width="7" height="16" rx="1.5" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      );
+    case "flag":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 21V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M5 4h13l-3 4 3 4H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "box":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 7h16v13H4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M4 7l3-4h10l3 4M4 12h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "truck":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 8h11v8H2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M13 11h4l3 3v2h-7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <circle cx="6" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+          <circle cx="17" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 };
 
 const emptyConvertItem = () => ({
@@ -1039,12 +1142,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const renderBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="landingNoteForm" onSubmit={handleSubmit}>
+        <form id="landingNoteForm" className="material-edit-form" onSubmit={handleSubmit}>
 
           {/* Basic Details */}
-          <div className="mb-lg-3 mb-sm-0 pb-2 border-bottom">
-            <h3 className="fw-semibold mb-2 landing-edit-section-title">Basic Details</h3>
-            <div className="row g-2 mb-lg-3">
+          <div className="dispatch-edit-section">
+            <h3 className="landing-edit-section-title">Basic Details</h3>
+            <div className="row g-2 mb-3">
               <div className="col-md-6">
                 <FormField label="Date *">
                   <DateTimePickerField
@@ -1068,7 +1171,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 </FormField>
               </div>
             </div>
-            <div className="row g-2 mb-lg-3">
+            <div className="row g-2 mb-3">
               <div className="col-md-6">
                 <FormField label="Received From *">
                   <FormInput type="text" value={formData.received_from} onChange={(e) => { setFormData((p) => ({ ...p, received_from: e.target.value })); if (formErrors.received_from) setFormErrors((p) => { const n = { ...p }; delete n.received_from; return n; }); }} placeholder="Enter received from..." />
@@ -1082,14 +1185,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 {formErrors.location && <span className="text-danger small">{formErrors.location}</span>}
               </div>
             </div>
-            <div className="row g-2 mb-lg-3">
+            <div className="row g-2 mb-3">
               <div className="col-md-12">
                 <FormField label="Signature">
                   <FormInput type="text" value={formData.signature} onChange={(e) => setFormData((p) => ({ ...p, signature: e.target.value }))} placeholder="Enter signature..." />
                 </FormField>
               </div>
             </div>
-            <div className="row g-2 mb-lg-2">
+            <div className="row g-2 mb-3">
               <div className="col-md-12">
                 <FormField label="Remarks">
                   <ReactQuillEditor
@@ -1161,8 +1264,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Order Items */}
           {formData.items.length > 0 && (
-            <div>
-              <h3 className="fw-semibold mb-3">Order Items</h3>
+            <div className="dispatch-edit-section dispatch-edit-section--last">
+              <h3 className="landing-edit-section-title">Order Items</h3>
               {formData.items.map((item, index) => (
                 <div key={item.id} className="landing-edit-item-card">
                   <div
@@ -1409,6 +1512,94 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             </div>
           </div>
 
+          {/* Launch Hire */}
+          <div className="landing-convert-section">
+            <h3 className="landing-convert-section-title">Launch Hire</h3>
+            <label className="landing-convert-checkbox-label">
+              <input
+                type="checkbox"
+                checked={convertFormData.launch_hire || false}
+                onChange={(e) => {
+                  handleConvertFormChange("launch_hire", e.target.checked);
+                  setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_location; delete n.launch_hire_booking_date; return n; });
+                }}
+                className="landing-convert-checkbox"
+              />
+              <span className="landing-convert-checkbox-text">Launch hire required</span>
+            </label>
+            {convertFormData.launch_hire && (
+              <div className="dispatch-launch-hire-card">
+                <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form">
+                  <div className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": 0 }}>
+                    <div className="dispatch-launch-hire-step-head">
+                      <span className="dispatch-launch-hire-step-icon-wrap">
+                        <span className="dispatch-launch-hire-step-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                            <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <span className="dispatch-launch-hire-step-num">1</span>
+                      </span>
+                      <span className="dispatch-launch-hire-step-label">Booking Date &amp; Time <span className="text-danger">*</span></span>
+                    </div>
+                    <div className="dispatch-launch-hire-step-field">
+                      <DateTimePickerField
+                        dateValue={convertFormData.launch_hire_booking_date}
+                        timeValue={convertFormData.launch_hire_booking_time}
+                        onDateTimeChange={(v) => {
+                          setConvertFormData((p) => ({ ...p, launch_hire_booking_date: v.date, launch_hire_booking_time: v.time }));
+                          setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_booking_date; return n; });
+                        }}
+                        dateFieldName="launch_hire_booking_date"
+                        timeFieldName="launch_hire_booking_time"
+                        placeholder="YYYY-MM-DD hh:mm"
+                        hasError={Boolean(convertFormErrors.launch_hire_booking_date)}
+                      />
+                      {convertFormErrors.launch_hire_booking_date && <span className="landing-convert-error">{convertFormErrors.launch_hire_booking_date}</span>}
+                    </div>
+                  </div>
+
+                  <div className="dispatch-launch-hire-track" aria-hidden="true">
+                    <span className="dispatch-launch-hire-track-line" />
+                    <span className="dispatch-launch-hire-track-boat">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 15h18l-2 5H5l-2-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 3v12M9 6l3-3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M2 15c2-2.5 4-3.5 10-3.5s8 1 10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": 1 }}>
+                    <div className="dispatch-launch-hire-step-head">
+                      <span className="dispatch-launch-hire-step-icon-wrap">
+                        <span className="dispatch-launch-hire-step-icon dispatch-launch-hire-step-icon--highlight">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22s7-7.05 7-12a7 7 0 1 0-14 0c0 4.95 7 12 7 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                            <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                        </span>
+                        <span className="dispatch-launch-hire-step-num">2</span>
+                      </span>
+                      <span className="dispatch-launch-hire-step-label">Location <span className="text-danger">*</span></span>
+                    </div>
+                    <div className="dispatch-launch-hire-step-field">
+                      <FormSelect
+                        value={convertFormData.launch_hire_location}
+                        onChange={(e) => { handleConvertFormChange("launch_hire_location", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_location; return n; }); }}
+                        options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                        placeholder="Select location..."
+                        className={convertFormErrors.launch_hire_location ? "is-invalid" : ""}
+                      />
+                      {convertFormErrors.launch_hire_location && <span className="landing-convert-error">{convertFormErrors.launch_hire_location}</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Order Details */}
           <div className="landing-convert-section">
             <div className="landing-convert-section-header">
@@ -1585,56 +1776,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             ))}
           </div>
 
-          {/* Launch Hire */}
-          <div className="landing-convert-section">
-            <h3 className="landing-convert-section-title">Launch Hire</h3>
-            <label className="landing-convert-checkbox-label">
-              <input
-                type="checkbox"
-                checked={convertFormData.launch_hire || false}
-                onChange={(e) => {
-                  handleConvertFormChange("launch_hire", e.target.checked);
-                  setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_location; delete n.launch_hire_booking_date; return n; });
-                }}
-                className="landing-convert-checkbox"
-              />
-              <span className="landing-convert-checkbox-text">Launch hire required</span>
-            </label>
-            {convertFormData.launch_hire && (
-              <div className="row g-2 mt-1">
-                <div className="col-md-6">
-                  <FormField label="Booking Date & Time *">
-                    <DateTimePickerField
-                      dateValue={convertFormData.launch_hire_booking_date}
-                      timeValue={convertFormData.launch_hire_booking_time}
-                      onDateTimeChange={(v) => {
-                        setConvertFormData((p) => ({ ...p, launch_hire_booking_date: v.date, launch_hire_booking_time: v.time }));
-                        setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_booking_date; return n; });
-                      }}
-                      dateFieldName="launch_hire_booking_date"
-                      timeFieldName="launch_hire_booking_time"
-                      placeholder="YYYY-MM-DD hh:mm"
-                      hasError={Boolean(convertFormErrors.launch_hire_booking_date)}
-                    />
-                    {convertFormErrors.launch_hire_booking_date && <span className="landing-convert-error">{convertFormErrors.launch_hire_booking_date}</span>}
-                  </FormField>
-                </div>
-                <div className="col-md-6">
-                  <FormField label="Location *">
-                    <FormSelect
-                      value={convertFormData.launch_hire_location}
-                      onChange={(e) => { handleConvertFormChange("launch_hire_location", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n.launch_hire_location; return n; }); }}
-                      options={LAUNCH_HIRE_LOCATION_OPTIONS}
-                      placeholder="Select location..."
-                      className={convertFormErrors.launch_hire_location ? "is-invalid" : ""}
-                    />
-                    {convertFormErrors.launch_hire_location && <span className="landing-convert-error">{convertFormErrors.launch_hire_location}</span>}
-                  </FormField>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Documents & Remarks */}
           <div>
             <h3 className="landing-convert-section-title">Documents & Remarks</h3>
@@ -1704,33 +1845,39 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <div className="modal-body">
         <div className="lead-form">
           {/* Note Header */}
+          <div className="landing-view-basic-section mb-4">
+            <h3 className="landing-view-section-title">
+              <span className="landing-view-section-icon landing-view-section-icon--info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                  <path d="M12 8h.01M11 12h1v5h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span>Basic Details</span>
+            </h3>
+            <div className="landing-view-info-grid">
+              {[
+                { key: "no", icon: "hash", label: "Landing Note No", value: viewingNote.landingNoteNo || "-" },
+                { key: "date", icon: "calendar", label: "Date", value: formatDate(viewingNote.date) || "-" },
+                { key: "warehouse", icon: "building", label: "Warehouse", value: warehouseName || "-" },
+                { key: "received_from", icon: "user", label: "Received From", value: viewingNote.received_from || "-" },
+                { key: "location", icon: "pin", label: "Location", value: viewingNote.location || "-" },
+                ...(viewingNote.signature ? [{ key: "signature", icon: "signature", label: "Signature", value: viewingNote.signature }] : []),
+              ].map((field, index) => (
+                <div key={field.key} className="landing-view-info-card" style={{ "--stagger-index": index }}>
+                  <span className="landing-view-info-icon">
+                    {renderViewIcon(field.icon)}
+                  </span>
+                  <div className="landing-view-info-body">
+                    <span className="landing-view-info-label">{field.label}</span>
+                    <span className="landing-view-info-value">{field.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="row g-3 mb-3">
-            <div className="col-md-4">
-              <label className="landing-view-label">Landing Note No</label>
-              <div className="landing-view-box">{viewingNote.landingNoteNo || "-"}</div>
-            </div>
-            <div className="col-md-4">
-              <label className="landing-view-label">Date</label>
-              <div className="landing-view-box">{formatDate(viewingNote.date) || "-"}</div>
-            </div>
-            <div className="col-md-4">
-              <label className="landing-view-label">Warehouse</label>
-              <div className="landing-view-box">{warehouseName || "-"}</div>
-            </div>
-            <div className="col-md-6">
-              <label className="landing-view-label">Received From</label>
-              <div className="landing-view-box">{viewingNote.received_from || "-"}</div>
-            </div>
-            <div className="col-md-6">
-              <label className="landing-view-label">Location</label>
-              <div className="landing-view-box">{viewingNote.location || "-"}</div>
-            </div>
-            {viewingNote.signature && (
-              <div className="col-md-6">
-                <label className="landing-view-label">Signature</label>
-                <div className="landing-view-box">{viewingNote.signature}</div>
-              </div>
-            )}
             <div className="col-12">
               <label className="landing-view-label">Documents</label>
               {documents.length > 0 ? (
@@ -1775,7 +1922,17 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           {/* Order Items */}
           {viewItems.length > 0 && (
             <div className="landing-view-items-section">
-              <h4 className="fw-semibold mb-3">Order Items</h4>
+              <h4 className="landing-view-section-title mb-3">
+                <span className="landing-view-section-icon landing-view-section-icon--items">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 8l-9-5-9 5 9 5 9-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M3 8v8l9 5 9-5V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 13v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <span>Order Items</span>
+                <span className="landing-view-count-badge">{viewItems.length}</span>
+              </h4>
               {viewItems.map((item, idx) => {
                 const transport = getTransportation(item);
                 const hasTransport = isTruthyFlag(item.transportation_required) || Boolean(transport);
@@ -1790,33 +1947,48 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                 const driverName = transport?.driver_name ||
                   driverOptions.find((o) => o.value === String(transport?.driver_id))?.label || "-";
                 return (
-                  <div key={item.landing_note_item_id || idx} className="landing-view-item-card">
-                    <div className="landing-view-item-title">
-                      Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
+                  <div
+                    key={item.landing_note_item_id || idx}
+                    className="landing-view-item-card landing-view-item-card--animated"
+                    style={{ "--stagger-index": idx }}
+                  >
+                    <div className="landing-view-item-title landing-view-item-title--iconic">
+                      <span className="landing-view-item-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M20.5 7.5L12 3 3.5 7.5 12 12l8.5-4.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M3.5 7.5v9L12 21l8.5-4.5v-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                      <span>Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}</span>
                     </div>
 
-                    <div className="row g-2 mb-2">
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">PO/DO</label>
-                        <div className="landing-view-box">{item.po_no || "-"}</div>
-                      </div>
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Quantity</label>
-                        <div className="landing-view-box">{item.quantity ?? "-"}</div>
-                      </div>
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Package Type</label>
-                        <div className="landing-view-box">{item.package_type || item.package_type_id || "-"}</div>
-                      </div>
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Description</label>
-                        <div className="landing-view-box">{item.description || "-"}</div>
-                      </div>
+                    <div className="landing-view-info-grid landing-view-info-grid--items mb-3">
+                      {[
+                        { key: "po_do", icon: "hash", label: "PO/DO", value: item.po_no || "-" },
+                        { key: "quantity", icon: "list", label: "Quantity", value: item.quantity ?? "-" },
+                        { key: "package_type", icon: "package", label: "Package Type", value: item.package_type || item.package_type_id || "-" },
+                        { key: "description", icon: "note", label: "Description", value: item.description || "-" },
+                      ].map((field, fieldIdx) => (
+                        <div key={field.key} className="landing-view-info-card landing-view-info-card--items" style={{ "--stagger-index": fieldIdx }}>
+                          <span className="landing-view-info-icon landing-view-info-icon--items">
+                            {renderViewIcon(field.icon)}
+                          </span>
+                          <div className="landing-view-info-body">
+                            <span className="landing-view-info-label">{field.label}</span>
+                            <span className="landing-view-info-value">{field.value}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {hasDispatch && (
                       <div className="landing-view-sub-section">
-                        <div className="landing-view-sub-title">Dispatch Details</div>
+                        <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                          <span className="landing-view-section-icon landing-view-section-icon--dispatch landing-view-section-icon--sm">
+                            {renderViewIcon("flag")}
+                          </span>
+                          <span>Dispatch Details</span>
+                        </div>
                         <div className="row g-2">
                           <div className="col-md-4 col-6">
                             <label className="landing-view-label">Slot</label>
@@ -1836,7 +2008,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                     {hasPacking && (
                       <div className="landing-view-sub-section">
-                        <div className="landing-view-sub-title">Packing</div>
+                        <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                          <span className="landing-view-section-icon landing-view-section-icon--packing landing-view-section-icon--sm">
+                            {renderViewIcon("box")}
+                          </span>
+                          <span>Packing</span>
+                        </div>
                         <div className="row g-2">
                           <div className="col-md-4 col-6">
                             <label className="landing-view-label">Repacking Pallets</label>
@@ -1852,7 +2029,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                     {hasTransport && transport && (
                       <div className="landing-view-sub-section">
-                        <div className="landing-view-sub-title">Transportation</div>
+                        <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                          <span className="landing-view-section-icon landing-view-section-icon--transport landing-view-section-icon--sm">
+                            {renderViewIcon("truck")}
+                          </span>
+                          <span>Transportation</span>
+                        </div>
                         <div className="row g-2">
                           <div className="col-md-4 col-6">
                             <label className="landing-view-label">Type of Vehicle</label>

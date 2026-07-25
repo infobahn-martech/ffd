@@ -20,8 +20,17 @@ import vehicleService from "../../../../../../../services/vehicleService";
 import inboundOrderService from "../../../../../../../services/inboundOrderService";
 import landingNoteService from "../../../../../../../services/landingNoteService";
 import { nextDayOf } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
+import "../../../../../../../design/scss/dispatch-note.scss";
 
 const isTruthyFlag = (value) => value === true || Number(value) === 1 || String(value).toLowerCase() === "true";
+
+const launchHireStatusTone = (status) => {
+  const raw = String(status ?? "").trim().toLowerCase();
+  if (raw === "completed" || raw === "done") return "done";
+  if (raw === "cancelled" || raw === "rejected") return "cancelled";
+  if (raw === "pending" || raw === "requested") return "pending";
+  return "default";
+};
 
 const getTransportation = (item) => item?.transportation || item?.transport || null;
 
@@ -166,6 +175,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [editorKey, setEditorKey] = useState(0);
   const [expandedEditItems, setExpandedEditItems] = useState({ 1: true });
   const [editItems, setEditItems] = useState([emptyEditItem(1)]);
+  const [editLaunchHire, setEditLaunchHire] = useState(null);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const [removedDocumentIds, setRemovedDocumentIds] = useState([]);
   const documentsFileInputRef = useRef(null);
@@ -255,6 +265,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const resetForm = () => {
     setFormData({ landing_note_id: "", warehouse_id: "", dispatch_date: "", dispatch_time: "", signature: "", delivery_location: "", delivered_to: "", remarks: "", documents: [] });
     setEditItems([emptyEditItem(1)]);
+    setEditLaunchHire(null);
     setExpandedEditItems({ 1: true });
     setEditFormErrors({});
     setRemovedDocumentIds([]);
@@ -291,6 +302,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           remarks: detail.remarks || "",
           documents: Array.isArray(detail.documents) ? detail.documents : [],
         });
+        setEditLaunchHire(detail.launch_hire || null);
         const apiItems = Array.isArray(detail.items) ? detail.items : [];
         const mapped = apiItems.length > 0
           ? apiItems.map((item, idx) => {
@@ -553,6 +565,132 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     return date.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
+  const renderLaunchHireStepIcon = (icon) => {
+    switch (icon) {
+      case "clock":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "pin":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22s7-7.05 7-12a7 7 0 1 0-14 0c0 4.95 7 12 7 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        );
+      case "flag":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 21V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M5 4h13l-3 4 3 4H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "note":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "check":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "cross":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "hash":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "calendar":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
+            <path d="M8 3v4M16 3v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "building":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 21V10l9-6 9 6v11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9 21v-6h6v6" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          </svg>
+        );
+      case "user":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+            <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "signature":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 17c2-1 3-4 4-6 1.5-3 2.5-4 3.5-1 .6 1.7 1.5 1.8 2.5 0 1-1.8 2-1.8 3 0s2 2 4.5-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3 20h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "list":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "package":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 8l-9-5-9 5 9 5 9-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3 8v8l9 5 9-5V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 13v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "box":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 7h16v13H4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M4 7l3-4h10l3 4M4 12h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case "truck":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 8h11v8H2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M13 11h4l3 3v2h-7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <circle cx="6" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+            <circle cx="17" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const launchHireCompleteness = (launchHire) => {
+    const fields = [launchHire?.booking_datetime, launchHire?.location, launchHire?.status];
+    const filled = fields.filter((v) => v != null && String(v).trim() !== "").length;
+    if (filled >= fields.length) return "complete";
+    if (filled > 0) return "partial";
+    return "empty";
+  };
+
+  const launchHireStatusIcon = (tone) => {
+    if (tone === "done") return "check";
+    if (tone === "cancelled") return "cross";
+    if (tone === "pending") return "clock";
+    return "flag";
+  };
+
   const renderHeader = () => (
     <h1 className="modal-title">Edit Dispatch Note</h1>
   );
@@ -560,7 +698,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const renderBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="dispatchNoteForm" onSubmit={handleSubmit}>
+        <form id="dispatchNoteForm" className="dispatch-note-edit-form" onSubmit={handleSubmit}>
 
           <div className="dispatch-edit-section">
             <h3 className="dispatch-edit-section-title">Basic Details</h3>
@@ -625,6 +763,59 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
               </div>
             </div>
           </div>
+
+          {editLaunchHire && (
+            <div className="dispatch-edit-section dispatch-launch-hire-section">
+              <h3 className="dispatch-edit-section-title dispatch-launch-hire-title">
+                <span className="dispatch-launch-hire-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 15h18l-2 5H5l-2-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 3v12M9 6l3-3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 15c2-2.5 4-3.5 10-3.5s8 1 10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <span>Launch Hire</span>
+              </h3>
+              <div className="dispatch-launch-hire-card">
+                <div className="dispatch-launch-hire-steps">
+                  {(() => {
+                    const isCompleted = launchHireStatusTone(editLaunchHire.status) === "done";
+                    return [
+                      { key: "booking", icon: "clock", label: "Booking Date/Time", value: formatDateTime(editLaunchHire.booking_datetime) || "-" },
+                      { key: "location", icon: "pin", label: "Location", value: editLaunchHire.location || "-" },
+                      { key: "status", icon: "flag", label: "Status", value: editLaunchHire.status || "-", tone: launchHireStatusTone(editLaunchHire.status) },
+                      ...(editLaunchHire.remarks ? [{ key: "remarks", icon: "note", label: "Remarks", value: editLaunchHire.remarks }] : []),
+                      {
+                        key: "completed",
+                        icon: "check",
+                        label: "Completed",
+                        value: isCompleted ? "Done" : "Pending",
+                        tone: isCompleted ? "done" : undefined,
+                        empty: !isCompleted,
+                      },
+                    ];
+                  })().map((step, index) => (
+                    <div
+                      key={step.key}
+                      className={`dispatch-launch-hire-step${step.empty ? " dispatch-launch-hire-step--empty" : ""}`}
+                      style={{ "--stagger-index": index }}
+                    >
+                      <span className="dispatch-launch-hire-step-icon-wrap">
+                        <span className={`dispatch-launch-hire-step-icon${step.tone ? ` dispatch-launch-hire-step-icon--${step.tone}` : ""}`}>
+                          {renderLaunchHireStepIcon(step.icon)}
+                        </span>
+                        <span className="dispatch-launch-hire-step-num">{index + 1}</span>
+                      </span>
+                      <span className="dispatch-launch-hire-step-body">
+                        <span className="dispatch-launch-hire-step-label">{step.label}</span>
+                        <span className="dispatch-launch-hire-step-value">{step.value}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="dispatch-edit-section">
             <h3 className="dispatch-edit-section-title">Items</h3>
@@ -825,33 +1016,39 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     return (
       <div className="modal-body">
         <div className="lead-form">
+          <div className="landing-view-basic-section mb-4">
+            <h3 className="landing-view-section-title">
+              <span className="landing-view-section-icon landing-view-section-icon--info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                  <path d="M12 8h.01M11 12h1v5h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span>Basic Details</span>
+            </h3>
+            <div className="landing-view-info-grid">
+              {[
+                { key: "no", icon: "hash", label: "Dispatch Note No", value: viewingNote.dispatch_note_no || "-" },
+                { key: "date", icon: "calendar", label: "Dispatch Date", value: formatDate(viewingNote.dispatch_date) || "-" },
+                { key: "warehouse", icon: "building", label: "Warehouse", value: warehouseOptions.find((o) => o.value === String(viewingNote.warehouse_id))?.label || viewingNote.warehouse_id || "-" },
+                { key: "delivery_location", icon: "pin", label: "Delivery Location", value: viewingNote.delivery_location || "-" },
+                { key: "delivered_to", icon: "user", label: "Delivered To", value: viewingNote.delivered_to || "-" },
+                ...(viewingNote.signature ? [{ key: "signature", icon: "signature", label: "Signature", value: viewingNote.signature }] : []),
+              ].map((field, index) => (
+                <div key={field.key} className="landing-view-info-card" style={{ "--stagger-index": index }}>
+                  <span className="landing-view-info-icon">
+                    {renderLaunchHireStepIcon(field.icon)}
+                  </span>
+                  <div className="landing-view-info-body">
+                    <span className="landing-view-info-label">{field.label}</span>
+                    <span className="landing-view-info-value">{field.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="row g-3 mb-3">
-            <div className="col-md-4">
-              <label className="landing-view-label">Dispatch Note No</label>
-              <div className="landing-view-box">{viewingNote.dispatch_note_no || "-"}</div>
-            </div>
-            <div className="col-md-4">
-              <label className="landing-view-label">Dispatch Date</label>
-              <div className="landing-view-box">{formatDate(viewingNote.dispatch_date) || "-"}</div>
-            </div>
-            <div className="col-md-4">
-              <label className="landing-view-label">Warehouse</label>
-              <div className="landing-view-box">{warehouseOptions.find((o) => o.value === String(viewingNote.warehouse_id))?.label || viewingNote.warehouse_id || "-"}</div>
-            </div>
-            <div className="col-md-4">
-              <label className="landing-view-label">Delivery Location</label>
-              <div className="landing-view-box">{viewingNote.delivery_location || "-"}</div>
-            </div>
-            <div className="col-md-4">
-              <label className="landing-view-label">Delivered To</label>
-              <div className="landing-view-box">{viewingNote.delivered_to || "-"}</div>
-            </div>
-            {viewingNote.signature && (
-              <div className="col-md-4">
-                <label className="landing-view-label">Signature</label>
-                <div className="landing-view-box">{viewingNote.signature}</div>
-              </div>
-            )}
             <div className="col-12">
               <label className="landing-view-label">Documents</label>
               {documents.length > 0 ? (
@@ -893,68 +1090,118 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             )}
           </div>
 
-          {viewingNote.launch_hire && (
-            <div className="landing-view-items-section">
-              <h4 className="fw-semibold mb-3">Launch Hire</h4>
-              <div className="landing-view-item-card">
-                <div className="row g-2">
-                  <div className="col-md-3 col-6">
-                    <label className="landing-view-label">Booking Date/Time</label>
-                    <div className="landing-view-box">{formatDateTime(viewingNote.launch_hire.booking_datetime) || "-"}</div>
+          {viewingNote.launch_hire && (() => {
+            const completeness = launchHireCompleteness(viewingNote.launch_hire);
+            const badgeLabel = completeness === "complete" ? "Complete" : completeness === "partial" ? "Partial" : "Pending";
+            const statusTone = launchHireStatusTone(viewingNote.launch_hire.status);
+            return (
+              <div className="dispatch-edit-section dispatch-launch-hire-section mb-4">
+                <h3 className="dispatch-edit-section-title dispatch-launch-hire-title">
+                  <span className="dispatch-launch-hire-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 15h18l-2 5H5l-2-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M12 3v12M9 6l3-3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 15c2-2.5 4-3.5 10-3.5s8 1 10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                  <span>Launch Hire</span>
+                  <span className={`dispatch-launch-hire-badge dispatch-launch-hire-badge--${completeness}`}>
+                    {badgeLabel}
+                  </span>
+                </h3>
+                <div className="dispatch-launch-hire-card">
+                  <div className="dispatch-launch-hire-steps">
+                    {[
+                      { key: "booking", icon: "clock", label: "Booking Date/Time", value: formatDateTime(viewingNote.launch_hire.booking_datetime) || "-" },
+                      { key: "location", icon: "pin", label: "Location", value: viewingNote.launch_hire.location || "-" },
+                      { key: "status", icon: launchHireStatusIcon(statusTone), label: "Status", value: viewingNote.launch_hire.status || "-", tone: statusTone },
+                      ...(viewingNote.launch_hire.remarks ? [{ key: "remarks", icon: "note", label: "Remarks", value: viewingNote.launch_hire.remarks }] : []),
+                    ].map((step, index) => {
+                      const isEmpty = step.value === "-";
+                      return (
+                        <div
+                          key={step.key}
+                          className={`dispatch-launch-hire-step${isEmpty ? " dispatch-launch-hire-step--empty" : ""}`}
+                          style={{ "--stagger-index": index }}
+                        >
+                          <span className="dispatch-launch-hire-step-icon-wrap">
+                            <span className={`dispatch-launch-hire-step-icon${step.tone ? ` dispatch-launch-hire-step-icon--${step.tone}` : ""}`}>
+                              {renderLaunchHireStepIcon(step.icon)}
+                            </span>
+                            <span className="dispatch-launch-hire-step-num">{index + 1}</span>
+                          </span>
+                          <span className="dispatch-launch-hire-step-body">
+                            <span className="dispatch-launch-hire-step-label">{step.label}</span>
+                            <span className="dispatch-launch-hire-step-value">{step.value}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="col-md-3 col-6">
-                    <label className="landing-view-label">Location</label>
-                    <div className="landing-view-box">{viewingNote.launch_hire.location || "-"}</div>
-                  </div>
-                  <div className="col-md-3 col-6">
-                    <label className="landing-view-label">Status</label>
-                    <div className="landing-view-box">{viewingNote.launch_hire.status || "-"}</div>
-                  </div>
-                  {viewingNote.launch_hire.remarks && (
-                    <div className="col-md-3 col-6">
-                      <label className="landing-view-label">Remarks</label>
-                      <div className="landing-view-box">{viewingNote.launch_hire.remarks}</div>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {viewItems.length > 0 && (
             <div className="landing-view-items-section">
-              <h4 className="fw-semibold mb-3">Items</h4>
+              <h4 className="landing-view-section-title mb-3">
+                <span className="landing-view-section-icon landing-view-section-icon--items">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 8l-9-5-9 5 9 5 9-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M3 8v8l9 5 9-5V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 13v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <span>Items</span>
+                <span className="landing-view-count-badge">{viewItems.length}</span>
+              </h4>
               {viewItems.map((item, idx) => {
                 const transport = getTransportation(item);
                 const hasTransport = isTruthyFlag(item.transportation_required) || Boolean(transport);
                 const hasPacking = isTruthyFlag(item.packing_required);
                 return (
-                  <div key={item.dispatch_note_item_id || idx} className="landing-view-item-card">
-                    <div className="landing-view-item-title">
-                      Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
+                  <div
+                    key={item.dispatch_note_item_id || idx}
+                    className="landing-view-item-card landing-view-item-card--animated"
+                    style={{ "--stagger-index": idx }}
+                  >
+                    <div className="landing-view-item-title landing-view-item-title--iconic">
+                      <span className="landing-view-item-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M20.5 7.5L12 3 3.5 7.5 12 12l8.5-4.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M3.5 7.5v9L12 21l8.5-4.5v-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                      <span>Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}</span>
                     </div>
-                    <div className="row g-2 mb-2">
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">PO No</label>
-                        <div className="landing-view-box">{item.po_no || "-"}</div>
-                      </div>
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Quantity</label>
-                        <div className="landing-view-box">{item.quantity ?? "-"}</div>
-                      </div>
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Package Type</label>
-                        <div className="landing-view-box">{item.package_type || "-"}</div>
-                      </div>
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Description</label>
-                        <div className="landing-view-box">{item.description || "-"}</div>
-                      </div>
+                    <div className="landing-view-info-grid landing-view-info-grid--items mb-3">
+                      {[
+                        { key: "po_no", icon: "hash", label: "PO No", value: item.po_no || "-" },
+                        { key: "quantity", icon: "list", label: "Quantity", value: item.quantity ?? "-" },
+                        { key: "package_type", icon: "package", label: "Package Type", value: item.package_type || "-" },
+                        { key: "description", icon: "note", label: "Description", value: item.description || "-" },
+                      ].map((field, fieldIdx) => (
+                        <div key={field.key} className="landing-view-info-card landing-view-info-card--items" style={{ "--stagger-index": fieldIdx }}>
+                          <span className="landing-view-info-icon landing-view-info-icon--items">
+                            {renderLaunchHireStepIcon(field.icon)}
+                          </span>
+                          <div className="landing-view-info-body">
+                            <span className="landing-view-info-label">{field.label}</span>
+                            <span className="landing-view-info-value">{field.value}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {(item.slot || item.reason) && (
                       <div className="landing-view-sub-section">
-                        <div className="landing-view-sub-title">Dispatch Details</div>
+                        <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                          <span className="landing-view-section-icon landing-view-section-icon--dispatch landing-view-section-icon--sm">
+                            {renderLaunchHireStepIcon("flag")}
+                          </span>
+                          <span>Dispatch Details</span>
+                        </div>
                         <div className="row g-2">
                           {item.slot && (
                             <div className="col-md-6 col-6">
@@ -974,7 +1221,12 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                     {hasPacking && (
                       <div className="landing-view-sub-section">
-                        <div className="landing-view-sub-title">Packing</div>
+                        <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                          <span className="landing-view-section-icon landing-view-section-icon--packing landing-view-section-icon--sm">
+                            {renderLaunchHireStepIcon("box")}
+                          </span>
+                          <span>Packing</span>
+                        </div>
                         <div className="row g-2">
                           <div className="col-md-4 col-6">
                             <label className="landing-view-label">Repacking Pallets</label>
@@ -990,7 +1242,12 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                     {hasTransport && transport && (
                       <div className="landing-view-sub-section">
-                        <div className="landing-view-sub-title">Transportation</div>
+                        <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                          <span className="landing-view-section-icon landing-view-section-icon--transport landing-view-section-icon--sm">
+                            {renderLaunchHireStepIcon("truck")}
+                          </span>
+                          <span>Transportation</span>
+                        </div>
                         <div className="row g-2">
                           <div className="col-md-4 col-6">
                             <label className="landing-view-label">Vehicle Type</label>
