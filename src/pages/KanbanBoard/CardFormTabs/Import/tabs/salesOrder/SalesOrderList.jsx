@@ -1661,7 +1661,7 @@ const SalesOrderList = ({
                       <button
                         type="button"
                         onClick={() => setVendorModalTarget("new")}
-                        style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                        className="sales-order-supplier-select-btn"
                       >
                         {newItemForm.supplierCode ? "Change" : "Select"}
                       </button>
@@ -1679,8 +1679,7 @@ const SalesOrderList = ({
                   <button
                     type="button"
                     onClick={handleSaveNewItem}
-                    className="btn btn-primary sales-order-add-form-save"
-                    style={{ backgroundColor: "#00368c" }}
+                    className="sales-order-add-form-save"
                   >
                     Save
                   </button>

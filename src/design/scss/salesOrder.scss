@@ -466,24 +466,30 @@
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .sales-order-add-accordion-close {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: #fff;
-  border: 1px solid #d7dce8;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e6f0;
+  color: #666;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
   padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.sales-order-add-accordion-close:hover {
+  background: #f3f4f8;
+  border-color: #d7dce8;
 }
 
 .sales-order-add-accordion-body {
@@ -540,22 +546,41 @@
 
 .sales-order-add-form-cancel,
 .sales-order-add-form-save {
-  padding: 9px 20px;
+  padding: 10px 22px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease,
+    background 0.15s ease, border-color 0.15s ease;
 }
 
 .sales-order-add-form-cancel {
-  background: #f5f5f5;
-  color: #666;
-  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #e0e2ee;
+}
+
+.sales-order-add-form-cancel:hover {
+  background: #f5f6fa;
+  border-color: #cfd4e6;
 }
 
 .sales-order-add-form-save {
+  background: linear-gradient(135deg, #2a00ff, #4c68d7);
   color: #ffffff;
+  box-shadow: 0 3px 10px rgba(42, 0, 255, 0.28);
+}
+
+.sales-order-add-form-save:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 16px rgba(42, 0, 255, 0.36);
+}
+
+.sales-order-add-form-save:active {
+  transform: translateY(0);
 }
 
 /* Table */
@@ -825,11 +850,12 @@
 
 .sales-order-supplier-select-btn {
   flex-shrink: 0;
-  padding: 4px 18px;
+  padding: 5px 16px;
   font-size: 12px;
+  font-weight: 600;
   line-height: 1.2;
   border: 1px solid #b3baff;
-  border-radius: 5px;
+  border-radius: 999px;
   background: #f0f2ff;
   color: #2A00FF;
   cursor: pointer;
