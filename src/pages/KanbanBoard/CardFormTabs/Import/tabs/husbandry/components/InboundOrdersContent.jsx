@@ -28,6 +28,8 @@ import {
   formatDisplayDateTime,
   nextDayOf,
 } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
+import "../../../../../../../design/scss/material-edit-form.scss";
+import "../../../../../../../design/scss/dispatch-note.scss";
 import MaterialTablePagination from "./MaterialTablePagination";
 
 const extractListFromApi = (body) => {
@@ -42,6 +44,112 @@ const mergeOptionForValue = (options, value) => {
   const s = String(value);
   if (options.some((o) => o.value === s)) return options;
   return [...options, { value: s, label: s }];
+};
+
+const launchHireStatusTone = (status) => {
+  const raw = String(status ?? "").trim().toLowerCase();
+  if (raw === "completed" || raw === "done") return "done";
+  if (raw === "cancelled" || raw === "rejected") return "cancelled";
+  if (raw === "pending" || raw === "requested") return "pending";
+  return "default";
+};
+
+// Status step swaps its icon to match tone, so "done"/"cancelled" read at a glance
+// instead of always showing a generic flag.
+const launchHireStatusIcon = (tone) => {
+  if (tone === "done") return "check";
+  if (tone === "cancelled") return "cross";
+  if (tone === "pending") return "clock";
+  return "flag";
+};
+
+const launchHireCompleteness = (launchHire) => {
+  const fields = [launchHire?.booking_datetime, launchHire?.location, launchHire?.status];
+  const filled = fields.filter((v) => v != null && String(v).trim() !== "").length;
+  if (filled >= fields.length) return "complete";
+  if (filled > 0) return "partial";
+  return "empty";
+};
+
+const renderLaunchHireStepIcon = (icon) => {
+  switch (icon) {
+    case "clock":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+          <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "pin":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 22s7-7.05 7-12a7 7 0 1 0-14 0c0 4.95 7 12 7 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      );
+    case "flag":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 21V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M5 4h13l-3 4 3 4H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "note":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "hash":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "calendar":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M8 3v4M16 3v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "building":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 21V10l9-6 9 6v11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 21v-6h6v6" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+      );
+    case "list":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "package":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 8l-9-5-9 5 9 5 9-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M3 8v8l9 5 9-5V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 13v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "check":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "cross":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 };
 
 // Generate dummy inbound orders data
@@ -1241,7 +1349,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const renderBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="inboundOrderForm" onSubmit={handleSubmit}>
+        <form id="inboundOrderForm" className="material-edit-form" onSubmit={handleSubmit}>
           {/* Basic Details Section */}
           <div className="dispatch-edit-section">
             <h3 className="dispatch-edit-section-title">Basic Details</h3>
@@ -1287,7 +1395,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           </div>
 
           {/* Order Details Section */}
-          <div>
+          <div className="dispatch-edit-section">
             <div className="dispatch-section-header">
               <h3 className="dispatch-edit-section-title">Order Details</h3>
             </div>
@@ -1331,7 +1439,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                 {expandedOrders[order.id] && (
                   <div className="dispatch-edit-item-body">
-                    <div className="row g-2 mb-1">
+                    <div className="row g-2 mb-2">
                       <div className="col-lg-4 col-md-6">
                         <FormField label="PO/DO">
                           <FormInput
@@ -1499,38 +1607,75 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             {formData.launchHire && (
-              <div className="row g-2 mb-1">
-                <div className="col-lg-6 col-md-6">
-                  <FormField label="Booking Date &amp; Time *">
-                    <DateTimePickerField
-                      dateValue={formData.launchHireDate}
-                      timeValue={formData.launchHireTime}
-                      onDateTimeChange={(nextValues) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          launchHireDate: nextValues.date,
-                          launchHireTime: nextValues.time,
-                        }));
-                        if (formErrors.launchHireDate) setFormErrors((prev) => { const e = { ...prev }; delete e.launchHireDate; return e; });
-                      }}
-                      dateFieldName="launchHireDate"
-                      timeFieldName="launchHireTime"
-                      placeholder="YYYY-MM-DD hh:mm"
-                      hasError={!!formErrors.launchHireDate}
-                    />
-                  </FormField>
-                  {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
-                </div>
+              <div className="dispatch-launch-hire-card">
+                <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form">
+                  <div className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": 0 }}>
+                    <div className="dispatch-launch-hire-step-head">
+                      <span className="dispatch-launch-hire-step-icon-wrap">
+                        <span className="dispatch-launch-hire-step-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                            <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <span className="dispatch-launch-hire-step-num">1</span>
+                      </span>
+                      <span className="dispatch-launch-hire-step-label">Booking Date &amp; Time <span className="text-danger">*</span></span>
+                    </div>
+                    <div className="dispatch-launch-hire-step-field">
+                      <DateTimePickerField
+                        dateValue={formData.launchHireDate}
+                        timeValue={formData.launchHireTime}
+                        onDateTimeChange={(nextValues) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            launchHireDate: nextValues.date,
+                            launchHireTime: nextValues.time,
+                          }));
+                          if (formErrors.launchHireDate) setFormErrors((prev) => { const e = { ...prev }; delete e.launchHireDate; return e; });
+                        }}
+                        dateFieldName="launchHireDate"
+                        timeFieldName="launchHireTime"
+                        placeholder="YYYY-MM-DD hh:mm"
+                        hasError={!!formErrors.launchHireDate}
+                      />
+                      {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
+                    </div>
+                  </div>
 
-                <div className="col-lg-6 col-md-6">
-                  <FormField label="Location">
-                    <FormSelect
-                      value={formData.launchHireLocation}
-                      onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
-                      options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
-                      placeholder="Select location..."
-                    />
-                  </FormField>
+                  <div className="dispatch-launch-hire-track" aria-hidden="true">
+                    <span className="dispatch-launch-hire-track-line" />
+                    <span className="dispatch-launch-hire-track-boat">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 15h18l-2 5H5l-2-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 3v12M9 6l3-3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M2 15c2-2.5 4-3.5 10-3.5s8 1 10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": 1 }}>
+                    <div className="dispatch-launch-hire-step-head">
+                      <span className="dispatch-launch-hire-step-icon-wrap">
+                        <span className="dispatch-launch-hire-step-icon dispatch-launch-hire-step-icon--highlight">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22s7-7.05 7-12a7 7 0 1 0-14 0c0 4.95 7 12 7 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                            <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                        </span>
+                        <span className="dispatch-launch-hire-step-num">2</span>
+                      </span>
+                      <span className="dispatch-launch-hire-step-label">Location</span>
+                    </div>
+                    <div className="dispatch-launch-hire-step-field">
+                      <FormSelect
+                        value={formData.launchHireLocation}
+                        onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
+                        options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
+                        placeholder="Select location..."
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1585,7 +1730,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const renderConvertBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="convertToLandingForm" onSubmit={handleConvertSubmit}>
+        <form id="convertToLandingForm" className="material-edit-form" onSubmit={handleConvertSubmit}>
           {/* Basic Details Section */}
           <div className="dispatch-edit-section">
             <h3 className="dispatch-edit-section-title">Basic Details</h3>
@@ -1625,7 +1770,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             {/* Receipt Details Section */}
             <div className="dispatch-transport-section">
               <h3 className="dispatch-edit-section-title">Receipt Details</h3>
-              <div className="row mb-lg-3">
+              <div className="row mb-3">
                 <div className="col-md-6 mb-3">
                   <FormField label="Received From *">
                     <FormInput
@@ -1651,7 +1796,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </div>
 
-              <div className="row mb-lg-3">
+              <div className="row mb-3">
                 <div className="col-md-6 mb-3">
                   <FormField label="Location *">
                     <FormInput
@@ -1669,7 +1814,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           </div>
 
           {/* Order Details Section */}
-          <div>
+          <div className="dispatch-edit-section">
             <div className="dispatch-section-header">
               <h3 className="dispatch-edit-section-title">Order Details</h3>
               <button type="button" onClick={handleAddNewConvertOrder} className="dispatch-add-order-btn">
@@ -1705,7 +1850,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
                 {expandedConvertOrders[order.id] && (
                   <div className="dispatch-edit-item-body">
-                    <div className="row g-2 mb-1">
+                    <div className="row g-2 mb-2">
                       <div className="col-lg-4 col-md-6">
                         <FormField label="Order No">
                           <FormInput
@@ -1927,7 +2072,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             {/* Remarks - Full Width, Below Document Upload */}
-            <div className="mb-lg-3 mb-sm-0">
+            <div className="mb-3">
               <div className="card-description-wrapper">
                 <FormField label="Remarks">
                   <ReactQuillEditor
@@ -1979,88 +2124,157 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     return (
       <div className="modal-body">
         <div className="lead-form">
-          <div className="row g-3 mb-3">
-            <div className="col-md-6">
-              <label className="landing-view-label">Inbound No</label>
-              <div className="landing-view-box">{viewingOrder.inbound_no || "-"}</div>
-            </div>
-            <div className="col-md-6">
-              <label className="landing-view-label">Date</label>
-              <div className="landing-view-box">{formatDate(viewingOrder.inbound_date, viewingOrder.inbound_time || viewingOrder.time) || "-"}</div>
-            </div>
-            <div className="col-md-6">
-              <label className="landing-view-label">Warehouse</label>
-              <div className="landing-view-box">
-                {warehouseLocationOptions.find((o) => o.value === String(viewingOrder.warehouse_id))?.label || "-"}
-              </div>
-            </div>
-            <div className="col-md-6">
-              <label className="landing-view-label">Remarks</label>
-              <div className="landing-view-box">{viewingOrder.remarks || "-"}</div>
+          <div className="landing-view-basic-section mb-4">
+            <h3 className="landing-view-section-title">
+              <span className="landing-view-section-icon landing-view-section-icon--info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                  <path d="M12 8h.01M11 12h1v5h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span>Basic Details</span>
+            </h3>
+            <div className="landing-view-info-grid">
+              {[
+                { key: "inbound_no", icon: "hash", label: "Inbound No", value: viewingOrder.inbound_no || "-" },
+                { key: "date", icon: "calendar", label: "Date", value: formatDate(viewingOrder.inbound_date, viewingOrder.inbound_time || viewingOrder.time) || "-" },
+                { key: "warehouse", icon: "building", label: "Warehouse", value: warehouseLocationOptions.find((o) => o.value === String(viewingOrder.warehouse_id))?.label || "-" },
+                { key: "remarks", icon: "note", label: "Remarks", value: viewingOrder.remarks || "-" },
+              ].map((field, index) => (
+                <div key={field.key} className="landing-view-info-card" style={{ "--stagger-index": index }}>
+                  <span className="landing-view-info-icon">
+                    {renderLaunchHireStepIcon(field.icon)}
+                  </span>
+                  <div className="landing-view-info-body">
+                    <span className="landing-view-info-label">{field.label}</span>
+                    <span className="landing-view-info-value">{field.value}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {viewingOrder.launch_hire && (
-            <div className="landing-view-sub-section mb-3">
-              <div className="landing-view-sub-title">Launch Hire</div>
-              <div className="row g-2">
-                <div className="col-md-4 col-6">
-                  <label className="landing-view-label">Booking Date</label>
-                  <div className="landing-view-box">{formatDate(viewingOrder.launch_hire.booking_datetime) || "-"}</div>
-                </div>
-                <div className="col-md-4 col-6">
-                  <label className="landing-view-label">Location</label>
-                  <div className="landing-view-box">{viewingOrder.launch_hire.location || "-"}</div>
-                </div>
-                <div className="col-md-4 col-6">
-                  <label className="landing-view-label">Status</label>
-                  <div className="landing-view-box">{viewingOrder.launch_hire.status || "-"}</div>
-                </div>
-                {viewingOrder.launch_hire.remarks && (
-                  <div className="col-md-12">
-                    <label className="landing-view-label">Remarks</label>
-                    <div className="landing-view-box">{viewingOrder.launch_hire.remarks}</div>
+          {viewingOrder.launch_hire && (() => {
+            const completeness = launchHireCompleteness(viewingOrder.launch_hire);
+            const badgeLabel = completeness === "complete" ? "Complete" : completeness === "partial" ? "Partial" : "Pending";
+            const statusTone = launchHireStatusTone(viewingOrder.launch_hire.status);
+            return (
+              <div className="dispatch-edit-section dispatch-launch-hire-section mb-4">
+                <h3 className="dispatch-edit-section-title dispatch-launch-hire-title">
+                  <span className="dispatch-launch-hire-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 15h18l-2 5H5l-2-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M12 3v12M9 6l3-3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 15c2-2.5 4-3.5 10-3.5s8 1 10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                  <span>Launch Hire</span>
+                  <span className={`dispatch-launch-hire-badge dispatch-launch-hire-badge--${completeness}`}>
+                    {badgeLabel}
+                  </span>
+                </h3>
+                <div className="dispatch-launch-hire-card">
+                  <div className="dispatch-launch-hire-steps">
+                    {[
+                      { key: "booking", icon: "clock", label: "Booking Date/Time", value: formatDate(viewingOrder.launch_hire.booking_datetime) || "-" },
+                      { key: "location", icon: "pin", label: "Location", value: viewingOrder.launch_hire.location || "-" },
+                      { key: "status", icon: launchHireStatusIcon(statusTone), label: "Status", value: viewingOrder.launch_hire.status || "-", tone: statusTone },
+                      ...(viewingOrder.launch_hire.remarks ? [{ key: "remarks", icon: "note", label: "Remarks", value: viewingOrder.launch_hire.remarks }] : []),
+                    ].map((step, index) => {
+                      const isEmpty = step.value === "-";
+                      return (
+                        <div
+                          key={step.key}
+                          className={`dispatch-launch-hire-step${isEmpty ? " dispatch-launch-hire-step--empty" : ""}`}
+                          style={{ "--stagger-index": index }}
+                        >
+                          <span className="dispatch-launch-hire-step-icon-wrap">
+                            <span className={`dispatch-launch-hire-step-icon${step.tone ? ` dispatch-launch-hire-step-icon--${step.tone}` : ""}`}>
+                              {renderLaunchHireStepIcon(step.icon)}
+                            </span>
+                            <span className="dispatch-launch-hire-step-num">{index + 1}</span>
+                          </span>
+                          <span className="dispatch-launch-hire-step-body">
+                            <span className="dispatch-launch-hire-step-label">{step.label}</span>
+                            <span className="dispatch-launch-hire-step-value">{step.value}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {items.length > 0 && (
             <div className="landing-view-items-section">
-              <h4 className="fw-semibold mb-3">Order Items</h4>
+              <h4 className="landing-view-section-title mb-3">
+                <span className="landing-view-section-icon landing-view-section-icon--items">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 8l-9-5-9 5 9 5 9-5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M3 8v8l9 5 9-5V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 13v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <span>Order Items</span>
+                <span className="landing-view-count-badge">{items.length}</span>
+              </h4>
               {items.map((item, idx) => (
-                <div key={item.inbound_item_id || idx} className="landing-view-item-card">
-                  <div className="landing-view-item-title">
-                    Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}
+                <div
+                  key={item.inbound_item_id || idx}
+                  className="landing-view-item-card landing-view-item-card--animated"
+                  style={{ "--stagger-index": idx }}
+                >
+                  <div className="landing-view-item-title landing-view-item-title--iconic">
+                    <span className="landing-view-item-icon">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.5 7.5L12 3 3.5 7.5 12 12l8.5-4.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M3.5 7.5v9L12 21l8.5-4.5v-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <span>Item {idx + 1}{item.order_no ? ` — ${item.order_no}` : ""}</span>
                   </div>
-                  <div className="row g-2 mb-2">
-                    <div className="col-md-3 col-6">
-                      <label className="landing-view-label">PO/DO</label>
-                      <div className="landing-view-box">{item.po_do_no ?? item.po_no ?? "-"}</div>
-                    </div>
-                    <div className="col-md-3 col-6">
-                      <label className="landing-view-label">Quantity</label>
-                      <div className="landing-view-box">{item.quantity ?? "-"}</div>
-                    </div>
-                    <div className="col-md-3 col-6">
-                      <label className="landing-view-label">Package Type</label>
-                      <div className="landing-view-box">
-                        {item.package_type ||
-                          packageTypeOptions.find((o) => o.value === String(item.package_type_id))?.label ||
-                          "-"}
+                  <div className="landing-view-info-grid landing-view-info-grid--items mb-3">
+                    {[
+                      { key: "po_do", icon: "hash", label: "PO/DO", value: item.po_do_no ?? item.po_no ?? "-" },
+                      { key: "quantity", icon: "list", label: "Quantity", value: item.quantity ?? "-" },
+                      {
+                        key: "package_type",
+                        icon: "package",
+                        label: "Package Type",
+                        value: item.package_type || packageTypeOptions.find((o) => o.value === String(item.package_type_id))?.label || "-",
+                      },
+                      ...(item.description ? [{ key: "description", icon: "note", label: "Description", value: item.description }] : []),
+                    ].map((field, fieldIdx) => (
+                      <div
+                        key={field.key}
+                        className="landing-view-info-card landing-view-info-card--items"
+                        style={{ "--stagger-index": fieldIdx }}
+                      >
+                        <span className="landing-view-info-icon landing-view-info-icon--items">
+                          {renderLaunchHireStepIcon(field.icon)}
+                        </span>
+                        <div className="landing-view-info-body">
+                          <span className="landing-view-info-label">{field.label}</span>
+                          <span className="landing-view-info-value">{field.value}</span>
+                        </div>
                       </div>
-                    </div>
-                    {item.description && (
-                      <div className="col-md-3 col-6">
-                        <label className="landing-view-label">Description</label>
-                        <div className="landing-view-box">{item.description}</div>
-                      </div>
-                    )}
+                    ))}
                   </div>
                   {Number(item.transportation_required) === 1 && item.transportation && (
                     <div className="landing-view-sub-section">
-                      <div className="landing-view-sub-title">Transportation</div>
+                      <div className="landing-view-sub-title landing-view-sub-title--iconic">
+                        <span className="landing-view-section-icon landing-view-section-icon--transport landing-view-section-icon--sm">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 8h11v8H2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                            <path d="M13 11h4l3 3v2h-7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                            <circle cx="6" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="17" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                        </span>
+                        <span>Transportation</span>
+                      </div>
                       <div className="row g-2">
                         <div className="col-md-4 col-6">
                           <label className="landing-view-label">Type of Vehicle</label>
