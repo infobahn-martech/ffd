@@ -575,7 +575,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const errors = {};
     if (!formData.date) errors.date = "Date is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
-    if (formData.launchHire && !formData.launchHireDate) errors.launchHireDate = "Booking date & time is required";
     formData.orders.forEach((order, idx) => {
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
@@ -1484,7 +1483,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             ))}
           </div>
 
-          {/* Launch Hire Section - form level */}
+          {/* Launch Hire Section - form level (read-only) */}
           <div className="dispatch-edit-section">
             <div className="dispatch-edit-checkbox-group">
               <label className="dispatch-edit-checkbox-label">
@@ -1492,7 +1491,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   type="checkbox"
                   className="dispatch-edit-checkbox"
                   checked={formData.launchHire || false}
-                  onChange={(e) => handleFormChange("launchHire", e.target.checked)}
+                  disabled
+                  readOnly
                 />
                 <span>Launch Hire</span>
               </label>
@@ -1501,34 +1501,27 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             {formData.launchHire && (
               <div className="row g-2 mb-1">
                 <div className="col-lg-6 col-md-6">
-                  <FormField label="Booking Date &amp; Time *">
+                  <FormField label="Booking Date &amp; Time">
                     <DateTimePickerField
                       dateValue={formData.launchHireDate}
                       timeValue={formData.launchHireTime}
-                      onDateTimeChange={(nextValues) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          launchHireDate: nextValues.date,
-                          launchHireTime: nextValues.time,
-                        }));
-                        if (formErrors.launchHireDate) setFormErrors((prev) => { const e = { ...prev }; delete e.launchHireDate; return e; });
-                      }}
+                      onDateTimeChange={() => {}}
                       dateFieldName="launchHireDate"
                       timeFieldName="launchHireTime"
                       placeholder="YYYY-MM-DD hh:mm"
-                      hasError={!!formErrors.launchHireDate}
+                      disabled
                     />
                   </FormField>
-                  {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
                 </div>
 
                 <div className="col-lg-6 col-md-6">
                   <FormField label="Location">
                     <FormSelect
                       value={formData.launchHireLocation}
-                      onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
+                      onChange={() => {}}
                       options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
                       placeholder="Select location..."
+                      disabled
                     />
                   </FormField>
                 </div>
