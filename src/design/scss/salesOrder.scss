@@ -432,8 +432,8 @@
   }
 }
 
-/* Add Item Popover — slides down inline above the table in the right panel;
-   backdrop dims the full modal so clicking away closes it. */
+/* Add Item Popover — floats over the table in the right panel instead of
+   pushing it down; backdrop dims the full modal so clicking away closes it. */
 .sales-order-add-popover-backdrop {
   position: fixed;
   inset: 0;
@@ -442,7 +442,10 @@
 }
 
 .sales-order-add-popover {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   margin: 0;
   width: auto;
   max-height: 70vh;
