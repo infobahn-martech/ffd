@@ -19,6 +19,13 @@ export function splitApiDateTimeParts(raw, separateTime) {
   const normalized = String(raw).trim().replace("T", " ");
   const [datePart = "", timeRaw = ""] = normalized.split(/\s+/);
 
+  // Backend stores unset dates as MySQL's zero-date sentinel ("0000-00-00"),
+  // which matches the date regex below but isn't a real date — treating it as
+  // one round-trips it straight back to the backend on the next save.
+  if (datePart === "0000-00-00") {
+    return { date, time };
+  }
+
   if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
     date = datePart;
     if (!time && timeRaw) {
