@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import useBusinessRuleReducer from '../../store/BusinessRuleReducer';
 import BusinessRulesModal from '../../structure/SideNav/components/BusinessRulesModal';
 import BusinessRuleFormModal from '../../structure/SideNav/components/BusinessRuleFormModal';
-import BusinessRuleDetailsModal from './Modals/BusinessRuleDetailsModal';
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import { resolveKanbanBoardPath } from '../../shared/helpers/kanbanBoardLink';
 import './business-rules-page.scss';
@@ -125,6 +124,16 @@ const BusinessRules = () => {
       cb: () => {
         setShowCopyModal(false);
         setCopyRuleId(null);
+        fetchBusinessRules();
+      },
+    });
+  };
+
+  const handleSaveEditModal = (payload) => {
+    updateBusinessRule(selectedRuleId, payload, {
+      cb: () => {
+        setShowDetailsModal(false);
+        setSelectedRuleId(null);
         fetchBusinessRules();
       },
     });
@@ -331,10 +340,12 @@ const BusinessRules = () => {
         onClose={() => setShowAddModal(false)}
       />
 
-      <BusinessRuleDetailsModal
+      <BusinessRuleFormModal
         show={showDetailsModal}
         businessRuleId={selectedRuleId}
         onClose={() => { setShowDetailsModal(false); setSelectedRuleId(null); }}
+        onSave={handleSaveEditModal}
+        isSaving={isUpdatingBusinessRule}
       />
 
       <BusinessRuleFormModal

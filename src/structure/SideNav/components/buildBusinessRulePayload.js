@@ -198,6 +198,8 @@ const buildThenActions = (formState, ctx) => {
       thenActions.push(entry);
       return;
     }
+    // Base target_board_id/target_column_id/card_title reconfirmed against a real
+    // update_business_rule response (action_type_id 3, branch b35, 2026-07-25).
     const properties = [
       { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
       { property_key: 'target_column_id', property_value: action.stageId, property_value_type: 'number' },
@@ -256,7 +258,8 @@ const buildThenActions = (formState, ctx) => {
   });
 
   // Update field — each chip is one field+value pair, wrapped in the generic
-  // field_key/field_value property pair the documented example uses for action_type_id 4.
+  // field_key/field_value property pair the documented example uses for action_type_id 4,
+  // reconfirmed against a real update_business_rule response (branch b35, 2026-07-25).
   // User-reference fields (Add/Remove co-owners, Add watcher) carry an array of picked
   // users, and sticker fields (Add/Remove stickers) carry an array of picked stickers,
   // instead of a single text value — best-effort joined into one comma-separated
@@ -276,6 +279,19 @@ const buildThenActions = (formState, ctx) => {
     // shape for this yet, best-effort until confirmed against a real example.
     if (action.frequency) {
       properties.push({ property_key: 'frequency', property_value: action.frequency, property_value_type: 'string' });
+    }
+    // Add/Remove co-owners share the same field_key ('Co-owners'), so a round-tripped
+    // rule can't otherwise tell which one was saved — the edit-mode routing effect below
+    // always matched the first UPDATE_ACTION_OPTIONS entry for that field ('Add co-owners'),
+    // silently relabeling every saved "Remove co-owners" action back to "Add" on reopen.
+    // This marker property is best-effort (no documented shape), same status as frequency
+    // above, but needed so BusinessRuleFormModal.jsx's restore logic can disambiguate.
+    if (action.key === 'add_co_owners' || action.key === 'remove_co_owners') {
+      properties.push({
+        property_key: 'update_mode',
+        property_value: action.key === 'remove_co_owners' ? 'remove' : 'add',
+        property_value_type: 'string',
+      });
     }
     // Set milestones/Set tags' "append"/"replace" list-mode picker — same best-effort
     // status as frequency above.
@@ -299,7 +315,8 @@ const buildThenActions = (formState, ctx) => {
 
   // Link card — a single then_actions entry for the whole section; link_card is fanned
   // out one entry per value row, across all link action rows (the API's link_card shape
-  // only carries a single input_value per entry).
+  // only carries a single input_value per entry). Shape confirmed against a real
+  // update_business_rule response (action_type_id 5, branch b35, 2026-07-25).
   if (linkActions.length > 0) {
     const linkCard = [];
     linkActions.forEach((action) => {
@@ -327,7 +344,9 @@ const buildThenActions = (formState, ctx) => {
   // — and the board minimap row/cell pick records which one), so target_workflow_id and
   // target_swimlane_id have to ride along with board/column. Left out when the user picked
   // a whole column (any-lane) or when the picker only ever surfaced one workflow, matching
-  // handlePickColumn's blank swimlaneId.
+  // handlePickColumn's blank swimlaneId. Base target_board_id/target_column_id confirmed
+  // against a real update_business_rule response (action_type_id 1, branch b35, 2026-07-25);
+  // target_workflow_id/target_swimlane_id remain best-effort — not covered by that example.
   const buildDestinationProperties = (action) => {
     const properties = [
       { property_key: 'target_board_id', property_value: action.boardId, property_value_type: 'number' },
@@ -369,7 +388,9 @@ const buildThenActions = (formState, ctx) => {
   });
 
   // Notify / invoke: settings are already saved server-side via their own nested
-  // modals — only the resulting id is referenced here.
+  // modals — only the resulting id is referenced here. notification_id/web_service_id as
+  // top-level sibling fields confirmed against a real update_business_rule response
+  // (action_type_id 2 and 9, branch b35, 2026-07-25).
   const notifyActionTypeId = findActionTypeId(triggerActions, 'notify');
   notifyActions.forEach((action) => {
     thenActions.push(withThenActionId({ action_type_id: notifyActionTypeId, notification_id: action.notification_id }, action));
@@ -413,6 +434,11 @@ const buildSharedUsers = (sharePermissions) =>
     .filter(([, perm]) => perm?.viewer || perm?.editor)
     .map(([userId, perm]) => ({ user_id: Number(userId) || userId, permission_type: perm.editor ? 'edit' : 'view' }));
 
+// Top-level field set (rule_name/description/trigger_type_id/owner_user_id/tags/
+// disallow_rule_action_trigger/conditions/then_actions/shared_users) confirmed against a
+// real update_business_rule response (branch b35, 2026-07-25) — same shape as the earlier
+// create_business_rule example, so this shared builder is now independently confirmed
+// correct for both create and update.
 const buildBusinessRulePayload = (formState, ctx) => {
   const triggerActions = ctx.triggerConfig?.actions ?? [];
   const nextCtx = { ...ctx, triggerActions };
@@ -440,6 +466,8 @@ export const buildCreateBusinessRulePayload = (formState, ctx) => ({
 
 // Edits must not silently flip an existing rule's enabled state, so ctx.isEnabled is
 // expected to carry the rule's current status through from businessRuleDetails.
+// updated_by_user_id/is_enabled as top-level sibling fields confirmed against a real
+// update_business_rule response (branch b35, 2026-07-25).
 export const buildUpdateBusinessRulePayload = (formState, ctx) => ({
   ...buildBusinessRulePayload(formState, ctx),
   updated_by_user_id: ctx.loggedInUserId,
