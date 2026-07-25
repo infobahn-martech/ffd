@@ -51,7 +51,6 @@ import TaskCardModal from '../../pages/TaskCard';
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
-import useCommonReducer from '../../store/CommonReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 import { ROUTE_PATHS } from '../../router/paths';
 import {
@@ -66,10 +65,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const navigate = useNavigate();
   const { width } = useWindowSize();
   const createDashboard = useWorkSpaceReducer((s) => s.createDashboard);
-  const callTypes = useCommonReducer((s) => s.callTypes);
-  const ports = useCommonReducer((s) => s.ports);
-  const getCallTypes = useCommonReducer((s) => s.getCallTypes);
-  const getPorts = useCommonReducer((s) => s.getPorts);
 
   const isKanbanBoard =
     pathname === '/kanban-board/operator' ||
@@ -217,8 +212,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
   const [selectedSwimlaneId, setSelectedSwimlaneId] = useState(null);
-  const [selectedCallTypeId, setSelectedCallTypeId] = useState(null);
-  const [selectedPortId, setSelectedPortId] = useState(null);
   const [addModalWorkflows, setAddModalWorkflows] = useState([]);
   const [swimlanePhaseWorkflow, setSwimlanePhaseWorkflow] = useState(null);
 
@@ -243,24 +236,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       }));
   }, [sidebarWorkflows]);
 
-  const callTypeOptionsForModal = useMemo(
-    () =>
-      (callTypes || []).map((callType) => ({
-        id: callType?.call_type_id ?? callType?.id,
-        name: callType?.call_type ?? callType?.callType ?? callType?.name ?? String(callType?.call_type_id ?? callType?.id ?? ''),
-      })),
-    [callTypes]
-  );
-
-  const portOptionsForModal = useMemo(
-    () =>
-      (ports || []).map((port) => ({
-        id: port?.port_id ?? port?.id,
-        name: port?.port ?? port?.name ?? port?.port_name ?? String(port?.port_id ?? port?.id ?? ''),
-      })),
-    [ports]
-  );
-
   const swimlaneContextDisplayName =
     swimlanePhaseWorkflow?.name ?? swimlanePhaseWorkflow?.title ?? '';
 
@@ -270,15 +245,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     setSwimlanePhaseWorkflow(null);
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
-    setSelectedCallTypeId(null);
-    setSelectedPortId(null);
   }, []);
-
-  useEffect(() => {
-    if (!showSelectWorkflowModal) return;
-    getCallTypes();
-    getPorts({ params: { limit: 1000 } });
-  }, [showSelectWorkflowModal, getCallTypes, getPorts]);
 
   const closeSelectWorkflowModal = useCallback(() => {
     pendingAddCardFromWorkflowRef.current = null;
@@ -302,28 +269,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     }
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
-    setSelectedCallTypeId(null);
-    setSelectedPortId(null);
     setShowSelectWorkflowModal(true);
   }, [sidebarWorkflows]);
 
-  const buildCallTypePortExtra = useCallback(() => {
-    const selectedCallType = callTypeOptionsForModal.find(
-      (c) => String(c.id) === String(selectedCallTypeId)
-    );
-    const selectedPort = portOptionsForModal.find(
-      (p) => String(p.id) === String(selectedPortId)
-    );
-    return {
-      callTypeId: selectedCallTypeId,
-      callTypeName: selectedCallType?.name,
-      portId: selectedPortId,
-      portName: selectedPort?.name,
-    };
-  }, [callTypeOptionsForModal, portOptionsForModal, selectedCallTypeId, selectedPortId]);
-
   const handleAddModalContinue = useCallback(() => {
-    const extra = buildCallTypePortExtra();
     if (addModalStep === 'workflow') {
       const w = addModalWorkflows.find(
         (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
@@ -337,9 +286,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         return;
       }
       if (lanes.length === 1) {
-        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, lanes[0], extra);
+        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, lanes[0]);
       } else {
-        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, null, extra);
+        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, null);
       }
       setShowSelectWorkflowModal(false);
       setSelectedWorkflowId(null);
@@ -353,7 +302,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         (l) => l.id === selectedSwimlaneId || String(l.id) === String(selectedSwimlaneId)
       );
       if (!lane) return;
-      pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(wf, lane, extra);
+      pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(wf, lane);
       setShowSelectWorkflowModal(false);
       setSelectedSwimlaneId(null);
     }
@@ -363,7 +312,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     selectedWorkflowId,
     swimlanePhaseWorkflow,
     selectedSwimlaneId,
-    buildCallTypePortExtra,
   ]);
 
   const handleSelectWorkflowModalExited = useCallback(() => {
@@ -1188,12 +1136,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
           selectedSwimlaneId={addModalStep === 'swimlane' ? selectedSwimlaneId : null}
           onSelectWorkflowId={setSelectedWorkflowId}
           onSelectSwimlaneId={setSelectedSwimlaneId}
-          callTypes={callTypeOptionsForModal}
-          ports={portOptionsForModal}
-          selectedCallTypeId={selectedCallTypeId}
-          selectedPortId={selectedPortId}
-          onSelectCallTypeId={setSelectedCallTypeId}
-          onSelectPortId={setSelectedPortId}
           onClose={closeSelectWorkflowModal}
           onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}

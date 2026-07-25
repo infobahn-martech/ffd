@@ -79,12 +79,6 @@ function SelectWorkflowModal({
   selectedSwimlaneId,
   onSelectWorkflowId,
   onSelectSwimlaneId,
-  callTypes,
-  ports,
-  selectedCallTypeId,
-  selectedPortId,
-  onSelectCallTypeId,
-  onSelectPortId,
   onClose,
   onContinue,
   onExited,
@@ -113,14 +107,10 @@ function SelectWorkflowModal({
     selectedSwimlaneId != null && (selectedSwimlaneId === id || String(selectedSwimlaneId) === String(id));
 
   const hasCardSelection = isWorkflowMode ? selectedWorkflowId != null : selectedSwimlaneId != null;
-  const hasCallTypeSelection = selectedCallTypeId != null && selectedCallTypeId !== '';
-  const hasPortSelection = selectedPortId != null && selectedPortId !== '';
 
   const cardError = submitAttempted && !empty && !hasCardSelection;
-  const callTypeError = submitAttempted && !hasCallTypeSelection;
-  const portError = submitAttempted && !hasPortSelection;
 
-  const isFormValid = !empty && hasCardSelection && hasCallTypeSelection && hasPortSelection;
+  const isFormValid = !empty && hasCardSelection;
 
   const handleContinue = () => {
     if (!isFormValid) {
@@ -128,16 +118,6 @@ function SelectWorkflowModal({
       return;
     }
     onContinue();
-  };
-
-  const handleCallTypeChange = (event) => {
-    const { value } = event.target;
-    onSelectCallTypeId(value === '' ? null : value);
-  };
-
-  const handlePortChange = (event) => {
-    const { value } = event.target;
-    onSelectPortId(value === '' ? null : value);
   };
 
   const modalTitle = isWorkflowMode ? 'Select Workflow' : 'Select Swimlane';
@@ -251,66 +231,6 @@ function SelectWorkflowModal({
                   {isWorkflowMode ? 'Please select a workflow.' : 'Please select a swimlane.'}
                 </p>
               ) : null}
-
-              <div className="select-workflow-modal-fields">
-                <div className="select-workflow-field">
-                  <label className="select-workflow-field-label" htmlFor="select-workflow-call-type">
-                    Select Call Type
-                  </label>
-                  <select
-                    id="select-workflow-call-type"
-                    className={`select-workflow-field-select ${
-                      selectedCallTypeId == null || selectedCallTypeId === ''
-                        ? 'select-workflow-field-select--placeholder'
-                        : ''
-                    } ${callTypeError ? 'select-workflow-field-select--error' : ''}`}
-                    value={selectedCallTypeId ?? ''}
-                    onChange={handleCallTypeChange}
-                    aria-invalid={callTypeError}
-                  >
-                    <option value="">Select Call Type</option>
-                    {(callTypes || []).map((callType) => (
-                      <option key={String(callType.id)} value={String(callType.id)}>
-                        {callType.name}
-                      </option>
-                    ))}
-                  </select>
-                  {callTypeError ? (
-                    <p className="select-workflow-field-error" role="alert">
-                      Please select a call type.
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="select-workflow-field">
-                  <label className="select-workflow-field-label" htmlFor="select-workflow-port">
-                    Select Port
-                  </label>
-                  <select
-                    id="select-workflow-port"
-                    className={`select-workflow-field-select select-workflow-field-select--port ${
-                      selectedPortId == null || selectedPortId === ''
-                        ? 'select-workflow-field-select--placeholder'
-                        : ''
-                    } ${portError ? 'select-workflow-field-select--error' : ''}`}
-                    value={selectedPortId ?? ''}
-                    onChange={handlePortChange}
-                    aria-invalid={portError}
-                  >
-                    <option value="">Select Port</option>
-                    {(ports || []).map((port) => (
-                      <option key={String(port.id)} value={String(port.id)}>
-                        {port.name}
-                      </option>
-                    ))}
-                  </select>
-                  {portError ? (
-                    <p className="select-workflow-field-error" role="alert">
-                      Please select a port.
-                    </p>
-                  ) : null}
-                </div>
-              </div>
             </>
           )}
         </div>
@@ -356,22 +276,6 @@ SelectWorkflowModal.propTypes = {
   selectedSwimlaneId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onSelectWorkflowId: PropTypes.func.isRequired,
   onSelectSwimlaneId: PropTypes.func.isRequired,
-  callTypes: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      name: PropTypes.string.isRequired,
-    })
-  ),
-  ports: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      name: PropTypes.string.isRequired,
-    })
-  ),
-  selectedCallTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  selectedPortId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  onSelectCallTypeId: PropTypes.func,
-  onSelectPortId: PropTypes.func,
   onClose: PropTypes.func.isRequired,
   onContinue: PropTypes.func.isRequired,
   onExited: PropTypes.func,
@@ -384,12 +288,6 @@ SelectWorkflowModal.defaultProps = {
   swimlaneHelperText: undefined,
   selectedWorkflowId: null,
   selectedSwimlaneId: null,
-  callTypes: [],
-  ports: [],
-  selectedCallTypeId: null,
-  selectedPortId: null,
-  onSelectCallTypeId: () => {},
-  onSelectPortId: () => {},
   onExited: undefined,
 };
 

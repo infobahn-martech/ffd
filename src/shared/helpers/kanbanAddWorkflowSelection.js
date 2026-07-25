@@ -114,15 +114,9 @@ export function resolveSidebarAddCardAction(workflows) {
  * Payload for `kanban:add-card` / CardForm follow-up.
  * @param {object} workflow - Descriptor with id, name/title, swimlanes, swimlaneOrder
  * @param {{ id: string, name?: string, title?: string } | null | undefined} swimlaneOption
- * @param {{
- *   callTypeId?: string | number | null,
- *   callTypeName?: string | null,
- *   portId?: string | number | null,
- *   portName?: string | null,
- * } | null | undefined} extra - Call type / port selected alongside the workflow.
  * @returns {object}
  */
-export function buildKanbanAddCardEventDetail(workflow, swimlaneOption, extra) {
+export function buildKanbanAddCardEventDetail(workflow, swimlaneOption) {
   if (!workflow || workflow.id == null) return {};
   const id = workflow.id;
   const name = workflow.name ?? workflow.title ?? "Workflow";
@@ -142,24 +136,6 @@ export function buildKanbanAddCardEventDetail(workflow, swimlaneOption, extra) {
     detail.swimlaneName = sname;
     detail.swimlane_name = sname;
     detail.laneId = sid;
-  }
-  if (extra != null && typeof extra === "object") {
-    if (extra.callTypeId != null && extra.callTypeId !== "") {
-      detail.callTypeId = extra.callTypeId;
-      detail.call_type_id = extra.callTypeId;
-    }
-    if (extra.callTypeName != null && extra.callTypeName !== "") {
-      detail.callTypeName = extra.callTypeName;
-      detail.call_type = extra.callTypeName;
-    }
-    if (extra.portId != null && extra.portId !== "") {
-      detail.portId = extra.portId;
-      detail.port_id = extra.portId;
-    }
-    if (extra.portName != null && extra.portName !== "") {
-      detail.portName = extra.portName;
-      detail.port_name = extra.portName;
-    }
   }
   return detail;
 }
