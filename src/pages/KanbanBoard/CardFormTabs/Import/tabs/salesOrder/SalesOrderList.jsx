@@ -1289,6 +1289,15 @@ const SalesOrderList = ({
           <span className="sales-order-list-title-bar"></span>
           SALES ORDER LIST
         </h3>
+        {!readOnly && (
+          <button
+            type="button"
+            className="sales-order-add-button"
+            onClick={handleAddNewItem}
+          >
+            + Add Item
+          </button>
+        )}
       </div>
 
       {salesOrderError && (
@@ -1497,19 +1506,6 @@ const SalesOrderList = ({
 
         {/* Right: Table view + Accounting Summary — wider column */}
         <div className="so-right-panel">
-          <div className="so-right-panel-header">
-            <h4 className="so-right-panel-title">Line Items</h4>
-            {!readOnly && (
-              <button
-                type="button"
-                className="sales-order-add-button"
-                onClick={handleAddNewItem}
-              >
-                + Add Item
-              </button>
-            )}
-          </div>
-
           {/* Add Item Popover */}
           {!readOnly && isAccordionOpen && (
             <>
