@@ -2575,6 +2575,18 @@
   text-align: center;
 }
 
+/* Checkbox column: force identical alignment for the header (select-all) and
+   row checkboxes. Without the !important, the generic thead-th rule's
+   `text-align: left` (meant for the text labels in every other header cell)
+   outranks th:nth-child(1)'s `text-align: center` by specificity, so the
+   select-all checkbox drifts left of the row checkboxes beneath it. */
+.crew-table.crew-immigration-listing-table th.crew-checkbox-cell-header,
+.crew-table.crew-immigration-listing-table td.crew-checkbox-cell {
+  text-align: center !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
 /* ==========================================================
    CREW LIST UPLOAD BOX (movement-type-aware — see CrewListUploadBox.jsx)
    ========================================================== */
