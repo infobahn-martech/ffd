@@ -1601,6 +1601,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   className="dispatch-edit-checkbox"
                   checked={formData.launchHire || false}
                   onChange={(e) => handleFormChange("launchHire", e.target.checked)}
+                  disabled={!!editingOrder}
                 />
                 <span>Launch Hire</span>
               </label>
@@ -1638,6 +1639,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         timeFieldName="launchHireTime"
                         placeholder="YYYY-MM-DD hh:mm"
                         hasError={!!formErrors.launchHireDate}
+                        disabled={!!editingOrder}
                       />
                       {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
                     </div>
@@ -1673,6 +1675,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
                         options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
                         placeholder="Select location..."
+                        disabled={!!editingOrder}
                       />
                     </div>
                   </div>
