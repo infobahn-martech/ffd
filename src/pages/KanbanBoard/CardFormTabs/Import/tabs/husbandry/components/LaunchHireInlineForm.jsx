@@ -73,6 +73,7 @@ const LaunchHireInlineForm = ({
               placeholder="Select batch(es)"
               disabled={isSubmitting}
               id="launch-hire-batch-multiselect"
+              className="crew-launch-hire-batch-select"
             />
           </div>
         )}
