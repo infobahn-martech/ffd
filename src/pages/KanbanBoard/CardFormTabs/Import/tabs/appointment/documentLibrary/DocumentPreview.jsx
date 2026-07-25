@@ -220,13 +220,6 @@ const DocumentPreview = ({ document }) => {
             <DownloadIcon />
             <span>Download</span>
           </button>
-          <button type="button" className="doc-lib-preview-action-btn">
-            <LinkIcon />
-            <span>Copy Link</span>
-          </button>
-          {/* <button type="button" className="doc-lib-preview-action-btn doc-lib-preview-action-btn--icon" aria-label="Favorite">
-            <StarIcon />
-          </button> */}
         </div>
       </div>
 
