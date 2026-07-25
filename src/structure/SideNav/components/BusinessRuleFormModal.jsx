@@ -6823,7 +6823,38 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           // elsewhere in this file, which is why "Set color" restored as a plain "Set Set
           // color to" text input instead of the real color-swatch UI below.
           const normalizedFieldKey = String(fieldKey ?? '').trim().toLowerCase();
-          const matchedOption = UPDATE_ACTION_OPTIONS.find((opt) => opt.field.toLowerCase() === normalizedFieldKey)
+          // Live backend data (RefineUpdateCriteriaModal's mappedRegularOptions, built from
+          // thenActionRegularFields — see line ~1458) sends field_key as the field's own
+          // unique field_label (e.g. "Add co-owners", "Remove co-owners", "Remove stickers"),
+          // not the grouped name the DEV-only static UPDATE_ACTION_OPTIONS catalog uses for
+          // its `field` property (Co-owners/Stickers/Milestones are each shared by two
+          // catalog entries). Matching by label first — exact and already unique — is what
+          // actually resolves live data correctly; matching by `field` is only reached for
+          // the dev fallback, where the same Co-owners/Stickers/Milestones collision applies,
+          // so it's disambiguated the same way via update_mode/frequency/list_mode. Without
+          // the label-first check, both a saved "Add co-owners" and "Remove co-owners" fell
+          // through to the field-based substring fallback below, which — since "co-owners"
+          // is a substring of both field_key strings either way — always resolved to
+          // whichever catalog entry sits first (`add_co_owners`), permanently relabeling
+          // every saved "Remove co-owners"/"Remove stickers" action back to "Add" on reopen.
+          let matchedOption = UPDATE_ACTION_OPTIONS.find((opt) => opt.label.toLowerCase() === normalizedFieldKey);
+          if (!matchedOption) {
+            const exactMatches = UPDATE_ACTION_OPTIONS.filter((opt) => opt.field.toLowerCase() === normalizedFieldKey);
+            matchedOption = exactMatches[0];
+            if (exactMatches.length > 1) {
+              if (normalizedFieldKey === 'co-owners') {
+                const updateMode = propVal(action, 'update_mode');
+                matchedOption = exactMatches.find((opt) => opt.key === (updateMode === 'remove' ? 'remove_co_owners' : 'add_co_owners')) ?? matchedOption;
+              } else if (normalizedFieldKey === 'stickers') {
+                const hasFrequency = !!propVal(action, 'frequency');
+                matchedOption = exactMatches.find((opt) => opt.key === (hasFrequency ? 'add_stickers' : 'remove_stickers')) ?? matchedOption;
+              } else if (normalizedFieldKey === 'milestones') {
+                const hasListMode = !!propVal(action, 'list_mode');
+                matchedOption = exactMatches.find((opt) => opt.key === (hasListMode ? 'set_milestones' : 'remove_milestones')) ?? matchedOption;
+              }
+            }
+          }
+          matchedOption = matchedOption
             ?? UPDATE_ACTION_OPTIONS.find((opt) => {
               const optField = opt.field.toLowerCase();
               return normalizedFieldKey.includes(optField) || optField.includes(normalizedFieldKey);
