@@ -497,7 +497,7 @@ DocumentListModal.propTypes = {
 };
 
 // Premium pagination control for the sales order table
-const SalesOrderPagination = ({ page, total, limit, onPageChange }) => {
+const SalesOrderPagination = ({ page, total, limit, onPageChange, compact = false }) => {
   if (!total || total <= 0) return null;
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -522,7 +522,7 @@ const SalesOrderPagination = ({ page, total, limit, onPageChange }) => {
   };
 
   return (
-    <div className="so-pagination">
+    <div className={`so-pagination${compact ? " so-pagination--compact" : ""}`}>
       <span className="so-pagination-info">
         Showing <strong>{start}</strong>–<strong>{end}</strong> of <strong>{total}</strong> entries
       </span>
@@ -572,6 +572,7 @@ SalesOrderPagination.propTypes = {
   total: PropTypes.number.isRequired,
   limit: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
+  compact: PropTypes.bool,
 };
 
 const SalesOrderList = ({
@@ -613,6 +614,7 @@ const SalesOrderList = ({
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [showSummaryPopover, setShowSummaryPopover] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [newItemForm, setNewItemForm] = useState({
@@ -1289,6 +1291,31 @@ const SalesOrderList = ({
           <span className="sales-order-list-title-bar"></span>
           SALES ORDER LIST
         </h3>
+        <div className="sales-order-list-header-actions">
+          <SalesOrderPagination
+            page={currentPage}
+            total={totalOrderCount}
+            limit={SALES_ORDER_PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            compact
+          />
+          <button
+            type="button"
+            className="sales-order-add-button sales-order-summary-button"
+            onClick={() => setShowSummaryPopover(true)}
+          >
+            Summary
+          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="sales-order-add-button"
+              onClick={handleAddNewItem}
+            >
+              + Add Item
+            </button>
+          )}
+        </div>
       </div>
 
       {salesOrderError && (
@@ -1497,19 +1524,6 @@ const SalesOrderList = ({
 
         {/* Right: Table view + Accounting Summary — wider column */}
         <div className="so-right-panel">
-          <div className="so-right-panel-header">
-            <h4 className="so-right-panel-title">Line Items</h4>
-            {!readOnly && (
-              <button
-                type="button"
-                className="sales-order-add-button"
-                onClick={handleAddNewItem}
-              >
-                + Add Item
-              </button>
-            )}
-          </div>
-
           {/* Add Item Popover */}
           {!readOnly && isAccordionOpen && (
             <>
@@ -1647,7 +1661,7 @@ const SalesOrderList = ({
                       <button
                         type="button"
                         onClick={() => setVendorModalTarget("new")}
-                        style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                        className="sales-order-supplier-select-btn"
                       >
                         {newItemForm.supplierCode ? "Change" : "Select"}
                       </button>
@@ -1665,8 +1679,7 @@ const SalesOrderList = ({
                   <button
                     type="button"
                     onClick={handleSaveNewItem}
-                    className="btn btn-primary sales-order-add-form-save"
-                    style={{ backgroundColor: "#00368c" }}
+                    className="sales-order-add-form-save"
                   >
                     Save
                   </button>
@@ -1675,6 +1688,98 @@ const SalesOrderList = ({
               </div>
             </>
           )}
+
+          {/* Accounting Summary Popover — opened via the Summary button in the header */}
+          {showSummaryPopover && (() => {
+            const amountFromForm = (v) => {
+              if (v == null || v === "") return null;
+              const n = parseFloat(String(v).replace(/,/g, ""));
+              return Number.isFinite(n) ? n : null;
+            };
+
+            const subtotalCalc = displayOrderList.reduce((sum, item) => {
+              const qty = parseFloat(item.qty) || 0;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              return sum + qty * unitPrice;
+            }, 0);
+            const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
+              const qty = parseFloat(item.qty) || 0;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              const discount = parseFloat(item.discount) || 0;
+              return sum + qty * unitPrice * (discount / 100);
+            }, 0);
+            const totalTaxCalc = displayOrderList.reduce((sum, item) => {
+              const qty = parseFloat(item.qty) || 0;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              const discount = parseFloat(item.discount) || 0;
+              const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
+              const discountedTotal = qty * unitPrice * (1 - discount / 100);
+              return sum + discountedTotal * taxRate;
+            }, 0);
+            const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
+
+            const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
+            const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
+            const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
+            const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
+            const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
+
+            return (
+              <div
+                className="so-summary-modal-backdrop"
+                onClick={(e) => { if (e.target === e.currentTarget) setShowSummaryPopover(false); }}
+              >
+                <div className="so-summary-modal">
+                  <div className="so-summary-modal-header">
+                    <h3 className="so-summary-modal-title">Accounting Summary</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowSummaryPopover(false)}
+                      className="so-summary-modal-close"
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <div className="so-summary-modal-body">
+                    <div className="so-accounting-grid">
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Currency</span>
+                        <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+                      </div>
+                      <div className="so-accounting-divider" />
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Subtotal</span>
+                        <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+                      </div>
+                      {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
+                        <div className="so-accounting-row">
+                          <span className="so-accounting-label">Discount</span>
+                          <span className="so-accounting-value">
+                            {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                          </span>
+                        </div>
+                      )}
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Total Discount</span>
+                        <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+                      </div>
+                      <div className="so-accounting-row">
+                        <span className="so-accounting-label">Total Tax</span>
+                        <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+                      </div>
+                      <div className="so-accounting-divider" />
+                      <div className="so-accounting-row so-accounting-grand">
+                        <span className="so-accounting-label">Grand Total</span>
+                        <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Sticky Bulk Action Bar */}
           {!isDAModule && selectedItems.size > 0 && (
@@ -1865,128 +1970,6 @@ const SalesOrderList = ({
               </tbody>
             </table>
           </div>
-
-          <SalesOrderPagination
-            page={currentPage}
-            total={totalOrderCount}
-            limit={SALES_ORDER_PAGE_SIZE}
-            onPageChange={setCurrentPage}
-          />
-
-          {/* Accounting Summary Panel */}
-          {(() => {
-            const amountFromForm = (v) => {
-              if (v == null || v === "") return null;
-              const n = parseFloat(String(v).replace(/,/g, ""));
-              return Number.isFinite(n) ? n : null;
-            };
-
-            const subtotalCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              return sum + qty * unitPrice;
-            }, 0);
-            const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const discount = parseFloat(item.discount) || 0;
-              return sum + qty * unitPrice * (discount / 100);
-            }, 0);
-            const totalTaxCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const discount = parseFloat(item.discount) || 0;
-              const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
-              const discountedTotal = qty * unitPrice * (1 - discount / 100);
-              return sum + discountedTotal * taxRate;
-            }, 0);
-            const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
-
-            const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
-            const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
-            const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
-            const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
-            const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
-
-            return (
-              <div className="so-accounting-summary">
-                <div className="so-accounting-title">
-                  <span className="so-accounting-title-bar"></span>
-                  ACCOUNTING SUMMARY
-                </div>
-                <div className="so-accounting-body">
-                  {/* Left: info fields */}
-                  <div className="so-accounting-info">
-                    <div className="so-accounting-info-field">
-                      <label className="so-accounting-info-label">Owner</label>
-                      <input
-                        type="text"
-                        className="so-accounting-info-value"
-                        value={formValues.soOwner || ""}
-                        readOnly
-                      />
-                    </div>
-                    <div className="so-accounting-info-field">
-                      <label className="so-accounting-info-label">Project Name</label>
-                      <input
-                        type="text"
-                        className="so-accounting-info-value"
-                        value={formValues.soProjectName || ""}
-                        readOnly
-                      />
-                    </div>
-                    <div className="so-accounting-info-field">
-                      <label className="so-accounting-info-label">Remarks</label>
-                      <textarea
-                        className="so-accounting-info-textarea"
-                        placeholder="Enter remarks..."
-                        value={formValues.soRemarks || ""}
-                        onChange={readOnly ? undefined : handleChange("soRemarks")}
-                        disabled={readOnly}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Right: accounting card */}
-                  <div className="so-accounting-right">
-                    <div className="so-accounting-card-title">Accounting</div>
-                    <div className="so-accounting-grid">
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Currency</span>
-                        <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
-                      </div>
-                      <div className="so-accounting-divider" />
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Subtotal</span>
-                        <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
-                      </div>
-                      {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
-                        <div className="so-accounting-row">
-                          <span className="so-accounting-label">Discount</span>
-                          <span className="so-accounting-value">
-                            {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
-                          </span>
-                        </div>
-                      )}
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Total Discount</span>
-                        <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
-                      </div>
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Total Tax</span>
-                        <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
-                      </div>
-                      <div className="so-accounting-divider" />
-                      <div className="so-accounting-row so-accounting-grand">
-                        <span className="so-accounting-label">Grand Total</span>
-                        <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
       </div>
 

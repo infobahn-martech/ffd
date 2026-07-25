@@ -5062,11 +5062,16 @@ function CreateSubtaskSettingsModal({ show, onClose, onSave, initialSettings, fe
     const createFresh = () => {
       saveCreateSubtaskSettings(payload, {
         cb: (data) => {
+          // Same flat-vs-nested inconsistency as the notification create response (see
+          // NotificationSettingsModal's own dual-check above) — checking only the flat
+          // shape silently dropped the id to null on this backend build, so the action
+          // saved with no create_subtask_id and always read "Not Set" on reopen.
+          const createSubtaskId = data?.create_subtask_id ?? data?.data?.create_subtask_id ?? null;
           onSave({
             ownerUserId,
             deadline,
             description,
-            createSubtaskId: data?.create_subtask_id ?? null,
+            createSubtaskId,
           });
           onClose();
         },
@@ -6254,6 +6259,10 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const [recurrenceSchedule, setRecurrenceSchedule] = useState('every_day');
   const [showRecurrenceUnitPicker, setShowRecurrenceUnitPicker] = useState(false);
   const [executeAtTime, setExecuteAtTime] = useState('00:00');
+  // then_action_id of this rule's "execute_at" then_action, restored below on edit — carried
+  // through to save so an update targets that same row instead of the backend creating a
+  // second one every time (see buildBusinessRulePayload.js's execute_time entry).
+  const [executeThenActionId, setExecuteThenActionId] = useState(null);
   const [showExecuteTimePicker, setShowExecuteTimePicker] = useState(false);
   const [executeTimeFilterText, setExecuteTimeFilterText] = useState('');
   const executeTimeTriggerRef = useRef(null);
@@ -6551,6 +6560,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setRecurrenceSchedule('every_day');
     setShowRecurrenceUnitPicker(false);
     setExecuteAtTime('00:00');
+    setExecuteThenActionId(null);
     if (timeUnits.length === 0) getTimeUnits();
   }, [show, rule, loggedInUserName, loggedInUserId]);
 
@@ -6681,6 +6691,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       }
       boxesByField.get(key).values.push({
         id: `cond-val-${cond.condition_id}`,
+        conditionId: cond.condition_id ?? null,
         value: cond.input_value ?? '',
         joinWord: cond.connector || 'OR',
       });
@@ -6719,6 +6730,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     const nextNotifyActions = [];
     const nextInvokeActions = [];
     const nextRawSummaryBySectionId = {};
+    let nextExecuteThenActionId = null;
+    let nextExecuteAtTime = null;
+    let nextRecurrenceSchedule = null;
 
     const pushRaw = (sectionId, group) => {
       const key = sectionId ?? group.group_type;
@@ -6757,6 +6771,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           if (relationType === 'subtask' || restoredCreateSubtaskId != null) {
             nextCreateActions.push({
               id: `create-${action.then_action_id}`,
+              thenActionId: action.then_action_id ?? null,
               key: 'subtask',
               label: 'Create subtask',
               createSubtaskId: restoredCreateSubtaskId,
@@ -6769,6 +6784,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           const createBoardId = propVal(action, 'target_board_id') ?? '';
           nextCreateActions.push({
             id: `create-${action.then_action_id}`,
+            thenActionId: action.then_action_id ?? null,
             key: relationType ?? 'card',
             label: relationType ? `Create ${relationType}` : 'Create card',
             boardId: createBoardId,
@@ -6818,6 +6834,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           const isDeadlineRef = matchedOption && DEADLINE_UPDATE_KEYS.includes(matchedOption.key);
           nextUpdateActions.push({
             id: `update-${action.then_action_id}`,
+            thenActionId: action.then_action_id ?? null,
             category: matchedOption ? 'action' : 'custom',
             key: matchedOption?.key ?? `custom-${fieldKey}`,
             label: matchedOption?.label ?? `Set ${fieldKey ?? ''}`,
@@ -6888,7 +6905,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                 };
                 nextLinkActions.push(target);
               }
-              target.values.push({ id: `link-val-${row.link_card_id}`, value: row.input_value ?? '' });
+              target.values.push({ id: `link-val-${row.link_card_id}`, linkCardId: row.link_card_id ?? null, value: row.input_value ?? '' });
               if (String(row.remove_other) === '1') nextRemoveOtherLinksByType[row.relation_type] = true;
             });
         });
@@ -6901,6 +6918,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           const boardId = propVal(action, 'target_board_id');
           targetArray.push({
             id: `${sectionId}-${action.then_action_id}`,
+            thenActionId: action.then_action_id ?? null,
             key: sectionId === 'move' ? 'move_to' : 'convert_to',
             label: sectionId === 'move' ? 'Move card to' : 'Convert subtasks to',
             boardId: boardId ?? '',
@@ -6922,6 +6940,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         actions.forEach((action) => {
           nextNotifyActions.push({
             id: `notify-${action.then_action_id}`, key: 'send_notification', label: 'Send notification',
+            thenActionId: action.then_action_id ?? null,
             notification_id: action.notification_id ?? null,
             // Without this, a saved notify action always reads "Not Set" on reopen —
             // `configured` only ever got set by handleSaveNotificationSettings (live
@@ -6936,6 +6955,7 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         actions.forEach((action) => {
           nextInvokeActions.push({
             id: `invoke-${action.then_action_id}`, key: 'invoke_web_service', label: 'Invoke web service',
+            thenActionId: action.then_action_id ?? null,
             webServiceId: action.web_service_id ?? null,
             // Same restore gap as notify actions above — configured only got set on
             // live save, so a saved invoke action always read "Not Set" on reopen.
@@ -6945,9 +6965,25 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
         return;
       }
 
-      // update_related / copy_values / execute_at / anything else — no reliable forward
-      // mapping exists to invert (per confirmed scope), so it's always shown as a raw
-      // read-only summary rather than forced into editable-looking fields.
+      // execute_at (Recurring create cards' schedule) has exactly one action per rule —
+      // restore its execute_time straight into the live WHEN-column picker state instead of
+      // the raw read-only fallback below, so re-saving sends the real (possibly edited) time
+      // back with the right then_action_id instead of a stale duplicate copy.
+      if (sectionId === 'execute') {
+        const action = actions[0];
+        if (action) {
+          nextExecuteThenActionId = action.then_action_id ?? null;
+          const executeTime = propVal(action, 'execute_time');
+          if (executeTime) nextExecuteAtTime = executeTime;
+          const recurrence = propVal(action, 'recurrence_schedule');
+          if (recurrence) nextRecurrenceSchedule = recurrence;
+        }
+        return;
+      }
+
+      // update_related / copy_values / anything else — no reliable forward mapping exists
+      // to invert (per confirmed scope), so it's always shown as a raw read-only summary
+      // rather than forced into editable-looking fields.
       pushRaw(sectionId, group);
     });
 
@@ -6959,6 +6995,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setConvertSubtaskActions(nextConvertActions);
     setNotifyActions(nextNotifyActions);
     setInvokeActions(nextInvokeActions);
+    setExecuteThenActionId(nextExecuteThenActionId);
+    if (nextExecuteAtTime) setExecuteAtTime(nextExecuteAtTime);
+    if (nextRecurrenceSchedule) setRecurrenceSchedule(nextRecurrenceSchedule);
     setRawSummaryBySectionId(nextRawSummaryBySectionId);
 
     // workflowName/swimlaneName/stageName can't be resolved from `workspaces` (board list
@@ -7390,9 +7429,12 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       copyValuesActions,
       notifyActions,
       invokeActions,
+      executeAtTime,
+      executeThenActionId,
+      recurrenceSchedule,
       // Then-groups the routing effect couldn't invert into editable state (create-subtask,
-      // update_parent/child_card, copy_values_to_*, execute_at) — passed through as-is by
-      // buildThenActions' raw fallback so an edit save doesn't wipe them from the rule.
+      // update_parent/child_card, copy_values_to_*) — passed through as-is by buildThenActions'
+      // raw fallback so an edit save doesn't wipe them from the rule.
       rawThenActionGroups: Object.values(rawSummaryBySectionId).flat(),
     };
 

@@ -130,11 +130,17 @@ const createEmptyPartySection = () => ({
     return section;
   };
 
-  // Backend reads this as a form post ($_POST), not a raw JSON body, so the
-  // payload must always go out as multipart FormData (nested sections
-  // JSON-stringified) even when there are no file uploads — Gateway strips
-  // the Content-Type header for FormData automatically so the browser sets
-  // the multipart boundary.
+  // Backend requires multipart/form-data always (confirmed via its own error:
+  // "requires multipart/form-data ... Send fields as vessel_owner[owner_details]=...,
+  // not as a JSON body") — each section must be exploded into PHP-style bracket
+  // fields, not JSON-stringified under one key. Gateway strips the Content-Type
+  // header for FormData automatically so the browser sets the multipart boundary.
+  const appendFormDataSection = (formData, sectionKey, section) => {
+    Object.entries(section).forEach(([fieldKey, value]) => {
+      formData.append(`${sectionKey}[${fieldKey}]`, value ?? "");
+    });
+  };
+
   const buildExportApprovalSavePayload = ({
     callId,
     basicDetails,
@@ -173,10 +179,13 @@ const createEmptyPartySection = () => ({
 
     const formData = new FormData();
     formData.append("call_id", callId == null ? "" : String(callId));
-    Object.entries(payload).forEach(([key, value]) => {
-      if (key === "call_id") return;
-      formData.append(key, JSON.stringify(value));
-    });
+    appendFormDataSection(formData, "basic_details", payload.basic_details);
+    appendFormDataSection(formData, "vessel_owner", payload.vessel_owner);
+    appendFormDataSection(formData, "vessel_principal", payload.vessel_principal);
+    appendFormDataSection(formData, "vessel_charterer", payload.vessel_charterer);
+    appendFormDataSection(formData, "credit_controller", payload.credit_controller);
+    appendFormDataSection(formData, "manager_ofm", payload.manager_ofm);
+    appendFormDataSection(formData, "ceo", payload.ceo);
     Object.entries(files).forEach(([key, fileList]) => {
       (fileList || []).forEach((file) => formData.append(`${key}[]`, file));
     });

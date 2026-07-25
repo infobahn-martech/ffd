@@ -845,12 +845,6 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   <thead>
                     <tr>
                       <th className="crew-checkbox-cell-header">
-                        <input
-                          className="crew-list-checkbox crew-list-checkbox--header"
-                          type="checkbox"
-                          checked={listingSelectedIds.length === listingRows.length && listingRows.length > 0}
-                          onChange={handleListingSelectAll}
-                        />
                       </th>
                       <th><span className="crew-th">Crew name</span></th>
                       <th><span className="crew-th">Date of birth</span></th>
