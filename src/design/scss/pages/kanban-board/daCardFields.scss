@@ -1,0 +1,578 @@
+// Scoped styles for the DA tab's card-fields panel (CardFormTabs/Import/tabs/da/DA.jsx).
+// Class names are prefixed with `da-cf-` so nothing here collides with the existing
+// `.cf-*` / `.general-*` classes used by the General tab. Tokens are derived from the
+// app's existing accent (`DEFAULT_ACCENT_COLOR` in CardForm.jsx) and its Manrope typeface
+// — the rest of the app has no dark-mode support, so this stays light-only to match.
+
+.da-cf-panel {
+  --da-ink: #1c2033;
+  --da-ink-soft: #565b74;
+  --da-ink-faint: #9a9fb8;
+  --da-line: #e2e4f0;
+  --da-surface: #ffffff;
+  --da-sunken: #f5f6fb;
+  --da-accent: #4338ca;
+  --da-accent-soft: #edeefd;
+
+  font-family: "Manrope", sans-serif;
+  padding: 18px 24px 40px;
+  width: 100%;
+  color: var(--da-ink);
+  box-sizing: border-box;
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+.da-cf-save-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--da-ink-soft);
+  background: var(--da-sunken);
+  border-radius: 20px;
+  padding: 5px 12px;
+  margin-bottom: 18px;
+}
+
+.da-cf-save-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--da-ink-faint);
+  flex-shrink: 0;
+}
+
+.da-cf-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--da-line);
+  margin-bottom: 22px;
+  padding-bottom: 2px;
+}
+
+.da-cf-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--da-ink-soft);
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  svg {
+    opacity: 0.7;
+  }
+
+  &:hover {
+    color: var(--da-ink);
+    background: var(--da-sunken);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--da-accent);
+    outline-offset: -2px;
+  }
+}
+
+.da-cf-subtab--active {
+  color: var(--da-accent);
+  border-bottom-color: var(--da-accent);
+
+  svg {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: transparent;
+    color: var(--da-accent);
+  }
+}
+
+.da-cf-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.da-cf-group-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--da-accent-soft);
+  color: var(--da-accent);
+  flex-shrink: 0;
+}
+
+.da-cf-group-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--da-ink);
+  flex: 1;
+}
+
+.da-cf-group-count {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--da-ink-faint);
+  background: var(--da-sunken);
+  border-radius: 12px;
+  padding: 3px 9px;
+}
+
+.da-cf-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px 20px;
+}
+
+// Card sub-tab: fixed 2 columns so full-width tiles (e.g. Tags) end at the same
+// edge as the row above instead of stretching across extra auto-fit columns.
+.da-cf-fields-grid--fixed2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.da-cf-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: var(--da-surface);
+  border: 1px solid var(--da-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color 0.12s ease;
+
+  &:focus-within {
+    border-color: var(--da-accent);
+  }
+}
+
+.da-cf-tile--full {
+  grid-column: 1 / -1;
+}
+
+.da-cf-tile-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--da-ink-soft);
+}
+
+.da-cf-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--da-accent-soft);
+  color: var(--da-accent);
+  flex-shrink: 0;
+}
+
+.da-cf-input {
+  width: 100%;
+  border: 1px solid var(--da-line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--da-ink);
+  background: var(--da-sunken);
+
+  &:focus {
+    outline: none;
+    border-color: var(--da-accent);
+    background: var(--da-surface);
+    box-shadow: 0 0 0 3px var(--da-accent-soft);
+  }
+
+  &::placeholder {
+    color: var(--da-ink-faint);
+    font-weight: 400;
+  }
+}
+
+.da-cf-input--numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.da-cf-input--readonly {
+  color: var(--da-ink-soft);
+  cursor: default;
+}
+
+.da-cf-datetime-row {
+  display: flex;
+  gap: 8px;
+
+  .da-cf-input {
+    flex: 1;
+  }
+}
+
+.da-cf-unit-input-wrap {
+  position: relative;
+}
+
+.da-cf-input--with-unit {
+  padding-right: 54px;
+}
+
+.da-cf-unit-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--da-ink-faint);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.da-cf-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 2px;
+
+  &:empty {
+    margin-bottom: 0;
+  }
+}
+
+.da-cf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--da-accent-soft);
+  color: var(--da-accent);
+  border-radius: 20px;
+  padding: 4px 6px 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.da-cf-chip-remove {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.da-cf-tile-hint {
+  font-size: 11px;
+  color: var(--da-ink-faint);
+}
+
+.da-cf-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px dashed #c7caee;
+  border-radius: 8px;
+  background: var(--da-sunken);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--da-ink-soft);
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.da-cf-dropzone-icon {
+  color: var(--da-accent);
+  flex-shrink: 0;
+}
+
+.da-cf-dropzone:hover {
+  background: var(--da-accent-soft);
+  border-color: var(--da-accent);
+}
+
+.da-cf-dropzone--dragging {
+  background: var(--da-accent-soft);
+  border-color: var(--da-accent);
+}
+
+.da-cf-dropzone-input {
+  display: none;
+}
+
+.da-cf-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.da-cf-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--da-line);
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  color: var(--da-ink);
+  background: var(--da-surface);
+}
+
+.da-cf-file-icon {
+  color: #e02020;
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.da-cf-file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da-cf-file-remove {
+  border: none;
+  background: transparent;
+  color: var(--da-ink-faint);
+  cursor: pointer;
+  display: inline-flex;
+
+  &:hover {
+    color: #e02020;
+  }
+}
+
+.da-cf-file-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.da-cf-download-all {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--da-accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.da-cf-download-all:hover {
+  text-decoration: underline;
+}
+
+.da-cf-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--da-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.da-cf-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.da-cf-stat-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--da-surface);
+  border: 1px solid var(--da-line);
+  border-radius: 10px;
+  padding: 13px 14px;
+}
+
+.da-cf-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--da-accent-soft);
+  color: var(--da-accent);
+  flex-shrink: 0;
+}
+
+.da-cf-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.da-cf-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--da-ink-faint);
+}
+
+.da-cf-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--da-ink);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da-cf-stat-value--empty {
+  font-size: 12.5px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--da-ink-faint);
+}
+
+.da-cf-more {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.da-cf-more-section {
+  background: var(--da-surface);
+  border: 1px solid var(--da-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.da-cf-more-section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: var(--da-sunken);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.da-cf-more-chevron {
+  display: inline-flex;
+  color: var(--da-ink-faint);
+  transition: transform 0.12s ease;
+}
+
+.da-cf-more-chevron--collapsed {
+  transform: rotate(-90deg);
+}
+
+.da-cf-more-section-title {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--da-ink);
+}
+
+.da-cf-more-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--da-ink-soft);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--da-accent-soft);
+    color: var(--da-accent);
+  }
+}
+
+.da-cf-more-empty {
+  margin: 0;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--da-ink-faint);
+}
+
+.da-cf-more-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.da-cf-more-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .da-cf-input {
+    flex: 1;
+  }
+}
+
+.da-cf-more-relative-icon {
+  display: inline-flex;
+  color: var(--da-accent);
+  flex-shrink: 0;
+}
+
+.da-cf-more-row-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--da-ink-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--da-accent-soft);
+    color: #dc2626;
+  }
+}
