@@ -3216,6 +3216,45 @@
   border-color: var(--card-color, $status-in-progress-text);
 }
 
+// Crew Listing inline edit — nationality PremiumSelect, styled to match the
+// plain text/select edit cells beside it (.crew-edit-input / .crew-edit-select)
+// instead of PremiumSelect's default larger form-field sizing.
+.crew-edit-nationality-select.premium-select.cf-searchable-select {
+  width: 100%;
+  min-width: 0;
+
+  .cf-multi-select-email-input {
+    border: 1.5px solid color-mix(in srgb, var(--card-color, $status-in-progress-text) 45%, white);
+    border-radius: $radius-md;
+    background: #ffffff;
+    box-shadow: none;
+    min-height: 0;
+    height: auto;
+    padding: 5px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .cf-multi-select-email-input:hover {
+    border-color: var(--card-color, $status-in-progress-text);
+  }
+
+  .cf-multi-select-email-input:focus-within {
+    outline: none;
+    box-shadow: $shadow-focus;
+  }
+
+  .cf-multi-select-placeholder,
+  .cf-multi-select-selected-value {
+    font-size: 12px;
+  }
+}
+
+// Portaled menu — compact width matching the trigger's typical column width.
+.crew-edit-nationality-select__menu.cf-multi-select-dropdown.cf-searchable-select__menu-portal {
+  min-width: 220px;
+}
+
 // Crew Summary's inline DOB editor reuses the shared DatePickerField, whose
 // MUI internals default to a 40px-tall, 14px-font input — shrink them here
 // so DOB matches the height of the plain text/select edit cells beside it.

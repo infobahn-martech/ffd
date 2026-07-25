@@ -6,6 +6,7 @@ import CrewUploadDropzones from "../husbandry/components/CrewUploadDropzones";
 import CrewUploadPreviewModal from "../husbandry/components/CrewUploadPreviewModal";
 import LaunchHireInlineForm from "../husbandry/components/LaunchHireInlineForm";
 import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
+import PremiumSelect from "../../../../../../components/form/PremiumSelect";
 import DatePickerField from "../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../store/CrewReducer";
 import useCrewImmigrationReducer from "../../../../../../store/CrewImmigrationReducer";
@@ -919,18 +920,15 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                           </td>
                           <td>
                             {isEditing ? (
-                              <select
-                                className="crew-edit-input crew-edit-select"
+                              <PremiumSelect
                                 value={editDraft?.nationality ?? ""}
                                 onChange={handleEditFieldChange("nationality")}
-                              >
-                                <option value="">Select nationality</option>
-                                {nationalityOptions.map((option) => (
-                                  <option key={option.value} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
+                                options={nationalityOptions}
+                                placeholder="Select nationality"
+                                searchPlaceholder="Search nationality..."
+                                className="crew-edit-nationality-select"
+                                menuClassName="crew-edit-nationality-select__menu"
+                              />
                             ) : (
                               <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
                             )}
