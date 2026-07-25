@@ -33,12 +33,13 @@ const getOperatorLabel = (fieldDetailsByKey, fieldType, fieldId, operatorId) => 
 
 // Flat conditions[] list: one entry per condition-box value row, in field-details-derived
 // operator-label form (matches the "is"/"is not" convention confirmed by DUMMY_FIELD_OPERATORS
-// lining up with the documented example's `operator: "is"`). whenFields and the board/position
-// restriction rows are folded in alongside real conditions using the same shape — best-effort,
-// since the create_business_rule example only documents plain field conditions and none of
-// these three have a confirmed backend contract yet.
+// lining up with the documented example's `operator: "is"`). The board/position restriction
+// rows are folded in alongside real conditions using the same shape — best-effort, since the
+// create_business_rule example only documents plain field conditions and neither of these two
+// have a confirmed backend contract yet. whenFields is NOT folded in here — see
+// buildWhenFields below, confirmed to be its own top-level request field instead.
 const buildConditions = (formState, ctx) => {
-  const { conditions, whenFields, boardConditionRows, positionConditionRows } = formState;
+  const { conditions, boardConditionRows, positionConditionRows } = formState;
   const { fieldDetailsByKey, triggerConfig } = ctx;
   const entries = [];
 
@@ -49,19 +50,17 @@ const buildConditions = (formState, ctx) => {
         input_value: row.value,
         connector: index === 0 ? 'AND' : row.joinWord,
       };
+      // A value row restored from an existing rule carries the backend's own condition_id
+      // (see the edit-mode routing effect in BusinessRuleFormModal.jsx) — sending it back
+      // lets an update target that exact row instead of the whole condition list being
+      // torn down and recreated with fresh ids. A row added this session has none, so the
+      // key is omitted and the backend treats it as a new condition.
+      if (row.conditionId != null) entry.condition_id = row.conditionId;
       if (cond.fieldType === 'custom') entry.custom_field_id = cond.fieldId;
       else if (cond.fieldType === 'regular') entry.regular_field_id = cond.fieldId;
       else entry.time_unit_key = cond.fieldKey; // best-effort: time-unit conditions have no confirmed id field
       entries.push(entry);
     });
-  });
-
-  // "When fields" watch list has no operator/value in the UI at all — best-effort only.
-  whenFields.forEach((f) => {
-    const entry = { operator: null, input_value: null, connector: 'AND' };
-    if (f.fieldType === 'custom') entry.custom_field_id = f.fieldId;
-    else if (f.fieldType === 'regular') entry.regular_field_id = f.fieldId;
-    entries.push(entry);
   });
 
   // Board/position restriction rows carry no field id of their own — best-effort lookup
@@ -96,6 +95,17 @@ const buildConditions = (formState, ctx) => {
   return entries;
 };
 
+// "When fields" watch list (e.g. Recurring create cards' "watch this field" picker) — its
+// own top-level `when_fields` array, confirmed against a real documented example
+// (`[{ "regular_field_id": 21 }]`), not folded into conditions[] like the earlier best-effort
+// guess did. No operator/value in the UI for these at all, matching the confirmed shape.
+const buildWhenFields = (formState) => formState.whenFields.map((f) => {
+  const entry = {};
+  if (f.fieldType === 'custom') entry.custom_field_id = f.fieldId;
+  else if (f.fieldType === 'regular') entry.regular_field_id = f.fieldId;
+  return entry;
+});
+
 // Then-action groups the edit-mode routing effect couldn't invert into editable UI state
 // (create-subtask, update_parent/child_card, copy_values_to_parent/child, execute_at —
 // see ThenGroupRawSummary / the THEN routing effect in BusinessRuleFormModal.jsx) are
@@ -114,6 +124,9 @@ const buildRawThenActions = (rawGroups, ctx) => {
 
     (group.actions ?? []).forEach((action) => {
       const entry = { action_type_id: actionTypeId ?? action.action_type_id ?? null };
+      // These groups are never routed into editable state, so `action` here is still the
+      // literal object the backend returned — its own then_action_id rides straight through.
+      if (action.then_action_id != null) entry.then_action_id = action.then_action_id;
 
       const properties = (action.properties ?? [])
         .filter((p) => p.property_value !== null && p.property_value !== undefined && p.property_value !== '')
@@ -126,6 +139,7 @@ const buildRawThenActions = (rawGroups, ctx) => {
 
       if (Array.isArray(action.link_card) && action.link_card.length > 0) {
         entry.link_card = action.link_card.map((row) => ({
+          link_card_id: row.link_card_id ?? undefined,
           relation_type: row.relation_type,
           operator_key: row.operator_key,
           input_value: row.input_value,
@@ -156,19 +170,32 @@ const buildThenActions = (formState, ctx) => {
   const { triggerActions } = ctx;
   const thenActions = [];
 
+  // An action restored from an existing rule carries the backend's own then_action_id
+  // (see the edit-mode routing effect in BusinessRuleFormModal.jsx) — sending it back on
+  // update lets that exact row be updated in place instead of the whole action being torn
+  // down and recreated with a fresh id. An action added this session has none, so the key
+  // is left off and the backend treats it as a new then_action.
+  const withThenActionId = (entry, action) => {
+    if (action.thenActionId != null) entry.then_action_id = action.thenActionId;
+    return entry;
+  };
+
   const createActionTypeId = findActionTypeId(triggerActions, 'create');
   createActions.forEach((action) => {
     if (isCreateSubtaskAction(action)) {
       // No board/column/title to configure — a subtask has no destination picker in the
       // UI (it's created under the current card, not a new board location). Only
-      // relation_type marks it as a subtask, plus create_subtask_id referencing the
-      // owner/deadline/description record already saved server-side via
-      // saveCreateSubtaskSettings.
+      // relation_type marks it as a subtask.
       const properties = [{ property_key: 'relation_type', property_value: 'subtask', property_value_type: 'string' }];
-      if (action.createSubtaskId != null) {
-        properties.push({ property_key: 'create_subtask_id', property_value: action.createSubtaskId, property_value_type: 'number' });
-      }
-      thenActions.push({ action_type_id: createActionTypeId, properties });
+      const entry = withThenActionId({ action_type_id: createActionTypeId, properties }, action);
+      // create_subtask_id (referencing the owner/deadline/description record already saved
+      // server-side via saveCreateSubtaskSettings) is a top-level sibling field on the
+      // then_action, confirmed from a real get_business_rule_by_id response — that action's
+      // own "create_subtask_id": null sits next to "properties", not inside it. Sending it
+      // as a properties[] entry instead (the previous approach) meant the backend never saw
+      // it, so the link was always null and the subtask always read "Not Set" on reopen.
+      if (action.createSubtaskId != null) entry.create_subtask_id = action.createSubtaskId;
+      thenActions.push(entry);
       return;
     }
     const properties = [
@@ -204,17 +231,19 @@ const buildThenActions = (formState, ctx) => {
     }
     // Initial field values to set on the created card (Owner, Deadline, Tags, custom
     // fields, ...), set via the green box (CreateCardFieldsModal) as flat { key: value }
-    // maps — same field_key/field_value pair shape the update action uses below, one pair
-    // per field, best-effort until confirmed against a real create_cards example.
+    // maps. Sent as one property per field keyed by the field's own key (same convention
+    // as target_board_id/card_title above) rather than the generic field_key/field_value
+    // wrapper the single-field update action uses below — that wrapper only works for one
+    // field per action; reused here it collapsed multiple fields down to just the last one
+    // once the backend folded properties[] into a { [property_key]: property_value } map,
+    // since every field's property_key was the literal string "field_key".
     Object.entries(action.fieldValues ?? {}).forEach(([key, value]) => {
       if (value === '' || value == null) return;
-      properties.push({ property_key: 'field_key', property_value: key, property_value_type: 'string' });
-      properties.push({ property_key: 'field_value', property_value: value, property_value_type: 'string' });
+      properties.push({ property_key: key, property_value: value, property_value_type: 'string' });
     });
     Object.entries(action.customFieldValues ?? {}).forEach(([key, value]) => {
       if (value === '' || value == null) return;
-      properties.push({ property_key: 'field_key', property_value: key, property_value_type: 'string' });
-      properties.push({ property_key: 'field_value', property_value: value, property_value_type: 'string' });
+      properties.push({ property_key: key, property_value: value, property_value_type: 'string' });
     });
     // Subtask titles typed into CreateCardDetailsModal's Subtasks panel — a different
     // concept from the separate "Create subtask" create-action (which owns its own
@@ -223,7 +252,7 @@ const buildThenActions = (formState, ctx) => {
     (action.subtaskTitles ?? []).forEach((subtaskTitle) => {
       properties.push({ property_key: 'subtask_title', property_value: subtaskTitle, property_value_type: 'string' });
     });
-    thenActions.push({ action_type_id: createActionTypeId, properties });
+    thenActions.push(withThenActionId({ action_type_id: createActionTypeId, properties }, action));
   });
 
   // Update field — each chip is one field+value pair, wrapped in the generic
@@ -265,7 +294,7 @@ const buildThenActions = (formState, ctx) => {
         property_value_type: 'string',
       });
     }
-    thenActions.push({ action_type_id: updateActionTypeId, properties });
+    thenActions.push(withThenActionId({ action_type_id: updateActionTypeId, properties }, action));
   });
 
   // Link card — a single then_actions entry for the whole section; link_card is fanned
@@ -275,13 +304,19 @@ const buildThenActions = (formState, ctx) => {
     const linkCard = [];
     linkActions.forEach((action) => {
       action.values.forEach((row) => {
-        linkCard.push({
+        const entry = {
           relation_type: action.key,
           operator_key: action.operatorKey,
           input_value: row.value,
           remove_other: removeOtherLinksByType[action.key] ? 1 : 0,
           connector: 'AND',
-        });
+        };
+        // Each row carries its own backend link_card_id (restored in the edit-mode routing
+        // effect) — sent per-row rather than as one then_action_id on this whole entry,
+        // since all relation types are collapsed into a single then_actions entry here even
+        // though the backend may have originally stored them as separate rows.
+        if (row.linkCardId != null) entry.link_card_id = row.linkCardId;
+        linkCard.push(entry);
       });
     });
     thenActions.push({ action_type_id: findActionTypeId(triggerActions, 'link'), link_card: linkCard });
@@ -309,14 +344,14 @@ const buildThenActions = (formState, ctx) => {
 
   const moveActionTypeId = findActionTypeId(triggerActions, 'move');
   moveActions.forEach((action) => {
-    thenActions.push({ action_type_id: moveActionTypeId, properties: buildDestinationProperties(action) });
+    thenActions.push(withThenActionId({ action_type_id: moveActionTypeId, properties: buildDestinationProperties(action) }, action));
   });
 
   // Convert subtasks to — best-effort, reuses the move destination shape since it's the
   // same board/workflow/swimlane/column picker; unverified against a real example.
   const convertActionTypeId = findActionTypeId(triggerActions, 'convert');
   convertSubtaskActions.forEach((action) => {
-    thenActions.push({ action_type_id: convertActionTypeId, properties: buildDestinationProperties(action) });
+    thenActions.push(withThenActionId({ action_type_id: convertActionTypeId, properties: buildDestinationProperties(action) }, action));
   });
 
   // Update related (parent/child) card fields: skipped. Those field chips have no value
@@ -337,13 +372,36 @@ const buildThenActions = (formState, ctx) => {
   // modals — only the resulting id is referenced here.
   const notifyActionTypeId = findActionTypeId(triggerActions, 'notify');
   notifyActions.forEach((action) => {
-    thenActions.push({ action_type_id: notifyActionTypeId, notification_id: action.notification_id });
+    thenActions.push(withThenActionId({ action_type_id: notifyActionTypeId, notification_id: action.notification_id }, action));
   });
 
   const invokeActionTypeId = findActionTypeId(triggerActions, 'invoke');
   invokeActions.forEach((action) => {
-    thenActions.push({ action_type_id: invokeActionTypeId, web_service_id: action.webServiceId });
+    thenActions.push(withThenActionId({ action_type_id: invokeActionTypeId, web_service_id: action.webServiceId }, action));
   });
+
+  // Execute at — Recurring create cards' schedule, confirmed against a real documented
+  // example (action_type_id resolved dynamically like every other section, execute_time
+  // property). Only sent when this trigger actually has an 'execute_at' action in its
+  // catalog (executeActionTypeId resolves to null otherwise), since executeAtTime always
+  // carries a value (defaults to '00:00') regardless of trigger type.
+  const executeActionTypeId = findActionTypeId(triggerActions, 'execute');
+  if (executeActionTypeId != null && formState.executeAtTime) {
+    const entry = {
+      action_type_id: executeActionTypeId,
+      properties: [
+        { property_key: 'execute_time', property_value: formState.executeAtTime, property_value_type: 'string' },
+        // Repeat-pattern pill (Every day/Every week/Every month/...) — the documented
+        // example only covered execute_time, so this key is best-effort (mirrors the
+        // RECURRENCE_SCHEDULE_OPTIONS key itself) until confirmed against a real response.
+        // "advanced_schedule"/"predefined_interval" have no further sub-config UI yet, so
+        // only the bare pattern key is sent for those too.
+        { property_key: 'recurrence_schedule', property_value: formState.recurrenceSchedule || 'every_day', property_value_type: 'string' },
+      ],
+    };
+    if (formState.executeThenActionId != null) entry.then_action_id = formState.executeThenActionId;
+    thenActions.push(entry);
+  }
 
   thenActions.push(...buildRawThenActions(formState.rawThenActionGroups, ctx));
 
@@ -366,6 +424,7 @@ const buildBusinessRulePayload = (formState, ctx) => {
     owner_user_id: formState.ownerUserId ?? ctx.loggedInUserId,
     tags: formState.tags.join(', '),
     disallow_rule_action_trigger: formState.disallowTriggerChain ? 1 : 0,
+    when_fields: buildWhenFields(formState),
     conditions: buildConditions(formState, nextCtx),
     then_actions: buildThenActions(formState, nextCtx),
     shared_users: buildSharedUsers(formState.sharePermissions),

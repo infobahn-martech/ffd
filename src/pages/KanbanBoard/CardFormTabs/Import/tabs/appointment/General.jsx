@@ -2965,6 +2965,8 @@ function General({
     const selectedAppointmentType = normalizeAppointmentTypeValue(v("appointmentType"));
     const singleSelected = appointmentTypeShowsSingleVesselSection(selectedAppointmentType);
     const bargeSelected = appointmentTypeShowsBargeFields(selectedAppointmentType);
+    requireField(isAddMode, "typeOfCall", "Call type is required.");
+    requireField(isAddMode, "port", "Port is required.");
     requireField(shouldShowApiField("assigned_operator_id"), "assignedOperator", "Assigned operator is required.");
     requireField(shouldShowApiField("main_billing_entity_id") && singleSelected, "vesselBillingEntity", "Billing entity is required.");
     requireField(shouldShowApiField("main_billing_entity_id") && bargeSelected, "tugBillingEntity", "Billing entity is required.");
@@ -3299,6 +3301,28 @@ function General({
   const handleSingleVesselTypeChange = makeIndependentVesselTypeChange("vesselType");
   const handleTugTypeChange = makeIndependentVesselTypeChange("tugType");
   const handleBargeTypeChange = makeIndependentVesselTypeChange("bargeType");
+
+  // Call type / port are now chosen directly on this tab (previously selected upfront in the
+  // Select Workflow modal). call_type_id is kept in sync alongside typeOfCall since other reads
+  // (e.g. the parent CardForm's Husbandry-call check) key off call_type_id specifically.
+  const handleCallTypeChange = (event) => {
+    const nextValue = event?.target?.value ?? "";
+    const syntheticEvent = { target: { value: nextValue, name: "typeOfCall" } };
+    if (isAddMode) {
+      handleValidatedChange("typeOfCall")(syntheticEvent);
+    } else {
+      handleChange("typeOfCall")(syntheticEvent);
+    }
+    handleChange("call_type_id")({ target: { value: nextValue, name: "call_type_id" } });
+  };
+
+  const handlePortChange = (event) => {
+    if (isAddMode) {
+      handleValidatedChange("port")(event);
+    } else {
+      handleChange("port")(event);
+    }
+  };
 
   const handleServiceRequestorEmailChange = useCallback(
     (event) => {
@@ -5562,28 +5586,32 @@ ${body}
                             <div className="form-group">
                               <h3 className="form-group-title">Service Information</h3>
                               {shouldShowApiField("main_billing_entity_id") && (
-                                <FormField label="Call Type">
+                                <FormField label="Call Type *" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
                                   <FormSelect
                                     value={firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"))}
-                                    onChange={handleChange("typeOfCall")}
+                                    onChange={handleCallTypeChange}
                                     options={mergeOptionIfMissing(
                                       callTypeOptions,
                                       firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"))
                                     )}
                                     placeholder="Select call type"
-                                    disabled
+                                    disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
                                   />
+                                  {isAddMode && fieldErrors.typeOfCall && <div className="cf-field-error">{fieldErrors.typeOfCall}</div>}
                                 </FormField>
                               )}
                               {shouldShowApiField("main_billing_entity_id") && (
-                                <FormField label="Port">
+                                <FormField label="Port *" hasError={isAddMode && Boolean(fieldErrors.port)}>
                                   <FormSelect
                                     value={getFieldValue("port")}
-                                    onChange={handleChange("port")}
+                                    onChange={handlePortChange}
                                     options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
                                     placeholder="Select port"
-                                    disabled
+                                    disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.port)}
                                   />
+                                  {isAddMode && fieldErrors.port && <div className="cf-field-error">{fieldErrors.port}</div>}
                                 </FormField>
                               )}
                               {!isAddMode &&

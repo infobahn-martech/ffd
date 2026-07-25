@@ -1,0 +1,663 @@
+/* ===========================================================
+   DISPATCH NOTE — EDIT MODAL enhancements
+   Dedicated override file (do not fold into materialmanagement.scss,
+   which is shared by other Husbandry sub-tabs).
+   =========================================================== */
+
+// Breathing room between each section heading and the fields below it,
+// scoped to the Dispatch Note edit form only.
+.dispatch-note-edit-form .dispatch-edit-section-title {
+  margin-bottom: 14px;
+}
+
+.dispatch-launch-hire-section {
+  animation: dispatchLaunchHireReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dispatch-launch-hire-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// Read-only completeness pill next to the "Launch Hire" heading in the view modal.
+// Purely additive — no shared class is renamed or repurposed.
+.dispatch-launch-hire-badge {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+
+  &--complete {
+    background: rgba(16, 185, 129, 0.14);
+    color: #059669;
+  }
+
+  &--partial {
+    background: rgba(245, 158, 11, 0.16);
+    color: #d97706;
+    animation: dispatchLaunchHirePulse 2.6s ease-in-out infinite;
+  }
+
+  &--empty {
+    background: rgba(107, 114, 128, 0.14);
+    color: #6b7280;
+  }
+}
+
+.dispatch-launch-hire-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+  animation: dispatchLaunchHirePulse 2.6s ease-in-out infinite;
+
+  svg {
+    animation: dispatchLaunchHireBob 1.8s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+}
+
+.dispatch-launch-hire-card {
+  width: 100%;
+  background: #f9fafb;
+  border: 1px solid #e2e2ea;
+  border-radius: 10px;
+  padding: 18px 24px;
+}
+
+.dispatch-launch-hire-steps {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  width: 100%;
+  gap: 8px 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+
+  // Editable variant (real form fields, not display chips).
+  &--form {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px 28px;
+    overflow-x: visible;
+  }
+}
+
+.dispatch-launch-hire-step {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 140px;
+  animation: dispatchLaunchHireReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 120ms + 100ms);
+
+  &:not(:last-child)::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 2px;
+    min-width: 28px;
+    margin: 0 16px;
+    background: repeating-linear-gradient(90deg, rgba(13, 148, 136, 0.35) 0 6px, transparent 6px 12px);
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: dispatchLaunchHireTrackFill 0.5s ease both;
+    animation-delay: calc(var(--stagger-index, 0) * 120ms + 260ms);
+  }
+
+  // Editable variant — a small vertical card: icon + label header,
+  // then the actual field filling the card's width beneath it.
+  //
+  // Uses a transform-free fade (no translateY) because this step wraps a
+  // real FormSelect whose dropdown is `position: fixed`. A `transform` on
+  // any ancestor (even one applied only via animation-fill-mode) makes
+  // that ancestor the containing block for fixed descendants per the CSS
+  // spec, which sends the dropdown to the wrong place — see the "Location"
+  // select breaking when nested inside the translateY reveal.
+  &--form {
+    flex-direction: column;
+    align-items: stretch;
+    flex: 0 1 240px;
+    max-width: 240px;
+    min-width: 200px;
+    animation: dispatchLaunchHireFadeIn 0.4s ease both;
+    animation-delay: calc(var(--stagger-index, 0) * 120ms + 100ms);
+
+    &:not(:last-child)::after {
+      display: none;
+    }
+  }
+}
+
+.dispatch-launch-hire-step-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.dispatch-launch-hire-step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.dispatch-launch-hire-step-field {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  margin-left: 10px;
+}
+
+.dispatch-launch-hire-step-icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dispatch-launch-hire-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+  transition: background 0.2s, color 0.2s;
+
+  &--pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+  }
+
+  &--done {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+  }
+
+  &--cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+  }
+}
+
+.dispatch-launch-hire-step-num {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e2e2ea;
+  font-size: 9px;
+  font-weight: 700;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.dispatch-launch-hire-step-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  margin-left: 10px;
+  min-width: 0;
+}
+
+// Boat that sails from one form-step icon toward the next, between the
+// step cards — a sibling of both steps (not an ancestor of either), so it's
+// free to use `transform` without breaking the Location dropdown's
+// `position: fixed` containing block (see the --form step comment above).
+.dispatch-launch-hire-track {
+  position: relative;
+  align-self: flex-start;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 30px;
+  margin-top: 30px;
+}
+
+.dispatch-launch-hire-track-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  background: repeating-linear-gradient(90deg, rgba(13, 148, 136, 0.35) 0 6px, transparent 6px 12px);
+}
+
+.dispatch-launch-hire-track-boat {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: #0d9488;
+  animation: dispatchLaunchHireTrackBoat 2.4s ease-in-out infinite;
+}
+
+// Location is where the boat is heading — give its icon a soft glow
+// timed to land roughly when the boat arrives.
+.dispatch-launch-hire-step-icon--highlight {
+  animation: dispatchLaunchHireHighlight 2.4s ease-in-out infinite;
+}
+
+// A step whose value is still "-" (no data yet) reads as a dashed, muted
+// placeholder instead of a filled step, so a partially-booked Launch Hire
+// visually distinguishes what's confirmed from what's still missing.
+.dispatch-launch-hire-step--empty {
+  .dispatch-launch-hire-step-icon {
+    background: transparent;
+    border: 1.5px dashed #d1d5db;
+    color: #b0b6c0;
+  }
+
+  .dispatch-launch-hire-step-value {
+    color: #9ca3af;
+    font-weight: 500;
+    font-style: italic;
+  }
+}
+
+.dispatch-launch-hire-step-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.dispatch-launch-hire-step-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes dispatchLaunchHireReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Same fade as dispatchLaunchHireReveal but with no transform, so it's
+// safe to use on ancestors of a `position: fixed` dropdown (see the
+// --form step variant above).
+@keyframes dispatchLaunchHireFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dispatchLaunchHirePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(13, 148, 136, 0);
+  }
+}
+
+// Gentle rock, like the boat stepping over waves.
+@keyframes dispatchLaunchHireBob {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-1.5px) rotate(-6deg);
+  }
+  75% {
+    transform: translateY(1px) rotate(6deg);
+  }
+}
+
+// Connector line "fills in" left-to-right, like a tracker drawing itself.
+@keyframes dispatchLaunchHireTrackFill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+// Boat sails left-to-right along the track, fading out and resetting.
+@keyframes dispatchLaunchHireTrackBoat {
+  0% {
+    left: 0;
+    transform: translate(0, -50%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    transform: translate(-100%, -50%);
+    opacity: 0;
+  }
+}
+
+// Synced with the boat's arrival — a soft glow on the step it's heading to.
+@keyframes dispatchLaunchHireHighlight {
+  0%, 70% {
+    box-shadow: 0 0 0 0 rgba(13, 148, 136, 0);
+  }
+  85% {
+    box-shadow: 0 0 0 6px rgba(13, 148, 136, 0.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 148, 136, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dispatch-launch-hire-section,
+  .dispatch-launch-hire-step,
+  .dispatch-launch-hire-step.dispatch-launch-hire-step--form,
+  .dispatch-launch-hire-icon,
+  .dispatch-launch-hire-icon svg,
+  .dispatch-launch-hire-badge--partial,
+  .dispatch-launch-hire-track-boat,
+  .dispatch-launch-hire-step-icon--highlight {
+    animation: none;
+  }
+
+  .dispatch-launch-hire-step:not(:last-child)::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  .dispatch-launch-hire-track-boat {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+/* ===========================================================
+   INBOUND ORDER — VIEW MODAL section icons
+   Additive only: introduces new classes alongside the shared
+   landing-view-* box/label styles from materialmanagement.scss,
+   never overrides them.
+   =========================================================== */
+
+.landing-view-basic-section {
+  animation: dispatchLaunchHireFadeIn 0.35s ease both;
+}
+
+.landing-view-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+// Basic Details fields as icon cards instead of the plain bordered
+// "disabled input" look of landing-view-box — same data, friendlier read.
+.landing-view-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+
+  @media (max-width: 575.98px) {
+    grid-template-columns: 1fr;
+  }
+
+  // Order Item fields (PO/DO, Quantity, Package Type, Description) sit
+  // four-across inside an item card rather than two-across like Basic Details.
+  &--items {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+
+    @media (max-width: 767.98px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 575.98px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.landing-view-info-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #f9fafb;
+  border: 1px solid #e2e2ea;
+  border-radius: 10px;
+  animation: dispatchLaunchHireReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 90ms + 60ms);
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: rgba(37, 99, 235, 0.3);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+  }
+
+  // Purple tone ties Order Item field cards back to the Order Items
+  // section icon/badge above them.
+  &--items {
+    background: #faf9ff;
+
+    &:hover {
+      border-color: rgba(124, 58, 237, 0.3);
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
+    }
+  }
+}
+
+.landing-view-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+
+  &--items {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+  }
+}
+
+.landing-view-info-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.landing-view-info-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.landing-view-info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Round, gently animated badge that anchors a view-modal section heading.
+// Each tone carries its own accent + pulse color so sections stay visually
+// distinct: info (Basic Details), items (Order Items), transport (Transportation).
+.landing-view-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  animation: landingViewIconPulse 2.6s ease-in-out infinite;
+
+  svg {
+    animation: landingViewIconWiggle 2.4s ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+
+  &--sm {
+    width: 20px;
+    height: 20px;
+  }
+
+  &--info {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    --pulse-color: rgba(37, 99, 235, 0.28);
+  }
+
+  &--items {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+    --pulse-color: rgba(124, 58, 237, 0.28);
+  }
+
+  &--transport {
+    background: rgba(217, 119, 6, 0.14);
+    color: #d97706;
+    --pulse-color: rgba(217, 119, 6, 0.3);
+
+    svg {
+      animation: landingViewTruckDrive 1.6s ease-in-out infinite;
+    }
+  }
+
+  &--dispatch {
+    background: rgba(8, 145, 178, 0.14);
+    color: #0891b2;
+    --pulse-color: rgba(8, 145, 178, 0.3);
+  }
+
+  &--packing {
+    background: rgba(13, 148, 136, 0.14);
+    color: #0d9488;
+    --pulse-color: rgba(13, 148, 136, 0.3);
+  }
+}
+
+.landing-view-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+// Staggered fade-in for each Order Item card, reusing the same reveal
+// keyframe as the Launch Hire steps for a consistent motion language.
+.landing-view-item-card--animated {
+  margin-bottom: 22px;
+  animation: dispatchLaunchHireReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 90ms + 60ms);
+}
+
+.landing-view-item-title--iconic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.landing-view-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+
+.landing-view-sub-title--iconic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@keyframes landingViewIconPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--pulse-color, rgba(13, 148, 136, 0.28));
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+@keyframes landingViewIconWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-8deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
+}
+
+// Little "driving" nudge for the Transportation truck icon.
+@keyframes landingViewTruckDrive {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(1.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-view-basic-section,
+  .landing-view-section-icon,
+  .landing-view-section-icon svg,
+  .landing-view-item-card--animated,
+  .landing-view-info-card {
+    animation: none;
+  }
+}

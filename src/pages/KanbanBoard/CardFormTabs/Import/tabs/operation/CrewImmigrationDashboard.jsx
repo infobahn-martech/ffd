@@ -5,6 +5,8 @@ import CrewListUploadBox from "../husbandry/components/CrewListUploadBox";
 import CrewUploadDropzones from "../husbandry/components/CrewUploadDropzones";
 import CrewUploadPreviewModal from "../husbandry/components/CrewUploadPreviewModal";
 import LaunchHireInlineForm from "../husbandry/components/LaunchHireInlineForm";
+import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
+import PremiumSelect from "../../../../../../components/form/PremiumSelect";
 import DatePickerField from "../../../shared/components/DatePickerField";
 import useCrewReducer from "../../../../../../store/CrewReducer";
 import useCrewImmigrationReducer from "../../../../../../store/CrewImmigrationReducer";
@@ -173,6 +175,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   const [editDraft, setEditDraft] = useState(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deletingRowId, setDeletingRowId] = useState(null);
+  const [showDeleteCrewModal, setShowDeleteCrewModal] = useState(false);
+  const [crewPendingDelete, setCrewPendingDelete] = useState(null);
 
   // "Request Launch Hire" inline panel — same pattern as CrewManagementDashboard.
   const [showLaunchHireForm, setShowLaunchHireForm] = useState(false);
@@ -519,14 +523,28 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
   };
 
   // Deletes a crew member via crew/delete_crew/{crew_id}, then refetches the
-  // listing so the removed crew member drops out of the table.
-  const handleDeleteCrew = async (row) => {
+  // listing so the removed crew member drops out of the table. Confirmation
+  // is handled by DeleteConfirmationModal rather than a native window.confirm.
+  const handleDeleteCrew = (row) => {
     const crewIdNum = Number(row?.crewId);
     if (!crewIdNum) {
       notify("Unable to delete: missing crew id.", "error");
       return;
     }
-    if (!window.confirm(`Remove ${row.crewName || "this crew member"} from the crew list?`)) return;
+    setCrewPendingDelete(row);
+    setShowDeleteCrewModal(true);
+  };
+
+  const handleCancelDeleteCrew = () => {
+    if (deletingRowId) return;
+    setShowDeleteCrewModal(false);
+    setCrewPendingDelete(null);
+  };
+
+  const handleConfirmDeleteCrew = async () => {
+    const row = crewPendingDelete;
+    const crewIdNum = Number(row?.crewId);
+    if (!crewIdNum) return;
 
     setDeletingRowId(row.id);
     try {
@@ -534,6 +552,8 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
       setListingSelectedIds((prev) => prev.filter((id) => id !== row.id));
       setListingRefreshTick((tick) => tick + 1);
       notify("Crew member removed.", "success");
+      setShowDeleteCrewModal(false);
+      setCrewPendingDelete(null);
     } catch {
       // error already surfaced via notify in the store
     } finally {
@@ -845,6 +865,12 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                   <thead>
                     <tr>
                       <th className="crew-checkbox-cell-header">
+                        <input
+                          className="crew-list-checkbox crew-list-checkbox--header"
+                          type="checkbox"
+                          checked={listingSelectedIds.length === listingRows.length && listingRows.length > 0}
+                          onChange={handleListingSelectAll}
+                        />
                       </th>
                       <th><span className="crew-th">Crew name</span></th>
                       <th><span className="crew-th">Date of birth</span></th>
@@ -900,18 +926,15 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
                           </td>
                           <td>
                             {isEditing ? (
-                              <select
-                                className="crew-edit-input crew-edit-select"
+                              <PremiumSelect
                                 value={editDraft?.nationality ?? ""}
                                 onChange={handleEditFieldChange("nationality")}
-                              >
-                                <option value="">Select nationality</option>
-                                {nationalityOptions.map((option) => (
-                                  <option key={option.value} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
+                                options={nationalityOptions}
+                                placeholder="Select nationality"
+                                searchPlaceholder="Search nationality..."
+                                className="crew-edit-nationality-select"
+                                menuClassName="crew-edit-nationality-select__menu"
+                              />
                             ) : (
                               <div className="crew-table-cell" title={row.nationality}>{row.nationality}</div>
                             )}
@@ -1043,6 +1066,14 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
         crewRows={previewCrewRows}
         cardColor={cardColor}
         onClose={handleClosePreview}
+      />
+
+      <DeleteConfirmationModal
+        show={showDeleteCrewModal}
+        onCancel={handleCancelDeleteCrew}
+        onConfirm={handleConfirmDeleteCrew}
+        deleteText={`Are you sure you want to remove ${crewPendingDelete?.crewName || "this crew member"} from the crew list?`}
+        isLoading={Boolean(deletingRowId) && deletingRowId === crewPendingDelete?.id}
       />
     </div>
   );

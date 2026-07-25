@@ -432,8 +432,8 @@
   }
 }
 
-/* Add Item Popover — slides down inline above the table in the right panel;
-   backdrop dims the full modal so clicking away closes it. */
+/* Add Item Popover — floats over the table in the right panel instead of
+   pushing it down; backdrop dims the full modal so clicking away closes it. */
 .sales-order-add-popover-backdrop {
   position: fixed;
   inset: 0;
@@ -442,7 +442,10 @@
 }
 
 .sales-order-add-popover {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   margin: 0;
   width: auto;
   max-height: 70vh;
@@ -466,24 +469,30 @@
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .sales-order-add-accordion-close {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: #fff;
-  border: 1px solid #d7dce8;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e6f0;
+  color: #666;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
   padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.sales-order-add-accordion-close:hover {
+  background: #f3f4f8;
+  border-color: #d7dce8;
 }
 
 .sales-order-add-accordion-body {
@@ -540,22 +549,41 @@
 
 .sales-order-add-form-cancel,
 .sales-order-add-form-save {
-  padding: 9px 20px;
+  padding: 10px 22px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease,
+    background 0.15s ease, border-color 0.15s ease;
 }
 
 .sales-order-add-form-cancel {
-  background: #f5f5f5;
-  color: #666;
-  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #e0e2ee;
+}
+
+.sales-order-add-form-cancel:hover {
+  background: #f5f6fa;
+  border-color: #cfd4e6;
 }
 
 .sales-order-add-form-save {
+  background: linear-gradient(135deg, #2a00ff, #4c68d7);
   color: #ffffff;
+  box-shadow: 0 3px 10px rgba(42, 0, 255, 0.28);
+}
+
+.sales-order-add-form-save:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 16px rgba(42, 0, 255, 0.36);
+}
+
+.sales-order-add-form-save:active {
+  transform: translateY(0);
 }
 
 /* Table */
@@ -825,11 +853,12 @@
 
 .sales-order-supplier-select-btn {
   flex-shrink: 0;
-  padding: 4px 18px;
+  padding: 5px 16px;
   font-size: 12px;
+  font-weight: 600;
   line-height: 1.2;
   border: 1px solid #b3baff;
-  border-radius: 5px;
+  border-radius: 999px;
   background: #f0f2ff;
   color: #2A00FF;
   cursor: pointer;
@@ -1316,73 +1345,100 @@
   max-width: 100%;
 }
 
-/* Accounting Summary (rendered inside the Summary popover — see .sales-order-add-accordion) */
-.so-accounting-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 18px;
-  align-items: flex-start;
-}
-
-.so-accounting-info {
-  flex: 1;
-  min-width: 0;
+/* Accounting Summary — centered modal opened via the Summary button in the header */
+.so-summary-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.so-accounting-info-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.so-accounting-info-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #8a8fa8;
-}
-
-.so-accounting-info-value,
-.so-accounting-info-textarea {
-  width: 100%;
-  padding: 7px 11px;
-  font-size: 13px;
-  border: 1px solid #dbe1ec;
-  border-radius: 7px;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
   box-sizing: border-box;
-  font-family: "Manrope", sans-serif;
-  transition: border-color 0.18s, box-shadow 0.18s;
+  z-index: 1100;
+  animation: salesOrderFadeIn 0.15s ease-out;
 }
 
-.so-accounting-info-value {
-  background: #f6f7fb;
-  color: #555b7a;
-}
-
-.so-accounting-info-textarea {
-  background: #fff;
-  color: #1a1a2e;
-  resize: vertical;
-  min-height: 80px;
-}
-
-.so-accounting-right {
+.so-summary-modal {
+  background: #ffffff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.32), 0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.so-summary-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #edf0f6;
   flex-shrink: 0;
 }
 
-.so-accounting-card-title {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: #6b7280;
+.so-summary-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.so-summary-modal-close {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e2e6f0;
+  border-radius: 8px;
+  color: #666;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.so-summary-modal-close:hover {
+  background: #f3f4f8;
+  border-color: #d7dce8;
+}
+
+.so-summary-modal-body {
+  padding: 22px;
+}
+
+.so-summary-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid #edf0f6;
+  flex-shrink: 0;
+}
+
+.so-summary-modal-close-btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #2a00ff, #4c68d7);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  box-shadow: 0 3px 10px rgba(42, 0, 255, 0.28);
+}
+
+.so-summary-modal-close-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .so-accounting-grid {
@@ -1391,23 +1447,21 @@
   width: 100%;
   max-width: 100%;
   background: #ffffff;
-  border: 1px solid #e0e2ee;
-  border-radius: 10px;
-  padding: 6px 20px 10px;
-  box-shadow: 0 2px 10px rgba(42, 0, 255, 0.05);
+  border-radius: 16px;
+  padding: 4px 20px 0;
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
 }
 
 .so-accounting-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 0;
+  padding: 12px 0;
 }
 
 .so-accounting-divider {
   height: 1px;
-  background: #e8eaf0;
-  margin: 2px 0;
+  background: #eef0f5;
 }
 
 .so-accounting-label {
@@ -1428,8 +1482,8 @@
   align-items: center;
   background: #f0f2ff;
   border: 1px solid #c7caff;
-  border-radius: 6px;
-  padding: 2px 10px;
+  border-radius: 999px;
+  padding: 3px 12px;
   font-size: 12px;
   font-weight: 700;
   color: #2A00FF;
@@ -1440,18 +1494,20 @@
 }
 
 .so-accounting-grand {
-  padding: 9px 0 5px;
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.06), rgba(76, 104, 215, 0.02));
-  margin: 0 -20px;
-  padding-left: 20px;
-  padding-right: 20px;
-  border-top: 2px solid #e0e2ee;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  padding: 14px 20px;
+  margin: 4px -20px -1px;
+  background: linear-gradient(135deg, rgba(42, 0, 255, 0.08), rgba(76, 104, 215, 0.03));
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.so-accounting-grand .so-accounting-label {
+  color: #1a1a2e;
+  font-weight: 600;
 }
 
 .so-accounting-grand-value {
-  font-size: 17px !important;
+  font-size: 19px !important;
   font-weight: 800 !important;
   background: linear-gradient(135deg, #2a00ff, #1a56db);
   -webkit-background-clip: text;
@@ -1465,12 +1521,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .so-accounting-body {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .so-accounting-right,
   .so-accounting-grid {
     width: 100%;
   }
