@@ -3,9 +3,10 @@
   import { debounce } from "lodash";
   import { FiCheckCircle, FiArrowRight, FiClock, FiLoader, FiAlertCircle, FiPauseCircle } from "react-icons/fi";
   import DateTimePickerField from "../../../shared/components/DateTimePickerField";
+  import { FormSelect } from "../../../Import/tabs/husbandry/components/Husbandry.components";
   import useExportApprovalReducer from "../../../../../../store/ExportApprovalReducer";
   import useAuthReducer from "../../../../../../store/AuthReducer";
-  import { ROLE_IDS } from "../../../../../../router/rolePermissions";
+  import useAlertReducer from "../../../../../../store/AlertReducer";
   import { splitApiDateTimeParts, buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
   import "../../../../../../design/scss/general.scss";
   import "../../../../../../design/css/common/CardForm.css";
@@ -491,9 +492,14 @@ const createEmptyPartySection = () => ({
     actionsDisabled,
     fieldsDisabled = false,
     stageWaitMessage,
+    isActiveStage = false,
   }) {
     return (
-      <section className="approval-form-card approval-party-card approval-action-card">
+      <section
+        className={`approval-form-card approval-party-card approval-action-card ${
+          isActiveStage ? "approval-action-card--active" : ""
+        }`.trim()}
+      >
         <h3 className="form-group-title">{title}</h3>
         <div className="approval-card-body approval-fields-stack">
           <FormField label={commentsLabel}>
@@ -544,6 +550,7 @@ const createEmptyPartySection = () => ({
     fieldsDisabled: PropTypes.bool,
     actionsDisabled: PropTypes.bool,
     stageWaitMessage: PropTypes.string,
+    isActiveStage: PropTypes.bool,
   };
 
   function PartySectionCard({ title, fields, values, onChange }) {
@@ -564,6 +571,7 @@ const createEmptyPartySection = () => ({
               value={values.vesselCountUnderAgency}
               onChange={(e) => onChange("vesselCountUnderAgency", e.target.value)}
               placeholder={fields.vesselCountPlaceholder}
+              readOnly
             />
           </FormField>
           <FormField label={fields.outstandingLabel}>
@@ -571,6 +579,7 @@ const createEmptyPartySection = () => ({
               value={values.outstandingBalanceSoa}
               onChange={(e) => onChange("outstandingBalanceSoa", e.target.value)}
               placeholder={fields.outstandingPlaceholder}
+              readOnly
             />
           </FormField>
           <FormField label={fields.latestPaymentLabel}>
@@ -578,6 +587,7 @@ const createEmptyPartySection = () => ({
               value={values.latestPayment}
               onChange={(e) => onChange("latestPayment", e.target.value)}
               placeholder={fields.latestPaymentPlaceholder}
+              readOnly
             />
           </FormField>
           <FormField label={fields.latestPaymentDateLabel}>
@@ -589,6 +599,7 @@ const createEmptyPartySection = () => ({
                 onChange("latestPaymentTime", value.time);
               }}
               placeholder="Select date and time"
+              disabled
             />
           </FormField>
         </div>
@@ -676,6 +687,9 @@ const createEmptyPartySection = () => ({
     const callId = getCallId(card, formValues);
     const details = useExportApprovalReducer((state) => state.details);
     const isLoadingDetails = useExportApprovalReducer((state) => state.isLoadingDetails);
+    const branches = useExportApprovalReducer((state) => state.branches);
+    const loadingBranches = useExportApprovalReducer((state) => state.loadingBranches);
+    const fetchBranches = useExportApprovalReducer((state) => state.fetchBranches);
     const getExportApprovalDetails = useExportApprovalReducer(
       (state) => state.getExportApprovalDetails
     );
@@ -683,13 +697,29 @@ const createEmptyPartySection = () => ({
       (state) => state.saveExportApprovalDetails
     );
 
+    const branchOptions = useMemo(
+      () =>
+        branches.map((b) => ({
+          value: b?.branch_name ?? "",
+          label: b?.branch_name ?? "",
+        })),
+      [branches]
+    );
+
     const userRoleId = useAuthReducer((state) => state.profileData?.role?.role_id);
     // Each role owns exactly one section — Port Operator (Credit Controller),
     // Port Manager (Manager - OFM), Port Admin (CEO). Every other role gets
     // all three sections locked (view-only), regardless of workflow stage.
-    const isControllerRole = String(userRoleId) === ROLE_IDS.PORT_OPERATOR;
-    const isManagerRole = String(userRoleId) === ROLE_IDS.PORT_MANAGER;
-    const isCeoRole = String(userRoleId) === ROLE_IDS.PORT_ADMIN;
+    // Manager/Controller/CEO checks use "1"/"2"/"23" directly (not
+    // ROLE_IDS.PORT_MANAGER="5" / ROLE_IDS.PORT_OPERATOR="4" /
+    // ROLE_IDS.PORT_ADMIN="3") because the user confirmed via live login test
+    // that role_id 1 is Port Manager, role_id 2 is Credit Controller, and role_id
+    // 23 is CEO in this environment's actual data, which does not match
+    // rolePermissions.js's assumed mapping (used app-wide for routing, left
+    // untouched here).
+    const isControllerRole = String(userRoleId) === "2";
+    const isManagerRole = String(userRoleId) === "1";
+    const isCeoRole = String(userRoleId) === "23";
 
     const stageActive = useMemo(
       () => getApprovalStageGating(details?.workflow),
@@ -706,6 +736,10 @@ const createEmptyPartySection = () => ({
         getExportApprovalDetails(callId);
       }
     }, [callId, getExportApprovalDetails]);
+
+    useEffect(() => {
+      fetchBranches();
+    }, [fetchBranches]);
 
     // Skips the very next autosave-triggering effect run — used whenever form
     // state is being programmatically hydrated (initial mount, data reload)
@@ -724,7 +758,7 @@ const createEmptyPartySection = () => ({
       setBasicDetails({
         date: formatApiDate(basic.date) || formatToday(),
         requestedBy: basic.requested_by || "",
-        branch: basic.branch || "",
+        branch: basic.branch_name || basic.branch || "",
         vesselName: basic.vessel_name || "",
         vesselEtdDate,
         vesselEtdTime,
@@ -764,9 +798,17 @@ const createEmptyPartySection = () => ({
           actionOverride,
         });
         setSaveStatus("saving");
-        return saveExportApprovalDetails(callId, payload, { silent: !actionOverride })
+        // A custom successMessage overrides the backend's generic "Saved
+        // successfully" toast with action-specific wording — silence the
+        // reducer's own toast in that case so only one shows.
+        const hasCustomMessage = Boolean(actionOverride?.successMessage);
+        return saveExportApprovalDetails(callId, payload, { silent: !actionOverride || hasCustomMessage })
           .then(() => {
             setSaveStatus("saved");
+            if (hasCustomMessage) {
+              const { success } = useAlertReducer.getState();
+              success(actionOverride.successMessage);
+            }
             // Action clicks move the workflow forward server-side — refresh so
             // the tab reflects the new stage/documents. Plain field autosave
             // stays local-only to avoid the form fighting the user's typing.
@@ -828,7 +870,11 @@ const createEmptyPartySection = () => ({
 
     const handleManagerProceedToCeo = useCallback(() => {
       debouncedAutoSave.cancel();
-      runSave({ section: "manager_ofm", value: "proceed_to_ceo" });
+      runSave({
+        section: "manager_ofm",
+        value: "proceed_to_ceo",
+        successMessage: "Forwarded to CEO for approval.",
+      });
     }, [debouncedAutoSave, runSave]);
 
     const handleCeoApproved = useCallback(() => {
@@ -896,10 +942,12 @@ const createEmptyPartySection = () => ({
                   />
                 </FormField>
                 <FormField label="Branch">
-                  <FormInput
+                  <FormSelect
                     value={basicDetails.branch}
                     onChange={(e) => handleBasicChange("branch", e.target.value)}
-                    placeholder="Branch"
+                    options={branchOptions}
+                    placeholder={loadingBranches ? "Loading..." : "Select branch..."}
+                    disabled={loadingBranches}
                   />
                 </FormField>
                 <FormField label="Vessel Name">
@@ -977,6 +1025,7 @@ const createEmptyPartySection = () => ({
                 onSecondaryAction={handleCreditControllerProceedToOperator}
                 actionsDisabled={saveStatus === "saving" || !stageActive.credit_controller || !isControllerRole}
                 fieldsDisabled={!isControllerRole}
+                isActiveStage={stageActive.credit_controller && isControllerRole}
               />
 
               <ApprovalCard
@@ -997,6 +1046,7 @@ const createEmptyPartySection = () => ({
                 actionsDisabled={saveStatus === "saving" || !stageActive.manager_ofm || !isManagerRole}
                 fieldsDisabled={!isManagerRole}
                 stageWaitMessage={getStageWaitMessage(details?.workflow, "manager_ofm")}
+                isActiveStage={stageActive.manager_ofm && isManagerRole}
               />
 
               <ApprovalCard
@@ -1016,7 +1066,10 @@ const createEmptyPartySection = () => ({
                 helperText="Require Digital Signature of CEO"
                 actionsDisabled={saveStatus === "saving" || !stageActive.ceo || !isCeoRole}
                 fieldsDisabled={!isCeoRole}
-                stageWaitMessage={getStageWaitMessage(details?.workflow, "ceo")}
+                stageWaitMessage={
+                  isOnHold ? "This process is on hold." : getStageWaitMessage(details?.workflow, "ceo")
+                }
+                isActiveStage={stageActive.ceo && isCeoRole}
               />
             </div>
           </div>
