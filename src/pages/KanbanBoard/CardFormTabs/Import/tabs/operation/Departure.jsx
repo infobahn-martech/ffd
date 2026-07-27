@@ -23,6 +23,7 @@ import {
   FormField,
   FormInput,
   FormSection,
+  FormSelect,
   getAttachmentFile,
   mapAttachmentsForSave,
   OperationEmailPreviewPanel,
@@ -36,6 +37,11 @@ import {
 } from "./components/OperationCommon";
 
 const DEPARTURE_REPORT_TYPE_ID = 5;
+
+const CLEARANCE_DELIVERED_BY_OPTIONS = [
+  { value: "By Email", label: "By Email" },
+  { value: "By Launch", label: "By Launch" },
+];
 
 function Departure({
   formValues,
@@ -68,6 +74,14 @@ function Departure({
   const resolvedCallId = String(
     callId || formValues?.call_id || formValues?.callId || ""
   ).trim();
+
+  const outwardClearanceIssuedIndex = (Array.isArray(eventFields) ? eventFields : []).findIndex(
+    (field) => String(field?.event_name || "").trim().toLowerCase() === "outward clearance issued"
+  );
+  const eventFieldsBeforeClearanceDelivered =
+    outwardClearanceIssuedIndex === -1 ? eventFields : eventFields.slice(0, outwardClearanceIssuedIndex + 1);
+  const eventFieldsAfterClearanceDelivered =
+    outwardClearanceIssuedIndex === -1 ? [] : eventFields.slice(outwardClearanceIssuedIndex + 1);
 
   useApplyStageTimeObjectValues(eventFields, formValues, handleChange);
 
@@ -281,6 +295,7 @@ function Departure({
     const fd = new FormData();
     fd.append("call_id", String(resolvedCallId));
     fd.append("next_port", String(formValues?.nextPort || ""));
+    fd.append("clearance_delivered_by", String(formValues?.clearance_delivered_by || "By Email"));
     fd.append("time_objects", JSON.stringify(timeObjects));
     fd.append(
       "departure_report",
@@ -466,7 +481,24 @@ function Departure({
                 </FormField>
 
                 <DynamicDateTimeFields
-                  eventFields={eventFields}
+                  eventFields={eventFieldsBeforeClearanceDelivered}
+                  formValues={formValues}
+                  handleChange={handleChange}
+                  isViewOnly={isViewOnly}
+                />
+
+                <FormField label="Outward Clearance Delivered">
+                  <FormSelect
+                    value={formValues.clearance_delivered_by || "By Email"}
+                    onChange={handleChange("clearance_delivered_by")}
+                    options={CLEARANCE_DELIVERED_BY_OPTIONS}
+                    placeholder="Select..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+
+                <DynamicDateTimeFields
+                  eventFields={eventFieldsAfterClearanceDelivered}
                   formValues={formValues}
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
