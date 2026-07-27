@@ -304,7 +304,21 @@ export function PermissionModal({
     const subCollapseId = `permission_${section.id}_sub`;
     const toggleId = buildToggleId(section.id);
     const sectionPermissionId = section.permissionId || section.id;
-    const isSectionSelected = isPermissionSelected(sectionPermissionId);
+    const isSectionSelected =
+      isPermissionSelected(sectionPermissionId) ||
+      (hasItems &&
+        section.items.some((item) =>
+          isPermissionSelected(item.permissionId || item.id)
+        )) ||
+      (hasSub &&
+        section.subSections.some(
+          (sub) =>
+            isPermissionSelected(sub.permissionId || sub.id) ||
+            (sub.items &&
+              sub.items.some((item) =>
+                isPermissionSelected(item.permissionId || item.id)
+              ))
+        ));
 
     return (
       <div className="permCheck-item" key={section.id}>
@@ -374,7 +388,12 @@ export function PermissionModal({
     const collapseId = `permission_${section.id}_${sub.id}`;
     const toggleId = buildToggleId(section.id, sub.id);
     const subPermissionId = sub.permissionId || sub.id;
-    const isSubSelected = isPermissionSelected(subPermissionId);
+    const isSubSelected =
+      isPermissionSelected(subPermissionId) ||
+      (hasItems &&
+        sub.items.some((item) =>
+          isPermissionSelected(item.permissionId || item.id)
+        ));
 
     // Handle sub-section toggle
     const handleSubToggle = (checked) => {
