@@ -58,7 +58,6 @@ export default function VesselBoardingArabicPreview({
 
         <div className="bulk-pass-arabic-title">
           <span>{title}</span>
-          <span>ميناء الجبيل التجاري</span>
         </div>
 
         <div className="bulk-pass-arabic-divider" />
