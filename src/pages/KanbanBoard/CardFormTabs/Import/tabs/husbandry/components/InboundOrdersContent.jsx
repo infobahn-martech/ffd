@@ -8,7 +8,7 @@ import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../../components/CustomModal";
 import DeleteConfirmationModal from "../../../../../../../components/DeleteConfirmationModal";
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
-import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect, FormTextarea, renderRequiredLabel } from "./Husbandry.components";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import LocationMapPicker from "./LocationMapPicker";
 import editIcon from "../../../../../../../assets/images/edit.svg";
@@ -699,6 +699,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const errors = {};
     if (!formData.date) errors.date = "Date is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
+    if (formData.launchHire && !formData.launchHireDate) errors.launchHireDate = "Booking date and time are required";
     formData.orders.forEach((order, idx) => {
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
@@ -1585,7 +1586,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           {
                             key: "pickup",
                             icon: "target",
-                            label: "Pick-Up From",
+                            label: "Pick-Up From *",
                             value: order.pickUpFrom,
                             field: (
                               <LocationMapPicker
@@ -1638,7 +1639,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                     )}
                                   </span>
                                 </span>
-                                <span className="dispatch-launch-hire-step-label">{step.label}</span>
+                                <span className="dispatch-launch-hire-step-label">{renderRequiredLabel(step.label)}</span>
                               </div>
                               <div className="dispatch-launch-hire-step-field">
                                 {step.field}
@@ -1729,7 +1730,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </span>
                         <span className="dispatch-launch-hire-step-num">1</span>
                       </span>
-                      <span className="dispatch-launch-hire-step-label">Booking Date &amp; Time</span>
+                      <span className="dispatch-launch-hire-step-label">Booking Date &amp; Time <span className="text-danger">*</span></span>
                     </div>
                     <div className="dispatch-launch-hire-step-field">
                       <DateTimePickerField
@@ -1741,11 +1742,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             launchHireDate: nextValues.date,
                             launchHireTime: nextValues.time,
                           }));
+                          if (formErrors.launchHireDate) setFormErrors((prev) => { const e = { ...prev }; delete e.launchHireDate; return e; });
                         }}
                         dateFieldName="launchHireDate"
                         timeFieldName="launchHireTime"
                         placeholder="YYYY-MM-DD hh:mm"
                       />
+                      {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
                     </div>
                   </div>
 
@@ -2123,7 +2126,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                     </span>
                                     <span className="dispatch-launch-hire-step-num">{stepIdx + 1}</span>
                                   </span>
-                                  <span className="dispatch-launch-hire-step-label">{step.label}</span>
+                                  <span className="dispatch-launch-hire-step-label">{renderRequiredLabel(step.label)}</span>
                                 </div>
                                 <div className="dispatch-launch-hire-step-field">
                                   {step.field}

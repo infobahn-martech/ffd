@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../../components/CustomModal";
-import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor, renderRequiredLabel } from "./Husbandry.components";
 import { LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
 import { splitApiDateTimeParts, nextDayOf } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
@@ -1402,7 +1402,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                   disabled
                                 />
                               ) },
-                              { key: "pickup", icon: "target", label: "Pick-Up From", value: item.pickUpFrom, field: (
+                              { key: "pickup", icon: "target", label: "Pick-Up From *", value: item.pickUpFrom, field: (
                                 <LocationAutocomplete
                                   value={item.pickUpFrom}
                                   onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
@@ -1453,7 +1453,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                                 )}
                                               </span>
                                             </span>
-                                            <span className="dispatch-launch-hire-step-label">{step.label}</span>
+                                            <span className="dispatch-launch-hire-step-label">{renderRequiredLabel(step.label)}</span>
                                           </div>
                                           <div className="dispatch-launch-hire-step-field">
                                             {step.field}
@@ -1706,19 +1706,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="row g-2 mb-2">
                       <div className="col-md-6">
                         <FormField label="Order No">
-                          <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." />
+                          <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." readOnly disabled />
                         </FormField>
                       </div>
                       <div className="col-md-6">
                         <FormField label="PO/DO">
-                          <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." />
+                          <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." readOnly disabled />
                         </FormField>
                       </div>
                     </div>
                     <div className="row g-2 mb-2">
                       <div className="col-md-8">
                         <FormField label="Description">
-                          <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." />
+                          <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." readOnly disabled />
                         </FormField>
                       </div>
                       <div className="col-md-4">
@@ -1738,12 +1738,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="row g-2">
                         <div className="col-md-4">
                           <FormField label="Slot">
-                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, order.slot)} placeholder="Select slot..." />
+                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, order.slot)} placeholder="Select slot..." disabled />
                           </FormField>
                         </div>
                         <div className="col-md-4">
                           <FormField label="Reason">
-                            <FormSelect value={order.reason} onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)} options={reasonOptions} placeholder="Select reason..." />
+                            <FormSelect value={order.reason} onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)} options={reasonOptions} placeholder="Select reason..." disabled />
                           </FormField>
                         </div>
                       </div>

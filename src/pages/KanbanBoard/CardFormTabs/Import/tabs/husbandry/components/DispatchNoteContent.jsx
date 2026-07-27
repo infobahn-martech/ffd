@@ -62,6 +62,7 @@ const emptyEditItem = (id = 1) => ({
   landing_note_item_id: null,
   dispatch_note_item_id: null,
   quantity: "",
+  maxQty: null,
   slot: "",
   reason: "",
   packing_required: false,
@@ -319,11 +320,15 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 transport.vehicle_type_id || transport.from_location_id ||
                 transport.to_location_id || transport.driver_id || transport.pickup_location
               ));
+              const remainingQtyRaw = item.remaining_qty;
+              const hasRemainingQty = remainingQtyRaw !== undefined && remainingQtyRaw !== null && remainingQtyRaw !== "";
+              const maxQty = hasRemainingQty ? Number(remainingQtyRaw) : (item.quantity ? Number(item.quantity) : null);
               return {
                 id: idx + 1,
                 landing_note_item_id: item.landing_note_item_id || null,
                 dispatch_note_item_id: item.dispatch_note_item_id || null,
                 quantity: String(item.quantity ?? ""),
+                maxQty,
                 slot: normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id),
                 reason: (item.reason || "").trim(),
                 packing_required: isTruthyFlag(item.packing_required),
@@ -406,7 +411,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!formData.warehouse_id) errors.warehouse_id = "Warehouse is required";
     if (!formData.delivery_location) errors.delivery_location = "Delivery location is required";
     if (!formData.delivered_to) errors.delivered_to = "Delivered to is required";
-    editItems.forEach((item, idx) => { if (!item.quantity) errors[`item${idx}_quantity`] = "Quantity is required"; });
+    editItems.forEach((item, idx) => {
+      if (!item.quantity) errors[`item${idx}_quantity`] = "Quantity is required";
+      else if (item.maxQty != null && Number(item.quantity) > item.maxQty) errors[`item${idx}_quantity`] = `Quantity cannot exceed available quantity (${item.maxQty})`;
+    });
     if (Object.keys(errors).length > 0) { setEditFormErrors(errors); return; }
 
     const fd = new FormData();
@@ -862,6 +870,9 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               placeholder="Quantity..."
                               className={editFormErrors[`item${index}_quantity`] ? "is-invalid" : ""}
                             />
+                            {item.maxQty != null && (
+                              <div className="landing-convert-qty-max text-end">Max: {item.maxQty}</div>
+                            )}
                             {editFormErrors[`item${index}_quantity`] && <span className="dispatch-edit-error">{editFormErrors[`item${index}_quantity`]}</span>}
                           </FormField>
                         </div>

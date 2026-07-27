@@ -119,7 +119,7 @@ PremiumCardHeader.propTypes = {
 };
 
 /** Splits a label on "*" and wraps the marker in a red span, so a single label can also carry the required indicator. */
-const renderRequiredLabel = (text) => {
+export const renderRequiredLabel = (text) => {
   const parts = text.split("*");
   if (parts.length === 1) return text;
   return (
