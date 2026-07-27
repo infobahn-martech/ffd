@@ -46,6 +46,34 @@ ApiCardTypeIcon.propTypes = {
   }).isRequired,
 };
 
+/** Badge overlapping the user-avatar's corner: dynamic Fi/Lu icon from API `blockerIcon`. */
+function ApiCardBlockerBadge({ card }) {
+  const IconComponent = resolveIconComponentStrict(card.blockerIcon);
+
+  if (!IconComponent) return null;
+
+  return (
+    <span
+      className="card-api-blocker-badge"
+      title={card.blockerName}
+      style={{
+        backgroundColor: card.blockerColor || "#dc3545",
+      }}
+      aria-hidden
+    >
+      <IconComponent size={10} color="#fff" />
+    </span>
+  );
+}
+
+ApiCardBlockerBadge.propTypes = {
+  card: PropTypes.shape({
+    blockerIcon: PropTypes.string,
+    blockerColor: PropTypes.string,
+    blockerName: PropTypes.string,
+  }).isRequired,
+};
+
 /** Circular KPI used in API card summary row (classic + compact). */
 function ApiCardCircularKpi({ progress }) {
   const pct = Math.min(100, Math.max(0, Number(progress)));
@@ -253,8 +281,11 @@ function ApiKanbanCardShrunk({ card, setSelectedCard }) {
           {displayTitle}
         </div>
         {usernameInitial ? (
-          <span className="card-api-user-avatar" title={hasText(card.user) ? String(card.user).trim() : undefined} aria-hidden>
-            {usernameInitial}
+          <span className="card-api-avatar-wrap">
+            <span className="card-api-user-avatar" title={hasText(card.user) ? String(card.user).trim() : undefined} aria-hidden>
+              {usernameInitial}
+            </span>
+            <ApiCardBlockerBadge card={card} />
           </span>
         ) : null}
       </div>
@@ -344,12 +375,15 @@ function ApiKanbanCardFull({
             {displayTitle}
           </h3>
           {usernameInitial ? (
-            <span
-              className="card-api-user-avatar"
-              title={hasText(card.user) ? String(card.user).trim() : undefined}
-              aria-hidden
-            >
-              {usernameInitial}
+            <span className="card-api-avatar-wrap">
+              <span
+                className="card-api-user-avatar"
+                title={hasText(card.user) ? String(card.user).trim() : undefined}
+                aria-hidden
+              >
+                {usernameInitial}
+              </span>
+              <ApiCardBlockerBadge card={card} />
             </span>
           ) : null}
         </div>
@@ -872,6 +906,9 @@ CardItem.propTypes = {
     wasteDisposalCount: PropTypes.number,
     launchHire: PropTypes.string,
     launchHireCount: PropTypes.number,
+    blockerIcon: PropTypes.string,
+    blockerColor: PropTypes.string,
+    blockerName: PropTypes.string,
     footerShowIcons: PropTypes.arrayOf(PropTypes.string),
     footerSubtasks: PropTypes.number,
     footerDeadline: PropTypes.string,

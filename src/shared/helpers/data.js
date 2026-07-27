@@ -249,6 +249,18 @@ export function mapBoardWorkflowFromApi(workflow) {
               card.card_blocker_id != null && String(card.card_blocker_id).trim() !== ""
                 ? String(card.card_blocker_id)
                 : null,
+            blockerIcon:
+              card.blocker_icon != null && String(card.blocker_icon).trim() !== ""
+                ? String(card.blocker_icon).trim()
+                : null,
+            blockerColor:
+              card.blocker_color != null && String(card.blocker_color).trim() !== ""
+                ? String(card.blocker_color).trim()
+                : null,
+            blockerName:
+              card.blocker_name != null && String(card.blocker_name).trim() !== ""
+                ? String(card.blocker_name).trim()
+                : null,
             card_sticker_id:
               card.card_sticker_id != null && String(card.card_sticker_id).trim() !== ""
                 ? String(card.card_sticker_id)
