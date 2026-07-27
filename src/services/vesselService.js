@@ -20,6 +20,10 @@ const fetchVessels = ({ params }) => {
 const getVesselByVesselId = (vesselId) =>
   Gateway.get(`/vessel/vessel_by_vessel_id/${vesselId}`);
 
+/** GET /vessel/get_vessel_by_call/{call_id} */
+const getVesselByCall = (callId) =>
+  Gateway.get(`/vessel/get_vessel_by_call/${callId}`);
+
 const getVesselByEntity = (entityId, params) =>
   Gateway.get(`/vessel/vessel_by_entity/${entityId}`, params ? { params } : undefined);
 
@@ -39,6 +43,7 @@ export default {
   getAllVessels,
   fetchVessels,
   getVesselByVesselId,
+  getVesselByCall,
   getVesselByEntity,
   getVesselsByEntity,
   getVesselDetailByVesselId,

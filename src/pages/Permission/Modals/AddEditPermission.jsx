@@ -9,65 +9,38 @@ import "../../../design/scss/add-permissions.scss";
 const buildToggleId = (...parts) => `toggle_${parts.join("_")}`;
 
 // -------------------------------------------
-//  TRANSFORM API RESPONSE TO COMPONENT STRUCTURE (Permission page - nested subpermission)
+//  TRANSFORM API RESPONSE TO COMPONENT STRUCTURE (Permission page - sub_modules/actions)
 // -------------------------------------------
+const mapAction = (action) => ({
+  id: action.permission_id,
+  title: action.action_name,
+  permissionId: action.permission_id,
+});
+
 const transformPermissionsData = (apiData) => {
   if (!apiData || !Array.isArray(apiData)) return [];
 
   return apiData.map((level1Item) => {
     const section = {
       id: level1Item.permission_id,
-      title: level1Item.section_name,
+      title: level1Item.module_name,
       permissionId: level1Item.permission_id,
     };
 
-    // Check if level 1 has subpermissions
-    if (level1Item.subpermission && level1Item.subpermission.length > 0) {
-      // Check if any level 2 item has subpermissions (level 3)
-      const hasLevel3 = level1Item.subpermission.some(
-        (sub) => sub.subpermission && sub.subpermission.length > 0
-      );
+    const hasSubModules = level1Item.sub_modules && level1Item.sub_modules.length > 0;
+    const hasActions = level1Item.actions && level1Item.actions.length > 0;
 
-      if (hasLevel3) {
-        // Create subSections structure (level 2 items that may have level 3)
-        section.subSections = level1Item.subpermission.map((level2Item) => {
-          const subSection = {
-            id: level2Item.permission_id,
-            title: level2Item.section_name,
-            permissionId: level2Item.permission_id,
-          };
+    // Direct actions on the level 1 module (e.g. Dashboard-style, or alongside sub_modules)
+    section.items = hasActions ? level1Item.actions.map(mapAction) : [];
 
-          // If level 2 has level 3 subpermissions, create items from level 3
-          if (level2Item.subpermission && level2Item.subpermission.length > 0) {
-            subSection.items = level2Item.subpermission.map((level3Item) => ({
-              id: level3Item.permission_id,
-              title: level3Item.section_name,
-              permissionId: level3Item.permission_id,
-            }));
-          } else {
-            // Level 2 item without subpermissions - represent itself as a single item
-            subSection.items = [
-              {
-                id: level2Item.permission_id,
-                title: level2Item.section_name,
-                permissionId: level2Item.permission_id,
-              },
-            ];
-          }
-
-          return subSection;
-        });
-      } else {
-        // All level 2 items are direct items (no level 3)
-        section.items = level1Item.subpermission.map((level2Item) => ({
-          id: level2Item.permission_id,
-          title: level2Item.section_name,
-          permissionId: level2Item.permission_id,
-        }));
-      }
-    } else {
-      // Level 1 item without subpermissions
-      section.items = [];
+    // Sub-modules (level 2), each with their own actions (level 3)
+    if (hasSubModules) {
+      section.subSections = level1Item.sub_modules.map((subModule) => ({
+        id: subModule.permission_id,
+        title: subModule.submodule_name,
+        permissionId: subModule.permission_id,
+        items: (subModule.actions ?? []).map(mapAction),
+      }));
     }
 
     return section;
@@ -327,10 +300,25 @@ export function PermissionModal({
   const renderTopLevel = (section) => {
     const hasSub = section.subSections && section.subSections.length > 0;
     const hasItems = section.items && section.items.length > 0;
-    const collapseId = `permission_${section.id}`;
+    const collapseId = `permission_${section.id}_items`;
+    const subCollapseId = `permission_${section.id}_sub`;
     const toggleId = buildToggleId(section.id);
     const sectionPermissionId = section.permissionId || section.id;
-    const isSectionSelected = isPermissionSelected(sectionPermissionId);
+    const isSectionSelected =
+      isPermissionSelected(sectionPermissionId) ||
+      (hasItems &&
+        section.items.some((item) =>
+          isPermissionSelected(item.permissionId || item.id)
+        )) ||
+      (hasSub &&
+        section.subSections.some(
+          (sub) =>
+            isPermissionSelected(sub.permissionId || sub.id) ||
+            (sub.items &&
+              sub.items.some((item) =>
+                isPermissionSelected(item.permissionId || item.id)
+              ))
+        ));
 
     return (
       <div className="permCheck-item" key={section.id}>
@@ -355,9 +343,13 @@ export function PermissionModal({
             {...(hasSub || hasItems
               ? {
                 "data-bs-toggle": "collapse",
-                "data-bs-target": `#${collapseId}`,
+                "data-bs-target": [hasItems && `#${collapseId}`, hasSub && `#${subCollapseId}`]
+                  .filter(Boolean)
+                  .join(", "),
                 "aria-expanded": "false",
-                "aria-controls": collapseId,
+                "aria-controls": [hasItems && collapseId, hasSub && subCollapseId]
+                  .filter(Boolean)
+                  .join(" "),
               }
               : {})}
           >
@@ -377,7 +369,7 @@ export function PermissionModal({
         {/* SUB-SECTIONS (User Management etc.) */}
         {hasSub && (
           <div className="permCheck-inner">
-            <div className="collapse" id={collapseId}>
+            <div className="collapse" id={subCollapseId}>
               <div className="permInnerItems">
                 {section.subSections.map((sub) => renderSubLevel(section, sub))}
               </div>
@@ -396,7 +388,12 @@ export function PermissionModal({
     const collapseId = `permission_${section.id}_${sub.id}`;
     const toggleId = buildToggleId(section.id, sub.id);
     const subPermissionId = sub.permissionId || sub.id;
-    const isSubSelected = isPermissionSelected(subPermissionId);
+    const isSubSelected =
+      isPermissionSelected(subPermissionId) ||
+      (hasItems &&
+        sub.items.some((item) =>
+          isPermissionSelected(item.permissionId || item.id)
+        ));
 
     // Handle sub-section toggle
     const handleSubToggle = (checked) => {
