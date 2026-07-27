@@ -2,16 +2,18 @@ import { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle }
 import PropTypes from "prop-types";
 import { FiSave } from "react-icons/fi";
 import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
-import { extractVesselRegTemplateFields } from "./vesselRegTemplateFields";
+import { extractVesselRegTemplateFields, matchVesselApiFieldKey } from "./vesselRegTemplateFields";
 import groService from "../../../../../../../services/groService";
+import vesselService from "../../../../../../../services/vesselService";
 
 /** Vessel Inward Registration boarding view — vessel particulars (from the port's pass template) + Arabic document preview. */
 const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
-  { onSave, isSaving = false, portId },
+  { onSave, isSaving = false, portId, callId },
   ref
 ) {
   const [templateData, setTemplateData] = useState(null);
   const [fieldValues, setFieldValues] = useState({});
+  const [vesselData, setVesselData] = useState(null);
   const previewRef = useRef(null);
 
   useEffect(() => {
@@ -41,6 +43,46 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
   useEffect(() => {
     setFieldValues({});
   }, [templateData]);
+
+  useEffect(() => {
+    if (!callId) {
+      setVesselData(null);
+      return undefined;
+    }
+    let cancelled = false;
+    vesselService
+      .getVesselByCall(callId)
+      .then((res) => {
+        if (cancelled) return;
+        setVesselData(res?.data?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setVesselData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
+
+  // Prefill each template row from vessel/get_vessel_by_call by matching its English label
+  // to the response's field keys — only fills blanks, never overwrites a typed value.
+  useEffect(() => {
+    if (!vesselData || vesselFields.length === 0) return;
+    setFieldValues((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      vesselFields.forEach((field) => {
+        if (next[field.fieldKey]) return;
+        const apiKey = matchVesselApiFieldKey(field.labelEn);
+        if (!apiKey) return;
+        const value = vesselData[apiKey];
+        if (value == null || value === "") return;
+        next[field.fieldKey] = String(value);
+        changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [vesselData, vesselFields]);
 
   useImperativeHandle(
     ref,
@@ -130,6 +172,7 @@ VesselInwardRegistrationView.propTypes = {
   onSave: PropTypes.func,
   isSaving: PropTypes.bool,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 VesselInwardRegistrationView.displayName = "VesselInwardRegistrationView";

@@ -28,6 +28,43 @@ export function extractVesselRegTemplateFields(html) {
     .filter(Boolean);
 }
 
+const normalizeLabel = (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+// vessel/get_vessel_by_call response key -> normalized substrings its template row's
+// English label is expected to contain (template labels vary per port, so match loosely).
+const VESSEL_API_FIELD_PATTERNS = [
+  ["imo_number", ["imo"]],
+  ["call_sign", ["callsign", "callsignal"]],
+  ["vessel_name", ["shipsname", "vesselname"]],
+  ["agent", ["agent"]],
+  ["owner", ["owner"]],
+  ["captain_name", ["captain"]],
+  ["type_of_vessel", ["typeofvessel"]],
+  ["flag", ["flag"]],
+  ["no_of_crew", ["noofcrew", "numberofcrew"]],
+  ["grt", ["grt"]],
+  ["nrt", ["nrt"]],
+  ["length", ["length"]],
+  ["width", ["width", "beam"]],
+  ["draft", ["draft", "draught"]],
+  ["type_of_load", ["typeofload", "typeofcargo"]],
+  ["arriving_from", ["arrivingfrom"]],
+  ["dey", ["dey"]],
+  ["leaving_for", ["leavingfor"]],
+  ["date_of_sailing", ["dateofsailing"]],
+  ["purpose_of_dep", ["purposeofdep", "purposeofdeparture"]],
+];
+
+/** Matches a template field's English label to its vessel/get_vessel_by_call response key. */
+export function matchVesselApiFieldKey(labelEn) {
+  const normalized = normalizeLabel(labelEn);
+  if (!normalized) return null;
+  const match = VESSEL_API_FIELD_PATTERNS.find(([, patterns]) =>
+    patterns.some((pattern) => normalized.includes(pattern))
+  );
+  return match ? match[0] : null;
+}
+
 /** Writes fieldValues (keyed by the same `row-N` fieldKey) into the blank cell(s) of each row. */
 export function injectVesselRegFieldValues(html, fieldValues) {
   if (!html || typeof DOMParser === "undefined") return html;

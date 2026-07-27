@@ -1363,13 +1363,7 @@ const GROCardView = forwardRef(function GROCardView(
         notify("Vessel Registration PDF generated, but the file is not available to download.", "warn");
         return;
       }
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = url.split("/").pop() || "Vessel_Registration.pdf";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      window.open(url, "_blank", "noopener,noreferrer");
       notify("Vessel Registration PDF downloaded.", "success");
     } catch (err) {
       notify(groApiErrorMessage(err, "Failed to generate Vessel Registration PDF."), "error");
@@ -1842,6 +1836,7 @@ const GROCardView = forwardRef(function GROCardView(
             onSave={handleGenerateVesselRegistrationPdf}
             isSaving={isGeneratingVesselPdf}
             portId={groPortId}
+            callId={callId}
           />
         ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewChange ? (
           <CrewChangePassPanel callId={callId} portId={groPortId} />
