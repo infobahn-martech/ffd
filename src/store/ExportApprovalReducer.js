@@ -32,7 +32,9 @@ const useExportApprovalReducer = create((set) => ({
     set({ loadingBranches: true });
     try {
       const response = await transportContentService.getAllInvoiceBranches();
-      set({ branches: extractListEnvelope(response), loadingBranches: false });
+      const list = extractListEnvelope(response);
+      console.log('[DEBUG branch item shape]', list[0]);
+      set({ branches: list, loadingBranches: false });
     } catch {
       set({ branches: [], loadingBranches: false });
     }

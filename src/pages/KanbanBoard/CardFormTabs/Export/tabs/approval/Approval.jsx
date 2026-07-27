@@ -35,25 +35,6 @@
     });
   };
 
-  const MONTH_ABBR_TO_NUM = {
-    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-    jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
-  };
-
-  // basicDetails.date is kept as a display string ("20 Jul 2026") for the
-  // free-text input; the API expects plain dates as YYYY-MM-DD like every
-  // other date field in this payload, so convert before sending.
-  const displayDateToApiDate = (raw) => {
-    const trimmed = String(raw ?? "").trim();
-    if (!trimmed) return "";
-    const match = trimmed.match(/^(\d{1,2})[\s-/]+([A-Za-z]{3,})[\s-/]+(\d{4})$/);
-    if (!match) return trimmed;
-    const [, day, monthName, year] = match;
-    const month = MONTH_ABBR_TO_NUM[monthName.slice(0, 3).toLowerCase()];
-    if (!month) return trimmed;
-    return `${year}-${String(month).padStart(2, "0")}-${String(Number(day)).padStart(2, "0")}`;
-  };
-
   const getCallId = (card, formValues) =>
     formValues?.call_id ?? formValues?.callId ?? card?.call_id ?? card?.callId ?? null;
 
@@ -123,20 +104,19 @@ const createEmptyPartySection = () => ({
   const getInitialBasicDetails = (formValues, card) => ({
     date: formatToday(),
     requestedBy: formValues?.requested_by || formValues?.created_by || "",
-    branch: formValues?.port_name || formValues?.port || "",
+    branch: "",
     vesselName: formValues?.vessel_name || card?.name || "",
     vesselEtdDate: "",
     vesselEtdTime: "",
     billingEntity: formValues?.billing_entity || "",
   });
 
+  // Per the confirmed API spec, basic_details only accepts branch_id — Date,
+  // Requested by, Vessel Name, Vessel's ETD and Billing entity are all
+  // read-only display fields in this form and aren't part of this endpoint's
+  // save contract, so they're intentionally not sent here.
   const buildBasicDetailsPayload = (basicDetails) => ({
-    date: displayDateToApiDate(basicDetails.date),
-    requested_by: basicDetails.requestedBy || "",
-    branch: basicDetails.branch || "",
-    vessel_name: basicDetails.vesselName || "",
-    vessel_etd: buildApiDateTime(basicDetails.vesselEtdDate, basicDetails.vesselEtdTime),
-    billing_entity: basicDetails.billingEntity || "",
+    branch_id: basicDetails.branch || "",
   });
 
   const buildPartySectionPayload = (values, detailsKey) => ({
@@ -181,10 +161,10 @@ const createEmptyPartySection = () => ({
     ceoDocuments,
     actionOverride,
   }) => {
-    const creditControllerAction =
-      actionOverride?.section === "credit_controller" ? actionOverride.value : undefined;
-    const managerAction = actionOverride?.section === "manager_ofm" ? actionOverride.value : undefined;
-    const ceoAction = actionOverride?.section === "ceo" ? actionOverride.value : undefined;
+    const overrideSections = actionOverride?.sections || {};
+    const creditControllerAction = overrideSections.credit_controller;
+    const managerAction = overrideSections.manager_ofm;
+    const ceoAction = overrideSections.ceo;
 
     const payload = {
       call_id: callId,
@@ -562,7 +542,7 @@ const createEmptyPartySection = () => ({
     isActiveStage: PropTypes.bool,
   };
 
-  function PartySectionCard({ title, fields, values, onChange, imageFiles, onImageFilesChange, imagesDisabled }) {
+  function PartySectionCard({ title, fields, values, onChange, imageFiles, onImageFilesChange, imagesDisabled, showImageUpload = true }) {
     return (
       <section className="approval-form-card approval-party-card">
         <h3 className="form-group-title">{title}</h3>
@@ -580,7 +560,6 @@ const createEmptyPartySection = () => ({
               value={values.vesselCountUnderAgency}
               onChange={(e) => onChange("vesselCountUnderAgency", e.target.value)}
               placeholder={fields.vesselCountPlaceholder}
-              readOnly
             />
           </FormField>
           <FormField label={fields.outstandingLabel}>
@@ -588,7 +567,6 @@ const createEmptyPartySection = () => ({
               value={values.outstandingBalanceSoa}
               onChange={(e) => onChange("outstandingBalanceSoa", e.target.value)}
               placeholder={fields.outstandingPlaceholder}
-              readOnly
             />
           </FormField>
           <FormField label={fields.latestPaymentLabel}>
@@ -596,7 +574,6 @@ const createEmptyPartySection = () => ({
               value={values.latestPayment}
               onChange={(e) => onChange("latestPayment", e.target.value)}
               placeholder={fields.latestPaymentPlaceholder}
-              readOnly
             />
           </FormField>
           <FormField label={fields.latestPaymentDateLabel}>
@@ -608,18 +585,19 @@ const createEmptyPartySection = () => ({
                 onChange("latestPaymentTime", value.time);
               }}
               placeholder="Select date and time"
-              disabled
             />
           </FormField>
-          <FormField label="Image Upload">
-            <DocumentUploadField
-              files={imageFiles}
-              onChange={onImageFilesChange}
-              disabled={imagesDisabled}
-              accept="image/*"
-              dropzoneText="Drag and drop your image here, or"
-            />
-          </FormField>
+          {showImageUpload ? (
+            <FormField label="Image Upload">
+              <DocumentUploadField
+                files={imageFiles}
+                onChange={onImageFilesChange}
+                disabled={imagesDisabled}
+                accept="image/*"
+                dropzoneText="Drag and drop your image here, or"
+              />
+            </FormField>
+          ) : null}
         </div>
       </section>
     );
@@ -650,6 +628,7 @@ const createEmptyPartySection = () => ({
     imageFiles: PropTypes.arrayOf(PropTypes.instanceOf(File)).isRequired,
     onImageFilesChange: PropTypes.func.isRequired,
     imagesDisabled: PropTypes.bool,
+    showImageUpload: PropTypes.bool,
   };
 
   const VESSEL_OWNER_FIELDS = {
@@ -724,7 +703,7 @@ const createEmptyPartySection = () => ({
     const branchOptions = useMemo(
       () =>
         branches.map((b) => ({
-          value: b?.branch_name ?? "",
+          value: String(b?.branch_id ?? b?.id ?? ""),
           label: b?.branch_name ?? "",
         })),
       [branches]
@@ -785,7 +764,7 @@ const createEmptyPartySection = () => ({
       setBasicDetails({
         date: formatApiDate(basic.date) || formatToday(),
         requestedBy: basic.requested_by || "",
-        branch: basic.branch_name || basic.branch || "",
+        branch: basic.branch_id != null ? String(basic.branch_id) : "",
         vesselName: basic.vessel_name || "",
         vesselEtdDate,
         vesselEtdTime,
@@ -886,38 +865,26 @@ const createEmptyPartySection = () => ({
       debouncedAutoSave,
     ]);
 
-    const handleCreditControllerApproved = useCallback(() => {
-      debouncedAutoSave.cancel();
-      runSave({ section: "credit_controller", value: "approved" });
-    }, [debouncedAutoSave, runSave]);
-
-    const handleCreditControllerProceedToOperator = useCallback(() => {
-      debouncedAutoSave.cancel();
-      runSave({ section: "credit_controller", value: "proceed_to_operator" });
-    }, [debouncedAutoSave, runSave]);
-
-    const handleManagerApproved = useCallback(() => {
-      debouncedAutoSave.cancel();
-      runSave({ section: "manager_ofm", value: "approved" });
-    }, [debouncedAutoSave, runSave]);
-
-    const handleManagerProceedToCeo = useCallback(() => {
+    // Whichever role acts first (Approved or Proceed), the approval finishes
+    // for all three stages in one save — the workflow is no longer gated on
+    // getting each of the three roles to act in sequence, per user request.
+    const approveAllStages = useCallback(() => {
       debouncedAutoSave.cancel();
       runSave({
-        section: "manager_ofm",
-        value: "proceed_to_ceo",
-        successMessage: "Forwarded to CEO for approval.",
+        sections: { credit_controller: "approved", manager_ofm: "approved", ceo: "approved" },
+        successMessage: "All approvals completed.",
       });
     }, [debouncedAutoSave, runSave]);
 
-    const handleCeoApproved = useCallback(() => {
-      debouncedAutoSave.cancel();
-      runSave({ section: "ceo", value: "approved" });
-    }, [debouncedAutoSave, runSave]);
+    const handleCreditControllerApproved = approveAllStages;
+    const handleCreditControllerProceedToOperator = approveAllStages;
+    const handleManagerApproved = approveAllStages;
+    const handleManagerProceedToCeo = approveAllStages;
+    const handleCeoApproved = approveAllStages;
 
     const handleCeoOnHold = useCallback(() => {
       debouncedAutoSave.cancel();
-      runSave({ section: "ceo", value: "on_hold" });
+      runSave({ sections: { ceo: "on_hold" } });
     }, [debouncedAutoSave, runSave]);
 
     const handleBasicChange = useCallback((field, value) => {
@@ -1028,6 +995,7 @@ const createEmptyPartySection = () => ({
                 imageFiles={vesselOwnerImages}
                 onImageFilesChange={setVesselOwnerImages}
                 imagesDisabled={!canEditPartyImages}
+                showImageUpload={false}
               />
 
               <PartySectionCard
@@ -1038,6 +1006,7 @@ const createEmptyPartySection = () => ({
                 imageFiles={vesselPrincipalImages}
                 onImageFilesChange={setVesselPrincipalImages}
                 imagesDisabled={!canEditPartyImages}
+                showImageUpload={false}
               />
 
               <PartySectionCard
@@ -1048,6 +1017,7 @@ const createEmptyPartySection = () => ({
                 imageFiles={vesselChartererImages}
                 onImageFilesChange={setVesselChartererImages}
                 imagesDisabled={!canEditPartyImages}
+                showImageUpload={false}
               />
             </div>
 

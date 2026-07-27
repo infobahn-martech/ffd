@@ -418,6 +418,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     editItems.forEach((item, idx) => {
       if (!item.quantity) errors[`item${idx}_quantity`] = "Quantity is required";
       else if (item.maxQty != null && Number(item.quantity) > item.maxQty) errors[`item${idx}_quantity`] = `Quantity cannot exceed available quantity (${item.maxQty})`;
+      if (item.transportation_required && !item.pickUpFrom) errors[`item${idx}_pickup`] = "Pick-up from is required";
     });
     if (Object.keys(errors).length > 0) { setEditFormErrors(errors); return; }
 
@@ -931,13 +932,14 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               </FormField>
                             </div>
                             <div className="col-md-4">
-                              <FormField label="Pick-Up From">
+                              <FormField label="Pick-Up From *">
                                 <LocationAutocomplete
                                   value={item.pickUpFrom}
-                                  onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
+                                  onChange={(e) => { handleEditItemChange(item.id, "pickUpFrom", e.target.value); setEditFormErrors((p) => { const n = { ...p }; delete n[`item${index}_pickup`]; return n; }); }}
                                   placeholder="Pick-up location..."
                                 />
                               </FormField>
+                              {editFormErrors[`item${index}_pickup`] && <span className="dispatch-edit-error">{editFormErrors[`item${index}_pickup`]}</span>}
                             </div>
                             <div className="col-md-4">
                               <FormField label="To Location">
