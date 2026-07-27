@@ -20,6 +20,8 @@ import { getDashboardCanvasStyle, normalizeDashboardBackground } from '../../sha
 import useAuthReducer from '../../store/AuthReducer';
 import { isRestrictedBoardUser, RESTRICTED_BOARD_HOME_PATH } from '../../shared/helpers/restrictedBoardUser';
 import { notify } from '../../components/Toaster';
+import usePermissions from '../../shared/hooks/usePermissions';
+import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
 import SedresColorPicker from '../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../components/SedresColorPicker/sedresColorPickerConstants';
 
@@ -102,6 +104,11 @@ function Workspaces() {
 
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedUser = isRestrictedBoardUser(userProfile);
+  const { hasPermission } = usePermissions();
+  // Keep legacy role access until the role-based permission system is formally retired.
+  const canCreateWorkspace =
+    !restrictedUser ||
+    hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.CREATE_WORKSPACE });
 
   const currentDashboard = useMemo(() => {
     if (!isDashboardView || !Array.isArray(apiDashboards)) return null;
@@ -479,36 +486,40 @@ function Workspaces() {
     [currentDashboard]
   );
 
-  const headerActions = !restrictedUser ? (
+  const headerActions = (!restrictedUser || canCreateWorkspace) ? (
     <div className="workspaces-header-actions">
-      <button
-        type="button"
-        className="workspaces-btn workspaces-btn-add"
-        onClick={handleAddWorkspace}
-        aria-label="Add workspace"
-        title="Add new workspace"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        className="workspaces-btn workspaces-btn-delete"
-        onClick={handleDeleteWorkspace}
-        aria-label="Delete workspace"
-        title="Delete workspace"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+      {canCreateWorkspace && (
+        <button
+          type="button"
+          className="workspaces-btn workspaces-btn-add"
+          onClick={handleAddWorkspace}
+          aria-label="Add workspace"
+          title="Add new workspace"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
+      {!restrictedUser && (
+        <button
+          type="button"
+          className="workspaces-btn workspaces-btn-delete"
+          onClick={handleDeleteWorkspace}
+          aria-label="Delete workspace"
+          title="Delete workspace"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
     </div>
   ) : null;
 
@@ -541,7 +552,7 @@ function Workspaces() {
                 ? 'No workspaces have been added to this dashboard yet.'
                 : 'Get started by creating your first workspace.'}
           </p>
-          {!filterValue && !restrictedUser && (
+          {!filterValue && canCreateWorkspace && (
             <button type="button" className="workspaces-empty-btn" onClick={handleAddWorkspace}>
               Create Workspace
             </button>

@@ -13,11 +13,24 @@ import {
   getVendorDashboardByRole,
   getRoleId,
 } from '../shared/helpers/vendorDashboardRoles';
+import { checkHasPermission } from '../shared/utils/permissions';
 
-function RouteGuard({ children }) {
+// `moduleKey`/`submoduleKey`/`actionKey` are optional permission metadata
+// (new module/action permission system).
+// - Default (permissionOnly=false): behaviour is unchanged from before this
+//   system existed when no keys are passed; when keys ARE passed, access is
+//   granted if EITHER the existing role-based route table (hasRouteAccess)
+//   OR the new permission check passes.
+//   Keep legacy role access until the role-based permission system is formally retired.
+// - permissionOnly=true: for features that have been fully migrated to the
+//   new permission system (e.g. User Management → Users), the legacy role
+//   table is ignored entirely and the backend permission response is
+//   authoritative. Use this only once a feature is confirmed migrated.
+function RouteGuard({ children, moduleKey, submoduleKey, actionKey, permissionOnly = false }) {
   const location = useLocation();
   const userProfile = useAuthReducer((state) => state.userProfile);
   const isLoggedIn = useAuthReducer((state) => state.isLoggedIn);
+  const permissionMap = useAuthReducer((state) => state.permissionMap);
 
   // If not logged in, redirect to login
   if (!isLoggedIn) {
@@ -54,8 +67,16 @@ function RouteGuard({ children }) {
     return children;
   }
 
-  // Check if user has access to this route
-  if (!hasRouteAccess(userRoleId, currentPath)) {
+  // Check if user has access to this route (existing role table OR new
+  // permission-key system — see the module-level comment above).
+  const allowedByExistingRole = hasRouteAccess(userRoleId, currentPath);
+  const allowedByPermission = moduleKey
+    ? checkHasPermission(permissionMap, { moduleKey, submoduleKey, actionKey })
+    : false;
+
+  const allowed = permissionOnly ? allowedByPermission : (allowedByExistingRole || allowedByPermission);
+
+  if (!allowed) {
     // User doesn't have permission, redirect to dashboard
     return <Navigate to={ROUTE_PATHS.DASHBOARD} replace />;
   }

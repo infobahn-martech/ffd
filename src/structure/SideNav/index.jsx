@@ -58,6 +58,8 @@ import {
   isRestrictedBoardUser,
   RESTRICTED_BOARD_HOME_PATH,
 } from '../../shared/helpers/restrictedBoardUser';
+import usePermissions from '../../shared/hooks/usePermissions';
+import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const isVendorPortal = activePortal === 'vendor';
@@ -121,6 +123,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const isPortManagerRole = String(userRoleId) === '1';
   const isPortSupervisorRole = String(userRoleId) === '3';
   const restrictedNav = isRestrictedBoardUser(userProfile);
+  const { hasPermission } = usePermissions();
+  // User Management → Users is fully migrated to the new permission system:
+  // the backend permission response is authoritative here, no legacy OR.
+  const canViewUsersMenu = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.VIEW,
+  });
   const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
 
   const boardRouteMatchForEditWorkflow = pathname.match(/^\/kanban-board\/([^/]+)$/);
@@ -346,7 +356,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       isOpen: false,
       subMenus: [
         // { menu: 'Roles', to: '/roles', hasPermission: true },
-        { menu: 'Users', to: '/users', hasPermission: true },
+        { menu: 'Users', to: '/users', hasPermission: canViewUsersMenu },
         { menu: 'Permissions', to: '/permissions', hasPermission: true },
       ],
       icon: usersIcon, // User management-specific icon

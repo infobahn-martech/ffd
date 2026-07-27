@@ -6,6 +6,8 @@ import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { OperatorModal } from "./Modals/AddEditOperator";
 import useOperatorReducer from "../../store/OperatorReducer";
+import usePermissions from "../../shared/hooks/usePermissions";
+import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from "../../shared/constants/permissions";
 
 const Operators = () => {
     const {
@@ -28,6 +30,19 @@ const Operators = () => {
     const [showOperatorModal, setShowOperatorModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
+
+    const { hasPermission } = usePermissions();
+    // No legacy role condition currently gates this button, so legacyAllowsAddOperator
+    // stays true; this OR is a no-op until that legacy default is formally retired.
+    // Keep legacy role access until the role-based permission system is formally retired.
+    const legacyAllowsAddOperator = true;
+    const canAddOperator =
+        legacyAllowsAddOperator ||
+        hasPermission({
+            moduleKey: PERMISSION_MODULES.LAUNCH_HIRE_MANAGEMENT,
+            submoduleKey: PERMISSION_SUBMODULES.OPERATORS,
+            actionKey: PERMISSION_ACTIONS.ADD,
+        });
 
     useEffect(() => {
         getOperatorData?.({
@@ -139,10 +154,13 @@ const Operators = () => {
                     <div className="container-fluid">
                         <CommonHeader
                             tableTitle="Operators"
-                            isAddEnabled
+                            isAddEnabled={canAddOperator}
                             addModalLabel="Add Operator"
                             setSearch={(value) => debouncedSearch(value)}
-                            onAddModalClick={() => setShowOperatorModal(true)}
+                            onAddModalClick={() => {
+                                if (!canAddOperator) return;
+                                setShowOperatorModal(true);
+                            }}
                             exportTitle="Export"
                             exportLoader={false}
                         />
