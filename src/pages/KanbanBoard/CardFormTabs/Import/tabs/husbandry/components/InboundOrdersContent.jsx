@@ -706,6 +706,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       if (order.transportation) {
         if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
         if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
+        if (!order.pickUpFrom) errors[`o${idx}_pickUpFrom`] = "Pick-up from is required";
         if (!order.toLocation) errors[`o${idx}_toLocation`] = "To location is required";
         if (!order.driverName) errors[`o${idx}_driverName`] = "Driver is required";
       }
@@ -1561,13 +1562,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Pick-Up From">
+                            <FormField label="Pick-Up From *">
                               <LocationAutocomplete
                                 value={order.pickUpFrom}
-                                onChange={(e) => handleOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "pickUpFrom", e.target.value);
+                                  if (formErrors[`o${index}_pickUpFrom`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_pickUpFrom`]; return e; });
+                                }}
                                 placeholder="Enter pick-up location..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_pickUpFrom`] && <span className="dispatch-edit-error">{formErrors[`o${index}_pickUpFrom`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">

@@ -589,6 +589,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       if (item.transportation_required) {
         if (!item.typeOfVehicle) errors[`item_${idx}_veh`] = "Vehicle type is required";
         if (!item.fromLocation) errors[`item_${idx}_from`] = "From location is required";
+        if (!item.pickUpFrom) errors[`item_${idx}_pickup`] = "Pick-up from is required";
         if (!item.toLocation) errors[`item_${idx}_to`] = "To location is required";
         if (!item.driverName) errors[`item_${idx}_drv`] = "Driver is required";
       }
@@ -975,6 +976,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         errors[`co${idx}_quantity`] = "Quantity is required";
       } else if (order.maxQty != null && Number(order.quantity) > order.maxQty) {
         errors[`co${idx}_quantity`] = `Quantity cannot exceed available quantity (${order.maxQty})`;
+      }
+      if (order.transportation_required && !order.pickUpFrom) {
+        errors[`co${idx}_pickup`] = "Pick-up from is required";
       }
     });
     setConvertFormErrors(errors);
@@ -1409,13 +1413,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                 {formErrors[`item_${index}_from`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                               </div>
                               <div className="col-md-4">
-                                <FormField label="Pick-Up From">
+                                <FormField label="Pick-Up From *">
                                   <LocationAutocomplete
                                     value={item.pickUpFrom}
-                                    onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
+                                    onChange={(e) => { handleEditItemChange(item.id, "pickUpFrom", e.target.value); if (formErrors[`item_${index}_pickup`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_pickup`]; return n; }); }}
                                     placeholder="Pick-up location..."
                                   />
                                 </FormField>
+                                {formErrors[`item_${index}_pickup`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_pickup`]}</span>}
                               </div>
                               <div className="col-md-6">
                                 <FormField label="To Location *">
@@ -1764,13 +1769,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               </FormField>
                             </div>
                             <div className="col-md-4">
-                              <FormField label="Pick-Up From">
+                              <FormField label="Pick-Up From *">
                                 <LocationAutocomplete
                                   value={order.pickUpFrom}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                  onChange={(e) => { handleConvertOrderChange(order.id, "pickUpFrom", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n[`co${index}_pickup`]; return n; }); }}
                                   placeholder="Pick-up location..."
                                 />
                               </FormField>
+                              {convertFormErrors[`co${index}_pickup`] && <span className="landing-convert-error">{convertFormErrors[`co${index}_pickup`]}</span>}
                             </div>
                             <div className="col-md-4">
                               <FormField label="To Location">
