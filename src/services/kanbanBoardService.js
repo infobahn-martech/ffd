@@ -11,6 +11,10 @@ const getFullBoard = (boardId) =>
 const updateCardColor = (payload) =>
   Gateway.post('/kanban_card/update_card_color', payload);
 
+/** @param {{ card_id: string|number, title: string }} payload */
+const updateCardTitle = (payload) =>
+  Gateway.post('/kanban_card/update_card_title', payload);
+
 const getCardTypesByBoard = (boardId) =>
   Gateway.get(`/kanban_card/card_types_by_board/${encodeURIComponent(String(boardId))}`);
 
@@ -62,6 +66,7 @@ const completeSubtask = (subtaskId, isCompleted) =>
 export default {
   getFullBoard,
   updateCardColor,
+  updateCardTitle,
   getCardTypesByBoard,
   updateCardType,
   getCardBlockersByBoard,

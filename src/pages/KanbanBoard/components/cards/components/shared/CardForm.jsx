@@ -6,7 +6,7 @@ import callFileService from "../../../../../../services/callFileService";
 import { mapSalesOrderResponse } from "../../../../../../shared/helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
-import { Tag, Layers3, AlertTriangle, Sticker } from "lucide-react";
+import { Tag, Layers3, AlertTriangle, Sticker, Pencil, Check } from "lucide-react";
 import { notify } from "../../../../../../components/Toaster";
 import "../../../../../../design/scss/pages/kanban-board/cardForm.scss";
 import "../../../../../../design/scss/general.scss";
@@ -593,6 +593,8 @@ const TopBar = ({
   closeLoading = false,
   isAddMode = false,
   onColorChange,
+  onTitleCommit,
+  titleSaving = false,
   formValues,
   handleChange,
   boardId,
@@ -606,6 +608,7 @@ const TopBar = ({
     [isAddMode, card, formValues]
   );
 
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [pickerFloaterStyle, setPickerFloaterStyle] = useState({});
   const [openPicker, setOpenPicker] = useState(null);
@@ -630,6 +633,8 @@ const TopBar = ({
   const metaPickerTriggerRefs = useRef({ type: null, tag: null, blocker: null, sticker: null });
   const metaPickerFloaterWrapRef = useRef(null);
   const metaPickerFetchRef = useRef({ type: 0, tag: 0, blocker: 0, sticker: 0 });
+  const skipTitleCommitRef = useRef(false);
+  const titleInputRef = useRef(null);
 
   const cardId = card?.code || card?.id || "";
   const cardTitle = card?.title || "";
@@ -752,6 +757,12 @@ const TopBar = ({
     },
     [resolvedBoardId]
   );
+
+  useLayoutEffect(() => {
+    if (!isEditingTitle) return;
+    titleInputRef.current?.focus();
+    titleInputRef.current?.select();
+  }, [isEditingTitle]);
 
   useLayoutEffect(() => {
     if (!isColorPickerOpen) return;
@@ -888,6 +899,42 @@ const TopBar = ({
     }
   };
 
+  const handleStartEditTitle = () => {
+    setIsEditingTitle(true);
+  };
+
+  const commitTitleEdit = (rawValue) => {
+    setIsEditingTitle(false);
+    onTitleCommit?.(rawValue ?? formValues?.cardTitle ?? cardTitle);
+  };
+
+  const handleTitleBlur = (e) => {
+    if (skipTitleCommitRef.current) {
+      skipTitleCommitRef.current = false;
+      setIsEditingTitle(false);
+      return;
+    }
+    commitTitleEdit(e.target.value);
+  };
+
+  const handleTitleSaveClick = (e) => {
+    e.preventDefault();
+    commitTitleEdit();
+  };
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.target.blur();
+    } else if (e.key === "Escape") {
+      skipTitleCommitRef.current = true;
+      if (handleChange) {
+        handleChange("cardTitle")(cardTitle);
+      }
+      e.target.blur();
+    }
+  };
+
   const handleApplySedresColor = (hex) => {
     const next = normalizeHexColor(hex);
     if (onColorChange) {
@@ -959,8 +1006,45 @@ const TopBar = ({
             onChange={handleTitleChange}
             autoFocus
           />
+        ) : isEditingTitle ? (
+          <div className="cardform-title-edit-wrap">
+            <input
+              ref={titleInputRef}
+              type="text"
+              className="cardform-title-input cardform-title-input--view"
+              placeholder="Enter card title"
+              value={formValues?.cardTitle ?? cardTitle}
+              onChange={handleTitleChange}
+              onBlur={handleTitleBlur}
+              onKeyDown={handleTitleKeyDown}
+              disabled={titleSaving}
+              aria-label="Card title"
+            />
+            <button
+              type="button"
+              className="cardform-title-save-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleTitleSaveClick}
+              disabled={titleSaving}
+              aria-label="Save title"
+              title="Save title"
+            >
+              <Check size={16} />
+            </button>
+          </div>
         ) : (
-          <span className="cardform-title">{cardTitle}</span>
+          <div className="cardform-title-display">
+            <span className="cardform-title">{cardTitle || "Untitled"}</span>
+            <button
+              type="button"
+              className="cardform-title-edit-btn"
+              onClick={handleStartEditTitle}
+              aria-label="Edit title"
+              title="Edit title"
+            >
+              <Pencil size={14} />
+            </button>
+          </div>
         )}
       </div>
       <div className="cardform-topbar-right">
@@ -1044,6 +1128,8 @@ TopBar.propTypes = {
   closeLoading: PropTypes.bool,
   isAddMode: PropTypes.bool,
   onColorChange: PropTypes.func,
+  onTitleCommit: PropTypes.func,
+  titleSaving: PropTypes.bool,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
   boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -1555,6 +1641,7 @@ function CardForm({
   boardId,
   onBoardRefresh,
   patchCardColor,
+  patchCardTitle,
   patchCardType,
   patchCardBlocker,
   patchCardSticker,
@@ -1970,6 +2057,7 @@ function CardForm({
   const [salesOrderApiLoading, setSalesOrderApiLoading] = useState(false);
   const [salesOrderApiError, setSalesOrderApiError] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
+  const [isTitleSaving, setIsTitleSaving] = useState(false);
   const isClosingRef = useRef(false);
   const lastSalesOrderFetchKeyRef = useRef(null);
 
@@ -2319,6 +2407,61 @@ function CardForm({
     ]
   );
 
+  const handleTopbarTitleCommit = useCallback(
+    (newTitle) => {
+      if (isAddMode) return;
+
+      const trimmed = String(newTitle ?? "").trim();
+      const previousTitle = card?.title || "";
+
+      if (!trimmed) {
+        notify("Card title cannot be empty.", "error");
+        setFormValues((prev) => ({ ...prev, cardTitle: previousTitle }));
+        return;
+      }
+      if (trimmed === previousTitle.trim()) {
+        setFormValues((prev) => ({ ...prev, cardTitle: trimmed }));
+        return;
+      }
+
+      const cardIdRaw = card?.id ?? card?.card_id;
+      if (cardIdRaw == null || String(cardIdRaw).trim() === "") {
+        notify("Cannot save card title: missing card id.", "error");
+        setFormValues((prev) => ({ ...prev, cardTitle: previousTitle }));
+        return;
+      }
+
+      const id = String(cardIdRaw).trim();
+      setIsTitleSaving(true);
+      kanbanBoardService
+        .updateCardTitle({ card_id: id, title: trimmed })
+        .then((res) => {
+          const body = res?.data;
+          if (body && typeof body === "object" && body.status === "error") {
+            const msg =
+              typeof body.message === "string" && body.message.trim()
+                ? body.message
+                : "Could not update card title.";
+            throw new Error(msg);
+          }
+          patchCardTitle?.(id, trimmed);
+          setFormValues((prev) => ({ ...prev, cardTitle: trimmed }));
+          notify("Card title updated.", "success");
+        })
+        .catch((err) => {
+          setFormValues((prev) => ({ ...prev, cardTitle: previousTitle }));
+          const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message ||
+            "Could not update card title.";
+          notify(typeof msg === "string" ? msg : "Could not update card title.", "error");
+        })
+        .finally(() => setIsTitleSaving(false));
+    },
+    [isAddMode, card?.id, card?.card_id, card?.title, patchCardTitle]
+  );
+
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",
     [formValues.owner]
@@ -2337,6 +2480,8 @@ function CardForm({
           isAddMode={isAddMode}
           isSubTaskCard={isSubTaskCard}
           onColorChange={handleTopbarColorChange}
+          onTitleCommit={handleTopbarTitleCommit}
+          titleSaving={isTitleSaving}
           formValues={formValues}
           handleChange={handleChange}
           boardId={boardId}
@@ -2442,6 +2587,7 @@ CardForm.propTypes = {
   boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onBoardRefresh: PropTypes.func,
   patchCardColor: PropTypes.func,
+  patchCardTitle: PropTypes.func,
   patchCardType: PropTypes.func,
   patchCardBlocker: PropTypes.func,
   patchCardSticker: PropTypes.func,

@@ -241,6 +241,26 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard((prev) => (prev?.id === id ? { ...prev, color: nextColor } : prev));
   }, []);
 
+  /** Updates a card's title in workflow state (e.g. after kanban_card/update_card_title). Avoids full board refetch. */
+  const patchCardTitle = useCallback((cardId, title) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return {
+          ...wf,
+          cards: {
+            ...wf.cards,
+            [id]: { ...c, title },
+          },
+        };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, title } : prev));
+  }, []);
+
   const patchCardType = useCallback((cardId, cardTypeId, meta = {}) => {
     if (cardId == null || String(cardId).trim() === "") return;
     const id = String(cardId).trim();
@@ -340,6 +360,7 @@ export default function useKanbanBoardState(selectedBoardId) {
     setWorkflows,
     refetchBoard,
     patchCardColor,
+    patchCardTitle,
     patchCardType,
     patchCardBlocker,
     patchCardSticker,

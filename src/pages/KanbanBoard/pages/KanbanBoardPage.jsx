@@ -43,6 +43,7 @@ export default function KanbanBoardPage() {
     setWorkflows,
     refetchBoard,
     patchCardColor,
+    patchCardTitle,
     patchCardType,
     patchCardBlocker,
     patchCardSticker,
@@ -291,6 +292,7 @@ export default function KanbanBoardPage() {
           boardId={selectedBoardId}
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
           patchCardColor={patchCardColor}
+          patchCardTitle={patchCardTitle}
           patchCardType={patchCardType}
           patchCardBlocker={patchCardBlocker}
           patchCardSticker={patchCardSticker}
