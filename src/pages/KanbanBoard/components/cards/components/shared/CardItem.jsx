@@ -279,8 +279,15 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
+// Taxi Boat Captain (21) / Taxi Boat Operator (20): show card_name here instead of task_name.
+const TAXI_BOAT_ROLE_IDS = new Set(["20", "21"]);
+
 function ApiCardTaskLine({ card }) {
-  const taskName = getApiCardTaskName(card);
+  const roleId = card.workflow_role_id != null ? String(card.workflow_role_id) : "";
+  const taskName =
+    TAXI_BOAT_ROLE_IDS.has(roleId) && hasText(card.cardName)
+      ? String(card.cardName).trim()
+      : getApiCardTaskName(card);
   if (!hasText(taskName)) return null;
   return (
     <p className="card-api-task-name" title={taskName}>
