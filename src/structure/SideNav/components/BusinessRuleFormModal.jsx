@@ -68,6 +68,11 @@ const RECURRENCE_SCHEDULE_OPTIONS = [
   { key: 'predefined_interval', label: 'Predefined interval' },
 ];
 
+// "Every week"'s "on [weekday]" picker — same Monday-first order as the reference product's
+// filter list, derived from WEEKDAY_OPTIONS (which is Sunday-first for the deadline action's
+// Non-working days picker) rather than a second hand-written weekday catalog.
+const WEEKLY_RECURRENCE_DAY_OPTIONS = [...WEEKDAY_OPTIONS.slice(1), WEEKDAY_OPTIONS[0]];
+
 // Advanced schedule's own two structural pickers — ordinal position (for "the 2nd Monday
 // of every month") and month name (for the Yearly period). Same fixed-list convention as
 // RECURRENCE_SCHEDULE_OPTIONS above, no backend catalog for either.
@@ -6713,6 +6718,16 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   const [monthlyDayFilterText, setMonthlyDayFilterText] = useState('');
   const monthlyDayTriggerRef = useRef(null);
   const monthlyDayPanelRef = useRef(null);
+  const [weeklyDayRows, setWeeklyDayRows] = useState([{ id: 'weekly-day-0', day: 'monday', joinWord: 'OR' }]);
+  const [openWeeklyDayRowId, setOpenWeeklyDayRowId] = useState(null);
+  const [weeklyDayFilterText, setWeeklyDayFilterText] = useState('');
+  // "Predefined interval" recurrence option's own sub-config — plain "every N day(s)
+  // starting from [date]" pair, no OR-joined rows/picker needed like the month/week
+  // options above since there's only ever one interval and one start date.
+  const [predefinedIntervalDays, setPredefinedIntervalDays] = useState('1');
+  const [predefinedIntervalStartDate, setPredefinedIntervalStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const weeklyDayTriggerRef = useRef(null);
+  const weeklyDayPanelRef = useRef(null);
   const [executeAtTime, setExecuteAtTime] = useState('00:00');
   // then_action_id of this rule's "execute_at" then_action, restored below on edit — carried
   // through to save so an update targets that same row instead of the backend creating a
@@ -7020,6 +7035,11 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setMonthlyDayRows([{ id: 'monthly-day-0', day: 1, joinWord: 'OR' }]);
     setOpenMonthlyDayRowId(null);
     setMonthlyDayFilterText('');
+    setWeeklyDayRows([{ id: 'weekly-day-0', day: 'monday', joinWord: 'OR' }]);
+    setOpenWeeklyDayRowId(null);
+    setWeeklyDayFilterText('');
+    setPredefinedIntervalDays('1');
+    setPredefinedIntervalStartDate(new Date().toISOString().slice(0, 10));
     setExecuteAtTime('00:00');
     setExecuteThenActionId(null);
     if (timeUnits.length === 0) getTimeUnits();
@@ -7197,6 +7217,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     let nextAdvancedSchedule = null;
     let nextAdvancedScheduleLabel = null;
     let nextMonthlyDayRows = null;
+    let nextWeeklyDayRows = null;
+    let nextPredefinedIntervalDays = null;
+    let nextPredefinedIntervalStartDate = null;
 
     const pushRaw = (sectionId, group) => {
       const key = sectionId ?? group.group_type;
@@ -7483,6 +7506,16 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
               id: `monthly-day-${idx}`, day: parseInt(d, 10) || 1, joinWord: 'OR',
             }));
           }
+          const weekDays = propVal(action, 'recurrence_week_days');
+          if (weekDays) {
+            nextWeeklyDayRows = weekDays.split(',').map((d) => d.trim()).filter(Boolean).map((d, idx) => ({
+              id: `weekly-day-${idx}`, day: d, joinWord: 'OR',
+            }));
+          }
+          const intervalDays = propVal(action, 'recurrence_interval_days');
+          if (intervalDays) nextPredefinedIntervalDays = intervalDays;
+          const intervalStartDate = propVal(action, 'recurrence_interval_start_date');
+          if (intervalStartDate) nextPredefinedIntervalStartDate = intervalStartDate;
         }
         return;
       }
@@ -7507,6 +7540,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     if (nextAdvancedSchedule) setAdvancedSchedule(nextAdvancedSchedule);
     if (nextAdvancedScheduleLabel) setAdvancedScheduleLabel(nextAdvancedScheduleLabel);
     if (nextMonthlyDayRows) setMonthlyDayRows(nextMonthlyDayRows);
+    if (nextWeeklyDayRows) setWeeklyDayRows(nextWeeklyDayRows);
+    if (nextPredefinedIntervalDays) setPredefinedIntervalDays(nextPredefinedIntervalDays);
+    if (nextPredefinedIntervalStartDate) setPredefinedIntervalStartDate(nextPredefinedIntervalStartDate);
     setRawSummaryBySectionId(nextRawSummaryBySectionId);
 
     // workflowName/swimlaneName/stageName can't be resolved from `workspaces` (board list
@@ -7673,6 +7709,19 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [openMonthlyDayRowId]);
+
+  useEffect(() => {
+    if (openWeeklyDayRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (weeklyDayPanelRef.current?.contains(t)) return;
+      if (weeklyDayTriggerRef.current?.contains(t)) return;
+      setOpenWeeklyDayRowId(null);
+      setWeeklyDayFilterText('');
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openWeeklyDayRowId]);
 
   useEffect(() => {
     if (openLinkOperatorRowId == null) return undefined;
@@ -7956,6 +8005,9 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       recurrenceSchedule,
       advancedSchedule,
       monthlyDays: monthlyDayRows.map((row) => row.day),
+      weeklyDays: weeklyDayRows.map((row) => row.day),
+      predefinedIntervalDays,
+      predefinedIntervalStartDate,
       // Then-groups the routing effect couldn't invert into editable state (create-subtask,
       // update_parent/child_card, copy_values_to_*) — passed through as-is by buildThenActions'
       // raw fallback so an edit save doesn't wipe them from the rule.
@@ -8985,6 +9037,30 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     });
   };
 
+  const handleSelectWeeklyDay = (rowId, day) => {
+    setWeeklyDayRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, day } : row)));
+    setOpenWeeklyDayRowId(null);
+    setWeeklyDayFilterText('');
+  };
+
+  const handleRemoveWeeklyDayRow = (rowId) => {
+    setWeeklyDayRows((prev) => {
+      if (prev.length <= 1) return [{ id: 'weekly-day-0', day: 'monday', joinWord: 'OR' }];
+      return prev.filter((row) => row.id !== rowId);
+    });
+  };
+
+  const handleToggleWeeklyDayJoinWord = (rowId) => {
+    setWeeklyDayRows((prev) => {
+      const rowIndex = prev.findIndex((row) => row.id === rowId);
+      if (rowIndex === -1) return prev;
+      const newRow = { id: `weekly-day-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, day: 'monday', joinWord: 'OR' };
+      const next = [...prev];
+      next.splice(rowIndex + 1, 0, newRow);
+      return next;
+    });
+  };
+
   const activePositionRow = positionConditionRows.find((row) => row.id === activePositionRowId);
 
   // "Clear all" only makes sense to show once the user has actually added something
@@ -9314,6 +9390,104 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {recurrenceSchedule === 'every_week' && weeklyDayRows.length > 0 && (
+                    <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
+                      <span className="business-rule-form-condition-label">Every week on</span>
+                      {weeklyDayRows.map((row) => (
+                        <div key={row.id} className="br-board-condition-value-row">
+                          <div className="board-minimap-picker-wrap">
+                            <button
+                              type="button"
+                              ref={openWeeklyDayRowId === row.id ? weeklyDayTriggerRef : undefined}
+                              className="business-rule-form-condition-value"
+                              onClick={() => setOpenWeeklyDayRowId((prev) => (prev === row.id ? null : row.id))}
+                              aria-haspopup="listbox"
+                              aria-expanded={openWeeklyDayRowId === row.id}
+                            >
+                              {WEEKLY_RECURRENCE_DAY_OPTIONS.find((o) => o.key === row.day)?.label ?? 'Monday'}
+                              <FiChevronDown size={16} aria-hidden />
+                            </button>
+
+                            {openWeeklyDayRowId === row.id && (
+                              <div className="board-minimap-picker-panel br-condition-operator-panel" ref={weeklyDayPanelRef}>
+                                <div className="board-minimap-picker-search">
+                                  <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                  <input
+                                    type="text"
+                                    placeholder="Filter"
+                                    value={weeklyDayFilterText}
+                                    onChange={(e) => setWeeklyDayFilterText(e.target.value)}
+                                    autoFocus
+                                  />
+                                </div>
+                                <div className="board-minimap-picker-scroll">
+                                  {WEEKLY_RECURRENCE_DAY_OPTIONS
+                                    .filter((opt) => opt.label.toLowerCase().includes(weeklyDayFilterText.trim().toLowerCase()))
+                                    .map((opt) => (
+                                      <button
+                                        type="button"
+                                        key={opt.key}
+                                        className="br-condition-operator-option"
+                                        onClick={() => handleSelectWeeklyDay(row.id, opt.key)}
+                                      >
+                                        {opt.label}
+                                      </button>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="business-rule-form-filter-row-actions">
+                            <button
+                              type="button"
+                              className="business-rule-form-or-btn"
+                              onClick={() => handleToggleWeeklyDayJoinWord(row.id)}
+                            >
+                              {row.joinWord || 'OR'}
+                            </button>
+                            <button
+                              type="button"
+                              className="business-rule-form-filter-row-delete"
+                              onClick={() => handleRemoveWeeklyDayRow(row.id)}
+                              aria-label="Remove day"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {recurrenceSchedule === 'predefined_interval' && (
+                    <div className="business-rule-form-condition">
+                      <span className="br-advanced-schedule-label">Predefined interval is</span>
+
+                      <div className="business-rule-form-when-deadline-input-row">
+                        <span className="business-rule-form-condition-label">Every</span>
+                        <input
+                          type="number"
+                          min="1"
+                          className="business-rule-form-when-deadline-input"
+                          value={predefinedIntervalDays}
+                          onChange={(e) => setPredefinedIntervalDays(e.target.value)}
+                        />
+                        <span className="business-rule-form-when-deadline-suffix">days</span>
+                      </div>
+
+                      <div className="business-rule-form-when-deadline-input-row">
+                        <span className="business-rule-form-condition-label">Starting from</span>
+                        <input
+                          type="date"
+                          className="business-rule-form-when-deadline-input"
+                          value={predefinedIntervalStartDate}
+                          onChange={(e) => setPredefinedIntervalStartDate(e.target.value)}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

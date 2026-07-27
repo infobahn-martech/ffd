@@ -415,8 +415,8 @@ const buildThenActions = (formState, ctx) => {
         // Repeat-pattern pill (Every day/Every week/Every month/...) — the documented
         // example only covered execute_time, so this key is best-effort (mirrors the
         // RECURRENCE_SCHEDULE_OPTIONS key itself) until confirmed against a real response.
-        // "predefined_interval"/"every_week"/"every_workday" have no further sub-config UI
-        // yet, so only the bare pattern key is sent for those.
+        // "every_workday" has no further sub-config UI, so only the bare pattern key is
+        // sent for that one.
         { property_key: 'recurrence_schedule', property_value: formState.recurrenceSchedule || 'every_day', property_value_type: 'string' },
         // "Advanced schedule"'s cron-builder value (RRULE-style string, or a raw custom cron
         // expression — see buildAdvancedScheduleValue in BusinessRuleFormModal.jsx). Property
@@ -429,6 +429,20 @@ const buildThenActions = (formState, ctx) => {
         // like the two above.
         ...(formState.recurrenceSchedule === 'every_month' && formState.monthlyDays?.length > 0
           ? [{ property_key: 'recurrence_month_days', property_value: formState.monthlyDays.join(','), property_value_type: 'string' }]
+          : []),
+        // "Every week"'s "on [weekday]" rows (OR-joined, same pattern as the monthly day rows
+        // above) — comma-joined weekday keys (monday, tuesday, ...). Property key is
+        // best-effort/unconfirmed like recurrence_month_days above.
+        ...(formState.recurrenceSchedule === 'every_week' && formState.weeklyDays?.length > 0
+          ? [{ property_key: 'recurrence_week_days', property_value: formState.weeklyDays.join(','), property_value_type: 'string' }]
+          : []),
+        // "Predefined interval"'s "every N day(s) starting from [date]" pair — property
+        // keys are best-effort/unconfirmed like the month/week ones above.
+        ...(formState.recurrenceSchedule === 'predefined_interval' && formState.predefinedIntervalDays
+          ? [{ property_key: 'recurrence_interval_days', property_value: String(formState.predefinedIntervalDays), property_value_type: 'string' }]
+          : []),
+        ...(formState.recurrenceSchedule === 'predefined_interval' && formState.predefinedIntervalStartDate
+          ? [{ property_key: 'recurrence_interval_start_date', property_value: formState.predefinedIntervalStartDate, property_value_type: 'string' }]
           : []),
       ],
     };
