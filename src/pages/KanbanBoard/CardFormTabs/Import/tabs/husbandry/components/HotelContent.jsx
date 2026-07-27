@@ -322,6 +322,20 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      handleChange("hotelId")({ target: { value: "" } });
+      handleChange("hotelName")({ target: { value: "" } });
+      handleChange("hotelCheckInDate")({ target: { value: "" } });
+      handleChange("hotelCheckInTime")({ target: { value: "" } });
+      handleChange("hotelCheckOutDate")({ target: { value: "" } });
+      handleChange("hotelCheckOutTime")({ target: { value: "" } });
+      handleChange("hotelDescription")({ target: { value: "" } });
+      handleChange("hotelRequestEmail")({ target: { value: [] } });
+      handleChange("hotelDocuments")({ target: { value: [] } });
+      handleChange("hotelSelectedCrew")({ target: { value: [] } });
+      handleChange("hotelLaunchHire")({ target: { value: true } });
+      handleChange("hotelLaunchHireLocation")({ target: { value: "" } });
+      handleChange("hotelLaunchHireBookingDate")({ target: { value: "" } });
+      handleChange("hotelLaunchHireBookingTime")({ target: { value: "" } });
       await fetchHotelRequests();
     } catch (error) {
       notify(
@@ -332,7 +346,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     } finally {
       setIsSavingHotel(false);
     }
-  }, [callId, formValues, fetchHotelRequests, isLaunchHire]);
+  }, [callId, formValues, fetchHotelRequests, isLaunchHire, handleChange]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>

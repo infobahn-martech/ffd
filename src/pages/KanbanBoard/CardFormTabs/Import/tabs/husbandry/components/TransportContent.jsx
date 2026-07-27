@@ -389,6 +389,20 @@
           "success",
           "top-center"
         );
+        handleChange("transportRequestEmail")({ target: { value: [] } });
+        handleChange("selectedCrew")({ target: { value: [] } });
+        handleChange("transportPickupDate")({ target: { value: "" } });
+        handleChange("transportPickupTime")({ target: { value: "" } });
+        handleChange("transportFromType")({ target: { value: "" } });
+        handleChange("transportFromLocation")({ target: { value: "" } });
+        handleChange("transportToType")({ target: { value: "" } });
+        handleChange("transportToLocation")({ target: { value: "" } });
+        handleChange("transportDescription")({ target: { value: "" } });
+        handleChange("transportDocuments")({ target: { value: [] } });
+        handleChange("transportLaunchHire")({ target: { value: true } });
+        handleChange("transportLaunchHireLocation")({ target: { value: "" } });
+        handleChange("transportLaunchHireBookingDate")({ target: { value: "" } });
+        handleChange("transportLaunchHireBookingTime")({ target: { value: "" } });
         await fetchTransportRequests();
       } catch (error) {
         notify(
@@ -399,7 +413,7 @@
       } finally {
         setIsSavingTransport(false);
       }
-    }, [callId, callDetails, formValues, fetchTransportRequests, isLaunchHire]);
+    }, [callId, callDetails, formValues, fetchTransportRequests, isLaunchHire, handleChange]);
 
     return (
       <div className="cardform-left-full" style={{ "--card-color": cardColor }}>

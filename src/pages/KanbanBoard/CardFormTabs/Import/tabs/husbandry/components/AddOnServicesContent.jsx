@@ -284,6 +284,15 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      handleChange("addOnServiceType")({ target: { value: "" } });
+      handleChange("addOnServiceTypeOther")({ target: { value: "" } });
+      handleChange("addOnServicesDescription")({ target: { value: "" } });
+      handleChange("addOnServicesRequestEmailDocuments")({ target: { value: [] } });
+      handleChange("addOnServicesDocuments")({ target: { value: [] } });
+      handleChange("addOnServicesLaunchHire")({ target: { value: true } });
+      handleChange("addOnServicesLaunchHireLocation")({ target: { value: "" } });
+      handleChange("addOnServicesLaunchHireBookingDate")({ target: { value: "" } });
+      handleChange("addOnServicesLaunchHireBookingTime")({ target: { value: "" } });
       await getAddOnServiceRequests(callId);
     } catch (error) {
       notify(
@@ -292,7 +301,7 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, isOthersSelected, isLaunchHire, createAddOnServiceRequest, getAddOnServiceRequests]);
+  }, [callId, formValues, isOthersSelected, isLaunchHire, createAddOnServiceRequest, getAddOnServiceRequests, handleChange]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.addOnServicesRequestEmailDocuments || []

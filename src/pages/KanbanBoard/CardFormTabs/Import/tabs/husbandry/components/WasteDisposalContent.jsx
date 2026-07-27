@@ -289,6 +289,13 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      handleChange("wasteDisposalPONumber")({ target: { value: "" } });
+      handleChange("wasteTypeId")({ target: { value: "" } });
+      handleChange("wasteType")({ target: { value: "" } });
+      handleChange("wasteDisposalDate")({ target: { value: "" } });
+      handleChange("wasteDisposalDescription")({ target: { value: "" } });
+      handleChange("wasteDisposalRequestEmailDocuments")({ target: { value: [] } });
+      handleChange("wasteDisposalDocuments")({ target: { value: [] } });
       await getWasteDisposalRequests(callId);
     } catch (error) {
       notify(
@@ -297,7 +304,7 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, disposalDateParts, createWasteDisposalRequest, getWasteDisposalRequests]);
+  }, [callId, formValues, disposalDateParts, createWasteDisposalRequest, getWasteDisposalRequests, handleChange]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.wasteDisposalRequestEmailDocuments || []

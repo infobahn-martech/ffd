@@ -320,6 +320,16 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      handleChange("medicalServiceSelectedHospital")({ target: { value: "" } });
+      handleChange("medicalServiceSelectedService")({ target: { value: "" } });
+      handleChange("medicalServiceSelectedCrew")({ target: { value: [] } });
+      handleChange("medicalServiceRequestEmail")({ target: { value: [] } });
+      handleChange("medicalServiceDocuments")({ target: { value: [] } });
+      handleChange("medicalServiceDescription")({ target: { value: "" } });
+      handleChange("medicalServiceLaunchHire")({ target: { value: true } });
+      handleChange("medicalServiceLaunchHireLocation")({ target: { value: "" } });
+      handleChange("medicalServiceLaunchHireBookingDate")({ target: { value: "" } });
+      handleChange("medicalServiceLaunchHireBookingTime")({ target: { value: "" } });
       await fetchMedicalRequests();
     } catch (error) {
       notify(
@@ -330,7 +340,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     } finally {
       setIsSaving(false);
     }
-  }, [callId, formValues, fetchMedicalRequests, isLaunchHire]);
+  }, [callId, formValues, fetchMedicalRequests, isLaunchHire, handleChange]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
