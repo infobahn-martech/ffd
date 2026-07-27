@@ -369,7 +369,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setUploadSteps((prev) => ({ ...prev, [kind]: { ...prev[kind], status: "uploading" } }));
 
     const formData = new FormData();
-    files.forEach((file) => formData.append(fileFieldName, file));
+    if (kind === "passport") {
+      files.forEach((file, index) => formData.append(`passports[${index}]`, file));
+    } else {
+      files.forEach((file) => formData.append(fileFieldName, file));
+    }
 
     try {
       await uploadAction({ formData });
@@ -451,7 +455,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     const { uploadAction, fileFieldName, label } = docUploadConfig[kind];
 
     const formData = new FormData();
-    files.forEach((file) => formData.append(fileFieldName, file));
+    if (kind === "passport") {
+      files.forEach((file, index) => formData.append(`passports[${index}]`, file));
+    } else {
+      files.forEach((file) => formData.append(fileFieldName, file));
+    }
 
     setUploading(true);
     try {
