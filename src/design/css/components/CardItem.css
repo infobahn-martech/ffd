@@ -754,8 +754,8 @@
   width: 100%;
   margin: 0 0 6px 0;
   padding: 6px 0;
-  border-top: 1px solid #d1d5db;
-  border-bottom: 1px solid #d1d5db;
+  border-top: 1px solid #eaeef3;
+  border-bottom: 1px solid #eaeef3;
 }
 
 .card-api-sticker-badge {
@@ -818,7 +818,7 @@
   min-width: 0;
   padding: 6px 0 4px 0;
   margin: 0;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #eaeef3;
   box-sizing: border-box;
 }
 
