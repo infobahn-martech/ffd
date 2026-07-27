@@ -74,6 +74,33 @@ ApiCardBlockerBadge.propTypes = {
   }).isRequired,
 };
 
+/** Centered row below the entity logo: dynamic Fi/Lu icon from API `stickerIcon`. */
+function ApiCardStickerBadge({ card }) {
+  const IconComponent = resolveIconComponentStrict(card.stickerIcon);
+
+  if (!IconComponent) return null;
+
+  return (
+    <div className="card-api-sticker-row" title={card.stickerName}>
+      <span
+        className="card-api-sticker-badge"
+        style={{ backgroundColor: card.stickerColor || "#2563eb" }}
+        aria-hidden
+      >
+        <IconComponent size={14} color="#fff" />
+      </span>
+    </div>
+  );
+}
+
+ApiCardStickerBadge.propTypes = {
+  card: PropTypes.shape({
+    stickerIcon: PropTypes.string,
+    stickerColor: PropTypes.string,
+    stickerName: PropTypes.string,
+  }).isRequired,
+};
+
 /** Circular KPI used in API card summary row (classic + compact). */
 function ApiCardCircularKpi({ progress }) {
   const pct = Math.min(100, Math.max(0, Number(progress)));
@@ -364,6 +391,8 @@ function ApiKanbanCardFull({
           )}
         </div>
       )}
+
+      <ApiCardStickerBadge card={card} />
 
       <div className="card-title-row card-title-row--api">
         <div className="card-api-title-row">
@@ -909,6 +938,9 @@ CardItem.propTypes = {
     blockerIcon: PropTypes.string,
     blockerColor: PropTypes.string,
     blockerName: PropTypes.string,
+    stickerIcon: PropTypes.string,
+    stickerColor: PropTypes.string,
+    stickerName: PropTypes.string,
     footerShowIcons: PropTypes.arrayOf(PropTypes.string),
     footerSubtasks: PropTypes.number,
     footerDeadline: PropTypes.string,

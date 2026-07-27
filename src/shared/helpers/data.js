@@ -265,6 +265,18 @@ export function mapBoardWorkflowFromApi(workflow) {
               card.card_sticker_id != null && String(card.card_sticker_id).trim() !== ""
                 ? String(card.card_sticker_id)
                 : null,
+            stickerIcon:
+              card.sticker_icon != null && String(card.sticker_icon).trim() !== ""
+                ? String(card.sticker_icon).trim()
+                : null,
+            stickerColor:
+              card.sticker_color != null && String(card.sticker_color).trim() !== ""
+                ? String(card.sticker_color).trim()
+                : null,
+            stickerName:
+              card.sticker_name != null && String(card.sticker_name).trim() !== ""
+                ? String(card.sticker_name).trim()
+                : null,
             cardTypeIcon:
               card.card_type_icon != null && String(card.card_type_icon).trim() !== ""
                 ? String(card.card_type_icon).trim()
