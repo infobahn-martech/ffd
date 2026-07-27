@@ -415,9 +415,21 @@ const buildThenActions = (formState, ctx) => {
         // Repeat-pattern pill (Every day/Every week/Every month/...) — the documented
         // example only covered execute_time, so this key is best-effort (mirrors the
         // RECURRENCE_SCHEDULE_OPTIONS key itself) until confirmed against a real response.
-        // "advanced_schedule"/"predefined_interval" have no further sub-config UI yet, so
-        // only the bare pattern key is sent for those too.
+        // "predefined_interval"/"every_week"/"every_workday" have no further sub-config UI
+        // yet, so only the bare pattern key is sent for those.
         { property_key: 'recurrence_schedule', property_value: formState.recurrenceSchedule || 'every_day', property_value_type: 'string' },
+        // "Advanced schedule"'s cron-builder value (RRULE-style string, or a raw custom cron
+        // expression — see buildAdvancedScheduleValue in BusinessRuleFormModal.jsx). Property
+        // key is best-effort/unconfirmed like recurrence_schedule above.
+        ...(formState.recurrenceSchedule === 'advanced_schedule' && formState.advancedSchedule
+          ? [{ property_key: 'advanced_schedule_cron', property_value: formState.advancedSchedule, property_value_type: 'string' }]
+          : []),
+        // "Every month"'s "on day [N]" rows (OR-joined, like the Board/Position AND-condition
+        // rows) — comma-joined day-of-month numbers. Property key is best-effort/unconfirmed
+        // like the two above.
+        ...(formState.recurrenceSchedule === 'every_month' && formState.monthlyDays?.length > 0
+          ? [{ property_key: 'recurrence_month_days', property_value: formState.monthlyDays.join(','), property_value_type: 'string' }]
+          : []),
       ],
     };
     if (formState.executeThenActionId != null) entry.then_action_id = formState.executeThenActionId;

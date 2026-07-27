@@ -8,9 +8,9 @@ import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../../components/CustomModal";
 import DeleteConfirmationModal from "../../../../../../../components/DeleteConfirmationModal";
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
-import { FormField, FormInput, FormSelect, FormTextarea, renderRequiredLabel } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
-import LocationMapPicker from "./LocationMapPicker";
+import LocationAutocomplete from "./LocationAutocomplete";
 import editIcon from "../../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../../assets/images/eye.svg";
@@ -1402,6 +1402,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     }}
                     options={mergeOptionForValue(warehouseLocationOptions, formData.warehouse)}
                     placeholder="Select warehouse"
+                    disabled={!!editingOrder}
                   />
                 </FormField>
                 {formErrors.warehouse && <span className="dispatch-edit-error">{formErrors.warehouse}</span>}
@@ -1527,33 +1528,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </label>
                       </div>
 
-                      {order.transportation && (() => {
-                        const transportSteps = [
-                          {
-                            key: "driver",
-                            icon: "user",
-                            label: "Driver Name *",
-                            value: order.driverName,
-                            error: formErrors[`o${index}_driverName`],
-                            field: (
-                              <FormSelect
-                                value={order.driverName}
-                                onChange={(e) => {
-                                  handleOrderChange(order.id, "driverName", e.target.value);
-                                  if (formErrors[`o${index}_driverName`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_driverName`]; return e; });
-                                }}
-                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
-                                placeholder="Select driver name..."
-                              />
-                            ),
-                          },
-                          {
-                            key: "vehicle",
-                            icon: "truck",
-                            label: "Type of Vehicle *",
-                            value: order.typeOfVehicle,
-                            error: formErrors[`o${index}_typeOfVehicle`],
-                            field: (
+                      {order.transportation && (
+                        <div className="row g-2 mb-1">
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Type of Vehicle *">
                               <FormSelect
                                 value={order.typeOfVehicle}
                                 onChange={(e) => {
@@ -1563,15 +1541,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
                                 placeholder="Select type of vehicle..."
                               />
-                            ),
-                          },
-                          {
-                            key: "from",
-                            icon: "pin",
-                            label: "From Location *",
-                            value: order.fromLocation,
-                            error: formErrors[`o${index}_fromLocation`],
-                            field: (
+                            </FormField>
+                            {formErrors[`o${index}_typeOfVehicle`] && <span className="dispatch-edit-error">{formErrors[`o${index}_typeOfVehicle`]}</span>}
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="From Location *">
                               <FormSelect
                                 value={order.fromLocation}
                                 onChange={(e) => {
@@ -1581,28 +1556,22 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
-                            ),
-                          },
-                          {
-                            key: "pickup",
-                            icon: "target",
-                            label: "Pick-Up From *",
-                            value: order.pickUpFrom,
-                            field: (
-                              <LocationMapPicker
+                            </FormField>
+                            {formErrors[`o${index}_fromLocation`] && <span className="dispatch-edit-error">{formErrors[`o${index}_fromLocation`]}</span>}
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Pick-Up From">
+                              <LocationAutocomplete
                                 value={order.pickUpFrom}
                                 onChange={(e) => handleOrderChange(order.id, "pickUpFrom", e.target.value)}
                                 placeholder="Enter pick-up location..."
                               />
-                            ),
-                          },
-                          {
-                            key: "to",
-                            icon: "flag",
-                            label: "To Location *",
-                            value: order.toLocation,
-                            error: formErrors[`o${index}_toLocation`],
-                            field: (
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="To Location *">
                               <FormSelect
                                 value={order.toLocation}
                                 onChange={(e) => {
@@ -1610,90 +1579,28 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                   if (formErrors[`o${index}_toLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_toLocation`]; return e; });
                                 }}
                                 options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
-                                placeholder="To location..."
+                                placeholder="Select to location..."
                               />
-                            ),
-                          },
-                        ];
-                        const allDone = transportSteps.every((s) => !!s.value);
-
-                        const renderStepCard = (step, stepIdx) => {
-                          const isDone = !!step.value;
-                          const isCurrent = !isDone && transportSteps.slice(0, stepIdx).every((s) => !!s.value);
-                          return (
-                            <div key={step.key} className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": stepIdx }}>
-                              <div className="dispatch-launch-hire-step-head">
-                                <span className="dispatch-launch-hire-step-icon-wrap">
-                                  <span
-                                    className={`dispatch-launch-hire-step-icon dispatch-launch-hire-step-icon--transport${isCurrent ? " dispatch-launch-hire-step-icon--highlight-transport" : ""}`}
-                                  >
-                                    {renderLaunchHireStepIcon(step.icon)}
-                                  </span>
-                                  <span className={`dispatch-launch-hire-step-num${isDone ? " dispatch-launch-hire-step-num--done" : ""}`}>
-                                    {isDone ? (
-                                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                      </svg>
-                                    ) : (
-                                      stepIdx + 1
-                                    )}
-                                  </span>
-                                </span>
-                                <span className="dispatch-launch-hire-step-label">{renderRequiredLabel(step.label)}</span>
-                              </div>
-                              <div className="dispatch-launch-hire-step-field">
-                                {step.field}
-                                {step.error && <span className="dispatch-edit-error">{step.error}</span>}
-                              </div>
-                            </div>
-                          );
-                        };
-
-                        const renderTrack = (key) => (
-                          <div key={`${key}-track`} className="dispatch-launch-hire-track" aria-hidden="true">
-                            <span className="dispatch-launch-hire-track-line dispatch-launch-hire-track-line--transport" />
-                            <span className="dispatch-launch-hire-track-boat dispatch-launch-hire-track-boat--transport">
-                              {renderLaunchHireStepIcon("truck")}
-                            </span>
+                            </FormField>
+                            {formErrors[`o${index}_toLocation`] && <span className="dispatch-edit-error">{formErrors[`o${index}_toLocation`]}</span>}
                           </div>
-                        );
 
-                        const journeySteps = transportSteps.slice(1); // vehicle -> from -> pickup -> to
-
-                        return (
-                          <div className="dispatch-launch-hire-card dispatch-transport-form-card">
-                            {/* Row 1: Driver, standalone. */}
-                            <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form dispatch-transport-form-steps dispatch-transport-form-steps--single">
-                              {renderStepCard(transportSteps[0], 0)}
-                            </div>
-
-                            {/* Row 2: the journey — Vehicle -> From -> Pick-Up -> To Location. */}
-                            <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form dispatch-transport-form-steps">
-                              {journeySteps.map((step, i) => {
-                                const stepIdx = i + 1;
-                                return (
-                                  <Fragment key={step.key}>
-                                    {renderStepCard(step, stepIdx)}
-                                    {i < journeySteps.length - 1 && renderTrack(step.key)}
-                                  </Fragment>
-                                );
-                              })}
-                            </div>
-
-                            {/* Row 3: Done. */}
-                            <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form dispatch-transport-form-steps dispatch-transport-form-steps--single">
-                              <div className={`dispatch-transport-track-node${allDone ? " dispatch-transport-track-node--done" : ""}`}>
-                                <span className="dispatch-launch-hire-step-icon-wrap">
-                                  <span className={`dispatch-launch-hire-step-icon${allDone ? " dispatch-launch-hire-step-icon--done" : " dispatch-launch-hire-step-icon--transport"}`}>
-                                    {renderLaunchHireStepIcon("check")}
-                                  </span>
-                                </span>
-                                <span className="dispatch-transport-track-node-label">Done</span>
-                              </div>
-                            </div>
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Driver Name *">
+                              <FormSelect
+                                value={order.driverName}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "driverName", e.target.value);
+                                  if (formErrors[`o${index}_driverName`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_driverName`]; return e; });
+                                }}
+                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
+                                placeholder="Select driver name..."
+                              />
+                            </FormField>
+                            {formErrors[`o${index}_driverName`] && <span className="dispatch-edit-error">{formErrors[`o${index}_driverName`]}</span>}
                           </div>
-                        );
-                      })()}
+                        </div>
+                      )}
                     </div>
 
                   </div>
@@ -1711,6 +1618,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   className="dispatch-edit-checkbox"
                   checked={formData.launchHire || false}
                   onChange={(e) => handleFormChange("launchHire", e.target.checked)}
+                  disabled={!!editingOrder}
                 />
                 <span>Launch Hire</span>
               </label>
@@ -1747,6 +1655,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         dateFieldName="launchHireDate"
                         timeFieldName="launchHireTime"
                         placeholder="YYYY-MM-DD hh:mm"
+                        disabled={!!editingOrder}
                       />
                       {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
                     </div>
@@ -1782,6 +1691,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
                         options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
                         placeholder="Select location..."
+                        disabled={!!editingOrder}
                       />
                     </div>
                   </div>
@@ -2043,105 +1953,67 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       {order.transportation && (
-                        <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form dispatch-transport-form-steps">
-                          {[
-                            {
-                              key: "vehicle",
-                              icon: "truck",
-                              label: "Type of Vehicle",
-                              field: (
-                                <FormSelect
-                                  value={order.typeOfVehicle}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)}
-                                  options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
-                                  placeholder="Select type of vehicle..."
-                                  disabled={!!order.inbound_item_id}
-                                />
-                              ),
-                            },
-                            {
-                              key: "from",
-                              icon: "pin",
-                              label: "From Location",
-                              field: (
-                                <FormSelect
-                                  value={order.fromLocation}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
-                                  options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
-                                  placeholder="Select from location..."
-                                  disabled={!!order.inbound_item_id}
-                                />
-                              ),
-                            },
-                            {
-                              key: "pickup",
-                              icon: "target",
-                              label: "Pick-Up From",
-                              field: (
-                                <FormInput
-                                  type="text"
-                                  value={order.pickUpFrom}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
-                                  placeholder="Enter pick-up location..."
-                                  readOnly={!!order.inbound_item_id}
-                                  disabled={!!order.inbound_item_id}
-                                />
-                              ),
-                            },
-                            {
-                              key: "to",
-                              icon: "flag",
-                              label: "To Location",
-                              field: (
-                                <FormSelect
-                                  value={order.toLocation}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
-                                  options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
-                                  placeholder="Select to location..."
-                                  disabled={!!order.inbound_item_id}
-                                />
-                              ),
-                            },
-                            {
-                              key: "driver",
-                              icon: "user",
-                              label: "Driver Name",
-                              field: (
-                                <FormSelect
-                                  value={order.driverName}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)}
-                                  options={mergeOptionForValue(materialDriverOptions, order.driverName)}
-                                  placeholder="Select driver name..."
-                                  disabled={!!order.inbound_item_id}
-                                />
-                              ),
-                            },
-                          ].map((step, stepIdx, steps) => (
-                            <Fragment key={step.key}>
-                              <div className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": stepIdx }}>
-                                <div className="dispatch-launch-hire-step-head">
-                                  <span className="dispatch-launch-hire-step-icon-wrap">
-                                    <span className="dispatch-launch-hire-step-icon dispatch-launch-hire-step-icon--transport">
-                                      {renderLaunchHireStepIcon(step.icon)}
-                                    </span>
-                                    <span className="dispatch-launch-hire-step-num">{stepIdx + 1}</span>
-                                  </span>
-                                  <span className="dispatch-launch-hire-step-label">{renderRequiredLabel(step.label)}</span>
-                                </div>
-                                <div className="dispatch-launch-hire-step-field">
-                                  {step.field}
-                                </div>
-                              </div>
-                              {stepIdx < steps.findIndex((s) => s.key === "to") && (
-                                <div className="dispatch-launch-hire-track" aria-hidden="true">
-                                  <span className="dispatch-launch-hire-track-line dispatch-launch-hire-track-line--transport" />
-                                  <span className="dispatch-launch-hire-track-boat dispatch-launch-hire-track-boat--transport">
-                                    {renderLaunchHireStepIcon("truck")}
-                                  </span>
-                                </div>
-                              )}
-                            </Fragment>
-                          ))}
+                        <div className="row g-2 mb-1">
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Type of Vehicle">
+                              <FormSelect
+                                value={order.typeOfVehicle}
+                                onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)}
+                                options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
+                                placeholder="Select type of vehicle..."
+                                disabled={!!order.inbound_item_id}
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="From Location">
+                              <FormSelect
+                                value={order.fromLocation}
+                                onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
+                                options={mergeOptionForValue(transportLocationOptions, order.fromLocation)}
+                                placeholder="Select from location..."
+                                disabled={!!order.inbound_item_id}
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Pick-Up From">
+                              <FormInput
+                                type="text"
+                                value={order.pickUpFrom}
+                                onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                placeholder="Enter pick-up location..."
+                                readOnly={!!order.inbound_item_id}
+                                disabled={!!order.inbound_item_id}
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="To Location">
+                              <FormSelect
+                                value={order.toLocation}
+                                onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
+                                options={mergeOptionForValue(transportLocationOptions, order.toLocation)}
+                                placeholder="Select to location..."
+                                disabled={!!order.inbound_item_id}
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-lg-4 col-md-6">
+                            <FormField label="Driver Name">
+                              <FormSelect
+                                value={order.driverName}
+                                onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)}
+                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
+                                placeholder="Select driver name..."
+                                disabled={!!order.inbound_item_id}
+                              />
+                            </FormField>
+                          </div>
                         </div>
                       )}
 

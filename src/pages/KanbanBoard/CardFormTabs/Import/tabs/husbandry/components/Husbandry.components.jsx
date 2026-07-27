@@ -493,7 +493,7 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
         ref={triggerRef}
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
-        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1, ...(hasError ? { borderColor: "#dc3545" } : {}) }}
+        style={{ pointerEvents: disabled ? "none" : "auto", ...(hasError ? { borderColor: "#dc3545" } : {}) }}
       >
         <div className="cf-multi-select-email-tags">
           {displayValue ? (

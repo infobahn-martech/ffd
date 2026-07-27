@@ -183,8 +183,8 @@ const DateTimePickerField = ({
               className: "cf-datetime-input-field",
               sx: {
                 "& .MuiInputBase-input.Mui-disabled": {
-                  WebkitTextFillColor: "rgb(26, 26, 26)",
-                  color: "rgb(26, 26, 26)",
+                  WebkitTextFillColor: "#33364a",
+                  color: "#33364a",
                   opacity: 1,
                 },
               },
