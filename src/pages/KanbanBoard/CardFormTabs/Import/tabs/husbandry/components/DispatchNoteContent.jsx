@@ -66,9 +66,11 @@ const emptyEditItem = (id = 1) => ({
   slot: "",
   reason: "",
   packing_required: false,
+  packing_required_original: false,
   repacking_pallets: "",
   repacking_rolls: "",
   transportation_required: false,
+  transportation_required_original: false,
   typeOfVehicle: "",
   fromLocation: "",
   pickUpFrom: "",
@@ -332,9 +334,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 slot: normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id),
                 reason: (item.reason || "").trim(),
                 packing_required: isTruthyFlag(item.packing_required),
+                packing_required_original: isTruthyFlag(item.packing_required),
                 repacking_pallets: String(item.repacking_pallets ?? ""),
                 repacking_rolls: String(item.repacking_rolls ?? ""),
                 transportation_required: isTruthyFlag(item.transportation_required) || hasTransportData,
+                transportation_required_original: isTruthyFlag(item.transportation_required) || hasTransportData,
                 typeOfVehicle: transport ? String(transport.vehicle_type_id || "") : "",
                 fromLocation: transport ? String(transport.from_location_id || "") : "",
                 pickUpFrom: transport?.pickup_location || "",
@@ -890,7 +894,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                       <div className="dispatch-edit-checkbox-group">
                         <label className="dispatch-edit-checkbox-label">
-                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.packing_required || false} onChange={(e) => handleEditItemChange(item.id, "packing_required", e.target.checked)} />
+                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.packing_required || false} onChange={(e) => handleEditItemChange(item.id, "packing_required", e.target.checked)} disabled={!item.packing_required_original} />
                           <span>Packing Required</span>
                         </label>
                         {item.packing_required && (
@@ -909,89 +913,49 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         )}
                       </div>
 
-                      <div className="dispatch-transport-section">
-                        <div className="dispatch-edit-checkbox-group">
-                          <label className="dispatch-edit-checkbox-label">
-                            <input type="checkbox" className="dispatch-edit-checkbox" checked={item.transportation_required || false} onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)} />
-                            <span>Transportation Required</span>
-                          </label>
-                        </div>
-
-                        {item.transportation_required && (() => {
-                          const transportSteps = [
-                            { key: "vehicle", icon: "truck", label: "Vehicle Type", value: item.typeOfVehicle, field: (
-                              <FormSelect value={item.typeOfVehicle} onChange={(e) => handleEditItemChange(item.id, "typeOfVehicle", e.target.value)} options={mergeOptionForValue(vehicleOptions, item.typeOfVehicle)} placeholder="Select vehicle..." />
-                            ) },
-                            { key: "from", icon: "pin", label: "From Location", value: item.fromLocation, field: (
-                              <FormSelect value={item.fromLocation} onChange={(e) => handleEditItemChange(item.id, "fromLocation", e.target.value)} options={mergeOptionForValue(locationOptions, item.fromLocation)} placeholder="From location..." />
-                            ) },
-                            { key: "pickup", icon: "target", label: "Pick-Up From", value: item.pickUpFrom, field: (
-                              <LocationAutocomplete value={item.pickUpFrom} onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)} placeholder="Pick-up location..." />
-                            ) },
-                            { key: "to", icon: "flag", label: "To Location", value: item.toLocation, field: (
-                              <FormSelect value={item.toLocation} onChange={(e) => handleEditItemChange(item.id, "toLocation", e.target.value)} options={mergeOptionForValue(locationOptions, item.toLocation)} placeholder="To location..." />
-                            ) },
-                            { key: "driver", icon: "user", label: "Driver", value: item.driverName, field: (
-                              <FormSelect value={item.driverName} onChange={(e) => handleEditItemChange(item.id, "driverName", e.target.value)} options={mergeOptionForValue(driverOptions, item.driverName)} placeholder="Select driver..." />
-                            ) },
-                            { key: "remarks", icon: "note", label: "Remarks", value: item.transportRemarks, field: (
-                              <FormInput type="text" value={item.transportRemarks} onChange={(e) => handleEditItemChange(item.id, "transportRemarks", e.target.value)} placeholder="Transport remarks..." />
-                            ) },
-                          ];
-                          const allDone = transportSteps.every((s) => !!s.value);
-                          return (
-                            <div className="dispatch-launch-hire-card dispatch-transport-form-card">
-                              <div className="dispatch-launch-hire-steps dispatch-launch-hire-steps--form dispatch-transport-form-steps">
-                                {transportSteps.map((step, stepIdx, steps) => {
-                                  const isDone = !!step.value;
-                                  const isCurrent = !isDone && steps.slice(0, stepIdx).every((s) => !!s.value);
-                                  return (
-                                    <Fragment key={step.key}>
-                                      <div className="dispatch-launch-hire-step dispatch-launch-hire-step--form" style={{ "--stagger-index": stepIdx }}>
-                                        <div className="dispatch-launch-hire-step-head">
-                                          <span className="dispatch-launch-hire-step-icon-wrap">
-                                            <span className={`dispatch-launch-hire-step-icon dispatch-launch-hire-step-icon--transport${isCurrent ? " dispatch-launch-hire-step-icon--highlight-transport" : ""}`}>
-                                              {renderLaunchHireStepIcon(step.icon)}
-                                            </span>
-                                            <span className={`dispatch-launch-hire-step-num${isDone ? " dispatch-launch-hire-step-num--done" : ""}`}>
-                                              {isDone ? (
-                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                  <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                              ) : (
-                                                stepIdx + 1
-                                              )}
-                                            </span>
-                                          </span>
-                                          <span className="dispatch-launch-hire-step-label">{step.label}</span>
-                                        </div>
-                                        <div className="dispatch-launch-hire-step-field">
-                                          {step.field}
-                                        </div>
-                                      </div>
-                                      <div className="dispatch-launch-hire-track" aria-hidden="true">
-                                        <span className="dispatch-launch-hire-track-line dispatch-launch-hire-track-line--transport" />
-                                        {stepIdx < steps.findIndex((s) => s.key === "to") && (
-                                          <span className="dispatch-launch-hire-track-boat dispatch-launch-hire-track-boat--transport">
-                                            {renderLaunchHireStepIcon("truck")}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </Fragment>
-                                  );
-                                })}
-                                <div className={`dispatch-transport-track-node${allDone ? " dispatch-transport-track-node--done" : ""}`}>
-                                  <span className="dispatch-launch-hire-step-icon-wrap">
-                                    <span className={`dispatch-launch-hire-step-icon${allDone ? " dispatch-launch-hire-step-icon--done" : " dispatch-launch-hire-step-icon--transport"}`}>
-                                      {renderLaunchHireStepIcon("check")}
-                                    </span>
-                                  </span>
-                                  <span className="dispatch-transport-track-node-label">Done</span>
-                                </div>
-                              </div>
+                      <div className="dispatch-edit-checkbox-group">
+                        <label className="dispatch-edit-checkbox-label">
+                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.transportation_required || false} onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)} disabled={!item.transportation_required_original} />
+                          <span>Transportation Required</span>
+                        </label>
+                        {item.transportation_required && (
+                          <div className="row g-2 mt-1">
+                            <div className="col-md-4">
+                              <FormField label="Vehicle Type">
+                                <FormSelect value={item.typeOfVehicle} onChange={(e) => handleEditItemChange(item.id, "typeOfVehicle", e.target.value)} options={mergeOptionForValue(vehicleOptions, item.typeOfVehicle)} placeholder="Select vehicle..." />
+                              </FormField>
                             </div>
-                          );
-                        })()}
+                            <div className="col-md-4">
+                              <FormField label="From Location">
+                                <FormSelect value={item.fromLocation} onChange={(e) => handleEditItemChange(item.id, "fromLocation", e.target.value)} options={mergeOptionForValue(locationOptions, item.fromLocation)} placeholder="From location..." />
+                              </FormField>
+                            </div>
+                            <div className="col-md-4">
+                              <FormField label="Pick-Up From">
+                                <LocationAutocomplete
+                                  value={item.pickUpFrom}
+                                  onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
+                                  placeholder="Pick-up location..."
+                                />
+                              </FormField>
+                            </div>
+                            <div className="col-md-4">
+                              <FormField label="To Location">
+                                <FormSelect value={item.toLocation} onChange={(e) => handleEditItemChange(item.id, "toLocation", e.target.value)} options={mergeOptionForValue(locationOptions, item.toLocation)} placeholder="To location..." />
+                              </FormField>
+                            </div>
+                            <div className="col-md-4">
+                              <FormField label="Driver">
+                                <FormSelect value={item.driverName} onChange={(e) => handleEditItemChange(item.id, "driverName", e.target.value)} options={mergeOptionForValue(driverOptions, item.driverName)} placeholder="Select driver..." />
+                              </FormField>
+                            </div>
+                            <div className="col-md-4">
+                              <FormField label="Remarks">
+                                <FormInput type="text" value={item.transportRemarks} onChange={(e) => handleEditItemChange(item.id, "transportRemarks", e.target.value)} placeholder="Transport remarks..." />
+                              </FormField>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

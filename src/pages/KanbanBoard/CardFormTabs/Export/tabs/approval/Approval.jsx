@@ -170,6 +170,9 @@ const createEmptyPartySection = () => ({
     vesselOwner,
     vesselPrincipal,
     vesselCharterer,
+    vesselOwnerImages,
+    vesselPrincipalImages,
+    vesselChartererImages,
     creditControllerRemarks,
     creditControllerDocuments,
     managerComments,
@@ -195,6 +198,9 @@ const createEmptyPartySection = () => ({
     };
 
     const files = {
+      vessel_owner_images: vesselOwnerImages,
+      vessel_principal_images: vesselPrincipalImages,
+      vessel_charterer_images: vesselChartererImages,
       credit_controller_documents: creditControllerDocuments,
       manager_ofm_documents: managerDocuments,
       ceo_documents: ceoDocuments,
@@ -364,7 +370,7 @@ const createEmptyPartySection = () => ({
   // Backend accepts multiple files per section (e.g. credit_controller_documents[]
   // can hold more than one upload), so the picker must accumulate files across
   // multiple browse actions rather than replacing the previous selection.
-  function DocumentUploadField({ files, onChange, disabled = false }) {
+  function DocumentUploadField({ files, onChange, disabled = false, accept, dropzoneText = "Drag and drop your file here, or" }) {
     const inputRef = useRef(null);
 
     const handleFileChange = (event) => {
@@ -408,6 +414,7 @@ const createEmptyPartySection = () => ({
             ref={inputRef}
             type="file"
             multiple
+            accept={accept}
             disabled={disabled}
             className="approval-file-input-hidden"
             onChange={handleFileChange}
@@ -433,7 +440,7 @@ const createEmptyPartySection = () => ({
             </div>
           ) : (
             <p className="approval-document-upload-text">
-              Drag and drop your file here, or{" "}
+              {dropzoneText}{" "}
               <span className="approval-document-upload-link">click to browse</span>
             </p>
           )}
@@ -446,6 +453,8 @@ const createEmptyPartySection = () => ({
     files: PropTypes.arrayOf(PropTypes.instanceOf(File)).isRequired,
     onChange: PropTypes.func.isRequired,
     disabled: PropTypes.bool,
+    accept: PropTypes.string,
+    dropzoneText: PropTypes.string,
   };
 
   function ExistingDocumentsList({ documents }) {
@@ -553,7 +562,7 @@ const createEmptyPartySection = () => ({
     isActiveStage: PropTypes.bool,
   };
 
-  function PartySectionCard({ title, fields, values, onChange }) {
+  function PartySectionCard({ title, fields, values, onChange, imageFiles, onImageFilesChange, imagesDisabled }) {
     return (
       <section className="approval-form-card approval-party-card">
         <h3 className="form-group-title">{title}</h3>
@@ -602,6 +611,15 @@ const createEmptyPartySection = () => ({
               disabled
             />
           </FormField>
+          <FormField label="Image Upload">
+            <DocumentUploadField
+              files={imageFiles}
+              onChange={onImageFilesChange}
+              disabled={imagesDisabled}
+              accept="image/*"
+              dropzoneText="Drag and drop your image here, or"
+            />
+          </FormField>
         </div>
       </section>
     );
@@ -629,6 +647,9 @@ const createEmptyPartySection = () => ({
       latestPaymentTime: PropTypes.string,
     }).isRequired,
     onChange: PropTypes.func.isRequired,
+    imageFiles: PropTypes.arrayOf(PropTypes.instanceOf(File)).isRequired,
+    onImageFilesChange: PropTypes.func.isRequired,
+    imagesDisabled: PropTypes.bool,
   };
 
   const VESSEL_OWNER_FIELDS = {
@@ -674,6 +695,9 @@ const createEmptyPartySection = () => ({
     const [vesselOwner, setVesselOwner] = useState(createEmptyPartySection);
     const [vesselPrincipal, setVesselPrincipal] = useState(createEmptyPartySection);
     const [vesselCharterer, setVesselCharterer] = useState(createEmptyPartySection);
+    const [vesselOwnerImages, setVesselOwnerImages] = useState([]);
+    const [vesselPrincipalImages, setVesselPrincipalImages] = useState([]);
+    const [vesselChartererImages, setVesselChartererImages] = useState([]);
     const [creditControllerRemarks, setCreditControllerRemarks] = useState("");
     const [creditControllerDocuments, setCreditControllerDocuments] = useState([]);
     const [managerComments, setManagerComments] = useState("");
@@ -720,6 +744,9 @@ const createEmptyPartySection = () => ({
     const isControllerRole = String(userRoleId) === "2";
     const isManagerRole = String(userRoleId) === "1";
     const isCeoRole = String(userRoleId) === "23";
+    // Vessel party image uploads are restricted to Credit Controller and CEO
+    // only, per user confirmation — not Manager, unlike the section gating above.
+    const canEditPartyImages = isControllerRole || isCeoRole;
 
     const stageActive = useMemo(
       () => getApprovalStageGating(details?.workflow),
@@ -781,6 +808,9 @@ const createEmptyPartySection = () => ({
       vesselOwner,
       vesselPrincipal,
       vesselCharterer,
+      vesselOwnerImages,
+      vesselPrincipalImages,
+      vesselChartererImages,
       creditControllerRemarks,
       creditControllerDocuments,
       managerComments,
@@ -844,6 +874,9 @@ const createEmptyPartySection = () => ({
       vesselOwner,
       vesselPrincipal,
       vesselCharterer,
+      vesselOwnerImages,
+      vesselPrincipalImages,
+      vesselChartererImages,
       creditControllerRemarks,
       creditControllerDocuments,
       managerComments,
@@ -992,6 +1025,9 @@ const createEmptyPartySection = () => ({
                 fields={VESSEL_OWNER_FIELDS}
                 values={vesselOwner}
                 onChange={handleVesselOwnerChange}
+                imageFiles={vesselOwnerImages}
+                onImageFilesChange={setVesselOwnerImages}
+                imagesDisabled={!canEditPartyImages}
               />
 
               <PartySectionCard
@@ -999,6 +1035,9 @@ const createEmptyPartySection = () => ({
                 fields={VESSEL_PRINCIPAL_FIELDS}
                 values={vesselPrincipal}
                 onChange={handleVesselPrincipalChange}
+                imageFiles={vesselPrincipalImages}
+                onImageFilesChange={setVesselPrincipalImages}
+                imagesDisabled={!canEditPartyImages}
               />
 
               <PartySectionCard
@@ -1006,6 +1045,9 @@ const createEmptyPartySection = () => ({
                 fields={VESSEL_CHARTERER_FIELDS}
                 values={vesselCharterer}
                 onChange={handleVesselChartererChange}
+                imageFiles={vesselChartererImages}
+                onImageFilesChange={setVesselChartererImages}
+                imagesDisabled={!canEditPartyImages}
               />
             </div>
 

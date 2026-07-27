@@ -10,6 +10,16 @@
   margin-bottom: 14px;
 }
 
+// Disabled/read-only dropdowns (Warehouse, Slot, Reason, Vehicle Type, etc.) were
+// showing selected-value text in the default #1a1a1a even when disabled, while
+// disabled text inputs already switch to #33364a (see general.scss's
+// ".cf-input input:disabled" rule) — this aligns the two so every read-only field
+// in these edit forms reads as the same color.
+.dispatch-note-edit-form .cf-multi-select-email.disabled .cf-multi-select-selected-value,
+.material-edit-form .cf-multi-select-email.disabled .cf-multi-select-selected-value {
+  color: #33364a !important;
+}
+
 .dispatch-launch-hire-section {
   animation: dispatchLaunchHireReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
