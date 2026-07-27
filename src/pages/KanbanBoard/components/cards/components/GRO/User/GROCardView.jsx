@@ -1173,7 +1173,6 @@ const GROCardView = forwardRef(function GROCardView(
       const extraErrors = validateGroExtraStageFields(groStageId, extraStageFields);
       if (Object.keys(extraErrors).length > 0) {
         setExtraStageFieldErrors(extraErrors);
-        notify("Please fill in all required fields.", "warn");
         return;
       }
       setExtraStageFieldErrors({});
@@ -1635,7 +1634,7 @@ const GROCardView = forwardRef(function GROCardView(
 
   return (
     <div className="gro-card-view">
-      <div className="gro-summary-grid gro-summary-grid--six-col">
+      <div className={`gro-summary-grid${showAssignedUserSelect || mode === "gro" ? " gro-summary-grid--six-col" : ""}`}>
         <GroSummaryCard label="Call Type" value={callTypeSummary} />
         <GroSummaryCard label="Billing Entity" value={billingEntitySummary} />
         <GroSummaryCard label="Port" value={portSummary} />

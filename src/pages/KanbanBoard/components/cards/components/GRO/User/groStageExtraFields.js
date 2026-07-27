@@ -71,9 +71,6 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
     if (!hasFile(data.initial_bayan_doc)) {
       errors.initial_bayan_doc = "Initial Bayan Doc is required.";
     }
-    if (!hasFile(data.final_bayan_doc)) {
-      errors.final_bayan_doc = "Final Bayan Doc is required.";
-    }
   }
 
   return errors;

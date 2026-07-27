@@ -173,7 +173,6 @@ function GroPopoverStageExtraFields({
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
-          required
         />
       </>
     );
