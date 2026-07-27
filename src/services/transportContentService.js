@@ -9,6 +9,8 @@ const updateTransportRequestDetail = (formData) =>
 const getTransportRequest = (callId) =>
   Gateway.get(`/transport/get_transport_request/${encodeURIComponent(String(callId))}`);
 
+const getAllInvoiceBranches = () => Gateway.get("/transport/all_invoice_branches");
+
 /**
  * Normalize transport requests from axios response.
  */
@@ -78,4 +80,5 @@ export default {
   createTransportRequest,
   updateTransportRequestDetail,
   getTransportRequest,
+  getAllInvoiceBranches,
 };

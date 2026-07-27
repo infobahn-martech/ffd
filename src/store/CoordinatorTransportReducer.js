@@ -22,6 +22,8 @@ const useCoordinatorTransportReducer = create((set) => ({
   loadingVehicleTypes: false,
   inhouseDrivers: [],
   loadingInhouseDrivers: false,
+  invoiceBranches: [],
+  loadingInvoiceBranches: false,
   isSavingTransport: false,
 
   fetchCallDetails: async (callId) => {
@@ -83,6 +85,16 @@ const useCoordinatorTransportReducer = create((set) => ({
       set({ inhouseDrivers: extractListEnvelope(response), loadingInhouseDrivers: false });
     } catch {
       set({ inhouseDrivers: [], loadingInhouseDrivers: false });
+    }
+  },
+
+  fetchInvoiceBranches: async () => {
+    set({ loadingInvoiceBranches: true });
+    try {
+      const response = await transportContentService.getAllInvoiceBranches();
+      set({ invoiceBranches: extractListEnvelope(response), loadingInvoiceBranches: false });
+    } catch {
+      set({ invoiceBranches: [], loadingInvoiceBranches: false });
     }
   },
 
