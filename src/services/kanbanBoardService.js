@@ -63,6 +63,21 @@ const updateSubtask = (formData) =>
 const completeSubtask = (subtaskId, isCompleted) =>
   Gateway.post('/kanban_card/complete_subtask', { subtask_id: subtaskId, is_completed: isCompleted });
 
+/** POST multipart FormData — { card_id, comment_text, mentions (JSON array of user ids), attachment? } */
+const addCardComment = (formData) =>
+  Gateway.post('/kanban_card/add_card_comment', formData);
+
+/** GET — comments for a card; response: { data: [{ comment_id, user_id, user_name, comment_text, mentions, attachment, attachment_url, created_date, updated_date }] } */
+const getCardComments = (cardId) =>
+  Gateway.get(`/kanban_card/get_card_comments/${encodeURIComponent(String(cardId))}`);
+
+/** POST multipart FormData — { comment_id, comment_text, mentions (JSON array of user ids), attachment? } */
+const updateCardComment = (formData) =>
+  Gateway.post('/kanban_card/update_card_comment', formData);
+
+const deleteCardComment = (commentId) =>
+  Gateway.post(`/kanban_card/delete_card_comment/${encodeURIComponent(String(commentId))}`);
+
 export default {
   getFullBoard,
   updateCardColor,
@@ -79,4 +94,8 @@ export default {
   createSubtask,
   updateSubtask,
   completeSubtask,
+  addCardComment,
+  getCardComments,
+  updateCardComment,
+  deleteCardComment,
 };
