@@ -71,6 +71,10 @@ const addCardComment = (formData) =>
 const getCardComments = (cardId) =>
   Gateway.get(`/kanban_card/get_card_comments/${encodeURIComponent(String(cardId))}`);
 
+/** POST multipart FormData — { comment_id, comment_text, mentions (JSON array of user ids), attachment? } */
+const updateCardComment = (formData) =>
+  Gateway.post('/kanban_card/update_card_comment', formData);
+
 export default {
   getFullBoard,
   updateCardColor,
@@ -89,4 +93,5 @@ export default {
   completeSubtask,
   addCardComment,
   getCardComments,
+  updateCardComment,
 };

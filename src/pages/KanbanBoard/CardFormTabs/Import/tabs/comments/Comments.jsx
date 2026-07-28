@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
+import { FiEdit2 } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/scss/comments.scss";
@@ -35,6 +36,7 @@ const mapCommentFromResponse = (row) => ({
     id: row.comment_id,
     userName: row.user_name ?? "",
     content: row.comment_text,
+    mentions: row.mentions ?? [],
     attachment: row.attachment
         ? { name: row.attachment, url: row.attachment_url ?? null }
         : null,
@@ -75,6 +77,7 @@ function Comments({ card }) {
     const [isSaving, setIsSaving] = useState(false);
     const [comments, setComments] = useState([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState(null);
 
     const cardId = getCardId(card);
     const hasComments = comments.length > 0;
@@ -195,20 +198,50 @@ function Comments({ card }) {
         [addMentionedUserId, closeMentionDropdown]
     );
 
+    const handleEditOpen = useCallback(
+        (comment) => {
+            setEditingCommentId(comment.id);
+            setCommentText(comment.content);
+            setSelectedMentionUserIds((comment.mentions || []).map((mention) => mention.user_id));
+            setAttachmentFile(null);
+            closeMentionDropdown();
+        },
+        [closeMentionDropdown]
+    );
+
+    const handleEditCancel = useCallback(() => {
+        setEditingCommentId(null);
+        setCommentText("");
+        setSelectedMentionUserIds([]);
+        setAttachmentFile(null);
+        closeMentionDropdown();
+    }, [closeMentionDropdown]);
+
     const handleSave = useCallback(async () => {
         if (isEmptyHtmlContent(commentText) || !cardId || isSaving) return;
 
+        const isEditing = Boolean(editingCommentId);
         const formData = new FormData();
-        formData.append("card_id", String(cardId));
+        if (isEditing) {
+            formData.append("comment_id", String(editingCommentId));
+        } else {
+            formData.append("card_id", String(cardId));
+        }
         formData.append("comment_text", commentText);
         formData.append("mentions", JSON.stringify(selectedMentionUserIds));
         if (attachmentFile) formData.append("attachment", attachmentFile);
 
         setIsSaving(true);
         try {
-            const { data } = await kanbanBoardService.addCardComment(formData);
+            const { data } = isEditing
+                ? await kanbanBoardService.updateCardComment(formData)
+                : await kanbanBoardService.addCardComment(formData);
             await loadComments();
-            notify(data?.message || "Comment added successfully.", "success");
+            notify(
+                data?.message || (isEditing ? "Comment updated successfully." : "Comment added successfully."),
+                "success"
+            );
+            setEditingCommentId(null);
             setCommentText("");
             setSelectedMentionUserIds([]);
             setAttachmentFile(null);
@@ -218,12 +251,12 @@ function Comments({ card }) {
                 error?.response?.data?.message ||
                 error?.response?.data?.error ||
                 error?.message ||
-                "Failed to add comment.";
-            notify(typeof msg === "string" ? msg : "Failed to add comment.", "error");
+                (editingCommentId ? "Failed to update comment." : "Failed to add comment.");
+            notify(typeof msg === "string" ? msg : "Failed to save comment.", "error");
         } finally {
             setIsSaving(false);
         }
-    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, closeMentionDropdown, loadComments]);
+    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, editingCommentId, closeMentionDropdown, loadComments]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -232,6 +265,19 @@ function Comments({ card }) {
                     <section className="comments-tab-editor" aria-label="Write a comment">
                         <div className="comments-tab-card comments-tab-card--editor">
                             <div className="comments-tab-editor-body">
+                                {editingCommentId ? (
+                                    <div className="comments-tab-editing-banner">
+                                        <span>Editing comment</span>
+                                        <button
+                                            type="button"
+                                            className="subtasks-tab-cancel-btn"
+                                            onClick={handleEditCancel}
+                                            disabled={isSaving}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ) : null}
                                 <div className="comments-tab-mention-host">
                                     <div className="react-quill-wrapper comments-tab-quill">
                                         <ReactQuill
@@ -337,7 +383,9 @@ function Comments({ card }) {
                                         onClick={handleSave}
                                         disabled={isSaving || isEmptyHtmlContent(commentText)}
                                     >
-                                        {isSaving ? "Saving..." : "Save"}
+                                        {editingCommentId
+                                            ? (isSaving ? "Updating..." : "Update")
+                                            : (isSaving ? "Saving..." : "Save")}
                                     </button>
                                 </div>
                             </div>
@@ -357,9 +405,20 @@ function Comments({ card }) {
                                             <li className="comments-tab-comment-card" key={comment.id ?? index}>
                                                 <div className="comments-tab-comment-avatar" />
                                                 <div className="comments-tab-comment-content">
-                                                    {comment.userName ? (
-                                                        <p className="comments-tab-comment-author">{comment.userName}</p>
-                                                    ) : null}
+                                                    <div className="comments-tab-comment-header">
+                                                        {comment.userName ? (
+                                                            <p className="comments-tab-comment-author">{comment.userName}</p>
+                                                        ) : <span />}
+                                                        <button
+                                                            type="button"
+                                                            className="subtasks-tab-edit-btn"
+                                                            onClick={() => handleEditOpen(comment)}
+                                                            aria-label="Edit comment"
+                                                            disabled={isSaving}
+                                                        >
+                                                            <FiEdit2 size={14} />
+                                                        </button>
+                                                    </div>
                                                     <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }} />
                                                     {comment.attachment ? (
                                                         comment.attachment.url ? (

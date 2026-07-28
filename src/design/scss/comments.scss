@@ -4,3 +4,24 @@
   font-weight: 600;
   color: #344054;
 }
+
+.comments-tab-comment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.comments-tab-editing-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #fff7e6;
+  border: 1px solid #f5d38c;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #8a6d1a;
+}
