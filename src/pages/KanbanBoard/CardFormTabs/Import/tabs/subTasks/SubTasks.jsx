@@ -9,9 +9,6 @@ import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/css/common/CardForm.css";
 
-const isActiveUser = (user) =>
-    String(user?.user_status ?? "").toLowerCase() === "active" || String(user?.status) === "1";
-
 const mapUserToOption = (user) => ({
     value: String(user.user_id),
     label: user.name ?? "",
@@ -102,36 +99,31 @@ function Subtasks({ card }) {
     const [dueTime, setDueTime] = useState("");
     const [documentFile, setDocumentFile] = useState(null);
 
-    const users = useCommonReducer((state) => state.users);
-    const usersLoading = useCommonReducer((state) => state.usersLoading);
-    const getUsers = useCommonReducer((state) => state.getUsers);
+    const allUsers = useCommonReducer((state) => state.allUsers);
+    const usersLoading = useCommonReducer((state) => state.allUsersLoading);
+    const getAllUsers = useCommonReducer((state) => state.getAllUsers);
 
     const cardId = card?.id || card?.card_id || card?.call_id;
 
-    const activeUsers = useMemo(
-        () => (Array.isArray(users) ? users.filter(isActiveUser) : []),
-        [users]
-    );
-
     const userOptions = useMemo(
-        () => activeUsers.map(mapUserToOption),
-        [activeUsers]
+        () => (Array.isArray(allUsers) ? allUsers.map(mapUserToOption) : []),
+        [allUsers]
     );
 
     const selectedAssigneeAvatar = useMemo(() => {
-        const user = activeUsers.find((u) => String(u.user_id) === String(assignUserId));
+        const user = allUsers.find((u) => String(u.user_id) === String(assignUserId));
         return user ? (user.avatar_path || user.avatar || null) : null;
-    }, [activeUsers, assignUserId]);
+    }, [allUsers, assignUserId]);
 
     const selectedAssigneeName = useMemo(() => {
-        const user = activeUsers.find((u) => String(u.user_id) === String(assignUserId));
+        const user = allUsers.find((u) => String(u.user_id) === String(assignUserId));
         return user?.name ?? "";
-    }, [activeUsers, assignUserId]);
+    }, [allUsers, assignUserId]);
 
     useEffect(() => {
-        if (users.length > 0 || usersLoading) return;
-        getUsers({ params: { limit: 200 } });
-    }, [users.length, usersLoading, getUsers]);
+        if (allUsers.length > 0 || usersLoading) return;
+        getAllUsers();
+    }, [allUsers.length, usersLoading, getAllUsers]);
 
     const loadSubtasks = useCallback(async () => {
         if (!cardId) return;
