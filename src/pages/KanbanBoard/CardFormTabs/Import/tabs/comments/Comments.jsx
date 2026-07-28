@@ -6,8 +6,8 @@ import { FiEdit2, FiTrash2, FiPaperclip } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/scss/comments.scss";
-import callFileService from "../../../../../../services/callFileService";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
+import userService from "../../../../../../services/userService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
 import { notify } from "../../../../../../components/Toaster";
 import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
@@ -66,7 +66,7 @@ const mapCommentFromResponse = (row) => ({
 const mapManagersFromResponse = (rows) =>
     (rows || []).map((row) => ({
         user_id: row.user_id,
-        user_name: row.user_name ?? "",
+        user_name: row.name ?? "",
         avatar: row.avatar ?? null,
     }));
 
@@ -157,7 +157,7 @@ function Comments({ card }) {
         const loadManagers = async () => {
             setIsManagersLoading(true);
             try {
-                const { data } = await callFileService.getAllManagers();
+                const { data } = await userService.getAllUsers();
                 const list = unwrapListResponse(data);
                 if (!cancelled) {
                     setManagers(mapManagersFromResponse(list));
