@@ -409,7 +409,7 @@
 
 .comments-tab-layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex: 1;
   min-height: 0;
   gap: 12px;
@@ -417,14 +417,16 @@
 }
 
 .comments-tab-editor {
-  flex: 0 0 auto;
+  order: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .comments-tab-editor .comments-tab-card--editor {
-  flex: 0 0 auto;
+  flex: 1;
 }
 
 .comments-tab-editor .comments-tab-quill.react-quill-wrapper .ql-editor {
@@ -432,9 +434,12 @@
 }
 
 .comments-tab-list {
-  flex: 1 1 auto;
+  order: 2;
+  flex: 0 0 380px;
+  max-width: 45%;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -482,8 +487,8 @@
 .comments-tab-card {
   background: #ffffff;
   border: 1px solid #e8eaf0;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 6px 20px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -510,8 +515,8 @@
 
 .comments-tab-email-fields {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 20px;
   padding-bottom: 8px;
   margin-bottom: 2px;
   border-bottom: 1px solid #eef0f4;
@@ -524,6 +529,7 @@
   gap: 8px;
   font-size: 12px;
   min-width: 0;
+  flex: 1;
 }
 
 .comments-tab-email-label {
@@ -758,26 +764,71 @@
   }
 }
 
-.comments-tab-save-row {
+.comments-tab-action-row {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
   margin-top: auto;
   padding-top: 2px;
+}
+
+.comments-tab-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid #e2e2ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #5c6370;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #00368c;
+    color: #00368c;
+    background: #f7f9fd;
+  }
+}
+
+.comments-tab-doc-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 170px;
+  height: 34px;
+  padding: 0 6px 0 10px;
+  border: 1px solid #e2e2ea;
+  border-radius: 8px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.comments-tab-doc-name {
+  min-width: 0;
+  font-size: 12px;
+  color: #1a1a1a;
+  font-family: "Manrope", sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .comments-tab-save-btn {
   background: #00368c;
   border: none;
   color: #ffffff;
-  border-radius: 6px;
-  height: 36px;
-  min-width: 88px;
-  padding: 0 20px;
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 18px;
   font-size: 13px;
   font-weight: 600;
   font-family: "Manrope", sans-serif;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
@@ -794,7 +845,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 14px;
+  padding: 12px 14px;
   scrollbar-width: thin;
   scrollbar-color: #c5cad6 transparent;
 
@@ -818,7 +869,7 @@
 
 .comments-tab-empty {
   margin: 0;
-  padding: 32px 12px;
+  padding: 20px 12px;
   text-align: center;
   font-size: 13px;
   color: #8a8f9c;
@@ -932,6 +983,24 @@
 
   .comments-tab-filter-input {
     flex: 1 1 100%;
+  }
+
+  .comments-tab-layout {
+    flex-direction: column;
+  }
+
+  .comments-tab-editor {
+    order: 0;
+    flex: 0 0 auto;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .comments-tab-list {
+    order: 0;
+    flex: 1 1 auto;
+    max-width: 100%;
+    height: auto;
   }
 }
 

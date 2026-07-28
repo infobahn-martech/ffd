@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiPaperclip } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/scss/comments.scss";
@@ -430,22 +430,24 @@ function Comments({ card }) {
                     <section className="comments-tab-editor" aria-label="Write a comment">
                         <div className="comments-tab-card comments-tab-card--editor">
                             <div className="comments-tab-editor-body">
-                                <div className="comments-tab-email-fields">
-                                    <div className="comments-tab-email-field">
-                                        <span className="comments-tab-email-label">From</span>
-                                        <span className="comments-tab-email-value">
-                                            {fromEmail || "You"}
-                                        </span>
+                                {sendAsEmail && (
+                                    <div className="comments-tab-email-fields">
+                                        <div className="comments-tab-email-field">
+                                            <span className="comments-tab-email-label">From</span>
+                                            <span className="comments-tab-email-value">
+                                                {fromEmail || "You"}
+                                            </span>
+                                        </div>
+                                        <div className="comments-tab-email-field">
+                                            <span className="comments-tab-email-label">To</span>
+                                            <span className="comments-tab-email-value">
+                                                {mentionedNames.length > 0
+                                                    ? mentionedNames.join(", ")
+                                                    : "Mention a user with @ to notify them"}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="comments-tab-email-field">
-                                        <span className="comments-tab-email-label">To</span>
-                                        <span className="comments-tab-email-value">
-                                            {mentionedNames.length > 0
-                                                ? mentionedNames.join(", ")
-                                                : "Mention a user with @ to notify them"}
-                                        </span>
-                                    </div>
-                                </div>
+                                )}
                                 <div className="comments-tab-mention-host">
                                     <div className="react-quill-wrapper comments-tab-quill">
                                         <ReactQuill
@@ -512,10 +514,10 @@ function Comments({ card }) {
                                     )}
                                 </div>
 
-                                <div className="comments-tab-attachment-row">
+                                <div className="comments-tab-action-row">
                                     {attachmentFile ? (
-                                        <div className="subtasks-tab-doc-chip">
-                                            <span className="subtasks-tab-doc-name" title={attachmentFile.name}>
+                                        <div className="comments-tab-doc-chip">
+                                            <span className="comments-tab-doc-name" title={attachmentFile.name}>
                                                 {attachmentFile.name}
                                             </span>
                                             <button
@@ -529,8 +531,13 @@ function Comments({ card }) {
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className="subtasks-tab-doc-upload" htmlFor="comment-attachment">
-                                            <span>Attach a file</span>
+                                        <label
+                                            className="comments-tab-attach-btn"
+                                            htmlFor="comment-attachment"
+                                            aria-label="Attach a file"
+                                            title="Attach a file"
+                                        >
+                                            <FiPaperclip size={15} />
                                             <input
                                                 id="comment-attachment"
                                                 type="file"
@@ -542,9 +549,7 @@ function Comments({ card }) {
                                             />
                                         </label>
                                     )}
-                                </div>
 
-                                <div className="comments-tab-save-row">
                                     <label className="comments-tab-send-email-toggle">
                                         <input
                                             type="checkbox"
@@ -565,7 +570,7 @@ function Comments({ card }) {
                                     >
                                         {editingCommentId
                                             ? (isSaving ? "Updating..." : "Update")
-                                            : (isSaving ? "Saving..." : "Save")}
+                                            : (isSaving ? "Adding..." : "Add Comment")}
                                     </button>
                                 </div>
                             </div>
