@@ -349,24 +349,6 @@ function Comments({ card }) {
             <div className="comments-tab">
                 <div className="comments-tab-layout">
                     <section className="comments-tab-list" aria-label="Comments">
-                        <div className="comments-tab-toolbar-row">
-                            <input
-                                type="text"
-                                className="comments-tab-filter-input"
-                                placeholder="Filter"
-                                value={commentFilter}
-                                onChange={(event) => setCommentFilter(event.target.value)}
-                            />
-                            {hasComments ? (
-                                <button
-                                    type="button"
-                                    className="comments-tab-expand-all-btn"
-                                    onClick={() => setExpandAll((prev) => !prev)}
-                                >
-                                    {expandAll ? "Collapse all comments" : "Expand all comments"}
-                                </button>
-                            ) : null}
-                        </div>
                         <div className="comments-tab-card comments-tab-card--list">
                             <div className="comments-tab-list-scroll">
                                 {isCommentsLoading ? (
