@@ -307,7 +307,6 @@ function Comments({ card }) {
                             <div className="comments-tab-editor-body">
                                 {editingCommentId ? (
                                     <div className="comments-tab-editing-banner">
-                                        <span>Editing comment</span>
                                         <button
                                             type="button"
                                             className="subtasks-tab-cancel-btn"
