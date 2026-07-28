@@ -63,6 +63,10 @@ const updateSubtask = (formData) =>
 const completeSubtask = (subtaskId, isCompleted) =>
   Gateway.post('/kanban_card/complete_subtask', { subtask_id: subtaskId, is_completed: isCompleted });
 
+/** POST multipart FormData — { card_id, comment_text, mentions (JSON array of user ids), attachment? } */
+const addCardComment = (formData) =>
+  Gateway.post('/kanban_card/add_card_comment', formData);
+
 export default {
   getFullBoard,
   updateCardColor,
@@ -79,4 +83,5 @@ export default {
   createSubtask,
   updateSubtask,
   completeSubtask,
+  addCardComment,
 };

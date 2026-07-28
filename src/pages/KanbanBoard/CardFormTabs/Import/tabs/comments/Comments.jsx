@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
+import DOMPurify from "dompurify";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import callFileService from "../../../../../../services/callFileService";
+import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
+import { notify } from "../../../../../../components/Toaster";
 
 const QUILL_MODULES = {
     toolbar: [
@@ -57,8 +60,16 @@ function Comments({ card }) {
     const [mentionSearch, setMentionSearch] = useState("");
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
     const [isManagersLoading, setIsManagersLoading] = useState(false);
+    const [attachmentFile, setAttachmentFile] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [localComments, setLocalComments] = useState([]);
 
-    const comments = card?.comments ?? [];
+    const cardId = getCardId(card);
+
+    const comments = useMemo(
+        () => [...(card?.comments ?? []), ...localComments],
+        [card?.comments, localComments]
+    );
     const hasComments = comments.length > 0;
 
     useEffect(() => {
@@ -158,13 +169,49 @@ function Comments({ card }) {
         [addMentionedUserId, closeMentionDropdown]
     );
 
-    const handleSave = () => {
-        if (isEmptyHtmlContent(commentText)) return;
+    const handleSave = useCallback(async () => {
+        if (isEmptyHtmlContent(commentText) || !cardId || isSaving) return;
 
-        setCommentText("");
-        setSelectedMentionUserIds([]);
-        closeMentionDropdown();
-    };
+        const formData = new FormData();
+        formData.append("card_id", String(cardId));
+        formData.append("comment_text", commentText);
+        formData.append("mentions", JSON.stringify(selectedMentionUserIds));
+        if (attachmentFile) formData.append("attachment", attachmentFile);
+
+        setIsSaving(true);
+        try {
+            const { data } = await kanbanBoardService.addCardComment(formData);
+            const created = data?.data;
+            if (created) {
+                setLocalComments((prev) => [
+                    ...prev,
+                    {
+                        id: created.comment_id,
+                        avatar: null,
+                        content: created.comment_text,
+                        attachment: created.attachment
+                            ? { name: created.attachment, url: created.attachment_url ?? null }
+                            : null,
+                        created_date: created.created_date ?? null,
+                    },
+                ]);
+            }
+            notify(data?.message || "Comment added successfully.", "success");
+            setCommentText("");
+            setSelectedMentionUserIds([]);
+            setAttachmentFile(null);
+            closeMentionDropdown();
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                "Failed to add comment.";
+            notify(typeof msg === "string" ? msg : "Failed to add comment.", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, closeMentionDropdown]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -239,13 +286,46 @@ function Comments({ card }) {
                                     )}
                                 </div>
 
+                                <div className="comments-tab-attachment-row">
+                                    {attachmentFile ? (
+                                        <div className="subtasks-tab-doc-chip">
+                                            <span className="subtasks-tab-doc-name" title={attachmentFile.name}>
+                                                {attachmentFile.name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="subtasks-tab-doc-remove"
+                                                onClick={() => setAttachmentFile(null)}
+                                                aria-label="Remove attachment"
+                                                disabled={isSaving}
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="subtasks-tab-doc-upload" htmlFor="comment-attachment">
+                                            <span>Attach a file</span>
+                                            <input
+                                                id="comment-attachment"
+                                                type="file"
+                                                className="subtasks-tab-doc-input"
+                                                onChange={(event) =>
+                                                    setAttachmentFile(event.target.files?.[0] ?? null)
+                                                }
+                                                disabled={isSaving}
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+
                                 <div className="comments-tab-save-row">
                                     <button
                                         type="button"
                                         className="comments-tab-save-btn"
                                         onClick={handleSave}
+                                        disabled={isSaving || isEmptyHtmlContent(commentText)}
                                     >
-                                        Save
+                                        {isSaving ? "Saving..." : "Save"}
                                     </button>
                                 </div>
                             </div>
@@ -260,12 +340,34 @@ function Comments({ card }) {
                                 ) : (
                                     <ul className="comments-tab-list-items">
                                         {comments.map((comment, index) => (
-                                            <li className="comments-tab-comment-card" key={index}>
+                                            <li className="comments-tab-comment-card" key={comment.id ?? index}>
                                                 <div className="comments-tab-comment-avatar">
-                                                    <img src={comment.avatar} alt="avatar" />
+                                                    {comment.avatar ? (
+                                                        <img src={comment.avatar} alt="avatar" />
+                                                    ) : null}
                                                 </div>
                                                 <div className="comments-tab-comment-content">
-                                                    <p>{comment.content}</p>
+                                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }} />
+                                                    {comment.attachment ? (
+                                                        comment.attachment.url ? (
+                                                            <a
+                                                                className="subtasks-tab-task-doc"
+                                                                href={comment.attachment.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={comment.attachment.name}
+                                                            >
+                                                                {comment.attachment.name}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="subtasks-tab-task-doc" title={comment.attachment.name}>
+                                                                {comment.attachment.name}
+                                                            </span>
+                                                        )
+                                                    ) : null}
+                                                    {comment.created_date ? (
+                                                        <p className="notes-tab-note-updated">{comment.created_date}</p>
+                                                    ) : null}
                                                 </div>
                                             </li>
                                         ))}
