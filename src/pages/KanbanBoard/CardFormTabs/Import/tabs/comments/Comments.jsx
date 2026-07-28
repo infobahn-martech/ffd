@@ -10,6 +10,7 @@ import callFileService from "../../../../../../services/callFileService";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
 import { notify } from "../../../../../../components/Toaster";
+import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 
 const QUILL_MODULES = {
     toolbar: [
@@ -78,7 +79,9 @@ function Comments({ card }) {
     const [comments, setComments] = useState([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [editingCommentId, setEditingCommentId] = useState(null);
-    const [deletingCommentId, setDeletingCommentId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedComment, setSelectedComment] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const cardId = getCardId(card);
     const hasComments = comments.length > 0;
@@ -259,31 +262,41 @@ function Comments({ card }) {
         }
     }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, editingCommentId, closeMentionDropdown, loadComments]);
 
-    const handleDelete = useCallback(
-        async (comment) => {
-            if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    const handleDeleteOpen = useCallback((comment) => {
+        setSelectedComment(comment);
+        setShowDeleteModal(true);
+    }, []);
 
-            setDeletingCommentId(comment.id);
-            try {
-                const { data } = await kanbanBoardService.deleteCardComment(comment.id);
-                await loadComments();
-                notify(data?.message || "Comment deleted successfully.", "success");
-                if (editingCommentId === comment.id) {
-                    handleEditCancel();
-                }
-            } catch (error) {
-                const msg =
-                    error?.response?.data?.message ||
-                    error?.response?.data?.error ||
-                    error?.message ||
-                    "Failed to delete comment.";
-                notify(typeof msg === "string" ? msg : "Failed to delete comment.", "error");
-            } finally {
-                setDeletingCommentId(null);
+    const handleDeleteCancel = useCallback(() => {
+        if (isDeleting) return;
+        setShowDeleteModal(false);
+        setSelectedComment(null);
+    }, [isDeleting]);
+
+    const handleDeleteConfirm = useCallback(async () => {
+        if (!selectedComment) return;
+
+        setIsDeleting(true);
+        try {
+            const { data } = await kanbanBoardService.deleteCardComment(selectedComment.id);
+            await loadComments();
+            notify(data?.message || "Comment deleted successfully.", "success");
+            if (editingCommentId === selectedComment.id) {
+                handleEditCancel();
             }
-        },
-        [editingCommentId, handleEditCancel, loadComments]
-    );
+            setShowDeleteModal(false);
+            setSelectedComment(null);
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                "Failed to delete comment.";
+            notify(typeof msg === "string" ? msg : "Failed to delete comment.", "error");
+        } finally {
+            setIsDeleting(false);
+        }
+    }, [selectedComment, editingCommentId, handleEditCancel, loadComments]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -442,16 +455,16 @@ function Comments({ card }) {
                                                                 className="subtasks-tab-edit-btn"
                                                                 onClick={() => handleEditOpen(comment)}
                                                                 aria-label="Edit comment"
-                                                                disabled={isSaving || deletingCommentId === comment.id}
+                                                                disabled={isSaving}
                                                             >
                                                                 <FiEdit2 size={14} />
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 className="subtasks-tab-edit-btn"
-                                                                onClick={() => handleDelete(comment)}
+                                                                onClick={() => handleDeleteOpen(comment)}
                                                                 aria-label="Delete comment"
-                                                                disabled={isSaving || deletingCommentId === comment.id}
+                                                                disabled={isSaving}
                                                             >
                                                                 <FiTrash2 size={14} />
                                                             </button>
@@ -488,6 +501,14 @@ function Comments({ card }) {
                     </section>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                show={showDeleteModal}
+                onCancel={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                isLoading={isDeleting}
+                deleteText="Are you sure you want to delete this comment?"
+            />
         </div>
     );
 }
