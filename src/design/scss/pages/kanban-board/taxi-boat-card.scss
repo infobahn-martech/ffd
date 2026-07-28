@@ -70,6 +70,31 @@ $tb-space-2xl:  32px;
   }
 }
 
+// DateTimePickerField's MUI box (general.scss) renders taller (41px), grey-filled, with a
+// transparent border by default — doesn't match .tb-summary-select above. Re-box it here to
+// the same height/border/radius so Location and Booking Date look consistent side by side.
+.gro-summary-card--field .cf-datetime-picker .cf-datetime-input-field {
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root {
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: none;
+    font-size: 14px;
+
+    &:hover {
+      border-color: #c5c5d1;
+    }
+
+    &.Mui-focused {
+      border-color: #2666be;
+    }
+  }
+}
+
 .tb-card-view {
   flex: 1;
   min-height: 0;
