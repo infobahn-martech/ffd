@@ -975,6 +975,16 @@
   font-size: 12px;
 }
 
+.gro-card-view .bulk-pass-arabic-more-description .document-preview-table {
+  direction: ltr;
+}
+
+.gro-card-view .bulk-pass-arabic-more-description .arabic-value,
+.gro-card-view .bulk-pass-arabic-more-description .arabic-label {
+  direction: rtl;
+  text-align: right;
+}
+
 .gro-card-view .bulk-pass-arabic-sign {
   display: flex;
   align-items: center;
