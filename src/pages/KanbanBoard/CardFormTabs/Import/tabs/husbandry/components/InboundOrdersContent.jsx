@@ -1403,7 +1403,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     }}
                     options={mergeOptionForValue(warehouseLocationOptions, formData.warehouse)}
                     placeholder="Select warehouse"
-                    disabled={!!editingOrder}
                   />
                 </FormField>
                 {formErrors.warehouse && <span className="dispatch-edit-error">{formErrors.warehouse}</span>}
@@ -1660,7 +1659,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         dateFieldName="launchHireDate"
                         timeFieldName="launchHireTime"
                         placeholder="YYYY-MM-DD hh:mm"
-                        disabled={!!editingOrder}
                       />
                       {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
                     </div>
@@ -1696,7 +1694,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
                         options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
                         placeholder="Select location..."
-                        disabled={!!editingOrder}
                       />
                     </div>
                   </div>
@@ -2049,7 +2046,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </div>
 
                         <div className="col-lg-4 col-md-6">
-                          <FormField label="Dispatch Date">
+                          <FormField label="Dispatch Date" className="dispatch-date-plain">
                             <DateTimePickerField
                               dateValue={order.dispatchDate}
                               timeValue={order.dispatchTime}

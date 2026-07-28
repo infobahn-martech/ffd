@@ -1358,7 +1358,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </FormField>
                           </div>
                           <div className="col-md-3">
-                            <FormField label="Dispatch Date">
+                            <FormField label="Dispatch Date" className="dispatch-date-plain">
                               <DateTimePickerField
                                 dateValue={item.dispatch_date}
                                 timeValue={item.dispatch_time}
@@ -1492,7 +1492,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             <h3 className="landing-convert-section-title">Basic Details</h3>
             <div className="row g-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Dispatch Date *">
+                <FormField label="Dispatch Date *" className="dispatch-date-plain">
                   <DateTimePickerField
                     dateValue={convertFormData.dispatch_date}
                     timeValue={convertFormData.dispatch_time}

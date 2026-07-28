@@ -726,7 +726,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             <h3 className="dispatch-edit-section-title">Basic Details</h3>
             <div className="row g-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Dispatch Date *">
+                <FormField label="Dispatch Date *" className="dispatch-date-plain">
                   <DateTimePickerField
                     dateValue={formData.dispatch_date}
                     timeValue={formData.dispatch_time}

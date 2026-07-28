@@ -24,7 +24,7 @@ import useAuthReducer from "../../../../../../store/AuthReducer";
 
 // Import Tab Components
 import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes, DA } from "../../../../CardFormTabs/Import";
-import { Approval } from "../../../../CardFormTabs/Export";
+import { Approval, EnableOperation } from "../../../../CardFormTabs/Export";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/Import/tabs/operation/preArrivalDocumentHandling";
 import { isExportCall } from "../../../../CardFormTabs/shared/utils/callTypes";
 import NavTabButton from "../../../../../../components/NavTabButton";
@@ -57,14 +57,20 @@ const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sale
 const DA_ONLY_TAB = "DA";
 
 const EXPORT_ONLY_TABS = ["Export Approval"];
+// "Enable Operation" only unlocks once export_approval_status is 1 (approval
+// completed) — see showEnableOperationTab below, computed from callDetailSnapshot.
+const ENABLE_OPERATION_TAB = "Enable Operation";
 
-const withExportTabs = (tabs) => {
+const withExportTabs = (tabs, includeEnableOperation = false) => {
   const next = [...tabs];
+  const exportTabs = includeEnableOperation
+    ? [...EXPORT_ONLY_TABS, ENABLE_OPERATION_TAB]
+    : EXPORT_ONLY_TABS;
   const appointmentIndex = next.indexOf("Appointment Details");
   if (appointmentIndex >= 0) {
-    next.splice(appointmentIndex + 1, 0, ...EXPORT_ONLY_TABS);
+    next.splice(appointmentIndex + 1, 0, ...exportTabs);
   } else {
-    next.push(...EXPORT_ONLY_TABS);
+    next.push(...exportTabs);
   }
   return next;
 };
@@ -1269,7 +1275,9 @@ StepsProgress.propTypes = {
 
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, isDriverMode = false, isGROMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
   const hideStepsForTab =
-    activeTab === "Appointment Details" || activeTab === "Export Approval";
+    activeTab === "Appointment Details" ||
+    activeTab === "Export Approval" ||
+    activeTab === "Enable Operation";
   const showSteps =
     isGROMode ||
     isDriverMode ||
@@ -1601,6 +1609,8 @@ const renderTabContent = (
         return <General {...commonProps} />;
       case "Export Approval":
         return <Approval {...commonProps} />;
+      case "Enable Operation":
+        return <EnableOperation {...commonProps} />;
       case "Operation":
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
       case "Husbandry":
@@ -2014,19 +2024,29 @@ function CardForm({
   // Husbandry Call (call_type_id === "4") has no Operation stage.
   const isHusbandryCall = String(formValues.call_type_id ?? "") === "4";
 
+  // "Enable Operation" tab only appears for export calls once export approval
+  // has fully completed (backend sets export_approval_status to 1 on
+  // get_call_detail once approved) — per user confirmation 2026-07-28.
+  const showEnableOperationTab =
+    showExportTabs && String(callDetailSnapshot?.export_approval_status ?? "") === "1";
+
   const TOP_TABS = useMemo(() => {
     const base = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
     const withDAOnly = isDAVariant && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
-    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(withDAOnly) : withDAOnly;
+    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode
+      ? withExportTabs(withDAOnly, showEnableOperationTab)
+      : withDAOnly;
     return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
-  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, isHusbandryCall]);
+  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, showEnableOperationTab, isHusbandryCall]);
 
   const ENABLED_TABS = useMemo(() => {
     const base = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
     const withDAOnly = isDAVariant && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
-    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode ? withExportTabs(withDAOnly) : withDAOnly;
+    const withExport = showExportTabs && !isDAModule && !isSimplifiedMode
+      ? withExportTabs(withDAOnly, showEnableOperationTab)
+      : withDAOnly;
     return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
-  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, isHusbandryCall]);
+  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, showEnableOperationTab, isHusbandryCall]);
 
   useEffect(() => {
     setActiveTopTab(defaultTab);
@@ -2037,6 +2057,12 @@ function CardForm({
       setActiveTopTab(defaultTab);
     }
   }, [showExportTabs, activeTopTab, defaultTab]);
+
+  useEffect(() => {
+    if (!showEnableOperationTab && activeTopTab === "Enable Operation") {
+      setActiveTopTab(defaultTab);
+    }
+  }, [showEnableOperationTab, activeTopTab, defaultTab]);
 
   useEffect(() => {
     if (isHusbandryCall && activeTopTab === "Operation") {
