@@ -703,7 +703,7 @@ const createEmptyPartySection = () => ({
     const branchOptions = useMemo(
       () =>
         branches.map((b) => ({
-          value: String(b?.branch_id ?? b?.id ?? ""),
+          value: String(b?.invoice_branch_id ?? ""),
           label: b?.branch_name ?? "",
         })),
       [branches]
