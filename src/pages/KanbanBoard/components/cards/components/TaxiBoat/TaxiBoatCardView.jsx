@@ -481,7 +481,11 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
         const prevDone = i === 0 || tsState[prevKey] !== null;
         const isNext = !done && prevDone;
         const isLocked = !done && !isNext;
-        const undoable = done && !!onUndo;
+        // Only the most recently captured step can be undone — stepping back further
+        // out of sequence would leave later captured timestamps orphaned.
+        const nextKey = i < timestamps.length - 1 ? timestamps[i + 1].key : null;
+        const nextDone = nextKey ? tsState[nextKey] !== null : false;
+        const undoable = done && !nextDone && !!onUndo;
 
         const stepDuration = done && prevKey && tsState[prevKey]
           ? formatDuration(new Date(tsState[key]) - new Date(tsState[prevKey]))
