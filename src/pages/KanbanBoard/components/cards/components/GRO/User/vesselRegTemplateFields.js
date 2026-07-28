@@ -123,10 +123,6 @@ export async function injectVesselRegFieldValues(html, fieldValues) {
 
   rows.forEach((row, i) => {
     const { tr, labelArCell, labelEnCell, valueCells, value } = row;
-    if (!labelEnCell) {
-      if (value) valueCells.forEach((cell) => { cell.textContent = value; });
-      return;
-    }
 
     const englishCell = valueCells[0];
     const arabicCell = valueCells.length > 1 ? valueCells[1] : englishCell.cloneNode(false);
@@ -135,7 +131,7 @@ export async function injectVesselRegFieldValues(html, fieldValues) {
     arabicCell.classList.add("arabic-value");
     labelArCell.classList.add("arabic-label");
 
-    tr.appendChild(labelEnCell);
+    if (labelEnCell) tr.appendChild(labelEnCell);
     tr.appendChild(englishCell);
     tr.appendChild(arabicCell);
     tr.appendChild(labelArCell);
