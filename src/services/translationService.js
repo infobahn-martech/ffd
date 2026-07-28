@@ -12,9 +12,14 @@ const MODEL = "claude-sonnet-5";
 
 const cache = new Map();
 
+// Temporarily disabled: skip the live API call and return the value untranslated (still
+// digit-shaped by the caller). Remove this early return to re-enable real translation.
+const TRANSLATION_DISABLED = true;
+
 async function translateToArabic(text) {
   const value = String(text ?? "").trim();
   if (!value) return value;
+  if (TRANSLATION_DISABLED) return value;
   if (cache.has(value)) return cache.get(value);
 
   const apiKey = import.meta.env.VITE_TRANSLATION_API_KEY;
