@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
+import DOMPurify from "dompurify";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
+import "../../../../../../design/scss/comments.scss";
 import callFileService from "../../../../../../services/callFileService";
+import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
+import { notify } from "../../../../../../components/Toaster";
+import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 
 const QUILL_MODULES = {
     toolbar: [
@@ -26,6 +32,17 @@ const isEmptyHtmlContent = (html) => {
 };
 
 const getCardId = (card) => card?.id || card?.card_id || card?.call_id;
+
+const mapCommentFromResponse = (row) => ({
+    id: row.comment_id,
+    userName: row.user_name ?? "",
+    content: row.comment_text,
+    mentions: row.mentions ?? [],
+    attachment: row.attachment
+        ? { name: row.attachment, url: row.attachment_url ?? null }
+        : null,
+    created_date: row.created_date ?? null,
+});
 
 const mapManagersFromResponse = (rows) =>
     (rows || []).map((row) => ({
@@ -57,9 +74,36 @@ function Comments({ card }) {
     const [mentionSearch, setMentionSearch] = useState("");
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
     const [isManagersLoading, setIsManagersLoading] = useState(false);
+    const [attachmentFile, setAttachmentFile] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [isCommentsLoading, setIsCommentsLoading] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedComment, setSelectedComment] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const comments = card?.comments ?? [];
+    const cardId = getCardId(card);
     const hasComments = comments.length > 0;
+
+    const loadComments = useCallback(async () => {
+        if (!cardId) return;
+
+        setIsCommentsLoading(true);
+        try {
+            const { data } = await kanbanBoardService.getCardComments(cardId);
+            const rows = unwrapListResponse(data);
+            setComments(rows.map(mapCommentFromResponse));
+        } catch {
+            setComments([]);
+        } finally {
+            setIsCommentsLoading(false);
+        }
+    }, [cardId]);
+
+    useEffect(() => {
+        loadComments();
+    }, [loadComments]);
 
     useEffect(() => {
         let cancelled = false;
@@ -72,7 +116,7 @@ function Comments({ card }) {
                 if (!cancelled) {
                     setManagers(mapManagersFromResponse(list));
                 }
-            } catch (error) {
+            } catch {
                 if (!cancelled) {
                     setManagers([]);
                 }
@@ -158,13 +202,101 @@ function Comments({ card }) {
         [addMentionedUserId, closeMentionDropdown]
     );
 
-    const handleSave = () => {
-        if (isEmptyHtmlContent(commentText)) return;
+    const handleEditOpen = useCallback(
+        (comment) => {
+            setEditingCommentId(comment.id);
+            setCommentText(comment.content);
+            setSelectedMentionUserIds((comment.mentions || []).map((mention) => mention.user_id));
+            setAttachmentFile(null);
+            closeMentionDropdown();
+        },
+        [closeMentionDropdown]
+    );
 
+    const handleEditCancel = useCallback(() => {
+        setEditingCommentId(null);
         setCommentText("");
         setSelectedMentionUserIds([]);
+        setAttachmentFile(null);
         closeMentionDropdown();
-    };
+    }, [closeMentionDropdown]);
+
+    const handleSave = useCallback(async () => {
+        if (isEmptyHtmlContent(commentText) || !cardId || isSaving) return;
+
+        const isEditing = Boolean(editingCommentId);
+        const formData = new FormData();
+        if (isEditing) {
+            formData.append("comment_id", String(editingCommentId));
+        } else {
+            formData.append("card_id", String(cardId));
+        }
+        formData.append("comment_text", commentText);
+        formData.append("mentions", JSON.stringify(selectedMentionUserIds));
+        if (attachmentFile) formData.append("attachment", attachmentFile);
+
+        setIsSaving(true);
+        try {
+            const { data } = isEditing
+                ? await kanbanBoardService.updateCardComment(formData)
+                : await kanbanBoardService.addCardComment(formData);
+            await loadComments();
+            notify(
+                data?.message || (isEditing ? "Comment updated successfully." : "Comment added successfully."),
+                "success"
+            );
+            setEditingCommentId(null);
+            setCommentText("");
+            setSelectedMentionUserIds([]);
+            setAttachmentFile(null);
+            closeMentionDropdown();
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                (editingCommentId ? "Failed to update comment." : "Failed to add comment.");
+            notify(typeof msg === "string" ? msg : "Failed to save comment.", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, editingCommentId, closeMentionDropdown, loadComments]);
+
+    const handleDeleteOpen = useCallback((comment) => {
+        setSelectedComment(comment);
+        setShowDeleteModal(true);
+    }, []);
+
+    const handleDeleteCancel = useCallback(() => {
+        if (isDeleting) return;
+        setShowDeleteModal(false);
+        setSelectedComment(null);
+    }, [isDeleting]);
+
+    const handleDeleteConfirm = useCallback(async () => {
+        if (!selectedComment) return;
+
+        setIsDeleting(true);
+        try {
+            const { data } = await kanbanBoardService.deleteCardComment(selectedComment.id);
+            await loadComments();
+            notify(data?.message || "Comment deleted successfully.", "success");
+            if (editingCommentId === selectedComment.id) {
+                handleEditCancel();
+            }
+            setShowDeleteModal(false);
+            setSelectedComment(null);
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                "Failed to delete comment.";
+            notify(typeof msg === "string" ? msg : "Failed to delete comment.", "error");
+        } finally {
+            setIsDeleting(false);
+        }
+    }, [selectedComment, editingCommentId, handleEditCancel, loadComments]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -173,6 +305,18 @@ function Comments({ card }) {
                     <section className="comments-tab-editor" aria-label="Write a comment">
                         <div className="comments-tab-card comments-tab-card--editor">
                             <div className="comments-tab-editor-body">
+                                {editingCommentId ? (
+                                    <div className="comments-tab-editing-banner">
+                                        <button
+                                            type="button"
+                                            className="subtasks-tab-cancel-btn"
+                                            onClick={handleEditCancel}
+                                            disabled={isSaving}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ) : null}
                                 <div className="comments-tab-mention-host">
                                     <div className="react-quill-wrapper comments-tab-quill">
                                         <ReactQuill
@@ -239,13 +383,48 @@ function Comments({ card }) {
                                     )}
                                 </div>
 
+                                <div className="comments-tab-attachment-row">
+                                    {attachmentFile ? (
+                                        <div className="subtasks-tab-doc-chip">
+                                            <span className="subtasks-tab-doc-name" title={attachmentFile.name}>
+                                                {attachmentFile.name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="subtasks-tab-doc-remove"
+                                                onClick={() => setAttachmentFile(null)}
+                                                aria-label="Remove attachment"
+                                                disabled={isSaving}
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="subtasks-tab-doc-upload" htmlFor="comment-attachment">
+                                            <span>Attach a file</span>
+                                            <input
+                                                id="comment-attachment"
+                                                type="file"
+                                                className="subtasks-tab-doc-input"
+                                                onChange={(event) =>
+                                                    setAttachmentFile(event.target.files?.[0] ?? null)
+                                                }
+                                                disabled={isSaving}
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+
                                 <div className="comments-tab-save-row">
                                     <button
                                         type="button"
                                         className="comments-tab-save-btn"
                                         onClick={handleSave}
+                                        disabled={isSaving || isEmptyHtmlContent(commentText)}
                                     >
-                                        Save
+                                        {editingCommentId
+                                            ? (isSaving ? "Updating..." : "Update")
+                                            : (isSaving ? "Saving..." : "Save")}
                                     </button>
                                 </div>
                             </div>
@@ -255,17 +434,62 @@ function Comments({ card }) {
                     <section className="comments-tab-list" aria-label="Comments">
                         <div className="comments-tab-card comments-tab-card--list">
                             <div className="comments-tab-list-scroll">
-                                {!hasComments ? (
+                                {isCommentsLoading ? (
+                                    <p className="comments-tab-empty">Loading comments...</p>
+                                ) : !hasComments ? (
                                     <p className="comments-tab-empty">No comments added yet.</p>
                                 ) : (
                                     <ul className="comments-tab-list-items">
                                         {comments.map((comment, index) => (
-                                            <li className="comments-tab-comment-card" key={index}>
-                                                <div className="comments-tab-comment-avatar">
-                                                    <img src={comment.avatar} alt="avatar" />
-                                                </div>
+                                            <li className="comments-tab-comment-card" key={comment.id ?? index}>
+                                                <div className="comments-tab-comment-avatar" />
                                                 <div className="comments-tab-comment-content">
-                                                    <p>{comment.content}</p>
+                                                    <div className="comments-tab-comment-header">
+                                                        {comment.userName ? (
+                                                            <p className="comments-tab-comment-author">{comment.userName}</p>
+                                                        ) : <span />}
+                                                        <div className="comments-tab-comment-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleEditOpen(comment)}
+                                                                aria-label="Edit comment"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiEdit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleDeleteOpen(comment)}
+                                                                aria-label="Delete comment"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiTrash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }} />
+                                                    {comment.attachment ? (
+                                                        comment.attachment.url ? (
+                                                            <a
+                                                                className="subtasks-tab-task-doc"
+                                                                href={comment.attachment.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={comment.attachment.name}
+                                                            >
+                                                                {comment.attachment.name}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="subtasks-tab-task-doc" title={comment.attachment.name}>
+                                                                {comment.attachment.name}
+                                                            </span>
+                                                        )
+                                                    ) : null}
+                                                    {comment.created_date ? (
+                                                        <p className="notes-tab-note-updated">{comment.created_date}</p>
+                                                    ) : null}
                                                 </div>
                                             </li>
                                         ))}
@@ -276,6 +500,14 @@ function Comments({ card }) {
                     </section>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                show={showDeleteModal}
+                onCancel={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                isLoading={isDeleting}
+                deleteText="Are you sure you want to delete this comment?"
+            />
         </div>
     );
 }
