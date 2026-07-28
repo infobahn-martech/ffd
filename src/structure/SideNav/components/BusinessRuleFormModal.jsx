@@ -99,6 +99,31 @@ const WEEKDAY_KEY_TO_SHORT_LABEL = {
   sunday: 'Su', monday: 'Mo', tuesday: 'Tu', wednesday: 'We', thursday: 'Th', friday: 'Fr', saturday: 'Sa',
 };
 
+// "Custom cron expression" tab's four fields, in stored/display order. Mirrors the
+// generator's own scope (no minute/hour — that's the separate "Execute at" clock picker),
+// extended with a Year field the same way the generator's Yearly period has one. Each
+// entry's range/rangeDesc backs the reference table's top row for whichever field is focused.
+const CRON_CUSTOM_FIELDS = [
+  { key: 'day', stateKey: 'customDay', label: 'Day of the month', range: '1-31', rangeDesc: 'Any number between 1 and 31' },
+  { key: 'month', stateKey: 'customMonth', label: 'Month', range: '1-12', rangeDesc: 'Any number between 1 and 12' },
+  { key: 'dow', stateKey: 'customDow', label: 'Day of the week', range: '0-6', rangeDesc: 'Any number between 0 and 6' },
+  { key: 'year', stateKey: 'customYear', label: 'Year', range: '1970-2099', rangeDesc: 'Any number between 1970 and 2099' },
+];
+
+// Fixed legend of cron syntax symbols shown under the custom-expression fields — same
+// symbols/wording across every field, unlike the range row above it.
+const CRON_SYMBOL_LEGEND = [
+  { symbol: '(*) All values', desc: 'The asterisk (*) symbol represents every possible value of the field in which it is placed.' },
+  { symbol: '(-) Range', desc: 'The hyphen (-) symbol is used to specify ranges of values within a particular field.' },
+  { symbol: '(/) Increment', desc: 'The slash (/) symbol is used to specify step values within a field, indicating the interval between values in a sequence.' },
+  { symbol: '(?) No specific value', desc: 'The question mark (?) is used in the "day of the month" and "day of the week" fields to specify no specific value.' },
+  { symbol: '(L) Last', desc: 'The (L) character is a special symbol meaning "last", indicating the last occurrence of a time unit, such as the last day or weekday of the month.' },
+  { symbol: '(W) Weekday', desc: 'The (W) character is used to specify the nearest weekday (Monday to Friday) to a given day of the month.' },
+  { symbol: '(,) List', desc: 'The comma (,) symbol allows you to specify a list of discrete values within a particular field.' },
+];
+
+const CRON_DOW_INDEX_TO_LABEL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 // Advanced schedule's stored value is an RRULE-style string (FREQ=...;INTERVAL=...;BYDAY=...)
 // rather than a real 5-field cron expression — standard cron can't express "every N weeks" or
 // "every N months", both of which the generator supports, and RRULE is the established format
@@ -110,13 +135,21 @@ const ADVANCED_SCHEDULE_DEFAULT_STATE = {
   weeklyInterval: '1', weeklyDays: [],
   monthlyType: 'day', monthlyInterval: '1', monthlyDay: '1', monthlyOrdinal: '1', monthlyWeekday: 'monday',
   yearlyType: 'date', yearlyMonth: '1', yearlyDay: '1', yearlyOrdinal: '1', yearlyWeekday: 'monday',
-  customExpression: '',
+  customDay: '*', customMonth: '*', customDow: '?', customYear: '*',
 };
 
 function parseAdvancedScheduleValue(value) {
   if (!value) return ADVANCED_SCHEDULE_DEFAULT_STATE;
   if (!value.startsWith('FREQ=')) {
-    return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, mode: 'custom', customExpression: value };
+    const [day, month, dow, year] = value.trim().split(/\s+/);
+    return {
+      ...ADVANCED_SCHEDULE_DEFAULT_STATE,
+      mode: 'custom',
+      customDay: day || '*',
+      customMonth: month || '*',
+      customDow: dow || '?',
+      customYear: year || '*',
+    };
   }
 
   const parts = Object.fromEntries(value.split(';').filter(Boolean).map((p) => p.split('=')));
@@ -152,7 +185,13 @@ function parseAdvancedScheduleValue(value) {
 }
 
 function buildAdvancedScheduleValue(state) {
-  if (state.mode === 'custom') return state.customExpression.trim();
+  if (state.mode === 'custom') {
+    const day = state.customDay.trim() || '*';
+    const month = state.customMonth.trim() || '*';
+    const dow = state.customDow.trim() || '?';
+    const year = state.customYear.trim() || '*';
+    return `${day} ${month} ${dow} ${year}`;
+  }
 
   if (state.period === 'daily') {
     if (state.dailyType === 'weekday') return 'FREQ=DAILY;WEEKDAY=1';
@@ -178,8 +217,36 @@ function buildAdvancedScheduleValue(state) {
   return `FREQ=YEARLY;BYMONTH=${state.yearlyMonth};BYMONTHDAY=${Math.min(31, Math.max(1, parseInt(state.yearlyDay, 10) || 1))}`;
 }
 
+// Turns one custom-cron field's raw value into the noun/phrase summarizeCustomCron below
+// slots into the "Every ... every ... every ..." sentence — '*' reads as the bare unit name
+// ("day"/"month"/"year"), '?' (no specific value, day-of-month/day-of-week only) drops the
+// field from the sentence entirely, and anything else is described as literally as it can be.
+function describeCronFieldSummary(rawValue, fieldKey) {
+  const value = (rawValue ?? '').trim();
+  if (!value || value === '*') return fieldKey === 'dow' ? null : fieldKey;
+  if (value === '?') return null;
+  if (fieldKey === 'month' && /^\d+$/.test(value)) {
+    return ADVANCED_SCHEDULE_MONTH_OPTIONS.find((o) => o.key === value)?.label ?? value;
+  }
+  if (fieldKey === 'dow' && /^\d+$/.test(value)) {
+    return CRON_DOW_INDEX_TO_LABEL[parseInt(value, 10) % 7] ?? value;
+  }
+  return value;
+}
+
+function summarizeCustomCron(state) {
+  const segments = [
+    describeCronFieldSummary(state.customDay, 'day'),
+    describeCronFieldSummary(state.customMonth, 'month'),
+    describeCronFieldSummary(state.customDow, 'dow'),
+    describeCronFieldSummary(state.customYear, 'year'),
+  ].filter(Boolean);
+  if (segments.length === 0) return 'Not Set';
+  return `Every ${segments.map((s, i) => (i === 0 ? s : `every ${s}`)).join(' ')}`;
+}
+
 function summarizeAdvancedSchedule(state) {
-  if (state.mode === 'custom') return state.customExpression.trim() || 'Not Set';
+  if (state.mode === 'custom') return summarizeCustomCron(state);
 
   if (state.period === 'daily') {
     return state.dailyType === 'weekday'
@@ -1154,9 +1221,13 @@ const ADVANCED_SCHEDULE_PERIOD_TABS = [
 
 function AdvancedScheduleModal({ show, onClose, value, onSave }) {
   const [state, setState] = useState(() => parseAdvancedScheduleValue(value));
+  const [focusedCronField, setFocusedCronField] = useState('day');
 
   useEffect(() => {
-    if (show) setState(parseAdvancedScheduleValue(value));
+    if (show) {
+      setState(parseAdvancedScheduleValue(value));
+      setFocusedCronField('day');
+    }
   }, [show, value]);
 
   const update = (patch) => setState((prev) => ({ ...prev, ...patch }));
@@ -1175,12 +1246,14 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
     onClose();
   };
 
+  const activeCronFieldMeta = CRON_CUSTOM_FIELDS.find((f) => f.key === focusedCronField) ?? CRON_CUSTOM_FIELDS[0];
+
   return (
     <Modal
       show={show}
       onHide={onClose}
       className="card-property-match-modal br-cron-modal"
-      dialogClassName="card-property-match-modal-dialog br-cron-modal-dialog"
+      dialogClassName={`card-property-match-modal-dialog br-cron-modal-dialog${state.mode === 'custom' ? ' br-cron-modal-dialog--wide' : ''}`}
       backdropClassName="card-property-match-modal-backdrop"
       centered
     >
@@ -1215,15 +1288,39 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
           </div>
 
           {state.mode === 'custom' ? (
-            <div className="br-cron-panel">
-              <input
-                type="text"
-                className="br-cron-custom-input"
-                placeholder="* * * * *"
-                value={state.customExpression}
-                onChange={(e) => update({ customExpression: e.target.value })}
-                autoFocus
-              />
+            <div className="br-cron-panel br-cron-custom-panel">
+              <div className="br-cron-custom-summary">{summarizeCustomCron(state)}</div>
+
+              <div className="br-cron-custom-fields">
+                {CRON_CUSTOM_FIELDS.map((field) => (
+                  <div key={field.key} className="br-cron-custom-field">
+                    <label className="br-cron-custom-field-label">{field.label}</label>
+                    <input
+                      type="text"
+                      className="br-cron-custom-field-input"
+                      value={state[field.stateKey]}
+                      onChange={(e) => update({ [field.stateKey]: e.target.value })}
+                      onFocus={() => setFocusedCronField(field.key)}
+                      autoFocus={field.key === 'day'}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="br-cron-custom-table">
+                <div className="br-cron-custom-table-row br-cron-custom-table-row--header">
+                  <div className="br-cron-custom-table-value">{activeCronFieldMeta.range}</div>
+                  <div className="br-cron-custom-table-desc">{activeCronFieldMeta.rangeDesc}</div>
+                </div>
+                {CRON_SYMBOL_LEGEND.map((row) => (
+                  <div key={row.symbol} className="br-cron-custom-table-row">
+                    <div className="br-cron-custom-table-value">
+                      {row.symbol} <FiInfo size={12} className="br-cron-custom-table-info-icon" />
+                    </div>
+                    <div className="br-cron-custom-table-desc">{row.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <>
