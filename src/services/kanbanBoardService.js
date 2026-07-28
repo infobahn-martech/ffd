@@ -67,6 +67,10 @@ const completeSubtask = (subtaskId, isCompleted) =>
 const addCardComment = (formData) =>
   Gateway.post('/kanban_card/add_card_comment', formData);
 
+/** GET — comments for a card; response: { data: [{ comment_id, user_id, user_name, comment_text, mentions, attachment, attachment_url, created_date, updated_date }] } */
+const getCardComments = (cardId) =>
+  Gateway.get(`/kanban_card/get_card_comments/${encodeURIComponent(String(cardId))}`);
+
 export default {
   getFullBoard,
   updateCardColor,
@@ -84,4 +88,5 @@ export default {
   updateSubtask,
   completeSubtask,
   addCardComment,
+  getCardComments,
 };

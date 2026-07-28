@@ -4,6 +4,7 @@ import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
+import "../../../../../../design/scss/comments.scss";
 import callFileService from "../../../../../../services/callFileService";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
@@ -29,6 +30,16 @@ const isEmptyHtmlContent = (html) => {
 };
 
 const getCardId = (card) => card?.id || card?.card_id || card?.call_id;
+
+const mapCommentFromResponse = (row) => ({
+    id: row.comment_id,
+    userName: row.user_name ?? "",
+    content: row.comment_text,
+    attachment: row.attachment
+        ? { name: row.attachment, url: row.attachment_url ?? null }
+        : null,
+    created_date: row.created_date ?? null,
+});
 
 const mapManagersFromResponse = (rows) =>
     (rows || []).map((row) => ({
@@ -62,15 +73,30 @@ function Comments({ card }) {
     const [isManagersLoading, setIsManagersLoading] = useState(false);
     const [attachmentFile, setAttachmentFile] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [localComments, setLocalComments] = useState([]);
+    const [comments, setComments] = useState([]);
+    const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
     const cardId = getCardId(card);
-
-    const comments = useMemo(
-        () => [...(card?.comments ?? []), ...localComments],
-        [card?.comments, localComments]
-    );
     const hasComments = comments.length > 0;
+
+    const loadComments = useCallback(async () => {
+        if (!cardId) return;
+
+        setIsCommentsLoading(true);
+        try {
+            const { data } = await kanbanBoardService.getCardComments(cardId);
+            const rows = unwrapListResponse(data);
+            setComments(rows.map(mapCommentFromResponse));
+        } catch {
+            setComments([]);
+        } finally {
+            setIsCommentsLoading(false);
+        }
+    }, [cardId]);
+
+    useEffect(() => {
+        loadComments();
+    }, [loadComments]);
 
     useEffect(() => {
         let cancelled = false;
@@ -83,7 +109,7 @@ function Comments({ card }) {
                 if (!cancelled) {
                     setManagers(mapManagersFromResponse(list));
                 }
-            } catch (error) {
+            } catch {
                 if (!cancelled) {
                     setManagers([]);
                 }
@@ -181,21 +207,7 @@ function Comments({ card }) {
         setIsSaving(true);
         try {
             const { data } = await kanbanBoardService.addCardComment(formData);
-            const created = data?.data;
-            if (created) {
-                setLocalComments((prev) => [
-                    ...prev,
-                    {
-                        id: created.comment_id,
-                        avatar: null,
-                        content: created.comment_text,
-                        attachment: created.attachment
-                            ? { name: created.attachment, url: created.attachment_url ?? null }
-                            : null,
-                        created_date: created.created_date ?? null,
-                    },
-                ]);
-            }
+            await loadComments();
             notify(data?.message || "Comment added successfully.", "success");
             setCommentText("");
             setSelectedMentionUserIds([]);
@@ -211,7 +223,7 @@ function Comments({ card }) {
         } finally {
             setIsSaving(false);
         }
-    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, closeMentionDropdown]);
+    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, closeMentionDropdown, loadComments]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -335,18 +347,19 @@ function Comments({ card }) {
                     <section className="comments-tab-list" aria-label="Comments">
                         <div className="comments-tab-card comments-tab-card--list">
                             <div className="comments-tab-list-scroll">
-                                {!hasComments ? (
+                                {isCommentsLoading ? (
+                                    <p className="comments-tab-empty">Loading comments...</p>
+                                ) : !hasComments ? (
                                     <p className="comments-tab-empty">No comments added yet.</p>
                                 ) : (
                                     <ul className="comments-tab-list-items">
                                         {comments.map((comment, index) => (
                                             <li className="comments-tab-comment-card" key={comment.id ?? index}>
-                                                <div className="comments-tab-comment-avatar">
-                                                    {comment.avatar ? (
-                                                        <img src={comment.avatar} alt="avatar" />
-                                                    ) : null}
-                                                </div>
+                                                <div className="comments-tab-comment-avatar" />
                                                 <div className="comments-tab-comment-content">
+                                                    {comment.userName ? (
+                                                        <p className="comments-tab-comment-author">{comment.userName}</p>
+                                                    ) : null}
                                                     <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }} />
                                                     {comment.attachment ? (
                                                         comment.attachment.url ? (
