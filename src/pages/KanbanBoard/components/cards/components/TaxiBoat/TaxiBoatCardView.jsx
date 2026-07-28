@@ -790,20 +790,56 @@ const parseToInputDate = (raw) => {
   return "";
 };
 
+const FLEET_ASSIGN_STEPS = ["Choose Fleet", "Assign Captain", "Ready"];
+
+function FleetStatusPill({ label = "Available" }) {
+  return (
+    <span className="tb-status-pill">
+      <span className="tb-status-pill-dot" />
+      {label}
+    </span>
+  );
+}
+
+FleetStatusPill.propTypes = { label: PropTypes.string };
+
 function TaxiFleetAssignPanel({
-  bookingDate, bookingTime,
   fleets, isLoadingFleets,
   selectedFleet, onSelectFleet,
   captains, isLoadingCaptains,
-  selectedCaptainId, onSelectCaptainId,
+  selectedCaptainId,
   isAssigning,
   assigned, assignedCaptainName,
   onAssignCaptain,
 }) {
+  const stepIndex = assigned ? 3 : selectedFleet ? 2 : 1;
+
   return (
     <div className="tb-fleet-panel">
-      <h3 className="tb-fleet-panel-title">Taxi Fleet Assignment</h3>
-      <span className="tb-fleet-select-label">Select Fleet</span>
+      <div className="tb-fleet-panel-head">
+        <h3 className="tb-fleet-panel-title">Taxi Fleet Assignment</h3>
+        <ol className="tb-fleet-steps">
+          {FLEET_ASSIGN_STEPS.map((label, i) => {
+            const stepNum = i + 1;
+            return (
+              <li
+                key={label}
+                className={[
+                  "tb-fleet-step",
+                  stepIndex > stepNum ? "tb-fleet-step--done" : "",
+                  stepIndex === stepNum ? "tb-fleet-step--active" : "",
+                ].filter(Boolean).join(" ")}
+              >
+                <span className="tb-fleet-step-dot">
+                  {stepIndex > stepNum ? <FiCheckCircle size={10} /> : stepNum}
+                </span>
+                {label}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
       {isLoadingFleets ? (
         <span className="tb-fleet-empty-hint">Loading fleets…</span>
       ) : fleets.length === 0 ? (
@@ -812,28 +848,93 @@ function TaxiFleetAssignPanel({
         <div className="tb-fleet-cards">
           {fleets.map((fleet) => {
             const isSelected = selectedFleet?.taxi_boat_id === fleet.taxi_boat_id;
-            const isAssigned = assigned && isSelected;
+            const isFleetAssigned = assigned && isSelected;
             return (
-              <button
+              <div
                 key={fleet.taxi_boat_id}
-                className={[
-                  "tb-fleet-card",
-                  isSelected ? "tb-fleet-card--selected" : "",
-                  isAssigned ? "tb-fleet-card--assigned" : "",
-                ].filter(Boolean).join(" ")}
-                onClick={() => !assigned && onSelectFleet(fleet)}
-                disabled={assigned}
+                className={["tb-fleet-card", isSelected ? "tb-fleet-card--selected" : ""].filter(Boolean).join(" ")}
               >
-                <MdDirectionsBoat size={24} className="tb-fleet-card-icon" />
-                <span className="tb-fleet-card-name">{fleet.taxi_boat_name}</span>
-                {fleet.registration_no && <span className="tb-fleet-card-tagline">{fleet.registration_no}</span>}
-                {fleet.capacity_persons != null && (
-                  <span className="tb-fleet-card-cap">Capacity: {fleet.capacity_persons}</span>
+                <button
+                  type="button"
+                  className="tb-fleet-card-head"
+                  onClick={() => !assigned && onSelectFleet(fleet)}
+                  disabled={assigned}
+                >
+                  <span className="tb-fleet-card-name">
+                    <MdDirectionsBoat size={18} />
+                    {fleet.taxi_boat_name}
+                  </span>
+                  {isSelected && (
+                    <span className="tb-fleet-card-badge">
+                      <FiCheckCircle size={11} /> Selected
+                    </span>
+                  )}
+                </button>
+
+                {isSelected && (
+                  <div className="tb-fleet-card-body">
+                    <div className="tb-fleet-card-row">
+                      <span className="tb-fleet-card-row-label">Status</span>
+                      <FleetStatusPill />
+                    </div>
+                    {(fleet.registration_no || fleet.capacity_persons != null) && (
+                      <div className="tb-fleet-card-meta">
+                        {fleet.registration_no && <span>{fleet.registration_no}</span>}
+                        {fleet.capacity_persons != null && <span>{fleet.capacity_persons} persons</span>}
+                      </div>
+                    )}
+
+                    <div className="tb-fleet-card-divider" />
+
+                    {isFleetAssigned ? (
+                      <div className="tb-fleet-success">
+                        <FiCheckCircle size={18} />
+                        <div className="tb-fleet-success-text">
+                          <span className="tb-fleet-success-title">Captain Assigned</span>
+                          <span className="tb-fleet-success-name">{assignedCaptainName}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="tb-fleet-card-row-label">Captain</span>
+                        <SearchableSelect
+                          className="tb-summary-select"
+                          value={selectedCaptainId ?? ""}
+                          onChange={(e) => onAssignCaptain(e.target.value)}
+                          options={captains.map((captain) => ({
+                            value: captain.taxiboat_captain_id,
+                            label: captain.captain_name,
+                          }))}
+                          placeholder={
+                            isLoadingCaptains
+                              ? "Loading captains…"
+                              : captains.length === 0
+                              ? "No captains available"
+                              : "Select Captain"
+                          }
+                          disabled={isLoadingCaptains || isAssigning || captains.length === 0}
+                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        />
+                        {selectedCaptainId && (
+                          <div className="tb-fleet-card-row">
+                            <span className="tb-fleet-card-row-label">Captain Status</span>
+                            <FleetStatusPill />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
-                {isAssigned && <span className="tb-fleet-card-badge"><FiCheckCircle size={10} /> Assigned</span>}
-              </button>
+              </div>
             );
           })}
+        </div>
+      )}
+
+      {!isLoadingFleets && fleets.length > 0 && !selectedFleet && (
+        <div className="tb-fleet-empty-state">
+          <FiUser size={18} />
+          Select a fleet to assign a captain.
         </div>
       )}
     </div>
@@ -841,8 +942,6 @@ function TaxiFleetAssignPanel({
 }
 
 TaxiFleetAssignPanel.propTypes = {
-  bookingDate:         PropTypes.string.isRequired,
-  bookingTime:         PropTypes.string.isRequired,
   fleets:              PropTypes.array.isRequired,
   isLoadingFleets:     PropTypes.bool.isRequired,
   selectedFleet:       PropTypes.object,
@@ -850,7 +949,6 @@ TaxiFleetAssignPanel.propTypes = {
   captains:            PropTypes.array.isRequired,
   isLoadingCaptains:   PropTypes.bool.isRequired,
   selectedCaptainId:   PropTypes.string,
-  onSelectCaptainId:   PropTypes.func.isRequired,
   isAssigning:         PropTypes.bool.isRequired,
   assigned:            PropTypes.bool.isRequired,
   assignedCaptainName: PropTypes.string,
@@ -1537,26 +1635,8 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTaxiBoatCaptain, fleets, selectedFleet]);
 
-  const handleAssignCaptain = useCallback(() => {
-    if (!selectedFleet || !selectedCaptainId) return;
-    if (!locationEdit || !bookingDateEdit || !bookingTimeEdit) {
-      notifyError("Location and booking date/time are required before assigning a captain.");
-      return;
-    }
-    const captain = captains.find((c) => String(c.taxiboat_captain_id) === String(selectedCaptainId));
-    assignCaptain({
-      booking_id: bookingId,
-      taxi_boat_id: selectedFleet.taxi_boat_id,
-      taxiboat_captain_id: selectedCaptainId,
-      booking_datetime: buildApiDateTime(bookingDateEdit, bookingTimeEdit),
-      location: locationEdit,
-      cb: () => {
-        setFleetAssigned(true);
-        setAssignedCaptainName(captain?.captain_name ?? null);
-      },
-    });
-  }, [selectedFleet, selectedCaptainId, captains, bookingId, assignCaptain, locationEdit, bookingDateEdit, bookingTimeEdit, notifyError]);
-
+  // Captain selection now lives inside the Fleet card in TaxiFleetAssignPanel — picking a
+  // captain there assigns immediately (same one-step flow the old summary dropdown used).
   const handleSummaryCaptainSelect = useCallback((captainId) => {
     const taxiBoatId = selectedFleet?.taxi_boat_id ?? fleets[0]?.taxi_boat_id;
     if (!captainId || !taxiBoatId) return;
@@ -1984,31 +2064,9 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         ) : (
           <GroSummaryCard label="Booking Date" value={bookingDate} />
         )}
-        {isTaxiBoatOperator && !fleetAssigned ? (
-          <GroSummaryFieldCard label="Assigned Captian">
-            <SearchableSelect
-              className="tb-summary-select"
-              value={selectedCaptainId ?? ""}
-              onChange={(e) => handleSummaryCaptainSelect(e.target.value)}
-              options={captains.map((captain) => ({
-                value: captain.taxiboat_captain_id,
-                label: captain.captain_name,
-              }))}
-              placeholder={
-                !selectedFleet
-                  ? "Select a fleet first"
-                  : isLoadingCaptains
-                  ? "Loading captains…"
-                  : captains.length === 0
-                  ? "No captains available"
-                  : "Select a captain"
-              }
-              disabled={!selectedFleet || isLoadingCaptains || isAssigning || captains.length === 0}
-            />
-          </GroSummaryFieldCard>
-        ) : (
-          <GroSummaryCard label="Assigned Captian" value={isTaxiBoatOperator ? assignedCaptainName : assignedUser} />
-        )}
+        {/* Captain selection now happens inside the Fleet card in TaxiFleetAssignPanel below,
+            connected right next to the fleet it's being assigned to. */}
+        <GroSummaryCard label="Assigned Captian" value={isTaxiBoatOperator ? assignedCaptainName : assignedUser} />
       </div>
 
       {isTaxiBoatCaptain ? (
@@ -2054,8 +2112,6 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         )
       ) : (
         <TaxiFleetAssignPanel
-          bookingDate={bookingDateEdit}
-          bookingTime={bookingTimeEdit}
           fleets={fleets}
           isLoadingFleets={isLoadingFleets}
           selectedFleet={selectedFleet}
@@ -2063,11 +2119,10 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           captains={captains}
           isLoadingCaptains={isLoadingCaptains}
           selectedCaptainId={selectedCaptainId}
-          onSelectCaptainId={setSelectedCaptainId}
           isAssigning={isAssigning}
           assigned={fleetAssigned}
           assignedCaptainName={assignedCaptainName}
-          onAssignCaptain={handleAssignCaptain}
+          onAssignCaptain={handleSummaryCaptainSelect}
         />
       )}
 
