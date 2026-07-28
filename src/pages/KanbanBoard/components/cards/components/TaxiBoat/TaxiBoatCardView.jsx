@@ -17,6 +17,7 @@ import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-service-scenarios.scss";
 import GroSummaryCard, { GroSummaryFieldCard } from "../GRO/User/GroSummaryCard";
+import CardTabListLoading from "../../../../../../components/CardTabListLoading";
 
 const CREW_CHANGE_SERVICES = ["Crew Change"];
 const MATERIAL_SERVICES   = ["Material Delivery", "Provision Delivery", "Garbage Collection"];
@@ -1424,16 +1425,21 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
   const cardId = card?.card_id ?? card?.cardId ?? card?.id ?? null;
   const [callDetail, setCallDetail] = useState(null);
+  const [isLoadingCallDetail, setIsLoadingCallDetail] = useState(true);
 
   useEffect(() => {
-    if (callId == null || cardId == null) return undefined;
+    if (callId == null || cardId == null) { setIsLoadingCallDetail(false); return undefined; }
     let cancelled = false;
+    setIsLoadingCallDetail(true);
     groService.getCallDetailById(callId, cardId)
       .then((res) => {
         if (!cancelled) setCallDetail(res?.data?.data ?? res?.data ?? null);
       })
       .catch(() => {
         if (!cancelled) setCallDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingCallDetail(false);
       });
     return () => { cancelled = true; };
   }, [callId, cardId]);
@@ -1647,15 +1653,20 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   // to render below. Only fall back to the legacy typeOfService matching when item_type
   // is missing/unrecognized (e.g. still loading).
   const [taxiboatBookingDetail, setTaxiboatBookingDetail] = useState(null);
+  const [isLoadingBookingDetail, setIsLoadingBookingDetail] = useState(true);
   useEffect(() => {
-    if (bookingId == null) return undefined;
+    if (bookingId == null) { setIsLoadingBookingDetail(false); return undefined; }
     let cancelled = false;
+    setIsLoadingBookingDetail(true);
     launchHireService.getTaxiboatBookingDetail(bookingId)
       .then((res) => {
         if (!cancelled) setTaxiboatBookingDetail(res?.data?.data ?? res?.data ?? null);
       })
       .catch(() => {
         if (!cancelled) setTaxiboatBookingDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingBookingDetail(false);
       });
     return () => { cancelled = true; };
   }, [bookingId]);
@@ -1928,6 +1939,17 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     slip.focus();
     setTimeout(() => slip.print(), 250);
   }, [vesselName, serviceType, billingEntity, requestedOperator, location]);
+
+  // callDetail carries vessel/operator/billing info and taxiboatBookingDetail carries
+  // item_type — the scenario switch above depends on both, so render nothing scenario-
+  // specific (mock data, wrong panel) until both have settled.
+  if (isLoadingCallDetail || isLoadingBookingDetail) {
+    return (
+      <div className="tb-card-view">
+        <CardTabListLoading message="Loading taxi boat booking…" />
+      </div>
+    );
+  }
 
   return (
     <div className="tb-card-view">
