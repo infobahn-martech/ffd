@@ -1478,6 +1478,10 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const [pickupStepBackLog, setPickupStepBackLog] = useState([]);
   const [undoPending, setUndoPending] = useState(null); // { label, resetter }
   const [captainCrewlistOpen, setCaptainCrewlistOpen] = useState(false);
+  // Captain default view is Movement Timestamps — the read-only item_type listing (material
+  // inbound/dispatch, transport/medical/hotel crew, third-party service) is tucked behind
+  // this toggle instead of showing inline, mirroring CrewListBatchwisePanel's Crewlist toggle.
+  const [itemDetailsOpen, setItemDetailsOpen] = useState(false);
 
   // Operator name recorded with each timestamp
   const [operatorName, setOperatorName] = useState(() => card?.requestedOperator ?? "");
@@ -1700,9 +1704,18 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   // medical/hotel requests, material inbound/dispatch, third-party/addon services). The
   // Taxi Boat Operator only assigns the fleet/captain and views the listing — the Captain
   // is the one who actually performs the trip, so Operators never see this capture panel.
+  // For the Captain, Movement Timestamps is the default view for the new item_type
+  // listings — the listing itself is tucked behind the Details toggle instead (see
+  // itemDetailsOpen/showItemTypeListingContent below), so the two never show at once.
   const showsGenericTimestamps = isTaxiBoatOperator
     ? false
-    : hasNewItemTypeListing || (!isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatCaptain);
+    : hasNewItemTypeListing
+      ? (!isTaxiBoatCaptain || !itemDetailsOpen)
+      : (!isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatCaptain);
+
+  // The new read-only item_type listings show inline for every role except Captain, who
+  // instead sees Movement Timestamps by default and reveals the listing via the toggle.
+  const showItemTypeListingContent = hasNewItemTypeListing && (!isTaxiBoatCaptain || itemDetailsOpen);
   useEffect(() => {
     if (!showsGenericTimestamps || bookingId == null) return undefined;
     let cancelled = false;
@@ -2215,15 +2228,36 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       )}
 
       {/* Scenario D: read-only item_type listings — material inbound/dispatch, transport/
-          medical/hotel request crew, third-party/addon services. Movement Timestamps below
-          still applies for these. */}
-      {isMaterialInbound && (
+          medical/hotel request crew, third-party/addon services. For the Captain, this is
+          tucked behind the Details toggle instead of showing alongside Movement Timestamps. */}
+      {isTaxiBoatCaptain && hasNewItemTypeListing && (
+        <div className="tb-crewlist-toggle-row">
+          <button
+            type="button"
+            className="tb-crewlist-toggle-btn"
+            onClick={() => setItemDetailsOpen((open) => !open)}
+          >
+            {itemDetailsOpen ? (
+              <>
+                <FiArrowLeft size={14} />
+                Back
+              </>
+            ) : (
+              <>
+                <FiUser size={14} />
+                Details
+              </>
+            )}
+          </button>
+        </div>
+      )}
+      {showItemTypeListingContent && isMaterialInbound && (
         <MaterialInboundListing materialInbound={taxiboatBookingDetail?.material_inbound} />
       )}
-      {isMaterialDispatch && (
+      {showItemTypeListingContent && isMaterialDispatch && (
         <MaterialDispatchListing materialDispatch={taxiboatBookingDetail?.material_dispatch} />
       )}
-      {(isTransportRequest || isMedicalRequest || isHotelRequest) && (
+      {showItemTypeListingContent && (isTransportRequest || isMedicalRequest || isHotelRequest) && (
         <ItemTypeCrewListing
           title={
             isTransportRequest ? "Transport Request — Crew"
@@ -2234,7 +2268,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           showCompletedDate={isMedicalRequest}
         />
       )}
-      {isThirdPartyService && (
+      {showItemTypeListingContent && isThirdPartyService && (
         <ThirdPartyServiceListing
           serviceName={taxiboatBookingDetail?.service_name}
           vesselName={taxiboatBookingDetail?.vessel_name ?? vesselName}
