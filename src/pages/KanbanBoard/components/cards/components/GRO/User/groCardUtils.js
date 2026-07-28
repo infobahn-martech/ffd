@@ -196,14 +196,16 @@ export const resolveTaskDocumentsTitle = (
 
 /** Normalize task document rows from get_documents_by_task for GRO document lists. */
 export const normalizeGroApiDocuments = (apiDocuments) =>
-  (apiDocuments || []).map((doc) => ({
-    ...doc,
-    is_uploaded: Boolean(doc.is_uploaded ?? (doc.file_url || doc.file_name)),
-    file_name: doc.file_name || null,
-    file_url: doc.file_url || null,
-    status: Number(doc.status ?? 0),
-    uploaded_by: doc.uploaded_by ?? doc.uploaded_by_user ?? null,
-  }));
+  (apiDocuments || [])
+    .filter((doc) => String(doc?.document_name ?? "").trim() !== "")
+    .map((doc) => ({
+      ...doc,
+      is_uploaded: Boolean(doc.is_uploaded ?? (doc.file_url || doc.file_name)),
+      file_name: doc.file_name || null,
+      file_url: doc.file_url || null,
+      status: Number(doc.status ?? 0),
+      uploaded_by: doc.uploaded_by ?? doc.uploaded_by_user ?? null,
+    }));
 
 export const groApiErrorMessage = (err, fallback) =>
   err?.response?.data?.message ?? err?.response?.data?.error ?? err?.message ?? fallback;
