@@ -713,13 +713,16 @@ FinalStep.propTypes = {
   onComplete:  PropTypes.func.isRequired,
 };
 
-function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, onCaptureCob, stepsAllDone, stepBackLog }) {
+function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, onCaptureCob, stepsAllDone, stepBackLog, headerAction }) {
   const anyDone = timestamps.some((t) => tsState[t.key] !== null);
   if (!anyDone) return null;
 
   return (
     <div className="tb-ts-summary">
-      <span className="tb-ts-summary-title">Timestamps Summary</span>
+      <div className="tb-ts-summary-header">
+        <span className="tb-ts-summary-title">Timestamps Summary</span>
+        {headerAction}
+      </div>
       <table className="tb-ts-summary-table">
         <thead>
           <tr>
@@ -797,6 +800,7 @@ TimestampSummaryTable.propTypes = {
   onCaptureCob:    PropTypes.func.isRequired,
   stepsAllDone:    PropTypes.bool.isRequired,
   stepBackLog:     PropTypes.array,
+  headerAction:    PropTypes.node,
 };
 
 const parseToInputDate = (raw) => {
@@ -2110,6 +2114,34 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     );
   }
 
+  // Print/Upload actions for the generic Movement Timestamps section — rendered inside
+  // TimestampSummaryTable's header (top-right, next to the "Timestamps Summary" title)
+  // instead of below the table.
+  const launchSlipActions = jobCompleted && (
+    <div className="tb-batch-actions tb-batch-actions--end">
+      <button
+        className="tb-batch-print-btn"
+        onClick={() => printLaunchSlip(activeTab === "drop" ? dropTs : pickupTs, activeTab === "drop" ? "Drop Trip" : "Pickup Trip", operatorName, jobCompletedAt)}
+      >
+        <FiPrinter size={14} />
+        Print Launch Slip
+      </button>
+      <div>
+        <input
+          type="file"
+          id="tb-launch-slip-file"
+          className="tb-launch-slip-input"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
+        />
+        <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
+          <FiUpload size={14} />
+          {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
+        </label>
+      </div>
+    </div>
+  );
+
   return (
     <div className="tb-card-view">
       <div className={`gro-summary-grid${isTaxiBoatOperator ? "" : " gro-summary-grid--six-col"}`}>
@@ -2559,6 +2591,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   stepsAllDone={allDone(dropTs, tsKeys)}
                   stepBackLog={dropStepBackLog}
                   onCaptureCob={() => setDropCobTime(new Date().toISOString())}
+                  headerAction={launchSlipActions}
                 />
               </>
             ) : (
@@ -2588,31 +2621,11 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   stepsAllDone={allDone(pickupTs, tsKeys)}
                   stepBackLog={pickupStepBackLog}
                   onCaptureCob={() => setPickupCobTime(new Date().toISOString())}
+                  headerAction={launchSlipActions}
                 />
               </>
             )}
           </div>
-          {jobCompleted && (
-            <div className="tb-batch-actions">
-              <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(activeTab === "drop" ? dropTs : pickupTs, activeTab === "drop" ? "Drop Trip" : "Pickup Trip", operatorName, jobCompletedAt)}>
-                <FiPrinter size={14} />
-                Print Launch Slip
-              </button>
-              <div>
-                <input
-                  type="file"
-                  id="tb-launch-slip-file"
-                  className="tb-launch-slip-input"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
-                />
-                <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
-                  <FiUpload size={14} />
-                  {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
-                </label>
-              </div>
-            </div>
-          )}
         </div>
       )}
 

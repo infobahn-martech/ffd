@@ -1384,6 +1384,14 @@ $tb-space-2xl:  32px;
   animation: tb-batch-row-in 0.25s ease-out both;
 }
 
+.tb-ts-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .tb-ts-summary-title {
   display: flex;
   align-items: center;
