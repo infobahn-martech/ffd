@@ -600,6 +600,7 @@ const GRO_TASK_STAGE_ID_BY_NAME = {
   "custom bayan": 9,
   bayan: 9,
   "applying mwp": 10,
+  "outward clearance": 12,
 };
 
 export const resolveGroStageIdFromTaskName = (taskName) => {
