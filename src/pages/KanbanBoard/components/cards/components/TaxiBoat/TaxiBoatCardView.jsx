@@ -22,6 +22,21 @@ const CREW_CHANGE_SERVICES = ["Crew Change"];
 const MATERIAL_SERVICES   = ["Material Delivery", "Provision Delivery", "Garbage Collection"];
 const IMMIGRATION_SERVICES = ["Immigration Clearance"];
 
+// launch_hire/get_taxiboat_booking_detail/{booking_id} — item_type is the real source of
+// truth for which scenario to render. Only fall back to the legacy typeOfService matching
+// above when item_type is missing or not one of these (e.g. still loading).
+const KNOWN_ITEM_TYPES = new Set([
+  "crew_change",
+  "crew_immigration_batch",
+  "material_inbound",
+  "material_dispatch",
+  "transport_request",
+  "medical_request",
+  "hotel_request",
+  "third_party_service_request",
+  "addon_service_request",
+]);
+
 const LOCATION_OPTIONS = ["Freighter Anchorage", "RT7", "Sea Island", "Juaymah"];
 
 const MOCK_CREW_ROWS = [
@@ -85,6 +100,19 @@ function mapImmigrationBatches(apiBatches) {
 // string the same way locally-captured timestamps are stored.
 function normalizeApiDateTime(raw) {
   return raw ? String(raw).replace(" ", "T") : null;
+}
+
+// Shared crew shape across transport_request / medical_request / hotel_request item_types —
+// each API namespaces its own row id (transport_request_crew_id, medical_request_crew_id,
+// etc.) but crew_name/rank/nationality/passport_no are consistent.
+function normalizeItemTypeCrewRow(crew) {
+  return {
+    name:          crew?.crew_name ?? "—",
+    rank:          crew?.rank ?? "—",
+    nationality:   crew?.nationality ?? "—",
+    passportNo:    crew?.passport_no ?? "—",
+    completedDate: crew?.completed_date ?? null,
+  };
 }
 
 // launch_hire/get_booking_timestamps/{booking_id} — one Drop/Pickup leg, keyed by checkpoint field name.
@@ -171,6 +199,10 @@ const formatDateTime = (iso) => {
     hour12: true,
   });
 };
+
+// Read-only listing panels (material_inbound/dispatch, etc.) get raw "YYYY-MM-DD[ HH:mm:ss]"
+// strings straight from the API — normalize then format, falling back to the raw value.
+const safeFormatDate = (raw) => (raw ? formatDateTime(normalizeApiDateTime(raw)) ?? raw : "—");
 
 function TimestampAnimIcon({ animKey }) {
   if (animKey === "castOff") {
@@ -1190,14 +1222,194 @@ CrewListBatchwisePanel.propTypes = {
   handleAddTrip:    PropTypes.func,
 };
 
+// Read-only listing panels for item_types that don't have a dedicated interactive
+// scenario (crew_change and crew_immigration_batch keep their existing panels above).
+function ItemTypeCrewListing({ title, crew, showCompletedDate }) {
+  const rows = (Array.isArray(crew) ? crew : []).map(normalizeItemTypeCrewRow);
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">{title}</h3>
+      {rows.length === 0 ? (
+        <span className="tb-fleet-empty-hint">No crew records found for this item.</span>
+      ) : (
+        <div className="tb-crew-table-wrapper">
+          <table className="tb-crew-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Rank</th>
+                <th>Nationality</th>
+                <th>Passport No.</th>
+                {showCompletedDate && <th>Completed Date</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={i}>
+                  <td>{i + 1}</td>
+                  <td>{row.name}</td>
+                  <td>{row.rank}</td>
+                  <td>{row.nationality}</td>
+                  <td>{row.passportNo}</td>
+                  {showCompletedDate && <td>{row.completedDate ? safeFormatDate(row.completedDate) : "—"}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ItemTypeCrewListing.propTypes = {
+  title:             PropTypes.string.isRequired,
+  crew:              PropTypes.array,
+  showCompletedDate: PropTypes.bool,
+};
+
+function MaterialInboundListing({ materialInbound }) {
+  if (!materialInbound) return null;
+  const items = Array.isArray(materialInbound.items) ? materialInbound.items : [];
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Material Inbound</h3>
+      <div className="tb-info-grid">
+        <InfoCard label="Inbound No." value={materialInbound.inbound_no} />
+        <InfoCard label="Inbound Date" value={safeFormatDate(materialInbound.inbound_date)} />
+        <InfoCard label="Remarks" value={materialInbound.remarks} />
+      </div>
+      {items.length > 0 && (
+        <div className="tb-crew-table-wrapper">
+          <table className="tb-crew-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Order No.</th>
+                <th>PO No.</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Pickup Location</th>
+                <th>Route</th>
+                <th>Vehicle</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, i) => (
+                <tr key={item.inbound_item_id ?? i}>
+                  <td>{i + 1}</td>
+                  <td>{item.order_no ?? "—"}</td>
+                  <td>{item.po_no ?? "—"}</td>
+                  <td>{item.description ?? "—"}</td>
+                  <td>{item.quantity ?? "—"}</td>
+                  <td>{item.transportation?.pickup_location ?? "—"}</td>
+                  <td>
+                    {item.transportation
+                      ? `${item.transportation.from_location_name ?? "—"} → ${item.transportation.to_location_name ?? "—"}`
+                      : "—"}
+                  </td>
+                  <td>{item.transportation?.vehicle_type_name ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+MaterialInboundListing.propTypes = {
+  materialInbound: PropTypes.object,
+};
+
+function MaterialDispatchListing({ materialDispatch }) {
+  if (!materialDispatch) return null;
+  const items = Array.isArray(materialDispatch.items) ? materialDispatch.items : [];
+  const documents = Array.isArray(materialDispatch.documents) ? materialDispatch.documents : [];
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Material Dispatch</h3>
+      <div className="tb-info-grid">
+        <InfoCard label="Dispatch Note No." value={materialDispatch.dispatch_note_no} />
+        <InfoCard label="Dispatch Date" value={safeFormatDate(materialDispatch.dispatch_date)} />
+        <InfoCard label="Delivery Location" value={materialDispatch.delivery_location} />
+        <InfoCard label="Delivered To" value={materialDispatch.delivered_to} />
+      </div>
+      {items.length > 0 && (
+        <div className="tb-crew-table-wrapper">
+          <table className="tb-crew-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Order No.</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Package Type</th>
+                <th>Remaining Qty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, i) => (
+                <tr key={item.dispatch_note_item_id ?? i}>
+                  <td>{i + 1}</td>
+                  <td>{item.order_no ?? item.po_no ?? "—"}</td>
+                  <td>{item.description ?? "—"}</td>
+                  <td>{item.quantity ?? "—"}</td>
+                  <td>{item.package_type ?? "—"}</td>
+                  <td>{item.remaining_qty ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {documents.length > 0 && (
+        <div className="tb-excel-upload-row">
+          {documents.map((doc) => (
+            <a
+              key={doc.material_document_id}
+              href={doc.file_url}
+              target="_blank"
+              rel="noreferrer"
+              className="tb-excel-upload-filename"
+            >
+              {doc.file_name ?? "Document"}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+MaterialDispatchListing.propTypes = {
+  materialDispatch: PropTypes.object,
+};
+
+function ThirdPartyServiceListing({ serviceName, vesselName }) {
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Service Details</h3>
+      <div className="tb-info-grid">
+        <InfoCard label="Service Name" value={serviceName} />
+        <InfoCard label="Vessel Name" value={vesselName} />
+      </div>
+    </div>
+  );
+}
+
+ThirdPartyServiceListing.propTypes = {
+  serviceName: PropTypes.string,
+  vesselName:  PropTypes.string,
+};
+
 const TAXI_BOAT_OPERATOR_ROLE_ID = "20";
 const TAXI_BOAT_CAPTAIN_ROLE_ID = "21";
 
 function TaxiBoatCardView({ card, userRoleId = null }) {
   const serviceType = card?.typeOfService ?? "—";
-  const isCrewChange     = CREW_CHANGE_SERVICES.includes(serviceType);
-  const isMaterialService = MATERIAL_SERVICES.includes(serviceType);
-  const isImmigration    = IMMIGRATION_SERVICES.includes(serviceType);
   const isTaxiBoatOperator = String(userRoleId ?? "") === TAXI_BOAT_OPERATOR_ROLE_ID;
   const isTaxiBoatCaptain  = String(userRoleId ?? "") === TAXI_BOAT_CAPTAIN_ROLE_ID;
 
@@ -1425,9 +1637,44 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     ];
   });
 
+  // launch_hire/get_taxiboat_booking_detail/{booking_id} — carries the fleet/captain
+  // already assigned to this booking (needed for launch_hire/create_intermediate_trip),
+  // and — critically — item_type, which is the real source of truth for which scenario
+  // to render below. Only fall back to the legacy typeOfService matching when item_type
+  // is missing/unrecognized (e.g. still loading).
+  const [taxiboatBookingDetail, setTaxiboatBookingDetail] = useState(null);
+  useEffect(() => {
+    if (bookingId == null) return undefined;
+    let cancelled = false;
+    launchHireService.getTaxiboatBookingDetail(bookingId)
+      .then((res) => {
+        if (!cancelled) setTaxiboatBookingDetail(res?.data?.data ?? res?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setTaxiboatBookingDetail(null);
+      });
+    return () => { cancelled = true; };
+  }, [bookingId]);
+
+  const rawItemType = taxiboatBookingDetail?.item_type ?? null;
+  const itemType = KNOWN_ITEM_TYPES.has(rawItemType) ? rawItemType : null;
+
+  const isCrewChange = itemType ? itemType === "crew_change" : CREW_CHANGE_SERVICES.includes(serviceType);
+  const isImmigration = itemType ? itemType === "crew_immigration_batch" : IMMIGRATION_SERVICES.includes(serviceType);
+  // Legacy mock Excel-upload panel — only reachable once item_type is unknown, since
+  // material_inbound/material_dispatch now have their own real listings below.
+  const isMaterialService = itemType ? false : MATERIAL_SERVICES.includes(serviceType);
+  const isMaterialInbound = itemType === "material_inbound";
+  const isMaterialDispatch = itemType === "material_dispatch";
+  const isTransportRequest = itemType === "transport_request";
+  const isMedicalRequest = itemType === "medical_request";
+  const isHotelRequest = itemType === "hotel_request";
+  const isThirdPartyService = itemType === "third_party_service_request" || itemType === "addon_service_request";
+  const hasNewItemTypeListing = isMaterialInbound || isMaterialDispatch || isTransportRequest || isMedicalRequest || isHotelRequest || isThirdPartyService;
+
   // Crew List — Batchwise is shown for Immigration Clearance and as the Captain/Operator
   // default view; load real batches from the booking wherever it's shown.
-  const showsBatchwisePanel = !isCrewChange && !isMaterialService;
+  const showsBatchwisePanel = isImmigration;
   useEffect(() => {
     if (!showsBatchwisePanel || bookingId == null) return undefined;
     let cancelled = false;
@@ -1447,26 +1694,15 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     return () => { cancelled = true; };
   }, [showsBatchwisePanel, bookingId]);
 
-  // launch_hire/get_taxiboat_booking_detail/{booking_id} — carries the fleet/captain
-  // already assigned to this booking, needed as taxi_boat_id/taxiboat_captain_id for
-  // launch_hire/create_intermediate_trip.
-  const [taxiboatBookingDetail, setTaxiboatBookingDetail] = useState(null);
-  useEffect(() => {
-    if (bookingId == null) return undefined;
-    let cancelled = false;
-    launchHireService.getTaxiboatBookingDetail(bookingId)
-      .then((res) => {
-        if (!cancelled) setTaxiboatBookingDetail(res?.data?.data ?? res?.data ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setTaxiboatBookingDetail(null);
-      });
-    return () => { cancelled = true; };
-  }, [bookingId]);
-
-  // launch_hire/get_booking_timestamps/{booking_id} — booking-level Drop/Pickup checkpoints
-  // (non-batch bookings), shown by the generic Movement Timestamps section below.
-  const showsGenericTimestamps = !isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatOperator && !isTaxiBoatCaptain;
+  // launch_hire/get_booking_timestamps/{booking_id} — booking-level Drop/Pickup checkpoints.
+  // Shown by the generic Movement Timestamps section below: for the legacy "no item_type
+  // recognized yet" fallback, and for the new read-only item_type listings (transport/
+  // medical/hotel requests, material inbound/dispatch, third-party/addon services). The
+  // Taxi Boat Operator only assigns the fleet/captain and views the listing — the Captain
+  // is the one who actually performs the trip, so Operators never see this capture panel.
+  const showsGenericTimestamps = isTaxiBoatOperator
+    ? false
+    : hasNewItemTypeListing || (!isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatCaptain);
   useEffect(() => {
     if (!showsGenericTimestamps || bookingId == null) return undefined;
     let cancelled = false;
@@ -1741,41 +1977,46 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       </div>
 
       {isTaxiBoatCaptain ? (
-        <CrewListBatchwisePanel
-          batches={batches}
-          setBatches={setBatches}
-          activeBatchTab={activeBatchTab}
-          setActiveBatchTab={setActiveBatchTab}
-          opFocusedBatch={opFocusedBatch}
-          setOpFocusedBatch={setOpFocusedBatch}
-          recentOps={recentOps}
-          handleOpBlur={handleOpBlur}
-          handleOpChipClick={handleOpChipClick}
-          captureBatchTs={captureBatchTs}
-          completeBatchLeg={completeBatchLeg}
-          cancelBatchTs={cancelBatchTs}
-          setUndoPending={setUndoPending}
-          vesselName={vesselName}
-          now={now}
-          printLaunchSlip={printLaunchSlip}
-          bookingId={bookingId}
-          crewlistToggle
-          onCrewlistChange={setCaptainCrewlistOpen}
-          tripAdded={tripAdded}
-          tripSubmitting={tripSubmitting}
-          addTripOpen={addTripOpen}
-          setAddTripOpen={setAddTripOpen}
-          addTripPurpose={addTripPurpose}
-          setAddTripPurpose={setAddTripPurpose}
-          addTripLocation={addTripLocation}
-          setAddTripLocation={setAddTripLocation}
-          addTripDate={addTripDate}
-          setAddTripDate={setAddTripDate}
-          addTripTime={addTripTime}
-          setAddTripTime={setAddTripTime}
-          onAddTripToggle={handleAddTripToggle}
-          handleAddTrip={handleAddTrip}
-        />
+        // Batchwise crew header only makes sense for immigration-style multi-batch trips —
+        // the new read-only item_type listings (material/transport/medical/hotel/third-party)
+        // render their own section below instead.
+        !hasNewItemTypeListing && (
+          <CrewListBatchwisePanel
+            batches={batches}
+            setBatches={setBatches}
+            activeBatchTab={activeBatchTab}
+            setActiveBatchTab={setActiveBatchTab}
+            opFocusedBatch={opFocusedBatch}
+            setOpFocusedBatch={setOpFocusedBatch}
+            recentOps={recentOps}
+            handleOpBlur={handleOpBlur}
+            handleOpChipClick={handleOpChipClick}
+            captureBatchTs={captureBatchTs}
+            completeBatchLeg={completeBatchLeg}
+            cancelBatchTs={cancelBatchTs}
+            setUndoPending={setUndoPending}
+            vesselName={vesselName}
+            now={now}
+            printLaunchSlip={printLaunchSlip}
+            bookingId={bookingId}
+            crewlistToggle
+            onCrewlistChange={setCaptainCrewlistOpen}
+            tripAdded={tripAdded}
+            tripSubmitting={tripSubmitting}
+            addTripOpen={addTripOpen}
+            setAddTripOpen={setAddTripOpen}
+            addTripPurpose={addTripPurpose}
+            setAddTripPurpose={setAddTripPurpose}
+            addTripLocation={addTripLocation}
+            setAddTripLocation={setAddTripLocation}
+            addTripDate={addTripDate}
+            setAddTripDate={setAddTripDate}
+            addTripTime={addTripTime}
+            setAddTripTime={setAddTripTime}
+            onAddTripToggle={handleAddTripToggle}
+            handleAddTrip={handleAddTrip}
+          />
+        )
       ) : (
         <TaxiFleetAssignPanel
           bookingDate={bookingDateEdit}
@@ -1973,6 +2214,33 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         </div>
       )}
 
+      {/* Scenario D: read-only item_type listings — material inbound/dispatch, transport/
+          medical/hotel request crew, third-party/addon services. Movement Timestamps below
+          still applies for these. */}
+      {isMaterialInbound && (
+        <MaterialInboundListing materialInbound={taxiboatBookingDetail?.material_inbound} />
+      )}
+      {isMaterialDispatch && (
+        <MaterialDispatchListing materialDispatch={taxiboatBookingDetail?.material_dispatch} />
+      )}
+      {(isTransportRequest || isMedicalRequest || isHotelRequest) && (
+        <ItemTypeCrewListing
+          title={
+            isTransportRequest ? "Transport Request — Crew"
+              : isMedicalRequest ? "Medical Request — Crew"
+              : "Hotel Request — Crew"
+          }
+          crew={taxiboatBookingDetail?.crew}
+          showCompletedDate={isMedicalRequest}
+        />
+      )}
+      {isThirdPartyService && (
+        <ThirdPartyServiceListing
+          serviceName={taxiboatBookingDetail?.service_name}
+          vesselName={taxiboatBookingDetail?.vessel_name ?? vesselName}
+        />
+      )}
+
       {/* Scenario C: Immigration Clearance — per-batch tabs (Captain already sees this above, in place of Fleet Assignment) */}
       {isImmigration && !isTaxiBoatCaptain && (
         <CrewListBatchwisePanel
@@ -1997,7 +2265,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         />
       )}
 
-      {!isImmigration && !isCrewChange && isTaxiBoatOperator && (
+      {!isImmigration && !isCrewChange && !hasNewItemTypeListing && isTaxiBoatOperator && (
         <CrewListBatchwisePanel
           batches={batches}
           setBatches={setBatches}
@@ -2020,7 +2288,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         />
       )}
 
-      {!isImmigration && !isCrewChange && !isTaxiBoatOperator && !isTaxiBoatCaptain && (
+      {showsGenericTimestamps && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
           <div className="tb-tabs">
