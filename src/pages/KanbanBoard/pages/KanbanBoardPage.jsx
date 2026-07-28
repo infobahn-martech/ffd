@@ -21,6 +21,8 @@ import { findWorkflowByCardId } from "../utils/boardHelpers";
 import { resolveCardFormVariant } from "../../../shared/helpers/cardFormVariant";
 import { getFirstUserRoleId } from "../../../shared/helpers/groUserRoles";
 import useAuthReducer from "../../../store/AuthReducer";
+import workflowService from "../../../services/workflowService";
+import { notify } from "../../../components/Toaster";
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
   const location = useLocation();
@@ -117,21 +119,48 @@ export default function KanbanBoardPage() {
   }, []);
 
   const handleAccordionExpand = useCallback(() => {
-    if (accordionMenuWorkflowId) {
-      expandWorkflow(accordionMenuWorkflowId);
-    }
+    if (!accordionMenuWorkflowId) return;
+    const workflowId = accordionMenuWorkflowId;
+    workflowService
+      .toggleCollapseWorkflow(workflowId)
+      .then(() => {
+        expandWorkflow(workflowId);
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.message ?? err.message ?? "Could not expand workflow.";
+        notify(msg, "error");
+      });
   }, [accordionMenuWorkflowId, expandWorkflow]);
 
   const handleAccordionCollapse = useCallback(() => {
-    if (accordionMenuWorkflowId) {
-      collapseWorkflow(accordionMenuWorkflowId);
-    }
+    if (!accordionMenuWorkflowId) return;
+    const workflowId = accordionMenuWorkflowId;
+    workflowService
+      .toggleCollapseWorkflow(workflowId)
+      .then(() => {
+        collapseWorkflow(workflowId);
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.message ?? err.message ?? "Could not collapse workflow.";
+        notify(msg, "error");
+      });
   }, [accordionMenuWorkflowId, collapseWorkflow]);
 
   const handleTogglePin = useCallback(() => {
     if (!accordionMenuWorkflowId) return;
-    toggleWorkflowPin(accordionMenuWorkflowId);
-    handleCloseAccordionMenu();
+    const workflowId = accordionMenuWorkflowId;
+    workflowService
+      .togglePinWorkflow(workflowId)
+      .then(() => {
+        toggleWorkflowPin(workflowId);
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.message ?? err.message ?? "Could not update pin.";
+        notify(msg, "error");
+      })
+      .finally(() => {
+        handleCloseAccordionMenu();
+      });
   }, [accordionMenuWorkflowId, toggleWorkflowPin, handleCloseAccordionMenu]);
 
   const handleColumnContextMenu = useCallback((event, column, laneId) => {

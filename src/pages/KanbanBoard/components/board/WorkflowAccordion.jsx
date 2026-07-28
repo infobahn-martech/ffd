@@ -42,9 +42,6 @@ export default function WorkflowAccordion({
               <circle cx="9" cy="13.5" r="1.5" fill="currentColor" />
             </svg>
           </button>
-          <span className={`kanban-accordion-icon ${isExpanded ? "expanded" : ""}`}>
-            ▼
-          </span>
         </div>
       </div>
       {isExpanded && children}
