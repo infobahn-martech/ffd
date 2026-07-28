@@ -99,12 +99,118 @@ const buildConditions = (formState, ctx) => {
 // own top-level `when_fields` array, confirmed against a real documented example
 // (`[{ "regular_field_id": 21 }]`), not folded into conditions[] like the earlier best-effort
 // guess did. No operator/value in the UI for these at all, matching the confirmed shape.
-const buildWhenFields = (formState) => formState.whenFields.map((f) => {
+const buildWhenFieldsWatchList = (formState) => formState.whenFields.map((f) => {
   const entry = {};
   if (f.fieldType === 'custom') entry.custom_field_id = f.fieldId;
   else if (f.fieldType === 'regular') entry.regular_field_id = f.fieldId;
   return entry;
 });
+
+// WHEN-side recurrence-schedule pill (recurrenceSchedule state in BusinessRuleFormModal.jsx,
+// rendered only when triggerConfig.when_type === 'regular_fields') — its own when_fields
+// entry keyed by a fixed regular_field_id per option, confirmed against real documented
+// examples for these 4 (every_day: 20, every_workday: 63, advanced_schedule: 64,
+// predefined_interval: 65). schedule_type/schedule_properties are confirmed present ONLY on
+// the advanced_schedule/predefined_interval examples — every_day/every_workday's examples
+// carry just the bare regular_field_id, and sending the extra keys there gets the request
+// rejected. "every_week"/"every_month" (the other two RECURRENCE_SCHEDULE_OPTIONS entries)
+// have no confirmed regular_field_id yet, so they're intentionally left unsent rather than
+// guessed.
+const RECURRENCE_REGULAR_FIELD_ID = {
+  every_day: 20,
+  every_workday: 63,
+  advanced_schedule: 64,
+  predefined_interval: 65,
+};
+
+// RRULE's 2-letter weekday codes (see WEEKDAY_KEY_TO_RRULE in BusinessRuleFormModal.jsx) to
+// the 3-letter cron abbreviation the advanced_schedule example actually uses
+// (BYDAY=WE,SA -> cron_day_of_week "WED,SAT"). Kept as its own local map instead of importing
+// from BusinessRuleFormModal.jsx, which already imports from this file.
+const RRULE_WEEKDAY_TO_CRON_ABBR = {
+  SU: 'SUN', MO: 'MON', TU: 'TUE', WE: 'WED', TH: 'THU', FR: 'FRI', SA: 'SAT',
+};
+
+// Advanced schedule's stored value is either an RRULE-style string (FREQ=...;..., see
+// buildAdvancedScheduleValue in BusinessRuleFormModal.jsx) or, for the "Custom cron
+// expression" tab, a raw "day month dow year" string typed directly in that order. Converts
+// either into the 4 schedule_properties keys. Only the weekly-generator case is confirmed
+// against a real example (BYDAY=WE,SA -> { day: '?', month: '*', dow: 'WED,SAT', year: '*' });
+// daily/monthly/yearly are best-effort until confirmed against a real saved rule.
+const buildAdvancedScheduleFields = (advancedSchedule) => {
+  const raw = (advancedSchedule ?? '').trim();
+  if (!raw) return { day: '*', month: '*', dow: '?', year: '*' };
+
+  if (!raw.startsWith('FREQ=')) {
+    const [day, month, dow, year] = raw.split(/\s+/);
+    return { day: day || '*', month: month || '*', dow: dow || '?', year: year || '*' };
+  }
+
+  const parts = Object.fromEntries(raw.split(';').filter(Boolean).map((p) => p.split('=')));
+  const toCronAbbr = (byDay) => (byDay ?? '').split(',').filter(Boolean)
+    .map((code) => RRULE_WEEKDAY_TO_CRON_ABBR[code.slice(-2)] ?? code).join(',');
+
+  if (parts.FREQ === 'WEEKLY') {
+    return { day: '?', month: '*', dow: toCronAbbr(parts.BYDAY) || '?', year: '*' };
+  }
+  if (parts.FREQ === 'DAILY') {
+    return parts.WEEKDAY
+      ? { day: '?', month: '*', dow: 'MON-FRI', year: '*' }
+      : { day: `*/${parts.INTERVAL ?? '1'}`, month: '*', dow: '?', year: '*' };
+  }
+  if (parts.FREQ === 'MONTHLY') {
+    return parts.BYMONTHDAY
+      ? { day: parts.BYMONTHDAY, month: '*', dow: '?', year: '*' }
+      : { day: '?', month: '*', dow: toCronAbbr(parts.BYDAY) || '?', year: '*' };
+  }
+  // yearly
+  return parts.BYMONTHDAY
+    ? { day: parts.BYMONTHDAY, month: parts.BYMONTH ?? '*', dow: '?', year: '*' }
+    : { day: '?', month: parts.BYMONTH ?? '*', dow: toCronAbbr(parts.BYDAY) || '?', year: '*' };
+};
+
+const buildRecurrenceWhenField = (formState) => {
+  const key = formState.recurrenceSchedule;
+  const regularFieldId = RECURRENCE_REGULAR_FIELD_ID[key];
+  if (regularFieldId == null) return null; // every_week/every_month: no confirmed field id yet
+
+  if (key !== 'advanced_schedule' && key !== 'predefined_interval') {
+    return { regular_field_id: regularFieldId };
+  }
+
+  if (key === 'advanced_schedule') {
+    const { day, month, dow, year } = buildAdvancedScheduleFields(formState.advancedSchedule);
+    return {
+      regular_field_id: regularFieldId,
+      schedule_type: 'advanced_schedule',
+      schedule_properties: [
+        { property_key: 'cron_day_of_month', property_value: day },
+        { property_key: 'cron_month', property_value: month },
+        { property_key: 'cron_day_of_week', property_value: dow },
+        { property_key: 'cron_year', property_value: year },
+      ],
+    };
+  }
+
+  // predefined_interval
+  return {
+    regular_field_id: regularFieldId,
+    schedule_type: 'predefined_interval',
+    schedule_properties: [
+      { property_key: 'interval', property_value: String(formState.predefinedIntervalDays ?? '1') },
+      { property_key: 'start_date', property_value: formState.predefinedIntervalStartDate ?? '' },
+    ],
+  };
+};
+
+const buildWhenFields = (formState, ctx) => {
+  const entries = buildWhenFieldsWatchList(formState);
+  if (ctx?.triggerConfig?.when_type === 'regular_fields') {
+    const recurrenceField = buildRecurrenceWhenField(formState);
+    if (recurrenceField) entries.push(recurrenceField);
+  }
+  return entries;
+};
 
 // Then-action groups the edit-mode routing effect couldn't invert into editable UI state
 // (create-subtask, update_parent/child_card, copy_values_to_parent/child, execute_at —
@@ -476,7 +582,7 @@ const buildBusinessRulePayload = (formState, ctx) => {
     owner_user_id: formState.ownerUserId ?? ctx.loggedInUserId,
     tags: formState.tags.join(', '),
     disallow_rule_action_trigger: formState.disallowTriggerChain ? 1 : 0,
-    when_fields: buildWhenFields(formState),
+    when_fields: buildWhenFields(formState, ctx),
     conditions: buildConditions(formState, nextCtx),
     then_actions: buildThenActions(formState, nextCtx),
     shared_users: buildSharedUsers(formState.sharePermissions),
