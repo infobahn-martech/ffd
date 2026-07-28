@@ -1323,40 +1323,77 @@ CrewListBatchwisePanel.propTypes = {
 
 // Read-only listing panels for item_types that don't have a dedicated interactive
 // scenario (crew_change and crew_immigration_batch keep their existing panels above).
+// Pagination mirrors CrewListBatchwisePanel's crew table (same page size, same controls).
+function TablePagination({ page, totalPages, onPrev, onNext }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="tb-crew-pagination">
+      <button type="button" className="tb-crew-page-btn" onClick={onPrev} disabled={page === 1}>
+        Prev
+      </button>
+      <span className="tb-crew-page-status">
+        Page {page} of {totalPages}
+      </span>
+      <button type="button" className="tb-crew-page-btn" onClick={onNext} disabled={page === totalPages}>
+        Next
+      </button>
+    </div>
+  );
+}
+
+TablePagination.propTypes = {
+  page:       PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  onPrev:     PropTypes.func.isRequired,
+  onNext:     PropTypes.func.isRequired,
+};
+
 function ItemTypeCrewListing({ title, crew, showCompletedDate }) {
+  const [page, setPage] = useState(1);
   const rows = (Array.isArray(crew) ? crew : []).map(normalizeItemTypeCrewRow);
+  const totalPages = Math.max(1, Math.ceil(rows.length / CREW_PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pagedRows = rows.slice((pageSafe - 1) * CREW_PAGE_SIZE, pageSafe * CREW_PAGE_SIZE);
   return (
     <div className="tb-scenario-section">
       <h3 className="tb-section-title">{title}</h3>
       {rows.length === 0 ? (
         <span className="tb-fleet-empty-hint">No crew records found for this item.</span>
       ) : (
-        <div className="tb-crew-table-wrapper">
-          <table className="tb-crew-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Rank</th>
-                <th>Nationality</th>
-                <th>Passport No.</th>
-                {showCompletedDate && <th>Completed Date</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr key={i}>
-                  <td>{i + 1}</td>
-                  <td>{row.name}</td>
-                  <td>{row.rank}</td>
-                  <td>{row.nationality}</td>
-                  <td>{row.passportNo}</td>
-                  {showCompletedDate && <td>{row.completedDate ? safeFormatDate(row.completedDate) : "—"}</td>}
+        <>
+          <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
+            <table className="tb-crew-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Rank</th>
+                  <th>Nationality</th>
+                  <th>Passport No.</th>
+                  {showCompletedDate && <th>Completed Date</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {pagedRows.map((row, i) => (
+                  <tr key={i}>
+                    <td>{(pageSafe - 1) * CREW_PAGE_SIZE + i + 1}</td>
+                    <td>{row.name}</td>
+                    <td>{row.rank}</td>
+                    <td>{row.nationality}</td>
+                    <td>{row.passportNo}</td>
+                    {showCompletedDate && <td>{row.completedDate ? safeFormatDate(row.completedDate) : "—"}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pageSafe}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </>
       )}
     </div>
   );
@@ -1369,8 +1406,12 @@ ItemTypeCrewListing.propTypes = {
 };
 
 function MaterialInboundListing({ materialInbound }) {
+  const [page, setPage] = useState(1);
   if (!materialInbound) return null;
   const items = Array.isArray(materialInbound.items) ? materialInbound.items : [];
+  const totalPages = Math.max(1, Math.ceil(items.length / CREW_PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pagedItems = items.slice((pageSafe - 1) * CREW_PAGE_SIZE, pageSafe * CREW_PAGE_SIZE);
   return (
     <div className="tb-scenario-section">
       <h3 className="tb-section-title">Material Inbound</h3>
@@ -1380,40 +1421,48 @@ function MaterialInboundListing({ materialInbound }) {
         <InfoCard label="Remarks" value={materialInbound.remarks} />
       </div>
       {items.length > 0 && (
-        <div className="tb-crew-table-wrapper">
-          <table className="tb-crew-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Order No.</th>
-                <th>PO No.</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Pickup Location</th>
-                <th>Route</th>
-                <th>Vehicle</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, i) => (
-                <tr key={item.inbound_item_id ?? i}>
-                  <td>{i + 1}</td>
-                  <td>{item.order_no ?? "—"}</td>
-                  <td>{item.po_no ?? "—"}</td>
-                  <td>{item.description ?? "—"}</td>
-                  <td>{item.quantity ?? "—"}</td>
-                  <td>{item.transportation?.pickup_location ?? "—"}</td>
-                  <td>
-                    {item.transportation
-                      ? `${item.transportation.from_location_name ?? "—"} → ${item.transportation.to_location_name ?? "—"}`
-                      : "—"}
-                  </td>
-                  <td>{item.transportation?.vehicle_type_name ?? "—"}</td>
+        <>
+          <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
+            <table className="tb-crew-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order No.</th>
+                  <th>PO No.</th>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Pickup Location</th>
+                  <th>Route</th>
+                  <th>Vehicle</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {pagedItems.map((item, i) => (
+                  <tr key={item.inbound_item_id ?? i}>
+                    <td>{(pageSafe - 1) * CREW_PAGE_SIZE + i + 1}</td>
+                    <td>{item.order_no ?? "—"}</td>
+                    <td>{item.po_no ?? "—"}</td>
+                    <td>{item.description ?? "—"}</td>
+                    <td>{item.quantity ?? "—"}</td>
+                    <td>{item.transportation?.pickup_location ?? "—"}</td>
+                    <td>
+                      {item.transportation
+                        ? `${item.transportation.from_location_name ?? "—"} → ${item.transportation.to_location_name ?? "—"}`
+                        : "—"}
+                    </td>
+                    <td>{item.transportation?.vehicle_type_name ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pageSafe}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </>
       )}
     </div>
   );
@@ -1424,9 +1473,13 @@ MaterialInboundListing.propTypes = {
 };
 
 function MaterialDispatchListing({ materialDispatch }) {
+  const [page, setPage] = useState(1);
   if (!materialDispatch) return null;
   const items = Array.isArray(materialDispatch.items) ? materialDispatch.items : [];
   const documents = Array.isArray(materialDispatch.documents) ? materialDispatch.documents : [];
+  const totalPages = Math.max(1, Math.ceil(items.length / CREW_PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pagedItems = items.slice((pageSafe - 1) * CREW_PAGE_SIZE, pageSafe * CREW_PAGE_SIZE);
   return (
     <div className="tb-scenario-section">
       <h3 className="tb-section-title">Material Dispatch</h3>
@@ -1437,32 +1490,40 @@ function MaterialDispatchListing({ materialDispatch }) {
         <InfoCard label="Delivered To" value={materialDispatch.delivered_to} />
       </div>
       {items.length > 0 && (
-        <div className="tb-crew-table-wrapper">
-          <table className="tb-crew-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Order No.</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Package Type</th>
-                <th>Remaining Qty</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, i) => (
-                <tr key={item.dispatch_note_item_id ?? i}>
-                  <td>{i + 1}</td>
-                  <td>{item.order_no ?? item.po_no ?? "—"}</td>
-                  <td>{item.description ?? "—"}</td>
-                  <td>{item.quantity ?? "—"}</td>
-                  <td>{item.package_type ?? "—"}</td>
-                  <td>{item.remaining_qty ?? "—"}</td>
+        <>
+          <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
+            <table className="tb-crew-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order No.</th>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Package Type</th>
+                  <th>Remaining Qty</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {pagedItems.map((item, i) => (
+                  <tr key={item.dispatch_note_item_id ?? i}>
+                    <td>{(pageSafe - 1) * CREW_PAGE_SIZE + i + 1}</td>
+                    <td>{item.order_no ?? item.po_no ?? "—"}</td>
+                    <td>{item.description ?? "—"}</td>
+                    <td>{item.quantity ?? "—"}</td>
+                    <td>{item.package_type ?? "—"}</td>
+                    <td>{item.remaining_qty ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pageSafe}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </>
       )}
       {documents.length > 0 && (
         <div className="tb-excel-upload-row">

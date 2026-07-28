@@ -152,13 +152,25 @@ $tb-space-2xl:  32px;
 }
 
 .tb-section-title {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 700;
-  color: #475569;
-  letter-spacing: 0.07em;
+  color: #0f172a;
+  letter-spacing: 0.02em;
   margin: 0;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eef1f6;
+
+  &::before {
+    content: "";
+    flex-shrink: 0;
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background: #305eff;
+  }
 }
 
 /* ---- Drop/Pickup tabs ---- */
