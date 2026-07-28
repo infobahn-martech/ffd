@@ -11,25 +11,44 @@ import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
 import { notify } from "../../../../../../components/Toaster";
 import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
+import useAuthReducer from "../../../../../../store/AuthReducer";
 
 const QUILL_MODULES = {
     toolbar: [
-        ["bold", "italic", "underline"],
+        ["bold", "italic", "underline", "strike"],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
         [{ list: "ordered" }, { list: "bullet" }],
-        ["link"],
+        ["blockquote", "link", "image"],
         ["clean"],
     ],
 };
 
-const QUILL_FORMATS = ["bold", "italic", "underline", "list", "bullet", "link"];
+const QUILL_FORMATS = [
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "color",
+    "background",
+    "align",
+    "list",
+    "bullet",
+    "blockquote",
+    "link",
+    "image",
+];
 
 const MENTION_TRIGGER_REGEX = /@([^\s@]*)$/;
 
-const isEmptyHtmlContent = (html) => {
-    if (!html) return true;
-    const text = html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
-    return text.length === 0;
+const stripHtmlContent = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
 };
+
+const isEmptyHtmlContent = (html) => stripHtmlContent(html).length === 0;
+
+const getInitial = (name) => (name || "?").trim().charAt(0).toUpperCase() || "?";
 
 const getCardId = (card) => card?.id || card?.card_id || card?.call_id;
 
@@ -82,9 +101,36 @@ function Comments({ card }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedComment, setSelectedComment] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [commentFilter, setCommentFilter] = useState("");
+    const [expandAll, setExpandAll] = useState(false);
+    const [sendAsEmail, setSendAsEmail] = useState(false);
+
+    const fromEmail = useAuthReducer((state) => state.profileData?.email);
 
     const cardId = getCardId(card);
     const hasComments = comments.length > 0;
+
+    const mentionedNames = useMemo(
+        () =>
+            managers
+                .filter((manager) =>
+                    selectedMentionUserIds.some((id) => String(id) === String(manager.user_id))
+                )
+                .map((manager) => manager.user_name)
+                .filter(Boolean),
+        [managers, selectedMentionUserIds]
+    );
+
+    const filteredComments = useMemo(() => {
+        const term = commentFilter.trim().toLowerCase();
+        if (!term) return comments;
+
+        return comments.filter(
+            (comment) =>
+                (comment.userName || "").toLowerCase().includes(term) ||
+                stripHtmlContent(comment.content).toLowerCase().includes(term)
+        );
+    }, [comments, commentFilter]);
 
     const loadComments = useCallback(async () => {
         if (!cardId) return;
@@ -302,21 +348,122 @@ function Comments({ card }) {
         <div className="cardform-body cardform-body--feed-tab">
             <div className="comments-tab">
                 <div className="comments-tab-layout">
+                    <section className="comments-tab-list" aria-label="Comments">
+                        <div className="comments-tab-toolbar-row">
+                            <input
+                                type="text"
+                                className="comments-tab-filter-input"
+                                placeholder="Filter"
+                                value={commentFilter}
+                                onChange={(event) => setCommentFilter(event.target.value)}
+                            />
+                            {hasComments ? (
+                                <button
+                                    type="button"
+                                    className="comments-tab-expand-all-btn"
+                                    onClick={() => setExpandAll((prev) => !prev)}
+                                >
+                                    {expandAll ? "Collapse all comments" : "Expand all comments"}
+                                </button>
+                            ) : null}
+                        </div>
+                        <div className="comments-tab-card comments-tab-card--list">
+                            <div className="comments-tab-list-scroll">
+                                {isCommentsLoading ? (
+                                    <p className="comments-tab-empty">Loading comments...</p>
+                                ) : !hasComments ? (
+                                    <p className="comments-tab-empty">No comments added yet.</p>
+                                ) : filteredComments.length === 0 ? (
+                                    <p className="comments-tab-empty">No comments match your filter.</p>
+                                ) : (
+                                    <ul className="comments-tab-list-items">
+                                        {filteredComments.map((comment, index) => (
+                                            <li className="comments-tab-comment-card" key={comment.id ?? index}>
+                                                <div className="comments-tab-comment-avatar">
+                                                    <span className="comments-tab-comment-avatar-fallback">
+                                                        {getInitial(comment.userName)}
+                                                    </span>
+                                                </div>
+                                                <div className="comments-tab-comment-content">
+                                                    <div className="comments-tab-comment-header">
+                                                        <div className="comments-tab-comment-meta">
+                                                            {comment.userName ? (
+                                                                <p className="comments-tab-comment-author">{comment.userName}</p>
+                                                            ) : <span />}
+                                                            {comment.created_date ? (
+                                                                <p className="notes-tab-note-updated">{comment.created_date}</p>
+                                                            ) : null}
+                                                        </div>
+                                                        <div className="comments-tab-comment-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleEditOpen(comment)}
+                                                                aria-label="Edit comment"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiEdit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleDeleteOpen(comment)}
+                                                                aria-label="Delete comment"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiTrash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`comments-tab-comment-bubble${expandAll ? "" : " comments-tab-comment-bubble--clamped"}`}
+                                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }}
+                                                    />
+                                                    {comment.attachment ? (
+                                                        comment.attachment.url ? (
+                                                            <a
+                                                                className="subtasks-tab-task-doc"
+                                                                href={comment.attachment.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={comment.attachment.name}
+                                                            >
+                                                                {comment.attachment.name}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="subtasks-tab-task-doc" title={comment.attachment.name}>
+                                                                {comment.attachment.name}
+                                                            </span>
+                                                        )
+                                                    ) : null}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+
                     <section className="comments-tab-editor" aria-label="Write a comment">
                         <div className="comments-tab-card comments-tab-card--editor">
                             <div className="comments-tab-editor-body">
-                                {editingCommentId ? (
-                                    <div className="comments-tab-editing-banner">
-                                        <button
-                                            type="button"
-                                            className="subtasks-tab-cancel-btn"
-                                            onClick={handleEditCancel}
-                                            disabled={isSaving}
-                                        >
-                                            Cancel
-                                        </button>
+                                <div className="comments-tab-email-fields">
+                                    <div className="comments-tab-email-field">
+                                        <span className="comments-tab-email-label">From</span>
+                                        <span className="comments-tab-email-value">
+                                            {fromEmail || "You"}
+                                        </span>
                                     </div>
-                                ) : null}
+                                    <div className="comments-tab-email-field">
+                                        <span className="comments-tab-email-label">To</span>
+                                        <span className="comments-tab-email-value">
+                                            {mentionedNames.length > 0
+                                                ? mentionedNames.join(", ")
+                                                : "Mention a user with @ to notify them"}
+                                        </span>
+                                    </div>
+                                </div>
                                 <div className="comments-tab-mention-host">
                                     <div className="react-quill-wrapper comments-tab-quill">
                                         <ReactQuill
@@ -416,6 +563,18 @@ function Comments({ card }) {
                                 </div>
 
                                 <div className="comments-tab-save-row">
+                                    <label className="comments-tab-send-email-toggle">
+                                        <input
+                                            type="checkbox"
+                                            className="comments-tab-send-email-checkbox"
+                                            checked={sendAsEmail}
+                                            onChange={(event) => setSendAsEmail(event.target.checked)}
+                                        />
+                                        <span className="comments-tab-send-email-track">
+                                            <span className="comments-tab-send-email-thumb" />
+                                        </span>
+                                        <span className="comments-tab-send-email-text">Send as email</span>
+                                    </label>
                                     <button
                                         type="button"
                                         className="comments-tab-save-btn"
@@ -427,74 +586,6 @@ function Comments({ card }) {
                                             : (isSaving ? "Saving..." : "Save")}
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="comments-tab-list" aria-label="Comments">
-                        <div className="comments-tab-card comments-tab-card--list">
-                            <div className="comments-tab-list-scroll">
-                                {isCommentsLoading ? (
-                                    <p className="comments-tab-empty">Loading comments...</p>
-                                ) : !hasComments ? (
-                                    <p className="comments-tab-empty">No comments added yet.</p>
-                                ) : (
-                                    <ul className="comments-tab-list-items">
-                                        {comments.map((comment, index) => (
-                                            <li className="comments-tab-comment-card" key={comment.id ?? index}>
-                                                <div className="comments-tab-comment-avatar" />
-                                                <div className="comments-tab-comment-content">
-                                                    <div className="comments-tab-comment-header">
-                                                        {comment.userName ? (
-                                                            <p className="comments-tab-comment-author">{comment.userName}</p>
-                                                        ) : <span />}
-                                                        <div className="comments-tab-comment-actions">
-                                                            <button
-                                                                type="button"
-                                                                className="subtasks-tab-edit-btn"
-                                                                onClick={() => handleEditOpen(comment)}
-                                                                aria-label="Edit comment"
-                                                                disabled={isSaving}
-                                                            >
-                                                                <FiEdit2 size={14} />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="subtasks-tab-edit-btn"
-                                                                onClick={() => handleDeleteOpen(comment)}
-                                                                aria-label="Delete comment"
-                                                                disabled={isSaving}
-                                                            >
-                                                                <FiTrash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }} />
-                                                    {comment.attachment ? (
-                                                        comment.attachment.url ? (
-                                                            <a
-                                                                className="subtasks-tab-task-doc"
-                                                                href={comment.attachment.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                title={comment.attachment.name}
-                                                            >
-                                                                {comment.attachment.name}
-                                                            </a>
-                                                        ) : (
-                                                            <span className="subtasks-tab-task-doc" title={comment.attachment.name}>
-                                                                {comment.attachment.name}
-                                                            </span>
-                                                        )
-                                                    ) : null}
-                                                    {comment.created_date ? (
-                                                        <p className="notes-tab-note-updated">{comment.created_date}</p>
-                                                    ) : null}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
                             </div>
                         </div>
                     </section>
