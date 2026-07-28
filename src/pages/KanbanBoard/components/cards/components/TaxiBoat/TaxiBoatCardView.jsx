@@ -737,19 +737,29 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
             const dur = time && prevTime ? formatDuration(new Date(time) - new Date(prevTime)) : null;
             return (
               <tr key={key} className={time ? "tb-ts-summary-row--done" : ""}>
-                <td className="tb-ts-summary-num">{time ? "✓" : i + 1}</td>
+                <td className="tb-ts-summary-num">
+                  <span className={`tb-ts-summary-badge${time ? " tb-ts-summary-badge--done" : ""}`}>
+                    {time ? <FiCheckCircle size={12} /> : i + 1}
+                  </span>
+                </td>
                 <td className="tb-ts-summary-step">{label}</td>
                 <td className="tb-ts-summary-time">
                   {time ? formatDateTime(time) : <span className="tb-ts-summary-blank">—</span>}
                 </td>
-                <td className="tb-ts-summary-dur">{dur ?? "—"}</td>
+                <td className={`tb-ts-summary-dur${dur ? " tb-ts-summary-dur--value" : ""}`}>
+                  {dur ?? <span className="tb-ts-summary-blank">—</span>}
+                </td>
               </tr>
             );
           })}
 
           {/* Trip Completed row */}
           <tr className={["tb-ts-summary-row--job", jobCompletedAt ? "tb-ts-summary-row--done" : "tb-ts-summary-row--locked"].join(" ")}>
-            <td className="tb-ts-summary-num">{jobCompletedAt ? "✓" : <FiCheckCircle size={11} />}</td>
+            <td className="tb-ts-summary-num">
+              <span className={`tb-ts-summary-badge${jobCompletedAt ? " tb-ts-summary-badge--done" : " tb-ts-summary-badge--locked"}`}>
+                <FiCheckCircle size={12} />
+              </span>
+            </td>
             <td className="tb-ts-summary-step tb-ts-summary-job-label">Trip Completed</td>
             <td className="tb-ts-summary-time">
               {jobCompletedAt
@@ -761,7 +771,11 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
           {/* Step Back Log rows */}
           {stepBackLog && stepBackLog.length > 0 && stepBackLog.map((entry, idx) => (
             <tr key={`sb-${idx}`} className="tb-ts-summary-row--stepback">
-              <td className="tb-ts-summary-num"><FiArrowDown size={11} /></td>
+              <td className="tb-ts-summary-num">
+                <span className="tb-ts-summary-badge tb-ts-summary-badge--stepback">
+                  <FiArrowDown size={11} />
+                </span>
+              </td>
               <td className="tb-ts-summary-step tb-ts-summary-stepback-label">
                 Step Back — {entry.step}
               </td>

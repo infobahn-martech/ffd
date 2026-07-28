@@ -1385,48 +1385,88 @@ $tb-space-2xl:  32px;
 }
 
 .tb-ts-summary-title {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
+  letter-spacing: 0.01em;
 }
 
 .tb-ts-summary-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.07);
 
   thead tr {
     background: #f1f5f9;
   }
 
   th {
-    padding: 9px 14px;
+    padding: 11px 16px;
     text-align: left;
     font-size: 11px;
     font-weight: 700;
     color: #64748b;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid #e2e8f0;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid #cbd5e1;
     white-space: nowrap;
 
-    &.tb-ts-summary-th-num { width: 36px; text-align: center; }
+    &.tb-ts-summary-th-num { width: 44px; text-align: center; }
   }
 
   td {
-    padding: 10px 14px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
     color: #334155;
     vertical-align: middle;
   }
 
+  tbody tr { transition: background 0.15s; }
   tbody tr:last-child td { border-bottom: none; }
 }
 
+/* Status badge in the # column — mirrors the Movement Timestamps stepper dots above it */
+.tb-ts-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+
+  &--done {
+    border-color: #16a34a;
+    background: #16a34a;
+    color: #ffffff;
+  }
+
+  &--locked {
+    border-color: #e2e8f0;
+    background: #f1f5f9;
+    color: #cbd5e1;
+  }
+
+  &--stepback {
+    border-color: #fed7aa;
+    background: #fff7ed;
+    color: #ea580c;
+  }
+}
+
 .tb-ts-summary-num {
-  width: 36px;
+  width: 44px;
   text-align: center;
   font-weight: 700;
   font-size: 12px;
@@ -1456,13 +1496,23 @@ $tb-space-2xl:  32px;
   color: #cbd5e1;
 }
 
+/* Duration pill — only shown when a real duration was computed (i.e. never on the
+   first step, which has no prior timestamp to measure from), regardless of row status. */
+.tb-ts-summary-dur--value {
+  display: inline-flex;
+  color: #16a34a;
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
 /* Done row */
 .tb-ts-summary-row--done {
   .tb-ts-summary-num  { color: #16a34a; }
   .tb-ts-summary-step { color: #15803d; }
   .tb-ts-summary-time { color: #15803d; font-weight: 600; }
-  .tb-ts-summary-dur  { color: #16a34a; background: #f0fdf4; border-radius: 20px; padding: 2px 8px; }
-  background: #f0fdf4;
+  background: #f7fdf9;
 }
 
 /* COB row */
@@ -1520,16 +1570,16 @@ $tb-space-2xl:  32px;
 
 /* Job Completed row */
 .tb-ts-summary-row--job {
-  background: #f0fdf4;
-  border-top: 2px solid #bbf7d0;
+  background: #f7fdf9;
+  border-top: 1px solid #bbf7d0;
 
   .tb-ts-summary-step { color: #15803d; font-weight: 700; }
   .tb-ts-summary-num  { color: #16a34a; }
   .tb-ts-summary-time { color: #15803d; font-weight: 600; }
 
   &.tb-ts-summary-row--locked {
-    background: #f8fafc;
-    border-top: 2px solid #e2e8f0;
+    background: #fafbfc;
+    border-top: 1px solid #edf1f7;
 
     .tb-ts-summary-step { color: #94a3b8; font-weight: 600; }
     .tb-ts-summary-num  { color: #94a3b8; }
