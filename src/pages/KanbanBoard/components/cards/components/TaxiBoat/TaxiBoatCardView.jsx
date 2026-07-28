@@ -746,8 +746,8 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
                 <td className="tb-ts-summary-time">
                   {time ? formatDateTime(time) : <span className="tb-ts-summary-blank">—</span>}
                 </td>
-                <td className={`tb-ts-summary-dur${dur ? " tb-ts-summary-dur--value" : ""}`}>
-                  {dur ?? <span className="tb-ts-summary-blank">—</span>}
+                <td className="tb-ts-summary-dur">
+                  {dur ? <span className="tb-ts-summary-dur-chip">{dur}</span> : <span className="tb-ts-summary-blank">—</span>}
                 </td>
               </tr>
             );
