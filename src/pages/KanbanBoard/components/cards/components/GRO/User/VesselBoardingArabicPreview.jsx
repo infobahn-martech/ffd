@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
 import { injectVesselRegFieldValues } from "./vesselRegTemplateFields";
@@ -34,17 +34,11 @@ export default function VesselBoardingArabicPreview({
         .filter(Boolean)
         .map((para) => `<p>${para}</p>`)
         .join("");
-  const [sanitizedMoreDescription, setSanitizedMoreDescription] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-    injectVesselRegFieldValues(moreDescriptionHtml, fieldValues).then((html) => {
-      if (!cancelled) setSanitizedMoreDescription(DOMPurify.sanitize(html, SANITIZE_CONFIG));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [moreDescriptionHtml, fieldValues]);
+  const sanitizedMoreDescription = useMemo(
+    () =>
+      DOMPurify.sanitize(injectVesselRegFieldValues(moreDescriptionHtml, fieldValues), SANITIZE_CONFIG),
+    [moreDescriptionHtml, fieldValues]
+  );
 
   const today = new Date();
   const gregorianDate = formatGregorianDate(today);

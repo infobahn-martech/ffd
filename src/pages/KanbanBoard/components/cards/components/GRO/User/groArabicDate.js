@@ -16,10 +16,3 @@ export function formatHijriDate(date) {
   const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
   return `${get("year")}/${get("month")}/${get("day")}`;
 }
-
-const ARABIC_INDIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
-
-/** Replaces ASCII 0-9 with their Arabic-Indic digit equivalents. */
-export function toArabicIndicDigits(value) {
-  return String(value ?? "").replace(/[0-9]/g, (d) => ARABIC_INDIC_DIGITS[Number(d)]);
-}
