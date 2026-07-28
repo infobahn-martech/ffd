@@ -515,31 +515,38 @@
 
 .comments-tab-email-fields {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 8px;
-  margin-bottom: 2px;
-  border-bottom: 1px solid #eef0f4;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 4px;
   flex-shrink: 0;
 }
 
 .comments-tab-email-field {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 12px;
+  flex-direction: column;
+  gap: 4px;
   min-width: 0;
   flex: 1;
 }
 
 .comments-tab-email-label {
-  flex: 0 0 32px;
+  font-size: 11px;
   font-weight: 600;
-  color: #5c6370;
+  color: #8a8f9c;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .comments-tab-email-value {
+  display: block;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #e2e2ea;
+  border-radius: 6px;
+  background: #f7f9fd;
   color: #1a1a1a;
+  font-size: 12px;
+  line-height: 30px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -834,6 +841,31 @@
   &:hover {
     background: #002a6e;
     box-shadow: 0 2px 8px rgba(0, 54, 140, 0.25);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.comments-tab-cancel-btn {
+  background: #ffffff;
+  border: 1px solid #e2e2ea;
+  color: #5c6370;
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Manrope", sans-serif;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #c8d4ea;
+    color: #00368c;
+    background: #f7f9fd;
   }
 
   &:active {

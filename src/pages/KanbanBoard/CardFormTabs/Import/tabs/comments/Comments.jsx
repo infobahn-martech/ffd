@@ -562,6 +562,16 @@ function Comments({ card }) {
                                         </span>
                                         <span className="comments-tab-send-email-text">Send as email</span>
                                     </label>
+                                    {editingCommentId && (
+                                        <button
+                                            type="button"
+                                            className="comments-tab-cancel-btn"
+                                            onClick={handleEditCancel}
+                                            disabled={isSaving}
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
                                         className="comments-tab-save-btn"
