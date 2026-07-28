@@ -12,6 +12,13 @@
   gap: 8px;
 }
 
+.comments-tab-comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .comments-tab-editing-banner {
   display: flex;
   align-items: center;

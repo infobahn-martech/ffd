@@ -75,6 +75,9 @@ const getCardComments = (cardId) =>
 const updateCardComment = (formData) =>
   Gateway.post('/kanban_card/update_card_comment', formData);
 
+const deleteCardComment = (commentId) =>
+  Gateway.post(`/kanban_card/delete_card_comment/${encodeURIComponent(String(commentId))}`);
+
 export default {
   getFullBoard,
   updateCardColor,
@@ -94,4 +97,5 @@ export default {
   addCardComment,
   getCardComments,
   updateCardComment,
+  deleteCardComment,
 };

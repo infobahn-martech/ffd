@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
-import { FiEdit2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/scss/comments.scss";
@@ -78,6 +78,7 @@ function Comments({ card }) {
     const [comments, setComments] = useState([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [editingCommentId, setEditingCommentId] = useState(null);
+    const [deletingCommentId, setDeletingCommentId] = useState(null);
 
     const cardId = getCardId(card);
     const hasComments = comments.length > 0;
@@ -258,6 +259,32 @@ function Comments({ card }) {
         }
     }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, editingCommentId, closeMentionDropdown, loadComments]);
 
+    const handleDelete = useCallback(
+        async (comment) => {
+            if (!window.confirm("Are you sure you want to delete this comment?")) return;
+
+            setDeletingCommentId(comment.id);
+            try {
+                const { data } = await kanbanBoardService.deleteCardComment(comment.id);
+                await loadComments();
+                notify(data?.message || "Comment deleted successfully.", "success");
+                if (editingCommentId === comment.id) {
+                    handleEditCancel();
+                }
+            } catch (error) {
+                const msg =
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    error?.message ||
+                    "Failed to delete comment.";
+                notify(typeof msg === "string" ? msg : "Failed to delete comment.", "error");
+            } finally {
+                setDeletingCommentId(null);
+            }
+        },
+        [editingCommentId, handleEditCancel, loadComments]
+    );
+
     return (
         <div className="cardform-body cardform-body--feed-tab">
             <div className="comments-tab">
@@ -409,15 +436,26 @@ function Comments({ card }) {
                                                         {comment.userName ? (
                                                             <p className="comments-tab-comment-author">{comment.userName}</p>
                                                         ) : <span />}
-                                                        <button
-                                                            type="button"
-                                                            className="subtasks-tab-edit-btn"
-                                                            onClick={() => handleEditOpen(comment)}
-                                                            aria-label="Edit comment"
-                                                            disabled={isSaving}
-                                                        >
-                                                            <FiEdit2 size={14} />
-                                                        </button>
+                                                        <div className="comments-tab-comment-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleEditOpen(comment)}
+                                                                aria-label="Edit comment"
+                                                                disabled={isSaving || deletingCommentId === comment.id}
+                                                            >
+                                                                <FiEdit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleDelete(comment)}
+                                                                aria-label="Delete comment"
+                                                                disabled={isSaving || deletingCommentId === comment.id}
+                                                            >
+                                                                <FiTrash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }} />
                                                     {comment.attachment ? (
