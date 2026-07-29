@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  createCollapsedColumnsState,
-  createWorkflowBooleanState,
-} from "../utils/workflowHelpers";
+import { createCollapsedColumnsState } from "../utils/workflowHelpers";
+
+const toExpandedState = (workflows) => {
+  const state = {};
+  workflows.forEach((workflow) => {
+    state[workflow.id] = !workflow.isCollapsed;
+  });
+  return state;
+};
 
 export default function useWorkflowExpansion(workflows) {
   const [expandedWorkflows, setExpandedWorkflows] = useState(() =>
-    createWorkflowBooleanState(workflows, true)
+    toExpandedState(workflows)
   );
   const [collapsedColumns, setCollapsedColumns] = useState(() =>
     createCollapsedColumnsState(workflows)
@@ -17,7 +22,7 @@ export default function useWorkflowExpansion(workflows) {
       const next = { ...prev };
       workflows.forEach((workflow) => {
         if (!(workflow.id in next)) {
-          next[workflow.id] = true;
+          next[workflow.id] = !workflow.isCollapsed;
         }
       });
       return next;

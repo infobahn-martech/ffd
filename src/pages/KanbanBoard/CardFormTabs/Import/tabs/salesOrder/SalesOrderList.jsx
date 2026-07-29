@@ -4,9 +4,12 @@ import { FiFilePlus, FiFileText, FiClipboard, FiTool, FiCheck, FiChevronLeft, Fi
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../../design/scss/salesOrder.scss";
-import { PORT_OPTIONS } from "../../../../../../shared/constants/ports";
+import { PORT_OPTIONS, PORT_OPTIONS_WITH_ID } from "../../../../../../shared/constants/ports";
 import salesOrderService from "../../../../../../services/salesOrderService";
+import callFileService from "../../../../../../services/callFileService";
+import DatePickerField from "../../../shared/components/DatePickerField";
 import useAlertReducer from "../../../../../../store/AlertReducer";
+import useAuthReducer from "../../../../../../store/AuthReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
 import GeneratePOModal from "./GeneratePOModal";
 import GoodsReceiptPOModal from "./GoodsReceiptPOModal";
@@ -268,6 +271,21 @@ PreviewModal.propTypes = {
 
 const TAX_CODE_OPTIONS = ["15%", "5%", "0%"];
 const TYPE_OF_PO_OPTIONS = ["Inhouse", "Outhouse PO", "Multiple PO"];
+
+const EMPTY_NEW_ITEM_FORM = {
+  callFile: "",
+  itemNo: "",
+  tariffId: "",
+  itemDescription: "",
+  qty: "",
+  unitPrice: "",
+  discount: "0",
+  taxCode: "15%",
+  typeOfPo: "",
+  supplierCode: "",
+  supplierName: "",
+  documents: [],
+};
 
 const isThirdParty = (value) => value === 1 || value === "1" || value === true;
 
@@ -576,6 +594,7 @@ SalesOrderPagination.propTypes = {
 };
 
 const SalesOrderList = ({
+  card,
   formValues,
   handleChange,
   cardColor,
@@ -606,6 +625,9 @@ const SalesOrderList = ({
   const branch = formValues.branch || "";
   const soContactEmail = formValues.email || "";
   const srtNumber = formValues.srtNumber || "";
+  const loggedInUserName = useAuthReducer((state) => state.profileData?.name || state.authData?.name || "");
+  const soOwner = formValues.soOwner || loggedInUserName;
+  const soRemarks = formValues.soRemarks || "";
 
   const portOptions = useMemo(() => {
     if (!soPort || PORT_OPTIONS.includes(soPort)) return PORT_OPTIONS;
@@ -614,22 +636,58 @@ const SalesOrderList = ({
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
-  const [showSummaryPopover, setShowSummaryPopover] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const [newItemForm, setNewItemForm] = useState({
-    callFile: "",
-    itemNo: "",
-    itemDescription: "",
-    qty: "",
-    unitPrice: "",
-    discount: "0",
-    taxCode: "15%",
-    typeOfPo: "",
-    supplierCode: "",
-    supplierName: "",
-    documents: [],
-  });
+  const [newItemForm, setNewItemForm] = useState(EMPTY_NEW_ITEM_FORM);
+
+  // Item code lookup + item details autofill (sales_order/get_item_codes, sales_order/get_item_details)
+  const [itemCodeOptions, setItemCodeOptions] = useState([]);
+  const [isLoadingItemCodes, setIsLoadingItemCodes] = useState(false);
+  const [isLoadingItemDetails, setIsLoadingItemDetails] = useState(false);
+  const [isSavingItem, setIsSavingItem] = useState(false);
+
+  const callId = card?.call_id ?? card?.callId ?? null;
+
+  // card_file/get_call_detail — the kanban `card` prop doesn't carry port_id/main_billing_entity_id,
+  // so fetch it directly (same pattern used by Operation.jsx / General.jsx).
+  const [callDetailData, setCallDetailData] = useState(null);
+
+  useEffect(() => {
+    if (!callId) {
+      setCallDetailData(null);
+      return;
+    }
+    let cancelled = false;
+    callFileService
+      .getCallDetail(callId)
+      .then((response) => {
+        if (cancelled) return;
+        const body = response?.data;
+        setCallDetailData(body?.data ?? body ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setCallDetailData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
+
+  const entityId =
+    callDetailData?.main_billing_entity_id ??
+    formValues.mainBillingEntity ??
+    card?.main_billing_entity_id ??
+    card?.mainBillingEntity ??
+    null;
+  const portId = useMemo(
+    () =>
+      callDetailData?.port_id ??
+      card?.port_id ??
+      card?.portId ??
+      PORT_OPTIONS_WITH_ID.find((p) => p.name === soPort)?.id ??
+      null,
+    [callDetailData, card, soPort]
+  );
 
   // State for checkbox selection (exclude DA module)
   const [selectedItems, setSelectedItems] = useState(new Set());
@@ -690,6 +748,34 @@ const SalesOrderList = ({
   };
 
   const { grouped, ungrouped } = groupByCallFile(paginatedOrderList);
+
+  // Load item codes for the SO's port as soon as the Sales Order tab is opened
+  useEffect(() => {
+    if (!portId) {
+      setItemCodeOptions([]);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingItemCodes(true);
+    salesOrderService
+      .getItemCodes(portId)
+      .then((response) => {
+        if (cancelled) return;
+        const body = response?.data;
+        setItemCodeOptions(body?.status === "success" && Array.isArray(body?.data) ? body.data : []);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setItemCodeOptions([]);
+        useAlertReducer.getState().error("Failed to load item codes for the selected port.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingItemCodes(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [portId]);
 
   // Toggle accordion for callFile
   const toggleCallFileAccordion = (callFile) => {
@@ -851,28 +937,8 @@ const SalesOrderList = ({
     );
   };
 
-  // Row-level status badge (defaults to "Pending")
-  const getRowStatusClass = (status) => {
-    const s = (status || "").toLowerCase();
-    if (s.includes("approve")) return "so-row-status-approved";
-    if (s.includes("reject") || s.includes("cancel")) return "so-row-status-rejected";
-    return "so-row-status-pending";
-  };
-
   const handleAddNewItem = () => {
-    setNewItemForm({
-      callFile: "",
-      itemNo: "",
-      itemDescription: "",
-      qty: "",
-      unitPrice: "",
-      discount: "0",
-      taxCode: "15%",
-      typeOfPo: "",
-      supplierCode: "",
-      supplierName: "",
-      documents: [],
-    });
+    setNewItemForm(EMPTY_NEW_ITEM_FORM);
     setIsAccordionOpen(true);
   };
 
@@ -883,44 +949,103 @@ const SalesOrderList = ({
     }));
   };
 
-  const handleSaveNewItem = () => {
-    if (!newItemForm.itemNo || !newItemForm.itemDescription) {
-      alert("Please fill in Item No and Item Description");
+  // Item code selected from the port's tariff list — autofill description/price via get_item_details
+  const handleItemCodeSelect = async (itemCode) => {
+    const option = itemCodeOptions.find((o) => o.item_code === itemCode);
+    setNewItemForm((prev) => ({ ...prev, itemNo: itemCode, tariffId: option?.tariff_id ?? "" }));
+
+    if (!option?.tariff_id) return;
+
+    setIsLoadingItemDetails(true);
+    try {
+      const response = await salesOrderService.getItemDetails(option.tariff_id, entityId);
+      const body = response?.data;
+      if (body?.status === "success" && body?.data) {
+        const details = body.data;
+        setNewItemForm((prev) => ({
+          ...prev,
+          itemDescription: details.item_name || prev.itemDescription,
+          unitPrice: details.price ?? details.default_price ?? prev.unitPrice,
+        }));
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to load item details.";
+      useAlertReducer.getState().error(msg);
+    } finally {
+      setIsLoadingItemDetails(false);
+    }
+  };
+
+  const handleSaveNewItem = async () => {
+    if (!newItemForm.tariffId || !newItemForm.itemDescription) {
+      alert("Please select an Item No");
       return;
     }
+    if (!callId) {
+      useAlertReducer.getState().error("No call identifier available for this card.");
+      return;
+    }
+    if (isSavingItem) return;
 
-    const currentList = salesOrderList.length > 0 ? salesOrderList : [];
-    const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
-
-    const newItem = {
-      id: maxId + 1,
-      callFile: newItemForm.callFile || null,
-      itemNo: newItemForm.itemNo,
-      itemDescription: newItemForm.itemDescription,
-      qty: parseFloat(newItemForm.qty) || 1,
-      unitPrice: parseFloat(newItemForm.unitPrice) || 0,
+    const payload = {
+      call_id: callId,
+      tariff_id: newItemForm.tariffId,
+      quantity: parseFloat(newItemForm.qty) || 1,
+      type_PO: newItemForm.typeOfPo || "",
+      supporting_docu: (newItemForm.documents || []).map((d) => d.name).join(", "),
+      vendor_id: newItemForm.supplierCode || "",
       discount: parseFloat(newItemForm.discount) || 0,
-      taxCode: newItemForm.taxCode || "15%",
-      typeOfPo: newItemForm.typeOfPo || "",
-      supplierCode: newItemForm.supplierCode || "",
-      supplierName: newItemForm.supplierName || "",
-      documents: newItemForm.documents || [],
-      poStatus: "Draft",
-      workOrder: "",
     };
-    newItem.totalAmount = calcRowTotal(newItem);
 
-    handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
+    setIsSavingItem(true);
+    try {
+      const response = await salesOrderService.saveSalesOrderItem(payload);
+      const body = response?.data;
+      if (body?.status !== "success") {
+        throw new Error(body?.message || "Failed to save sales order item.");
+      }
 
-    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "", documents: [] };
-    setIsAccordionOpen(false);
-    setNewItemForm(emptyForm);
+      const currentList = salesOrderList.length > 0 ? salesOrderList : [];
+      const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
+
+      const newItem = {
+        id: body.so_item_id ?? maxId + 1,
+        callFile: newItemForm.callFile || null,
+        itemNo: newItemForm.itemNo,
+        itemDescription: newItemForm.itemDescription,
+        qty: parseFloat(newItemForm.qty) || 1,
+        unitPrice: parseFloat(newItemForm.unitPrice) || 0,
+        discount: parseFloat(newItemForm.discount) || 0,
+        taxCode: newItemForm.taxCode || "15%",
+        typeOfPo: newItemForm.typeOfPo || "",
+        supplierCode: newItemForm.supplierCode || "",
+        supplierName: newItemForm.supplierName || "",
+        documents: newItemForm.documents || [],
+        poStatus: "Draft",
+        workOrder: "",
+      };
+      newItem.totalAmount = calcRowTotal(newItem);
+
+      handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
+      useAlertReducer.getState().success("Sales order item saved successfully.");
+
+      setIsAccordionOpen(false);
+      setNewItemForm(EMPTY_NEW_ITEM_FORM);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to save sales order item.";
+      useAlertReducer.getState().error(msg);
+    } finally {
+      setIsSavingItem(false);
+    }
   };
 
   const handleCancel = () => {
-    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "", documents: [] };
     setIsAccordionOpen(false);
-    setNewItemForm(emptyForm);
+    setNewItemForm(EMPTY_NEW_ITEM_FORM);
   };
 
   // Checkbox selection handlers (only for non-DA module)
@@ -1049,7 +1174,7 @@ const SalesOrderList = ({
       document_date: soDocumentDate,
       discount_percentage: discountPercentage,
       rounding: 0,
-      remarks: formValues.soRemarks || "",
+      remarks: soRemarks,
     };
 
     setIsGeneratingPO(true);
@@ -1208,6 +1333,13 @@ const SalesOrderList = ({
         </div>
       </td>
 
+      {/* PO No. */}
+      <td>
+        <div className="sales-order-table-cell">
+          {order.poNo || "—"}
+        </div>
+      </td>
+
       {/* Type of PO */}
       <td>
         <div className="sales-order-table-cell">
@@ -1271,15 +1403,6 @@ const SalesOrderList = ({
           )}
         </div>
       </td>
-
-      {/* Status */}
-      <td>
-        <div className="sales-order-table-cell">
-          <span className={`so-row-status-badge ${getRowStatusClass(order.status)}`}>
-            {order.status || "Pending"}
-          </span>
-        </div>
-      </td>
     </tr>
     );
   };
@@ -1299,21 +1422,177 @@ const SalesOrderList = ({
             onPageChange={setCurrentPage}
             compact
           />
-          <button
-            type="button"
-            className="sales-order-add-button sales-order-summary-button"
-            onClick={() => setShowSummaryPopover(true)}
-          >
-            Summary
-          </button>
           {!readOnly && (
-            <button
-              type="button"
-              className="sales-order-add-button"
-              onClick={handleAddNewItem}
-            >
-              + Add Item
-            </button>
+            <div className="sales-order-add-button-wrap">
+              <button
+                type="button"
+                className="sales-order-add-button"
+                onClick={handleAddNewItem}
+              >
+                + Add Item
+              </button>
+
+              {/* Add Item Popover — anchored directly below the button */}
+              {isAccordionOpen && (
+                <>
+                  <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
+                  <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
+                  <div className="sales-order-add-accordion-header">
+                    <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      className="sales-order-add-accordion-close"
+                      style={{ color: cardColor }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="sales-order-add-accordion-body">
+                    <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                      <div className="sales-order-add-form-field">
+                        <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
+                        <select
+                          value={newItemForm.itemNo}
+                          onChange={(e) => handleItemCodeSelect(e.target.value)}
+                          className="sales-order-add-form-input"
+                          disabled={!portId || isLoadingItemCodes || isLoadingItemDetails}
+                          required
+                        >
+                          <option value="">
+                            {!portId
+                              ? "Select Port first..."
+                              : isLoadingItemCodes
+                              ? "Loading item codes..."
+                              : "Select Item No..."}
+                          </option>
+                          {itemCodeOptions.map((o) => (
+                            <option key={o.tariff_id} value={o.item_code}>{o.item_code}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
+                        <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
+                        <input
+                          type="text"
+                          value={newItemForm.itemDescription}
+                          onChange={(e) => handleFormChange("itemDescription", e.target.value)}
+                          placeholder="e.g., Container Handling Service"
+                          className="sales-order-add-form-input"
+                          required
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Quantity</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={newItemForm.qty}
+                          onChange={(e) => handleFormChange("qty", e.target.value)}
+                          placeholder="1"
+                          className="sales-order-add-form-input"
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Unit Price</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={newItemForm.unitPrice}
+                          onChange={(e) => handleFormChange("unitPrice", e.target.value)}
+                          placeholder="0.00"
+                          className="sales-order-add-form-input"
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Discount</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={newItemForm.discount}
+                          onChange={(e) => handleFormChange("discount", e.target.value)}
+                          placeholder="0"
+                          className="sales-order-add-form-input"
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Tax Code</label>
+                        <select
+                          value={newItemForm.taxCode}
+                          onChange={(e) => handleFormChange("taxCode", e.target.value)}
+                          className="sales-order-add-form-input"
+                        >
+                          {TAX_CODE_OPTIONS.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Type of PO</label>
+                        <select
+                          value={newItemForm.typeOfPo}
+                          onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
+                          className="sales-order-add-form-input"
+                        >
+                          <option value="">— Select —</option>
+                          {TYPE_OF_PO_OPTIONS.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Supporting Documents</label>
+                        <div className="sales-order-add-form-docs">
+                          {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
+                        </div>
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Supplier Code</label>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <input
+                            type="text"
+                            value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
+                            readOnly
+                            placeholder="— Select vendor —"
+                            className="sales-order-add-form-input"
+                            style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setVendorModalTarget("new")}
+                            className="sales-order-supplier-select-btn"
+                          >
+                            {newItemForm.supplierCode ? "Change" : "Select"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="sales-order-add-form-actions">
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        className="sales-order-add-form-cancel"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveNewItem}
+                        className="sales-order-add-form-save"
+                        disabled={isSavingItem}
+                      >
+                        {isSavingItem ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -1443,31 +1722,31 @@ const SalesOrderList = ({
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Posting Date</label>
-              <input
-                type="date"
+              <DatePickerField
+                dateValue={soPostingDate}
+                dateFieldName="soPostingDate"
+                disabled
                 className="so-header-input so-header-input-readonly"
-                value={soPostingDate}
-                readOnly
               />
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Delivery Date</label>
-              <input
-                type="date"
+              <DatePickerField
+                dateValue={soDeliveryDate}
+                onDateChange={handleChange("soDeliveryDate")}
+                dateFieldName="soDeliveryDate"
+                disabled={readOnly}
                 className="so-header-input"
-                value={soDeliveryDate}
-                onChange={handleChange("soDeliveryDate")}
-                readOnly={readOnly}
               />
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Document Date</label>
-              <input
-                type="date"
+              <DatePickerField
+                dateValue={soDocumentDate}
+                onDateChange={handleChange("soDocumentDate")}
+                dateFieldName="soDocumentDate"
+                disabled={readOnly}
                 className="so-header-input"
-                value={soDocumentDate}
-                onChange={handleChange("soDocumentDate")}
-                readOnly={readOnly}
               />
             </div>
             <div className="so-header-field">
@@ -1524,263 +1803,6 @@ const SalesOrderList = ({
 
         {/* Right: Table view + Accounting Summary — wider column */}
         <div className="so-right-panel">
-          {/* Add Item Popover */}
-          {!readOnly && isAccordionOpen && (
-            <>
-              <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
-              <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
-              <div className="sales-order-add-accordion-header">
-                <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="sales-order-add-accordion-close"
-                  style={{ color: cardColor }}
-                >
-                  ×
-                </button>
-              </div>
-              <div className="sales-order-add-accordion-body">
-                <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-                  <div className="sales-order-add-form-field">
-                    <label>Call File</label>
-                    <select
-                      value={newItemForm.callFile}
-                      onChange={(e) => handleFormChange("callFile", e.target.value)}
-                      className="sales-order-add-form-input"
-                    >
-                      <option value="">Select Call File...</option>
-                      <option value="CALL-001">CALL-001</option>
-                      <option value="CALL-002">CALL-002</option>
-                      <option value="CALL-003">CALL-003</option>
-                      <option value="CALL-004">CALL-004</option>
-                      <option value="CALL-005">CALL-005</option>
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
-                    <input
-                      type="text"
-                      value={newItemForm.itemNo}
-                      onChange={(e) => handleFormChange("itemNo", e.target.value)}
-                      placeholder="e.g., ITEM-001"
-                      className="sales-order-add-form-input"
-                      required
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
-                    <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
-                    <input
-                      type="text"
-                      value={newItemForm.itemDescription}
-                      onChange={(e) => handleFormChange("itemDescription", e.target.value)}
-                      placeholder="e.g., Container Handling Service"
-                      className="sales-order-add-form-input"
-                      required
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Quantity</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={newItemForm.qty}
-                      onChange={(e) => handleFormChange("qty", e.target.value)}
-                      placeholder="1"
-                      className="sales-order-add-form-input"
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Unit Price</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={newItemForm.unitPrice}
-                      onChange={(e) => handleFormChange("unitPrice", e.target.value)}
-                      placeholder="0.00"
-                      className="sales-order-add-form-input"
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Discount</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      value={newItemForm.discount}
-                      onChange={(e) => handleFormChange("discount", e.target.value)}
-                      placeholder="0"
-                      className="sales-order-add-form-input"
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Tax Code</label>
-                    <select
-                      value={newItemForm.taxCode}
-                      onChange={(e) => handleFormChange("taxCode", e.target.value)}
-                      className="sales-order-add-form-input"
-                    >
-                      {TAX_CODE_OPTIONS.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Type of PO</label>
-                    <select
-                      value={newItemForm.typeOfPo}
-                      onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
-                      className="sales-order-add-form-input"
-                    >
-                      <option value="">— Select —</option>
-                      {TYPE_OF_PO_OPTIONS.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Supporting Documents</label>
-                    <div className="sales-order-add-form-docs">
-                      {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
-                    </div>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Supplier Code</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <input
-                        type="text"
-                        value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
-                        readOnly
-                        placeholder="— Select vendor —"
-                        className="sales-order-add-form-input"
-                        style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setVendorModalTarget("new")}
-                        className="sales-order-supplier-select-btn"
-                      >
-                        {newItemForm.supplierCode ? "Change" : "Select"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className="sales-order-add-form-actions">
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="sales-order-add-form-cancel"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveNewItem}
-                    className="sales-order-add-form-save"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-              </div>
-            </>
-          )}
-
-          {/* Accounting Summary Popover — opened via the Summary button in the header */}
-          {showSummaryPopover && (() => {
-            const amountFromForm = (v) => {
-              if (v == null || v === "") return null;
-              const n = parseFloat(String(v).replace(/,/g, ""));
-              return Number.isFinite(n) ? n : null;
-            };
-
-            const subtotalCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              return sum + qty * unitPrice;
-            }, 0);
-            const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const discount = parseFloat(item.discount) || 0;
-              return sum + qty * unitPrice * (discount / 100);
-            }, 0);
-            const totalTaxCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const discount = parseFloat(item.discount) || 0;
-              const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
-              const discountedTotal = qty * unitPrice * (1 - discount / 100);
-              return sum + discountedTotal * taxRate;
-            }, 0);
-            const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
-
-            const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
-            const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
-            const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
-            const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
-            const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
-
-            return (
-              <div
-                className="so-summary-modal-backdrop"
-                onClick={(e) => { if (e.target === e.currentTarget) setShowSummaryPopover(false); }}
-              >
-                <div className="so-summary-modal">
-                  <div className="so-summary-modal-header">
-                    <h3 className="so-summary-modal-title">Accounting Summary</h3>
-                    <button
-                      type="button"
-                      onClick={() => setShowSummaryPopover(false)}
-                      className="so-summary-modal-close"
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="so-summary-modal-body">
-                    <div className="so-accounting-grid">
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Currency</span>
-                        <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
-                      </div>
-                      <div className="so-accounting-divider" />
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Subtotal</span>
-                        <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
-                      </div>
-                      {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
-                        <div className="so-accounting-row">
-                          <span className="so-accounting-label">Discount</span>
-                          <span className="so-accounting-value">
-                            {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
-                          </span>
-                        </div>
-                      )}
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Total Discount</span>
-                        <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
-                      </div>
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Total Tax</span>
-                        <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
-                      </div>
-                      <div className="so-accounting-divider" />
-                      <div className="so-accounting-row so-accounting-grand">
-                        <span className="so-accounting-label">Grand Total</span>
-                        <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
           {/* Sticky Bulk Action Bar */}
           {!isDAModule && selectedItems.size > 0 && (
             <div ref={bulkActionBarRef} className="so-bulk-action-bar">
@@ -1874,11 +1896,11 @@ const SalesOrderList = ({
                   {renderTableHeader("Tax Code", "col-tax")}
                   {renderTableHeader("Total Amount", "col-total")}
                   {renderTableHeader("Work Order No.", "col-work-order")}
+                  {renderTableHeader("PO No.", "col-po-no")}
                   {renderTableHeader("Type of PO", "col-type-po")}
                   {renderTableHeader("Third Party", "col-third-party")}
                   {renderTableHeader("Supporting Documents", "col-documents")}
                   {renderTableHeader("Supplier Code", "col-supplier")}
-                  {renderTableHeader("Status", "col-status")}
                 </tr>
               </thead>
               <tbody>
@@ -1973,6 +1995,101 @@ const SalesOrderList = ({
         </div>
       </div>
 
+      {/* Accounting Summary — always visible at the bottom of the page */}
+      {(() => {
+        const amountFromForm = (v) => {
+          if (v == null || v === "") return null;
+          const n = parseFloat(String(v).replace(/,/g, ""));
+          return Number.isFinite(n) ? n : null;
+        };
+
+        const subtotalCalc = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          return sum + qty * unitPrice;
+        }, 0);
+        const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          return sum + qty * unitPrice * (discount / 100);
+        }, 0);
+        const totalTaxCalc = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
+          const discountedTotal = qty * unitPrice * (1 - discount / 100);
+          return sum + discountedTotal * taxRate;
+        }, 0);
+        const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
+
+        const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
+        const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
+        const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
+        const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
+        const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
+
+        return (
+          <div className="so-summary-section">
+            <h3 className="so-summary-section-title">Accounting Summary</h3>
+            <div className="so-summary-extra-fields">
+              <div className="so-header-field">
+                <label className="so-header-label">Owner</label>
+                <input
+                  type="text"
+                  className="so-header-input so-header-input-readonly"
+                  value={soOwner}
+                  readOnly
+                />
+              </div>
+              <div className="so-header-field so-summary-remarks-field">
+                <label className="so-header-label">Remarks</label>
+                <textarea
+                  className="so-header-input so-summary-remarks-textarea"
+                  placeholder="Add internal remarks..."
+                  value={soRemarks}
+                  onChange={handleChange("soRemarks")}
+                  readOnly={readOnly}
+                />
+              </div>
+            </div>
+            <div className="so-accounting-grid">
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Currency</span>
+                <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+              </div>
+              <div className="so-accounting-divider" />
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Subtotal</span>
+                <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+              </div>
+              {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
+                <div className="so-accounting-row">
+                  <span className="so-accounting-label">Discount</span>
+                  <span className="so-accounting-value">
+                    {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                  </span>
+                </div>
+              )}
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Total Discount</span>
+                <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+              </div>
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Total Tax</span>
+                <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+              </div>
+              <div className="so-accounting-divider" />
+              <div className="so-accounting-row so-accounting-grand">
+                <span className="so-accounting-label">Grand Total</span>
+                <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Work Order Creation Modal */}
       {showWorkOrderModal && (
         <WorkOrderCreationModal
@@ -2016,8 +2133,8 @@ const SalesOrderList = ({
           branch={branch}
           contactPerson={soContactPerson}
           localCurrency={soBpCurrency}
-          owner={formValues.soOwner || ""}
-          remarks={formValues.soRemarks || ""}
+          owner={soOwner}
+          remarks={soRemarks}
           onCopyToGoodsReceipt={handleCopyToGoodsReceipt}
         />
       )}
@@ -2047,6 +2164,7 @@ const SalesOrderList = ({
 };
 
 SalesOrderList.propTypes = {
+  card: PropTypes.object,
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,

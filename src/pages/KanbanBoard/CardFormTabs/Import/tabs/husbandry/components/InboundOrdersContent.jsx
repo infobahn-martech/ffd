@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
@@ -137,6 +137,30 @@ const renderLaunchHireStepIcon = (icon) => {
       return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "truck":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 8h11v8H2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M13 11h4l3 3v2h-7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <circle cx="6" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+          <circle cx="17" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      );
+    case "target":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
+          <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="2" />
+          <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+        </svg>
+      );
+    case "user":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+          <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
     default:
@@ -675,12 +699,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     const errors = {};
     if (!formData.date) errors.date = "Date is required";
     if (!formData.warehouse) errors.warehouse = "Warehouse is required";
+    if (formData.launchHire && !formData.launchHireDate) errors.launchHireDate = "Booking date and time are required";
     formData.orders.forEach((order, idx) => {
       if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
       if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
       if (order.transportation) {
         if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
         if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
+        if (!order.pickUpFrom) errors[`o${idx}_pickUpFrom`] = "Pick-up from is required";
         if (!order.toLocation) errors[`o${idx}_toLocation`] = "To location is required";
         if (!order.driverName) errors[`o${idx}_driverName`] = "Driver is required";
       }
@@ -1535,13 +1561,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Pick-Up From">
+                            <FormField label="Pick-Up From *">
                               <LocationAutocomplete
                                 value={order.pickUpFrom}
-                                onChange={(e) => handleOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "pickUpFrom", e.target.value);
+                                  if (formErrors[`o${index}_pickUpFrom`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_pickUpFrom`]; return e; });
+                                }}
                                 placeholder="Enter pick-up location..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_pickUpFrom`] && <span className="dispatch-edit-error">{formErrors[`o${index}_pickUpFrom`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
@@ -1583,7 +1613,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             ))}
           </div>
 
-          {/* Launch Hire Section - form level (read-only) */}
+          {/* Launch Hire Section */}
           <div className="dispatch-edit-section">
             <div className="dispatch-edit-checkbox-group">
               <label className="dispatch-edit-checkbox-label">
@@ -1591,8 +1621,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   type="checkbox"
                   className="dispatch-edit-checkbox"
                   checked={formData.launchHire || false}
-                  disabled
-                  readOnly
+                  onChange={(e) => handleFormChange("launchHire", e.target.checked)}
+                  disabled={!!editingOrder}
                 />
                 <span>Launch Hire</span>
               </label>
@@ -1612,18 +1642,25 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </span>
                         <span className="dispatch-launch-hire-step-num">1</span>
                       </span>
-                      <span className="dispatch-launch-hire-step-label">Booking Date &amp; Time</span>
+                      <span className="dispatch-launch-hire-step-label">Booking Date &amp; Time <span className="text-danger">*</span></span>
                     </div>
                     <div className="dispatch-launch-hire-step-field">
                       <DateTimePickerField
                         dateValue={formData.launchHireDate}
                         timeValue={formData.launchHireTime}
-                        onDateTimeChange={() => {}}
+                        onDateTimeChange={(nextValues) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            launchHireDate: nextValues.date,
+                            launchHireTime: nextValues.time,
+                          }));
+                          if (formErrors.launchHireDate) setFormErrors((prev) => { const e = { ...prev }; delete e.launchHireDate; return e; });
+                        }}
                         dateFieldName="launchHireDate"
                         timeFieldName="launchHireTime"
                         placeholder="YYYY-MM-DD hh:mm"
-                        disabled
                       />
+                      {formErrors.launchHireDate && <span className="dispatch-edit-error">{formErrors.launchHireDate}</span>}
                     </div>
                   </div>
 
@@ -1654,10 +1691,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="dispatch-launch-hire-step-field">
                       <FormSelect
                         value={formData.launchHireLocation}
-                        onChange={() => {}}
+                        onChange={(e) => handleFormChange("launchHireLocation", e.target.value)}
                         options={mergeOptionForValue(launchHireLocationOptions, formData.launchHireLocation)}
                         placeholder="Select location..."
-                        disabled
                       />
                     </div>
                   </div>
@@ -1912,7 +1948,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             className="dispatch-edit-checkbox"
                             checked={order.transportation || false}
                             onChange={(e) => handleConvertOrderChange(order.id, "transportation", e.target.checked)}
-                            disabled={!!order.inbound_item_id}
+                            disabled
                           />
                           <span>Transportation</span>
                         </label>
@@ -2010,7 +2046,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </div>
 
                         <div className="col-lg-4 col-md-6">
-                          <FormField label="Dispatch Date">
+                          <FormField label="Dispatch Date" className="dispatch-date-plain">
                             <DateTimePickerField
                               dateValue={order.dispatchDate}
                               timeValue={order.dispatchTime}
@@ -2243,7 +2279,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     ))}
                   </div>
                   {Number(item.transportation_required) === 1 && item.transportation && (
-                    <div className="landing-view-sub-section">
+                    <div className="landing-view-sub-section landing-view-sub-section--transport-card">
                       <div className="landing-view-sub-title landing-view-sub-title--iconic">
                         <span className="landing-view-section-icon landing-view-section-icon--transport landing-view-section-icon--sm">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2255,48 +2291,102 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </span>
                         <span>Transportation</span>
                       </div>
-                      <div className="row g-2">
-                        <div className="col-md-4 col-6">
-                          <label className="landing-view-label">Type of Vehicle</label>
-                          <div className="landing-view-box">
-                            {item.transportation.vehicle_type_name ||
+                      {(() => {
+                        const driverStep = {
+                          key: "driver",
+                          icon: "user",
+                          label: "Driver Name",
+                          value: item.transportation.driver_name ||
+                            materialDriverOptions.find((o) => o.value === String(item.transportation.driver_id))?.label ||
+                            item.transportation.driver_id ||
+                            "-",
+                        };
+                        const isDriverEmpty = driverStep.value === "-";
+                        const routeSteps = [
+                          {
+                            key: "vehicle",
+                            icon: "truck",
+                            label: "Type of Vehicle",
+                            value: item.transportation.vehicle_type_name ||
                               materialVehicleOptions.find((o) => o.value === String(item.transportation.vehicle_type_id))?.label ||
                               item.transportation.vehicle_type_id ||
-                              "-"}
-                          </div>
-                        </div>
-                        <div className="col-md-4 col-6">
-                          <label className="landing-view-label">From Location</label>
-                          <div className="landing-view-box">
-                            {item.transportation.from_location_name ||
+                              "-",
+                          },
+                          {
+                            key: "from",
+                            icon: "pin",
+                            label: "From Location",
+                            value: item.transportation.from_location_name ||
                               transportLocationOptions.find((o) => o.value === String(item.transportation.from_location_id))?.label ||
                               item.transportation.from_location_id ||
-                              "-"}
-                          </div>
-                        </div>
-                        <div className="col-md-4 col-6">
-                          <label className="landing-view-label">Pick-Up From</label>
-                          <div className="landing-view-box">{item.transportation.pickup_location || "-"}</div>
-                        </div>
-                        <div className="col-md-4 col-6">
-                          <label className="landing-view-label">To Location</label>
-                          <div className="landing-view-box">
-                            {item.transportation.to_location_name ||
+                              "-",
+                          },
+                          {
+                            key: "pickup",
+                            icon: "target",
+                            label: "Pick-Up From",
+                            value: item.transportation.pickup_location || "-",
+                          },
+                          {
+                            key: "to",
+                            icon: "flag",
+                            label: "To Location",
+                            value: item.transportation.to_location_name ||
                               transportLocationOptions.find((o) => o.value === String(item.transportation.to_location_id))?.label ||
                               item.transportation.to_location_id ||
-                              "-"}
-                          </div>
-                        </div>
-                        <div className="col-md-4 col-6">
-                          <label className="landing-view-label">Driver Name</label>
-                          <div className="landing-view-box">
-                            {item.transportation.driver_name ||
-                              materialDriverOptions.find((o) => o.value === String(item.transportation.driver_id))?.label ||
-                              item.transportation.driver_id ||
-                              "-"}
-                          </div>
-                        </div>
-                      </div>
+                              "-",
+                          },
+                        ];
+                        return (
+                          <>
+                            <div className="landing-view-transport-driver-row">
+                              <div className={`landing-view-transport-step${isDriverEmpty ? " landing-view-transport-step--empty" : ""}`}>
+                                <span className="landing-view-transport-step-icon-wrap">
+                                  <span className="landing-view-transport-step-icon">
+                                    {renderLaunchHireStepIcon(driverStep.icon)}
+                                  </span>
+                                </span>
+                                <div className="landing-view-transport-step-body">
+                                  <span className="landing-view-transport-step-label">{driverStep.label}</span>
+                                  <span className="landing-view-transport-step-value">{driverStep.value}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="landing-view-transport-steps">
+                              {routeSteps.map((step, stepIdx, steps) => {
+                                const isEmpty = step.value === "-";
+                                return (
+                                  <Fragment key={step.key}>
+                                    <div
+                                      className={`landing-view-transport-step${isEmpty ? " landing-view-transport-step--empty" : ""}`}
+                                      style={{ "--stagger-index": stepIdx }}
+                                    >
+                                      <span className="landing-view-transport-step-icon-wrap">
+                                        <span className="landing-view-transport-step-icon">
+                                          {renderLaunchHireStepIcon(step.icon)}
+                                        </span>
+                                        <span className="landing-view-transport-step-num">{stepIdx + 1}</span>
+                                      </span>
+                                      <div className="landing-view-transport-step-body">
+                                        <span className="landing-view-transport-step-label">{step.label}</span>
+                                        <span className="landing-view-transport-step-value">{step.value}</span>
+                                      </div>
+                                    </div>
+                                    {stepIdx < steps.length - 1 && (
+                                      <div className="landing-view-transport-track" aria-hidden="true" style={{ "--stagger-index": stepIdx }}>
+                                        <span className="landing-view-transport-track-line" />
+                                        <span className="landing-view-transport-track-truck">
+                                          {renderLaunchHireStepIcon("truck")}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </Fragment>
+                                );
+                              })}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

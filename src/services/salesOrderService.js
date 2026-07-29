@@ -32,9 +32,37 @@ const generatePO = (payload) => Gateway.post("sales_order/generate_po", payload)
  */
 const uploadInvoice = (formData) => Gateway.post("sales_order/upload_invoice", formData);
 
+/**
+ * @param {string|number} portId
+ */
+const getItemCodes = (portId) =>
+  Gateway.get(`sales_order/get_item_codes/${encodeURIComponent(String(portId))}`);
+
+/**
+ * @param {string|number} tariffId
+ * @param {string|number} entityId
+ */
+const getItemDetails = (tariffId, entityId) =>
+  Gateway.get("sales_order/get_item_details", { params: { tariff_id: tariffId, entity_id: entityId } });
+
+/**
+ * @param {object} payload
+ * @param {string|number} payload.call_id
+ * @param {string|number} payload.tariff_id
+ * @param {number} payload.quantity
+ * @param {string} [payload.type_PO]
+ * @param {string} [payload.supporting_docu]
+ * @param {string|number} [payload.vendor_id]
+ * @param {number} [payload.discount]
+ */
+const saveSalesOrderItem = (payload) => Gateway.post("sales_order/save_sales_order_item", payload);
+
 export default {
   getSoItemsByCall,
   generateWorkOrder,
   generatePO,
   uploadInvoice,
+  getItemCodes,
+  getItemDetails,
+  saveSalesOrderItem,
 };

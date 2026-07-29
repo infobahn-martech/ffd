@@ -16,7 +16,12 @@ import {
   PRE_ARRIVAL_MWP_USER_ROLE_ID,
 } from "../../../../../CardFormTabs/Import/tabs/operation/operationConstants";
 import groService from "../../../../../../../services/groService";
-import { getImmigrationCrewList, normalizeImmigrationCrewBatches } from "../../../../../../../services/cgAndZwailpassService";
+import {
+  getImmigrationCrewList,
+  normalizeImmigrationCrewRows,
+  normalizeImmigrationCrewPagination,
+  extractImmigrationBatchOptions,
+} from "../../../../../../../services/cgAndZwailpassService";
 import useGROReducer from "../../../../../../../store/GROReducer";
 import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
 import InwardClearanceView, { DocumentActionConfirmModal, InwardClearanceToolbar } from "./InwardClearanceView";
@@ -72,6 +77,7 @@ import {
 } from "./groCardUtils";
 
 const EMPTY_WORK_ORDERS = [];
+const CREW_IMMIGRATION_PAGE_SIZE = 10;
 
 const GROCardView = forwardRef(function GROCardView(
   { card, mode = "gro", userRoleId = null, selectedTask: selectedTaskProp = null },
@@ -148,8 +154,12 @@ const GROCardView = forwardRef(function GROCardView(
   const [groUserOptions, setGroUserOptions] = useState([]);
   const [groUsersLoading, setGroUsersLoading] = useState(false);
   const [isAssigningUser, setIsAssigningUser] = useState(false);
-  const [crewImmigrationBatches, setCrewImmigrationBatches] = useState([]);
+  const [crewImmigrationRows, setCrewImmigrationRows] = useState([]);
   const [crewImmigrationLoading, setCrewImmigrationLoading] = useState(false);
+  const [crewImmigrationPage, setCrewImmigrationPage] = useState(1);
+  const [crewImmigrationPagination, setCrewImmigrationPagination] = useState(null);
+  const [crewImmigrationBatchOptions, setCrewImmigrationBatchOptions] = useState([]);
+  const [crewImmigrationBatchFilter, setCrewImmigrationBatchFilter] = useState("");
   const [showDynamicUploadModal, setShowDynamicUploadModal] = useState(false);
   const [dynamicUploadFile, setDynamicUploadFile] = useState(null);
   const [dynamicUploadType, setDynamicUploadType] = useState(null);
@@ -886,18 +896,64 @@ const GROCardView = forwardRef(function GROCardView(
   }, [activeTab, isCrewImmigrationStage, isVesselInwardRegistrationStage, isCrewChangeStage]);
 
   useEffect(() => {
+    setCrewImmigrationBatchFilter("");
+    setCrewImmigrationBatchOptions([]);
+  }, [activeTab, callId]);
+
+  useEffect(() => {
+    setCrewImmigrationPage(1);
+  }, [activeTab, callId, crewImmigrationBatchFilter]);
+
+  // Batch tab list — a dedicated, unpaginated fetch, since the paginated
+  // table fetch's `batches` are scoped to whatever crew are on that page
+  // (or a single batch once immigration_batch filters it), not the call's
+  // full batch set. Mirrors CrewImmigrationDashboard's availableBatches.
+  useEffect(() => {
+    if (activeTab !== GRO_ACTIVE_TABS.crewImmigration) return undefined;
+    if (callId == null || callId === "") return undefined;
+    let cancelled = false;
+    getImmigrationCrewList(callId, { page: 1, limit: 1000 })
+      .then((res) => {
+        if (cancelled) return;
+        const envelope = res?.data?.data ?? res?.data ?? {};
+        setCrewImmigrationBatchOptions(extractImmigrationBatchOptions(envelope));
+      })
+      .catch(() => {
+        if (!cancelled) setCrewImmigrationBatchOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, callId]);
+
+  // Pre-select the first batch tab once options load, matching the previous
+  // default of showing the first batch's crew.
+  useEffect(() => {
+    if (crewImmigrationBatchFilter || crewImmigrationBatchOptions.length === 0) return;
+    setCrewImmigrationBatchFilter(crewImmigrationBatchOptions[0]);
+  }, [crewImmigrationBatchOptions, crewImmigrationBatchFilter]);
+
+  useEffect(() => {
     if (activeTab !== GRO_ACTIVE_TABS.crewImmigration) return undefined;
     if (callId == null || callId === "") return undefined;
     let cancelled = false;
     setCrewImmigrationLoading(true);
-    getImmigrationCrewList(callId)
+    getImmigrationCrewList(callId, {
+      page: crewImmigrationPage,
+      limit: CREW_IMMIGRATION_PAGE_SIZE,
+      immigrationBatch: crewImmigrationBatchFilter || undefined,
+    })
       .then((res) => {
         if (cancelled) return;
         const envelope = res?.data?.data ?? res?.data ?? {};
-        setCrewImmigrationBatches(normalizeImmigrationCrewBatches(envelope));
+        setCrewImmigrationRows(normalizeImmigrationCrewRows(envelope));
+        setCrewImmigrationPagination(normalizeImmigrationCrewPagination(envelope));
       })
       .catch(() => {
-        if (!cancelled) setCrewImmigrationBatches([]);
+        if (!cancelled) {
+          setCrewImmigrationRows([]);
+          setCrewImmigrationPagination(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setCrewImmigrationLoading(false);
@@ -905,7 +961,7 @@ const GROCardView = forwardRef(function GROCardView(
     return () => {
       cancelled = true;
     };
-  }, [activeTab, callId]);
+  }, [activeTab, callId, crewImmigrationPage, crewImmigrationBatchFilter]);
 
   const handleBulkPassSubmit = useCallback(
     async (e) => {
@@ -1117,7 +1173,6 @@ const GROCardView = forwardRef(function GROCardView(
       const extraErrors = validateGroExtraStageFields(groStageId, extraStageFields);
       if (Object.keys(extraErrors).length > 0) {
         setExtraStageFieldErrors(extraErrors);
-        notify("Please fill in all required fields.", "warn");
         return;
       }
       setExtraStageFieldErrors({});
@@ -1308,13 +1363,7 @@ const GROCardView = forwardRef(function GROCardView(
         notify("Vessel Registration PDF generated, but the file is not available to download.", "warn");
         return;
       }
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = url.split("/").pop() || "Vessel_Registration.pdf";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      window.open(url, "_blank", "noopener,noreferrer");
       notify("Vessel Registration PDF downloaded.", "success");
     } catch (err) {
       notify(groApiErrorMessage(err, "Failed to generate Vessel Registration PDF."), "error");
@@ -1579,7 +1628,7 @@ const GROCardView = forwardRef(function GROCardView(
 
   return (
     <div className="gro-card-view">
-      <div className="gro-summary-grid gro-summary-grid--six-col">
+      <div className={`gro-summary-grid${showAssignedUserSelect || mode === "gro" ? " gro-summary-grid--six-col" : ""}`}>
         <GroSummaryCard label="Call Type" value={callTypeSummary} />
         <GroSummaryCard label="Billing Entity" value={billingEntitySummary} />
         <GroSummaryCard label="Port" value={portSummary} />
@@ -1772,13 +1821,22 @@ const GROCardView = forwardRef(function GROCardView(
         </div>
 
         {hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewImmigration ? (
-          <CrewImmigrationPanel batches={crewImmigrationBatches} loading={crewImmigrationLoading} />
+          <CrewImmigrationPanel
+            rows={crewImmigrationRows}
+            batchOptions={crewImmigrationBatchOptions}
+            activeBatch={crewImmigrationBatchFilter}
+            onSelectBatch={setCrewImmigrationBatchFilter}
+            loading={crewImmigrationLoading}
+            pagination={crewImmigrationPagination}
+            onPageChange={setCrewImmigrationPage}
+          />
         ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration ? (
           <VesselInwardRegistrationView
             ref={vesselRegistrationRef}
             onSave={handleGenerateVesselRegistrationPdf}
             isSaving={isGeneratingVesselPdf}
             portId={groPortId}
+            callId={callId}
           />
         ) : hidePassTabs && activeTab === GRO_ACTIVE_TABS.crewChange ? (
           <CrewChangePassPanel callId={callId} portId={groPortId} />

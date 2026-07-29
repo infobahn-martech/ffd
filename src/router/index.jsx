@@ -5,6 +5,8 @@ import App from "../App";
 import PublicRoutes from "./PublicRoute";
 import PrivateRoutes from "./PrivateRoute";
 import RouteGuard from "./RouteGuard";
+import PermissionRoute from "./PermissionRoute";
+import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from "../shared/constants/permissions";
 import Layout from "../structure/Layout";
 import DADeskBoard from "../pages/DADeskBoard";
 import Dashboard from "../pages/Dashboard";
@@ -176,7 +178,21 @@ const router = createBrowserRouter(
                 { path: "/roles", element: <RouteGuard><Role /></RouteGuard> },
                 { path: "/permissions", element: <RouteGuard><Permission /></RouteGuard> },
                 // User Management
-                { path: "/users", element: <RouteGuard><User /></RouteGuard> },
+                {
+                  path: "/users",
+                  element: (
+                    // Fully migrated feature: the permission response is authoritative
+                    // here (permissionOnly), the legacy role table is not consulted.
+                    <PermissionRoute
+                      moduleKey={PERMISSION_MODULES.USER_MANAGEMENT}
+                      submoduleKey={PERMISSION_SUBMODULES.USERS}
+                      actionKey={PERMISSION_ACTIONS.VIEW}
+                      permissionOnly
+                    >
+                      <User />
+                    </PermissionRoute>
+                  ),
+                },
                 // Port Management
                 { path: "/port-management", element: <RouteGuard><Port /></RouteGuard> },
                 // Vessel Types

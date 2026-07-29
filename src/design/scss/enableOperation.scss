@@ -1,0 +1,420 @@
+/* ==========================================================
+   ENABLE OPERATION TAB — card form layout
+   Scoped to .enable-operation-tab-content only
+   ========================================================== */
+
+.enable-operation-tab-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+
+  &.general-tab-content {
+    padding: 0;
+  }
+
+  .cardform-body.general-tab-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 18px 22px;
+  }
+
+  .eo-sections-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #aab4c3 #f1f5f9;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #aab4c3;
+      border-radius: 999px;
+
+      &:hover {
+        background: #8b96a8;
+      }
+    }
+  }
+
+  .eo-ribbon {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border: 1px solid #bbf1cf;
+    flex-shrink: 0;
+  }
+
+  .eo-ribbon-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #15803d;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding-right: 12px;
+    border-right: 1px solid #bbf1cf;
+  }
+
+  .eo-ribbon-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .eo-ribbon-item-label {
+    font-size: 10.5px;
+    color: #6b8f78;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+  }
+
+  .eo-ribbon-item-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #14532d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+
+  .eo-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .eo-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .eo-form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eo-form-card--action {
+    background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+    border-color: #d6e0ff;
+    box-shadow: 0 0 0 1px rgba(62, 92, 182, 0.06), 0 4px 14px rgba(15, 23, 42, 0.06);
+  }
+
+  .eo-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .eo-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .eo-section-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: #eef1ff;
+    color: #3e5cb6;
+    flex-shrink: 0;
+  }
+
+  .eo-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 0;
+  }
+
+  .eo-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 20px;
+  }
+
+  .eo-field {
+    margin-bottom: 12px;
+    min-width: 0;
+    width: 100%;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.eo-field--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .eo-readonly-value {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: #f8f9fb;
+    border: 1px solid #eef0f4;
+    font-size: 13px;
+    color: #1a1a1a;
+    word-break: break-word;
+
+    &.eo-readonly-value--muted {
+      color: #9aa1af;
+      font-style: italic;
+    }
+  }
+
+  .eo-readonly-value a {
+    color: #3e5cb6;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+
+  .eo-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 38px;
+    align-items: center;
+  }
+
+  .eo-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #eef1ff;
+    border: 1px solid #dbe1ff;
+    color: #33396b;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .eo-chip--meta {
+    gap: 7px;
+    padding: 5px 12px 5px 8px;
+    background: color-mix(in srgb, var(--eo-chip-color, #6366f1) 10%, #ffffff);
+    border-color: color-mix(in srgb, var(--eo-chip-color, #6366f1) 30%, #ffffff);
+    color: color-mix(in srgb, var(--eo-chip-color, #6366f1) 65%, #1a1a2e);
+    font-weight: 600;
+  }
+
+  .eo-chip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--eo-chip-color, #6366f1);
+    color: #ffffff;
+  }
+
+  .eo-chip-label {
+    color: #8a90a6;
+    font-weight: 500;
+  }
+
+  .eo-chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--eo-chip-color, #6366f1);
+  }
+
+  .eo-time-objects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .eo-time-object-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #f8f9fb;
+    border: 1px solid #eef0f4;
+    font-size: 13px;
+  }
+
+  .eo-time-object-name {
+    color: #4b5563;
+    font-weight: 500;
+  }
+
+  .eo-time-object-value {
+    color: #1a1a1a;
+    font-weight: 600;
+  }
+
+  .eo-empty-state {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: #9aa1af;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .eo-save-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &--saving {
+      color: #6b7280;
+    }
+
+    &--saved {
+      color: #16a34a;
+    }
+
+    &--error {
+      color: #dc2626;
+    }
+  }
+
+  .eo-save-status-spin {
+    animation: eo-save-status-spin 0.8s linear infinite;
+  }
+
+  @keyframes eo-save-status-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .eo-enable-action-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed #e5e9f5;
+  }
+
+  .eo-enable-btn {
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #16a34a;
+    border: 1px solid #16a34a;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .eo-fields-grid,
+    .eo-row-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eo-ribbon-item-value {
+      max-width: 160px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cardform-body.general-tab-body {
+      padding: 14px 16px;
+    }
+
+    .eo-form-card {
+      padding: 16px;
+    }
+
+    .eo-fields-grid,
+    .eo-row-2,
+    .eo-row-3 {
+      grid-template-columns: 1fr;
+    }
+
+    .eo-ribbon {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .eo-ribbon-status {
+      border-right: none;
+      padding-right: 0;
+    }
+  }
+}

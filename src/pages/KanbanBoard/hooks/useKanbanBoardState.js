@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialData, TASK_WORKFLOW_TEMPLATE } from "../../../shared/helpers/data";
 import { ensureStaticWorkflows, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
-import { ensureDAWorkflow, DA_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/DAWorkflowData";
 import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
 import {
   mapFullBoardApiResponse,
@@ -9,15 +8,22 @@ import {
 } from "../../../shared/helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
+import { reorderWorkflowsByPinState } from "../utils/workflowHelpers";
 
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
 
 const isOperatorBoardId = (id) => String(id ?? "").toLowerCase() === "operator";
 
+/** Pinned workflows (from `is_pinned` on get_full_board) sort to the front, order preserved otherwise. */
+const sortByPinState = (mapped) => {
+  const pinState = Object.fromEntries(mapped.map((wf) => [wf.id, Boolean(wf.isPinned)]));
+  return reorderWorkflowsByPinState(pinState, mapped);
+};
+
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(() =>
-    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : [TASK_WORKFLOW_WITH_DEMO, DA_WORKFLOW_WITH_DEMO]
+    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : [TASK_WORKFLOW_WITH_DEMO]
   );
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
@@ -40,8 +46,8 @@ export default function useKanbanBoardState(selectedBoardId) {
     try {
       const res = await kanbanBoardService.getFullBoard(selectedBoardId);
       const payload = res?.data;
-      const mapped = mapFullBoardApiResponse(payload);
-      setWorkflows(ensureDAWorkflow(ensureStaticWorkflows(mapped.length ? mapped : [])));
+      const mapped = sortByPinState(mapFullBoardApiResponse(payload));
+      setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
       setBoardBackground(extractFullBoardBackground(payload));
       setSelectedCard((prev) => {
         if (!prev?.id) return prev;
@@ -52,7 +58,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       setBoardLoadError(null);
     } catch (e) {
       const msg = e?.message ?? String(e);
-      setWorkflows([TASK_WORKFLOW_WITH_DEMO, DA_WORKFLOW_WITH_DEMO]);
+      setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
       setBoardLoadError("Could not load board data.");
     } finally {
       setBoardLoading(false);
@@ -84,15 +90,15 @@ export default function useKanbanBoardState(selectedBoardId) {
       try {
         const res = await kanbanBoardService.getFullBoard(selectedBoardId);
         const payload = res?.data;
-        const mapped = mapFullBoardApiResponse(payload);
+        const mapped = sortByPinState(mapFullBoardApiResponse(payload));
         if (cancelled) return;
-        setWorkflows(ensureDAWorkflow(ensureStaticWorkflows(mapped.length ? mapped : [])));
+        setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
         setBoardBackground(extractFullBoardBackground(payload));
         setBoardLoadError(null);
       } catch (e) {
         if (!cancelled) {
           const msg = e?.message ?? String(e);
-          setWorkflows([TASK_WORKFLOW_WITH_DEMO, DA_WORKFLOW_WITH_DEMO]);
+          setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
           setBoardLoadError("Could not load board data.");
         }
       } finally {
@@ -241,6 +247,26 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard((prev) => (prev?.id === id ? { ...prev, color: nextColor } : prev));
   }, []);
 
+  /** Updates a card's title in workflow state (e.g. after kanban_card/update_card_title). Avoids full board refetch. */
+  const patchCardTitle = useCallback((cardId, title) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return {
+          ...wf,
+          cards: {
+            ...wf.cards,
+            [id]: { ...c, title },
+          },
+        };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, title } : prev));
+  }, []);
+
   const patchCardType = useCallback((cardId, cardTypeId, meta = {}) => {
     if (cardId == null || String(cardId).trim() === "") return;
     const id = String(cardId).trim();
@@ -340,6 +366,7 @@ export default function useKanbanBoardState(selectedBoardId) {
     setWorkflows,
     refetchBoard,
     patchCardColor,
+    patchCardTitle,
     patchCardType,
     patchCardBlocker,
     patchCardSticker,

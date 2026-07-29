@@ -2,8 +2,20 @@ import { create } from 'zustand';
 import authService from '../services/authService';
 import { getAuthData, removeItem, setItem, getItem } from '../shared/helpers/localStorage';
 import useAlertReducer from './AlertReducer';
+import { normalizePermissionSections } from '../shared/utils/permissions';
 
 const { isLoggedIn } = getAuthData();
+
+// New module/submodule/action permission system, additive to the existing
+// role_id-based checks used throughout the app — see rolePermissions.js,
+// groUserRoles.js, etc. Derived from profileData.permissions.sections
+// (GET /users/getuserdetail/{userId}) whenever the profile is set, so it
+// persists across refresh via the same userProfile localStorage cache and is
+// cleared on logout. Defaults to an empty map (== no access) while loading
+// or when the API doesn't return permissions.
+const derivePermissionState = (profileData) => ({
+  permissionMap: normalizePermissionSections(profileData?.permissions?.sections),
+});
 
 const useAuthReducer = create((set) => ({
   authData: null,
@@ -15,6 +27,7 @@ const useAuthReducer = create((set) => ({
   profileData: null,
   profileEditLoader: null,
   isProfileFetchLoading: false,
+  permissionMap: normalizePermissionSections(undefined),
   login: async ({ email, password, remember_me = false }) => {
     try {
       set({ isLoginLoading: true, errorMessage: "" });
@@ -61,6 +74,12 @@ const useAuthReducer = create((set) => ({
       if (data?.email) setItem("userEmail", data.email);
       // Store vendor_id for vendor/company portal dashboards (e.g. Transport Company)
       if (data?.vendor_id != null) setItem("vendor_id", data.vendor_id);
+
+      // Purge any previously cached profile/permissions so this login always
+      // fetches authoritative permissions from getuserdetail instead of
+      // reusing a stale or previously logged-in user's cached permissions.
+      removeItem('userProfile');
+      removeItem('role_id');
 
       set({
         authData,
@@ -115,10 +134,12 @@ const useAuthReducer = create((set) => ({
   doLogout: () => {
     set({
       userProfile: null,
+      profileData: null,
       authData: null,
       successMessage: '',
       isLoggedIn: false,
       errorMessage: null,
+      ...derivePermissionState(null),
     });
     removeItem('accessToken');
     removeItem('refreshToken');
@@ -153,7 +174,8 @@ const useAuthReducer = create((set) => ({
             set({
               profileData: parsedProfile,
               userProfile: parsedProfile,
-              isProfileFetchLoading: false
+              isProfileFetchLoading: false,
+              ...derivePermissionState(parsedProfile),
             });
             // If skipApiCall is true (refresh scenario), don't make API call
             if (skipApiCall) {
@@ -170,13 +192,17 @@ const useAuthReducer = create((set) => ({
         // Create fallback profile from available data without API call
         const authData = state.authData || {};
         let role = { role_id: '2' }; // Default to Admin role
+        let permissions;
 
-        // Try to get role from cached profile if available
+        // Try to get role/permissions from cached profile if available
         if (cachedProfile) {
           try {
             const parsed = JSON.parse(cachedProfile);
             if (parsed.role) {
               role = parsed.role;
+            }
+            if (parsed.permissions) {
+              permissions = parsed.permissions;
             }
           } catch (e) {
             // Use default role if parsing fails
@@ -189,12 +215,14 @@ const useAuthReducer = create((set) => ({
           email: authData.email || getItem('userEmail') || '',
           status: authData.status || 'active',
           role: role,
+          permissions,
           ...authData
         };
         set({
           profileData: fallbackProfileData,
           userProfile: fallbackProfileData,
-          isProfileFetchLoading: false
+          isProfileFetchLoading: false,
+          ...derivePermissionState(fallbackProfileData),
         });
         return;
       }
@@ -214,7 +242,8 @@ const useAuthReducer = create((set) => ({
       set({
         profileData,
         userProfile: profileData,
-        isProfileFetchLoading: false
+        isProfileFetchLoading: false,
+        ...derivePermissionState(profileData),
       });
     } catch (err) {
       // Always return success with fallback profile data
@@ -254,7 +283,8 @@ const useAuthReducer = create((set) => ({
       set({
         profileData: fallbackProfileData,
         userProfile: fallbackProfileData,
-        isProfileFetchLoading: false
+        isProfileFetchLoading: false,
+        ...derivePermissionState(fallbackProfileData),
       });
 
     }

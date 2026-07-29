@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
@@ -23,6 +23,14 @@ import { nextDayOf } from "../../../../../../../shared/helpers/dateTimeFieldUtil
 import "../../../../../../../design/scss/dispatch-note.scss";
 
 const isTruthyFlag = (value) => value === true || Number(value) === 1 || String(value).toLowerCase() === "true";
+
+const normalizeSlotValue = (value) => {
+  if (value == null || value === "") return "";
+  const raw = String(value).trim();
+  if (/^slot\s+[1-6]$/i.test(raw)) return raw.replace(/^slot\s+/i, "Slot ");
+  if (/^[1-6]$/.test(raw)) return `Slot ${raw}`;
+  return raw;
+};
 
 const launchHireStatusTone = (status) => {
   const raw = String(status ?? "").trim().toLowerCase();
@@ -54,12 +62,15 @@ const emptyEditItem = (id = 1) => ({
   landing_note_item_id: null,
   dispatch_note_item_id: null,
   quantity: "",
+  maxQty: null,
   slot: "",
   reason: "",
   packing_required: false,
+  packing_required_original: false,
   repacking_pallets: "",
   repacking_rolls: "",
   transportation_required: false,
+  transportation_required_original: false,
   typeOfVehicle: "",
   fromLocation: "",
   pickUpFrom: "",
@@ -311,17 +322,23 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                 transport.vehicle_type_id || transport.from_location_id ||
                 transport.to_location_id || transport.driver_id || transport.pickup_location
               ));
+              const remainingQtyRaw = item.remaining_qty;
+              const hasRemainingQty = remainingQtyRaw !== undefined && remainingQtyRaw !== null && remainingQtyRaw !== "";
+              const maxQty = hasRemainingQty ? Number(remainingQtyRaw) : (item.quantity ? Number(item.quantity) : null);
               return {
                 id: idx + 1,
                 landing_note_item_id: item.landing_note_item_id || null,
                 dispatch_note_item_id: item.dispatch_note_item_id || null,
                 quantity: String(item.quantity ?? ""),
-                slot: item.slot || "",
+                maxQty,
+                slot: normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id),
                 reason: (item.reason || "").trim(),
                 packing_required: isTruthyFlag(item.packing_required),
+                packing_required_original: isTruthyFlag(item.packing_required),
                 repacking_pallets: String(item.repacking_pallets ?? ""),
                 repacking_rolls: String(item.repacking_rolls ?? ""),
                 transportation_required: isTruthyFlag(item.transportation_required) || hasTransportData,
+                transportation_required_original: isTruthyFlag(item.transportation_required) || hasTransportData,
                 typeOfVehicle: transport ? String(transport.vehicle_type_id || "") : "",
                 fromLocation: transport ? String(transport.from_location_id || "") : "",
                 pickUpFrom: transport?.pickup_location || "",
@@ -398,7 +415,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     if (!formData.warehouse_id) errors.warehouse_id = "Warehouse is required";
     if (!formData.delivery_location) errors.delivery_location = "Delivery location is required";
     if (!formData.delivered_to) errors.delivered_to = "Delivered to is required";
-    editItems.forEach((item, idx) => { if (!item.quantity) errors[`item${idx}_quantity`] = "Quantity is required"; });
+    editItems.forEach((item, idx) => {
+      if (!item.quantity) errors[`item${idx}_quantity`] = "Quantity is required";
+      else if (item.maxQty != null && Number(item.quantity) > item.maxQty) errors[`item${idx}_quantity`] = `Quantity cannot exceed available quantity (${item.maxQty})`;
+      if (item.transportation_required && !item.pickUpFrom) errors[`item${idx}_pickup`] = "Pick-up from is required";
+    });
     if (Object.keys(errors).length > 0) { setEditFormErrors(errors); return; }
 
     const fd = new FormData();
@@ -417,6 +438,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const items = editItems.map((item) => {
       const obj = {
+        dispatch_note_item_id: item.dispatch_note_item_id || null,
         landing_note_item_id: item.landing_note_item_id || null,
         quantity: Number(item.quantity) || 0,
         slot: item.slot || "",
@@ -671,6 +693,14 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             <circle cx="17" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
           </svg>
         );
+      case "target":
+        return (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
+            <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="2" />
+            <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+          </svg>
+        );
       default:
         return null;
     }
@@ -696,7 +726,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             <h3 className="dispatch-edit-section-title">Basic Details</h3>
             <div className="row g-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Dispatch Date *">
+                <FormField label="Dispatch Date *" className="dispatch-date-plain">
                   <DateTimePickerField
                     dateValue={formData.dispatch_date}
                     timeValue={formData.dispatch_time}
@@ -845,24 +875,27 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               placeholder="Quantity..."
                               className={editFormErrors[`item${index}_quantity`] ? "is-invalid" : ""}
                             />
+                            {item.maxQty != null && (
+                              <div className="landing-convert-qty-max text-end">Max: {item.maxQty}</div>
+                            )}
                             {editFormErrors[`item${index}_quantity`] && <span className="dispatch-edit-error">{editFormErrors[`item${index}_quantity`]}</span>}
                           </FormField>
                         </div>
                         <div className="col-md-4">
                           <FormField label="Slot">
-                            <FormSelect value={item.slot} onChange={(e) => handleEditItemChange(item.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, item.slot)} placeholder="Select slot..." />
+                            <FormSelect value={item.slot} onChange={(e) => handleEditItemChange(item.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, item.slot)} placeholder="Select slot..." disabled />
                           </FormField>
                         </div>
                         <div className="col-md-4">
                           <FormField label="Reason">
-                            <FormSelect value={item.reason} onChange={(e) => handleEditItemChange(item.id, "reason", e.target.value)} options={mergeOptionForValue(reasonOptions, item.reason)} placeholder="Select reason..." />
+                            <FormSelect value={item.reason} onChange={(e) => handleEditItemChange(item.id, "reason", e.target.value)} options={mergeOptionForValue(reasonOptions, item.reason)} placeholder="Select reason..." disabled />
                           </FormField>
                         </div>
                       </div>
 
                       <div className="dispatch-edit-checkbox-group">
                         <label className="dispatch-edit-checkbox-label">
-                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.packing_required || false} onChange={(e) => handleEditItemChange(item.id, "packing_required", e.target.checked)} />
+                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.packing_required || false} onChange={(e) => handleEditItemChange(item.id, "packing_required", e.target.checked)} disabled={!item.packing_required_original} />
                           <span>Packing Required</span>
                         </label>
                         {item.packing_required && (
@@ -883,7 +916,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                       <div className="dispatch-edit-checkbox-group">
                         <label className="dispatch-edit-checkbox-label">
-                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.transportation_required || false} onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)} />
+                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.transportation_required || false} onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)} disabled={!item.transportation_required_original} />
                           <span>Transportation Required</span>
                         </label>
                         {item.transportation_required && (
@@ -899,13 +932,14 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               </FormField>
                             </div>
                             <div className="col-md-4">
-                              <FormField label="Pick-Up From">
+                              <FormField label="Pick-Up From *">
                                 <LocationAutocomplete
                                   value={item.pickUpFrom}
-                                  onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
+                                  onChange={(e) => { handleEditItemChange(item.id, "pickUpFrom", e.target.value); setEditFormErrors((p) => { const n = { ...p }; delete n[`item${index}_pickup`]; return n; }); }}
                                   placeholder="Pick-up location..."
                                 />
                               </FormField>
+                              {editFormErrors[`item${index}_pickup`] && <span className="dispatch-edit-error">{editFormErrors[`item${index}_pickup`]}</span>}
                             </div>
                             <div className="col-md-4">
                               <FormField label="To Location">
@@ -1181,7 +1215,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                       ))}
                     </div>
 
-                    {(item.slot || item.reason) && (
+                    {(item.slot || item.slot_no || item.slot_no_id || item.reason) && (
                       <div className="landing-view-sub-section">
                         <div className="landing-view-sub-title landing-view-sub-title--iconic">
                           <span className="landing-view-section-icon landing-view-section-icon--dispatch landing-view-section-icon--sm">
@@ -1190,10 +1224,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <span>Dispatch Details</span>
                         </div>
                         <div className="row g-2">
-                          {item.slot && (
+                          {(item.slot || item.slot_no || item.slot_no_id) && (
                             <div className="col-md-6 col-6">
                               <label className="landing-view-label">Slot</label>
-                              <div className="landing-view-box">{item.slot}</div>
+                              <div className="landing-view-box">{normalizeSlotValue(item.slot ?? item.slot_no ?? item.slot_no_id)}</div>
                             </div>
                           )}
                           {item.reason && (
@@ -1228,41 +1262,100 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     )}
 
                     {hasTransport && transport && (
-                      <div className="landing-view-sub-section">
+                      <div className="landing-view-sub-section landing-view-sub-section--transport-card">
                         <div className="landing-view-sub-title landing-view-sub-title--iconic">
                           <span className="landing-view-section-icon landing-view-section-icon--transport landing-view-section-icon--sm">
                             {renderLaunchHireStepIcon("truck")}
                           </span>
                           <span>Transportation</span>
                         </div>
-                        <div className="row g-2">
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">Vehicle Type</label>
-                            <div className="landing-view-box">{transport.vehicle_type_name || transport.vehicle_type_id || "-"}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">From Location</label>
-                            <div className="landing-view-box">{transport.from_location_name || transport.from_location_id || "-"}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">Pick-Up From</label>
-                            <div className="landing-view-box">{transport.pickup_location || "-"}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">To Location</label>
-                            <div className="landing-view-box">{transport.to_location_name || transport.to_location_id || "-"}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">Driver</label>
-                            <div className="landing-view-box">{transport.driver_name || transport.driver_id || "-"}</div>
-                          </div>
-                          {transport.remarks && (
-                            <div className="col-md-4 col-6">
+                        {(() => {
+                          const driverStep = {
+                            key: "driver", icon: "user", label: "Driver",
+                            value: transport.driver_name ||
+                              driverOptions.find((o) => o.value === String(transport.driver_id))?.label ||
+                              "-",
+                          };
+                          const isDriverEmpty = driverStep.value === "-";
+                          const routeSteps = [
+                            {
+                              key: "vehicle", icon: "truck", label: "Vehicle Type",
+                              value: transport.vehicle_type_name ||
+                                vehicleOptions.find((o) => o.value === String(transport.vehicle_type_id))?.label ||
+                                "-",
+                            },
+                            {
+                              key: "from", icon: "pin", label: "From Location",
+                              value: transport.from_location_name ||
+                                locationOptions.find((o) => o.value === String(transport.from_location_id))?.label ||
+                                "-",
+                            },
+                            { key: "pickup", icon: "target", label: "Pick-Up From", value: transport.pickup_location || "-" },
+                            {
+                              key: "to", icon: "flag", label: "To Location",
+                              value: transport.to_location_name ||
+                                locationOptions.find((o) => o.value === String(transport.to_location_id))?.label ||
+                                "-",
+                            },
+                          ];
+                          return (
+                            <>
+                              <div className="landing-view-transport-driver-row">
+                                <div className={`landing-view-transport-step${isDriverEmpty ? " landing-view-transport-step--empty" : ""}`}>
+                                  <span className="landing-view-transport-step-icon-wrap">
+                                    <span className="landing-view-transport-step-icon">
+                                      {renderLaunchHireStepIcon(driverStep.icon)}
+                                    </span>
+                                  </span>
+                                  <div className="landing-view-transport-step-body">
+                                    <span className="landing-view-transport-step-label">{driverStep.label}</span>
+                                    <span className="landing-view-transport-step-value">{driverStep.value}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="landing-view-transport-steps">
+                                {routeSteps.map((step, stepIdx, steps) => {
+                                  const isEmpty = step.value === "-";
+                                  return (
+                                    <Fragment key={step.key}>
+                                      <div
+                                        className={`landing-view-transport-step${isEmpty ? " landing-view-transport-step--empty" : ""}`}
+                                        style={{ "--stagger-index": stepIdx }}
+                                      >
+                                        <span className="landing-view-transport-step-icon-wrap">
+                                          <span className="landing-view-transport-step-icon">
+                                            {renderLaunchHireStepIcon(step.icon)}
+                                          </span>
+                                          <span className="landing-view-transport-step-num">{stepIdx + 1}</span>
+                                        </span>
+                                        <div className="landing-view-transport-step-body">
+                                          <span className="landing-view-transport-step-label">{step.label}</span>
+                                          <span className="landing-view-transport-step-value">{step.value}</span>
+                                        </div>
+                                      </div>
+                                      {stepIdx < steps.length - 1 && (
+                                        <div className="landing-view-transport-track" aria-hidden="true" style={{ "--stagger-index": stepIdx }}>
+                                          <span className="landing-view-transport-track-line" />
+                                          <span className="landing-view-transport-track-truck">
+                                            {renderLaunchHireStepIcon("truck")}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </Fragment>
+                                  );
+                                })}
+                              </div>
+                            </>
+                          );
+                        })()}
+                        {transport.remarks && (
+                          <div className="row g-2 mt-2">
+                            <div className="col-md-6 col-12">
                               <label className="landing-view-label">Remarks</label>
                               <div className="landing-view-box landing-view-box--textarea" dangerouslySetInnerHTML={{ __html: transport.remarks }} />
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

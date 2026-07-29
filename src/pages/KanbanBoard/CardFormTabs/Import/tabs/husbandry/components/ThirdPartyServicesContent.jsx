@@ -283,6 +283,14 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      handleChange("thirdPartyServiceType")({ target: { value: "" } });
+      handleChange("thirdPartyServicesDescription")({ target: { value: "" } });
+      handleChange("thirdPartyServicesRequestEmailDocuments")({ target: { value: [] } });
+      handleChange("thirdPartyServicesDocuments")({ target: { value: [] } });
+      handleChange("thirdPartyServicesLaunchHire")({ target: { value: true } });
+      handleChange("thirdPartyServicesLaunchHireLocation")({ target: { value: "" } });
+      handleChange("thirdPartyServicesLaunchHireBookingDate")({ target: { value: "" } });
+      handleChange("thirdPartyServicesLaunchHireBookingTime")({ target: { value: "" } });
       await getThirdPartyServiceRequests(callId);
     } catch (error) {
       notify(
@@ -291,7 +299,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, isLaunchHire, createThirdPartyServiceRequest, getThirdPartyServiceRequests]);
+  }, [callId, formValues, isLaunchHire, createThirdPartyServiceRequest, getThirdPartyServiceRequests, handleChange]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.thirdPartyServicesRequestEmailDocuments || []

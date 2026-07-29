@@ -13,6 +13,8 @@ const useCommonReducer = create((set) => ({
     nationalitiesLoading: false,
     users: [],
     usersLoading: false,
+    allUsers: [],
+    allUsersLoading: false,
     getCallTypes: async () => {
         try {
             set({ isLoading: true });
@@ -76,6 +78,23 @@ const useCommonReducer = create((set) => ({
             set({
                 users: [],
                 usersLoading: false,
+                errorMessage: error?.response?.data?.message || error.message,
+            });
+        }
+    },
+    getAllUsers: async ({ params } = {}) => {
+        try {
+            set({ allUsersLoading: true });
+            const { data } = await userService.getAllUsers({ params });
+            const list = data?.data ?? [];
+            set({
+                allUsers: Array.isArray(list) ? list : [],
+                allUsersLoading: false,
+            });
+        } catch (error) {
+            set({
+                allUsers: [],
+                allUsersLoading: false,
                 errorMessage: error?.response?.data?.message || error.message,
             });
         }

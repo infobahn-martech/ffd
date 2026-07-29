@@ -114,13 +114,23 @@ function GroPopoverStageExtraFields({
             <span className="gro-inward-popover-field-error">{errors.crew_immigration_status}</span>
           ) : null}
         </div>
+        <PopoverFileUploadField
+          label="Immigration Document"
+          fieldKey="immigration_doc"
+          file={values?.immigration_doc}
+          existingFile={existingFiles?.immigration_doc}
+          error={errors?.immigration_doc}
+          disabled={disabled}
+          fileInputRefs={fileInputRefs}
+          onFileChange={onFileChange}
+        />
         {showOnHoldReason ? (
           <div className={`gro-inward-popover-field${errors?.on_hold_reason ? " gro-inward-popover-field--error" : ""}`}>
-            <span className="gro-inward-popover-label">On Hold Reason *</span>
+            <span className="gro-inward-popover-label">Remarks *</span>
             <textarea
               className="gro-inward-popover-textarea"
               rows={3}
-              placeholder="Enter on hold reason"
+              placeholder="Enter remarks"
               value={values?.on_hold_reason ?? ""}
               disabled={disabled}
               onChange={(e) => onFieldChange("on_hold_reason", e.target.value)}
@@ -135,18 +145,53 @@ function GroPopoverStageExtraFields({
   }
 
   if (stageId === 8) {
+    const showFailedReason = values?.custom_inspection_status === GRO_CUSTOM_INSPECTION_STATUS.FAILED;
     return (
-      <PopoverFileUploadField
-        label="Inward Clearance Copy"
-        fieldKey="inward_clearance_copy"
-        file={values?.inward_clearance_copy}
-        existingFile={existingFiles?.inward_clearance_copy}
-        error={errors?.inward_clearance_copy}
-        disabled={disabled}
-        fileInputRefs={fileInputRefs}
-        onFileChange={onFileChange}
-        required
-      />
+      <>
+        <PopoverFileUploadField
+          label="Inward Clearance Copy"
+          fieldKey="inward_clearance_copy"
+          file={values?.inward_clearance_copy}
+          existingFile={existingFiles?.inward_clearance_copy}
+          error={errors?.inward_clearance_copy}
+          disabled={disabled}
+          fileInputRefs={fileInputRefs}
+          onFileChange={onFileChange}
+          required
+        />
+        <div className={`gro-inward-popover-field${errors?.custom_inspection_status ? " gro-inward-popover-field--error" : ""}`}>
+          <span className="gro-inward-popover-label">Customs Status *</span>
+          <select
+            className="gro-inward-popover-select"
+            value={values?.custom_inspection_status ?? ""}
+            disabled={disabled}
+            onChange={(e) => onFieldChange("custom_inspection_status", e.target.value)}
+          >
+            <option value="">Select status</option>
+            <option value={GRO_CUSTOM_INSPECTION_STATUS.PASSED}>{GRO_CUSTOM_INSPECTION_STATUS.PASSED}</option>
+            <option value={GRO_CUSTOM_INSPECTION_STATUS.FAILED}>{GRO_CUSTOM_INSPECTION_STATUS.FAILED}</option>
+          </select>
+          {errors?.custom_inspection_status ? (
+            <span className="gro-inward-popover-field-error">{errors.custom_inspection_status}</span>
+          ) : null}
+        </div>
+        {showFailedReason ? (
+          <div className={`gro-inward-popover-field${errors?.failed_reason ? " gro-inward-popover-field--error" : ""}`}>
+            <span className="gro-inward-popover-label">Failed Reason *</span>
+            <textarea
+              className="gro-inward-popover-textarea"
+              rows={3}
+              placeholder="Enter failed reason"
+              value={values?.failed_reason ?? ""}
+              disabled={disabled}
+              onChange={(e) => onFieldChange("failed_reason", e.target.value)}
+            />
+            {errors?.failed_reason ? (
+              <span className="gro-inward-popover-field-error">{errors.failed_reason}</span>
+            ) : null}
+          </div>
+        ) : null}
+      </>
     );
   }
 
@@ -173,7 +218,6 @@ function GroPopoverStageExtraFields({
           disabled={disabled}
           fileInputRefs={fileInputRefs}
           onFileChange={onFileChange}
-          required
         />
       </>
     );
@@ -255,6 +299,22 @@ function GroPopoverStageExtraFields({
         disabled={disabled}
         fileInputRefs={fileInputRefs}
         onFileChange={onFileChange}
+      />
+    );
+  }
+
+  if (stageId === 12) {
+    return (
+      <PopoverFileUploadField
+        label="Outward Clearance Copy"
+        fieldKey="outward_clearance_copy"
+        file={values?.outward_clearance_copy}
+        existingFile={existingFiles?.outward_clearance_copy}
+        error={errors?.outward_clearance_copy}
+        disabled={disabled}
+        fileInputRefs={fileInputRefs}
+        onFileChange={onFileChange}
+        required
       />
     );
   }

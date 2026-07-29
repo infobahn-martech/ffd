@@ -20,7 +20,7 @@ import {
   TRIGGER_CODE_TO_ICON, RELATIONAL_CREATE_ACTION_ORIGIN_LABELS,
 } from './businessRulesData';
 import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
-import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels, isCreateSubtaskAction, getRelationTypeFromLabel } from './buildBusinessRulePayload';
+import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels, isCreateSubtaskAction, getRelationTypeFromLabel, RECURRENCE_REGULAR_FIELD_IDS } from './buildBusinessRulePayload';
 import ThenGroupRawSummary from './ThenGroupRawSummary';
 import DateTimePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DateTimePickerField';
 import DynamicIcon from './DynamicIcon';
@@ -32,6 +32,7 @@ import useKanbanManagementReducer, { isKanbanManagementRowDisabled } from '../..
 import useAuthReducer from '../../../store/AuthReducer';
 import useWorkFlowReducer from '../../../store/WorkFlowReducer';
 import workflowService from '../../../services/workflowService';
+import userService from '../../../services/userService';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials, stripHtmlTags } from '../../../shared/utils/utils';
 import DatePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DatePickerField';
@@ -52,6 +53,10 @@ const EXECUTE_AT_TIMEZONE = 'Asia/Dubai';
 // browser-drawn dropdown would, just styled to match the rest of the picker panels.
 const TIME_LIST = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`);
 
+// Same gap for the "Every month" recurrence option's "on day [N]" picker — every day of
+// the month, 1-31, no backend catalog for this either.
+const MONTH_DAY_LIST = Array.from({ length: 31 }, (_, i) => i + 1);
+
 // Same gap for the WHEN-side recurrence schedule: get_regular_fields returns nothing for
 // this trigger type, so the repeat-pattern list is the reference product's own fixed set
 // (alphabetical, matching how it's ordered there) instead of a live catalog.
@@ -63,6 +68,216 @@ const RECURRENCE_SCHEDULE_OPTIONS = [
   { key: 'every_workday', label: 'Every workday' },
   { key: 'predefined_interval', label: 'Predefined interval' },
 ];
+
+// "Every week"'s "on [weekday]" picker — same Monday-first order as the reference product's
+// filter list, derived from WEEKDAY_OPTIONS (which is Sunday-first for the deadline action's
+// Non-working days picker) rather than a second hand-written weekday catalog.
+const WEEKLY_RECURRENCE_DAY_OPTIONS = [...WEEKDAY_OPTIONS.slice(1), WEEKDAY_OPTIONS[0]];
+
+// Advanced schedule's own two structural pickers — ordinal position (for "the 2nd Monday
+// of every month") and month name (for the Yearly period). Same fixed-list convention as
+// RECURRENCE_SCHEDULE_OPTIONS above, no backend catalog for either.
+const ADVANCED_SCHEDULE_ORDINAL_OPTIONS = [
+  { key: '1', label: 'first' },
+  { key: '2', label: 'second' },
+  { key: '3', label: 'third' },
+  { key: '4', label: 'fourth' },
+  { key: '-1', label: 'last' },
+];
+
+const ADVANCED_SCHEDULE_MONTH_OPTIONS = [
+  { key: '1', label: 'January' }, { key: '2', label: 'February' }, { key: '3', label: 'March' },
+  { key: '4', label: 'April' }, { key: '5', label: 'May' }, { key: '6', label: 'June' },
+  { key: '7', label: 'July' }, { key: '8', label: 'August' }, { key: '9', label: 'September' },
+  { key: '10', label: 'October' }, { key: '11', label: 'November' }, { key: '12', label: 'December' },
+];
+
+const WEEKDAY_KEY_TO_RRULE = {
+  sunday: 'SU', monday: 'MO', tuesday: 'TU', wednesday: 'WE', thursday: 'TH', friday: 'FR', saturday: 'SA',
+};
+const RRULE_TO_WEEKDAY_KEY = Object.fromEntries(Object.entries(WEEKDAY_KEY_TO_RRULE).map(([k, v]) => [v, k]));
+const WEEKDAY_KEY_TO_SHORT_LABEL = {
+  sunday: 'Su', monday: 'Mo', tuesday: 'Tu', wednesday: 'We', thursday: 'Th', friday: 'Fr', saturday: 'Sa',
+};
+
+// "Custom cron expression" tab's four fields, in stored/display order. Mirrors the
+// generator's own scope (no minute/hour — that's the separate "Execute at" clock picker),
+// extended with a Year field the same way the generator's Yearly period has one. Each
+// entry's range/rangeDesc backs the reference table's top row for whichever field is focused.
+const CRON_CUSTOM_FIELDS = [
+  { key: 'day', stateKey: 'customDay', label: 'Day of the month', range: '1-31', rangeDesc: 'Any number between 1 and 31' },
+  { key: 'month', stateKey: 'customMonth', label: 'Month', range: '1-12', rangeDesc: 'Any number between 1 and 12' },
+  { key: 'dow', stateKey: 'customDow', label: 'Day of the week', range: '0-6', rangeDesc: 'Any number between 0 and 6' },
+  { key: 'year', stateKey: 'customYear', label: 'Year', range: '1970-2099', rangeDesc: 'Any number between 1970 and 2099' },
+];
+
+// Fixed legend of cron syntax symbols shown under the custom-expression fields — same
+// symbols/wording across every field, unlike the range row above it.
+const CRON_SYMBOL_LEGEND = [
+  { symbol: '(*) All values', desc: 'The asterisk (*) symbol represents every possible value of the field in which it is placed.' },
+  { symbol: '(-) Range', desc: 'The hyphen (-) symbol is used to specify ranges of values within a particular field.' },
+  { symbol: '(/) Increment', desc: 'The slash (/) symbol is used to specify step values within a field, indicating the interval between values in a sequence.' },
+  { symbol: '(?) No specific value', desc: 'The question mark (?) is used in the "day of the month" and "day of the week" fields to specify no specific value.' },
+  { symbol: '(L) Last', desc: 'The (L) character is a special symbol meaning "last", indicating the last occurrence of a time unit, such as the last day or weekday of the month.' },
+  { symbol: '(W) Weekday', desc: 'The (W) character is used to specify the nearest weekday (Monday to Friday) to a given day of the month.' },
+  { symbol: '(,) List', desc: 'The comma (,) symbol allows you to specify a list of discrete values within a particular field.' },
+];
+
+const CRON_DOW_INDEX_TO_LABEL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// Advanced schedule's stored value is an RRULE-style string (FREQ=...;INTERVAL=...;BYDAY=...)
+// rather than a real 5-field cron expression — standard cron can't express "every N weeks" or
+// "every N months", both of which the generator supports, and RRULE is the established format
+// for exactly this. The "Custom cron expression" tab bypasses all of this and stores the raw
+// text the user typed instead (detected on parse by the absence of a leading "FREQ=").
+const ADVANCED_SCHEDULE_DEFAULT_STATE = {
+  mode: 'generator', period: 'daily',
+  dailyType: 'interval', intervalDays: '1',
+  weeklyInterval: '1', weeklyDays: [],
+  monthlyType: 'day', monthlyInterval: '1', monthlyDay: '1', monthlyOrdinal: '1', monthlyWeekday: 'monday',
+  yearlyType: 'date', yearlyMonth: '1', yearlyDay: '1', yearlyOrdinal: '1', yearlyWeekday: 'monday',
+  customDay: '*', customMonth: '*', customDow: '?', customYear: '*',
+};
+
+function parseAdvancedScheduleValue(value) {
+  if (!value) return ADVANCED_SCHEDULE_DEFAULT_STATE;
+  if (!value.startsWith('FREQ=')) {
+    const [day, month, dow, year] = value.trim().split(/\s+/);
+    return {
+      ...ADVANCED_SCHEDULE_DEFAULT_STATE,
+      mode: 'custom',
+      customDay: day || '*',
+      customMonth: month || '*',
+      customDow: dow || '?',
+      customYear: year || '*',
+    };
+  }
+
+  const parts = Object.fromEntries(value.split(';').filter(Boolean).map((p) => p.split('=')));
+  const byDayToOrdinalWeekday = (byDay) => {
+    const m = /^(-?\d+)([A-Z]{2})$/.exec(byDay ?? '');
+    return m ? { ordinal: m[1], weekday: RRULE_TO_WEEKDAY_KEY[m[2]] ?? 'monday' } : { ordinal: '1', weekday: 'monday' };
+  };
+
+  if (parts.FREQ === 'DAILY') {
+    return parts.WEEKDAY
+      ? { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'daily', dailyType: 'weekday' }
+      : { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'daily', dailyType: 'interval', intervalDays: parts.INTERVAL ?? '1' };
+  }
+  if (parts.FREQ === 'WEEKLY') {
+    const days = (parts.BYDAY ?? '').split(',').filter(Boolean).map((d) => RRULE_TO_WEEKDAY_KEY[d]).filter(Boolean);
+    return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'weekly', weeklyInterval: parts.INTERVAL ?? '1', weeklyDays: days };
+  }
+  if (parts.FREQ === 'MONTHLY') {
+    if (parts.BYMONTHDAY) {
+      return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'monthly', monthlyType: 'day', monthlyInterval: parts.INTERVAL ?? '1', monthlyDay: parts.BYMONTHDAY };
+    }
+    const { ordinal, weekday } = byDayToOrdinalWeekday(parts.BYDAY);
+    return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'monthly', monthlyType: 'weekday', monthlyInterval: parts.INTERVAL ?? '1', monthlyOrdinal: ordinal, monthlyWeekday: weekday };
+  }
+  if (parts.FREQ === 'YEARLY') {
+    if (parts.BYMONTHDAY) {
+      return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'yearly', yearlyType: 'date', yearlyMonth: parts.BYMONTH ?? '1', yearlyDay: parts.BYMONTHDAY };
+    }
+    const { ordinal, weekday } = byDayToOrdinalWeekday(parts.BYDAY);
+    return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'yearly', yearlyType: 'weekday', yearlyMonth: parts.BYMONTH ?? '1', yearlyOrdinal: ordinal, yearlyWeekday: weekday };
+  }
+  return ADVANCED_SCHEDULE_DEFAULT_STATE;
+}
+
+function buildAdvancedScheduleValue(state) {
+  if (state.mode === 'custom') {
+    const day = state.customDay.trim() || '*';
+    const month = state.customMonth.trim() || '*';
+    const dow = state.customDow.trim() || '?';
+    const year = state.customYear.trim() || '*';
+    return `${day} ${month} ${dow} ${year}`;
+  }
+
+  if (state.period === 'daily') {
+    if (state.dailyType === 'weekday') return 'FREQ=DAILY;WEEKDAY=1';
+    return `FREQ=DAILY;INTERVAL=${Math.max(1, parseInt(state.intervalDays, 10) || 1)}`;
+  }
+  if (state.period === 'weekly') {
+    const n = Math.max(1, parseInt(state.weeklyInterval, 10) || 1);
+    const days = state.weeklyDays.length > 0 ? state.weeklyDays : ['monday'];
+    const byday = days.map((d) => WEEKDAY_KEY_TO_RRULE[d]).join(',');
+    return `FREQ=WEEKLY;INTERVAL=${n};BYDAY=${byday}`;
+  }
+  if (state.period === 'monthly') {
+    const n = Math.max(1, parseInt(state.monthlyInterval, 10) || 1);
+    if (state.monthlyType === 'weekday') {
+      return `FREQ=MONTHLY;INTERVAL=${n};BYDAY=${state.monthlyOrdinal}${WEEKDAY_KEY_TO_RRULE[state.monthlyWeekday]}`;
+    }
+    return `FREQ=MONTHLY;INTERVAL=${n};BYMONTHDAY=${Math.min(31, Math.max(1, parseInt(state.monthlyDay, 10) || 1))}`;
+  }
+  // yearly
+  if (state.yearlyType === 'weekday') {
+    return `FREQ=YEARLY;BYMONTH=${state.yearlyMonth};BYDAY=${state.yearlyOrdinal}${WEEKDAY_KEY_TO_RRULE[state.yearlyWeekday]}`;
+  }
+  return `FREQ=YEARLY;BYMONTH=${state.yearlyMonth};BYMONTHDAY=${Math.min(31, Math.max(1, parseInt(state.yearlyDay, 10) || 1))}`;
+}
+
+// Turns one custom-cron field's raw value into the noun/phrase summarizeCustomCron below
+// slots into the "Every ... every ... every ..." sentence — '*' reads as the bare unit name
+// ("day"/"month"/"year"), '?' (no specific value, day-of-month/day-of-week only) drops the
+// field from the sentence entirely, and anything else is described as literally as it can be.
+function describeCronFieldSummary(rawValue, fieldKey) {
+  const value = (rawValue ?? '').trim();
+  if (!value || value === '*') return fieldKey === 'dow' ? null : fieldKey;
+  if (value === '?') return null;
+  if (fieldKey === 'month' && /^\d+$/.test(value)) {
+    return ADVANCED_SCHEDULE_MONTH_OPTIONS.find((o) => o.key === value)?.label ?? value;
+  }
+  if (fieldKey === 'dow' && /^\d+$/.test(value)) {
+    return CRON_DOW_INDEX_TO_LABEL[parseInt(value, 10) % 7] ?? value;
+  }
+  return value;
+}
+
+function summarizeCustomCron(state) {
+  const segments = [
+    describeCronFieldSummary(state.customDay, 'day'),
+    describeCronFieldSummary(state.customMonth, 'month'),
+    describeCronFieldSummary(state.customDow, 'dow'),
+    describeCronFieldSummary(state.customYear, 'year'),
+  ].filter(Boolean);
+  if (segments.length === 0) return 'Not Set';
+  return `Every ${segments.map((s, i) => (i === 0 ? s : `every ${s}`)).join(' ')}`;
+}
+
+function summarizeAdvancedSchedule(state) {
+  if (state.mode === 'custom') return summarizeCustomCron(state);
+
+  if (state.period === 'daily') {
+    return state.dailyType === 'weekday'
+      ? 'Every weekday'
+      : `Every ${Math.max(1, parseInt(state.intervalDays, 10) || 1)} day(s)`;
+  }
+  if (state.period === 'weekly') {
+    const n = Math.max(1, parseInt(state.weeklyInterval, 10) || 1);
+    const days = state.weeklyDays.length > 0 ? state.weeklyDays : ['monday'];
+    const dayLabels = WEEKDAY_OPTIONS.filter((o) => days.includes(o.key)).map((o) => o.label.slice(0, 3)).join(', ');
+    return `Every ${n} week(s) on ${dayLabels}`;
+  }
+  if (state.period === 'monthly') {
+    const n = Math.max(1, parseInt(state.monthlyInterval, 10) || 1);
+    if (state.monthlyType === 'weekday') {
+      const ordinalLabel = ADVANCED_SCHEDULE_ORDINAL_OPTIONS.find((o) => o.key === state.monthlyOrdinal)?.label ?? 'first';
+      const weekdayLabel = WEEKDAY_OPTIONS.find((o) => o.key === state.monthlyWeekday)?.label ?? 'Monday';
+      return `The ${ordinalLabel} ${weekdayLabel} of every ${n} month(s)`;
+    }
+    return `Day ${Math.min(31, Math.max(1, parseInt(state.monthlyDay, 10) || 1))} of every ${n} month(s)`;
+  }
+  // yearly
+  const monthLabel = ADVANCED_SCHEDULE_MONTH_OPTIONS.find((o) => o.key === state.yearlyMonth)?.label ?? 'January';
+  if (state.yearlyType === 'weekday') {
+    const ordinalLabel = ADVANCED_SCHEDULE_ORDINAL_OPTIONS.find((o) => o.key === state.yearlyOrdinal)?.label ?? 'first';
+    const weekdayLabel = WEEKDAY_OPTIONS.find((o) => o.key === state.yearlyWeekday)?.label ?? 'Monday';
+    return `The ${ordinalLabel} ${weekdayLabel} of ${monthLabel}`;
+  }
+  return `Every ${monthLabel} ${Math.min(31, Math.max(1, parseInt(state.yearlyDay, 10) || 1))}`;
+}
 
 // "Update card details" actions that reference actual users rather than a free-text
 // value get a user picker (avatar + name, multi-select via AND) instead of the plain
@@ -991,6 +1206,335 @@ function RecurrenceScheduleModal({ show, onClose, value, onSelect }) {
           <button type="button" className="br-property-add-btn" onClick={handleChange}>
             Change
           </button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+// Cron builder for the WHEN column's "Advanced schedule" recurrence option — a "Cron
+// generator" tab (Daily/Weekly/Monthly/Yearly, each with its own sub-fields) plus a
+// "Custom cron expression" tab for pasting a raw expression directly. See
+// parseAdvancedScheduleValue/buildAdvancedScheduleValue above for the stored value format.
+const ADVANCED_SCHEDULE_PERIOD_TABS = [
+  ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'],
+];
+
+function AdvancedScheduleModal({ show, onClose, value, onSave }) {
+  const [state, setState] = useState(() => parseAdvancedScheduleValue(value));
+  const [focusedCronField, setFocusedCronField] = useState('day');
+
+  useEffect(() => {
+    if (show) {
+      setState(parseAdvancedScheduleValue(value));
+      setFocusedCronField('day');
+    }
+  }, [show, value]);
+
+  const update = (patch) => setState((prev) => ({ ...prev, ...patch }));
+
+  const toggleWeeklyDay = (dayKey) => {
+    setState((prev) => ({
+      ...prev,
+      weeklyDays: prev.weeklyDays.includes(dayKey)
+        ? prev.weeklyDays.filter((d) => d !== dayKey)
+        : [...prev.weeklyDays, dayKey],
+    }));
+  };
+
+  const handleSave = () => {
+    onSave(buildAdvancedScheduleValue(state), summarizeAdvancedSchedule(state));
+    onClose();
+  };
+
+  const activeCronFieldMeta = CRON_CUSTOM_FIELDS.find((f) => f.key === focusedCronField) ?? CRON_CUSTOM_FIELDS[0];
+
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="card-property-match-modal br-cron-modal"
+      dialogClassName={`card-property-match-modal-dialog br-cron-modal-dialog${state.mode === 'custom' ? ' br-cron-modal-dialog--wide' : ''}`}
+      backdropClassName="card-property-match-modal-backdrop"
+      centered
+    >
+      <div className="card-property-match-modal-shell">
+        <header className="card-property-match-modal-header">
+          <h2 className="card-property-match-modal-title">Advanced schedule</h2>
+          <button type="button" className="business-rule-form-modal-close" onClick={onClose} aria-label="Close">
+            <FiX size={20} />
+          </button>
+        </header>
+
+        <div className="card-property-match-modal-body br-cron-modal-body">
+          <div className="br-cron-seg" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={state.mode === 'generator'}
+              className={`br-cron-seg-btn${state.mode === 'generator' ? ' br-cron-seg-btn--active' : ''}`}
+              onClick={() => update({ mode: 'generator' })}
+            >
+              Cron generator
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={state.mode === 'custom'}
+              className={`br-cron-seg-btn${state.mode === 'custom' ? ' br-cron-seg-btn--active' : ''}`}
+              onClick={() => update({ mode: 'custom' })}
+            >
+              Custom cron expression
+            </button>
+          </div>
+
+          {state.mode === 'custom' ? (
+            <div className="br-cron-panel br-cron-custom-panel">
+              <div className="br-cron-custom-summary">{summarizeCustomCron(state)}</div>
+
+              <div className="br-cron-custom-fields">
+                {CRON_CUSTOM_FIELDS.map((field) => (
+                  <div key={field.key} className="br-cron-custom-field">
+                    <label className="br-cron-custom-field-label">{field.label}</label>
+                    <input
+                      type="text"
+                      className="br-cron-custom-field-input"
+                      value={state[field.stateKey]}
+                      onChange={(e) => update({ [field.stateKey]: e.target.value })}
+                      onFocus={() => setFocusedCronField(field.key)}
+                      autoFocus={field.key === 'day'}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="br-cron-custom-table">
+                <div className="br-cron-custom-table-row br-cron-custom-table-row--header">
+                  <div className="br-cron-custom-table-value">{activeCronFieldMeta.range}</div>
+                  <div className="br-cron-custom-table-desc">{activeCronFieldMeta.rangeDesc}</div>
+                </div>
+                {CRON_SYMBOL_LEGEND.map((row) => (
+                  <div key={row.symbol} className="br-cron-custom-table-row">
+                    <div className="br-cron-custom-table-value">
+                      {row.symbol} <FiInfo size={12} className="br-cron-custom-table-info-icon" />
+                    </div>
+                    <div className="br-cron-custom-table-desc">{row.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="br-cron-seg" role="tablist">
+                {ADVANCED_SCHEDULE_PERIOD_TABS.map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={state.period === key}
+                    className={`br-cron-seg-btn${state.period === key ? ' br-cron-seg-btn--active' : ''}`}
+                    onClick={() => update({ period: key })}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {state.period === 'daily' && (
+                <div className="br-cron-panel">
+                  <label className="br-cron-radio-row">
+                    <input
+                      type="radio"
+                      className="br-cron-radio-input"
+                      name="br-cron-daily-type"
+                      checked={state.dailyType === 'interval'}
+                      onChange={() => update({ dailyType: 'interval' })}
+                    />
+                    Every
+                    <input
+                      type="number"
+                      min="1"
+                      className="br-cron-inline-input"
+                      value={state.intervalDays}
+                      onChange={(e) => update({ dailyType: 'interval', intervalDays: e.target.value })}
+                    />
+                    day(s)
+                  </label>
+                  <label className="br-cron-radio-row">
+                    <input
+                      type="radio"
+                      className="br-cron-radio-input"
+                      name="br-cron-daily-type"
+                      checked={state.dailyType === 'weekday'}
+                      onChange={() => update({ dailyType: 'weekday' })}
+                    />
+                    Every weekday
+                  </label>
+                </div>
+              )}
+
+              {state.period === 'weekly' && (
+                <div className="br-cron-panel">
+                  <div className="br-cron-radio-row">
+                    Every
+                    <input
+                      type="number"
+                      min="1"
+                      className="br-cron-inline-input"
+                      value={state.weeklyInterval}
+                      onChange={(e) => update({ weeklyInterval: e.target.value })}
+                    />
+                    week(s) on
+                  </div>
+                  <div className="br-cron-weekday-row">
+                    {WEEKDAY_OPTIONS.map((day) => (
+                      <button
+                        key={day.key}
+                        type="button"
+                        className={`br-cron-weekday-btn${state.weeklyDays.includes(day.key) ? ' br-cron-weekday-btn--active' : ''}`}
+                        onClick={() => toggleWeeklyDay(day.key)}
+                        title={day.label}
+                      >
+                        {WEEKDAY_KEY_TO_SHORT_LABEL[day.key]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {state.period === 'monthly' && (
+                <div className="br-cron-panel">
+                  <label className="br-cron-radio-row br-cron-radio-row--wrap">
+                    <input
+                      type="radio"
+                      className="br-cron-radio-input"
+                      name="br-cron-monthly-type"
+                      checked={state.monthlyType === 'day'}
+                      onChange={() => update({ monthlyType: 'day' })}
+                    />
+                    Day
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      className="br-cron-inline-input"
+                      value={state.monthlyDay}
+                      onChange={(e) => update({ monthlyType: 'day', monthlyDay: e.target.value })}
+                    />
+                    of every
+                    <input
+                      type="number"
+                      min="1"
+                      className="br-cron-inline-input"
+                      value={state.monthlyInterval}
+                      onChange={(e) => update({ monthlyInterval: e.target.value })}
+                    />
+                    month(s)
+                  </label>
+                  <label className="br-cron-radio-row br-cron-radio-row--wrap">
+                    <input
+                      type="radio"
+                      className="br-cron-radio-input"
+                      name="br-cron-monthly-type"
+                      checked={state.monthlyType === 'weekday'}
+                      onChange={() => update({ monthlyType: 'weekday' })}
+                    />
+                    The
+                    <select
+                      className="br-cron-inline-select"
+                      value={state.monthlyOrdinal}
+                      onChange={(e) => update({ monthlyType: 'weekday', monthlyOrdinal: e.target.value })}
+                    >
+                      {ADVANCED_SCHEDULE_ORDINAL_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                    <select
+                      className="br-cron-inline-select"
+                      value={state.monthlyWeekday}
+                      onChange={(e) => update({ monthlyType: 'weekday', monthlyWeekday: e.target.value })}
+                    >
+                      {WEEKDAY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                    of every
+                    <input
+                      type="number"
+                      min="1"
+                      className="br-cron-inline-input"
+                      value={state.monthlyInterval}
+                      onChange={(e) => update({ monthlyInterval: e.target.value })}
+                    />
+                    month(s)
+                  </label>
+                </div>
+              )}
+
+              {state.period === 'yearly' && (
+                <div className="br-cron-panel">
+                  <label className="br-cron-radio-row br-cron-radio-row--wrap">
+                    <input
+                      type="radio"
+                      className="br-cron-radio-input"
+                      name="br-cron-yearly-type"
+                      checked={state.yearlyType === 'date'}
+                      onChange={() => update({ yearlyType: 'date' })}
+                    />
+                    Every
+                    <select
+                      className="br-cron-inline-select"
+                      value={state.yearlyMonth}
+                      onChange={(e) => update({ yearlyType: 'date', yearlyMonth: e.target.value })}
+                    >
+                      {ADVANCED_SCHEDULE_MONTH_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      className="br-cron-inline-input"
+                      value={state.yearlyDay}
+                      onChange={(e) => update({ yearlyType: 'date', yearlyDay: e.target.value })}
+                    />
+                  </label>
+                  <label className="br-cron-radio-row br-cron-radio-row--wrap">
+                    <input
+                      type="radio"
+                      className="br-cron-radio-input"
+                      name="br-cron-yearly-type"
+                      checked={state.yearlyType === 'weekday'}
+                      onChange={() => update({ yearlyType: 'weekday' })}
+                    />
+                    The
+                    <select
+                      className="br-cron-inline-select"
+                      value={state.yearlyOrdinal}
+                      onChange={(e) => update({ yearlyType: 'weekday', yearlyOrdinal: e.target.value })}
+                    >
+                      {ADVANCED_SCHEDULE_ORDINAL_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                    <select
+                      className="br-cron-inline-select"
+                      value={state.yearlyWeekday}
+                      onChange={(e) => update({ yearlyType: 'weekday', yearlyWeekday: e.target.value })}
+                    >
+                      {WEEKDAY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                    of
+                    <select
+                      className="br-cron-inline-select"
+                      value={state.yearlyMonth}
+                      onChange={(e) => update({ yearlyMonth: e.target.value })}
+                    >
+                      {ADVANCED_SCHEDULE_MONTH_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                  </label>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <footer className="br-cron-modal-footer">
+          <button type="button" className="br-cron-modal-cancel" onClick={onClose}>Cancel</button>
+          <button type="button" className="br-cron-modal-save" onClick={handleSave}>Save</button>
         </footer>
       </div>
     </Modal>
@@ -5283,6 +5827,33 @@ function UserPickerField({ label, users, valueUserId, onChange }) {
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
 
+  // Backend search (users/get_non_vendor_users?search=...) so Owner/Co-owner isn't limited
+  // to whatever page of users happened to preload into the shared CommonReducer list.
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchDebounceRef = useRef(null);
+  // Kept separately from `users` so a name picked from search results (outside the
+  // preloaded list) still displays correctly on the trigger button.
+  const [pickedUser, setPickedUser] = useState(null);
+
+  useEffect(() => {
+    const query = filterText.trim();
+    clearTimeout(searchDebounceRef.current);
+    if (!query) {
+      setSearchResults(null);
+      setIsSearching(false);
+      return undefined;
+    }
+    setIsSearching(true);
+    searchDebounceRef.current = setTimeout(() => {
+      userService.getNonVendorUsers({ params: { page: 1, limit: 10, search: query } })
+        .then(({ data }) => setSearchResults(Array.isArray(data?.data) ? data.data : []))
+        .catch(() => setSearchResults([]))
+        .finally(() => setIsSearching(false));
+    }, 350);
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [filterText]);
+
   const updatePosition = () => {
     const el = triggerRef.current;
     if (!el) return;
@@ -5326,12 +5897,13 @@ function UserPickerField({ label, users, valueUserId, onChange }) {
     };
   }, [isOpen]);
 
-  const selectedUser = (users ?? []).find((u) => String(u.user_id) === String(valueUserId));
+  const selectedUser = pickedUser
+    ?? (users ?? []).find((u) => String(u.user_id) === String(valueUserId));
   const name = selectedUser?.name || 'None';
-  const query = filterText.trim().toLowerCase();
-  const filteredUsers = query ? (users ?? []).filter((u) => u.name?.toLowerCase().includes(query)) : (users ?? []);
+  const filteredUsers = searchResults ?? (users ?? []);
 
   const handlePick = (user) => {
+    setPickedUser(user ?? null);
     onChange(user?.user_id ?? '');
     setIsOpen(false);
   };
@@ -5373,7 +5945,9 @@ function UserPickerField({ label, users, valueUserId, onChange }) {
                 <span className="br-owner-picker-row-name">None</span>
               </button>
             </div>
-            {filteredUsers.length === 0 ? (
+            {isSearching ? (
+              <div className="br-property-picker-empty">Searching…</div>
+            ) : filteredUsers.length === 0 ? (
               <div className="br-property-picker-empty">No matches</div>
             ) : (
               filteredUsers.map((user) => (
@@ -6258,6 +6832,30 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
   // backend catalog for this yet, get_regular_fields returns nothing for this trigger).
   const [recurrenceSchedule, setRecurrenceSchedule] = useState('every_day');
   const [showRecurrenceUnitPicker, setShowRecurrenceUnitPicker] = useState(false);
+  // "Advanced schedule" recurrence option's own sub-config — RRULE-style value (see
+  // buildAdvancedScheduleValue above) plus the human-readable summary shown on its "Not Set"
+  // trigger once configured.
+  const [advancedSchedule, setAdvancedSchedule] = useState('');
+  const [advancedScheduleLabel, setAdvancedScheduleLabel] = useState('');
+  const [showAdvancedScheduleModal, setShowAdvancedScheduleModal] = useState(false);
+  // "Every month" recurrence option's own sub-config — "on day [N]" rows, OR-joined like the
+  // Board/Position condition rows below (clicking OR duplicates the row instead of literally
+  // toggling the word — same interaction those two already use).
+  const [monthlyDayRows, setMonthlyDayRows] = useState([{ id: 'monthly-day-0', day: 1, joinWord: 'OR' }]);
+  const [openMonthlyDayRowId, setOpenMonthlyDayRowId] = useState(null);
+  const [monthlyDayFilterText, setMonthlyDayFilterText] = useState('');
+  const monthlyDayTriggerRef = useRef(null);
+  const monthlyDayPanelRef = useRef(null);
+  const [weeklyDayRows, setWeeklyDayRows] = useState([{ id: 'weekly-day-0', day: 'monday', joinWord: 'OR' }]);
+  const [openWeeklyDayRowId, setOpenWeeklyDayRowId] = useState(null);
+  const [weeklyDayFilterText, setWeeklyDayFilterText] = useState('');
+  // "Predefined interval" recurrence option's own sub-config — plain "every N day(s)
+  // starting from [date]" pair, no OR-joined rows/picker needed like the month/week
+  // options above since there's only ever one interval and one start date.
+  const [predefinedIntervalDays, setPredefinedIntervalDays] = useState('1');
+  const [predefinedIntervalStartDate, setPredefinedIntervalStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const weeklyDayTriggerRef = useRef(null);
+  const weeklyDayPanelRef = useRef(null);
   const [executeAtTime, setExecuteAtTime] = useState('00:00');
   // then_action_id of this rule's "execute_at" then_action, restored below on edit — carried
   // through to save so an update targets that same row instead of the backend creating a
@@ -6559,6 +7157,17 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setRawSummaryBySectionId({});
     setRecurrenceSchedule('every_day');
     setShowRecurrenceUnitPicker(false);
+    setAdvancedSchedule('');
+    setAdvancedScheduleLabel('');
+    setShowAdvancedScheduleModal(false);
+    setMonthlyDayRows([{ id: 'monthly-day-0', day: 1, joinWord: 'OR' }]);
+    setOpenMonthlyDayRowId(null);
+    setMonthlyDayFilterText('');
+    setWeeklyDayRows([{ id: 'weekly-day-0', day: 'monday', joinWord: 'OR' }]);
+    setOpenWeeklyDayRowId(null);
+    setWeeklyDayFilterText('');
+    setPredefinedIntervalDays('1');
+    setPredefinedIntervalStartDate(new Date().toISOString().slice(0, 10));
     setExecuteAtTime('00:00');
     setExecuteThenActionId(null);
     if (timeUnits.length === 0) getTimeUnits();
@@ -6610,6 +7219,11 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     if (!isEditMode || !businessRuleDetailsReady) return;
     const realWhenFields = (businessRuleDetails.when_fields ?? [])
       .filter((wf) => wf.regular_field_id != null || wf.custom_field_id != null)
+      // Recurring-schedule marker fields (every_day/every_workday/advanced_schedule/
+      // predefined_interval) are restored separately into recurrenceSchedule state below —
+      // they aren't real "watch this field" chips, so must not leak into whenFields here.
+      // See RECURRENCE_REGULAR_FIELD_IDS in buildBusinessRulePayload.js for why.
+      .filter((wf) => !RECURRENCE_REGULAR_FIELD_IDS.includes(Number(wf.regular_field_id)))
       .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0))
       .map((wf) => {
         const fieldType = wf.regular_field_id != null ? 'regular' : 'custom';
@@ -6733,6 +7347,12 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     let nextExecuteThenActionId = null;
     let nextExecuteAtTime = null;
     let nextRecurrenceSchedule = null;
+    let nextAdvancedSchedule = null;
+    let nextAdvancedScheduleLabel = null;
+    let nextMonthlyDayRows = null;
+    let nextWeeklyDayRows = null;
+    let nextPredefinedIntervalDays = null;
+    let nextPredefinedIntervalStartDate = null;
 
     const pushRaw = (sectionId, group) => {
       const key = sectionId ?? group.group_type;
@@ -7008,6 +7628,27 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
           if (executeTime) nextExecuteAtTime = executeTime;
           const recurrence = propVal(action, 'recurrence_schedule');
           if (recurrence) nextRecurrenceSchedule = recurrence;
+          const advancedCron = propVal(action, 'advanced_schedule_cron');
+          if (advancedCron) {
+            nextAdvancedSchedule = advancedCron;
+            nextAdvancedScheduleLabel = summarizeAdvancedSchedule(parseAdvancedScheduleValue(advancedCron));
+          }
+          const monthDays = propVal(action, 'recurrence_month_days');
+          if (monthDays) {
+            nextMonthlyDayRows = monthDays.split(',').map((d) => d.trim()).filter(Boolean).map((d, idx) => ({
+              id: `monthly-day-${idx}`, day: parseInt(d, 10) || 1, joinWord: 'OR',
+            }));
+          }
+          const weekDays = propVal(action, 'recurrence_week_days');
+          if (weekDays) {
+            nextWeeklyDayRows = weekDays.split(',').map((d) => d.trim()).filter(Boolean).map((d, idx) => ({
+              id: `weekly-day-${idx}`, day: d, joinWord: 'OR',
+            }));
+          }
+          const intervalDays = propVal(action, 'recurrence_interval_days');
+          if (intervalDays) nextPredefinedIntervalDays = intervalDays;
+          const intervalStartDate = propVal(action, 'recurrence_interval_start_date');
+          if (intervalStartDate) nextPredefinedIntervalStartDate = intervalStartDate;
         }
         return;
       }
@@ -7029,6 +7670,12 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     setExecuteThenActionId(nextExecuteThenActionId);
     if (nextExecuteAtTime) setExecuteAtTime(nextExecuteAtTime);
     if (nextRecurrenceSchedule) setRecurrenceSchedule(nextRecurrenceSchedule);
+    if (nextAdvancedSchedule) setAdvancedSchedule(nextAdvancedSchedule);
+    if (nextAdvancedScheduleLabel) setAdvancedScheduleLabel(nextAdvancedScheduleLabel);
+    if (nextMonthlyDayRows) setMonthlyDayRows(nextMonthlyDayRows);
+    if (nextWeeklyDayRows) setWeeklyDayRows(nextWeeklyDayRows);
+    if (nextPredefinedIntervalDays) setPredefinedIntervalDays(nextPredefinedIntervalDays);
+    if (nextPredefinedIntervalStartDate) setPredefinedIntervalStartDate(nextPredefinedIntervalStartDate);
     setRawSummaryBySectionId(nextRawSummaryBySectionId);
 
     // workflowName/swimlaneName/stageName can't be resolved from `workspaces` (board list
@@ -7182,6 +7829,32 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [showExecuteTimePicker]);
+
+  useEffect(() => {
+    if (openMonthlyDayRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (monthlyDayPanelRef.current?.contains(t)) return;
+      if (monthlyDayTriggerRef.current?.contains(t)) return;
+      setOpenMonthlyDayRowId(null);
+      setMonthlyDayFilterText('');
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openMonthlyDayRowId]);
+
+  useEffect(() => {
+    if (openWeeklyDayRowId == null) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (weeklyDayPanelRef.current?.contains(t)) return;
+      if (weeklyDayTriggerRef.current?.contains(t)) return;
+      setOpenWeeklyDayRowId(null);
+      setWeeklyDayFilterText('');
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [openWeeklyDayRowId]);
 
   useEffect(() => {
     if (openLinkOperatorRowId == null) return undefined;
@@ -7463,6 +8136,11 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       executeAtTime,
       executeThenActionId,
       recurrenceSchedule,
+      advancedSchedule,
+      monthlyDays: monthlyDayRows.map((row) => row.day),
+      weeklyDays: weeklyDayRows.map((row) => row.day),
+      predefinedIntervalDays,
+      predefinedIntervalStartDate,
       // Then-groups the routing effect couldn't invert into editable state (create-subtask,
       // update_parent/child_card, copy_values_to_*) — passed through as-is by buildThenActions'
       // raw fallback so an edit save doesn't wipe them from the rule.
@@ -8468,6 +9146,54 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     });
   };
 
+  const handleSelectMonthlyDay = (rowId, day) => {
+    setMonthlyDayRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, day } : row)));
+    setOpenMonthlyDayRowId(null);
+    setMonthlyDayFilterText('');
+  };
+
+  const handleRemoveMonthlyDayRow = (rowId) => {
+    setMonthlyDayRows((prev) => {
+      if (prev.length <= 1) return [{ id: 'monthly-day-0', day: 1, joinWord: 'OR' }];
+      return prev.filter((row) => row.id !== rowId);
+    });
+  };
+
+  const handleToggleMonthlyDayJoinWord = (rowId) => {
+    setMonthlyDayRows((prev) => {
+      const rowIndex = prev.findIndex((row) => row.id === rowId);
+      if (rowIndex === -1) return prev;
+      const newRow = { id: `monthly-day-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, day: 1, joinWord: 'OR' };
+      const next = [...prev];
+      next.splice(rowIndex + 1, 0, newRow);
+      return next;
+    });
+  };
+
+  const handleSelectWeeklyDay = (rowId, day) => {
+    setWeeklyDayRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, day } : row)));
+    setOpenWeeklyDayRowId(null);
+    setWeeklyDayFilterText('');
+  };
+
+  const handleRemoveWeeklyDayRow = (rowId) => {
+    setWeeklyDayRows((prev) => {
+      if (prev.length <= 1) return [{ id: 'weekly-day-0', day: 'monday', joinWord: 'OR' }];
+      return prev.filter((row) => row.id !== rowId);
+    });
+  };
+
+  const handleToggleWeeklyDayJoinWord = (rowId) => {
+    setWeeklyDayRows((prev) => {
+      const rowIndex = prev.findIndex((row) => row.id === rowId);
+      if (rowIndex === -1) return prev;
+      const newRow = { id: `weekly-day-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, day: 'monday', joinWord: 'OR' };
+      const next = [...prev];
+      next.splice(rowIndex + 1, 0, newRow);
+      return next;
+    });
+  };
+
   const activePositionRow = positionConditionRows.find((row) => row.id === activePositionRowId);
 
   // "Clear all" only makes sense to show once the user has actually added something
@@ -8715,6 +9441,188 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
                   >
                     {RECURRENCE_SCHEDULE_OPTIONS.find((o) => o.key === recurrenceSchedule)?.label ?? 'Every day'}
                   </button>
+
+                  {recurrenceSchedule === 'advanced_schedule' && (
+                    <div className="business-rule-form-condition">
+                      <span className="br-advanced-schedule-label">Advanced schedule is</span>
+                      <button
+                        type="button"
+                        className="business-rule-form-condition-value"
+                        onClick={() => setShowAdvancedScheduleModal(true)}
+                      >
+                        {advancedScheduleLabel || 'Not Set'}
+                        <FiChevronDown size={16} aria-hidden />
+                      </button>
+                    </div>
+                  )}
+
+                  {recurrenceSchedule === 'every_month' && monthlyDayRows.length > 0 && (
+                    <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
+                      <span className="business-rule-form-condition-label">Every month on</span>
+                      {monthlyDayRows.map((row) => (
+                        <div key={row.id} className="br-board-condition-value-row">
+                          <div className="board-minimap-picker-wrap">
+                            <button
+                              type="button"
+                              ref={openMonthlyDayRowId === row.id ? monthlyDayTriggerRef : undefined}
+                              className="business-rule-form-condition-value"
+                              onClick={() => setOpenMonthlyDayRowId((prev) => (prev === row.id ? null : row.id))}
+                              aria-haspopup="listbox"
+                              aria-expanded={openMonthlyDayRowId === row.id}
+                            >
+                              day {row.day}
+                              <FiChevronDown size={16} aria-hidden />
+                            </button>
+
+                            {openMonthlyDayRowId === row.id && (
+                              <div className="board-minimap-picker-panel br-condition-operator-panel" ref={monthlyDayPanelRef}>
+                                <div className="board-minimap-picker-search">
+                                  <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                  <input
+                                    type="text"
+                                    placeholder="Filter"
+                                    value={monthlyDayFilterText}
+                                    onChange={(e) => setMonthlyDayFilterText(e.target.value)}
+                                    autoFocus
+                                  />
+                                </div>
+                                <div className="board-minimap-picker-scroll">
+                                  {MONTH_DAY_LIST
+                                    .filter((day) => String(day).includes(monthlyDayFilterText.trim()))
+                                    .map((day) => (
+                                      <button
+                                        type="button"
+                                        key={day}
+                                        className="br-condition-operator-option"
+                                        onClick={() => handleSelectMonthlyDay(row.id, day)}
+                                      >
+                                        {day}
+                                      </button>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="business-rule-form-filter-row-actions">
+                            <button
+                              type="button"
+                              className="business-rule-form-or-btn"
+                              onClick={() => handleToggleMonthlyDayJoinWord(row.id)}
+                            >
+                              {row.joinWord || 'OR'}
+                            </button>
+                            <button
+                              type="button"
+                              className="business-rule-form-filter-row-delete"
+                              onClick={() => handleRemoveMonthlyDayRow(row.id)}
+                              aria-label="Remove day"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {recurrenceSchedule === 'every_week' && weeklyDayRows.length > 0 && (
+                    <div className="business-rule-form-filter-row business-rule-form-filter-row--multi">
+                      <span className="business-rule-form-condition-label">Every week on</span>
+                      {weeklyDayRows.map((row) => (
+                        <div key={row.id} className="br-board-condition-value-row">
+                          <div className="board-minimap-picker-wrap">
+                            <button
+                              type="button"
+                              ref={openWeeklyDayRowId === row.id ? weeklyDayTriggerRef : undefined}
+                              className="business-rule-form-condition-value"
+                              onClick={() => setOpenWeeklyDayRowId((prev) => (prev === row.id ? null : row.id))}
+                              aria-haspopup="listbox"
+                              aria-expanded={openWeeklyDayRowId === row.id}
+                            >
+                              {WEEKLY_RECURRENCE_DAY_OPTIONS.find((o) => o.key === row.day)?.label ?? 'Monday'}
+                              <FiChevronDown size={16} aria-hidden />
+                            </button>
+
+                            {openWeeklyDayRowId === row.id && (
+                              <div className="board-minimap-picker-panel br-condition-operator-panel" ref={weeklyDayPanelRef}>
+                                <div className="board-minimap-picker-search">
+                                  <FiFilter size={16} className="board-minimap-picker-search-icon" aria-hidden />
+                                  <input
+                                    type="text"
+                                    placeholder="Filter"
+                                    value={weeklyDayFilterText}
+                                    onChange={(e) => setWeeklyDayFilterText(e.target.value)}
+                                    autoFocus
+                                  />
+                                </div>
+                                <div className="board-minimap-picker-scroll">
+                                  {WEEKLY_RECURRENCE_DAY_OPTIONS
+                                    .filter((opt) => opt.label.toLowerCase().includes(weeklyDayFilterText.trim().toLowerCase()))
+                                    .map((opt) => (
+                                      <button
+                                        type="button"
+                                        key={opt.key}
+                                        className="br-condition-operator-option"
+                                        onClick={() => handleSelectWeeklyDay(row.id, opt.key)}
+                                      >
+                                        {opt.label}
+                                      </button>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="business-rule-form-filter-row-actions">
+                            <button
+                              type="button"
+                              className="business-rule-form-or-btn"
+                              onClick={() => handleToggleWeeklyDayJoinWord(row.id)}
+                            >
+                              {row.joinWord || 'OR'}
+                            </button>
+                            <button
+                              type="button"
+                              className="business-rule-form-filter-row-delete"
+                              onClick={() => handleRemoveWeeklyDayRow(row.id)}
+                              aria-label="Remove day"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {recurrenceSchedule === 'predefined_interval' && (
+                    <div className="business-rule-form-condition">
+                      <span className="br-advanced-schedule-label">Predefined interval is</span>
+
+                      <div className="business-rule-form-when-deadline-input-row">
+                        <span className="business-rule-form-condition-label">Every</span>
+                        <input
+                          type="number"
+                          min="1"
+                          className="business-rule-form-when-deadline-input"
+                          value={predefinedIntervalDays}
+                          onChange={(e) => setPredefinedIntervalDays(e.target.value)}
+                        />
+                        <span className="business-rule-form-when-deadline-suffix">days</span>
+                      </div>
+
+                      <div className="business-rule-form-when-deadline-input-row">
+                        <span className="business-rule-form-condition-label">Starting from</span>
+                        <input
+                          type="date"
+                          className="business-rule-form-when-deadline-input"
+                          value={predefinedIntervalStartDate}
+                          onChange={(e) => setPredefinedIntervalStartDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : triggerConfig?.when_type === 'deadline' ? (
                 <div className="business-rule-form-column-card business-rule-form-when-fields business-rule-form-when-deadline">
@@ -11258,6 +12166,16 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       onClose={() => setShowRecurrenceUnitPicker(false)}
       value={recurrenceSchedule}
       onSelect={setRecurrenceSchedule}
+    />
+
+    <AdvancedScheduleModal
+      show={showAdvancedScheduleModal}
+      onClose={() => setShowAdvancedScheduleModal(false)}
+      value={advancedSchedule}
+      onSave={(cronValue, summaryLabel) => {
+        setAdvancedSchedule(cronValue);
+        setAdvancedScheduleLabel(summaryLabel);
+      }}
     />
 
     <LinkActionModal

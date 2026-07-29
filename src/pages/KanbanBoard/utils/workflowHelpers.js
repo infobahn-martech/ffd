@@ -6,6 +6,15 @@ export const createWorkflowBooleanState = (workflows, initialValue) => {
   return state;
 };
 
+export const createWorkflowBooleanStateFromField = (workflows, field, fallback) => {
+  const state = {};
+  workflows.forEach((workflow) => {
+    const value = workflow?.[field];
+    state[workflow.id] = value == null ? fallback : Boolean(value);
+  });
+  return state;
+};
+
 export const createCollapsedColumnsState = (workflows) => {
   const state = {};
   workflows.forEach((workflow) => {

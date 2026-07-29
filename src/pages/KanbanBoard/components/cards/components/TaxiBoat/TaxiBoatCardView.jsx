@@ -17,10 +17,26 @@ import { MdDirectionsBoat } from "react-icons/md";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-card.scss";
 import "../../../../../../design/scss/pages/kanban-board/taxi-boat-service-scenarios.scss";
 import GroSummaryCard, { GroSummaryFieldCard } from "../GRO/User/GroSummaryCard";
+import CardTabListLoading from "../../../../../../components/CardTabListLoading";
 
 const CREW_CHANGE_SERVICES = ["Crew Change"];
 const MATERIAL_SERVICES   = ["Material Delivery", "Provision Delivery", "Garbage Collection"];
 const IMMIGRATION_SERVICES = ["Immigration Clearance"];
+
+// launch_hire/get_taxiboat_booking_detail/{booking_id} — item_type is the real source of
+// truth for which scenario to render. Only fall back to the legacy typeOfService matching
+// above when item_type is missing or not one of these (e.g. still loading).
+const KNOWN_ITEM_TYPES = new Set([
+  "crew_change",
+  "crew_immigration_batch",
+  "material_inbound",
+  "material_dispatch",
+  "transport_request",
+  "medical_request",
+  "hotel_request",
+  "third_party_service_request",
+  "addon_service_request",
+]);
 
 const LOCATION_OPTIONS = ["Freighter Anchorage", "RT7", "Sea Island", "Juaymah"];
 
@@ -85,6 +101,19 @@ function mapImmigrationBatches(apiBatches) {
 // string the same way locally-captured timestamps are stored.
 function normalizeApiDateTime(raw) {
   return raw ? String(raw).replace(" ", "T") : null;
+}
+
+// Shared crew shape across transport_request / medical_request / hotel_request item_types —
+// each API namespaces its own row id (transport_request_crew_id, medical_request_crew_id,
+// etc.) but crew_name/rank/nationality/passport_no are consistent.
+function normalizeItemTypeCrewRow(crew) {
+  return {
+    name:          crew?.crew_name ?? "—",
+    rank:          crew?.rank ?? "—",
+    nationality:   crew?.nationality ?? "—",
+    passportNo:    crew?.passport_no ?? "—",
+    completedDate: crew?.completed_date ?? null,
+  };
 }
 
 // launch_hire/get_booking_timestamps/{booking_id} — one Drop/Pickup leg, keyed by checkpoint field name.
@@ -171,6 +200,10 @@ const formatDateTime = (iso) => {
     hour12: true,
   });
 };
+
+// Read-only listing panels (material_inbound/dispatch, etc.) get raw "YYYY-MM-DD[ HH:mm:ss]"
+// strings straight from the API — normalize then format, falling back to the raw value.
+const safeFormatDate = (raw) => (raw ? formatDateTime(normalizeApiDateTime(raw)) ?? raw : "—");
 
 function TimestampAnimIcon({ animKey }) {
   if (animKey === "castOff") {
@@ -448,7 +481,11 @@ function TimestampStepper({ timestamps, tsState, onCapture, onComplete, jobCompl
         const prevDone = i === 0 || tsState[prevKey] !== null;
         const isNext = !done && prevDone;
         const isLocked = !done && !isNext;
-        const undoable = done && !!onUndo;
+        // Only the most recently captured step can be undone — stepping back further
+        // out of sequence would leave later captured timestamps orphaned.
+        const nextKey = i < timestamps.length - 1 ? timestamps[i + 1].key : null;
+        const nextDone = nextKey ? tsState[nextKey] !== null : false;
+        const undoable = done && !nextDone && !!onUndo;
 
         const stepDuration = done && prevKey && tsState[prevKey]
           ? formatDuration(new Date(tsState[key]) - new Date(tsState[prevKey]))
@@ -676,13 +713,16 @@ FinalStep.propTypes = {
   onComplete:  PropTypes.func.isRequired,
 };
 
-function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, onCaptureCob, stepsAllDone, stepBackLog }) {
+function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, onCaptureCob, stepsAllDone, stepBackLog, headerAction }) {
   const anyDone = timestamps.some((t) => tsState[t.key] !== null);
   if (!anyDone) return null;
 
   return (
     <div className="tb-ts-summary">
-      <span className="tb-ts-summary-title">Timestamps Summary</span>
+      <div className="tb-ts-summary-header">
+        <span className="tb-ts-summary-title">Timestamps Summary</span>
+        {headerAction}
+      </div>
       <table className="tb-ts-summary-table">
         <thead>
           <tr>
@@ -700,19 +740,29 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
             const dur = time && prevTime ? formatDuration(new Date(time) - new Date(prevTime)) : null;
             return (
               <tr key={key} className={time ? "tb-ts-summary-row--done" : ""}>
-                <td className="tb-ts-summary-num">{time ? "✓" : i + 1}</td>
+                <td className="tb-ts-summary-num">
+                  <span className={`tb-ts-summary-badge${time ? " tb-ts-summary-badge--done" : ""}`}>
+                    {time ? <FiCheckCircle size={12} /> : i + 1}
+                  </span>
+                </td>
                 <td className="tb-ts-summary-step">{label}</td>
                 <td className="tb-ts-summary-time">
                   {time ? formatDateTime(time) : <span className="tb-ts-summary-blank">—</span>}
                 </td>
-                <td className="tb-ts-summary-dur">{dur ?? "—"}</td>
+                <td className="tb-ts-summary-dur">
+                  {dur ? <span className="tb-ts-summary-dur-chip">{dur}</span> : <span className="tb-ts-summary-blank">—</span>}
+                </td>
               </tr>
             );
           })}
 
           {/* Trip Completed row */}
           <tr className={["tb-ts-summary-row--job", jobCompletedAt ? "tb-ts-summary-row--done" : "tb-ts-summary-row--locked"].join(" ")}>
-            <td className="tb-ts-summary-num">{jobCompletedAt ? "✓" : <FiCheckCircle size={11} />}</td>
+            <td className="tb-ts-summary-num">
+              <span className={`tb-ts-summary-badge${jobCompletedAt ? " tb-ts-summary-badge--done" : " tb-ts-summary-badge--locked"}`}>
+                <FiCheckCircle size={12} />
+              </span>
+            </td>
             <td className="tb-ts-summary-step tb-ts-summary-job-label">Trip Completed</td>
             <td className="tb-ts-summary-time">
               {jobCompletedAt
@@ -724,7 +774,11 @@ function TimestampSummaryTable({ timestamps, tsState, jobCompletedAt, cobTime, o
           {/* Step Back Log rows */}
           {stepBackLog && stepBackLog.length > 0 && stepBackLog.map((entry, idx) => (
             <tr key={`sb-${idx}`} className="tb-ts-summary-row--stepback">
-              <td className="tb-ts-summary-num"><FiArrowDown size={11} /></td>
+              <td className="tb-ts-summary-num">
+                <span className="tb-ts-summary-badge tb-ts-summary-badge--stepback">
+                  <FiArrowDown size={11} />
+                </span>
+              </td>
               <td className="tb-ts-summary-step tb-ts-summary-stepback-label">
                 Step Back — {entry.step}
               </td>
@@ -746,6 +800,7 @@ TimestampSummaryTable.propTypes = {
   onCaptureCob:    PropTypes.func.isRequired,
   stepsAllDone:    PropTypes.bool.isRequired,
   stepBackLog:     PropTypes.array,
+  headerAction:    PropTypes.node,
 };
 
 const parseToInputDate = (raw) => {
@@ -757,20 +812,56 @@ const parseToInputDate = (raw) => {
   return "";
 };
 
+const FLEET_ASSIGN_STEPS = ["Choose Fleet", "Assign Captain", "Ready"];
+
+function FleetStatusPill({ label = "Available" }) {
+  return (
+    <span className="tb-status-pill">
+      <span className="tb-status-pill-dot" />
+      {label}
+    </span>
+  );
+}
+
+FleetStatusPill.propTypes = { label: PropTypes.string };
+
 function TaxiFleetAssignPanel({
-  bookingDate, bookingTime,
   fleets, isLoadingFleets,
   selectedFleet, onSelectFleet,
   captains, isLoadingCaptains,
-  selectedCaptainId, onSelectCaptainId,
+  selectedCaptainId,
   isAssigning,
   assigned, assignedCaptainName,
   onAssignCaptain,
 }) {
+  const stepIndex = assigned ? 3 : selectedFleet ? 2 : 1;
+
   return (
     <div className="tb-fleet-panel">
-      <h3 className="tb-fleet-panel-title">Taxi Fleet Assignment</h3>
-      <span className="tb-fleet-select-label">Select Fleet</span>
+      <div className="tb-fleet-panel-head">
+        <h3 className="tb-fleet-panel-title">Taxi Fleet Assignment</h3>
+        <ol className="tb-fleet-steps">
+          {FLEET_ASSIGN_STEPS.map((label, i) => {
+            const stepNum = i + 1;
+            return (
+              <li
+                key={label}
+                className={[
+                  "tb-fleet-step",
+                  stepIndex > stepNum ? "tb-fleet-step--done" : "",
+                  stepIndex === stepNum ? "tb-fleet-step--active" : "",
+                ].filter(Boolean).join(" ")}
+              >
+                <span className="tb-fleet-step-dot">
+                  {stepIndex > stepNum ? <FiCheckCircle size={10} /> : stepNum}
+                </span>
+                {label}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
       {isLoadingFleets ? (
         <span className="tb-fleet-empty-hint">Loading fleets…</span>
       ) : fleets.length === 0 ? (
@@ -779,28 +870,93 @@ function TaxiFleetAssignPanel({
         <div className="tb-fleet-cards">
           {fleets.map((fleet) => {
             const isSelected = selectedFleet?.taxi_boat_id === fleet.taxi_boat_id;
-            const isAssigned = assigned && isSelected;
+            const isFleetAssigned = assigned && isSelected;
             return (
-              <button
+              <div
                 key={fleet.taxi_boat_id}
-                className={[
-                  "tb-fleet-card",
-                  isSelected ? "tb-fleet-card--selected" : "",
-                  isAssigned ? "tb-fleet-card--assigned" : "",
-                ].filter(Boolean).join(" ")}
-                onClick={() => !assigned && onSelectFleet(fleet)}
-                disabled={assigned}
+                className={["tb-fleet-card", isSelected ? "tb-fleet-card--selected" : ""].filter(Boolean).join(" ")}
               >
-                <MdDirectionsBoat size={24} className="tb-fleet-card-icon" />
-                <span className="tb-fleet-card-name">{fleet.taxi_boat_name}</span>
-                {fleet.registration_no && <span className="tb-fleet-card-tagline">{fleet.registration_no}</span>}
-                {fleet.capacity_persons != null && (
-                  <span className="tb-fleet-card-cap">Capacity: {fleet.capacity_persons}</span>
+                <button
+                  type="button"
+                  className="tb-fleet-card-head"
+                  onClick={() => !assigned && onSelectFleet(fleet)}
+                  disabled={assigned}
+                >
+                  <span className="tb-fleet-card-name">
+                    <MdDirectionsBoat size={18} />
+                    {fleet.taxi_boat_name}
+                  </span>
+                  {isSelected && (
+                    <span className="tb-fleet-card-badge">
+                      <FiCheckCircle size={11} /> Selected
+                    </span>
+                  )}
+                </button>
+
+                {isSelected && (
+                  <div className="tb-fleet-card-body">
+                    <div className="tb-fleet-card-row">
+                      <span className="tb-fleet-card-row-label">Status</span>
+                      <FleetStatusPill />
+                    </div>
+                    {(fleet.registration_no || fleet.capacity_persons != null) && (
+                      <div className="tb-fleet-card-meta">
+                        {fleet.registration_no && <span>{fleet.registration_no}</span>}
+                        {fleet.capacity_persons != null && <span>{fleet.capacity_persons} persons</span>}
+                      </div>
+                    )}
+
+                    <div className="tb-fleet-card-divider" />
+
+                    {isFleetAssigned ? (
+                      <div className="tb-fleet-success">
+                        <FiCheckCircle size={18} />
+                        <div className="tb-fleet-success-text">
+                          <span className="tb-fleet-success-title">Captain Assigned</span>
+                          <span className="tb-fleet-success-name">{assignedCaptainName}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="tb-fleet-card-row-label">Captain</span>
+                        <SearchableSelect
+                          className="tb-summary-select"
+                          value={selectedCaptainId ?? ""}
+                          onChange={(e) => onAssignCaptain(e.target.value)}
+                          options={captains.map((captain) => ({
+                            value: captain.taxiboat_captain_id,
+                            label: captain.captain_name,
+                          }))}
+                          placeholder={
+                            isLoadingCaptains
+                              ? "Loading captains…"
+                              : captains.length === 0
+                              ? "No captains available"
+                              : "Select Captain"
+                          }
+                          disabled={isLoadingCaptains || isAssigning || captains.length === 0}
+                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        />
+                        {selectedCaptainId && (
+                          <div className="tb-fleet-card-row">
+                            <span className="tb-fleet-card-row-label">Captain Status</span>
+                            <FleetStatusPill />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
-                {isAssigned && <span className="tb-fleet-card-badge"><FiCheckCircle size={10} /> Assigned</span>}
-              </button>
+              </div>
             );
           })}
+        </div>
+      )}
+
+      {!isLoadingFleets && fleets.length > 0 && !selectedFleet && (
+        <div className="tb-fleet-empty-state">
+          <FiUser size={18} />
+          Select a fleet to assign a captain.
         </div>
       )}
     </div>
@@ -808,8 +964,6 @@ function TaxiFleetAssignPanel({
 }
 
 TaxiFleetAssignPanel.propTypes = {
-  bookingDate:         PropTypes.string.isRequired,
-  bookingTime:         PropTypes.string.isRequired,
   fleets:              PropTypes.array.isRequired,
   isLoadingFleets:     PropTypes.bool.isRequired,
   selectedFleet:       PropTypes.object,
@@ -817,7 +971,6 @@ TaxiFleetAssignPanel.propTypes = {
   captains:            PropTypes.array.isRequired,
   isLoadingCaptains:   PropTypes.bool.isRequired,
   selectedCaptainId:   PropTypes.string,
-  onSelectCaptainId:   PropTypes.func.isRequired,
   isAssigning:         PropTypes.bool.isRequired,
   assigned:            PropTypes.bool.isRequired,
   assignedCaptainName: PropTypes.string,
@@ -1190,14 +1343,255 @@ CrewListBatchwisePanel.propTypes = {
   handleAddTrip:    PropTypes.func,
 };
 
+// Read-only listing panels for item_types that don't have a dedicated interactive
+// scenario (crew_change and crew_immigration_batch keep their existing panels above).
+// Pagination mirrors CrewListBatchwisePanel's crew table (same page size, same controls).
+function TablePagination({ page, totalPages, onPrev, onNext }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="tb-crew-pagination">
+      <button type="button" className="tb-crew-page-btn" onClick={onPrev} disabled={page === 1}>
+        Prev
+      </button>
+      <span className="tb-crew-page-status">
+        Page {page} of {totalPages}
+      </span>
+      <button type="button" className="tb-crew-page-btn" onClick={onNext} disabled={page === totalPages}>
+        Next
+      </button>
+    </div>
+  );
+}
+
+TablePagination.propTypes = {
+  page:       PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  onPrev:     PropTypes.func.isRequired,
+  onNext:     PropTypes.func.isRequired,
+};
+
+function ItemTypeCrewListing({ title, crew, showCompletedDate }) {
+  const [page, setPage] = useState(1);
+  const rows = (Array.isArray(crew) ? crew : []).map(normalizeItemTypeCrewRow);
+  const totalPages = Math.max(1, Math.ceil(rows.length / CREW_PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pagedRows = rows.slice((pageSafe - 1) * CREW_PAGE_SIZE, pageSafe * CREW_PAGE_SIZE);
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">{title}</h3>
+      {rows.length === 0 ? (
+        <span className="tb-fleet-empty-hint">No crew records found for this item.</span>
+      ) : (
+        <>
+          <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
+            <table className="tb-crew-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Rank</th>
+                  <th>Nationality</th>
+                  <th>Passport No.</th>
+                  {showCompletedDate && <th>Completed Date</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {pagedRows.map((row, i) => (
+                  <tr key={i}>
+                    <td>{(pageSafe - 1) * CREW_PAGE_SIZE + i + 1}</td>
+                    <td>{row.name}</td>
+                    <td>{row.rank}</td>
+                    <td>{row.nationality}</td>
+                    <td>{row.passportNo}</td>
+                    {showCompletedDate && <td>{row.completedDate ? safeFormatDate(row.completedDate) : "—"}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pageSafe}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+ItemTypeCrewListing.propTypes = {
+  title:             PropTypes.string.isRequired,
+  crew:              PropTypes.array,
+  showCompletedDate: PropTypes.bool,
+};
+
+function MaterialInboundListing({ materialInbound }) {
+  const [page, setPage] = useState(1);
+  if (!materialInbound) return null;
+  const items = Array.isArray(materialInbound.items) ? materialInbound.items : [];
+  const totalPages = Math.max(1, Math.ceil(items.length / CREW_PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pagedItems = items.slice((pageSafe - 1) * CREW_PAGE_SIZE, pageSafe * CREW_PAGE_SIZE);
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Material Inbound</h3>
+      <div className="tb-info-grid">
+        <InfoCard label="Inbound No." value={materialInbound.inbound_no} />
+        <InfoCard label="Inbound Date" value={safeFormatDate(materialInbound.inbound_date)} />
+        <InfoCard label="Remarks" value={materialInbound.remarks} />
+      </div>
+      {items.length > 0 && (
+        <>
+          <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
+            <table className="tb-crew-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order No.</th>
+                  <th>PO No.</th>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Pickup Location</th>
+                  <th>Route</th>
+                  <th>Vehicle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedItems.map((item, i) => (
+                  <tr key={item.inbound_item_id ?? i}>
+                    <td>{(pageSafe - 1) * CREW_PAGE_SIZE + i + 1}</td>
+                    <td>{item.order_no ?? "—"}</td>
+                    <td>{item.po_no ?? "—"}</td>
+                    <td>{item.description ?? "—"}</td>
+                    <td>{item.quantity ?? "—"}</td>
+                    <td>{item.transportation?.pickup_location ?? "—"}</td>
+                    <td>
+                      {item.transportation
+                        ? `${item.transportation.from_location_name ?? "—"} → ${item.transportation.to_location_name ?? "—"}`
+                        : "—"}
+                    </td>
+                    <td>{item.transportation?.vehicle_type_name ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pageSafe}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+MaterialInboundListing.propTypes = {
+  materialInbound: PropTypes.object,
+};
+
+function MaterialDispatchListing({ materialDispatch }) {
+  const [page, setPage] = useState(1);
+  if (!materialDispatch) return null;
+  const items = Array.isArray(materialDispatch.items) ? materialDispatch.items : [];
+  const documents = Array.isArray(materialDispatch.documents) ? materialDispatch.documents : [];
+  const totalPages = Math.max(1, Math.ceil(items.length / CREW_PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pagedItems = items.slice((pageSafe - 1) * CREW_PAGE_SIZE, pageSafe * CREW_PAGE_SIZE);
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Material Dispatch</h3>
+      <div className="tb-info-grid">
+        <InfoCard label="Dispatch Note No." value={materialDispatch.dispatch_note_no} />
+        <InfoCard label="Dispatch Date" value={safeFormatDate(materialDispatch.dispatch_date)} />
+        <InfoCard label="Delivery Location" value={materialDispatch.delivery_location} />
+        <InfoCard label="Delivered To" value={materialDispatch.delivered_to} />
+      </div>
+      {items.length > 0 && (
+        <>
+          <div className="tb-crew-table-wrapper tb-crew-table-wrapper--paged">
+            <table className="tb-crew-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order No.</th>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Package Type</th>
+                  <th>Remaining Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedItems.map((item, i) => (
+                  <tr key={item.dispatch_note_item_id ?? i}>
+                    <td>{(pageSafe - 1) * CREW_PAGE_SIZE + i + 1}</td>
+                    <td>{item.order_no ?? item.po_no ?? "—"}</td>
+                    <td>{item.description ?? "—"}</td>
+                    <td>{item.quantity ?? "—"}</td>
+                    <td>{item.package_type ?? "—"}</td>
+                    <td>{item.remaining_qty ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pageSafe}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </>
+      )}
+      {documents.length > 0 && (
+        <div className="tb-excel-upload-row">
+          {documents.map((doc) => (
+            <a
+              key={doc.material_document_id}
+              href={doc.file_url}
+              target="_blank"
+              rel="noreferrer"
+              className="tb-excel-upload-filename"
+            >
+              {doc.file_name ?? "Document"}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+MaterialDispatchListing.propTypes = {
+  materialDispatch: PropTypes.object,
+};
+
+function ThirdPartyServiceListing({ serviceName, vesselName }) {
+  return (
+    <div className="tb-scenario-section">
+      <h3 className="tb-section-title">Service Details</h3>
+      <div className="tb-info-grid">
+        <InfoCard label="Service Name" value={serviceName} />
+        <InfoCard label="Vessel Name" value={vesselName} />
+      </div>
+    </div>
+  );
+}
+
+ThirdPartyServiceListing.propTypes = {
+  serviceName: PropTypes.string,
+  vesselName:  PropTypes.string,
+};
+
 const TAXI_BOAT_OPERATOR_ROLE_ID = "20";
 const TAXI_BOAT_CAPTAIN_ROLE_ID = "21";
 
 function TaxiBoatCardView({ card, userRoleId = null }) {
   const serviceType = card?.typeOfService ?? "—";
-  const isCrewChange     = CREW_CHANGE_SERVICES.includes(serviceType);
-  const isMaterialService = MATERIAL_SERVICES.includes(serviceType);
-  const isImmigration    = IMMIGRATION_SERVICES.includes(serviceType);
   const isTaxiBoatOperator = String(userRoleId ?? "") === TAXI_BOAT_OPERATOR_ROLE_ID;
   const isTaxiBoatCaptain  = String(userRoleId ?? "") === TAXI_BOAT_CAPTAIN_ROLE_ID;
 
@@ -1212,16 +1606,21 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
   const cardId = card?.card_id ?? card?.cardId ?? card?.id ?? null;
   const [callDetail, setCallDetail] = useState(null);
+  const [isLoadingCallDetail, setIsLoadingCallDetail] = useState(true);
 
   useEffect(() => {
-    if (callId == null || cardId == null) return undefined;
+    if (callId == null || cardId == null) { setIsLoadingCallDetail(false); return undefined; }
     let cancelled = false;
+    setIsLoadingCallDetail(true);
     groService.getCallDetailById(callId, cardId)
       .then((res) => {
         if (!cancelled) setCallDetail(res?.data?.data ?? res?.data ?? null);
       })
       .catch(() => {
         if (!cancelled) setCallDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingCallDetail(false);
       });
     return () => { cancelled = true; };
   }, [callId, cardId]);
@@ -1266,6 +1665,10 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
   const [pickupStepBackLog, setPickupStepBackLog] = useState([]);
   const [undoPending, setUndoPending] = useState(null); // { label, resetter }
   const [captainCrewlistOpen, setCaptainCrewlistOpen] = useState(false);
+  // Captain default view is Movement Timestamps — the read-only item_type listing (material
+  // inbound/dispatch, transport/medical/hotel crew, third-party service) is tucked behind
+  // this toggle instead of showing inline, mirroring CrewListBatchwisePanel's Crewlist toggle.
+  const [itemDetailsOpen, setItemDetailsOpen] = useState(false);
 
   // Operator name recorded with each timestamp
   const [operatorName, setOperatorName] = useState(() => card?.requestedOperator ?? "");
@@ -1315,26 +1718,8 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTaxiBoatCaptain, fleets, selectedFleet]);
 
-  const handleAssignCaptain = useCallback(() => {
-    if (!selectedFleet || !selectedCaptainId) return;
-    if (!locationEdit || !bookingDateEdit || !bookingTimeEdit) {
-      notifyError("Location and booking date/time are required before assigning a captain.");
-      return;
-    }
-    const captain = captains.find((c) => String(c.taxiboat_captain_id) === String(selectedCaptainId));
-    assignCaptain({
-      booking_id: bookingId,
-      taxi_boat_id: selectedFleet.taxi_boat_id,
-      taxiboat_captain_id: selectedCaptainId,
-      booking_datetime: buildApiDateTime(bookingDateEdit, bookingTimeEdit),
-      location: locationEdit,
-      cb: () => {
-        setFleetAssigned(true);
-        setAssignedCaptainName(captain?.captain_name ?? null);
-      },
-    });
-  }, [selectedFleet, selectedCaptainId, captains, bookingId, assignCaptain, locationEdit, bookingDateEdit, bookingTimeEdit, notifyError]);
-
+  // Captain selection now lives inside the Fleet card in TaxiFleetAssignPanel — picking a
+  // captain there assigns immediately (same one-step flow the old summary dropdown used).
   const handleSummaryCaptainSelect = useCallback((captainId) => {
     const taxiBoatId = selectedFleet?.taxi_boat_id ?? fleets[0]?.taxi_boat_id;
     if (!captainId || !taxiBoatId) return;
@@ -1425,9 +1810,49 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     ];
   });
 
+  // launch_hire/get_taxiboat_booking_detail/{booking_id} — carries the fleet/captain
+  // already assigned to this booking (needed for launch_hire/create_intermediate_trip),
+  // and — critically — item_type, which is the real source of truth for which scenario
+  // to render below. Only fall back to the legacy typeOfService matching when item_type
+  // is missing/unrecognized (e.g. still loading).
+  const [taxiboatBookingDetail, setTaxiboatBookingDetail] = useState(null);
+  const [isLoadingBookingDetail, setIsLoadingBookingDetail] = useState(true);
+  useEffect(() => {
+    if (bookingId == null) { setIsLoadingBookingDetail(false); return undefined; }
+    let cancelled = false;
+    setIsLoadingBookingDetail(true);
+    launchHireService.getTaxiboatBookingDetail(bookingId)
+      .then((res) => {
+        if (!cancelled) setTaxiboatBookingDetail(res?.data?.data ?? res?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setTaxiboatBookingDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingBookingDetail(false);
+      });
+    return () => { cancelled = true; };
+  }, [bookingId]);
+
+  const rawItemType = taxiboatBookingDetail?.item_type ?? null;
+  const itemType = KNOWN_ITEM_TYPES.has(rawItemType) ? rawItemType : null;
+
+  const isCrewChange = itemType ? itemType === "crew_change" : CREW_CHANGE_SERVICES.includes(serviceType);
+  const isImmigration = itemType ? itemType === "crew_immigration_batch" : IMMIGRATION_SERVICES.includes(serviceType);
+  // Legacy mock Excel-upload panel — only reachable once item_type is unknown, since
+  // material_inbound/material_dispatch now have their own real listings below.
+  const isMaterialService = itemType ? false : MATERIAL_SERVICES.includes(serviceType);
+  const isMaterialInbound = itemType === "material_inbound";
+  const isMaterialDispatch = itemType === "material_dispatch";
+  const isTransportRequest = itemType === "transport_request";
+  const isMedicalRequest = itemType === "medical_request";
+  const isHotelRequest = itemType === "hotel_request";
+  const isThirdPartyService = itemType === "third_party_service_request" || itemType === "addon_service_request";
+  const hasNewItemTypeListing = isMaterialInbound || isMaterialDispatch || isTransportRequest || isMedicalRequest || isHotelRequest || isThirdPartyService;
+
   // Crew List — Batchwise is shown for Immigration Clearance and as the Captain/Operator
   // default view; load real batches from the booking wherever it's shown.
-  const showsBatchwisePanel = !isCrewChange && !isMaterialService;
+  const showsBatchwisePanel = isImmigration;
   useEffect(() => {
     if (!showsBatchwisePanel || bookingId == null) return undefined;
     let cancelled = false;
@@ -1447,26 +1872,24 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     return () => { cancelled = true; };
   }, [showsBatchwisePanel, bookingId]);
 
-  // launch_hire/get_taxiboat_booking_detail/{booking_id} — carries the fleet/captain
-  // already assigned to this booking, needed as taxi_boat_id/taxiboat_captain_id for
-  // launch_hire/create_intermediate_trip.
-  const [taxiboatBookingDetail, setTaxiboatBookingDetail] = useState(null);
-  useEffect(() => {
-    if (bookingId == null) return undefined;
-    let cancelled = false;
-    launchHireService.getTaxiboatBookingDetail(bookingId)
-      .then((res) => {
-        if (!cancelled) setTaxiboatBookingDetail(res?.data?.data ?? res?.data ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setTaxiboatBookingDetail(null);
-      });
-    return () => { cancelled = true; };
-  }, [bookingId]);
+  // launch_hire/get_booking_timestamps/{booking_id} — booking-level Drop/Pickup checkpoints.
+  // Shown by the generic Movement Timestamps section below: for the legacy "no item_type
+  // recognized yet" fallback, and for the new read-only item_type listings (transport/
+  // medical/hotel requests, material inbound/dispatch, third-party/addon services). The
+  // Taxi Boat Operator only assigns the fleet/captain and views the listing — the Captain
+  // is the one who actually performs the trip, so Operators never see this capture panel.
+  // For the Captain, Movement Timestamps is the default view for the new item_type
+  // listings — the listing itself is tucked behind the Details toggle instead (see
+  // itemDetailsOpen/showItemTypeListingContent below), so the two never show at once.
+  const showsGenericTimestamps = isTaxiBoatOperator
+    ? false
+    : hasNewItemTypeListing
+      ? (!isTaxiBoatCaptain || !itemDetailsOpen)
+      : (!isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatCaptain);
 
-  // launch_hire/get_booking_timestamps/{booking_id} — booking-level Drop/Pickup checkpoints
-  // (non-batch bookings), shown by the generic Movement Timestamps section below.
-  const showsGenericTimestamps = !isImmigration && !isCrewChange && !isMaterialService && !isTaxiBoatOperator && !isTaxiBoatCaptain;
+  // The new read-only item_type listings show inline for every role except Captain, who
+  // instead sees Movement Timestamps by default and reveals the listing via the toggle.
+  const showItemTypeListingContent = hasNewItemTypeListing && (!isTaxiBoatCaptain || itemDetailsOpen);
   useEffect(() => {
     if (!showsGenericTimestamps || bookingId == null) return undefined;
     let cancelled = false;
@@ -1680,6 +2103,45 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
     setTimeout(() => slip.print(), 250);
   }, [vesselName, serviceType, billingEntity, requestedOperator, location]);
 
+  // callDetail carries vessel/operator/billing info and taxiboatBookingDetail carries
+  // item_type — the scenario switch above depends on both, so render nothing scenario-
+  // specific (mock data, wrong panel) until both have settled.
+  if (isLoadingCallDetail || isLoadingBookingDetail) {
+    return (
+      <div className="tb-card-view">
+        <CardTabListLoading message="Loading taxi boat booking…" />
+      </div>
+    );
+  }
+
+  // Print/Upload actions for the generic Movement Timestamps section — rendered inside
+  // TimestampSummaryTable's header (top-right, next to the "Timestamps Summary" title)
+  // instead of below the table.
+  const launchSlipActions = jobCompleted && (
+    <div className="tb-batch-actions tb-batch-actions--end">
+      <button
+        className="tb-batch-print-btn"
+        onClick={() => printLaunchSlip(activeTab === "drop" ? dropTs : pickupTs, activeTab === "drop" ? "Drop Trip" : "Pickup Trip", operatorName, jobCompletedAt)}
+      >
+        <FiPrinter size={14} />
+        Print Launch Slip
+      </button>
+      <div>
+        <input
+          type="file"
+          id="tb-launch-slip-file"
+          className="tb-launch-slip-input"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
+        />
+        <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
+          <FiUpload size={14} />
+          {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
+        </label>
+      </div>
+    </div>
+  );
+
   return (
     <div className="tb-card-view">
       <div className={`gro-summary-grid${isTaxiBoatOperator ? "" : " gro-summary-grid--six-col"}`}>
@@ -1713,73 +2175,54 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         ) : (
           <GroSummaryCard label="Booking Date" value={bookingDate} />
         )}
-        {isTaxiBoatOperator && !fleetAssigned ? (
-          <GroSummaryFieldCard label="Assigned Captian">
-            <SearchableSelect
-              className="tb-summary-select"
-              value={selectedCaptainId ?? ""}
-              onChange={(e) => handleSummaryCaptainSelect(e.target.value)}
-              options={captains.map((captain) => ({
-                value: captain.taxiboat_captain_id,
-                label: captain.captain_name,
-              }))}
-              placeholder={
-                !selectedFleet
-                  ? "Select a fleet first"
-                  : isLoadingCaptains
-                  ? "Loading captains…"
-                  : captains.length === 0
-                  ? "No captains available"
-                  : "Select a captain"
-              }
-              disabled={!selectedFleet || isLoadingCaptains || isAssigning || captains.length === 0}
-            />
-          </GroSummaryFieldCard>
-        ) : (
-          <GroSummaryCard label="Assigned Captian" value={isTaxiBoatOperator ? assignedCaptainName : assignedUser} />
-        )}
+        {/* Captain selection now happens inside the Fleet card in TaxiFleetAssignPanel below,
+            connected right next to the fleet it's being assigned to. */}
+        <GroSummaryCard label="Assigned Captian" value={isTaxiBoatOperator ? assignedCaptainName : assignedUser} />
       </div>
 
       {isTaxiBoatCaptain ? (
-        <CrewListBatchwisePanel
-          batches={batches}
-          setBatches={setBatches}
-          activeBatchTab={activeBatchTab}
-          setActiveBatchTab={setActiveBatchTab}
-          opFocusedBatch={opFocusedBatch}
-          setOpFocusedBatch={setOpFocusedBatch}
-          recentOps={recentOps}
-          handleOpBlur={handleOpBlur}
-          handleOpChipClick={handleOpChipClick}
-          captureBatchTs={captureBatchTs}
-          completeBatchLeg={completeBatchLeg}
-          cancelBatchTs={cancelBatchTs}
-          setUndoPending={setUndoPending}
-          vesselName={vesselName}
-          now={now}
-          printLaunchSlip={printLaunchSlip}
-          bookingId={bookingId}
-          crewlistToggle
-          onCrewlistChange={setCaptainCrewlistOpen}
-          tripAdded={tripAdded}
-          tripSubmitting={tripSubmitting}
-          addTripOpen={addTripOpen}
-          setAddTripOpen={setAddTripOpen}
-          addTripPurpose={addTripPurpose}
-          setAddTripPurpose={setAddTripPurpose}
-          addTripLocation={addTripLocation}
-          setAddTripLocation={setAddTripLocation}
-          addTripDate={addTripDate}
-          setAddTripDate={setAddTripDate}
-          addTripTime={addTripTime}
-          setAddTripTime={setAddTripTime}
-          onAddTripToggle={handleAddTripToggle}
-          handleAddTrip={handleAddTrip}
-        />
+        // Batchwise crew header only makes sense for immigration-style multi-batch trips —
+        // the new read-only item_type listings (material/transport/medical/hotel/third-party)
+        // render their own section below instead.
+        !hasNewItemTypeListing && (
+          <CrewListBatchwisePanel
+            batches={batches}
+            setBatches={setBatches}
+            activeBatchTab={activeBatchTab}
+            setActiveBatchTab={setActiveBatchTab}
+            opFocusedBatch={opFocusedBatch}
+            setOpFocusedBatch={setOpFocusedBatch}
+            recentOps={recentOps}
+            handleOpBlur={handleOpBlur}
+            handleOpChipClick={handleOpChipClick}
+            captureBatchTs={captureBatchTs}
+            completeBatchLeg={completeBatchLeg}
+            cancelBatchTs={cancelBatchTs}
+            setUndoPending={setUndoPending}
+            vesselName={vesselName}
+            now={now}
+            printLaunchSlip={printLaunchSlip}
+            bookingId={bookingId}
+            crewlistToggle
+            onCrewlistChange={setCaptainCrewlistOpen}
+            tripAdded={tripAdded}
+            tripSubmitting={tripSubmitting}
+            addTripOpen={addTripOpen}
+            setAddTripOpen={setAddTripOpen}
+            addTripPurpose={addTripPurpose}
+            setAddTripPurpose={setAddTripPurpose}
+            addTripLocation={addTripLocation}
+            setAddTripLocation={setAddTripLocation}
+            addTripDate={addTripDate}
+            setAddTripDate={setAddTripDate}
+            addTripTime={addTripTime}
+            setAddTripTime={setAddTripTime}
+            onAddTripToggle={handleAddTripToggle}
+            handleAddTrip={handleAddTrip}
+          />
+        )
       ) : (
         <TaxiFleetAssignPanel
-          bookingDate={bookingDateEdit}
-          bookingTime={bookingTimeEdit}
           fleets={fleets}
           isLoadingFleets={isLoadingFleets}
           selectedFleet={selectedFleet}
@@ -1787,11 +2230,10 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
           captains={captains}
           isLoadingCaptains={isLoadingCaptains}
           selectedCaptainId={selectedCaptainId}
-          onSelectCaptainId={setSelectedCaptainId}
           isAssigning={isAssigning}
           assigned={fleetAssigned}
           assignedCaptainName={assignedCaptainName}
-          onAssignCaptain={handleAssignCaptain}
+          onAssignCaptain={handleSummaryCaptainSelect}
         />
       )}
 
@@ -1973,6 +2415,54 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         </div>
       )}
 
+      {/* Scenario D: read-only item_type listings — material inbound/dispatch, transport/
+          medical/hotel request crew, third-party/addon services. For the Captain, this is
+          tucked behind the Details toggle instead of showing alongside Movement Timestamps. */}
+      {isTaxiBoatCaptain && hasNewItemTypeListing && (
+        <div className="tb-crewlist-toggle-row">
+          <button
+            type="button"
+            className="tb-crewlist-toggle-btn"
+            onClick={() => setItemDetailsOpen((open) => !open)}
+          >
+            {itemDetailsOpen ? (
+              <>
+                <FiArrowLeft size={14} />
+                Back
+              </>
+            ) : (
+              <>
+                <FiUser size={14} />
+                Details
+              </>
+            )}
+          </button>
+        </div>
+      )}
+      {showItemTypeListingContent && isMaterialInbound && (
+        <MaterialInboundListing materialInbound={taxiboatBookingDetail?.material_inbound} />
+      )}
+      {showItemTypeListingContent && isMaterialDispatch && (
+        <MaterialDispatchListing materialDispatch={taxiboatBookingDetail?.material_dispatch} />
+      )}
+      {showItemTypeListingContent && (isTransportRequest || isMedicalRequest || isHotelRequest) && (
+        <ItemTypeCrewListing
+          title={
+            isTransportRequest ? "Transport Request — Crew"
+              : isMedicalRequest ? "Medical Request — Crew"
+              : "Hotel Request — Crew"
+          }
+          crew={taxiboatBookingDetail?.crew}
+          showCompletedDate={isMedicalRequest}
+        />
+      )}
+      {showItemTypeListingContent && isThirdPartyService && (
+        <ThirdPartyServiceListing
+          serviceName={taxiboatBookingDetail?.service_name}
+          vesselName={taxiboatBookingDetail?.vessel_name ?? vesselName}
+        />
+      )}
+
       {/* Scenario C: Immigration Clearance — per-batch tabs (Captain already sees this above, in place of Fleet Assignment) */}
       {isImmigration && !isTaxiBoatCaptain && (
         <CrewListBatchwisePanel
@@ -1997,7 +2487,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         />
       )}
 
-      {!isImmigration && !isCrewChange && isTaxiBoatOperator && (
+      {!isImmigration && !isCrewChange && !hasNewItemTypeListing && isTaxiBoatOperator && (
         <CrewListBatchwisePanel
           batches={batches}
           setBatches={setBatches}
@@ -2020,7 +2510,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
         />
       )}
 
-      {!isImmigration && !isCrewChange && !isTaxiBoatOperator && !isTaxiBoatCaptain && (
+      {showsGenericTimestamps && (
         <div className="tb-section">
           <h3 className="tb-section-title">Movement Timestamps</h3>
           <div className="tb-tabs">
@@ -2101,6 +2591,7 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   stepsAllDone={allDone(dropTs, tsKeys)}
                   stepBackLog={dropStepBackLog}
                   onCaptureCob={() => setDropCobTime(new Date().toISOString())}
+                  headerAction={launchSlipActions}
                 />
               </>
             ) : (
@@ -2130,31 +2621,11 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
                   stepsAllDone={allDone(pickupTs, tsKeys)}
                   stepBackLog={pickupStepBackLog}
                   onCaptureCob={() => setPickupCobTime(new Date().toISOString())}
+                  headerAction={launchSlipActions}
                 />
               </>
             )}
           </div>
-          {jobCompleted && (
-            <div className="tb-batch-actions">
-              <button className="tb-batch-print-btn" onClick={() => printLaunchSlip(activeTab === "drop" ? dropTs : pickupTs, activeTab === "drop" ? "Drop Trip" : "Pickup Trip", operatorName, jobCompletedAt)}>
-                <FiPrinter size={14} />
-                Print Launch Slip
-              </button>
-              <div>
-                <input
-                  type="file"
-                  id="tb-launch-slip-file"
-                  className="tb-launch-slip-input"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => setLaunchSlipFile(e.target.files?.[0] ?? null)}
-                />
-                <label htmlFor="tb-launch-slip-file" className="tb-batch-upload-btn">
-                  <FiUpload size={14} />
-                  {launchSlipFile ? launchSlipFile.name : "Upload Launch Slip"}
-                </label>
-              </div>
-            </div>
-          )}
         </div>
       )}
 

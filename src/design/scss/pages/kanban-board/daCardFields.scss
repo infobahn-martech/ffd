@@ -253,6 +253,142 @@
   white-space: nowrap;
 }
 
+.da-cf-user-search {
+  position: relative;
+}
+
+.da-cf-user-search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.da-cf-user-search-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--da-accent), #6d5bd0);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.da-cf-user-search-trigger-name {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da-cf-user-search-trigger-name--empty {
+  color: var(--da-ink-faint);
+  font-weight: 400;
+}
+
+.da-cf-user-search-chevron {
+  flex-shrink: 0;
+  color: var(--da-ink-faint);
+}
+
+.da-cf-user-search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 14px;
+  right: 14px;
+  z-index: 5;
+  background: var(--da-surface);
+  border: 1px solid var(--da-line);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(28, 32, 51, 0.12);
+  padding: 4px;
+}
+
+.da-cf-user-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--da-line);
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--da-ink);
+
+    &:focus {
+      outline: none;
+    }
+
+    &::placeholder {
+      color: var(--da-ink-faint);
+    }
+  }
+}
+
+.da-cf-user-search-filter-icon {
+  flex-shrink: 0;
+  color: var(--da-ink-faint);
+}
+
+.da-cf-user-search-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.da-cf-user-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--da-sunken);
+  }
+}
+
+.da-cf-user-search-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--da-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da-cf-user-search-role {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--da-ink-faint);
+  white-space: nowrap;
+}
+
+.da-cf-user-search-empty {
+  padding: 8px 9px;
+  font-size: 12.5px;
+  color: var(--da-ink-faint);
+}
+
 .da-cf-chips-row {
   display: flex;
   flex-wrap: wrap;

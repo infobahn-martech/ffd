@@ -3,10 +3,13 @@ import PropTypes from "prop-types";
 import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
-  Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown,
+  Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
 } from "lucide-react";
 import billingEntityService from "../../../../../../services/billingEntityService";
+import daService from "../../../../../../services/daService";
+import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
+import { getInitials } from "../../../../../../shared/utils/utils";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
 const SUB_TABS = [
@@ -36,6 +39,7 @@ const TYPE_ICON = {
   "billing-entity": Tag,
   files: UploadCloud,
   readonly: Clock,
+  user: User,
 };
 
 const FIELD_ICON_OVERRIDES = {
@@ -46,8 +50,8 @@ const FIELD_ICON_OVERRIDES = {
 
 const RAW_FIELDS_CONFIG = [
   // Card
-  { key: "owner", label: "Owner", type: "text", group: "card", placeholder: "e.g. Mohammed Al Qallaf" },
-  { key: "coOwners", label: "Co-owners", type: "text", group: "card", placeholder: "e.g. Shibili" },
+  { key: "owner", label: "Owner", type: "user", group: "card", placeholder: "Search a user…" },
+  { key: "coOwners", label: "Co-owners", type: "user", group: "card", placeholder: "Search a user…" },
   { key: "deadline", label: "Deadline", type: "date", group: "card" },
   { key: "size", label: "Size", type: "text", group: "card", placeholder: "e.g. M" },
   { key: "customCardId", label: "Custom card ID", type: "text", group: "card", placeholder: "e.g. DA-2026-001" },
@@ -116,6 +120,22 @@ const formatTimestamp = (d) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
+// api/da/summary_tab returns "YYYY-MM-DD HH:mm:ss" — render it the same way the rest of
+// the app displays timestamps (en-GB, 12h clock).
+const formatApiDateTime = (raw) => {
+  if (!raw) return null;
+  const d = new Date(String(raw).replace(" ", "T"));
+  if (isNaN(d)) return raw;
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 function TileLabel({ icon, children }) {
   const Icon = icon;
   return (
@@ -144,6 +164,123 @@ function TextField({ label, icon, value, placeholder, onChange }) {
 }
 
 TextField.propTypes = {
+  label: PropTypes.string.isRequired,
+  icon: PropTypes.elementType.isRequired,
+  value: PropTypes.string.isRequired,
+  placeholder: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+};
+
+// Owner / Co-owners — avatar-trigger + floating search panel, same interaction pattern as
+// the app's other user pickers (UserPickerField in BusinessRuleFormModal.jsx): a chevron
+// trigger showing the picked user's initials, opening a panel that searches
+// users/get_non_vendor_users instead of accepting arbitrary free text.
+function UserSearchField({ label, icon, value, placeholder, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filterText, setFilterText] = useState("");
+  const [results, setResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceRef = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const query = filterText.trim();
+    clearTimeout(debounceRef.current);
+    setIsSearching(true);
+    debounceRef.current = setTimeout(() => {
+      const params = { page: 1, limit: 10, ...(query ? { search: query } : {}) };
+      userService.getNonVendorUsers({ params })
+        .then(({ data }) => setResults(Array.isArray(data?.data) ? data.data : []))
+        .catch(() => setResults([]))
+        .finally(() => setIsSearching(false));
+    }, query ? 350 : 0);
+    return () => clearTimeout(debounceRef.current);
+  }, [filterText, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onDocMouseDown = (e) => {
+      if (panelRef.current?.contains(e.target)) return;
+      if (triggerRef.current?.contains(e.target)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [isOpen]);
+
+  const handleToggle = () => {
+    setIsOpen((prev) => !prev);
+    setFilterText("");
+  };
+
+  const handlePick = (user) => {
+    onChange(user?.name ?? "");
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="da-cf-tile da-cf-user-search">
+      <TileLabel icon={icon}>{label}</TileLabel>
+      <button
+        type="button"
+        ref={triggerRef}
+        className="da-cf-input da-cf-user-search-trigger"
+        onClick={handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className="da-cf-user-search-avatar" aria-hidden>{getInitials(value) || <User size={13} />}</span>
+        <span className={`da-cf-user-search-trigger-name${value ? "" : " da-cf-user-search-trigger-name--empty"}`}>
+          {value || placeholder || "Select a user"}
+        </span>
+        <ChevronDown size={15} className="da-cf-user-search-chevron" aria-hidden />
+      </button>
+
+      {isOpen && (
+        <div className="da-cf-user-search-dropdown" ref={panelRef}>
+          <div className="da-cf-user-search-filter">
+            <Search size={13} className="da-cf-user-search-filter-icon" aria-hidden />
+            <input
+              type="text"
+              placeholder="Search a user…"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="da-cf-user-search-list">
+            <button type="button" className="da-cf-user-search-row" onClick={() => handlePick(null)}>
+              <span className="da-cf-user-search-avatar" aria-hidden><User size={13} /></span>
+              <span className="da-cf-user-search-name">None</span>
+            </button>
+            {isSearching ? (
+              <div className="da-cf-user-search-empty">Searching…</div>
+            ) : results.length === 0 ? (
+              <div className="da-cf-user-search-empty">No matches</div>
+            ) : (
+              results.map((user) => (
+                <button
+                  type="button"
+                  key={user.user_id}
+                  className="da-cf-user-search-row"
+                  onClick={() => handlePick(user)}
+                >
+                  <span className="da-cf-user-search-avatar" aria-hidden>{getInitials(user.name)}</span>
+                  <span className="da-cf-user-search-name">{user.name}</span>
+                  {user.role && <span className="da-cf-user-search-role">{user.role}</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+UserSearchField.propTypes = {
   label: PropTypes.string.isRequired,
   icon: PropTypes.elementType.isRequired,
   value: PropTypes.string.isRequired,
@@ -393,15 +530,25 @@ AutoBillingEntityField.propTypes = {
   isLoading: PropTypes.bool.isRequired,
 };
 
-function SummaryPanel({ fieldValues, billingEntityLabel }) {
+function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
+
+  // api/da/summary_tab/{call_id} is the source of truth once it loads; until then, or if
+  // it comes back without a field, fall back to what's already been typed in other tabs.
+  const isSummaryPending = isLoadingSummary && !summaryData;
+  const apiValue = (key, fallback) =>
+    isSummaryPending ? "Loading…" : (summaryData?.[key] || fallback);
+  const apiDateValue = (key, fallback) =>
+    isSummaryPending ? "Loading…" : (formatApiDateTime(summaryData?.[key]) || fallback);
+
   const stats = [
     { label: "Vessel", value: fieldValues.vesselName, icon: Ship },
     { label: "Owner", value: fieldValues.owner, icon: User },
-    { label: "Inward Clearance", value: formatDateTime(fieldValues.inwardClearanceDate), icon: CalendarCheck },
-    { label: "Outward Clearance", value: formatDateTime(fieldValues.outwardClearanceDate), icon: CalendarCheck },
-    { label: "Billing Entity", value: billingEntityLabel || null, icon: Package },
-    { label: "SAP Sales Order No", value: fieldValues.sapSalesOrderNo, icon: Receipt },
+    { label: "Vessel Owner", value: apiValue("vessel_owner", null), icon: Building2 },
+    { label: "Inward Clearance", value: apiDateValue("inward_clearance_date", formatDateTime(fieldValues.inwardClearanceDate)), icon: CalendarCheck },
+    { label: "Outward Clearance", value: apiDateValue("outward_clearance_date", formatDateTime(fieldValues.outwardClearanceDate)), icon: CalendarCheck },
+    { label: "Billing Entity", value: apiValue("billing_entity", billingEntityLabel || null), icon: Package },
+    { label: "SAP Sales Order No", value: apiValue("sap_sales_order_no", fieldValues.sapSalesOrderNo), icon: Receipt },
   ];
 
   return (
@@ -427,6 +574,8 @@ function SummaryPanel({ fieldValues, billingEntityLabel }) {
 SummaryPanel.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   billingEntityLabel: PropTypes.string,
+  summaryData: PropTypes.object,
+  isLoadingSummary: PropTypes.bool,
 };
 
 function ListRowsSection({ label, icon, rows, collapsed, onToggleCollapse, onAdd, onChangeRow, onRemoveRow, placeholder }) {
@@ -538,10 +687,34 @@ RelativesSection.propTypes = {
   onRemoveRow: PropTypes.func.isRequired,
 };
 
-function DA({ formValues }) {
+function DA({ card, formValues }) {
   const [activeSubTab, setActiveSubTab] = useState("summary");
   const [fieldValues, setFieldValues] = useState(makeInitialFieldState);
   const [lastMovedDisplay] = useState(() => formatTimestamp(new Date()));
+
+  // api/da/summary_tab/{call_id} — feeds the Summary sub-tab with the real,
+  // backend-resolved values (clearance dates, billing entity, SAP sales order no,
+  // vessel owner) instead of relying only on locally-typed fields from other tabs.
+  const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
+  const [summaryData, setSummaryData] = useState(null);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    setIsLoadingSummary(true);
+    daService.getSummaryTab(callId)
+      .then(({ data }) => {
+        if (!cancelled) setSummaryData(data?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setSummaryData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSummary(false);
+      });
+    return () => { cancelled = true; };
+  }, [callId]);
 
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -632,6 +805,17 @@ function DA({ formValues }) {
       case "text":
         return (
           <TextField
+            key={field.key}
+            label={field.label}
+            icon={field.icon}
+            value={value}
+            placeholder={field.placeholder}
+            onChange={(v) => updateField(field.key, v)}
+          />
+        );
+      case "user":
+        return (
+          <UserSearchField
             key={field.key}
             label={field.label}
             icon={field.icon}
@@ -754,7 +938,12 @@ function DA({ formValues }) {
         </div>
 
         {activeSubTab === "summary" ? (
-          <SummaryPanel fieldValues={fieldValues} billingEntityLabel={billingEntityLabel} />
+          <SummaryPanel
+            fieldValues={fieldValues}
+            billingEntityLabel={billingEntityLabel}
+            summaryData={summaryData}
+            isLoadingSummary={isLoadingSummary}
+          />
         ) : activeSubTab === "more" ? (
           <div className="da-cf-more">
             {LIST_SECTIONS.map((section) => (

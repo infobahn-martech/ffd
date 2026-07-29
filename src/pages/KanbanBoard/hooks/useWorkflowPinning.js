@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  createWorkflowBooleanState,
+  createWorkflowBooleanStateFromField,
   reorderWorkflowsByPinState,
 } from "../utils/workflowHelpers";
 
 export default function useWorkflowPinning(workflows, setWorkflows) {
   const [pinnedWorkflows, setPinnedWorkflows] = useState(() =>
-    createWorkflowBooleanState(workflows, false)
+    createWorkflowBooleanStateFromField(workflows, "isPinned", false)
   );
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function useWorkflowPinning(workflows, setWorkflows) {
       const next = { ...prev };
       workflows.forEach((workflow) => {
         if (!(workflow.id in next)) {
-          next[workflow.id] = false;
+          next[workflow.id] = Boolean(workflow.isPinned);
         }
       });
       return next;

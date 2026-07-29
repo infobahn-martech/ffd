@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { FaWhatsapp } from "react-icons/fa";
 
 // Work Order Creation Modal - premium UI, styles live in salesOrder.scss
 const WorkOrderCreationModal = ({
@@ -50,6 +51,22 @@ const WorkOrderCreationModal = ({
     e.preventDefault();
     if (isSubmitting) return;
     onGenerate(formData);
+  };
+
+  const handleShareWhatsApp = () => {
+    const lines = [
+      `*Work Order:* ${formData.workOrderName}`,
+      `*Vessel:* ${formData.vesselName || "—"}`,
+      `*Port:* ${formData.portName || "—"}`,
+      `*Status:* ${formData.createAs}`,
+      "",
+      `*Line Items (${selectedLineItems.length}):*`,
+      ...selectedLineItems.map(
+        (item) => `- ${item.itemNo || "—"} | ${item.itemDescription || "—"} | Qty: ${item.qty ?? "—"}`
+      ),
+    ];
+    const text = encodeURIComponent(lines.join("\n"));
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   };
 
   if (!show) return null;
@@ -141,6 +158,16 @@ const WorkOrderCreationModal = ({
           </div>
 
           <div className="so-wo-modal-footer">
+            <button
+              type="button"
+              className="so-wo-btn so-wo-btn-share"
+              onClick={handleShareWhatsApp}
+              disabled={isSubmitting || selectedLineItems.length === 0}
+              style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <FaWhatsapp size={16} color="#25D366" />
+              Share
+            </button>
             <button type="button" className="so-wo-btn so-wo-btn-cancel" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </button>

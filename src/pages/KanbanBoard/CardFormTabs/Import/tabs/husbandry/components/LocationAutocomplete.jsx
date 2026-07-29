@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useGoogleMaps } from "../../../../../../../shared/hooks/useGoogleMaps";
 
-const LocationAutocomplete = ({ value, onChange, placeholder, className = "", onLocationSelect }) => {
+const LocationAutocomplete = ({ value, onChange, placeholder, className = "", onLocationSelect, disabled = false }) => {
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const onChangeRef = useRef(onChange);
@@ -78,7 +78,7 @@ const LocationAutocomplete = ({ value, onChange, placeholder, className = "", on
         value={inputValue}
         onChange={handleInputChange}
         placeholder={placeholder || "Search for a location..."}
-        disabled={!isLoaded || !!error}
+        disabled={disabled || !isLoaded || !!error}
       />
       {error && (
         <div className="location-autocomplete-error">
@@ -100,6 +100,7 @@ LocationAutocomplete.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   onLocationSelect: PropTypes.func, // Optional callback with full location data
+  disabled: PropTypes.bool,
 };
 
 export default LocationAutocomplete;

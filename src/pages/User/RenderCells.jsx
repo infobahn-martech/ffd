@@ -14,11 +14,20 @@ export const RenderAction = ({
   onToggleClick,
   onPermissionClick,
   onUnarchiveClick,
+  // New module/action permission system (User Management → Users is fully
+  // migrated: these flags are the sole gate for visibility, no legacy role
+  // fallback). Default to false so controls fail closed if a caller forgets
+  // to pass them.
+  canEditUser = false,
+  canManagePermission = false,
+  canArchiveUser = false,
+  canToggleUserStatus = false,
 }) => {
   const isActive = row?.user_status === "Active";
   const isArchived = row?.user_status === "Archive";
 
   if (isArchived) {
+    if (!canArchiveUser) return null;
     const unarchiveTipId = `unarchive-user-${row?.user_id ?? 'row'}`;
     return (
       <>
@@ -45,98 +54,106 @@ export const RenderAction = ({
 
   return (
     <>
-      <Tooltip id={toggleTipId} place="bottom" content={isActive ? "Deactivate" : "Activate"} />
-      <Tooltip id={editTipId} place="bottom" content="Edit" />
-      <Tooltip id={archiveTipId} place="bottom" content="Archive" />
-      <Tooltip id={permissionTipId} place="bottom" content="Permission" />
+      {canToggleUserStatus && <Tooltip id={toggleTipId} place="bottom" content={isActive ? "Deactivate" : "Activate"} />}
+      {canEditUser && <Tooltip id={editTipId} place="bottom" content="Edit" />}
+      {canArchiveUser && <Tooltip id={archiveTipId} place="bottom" content="Archive" />}
+      {canManagePermission && <Tooltip id={permissionTipId} place="bottom" content="Permission" />}
       <div className="actions">
-        <span
-          data-tooltip-id={toggleTipId}
-          type="button"
-          className="toggle-action"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          <label
-            className="user-toggle-switch"
+        {canToggleUserStatus && (
+          <span
+            data-tooltip-id={toggleTipId}
+            type="button"
+            className="toggle-action"
             style={{
-              margin: 0,
-              position: 'relative',
-              display: 'inline-block',
-              width: '36px',
-              height: '20px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              marginRight: '8px',
               cursor: 'pointer'
             }}
           >
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={() => onToggleClick(row)}
+            <label
+              className="user-toggle-switch"
               style={{
-                opacity: 0,
-                width: 0,
-                height: 0
-              }}
-            />
-            <span
-              className="user-toggle-slider"
-              style={{
-                position: 'absolute',
-                cursor: 'pointer',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: isActive ? '#00368c' : '#d1d5db',
-                transition: '0.3s',
-                borderRadius: '20px',
+                margin: 0,
+                position: 'relative',
+                display: 'inline-block',
+                width: '36px',
+                height: '20px',
+                cursor: 'pointer'
               }}
             >
-              <span
+              <input
+                type="checkbox"
+                checked={isActive}
+                onChange={() => onToggleClick(row)}
                 style={{
-                  position: 'absolute',
-                  height: '14px',
-                  width: '14px',
-                  left: isActive ? 'calc(100% - 17px)' : '3px',
-                  top: '3px',
-                  backgroundColor: 'white',
-                  transition: '0.3s',
-                  borderRadius: '50%',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  opacity: 0,
+                  width: 0,
+                  height: 0
                 }}
               />
-            </span>
-          </label>
-        </span>
-        <span
-          data-tooltip-id={editTipId}
-          type="button"
-          onClick={() => onEditClick(row)}
-          className="edit"
-        >
-          <img src={edit} alt="edit" />
-        </span>
-        <span
-          data-tooltip-id={permissionTipId}
-          type="button"
-          onClick={() => onPermissionClick(row)}
-          className="permission"
-          style={{ marginRight: '8px', cursor: 'pointer' }}
-        >
-          <img src={permissionIcon} alt="permission" />
-        </span>
-        <span
-          data-tooltip-id={archiveTipId}
-          type="button"
-          className="delete"
-          onClick={() => onDeleteClick(row)}
-        >
-          <img src={trash} alt="archive" />
-        </span>
+              <span
+                className="user-toggle-slider"
+                style={{
+                  position: 'absolute',
+                  cursor: 'pointer',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: isActive ? '#00368c' : '#d1d5db',
+                  transition: '0.3s',
+                  borderRadius: '20px',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    height: '14px',
+                    width: '14px',
+                    left: isActive ? 'calc(100% - 17px)' : '3px',
+                    top: '3px',
+                    backgroundColor: 'white',
+                    transition: '0.3s',
+                    borderRadius: '50%',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }}
+                />
+              </span>
+            </label>
+          </span>
+        )}
+        {canEditUser && (
+          <span
+            data-tooltip-id={editTipId}
+            type="button"
+            onClick={() => onEditClick(row)}
+            className="edit"
+          >
+            <img src={edit} alt="edit" />
+          </span>
+        )}
+        {canManagePermission && (
+          <span
+            data-tooltip-id={permissionTipId}
+            type="button"
+            onClick={() => onPermissionClick(row)}
+            className="permission"
+            style={{ marginRight: '8px', cursor: 'pointer' }}
+          >
+            <img src={permissionIcon} alt="permission" />
+          </span>
+        )}
+        {canArchiveUser && (
+          <span
+            data-tooltip-id={archiveTipId}
+            type="button"
+            className="delete"
+            onClick={() => onDeleteClick(row)}
+          >
+            <img src={trash} alt="archive" />
+          </span>
+        )}
       </div>
     </>
   );

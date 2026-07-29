@@ -29,3 +29,18 @@
     box-shadow: 0 2px 6px rgba(0, 54, 140, 0.1);
   }
 }
+
+// Dispatch Date is always an enabled field, but the shared date-picker's
+// resting background (#f5f6fb) reads as greyed-out/disabled. Plain white
+// here makes clear it's editable.
+.dispatch-date-plain .cf-datetime-input-field {
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root {
+    background: #ffffff;
+
+    &:hover {
+      background: #ffffff;
+    }
+  }
+}

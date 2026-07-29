@@ -245,6 +245,10 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      handleChange("mwpRenewalExpiryDate")({ target: { value: "" } });
+      handleChange("mwpRenewalDescription")({ target: { value: "" } });
+      handleChange("mwpRenewalRequestEmailDocuments")({ target: { value: [] } });
+      handleChange("mwpRenewalDocuments")({ target: { value: [] } });
       await getMwpRenewalRequests(callId);
     } catch (error) {
       notify(
@@ -253,7 +257,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
         "top-center"
       );
     }
-  }, [callId, formValues, expiryDateParts, createMwpRenewalRequest, getMwpRenewalRequests]);
+  }, [callId, formValues, expiryDateParts, createMwpRenewalRequest, getMwpRenewalRequests, handleChange]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.mwpRenewalRequestEmailDocuments || []

@@ -1,49 +1,46 @@
-import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-const ROWS_PER_PAGE = 10;
+export default function CrewImmigrationPanel({
+  rows,
+  batchOptions,
+  activeBatch,
+  onSelectBatch,
+  loading,
+  pagination,
+  onPageChange,
+}) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const safeBatchOptions = Array.isArray(batchOptions) ? batchOptions : [];
 
-export default function CrewImmigrationPanel({ batches, loading }) {
-  const safeBatches = Array.isArray(batches) ? batches : [];
-  const [activeBatchIndex, setActiveBatchIndex] = useState(0);
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    setPage(1);
-  }, [activeBatchIndex]);
-
-  useEffect(() => {
-    if (activeBatchIndex !== 0 && activeBatchIndex >= safeBatches.length) {
-      setActiveBatchIndex(0);
-    }
-  }, [safeBatches.length, activeBatchIndex]);
-
-  const activeBatch = safeBatches[activeBatchIndex] ?? null;
-  const rows = activeBatch?.rows ?? [];
-  const totalRows = rows.length;
-  const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
-  const pageRows = rows.slice(startIndex, startIndex + ROWS_PER_PAGE);
-  const pageStartDisplay = totalRows === 0 ? 0 : startIndex + 1;
-  const pageEndDisplay = Math.min(startIndex + ROWS_PER_PAGE, totalRows);
+  const currentPage = pagination?.page ?? 1;
+  const limit = pagination?.limit || safeRows.length || 1;
+  const total = pagination?.total ?? safeRows.length;
+  const totalPages = Math.max(1, pagination?.totalPages ?? 1);
+  const pageStartDisplay = total === 0 ? 0 : (currentPage - 1) * limit + 1;
+  const pageEndDisplay = Math.min(currentPage * limit, total);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const goToPage = (pageNo) => {
+    if (loading || pageNo < 1 || pageNo > totalPages || pageNo === currentPage) return;
+    onPageChange?.(pageNo);
+  };
 
   return (
     <div className="gro-crew-immigration-panel">
-      {safeBatches.length > 0 && (
+      {safeBatchOptions.length > 0 && (
         <div className="gro-crew-immigration-toolbar">
           <div className="gro-pass-segments" role="tablist" aria-label="Batch">
-            {safeBatches.map((b, i) => (
+            {safeBatchOptions.map((b) => (
               <button
-                key={b.batch || i}
+                key={b}
                 type="button"
                 role="tab"
-                aria-selected={i === activeBatchIndex}
-                className={`gro-pass-segment${i === activeBatchIndex ? " gro-pass-segment--active" : ""}`}
-                onClick={() => setActiveBatchIndex(i)}
+                aria-selected={activeBatch === b}
+                className={`gro-pass-segment${activeBatch === b ? " gro-pass-segment--active" : ""}`}
+                onClick={() => onSelectBatch?.(b)}
+                disabled={loading}
               >
-                {b.batch}
+                {b}
               </button>
             ))}
           </div>
@@ -66,12 +63,12 @@ export default function CrewImmigrationPanel({ batches, loading }) {
               <tr>
                 <td colSpan={6}>Loading…</td>
               </tr>
-            ) : pageRows.length === 0 ? (
+            ) : safeRows.length === 0 ? (
               <tr>
                 <td colSpan={6}>No crew found.</td>
               </tr>
             ) : (
-              pageRows.map((row) => (
+              safeRows.map((row) => (
                 <tr key={row.id}>
                   <td>{row.crewName}</td>
                   <td>{row.dateOfBirth}</td>
@@ -87,14 +84,14 @@ export default function CrewImmigrationPanel({ batches, loading }) {
       </div>
       <div className="gro-crew-immigration-pagination">
         <p className="gro-crew-immigration-pagination-text">
-          {`Showing ${pageStartDisplay}-${pageEndDisplay} of ${totalRows}`}
+          {`Showing ${pageStartDisplay}-${pageEndDisplay} of ${total}`}
         </p>
         <div className="gro-crew-immigration-pagination-controls">
           <button
             type="button"
             className="gro-crew-immigration-page-btn"
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={loading || currentPage === 1}
           >
             Previous
           </button>
@@ -103,7 +100,8 @@ export default function CrewImmigrationPanel({ batches, loading }) {
               key={pageNo}
               type="button"
               className={`gro-crew-immigration-page-btn${pageNo === currentPage ? " gro-crew-immigration-page-btn--active" : ""}`}
-              onClick={() => setPage(pageNo)}
+              onClick={() => goToPage(pageNo)}
+              disabled={loading}
             >
               {pageNo}
             </button>
@@ -111,8 +109,8 @@ export default function CrewImmigrationPanel({ batches, loading }) {
           <button
             type="button"
             className="gro-crew-immigration-page-btn"
-            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={loading || currentPage === totalPages}
           >
             Next
           </button>
@@ -123,11 +121,16 @@ export default function CrewImmigrationPanel({ batches, loading }) {
 }
 
 CrewImmigrationPanel.propTypes = {
-  batches: PropTypes.arrayOf(
-    PropTypes.shape({
-      batch: PropTypes.string,
-      rows: PropTypes.arrayOf(PropTypes.object),
-    })
-  ),
+  rows: PropTypes.arrayOf(PropTypes.object),
+  batchOptions: PropTypes.arrayOf(PropTypes.string),
+  activeBatch: PropTypes.string,
+  onSelectBatch: PropTypes.func,
   loading: PropTypes.bool,
+  pagination: PropTypes.shape({
+    page: PropTypes.number,
+    limit: PropTypes.number,
+    total: PropTypes.number,
+    totalPages: PropTypes.number,
+  }),
+  onPageChange: PropTypes.func,
 };

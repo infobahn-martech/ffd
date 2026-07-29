@@ -1,11 +1,21 @@
 import { create } from 'zustand';
 import exportApprovalService from '../services/exportApprovalService';
+import transportContentService from '../services/transportContentService';
 import useAlertReducer from './AlertReducer';
+
+const extractListEnvelope = (response) => {
+  const payload = response?.data?.data ?? response?.data ?? response;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
 
 const useExportApprovalReducer = create((set) => ({
   isLoadingDetails: false,
   isSavingDetails: false,
   details: null,
+  branches: [],
+  loadingBranches: false,
   getExportApprovalDetails: async (callId) => {
     if (!callId) return;
     try {
@@ -16,6 +26,16 @@ const useExportApprovalReducer = create((set) => ({
       const { error: showError } = useAlertReducer.getState();
       set({ details: null, isLoadingDetails: false });
       showError(error?.response?.data?.message ?? error.message);
+    }
+  },
+  fetchBranches: async () => {
+    set({ loadingBranches: true });
+    try {
+      const response = await transportContentService.getAllInvoiceBranches();
+      const list = extractListEnvelope(response);
+      set({ branches: list, loadingBranches: false });
+    } catch {
+      set({ branches: [], loadingBranches: false });
     }
   },
   saveExportApprovalDetails: async (callId, payload, { silent } = {}) => {

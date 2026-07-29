@@ -67,8 +67,14 @@
   flex: 1;
   display: flex;
   align-items: center;
+  gap: 10px;
   min-width: 0;
   margin-right: 20px;
+}
+
+.cardform-id {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cardform-topbar-left {
@@ -109,6 +115,69 @@
 
 .cardform-title-input.is-invalid {
   box-shadow: 0 0 0 2px #dc3545;
+}
+
+.cardform-title-input--view {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  padding: 4px 8px;
+  margin-left: -8px;
+}
+
+.cardform-title-input--view::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cardform-title-input--view:focus {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+.cardform-title-input--view:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.cardform-title-display,
+.cardform-title-edit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cardform-title-display .cardform-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardform-title-edit-btn,
+.cardform-title-save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease-in-out;
+}
+
+.cardform-title-edit-btn:hover,
+.cardform-title-save-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.cardform-title-save-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 /* Topbar right icons container */
@@ -1966,6 +2035,30 @@
 
 .cardform-panel *::-webkit-scrollbar-thumb:hover {
   background: transparent;
+}
+
+/* Searchable/multi-select dropdown menus need a visible scrollbar when their option list
+   overflows — match the portal-rendered dropdowns (e.g. Billing Entity), which escape the
+   transparent-scrollbar rule above by mounting outside .cardform-panel. */
+.cardform-panel .cf-multi-select-dropdown,
+.cardform-panel .cf-multi-select-options-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #aab4c3 #f1f5f9;
+}
+
+.cardform-panel .cf-multi-select-dropdown::-webkit-scrollbar-track,
+.cardform-panel .cf-multi-select-options-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.cardform-panel .cf-multi-select-dropdown::-webkit-scrollbar-thumb,
+.cardform-panel .cf-multi-select-options-scroll::-webkit-scrollbar-thumb {
+  background: #aab4c3;
+}
+
+.cardform-panel .cf-multi-select-dropdown::-webkit-scrollbar-thumb:hover,
+.cardform-panel .cf-multi-select-options-scroll::-webkit-scrollbar-thumb:hover {
+  background: #8b96a8;
 }
 
 /* Premium thin scrollbar: right-hand email preview column */

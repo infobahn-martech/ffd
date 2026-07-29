@@ -19,6 +19,7 @@ const FALLBACK_MORE_DESCRIPTION =
 /** Read-only Arabic vessel boarding document preview. */
 export default function VesselBoardingArabicPreview({
   fieldValues = {},
+  translations = {},
   vesselName = "",
   date = "",
   templateData = null,
@@ -36,8 +37,11 @@ export default function VesselBoardingArabicPreview({
         .join("");
   const sanitizedMoreDescription = useMemo(
     () =>
-      DOMPurify.sanitize(injectVesselRegFieldValues(moreDescriptionHtml, fieldValues), SANITIZE_CONFIG),
-    [moreDescriptionHtml, fieldValues]
+      DOMPurify.sanitize(
+        injectVesselRegFieldValues(moreDescriptionHtml, fieldValues, translations),
+        SANITIZE_CONFIG
+      ),
+    [moreDescriptionHtml, fieldValues, translations]
   );
 
   const today = new Date();
@@ -58,7 +62,6 @@ export default function VesselBoardingArabicPreview({
 
         <div className="bulk-pass-arabic-title">
           <span>{title}</span>
-          <span>ميناء الجبيل التجاري</span>
         </div>
 
         <div className="bulk-pass-arabic-divider" />
@@ -76,13 +79,6 @@ export default function VesselBoardingArabicPreview({
           className="bulk-pass-arabic-more-description"
           dangerouslySetInnerHTML={{ __html: sanitizedMoreDescription }}
         />
-
-        <div className="bulk-pass-arabic-divider" />
-
-        <div className="bulk-pass-arabic-sign">
-          <span>الختم</span>
-          <span>التوقيع</span>
-        </div>
       </div>
     </div>
   );
@@ -90,6 +86,7 @@ export default function VesselBoardingArabicPreview({
 
 VesselBoardingArabicPreview.propTypes = {
   fieldValues: PropTypes.objectOf(PropTypes.string),
+  translations: PropTypes.objectOf(PropTypes.string),
   vesselName: PropTypes.string,
   date: PropTypes.string,
   templateData: PropTypes.shape({

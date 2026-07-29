@@ -15,6 +15,8 @@ import useLaunchHireServiceReducer from "../../../../../../store/LaunchHireServi
 import callFileService from "../../../../../../services/callFileService";
 import { buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import { notify } from "../../../../../../components/Toaster";
+import PermissionGuard from "../../../../../../components/PermissionGuard";
+import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from "../../../../../../shared/constants/permissions";
 
 const LISTING_PAGE_SIZE = 10;
 
@@ -369,7 +371,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     setUploadSteps((prev) => ({ ...prev, [kind]: { ...prev[kind], status: "uploading" } }));
 
     const formData = new FormData();
-    files.forEach((file) => formData.append(fileFieldName, file));
+    if (kind === "passport") {
+      files.forEach((file, index) => formData.append(`passports[${index}]`, file));
+    } else {
+      files.forEach((file) => formData.append(fileFieldName, file));
+    }
 
     try {
       await uploadAction({ formData });
@@ -451,7 +457,11 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     const { uploadAction, fileFieldName, label } = docUploadConfig[kind];
 
     const formData = new FormData();
-    files.forEach((file) => formData.append(fileFieldName, file));
+    if (kind === "passport") {
+      files.forEach((file, index) => formData.append(`passports[${index}]`, file));
+    } else {
+      files.forEach((file) => formData.append(fileFieldName, file));
+    }
 
     setUploading(true);
     try {
@@ -717,25 +727,35 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
             </div>
             <div className="crew-summary-header-actions">
               {launchHireEnabled && (
-                <div className="crew-launch-hire-trigger">
-                  <button
-                    type="button"
-                    className="crew-header-btn crew-header-btn--launch-hire crew-header-btn--request-launch-hire"
-                    disabled={!hasCallInfo}
-                    aria-expanded={showLaunchHireForm}
-                    title={!hasCallInfo ? "Call or vessel information is unavailable." : undefined}
-                    onClick={handleLaunchHireButtonClick}
-                  >
-                    <FiNavigation size={14} aria-hidden="true" />
-                    <span className="crew-header-btn__label">Request Launch Hire</span>
-                  </button>
-                  {launchHireRequested && (
-                    <span className="crew-launch-hire-status-chip">
-                      <FiCheck size={12} aria-hidden="true" />
-                      Launch Hire Requested
-                    </span>
-                  )}
-                </div>
+                // Keep legacy role access until the role-based permission system is formally retired.
+                // No legacy role condition currently gates this action (only the launchHireEnabled/
+                // hasCallInfo business state above), so legacyAllow keeps it visible either way.
+                <PermissionGuard
+                  moduleKey={PERMISSION_MODULES.KANBAN_CARD}
+                  submoduleKey={PERMISSION_SUBMODULES.CREW_IMMIGRATION}
+                  actionKey={PERMISSION_ACTIONS.REQUEST_LAUNCH_HIRE}
+                  legacyAllow
+                >
+                  <div className="crew-launch-hire-trigger">
+                    <button
+                      type="button"
+                      className="crew-header-btn crew-header-btn--launch-hire crew-header-btn--request-launch-hire"
+                      disabled={!hasCallInfo}
+                      aria-expanded={showLaunchHireForm}
+                      title={!hasCallInfo ? "Call or vessel information is unavailable." : undefined}
+                      onClick={handleLaunchHireButtonClick}
+                    >
+                      <FiNavigation size={14} aria-hidden="true" />
+                      <span className="crew-header-btn__label">Request Launch Hire</span>
+                    </button>
+                    {launchHireRequested && (
+                      <span className="crew-launch-hire-status-chip">
+                        <FiCheck size={12} aria-hidden="true" />
+                        Launch Hire Requested
+                      </span>
+                    )}
+                  </div>
+                </PermissionGuard>
               )}
 
               <div className="crew-summary-search">

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
@@ -228,6 +228,20 @@ const renderViewIcon = (icon) => {
           <path d="M13 11h4l3 3v2h-7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
           <circle cx="6" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
           <circle cx="17" cy="18" r="1.8" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      );
+    case "target":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
+          <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="2" />
+          <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+        </svg>
+      );
+    case "check":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
     default:
@@ -575,6 +589,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       if (item.transportation_required) {
         if (!item.typeOfVehicle) errors[`item_${idx}_veh`] = "Vehicle type is required";
         if (!item.fromLocation) errors[`item_${idx}_from`] = "From location is required";
+        if (!item.pickUpFrom) errors[`item_${idx}_pickup`] = "Pick-up from is required";
         if (!item.toLocation) errors[`item_${idx}_to`] = "To location is required";
         if (!item.driverName) errors[`item_${idx}_drv`] = "Driver is required";
       }
@@ -605,11 +620,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
     const items = formData.items.map((item) => {
       const result = {
-        inbound_item_id: item.inbound_item_id || null,
+        landing_note_item_id: item.landing_note_item_id || null,
         quantity: Number(item.quantity) || 0,
         transportation_required: item.transportation_required ? 1 : 0,
-        slot_no_id: item.slot_no || "",
-        reason_id: item.reason || "",
+        slot_no: item.slot_no || "",
+        reason: item.reason || "",
         dispatch_date: item.dispatch_date ? item.dispatch_date + (item.dispatch_time ? ` ${item.dispatch_time}` : "") : null,
       };
       if (item.transportation_required) {
@@ -962,6 +977,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       } else if (order.maxQty != null && Number(order.quantity) > order.maxQty) {
         errors[`co${idx}_quantity`] = `Quantity cannot exceed available quantity (${order.maxQty})`;
       }
+      if (order.transportation_required && !order.pickUpFrom) {
+        errors[`co${idx}_pickup`] = "Pick-up from is required";
+      }
     });
     setConvertFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1167,7 +1185,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               </div>
               <div className="col-md-6">
                 <FormField label="Warehouse">
-                  <FormSelect value={formData.warehouse_id} onChange={(e) => setFormData((p) => ({ ...p, warehouse_id: e.target.value }))} options={warehouseOptions} placeholder="Select warehouse" />
+                  <FormSelect value={formData.warehouse_id} onChange={(e) => setFormData((p) => ({ ...p, warehouse_id: e.target.value }))} options={warehouseOptions} placeholder="Select warehouse" disabled />
                 </FormField>
               </div>
             </div>
@@ -1314,6 +1332,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                   if (formErrors[`item_${index}_qty`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_qty`]; return n; });
                                 }}
                                 placeholder="Enter quantity..."
+                                disabled
                               />
                             </FormField>
                             {formErrors[`item_${index}_qty`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_qty`]}</span>}
@@ -1339,7 +1358,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </FormField>
                           </div>
                           <div className="col-md-3">
-                            <FormField label="Dispatch Date">
+                            <FormField label="Dispatch Date" className="dispatch-date-plain">
                               <DateTimePickerField
                                 dateValue={item.dispatch_date}
                                 timeValue={item.dispatch_time}
@@ -1363,6 +1382,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               className="form-check-input"
                               checked={item.transportation_required}
                               onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)}
+                              disabled
                             />
                             <span className="fw-semibold landing-edit-transport-label-text">Transportation Required</span>
                           </label>
@@ -1375,6 +1395,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     onChange={(e) => { handleEditItemChange(item.id, "typeOfVehicle", e.target.value); if (formErrors[`item_${index}_veh`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_veh`]; return n; }); }}
                                     options={mergeOptionForValue(vehicleOptions, item.typeOfVehicle)}
                                     placeholder="Select vehicle..."
+                                    disabled
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_veh`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_veh`]}</span>}
@@ -1386,18 +1407,20 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     onChange={(e) => { handleEditItemChange(item.id, "fromLocation", e.target.value); if (formErrors[`item_${index}_from`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_from`]; return n; }); }}
                                     options={mergeOptionForValue(locationOptions, item.fromLocation)}
                                     placeholder="From location..."
+                                    disabled
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_from`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_from`]}</span>}
                               </div>
                               <div className="col-md-4">
-                                <FormField label="Pick-Up From">
+                                <FormField label="Pick-Up From *">
                                   <LocationAutocomplete
                                     value={item.pickUpFrom}
-                                    onChange={(e) => handleEditItemChange(item.id, "pickUpFrom", e.target.value)}
+                                    onChange={(e) => { handleEditItemChange(item.id, "pickUpFrom", e.target.value); if (formErrors[`item_${index}_pickup`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_pickup`]; return n; }); }}
                                     placeholder="Pick-up location..."
                                   />
                                 </FormField>
+                                {formErrors[`item_${index}_pickup`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_pickup`]}</span>}
                               </div>
                               <div className="col-md-6">
                                 <FormField label="To Location *">
@@ -1406,6 +1429,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     onChange={(e) => { handleEditItemChange(item.id, "toLocation", e.target.value); if (formErrors[`item_${index}_to`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_to`]; return n; }); }}
                                     options={mergeOptionForValue(locationOptions, item.toLocation)}
                                     placeholder="To location..."
+                                    disabled
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_to`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_to`]}</span>}
@@ -1417,6 +1441,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                                     onChange={(e) => { handleEditItemChange(item.id, "driverName", e.target.value); if (formErrors[`item_${index}_drv`]) setFormErrors((p) => { const n = { ...p }; delete n[`item_${index}_drv`]; return n; }); }}
                                     options={mergeOptionForValue(driverOptions, item.driverName)}
                                     placeholder="Select driver..."
+                                    disabled
                                   />
                                 </FormField>
                                 {formErrors[`item_${index}_drv`] && <span className="text-danger landing-edit-error-msg">{formErrors[`item_${index}_drv`]}</span>}
@@ -1467,7 +1492,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             <h3 className="landing-convert-section-title">Basic Details</h3>
             <div className="row g-2">
               <div className="col-md-6 mb-2">
-                <FormField label="Dispatch Date *">
+                <FormField label="Dispatch Date *" className="dispatch-date-plain">
                   <DateTimePickerField
                     dateValue={convertFormData.dispatch_date}
                     timeValue={convertFormData.dispatch_time}
@@ -1488,6 +1513,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     options={warehouseOptions}
                     placeholder="Select warehouse"
                     className={convertFormErrors.warehouse_id ? "is-invalid" : ""}
+                    disabled
                   />
                   {convertFormErrors.warehouse_id && <span className="landing-convert-error">{convertFormErrors.warehouse_id}</span>}
                 </FormField>
@@ -1646,19 +1672,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="row g-2 mb-2">
                       <div className="col-md-6">
                         <FormField label="Order No">
-                          <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." />
+                          <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." readOnly disabled />
                         </FormField>
                       </div>
                       <div className="col-md-6">
                         <FormField label="PO/DO">
-                          <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." />
+                          <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." readOnly disabled />
                         </FormField>
                       </div>
                     </div>
                     <div className="row g-2 mb-2">
                       <div className="col-md-8">
                         <FormField label="Description">
-                          <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." />
+                          <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." readOnly disabled />
                         </FormField>
                       </div>
                       <div className="col-md-4">
@@ -1678,12 +1704,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="row g-2">
                         <div className="col-md-4">
                           <FormField label="Slot">
-                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, order.slot)} placeholder="Select slot..." />
+                            <FormSelect value={order.slot} onChange={(e) => handleConvertOrderChange(order.id, "slot", e.target.value)} options={mergeOptionForValue(slotOptions, order.slot)} placeholder="Select slot..." disabled />
                           </FormField>
                         </div>
                         <div className="col-md-4">
                           <FormField label="Reason">
-                            <FormSelect value={order.reason} onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)} options={reasonOptions} placeholder="Select reason..." />
+                            <FormSelect value={order.reason} onChange={(e) => handleConvertOrderChange(order.id, "reason", e.target.value)} options={reasonOptions} placeholder="Select reason..." disabled />
                           </FormField>
                         </div>
                       </div>
@@ -1743,13 +1769,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                               </FormField>
                             </div>
                             <div className="col-md-4">
-                              <FormField label="Pick-Up From">
+                              <FormField label="Pick-Up From *">
                                 <LocationAutocomplete
                                   value={order.pickUpFrom}
-                                  onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                  onChange={(e) => { handleConvertOrderChange(order.id, "pickUpFrom", e.target.value); setConvertFormErrors((p) => { const n = { ...p }; delete n[`co${index}_pickup`]; return n; }); }}
                                   placeholder="Pick-up location..."
                                 />
                               </FormField>
+                              {convertFormErrors[`co${index}_pickup`] && <span className="landing-convert-error">{convertFormErrors[`co${index}_pickup`]}</span>}
                             </div>
                             <div className="col-md-4">
                               <FormField label="To Location">
@@ -2028,41 +2055,79 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     )}
 
                     {hasTransport && transport && (
-                      <div className="landing-view-sub-section">
+                      <div className="landing-view-sub-section landing-view-sub-section--transport-card">
                         <div className="landing-view-sub-title landing-view-sub-title--iconic">
                           <span className="landing-view-section-icon landing-view-section-icon--transport landing-view-section-icon--sm">
                             {renderViewIcon("truck")}
                           </span>
                           <span>Transportation</span>
                         </div>
-                        <div className="row g-2">
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">Type of Vehicle</label>
-                            <div className="landing-view-box">{vehicleName}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">From Location</label>
-                            <div className="landing-view-box">{fromLocName}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">Pick-Up From</label>
-                            <div className="landing-view-box">{transport.pickup_location || "-"}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">To Location</label>
-                            <div className="landing-view-box">{toLocName}</div>
-                          </div>
-                          <div className="col-md-4 col-6">
-                            <label className="landing-view-label">Driver</label>
-                            <div className="landing-view-box">{driverName}</div>
-                          </div>
-                          {transport.remarks && (
-                            <div className="col-md-4 col-6">
+                        {(() => {
+                          const isDriverEmpty = driverName === "-";
+                          const routeSteps = [
+                            { key: "vehicle", icon: "truck", label: "Type of Vehicle", value: vehicleName },
+                            { key: "from", icon: "pin", label: "From Location", value: fromLocName },
+                            { key: "pickup", icon: "target", label: "Pick-Up From", value: transport.pickup_location || "-" },
+                            { key: "to", icon: "flag", label: "To Location", value: toLocName },
+                          ];
+                          return (
+                            <>
+                              <div className="landing-view-transport-driver-row">
+                                <div className={`landing-view-transport-step${isDriverEmpty ? " landing-view-transport-step--empty" : ""}`}>
+                                  <span className="landing-view-transport-step-icon-wrap">
+                                    <span className="landing-view-transport-step-icon">
+                                      {renderViewIcon("user")}
+                                    </span>
+                                  </span>
+                                  <div className="landing-view-transport-step-body">
+                                    <span className="landing-view-transport-step-label">Driver</span>
+                                    <span className="landing-view-transport-step-value">{driverName}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="landing-view-transport-steps">
+                                {routeSteps.map((step, stepIdx, steps) => {
+                                  const isEmpty = step.value === "-";
+                                  return (
+                                    <Fragment key={step.key}>
+                                      <div
+                                        className={`landing-view-transport-step${isEmpty ? " landing-view-transport-step--empty" : ""}`}
+                                        style={{ "--stagger-index": stepIdx }}
+                                      >
+                                        <span className="landing-view-transport-step-icon-wrap">
+                                          <span className="landing-view-transport-step-icon">
+                                            {renderViewIcon(step.icon)}
+                                          </span>
+                                          <span className="landing-view-transport-step-num">{stepIdx + 1}</span>
+                                        </span>
+                                        <div className="landing-view-transport-step-body">
+                                          <span className="landing-view-transport-step-label">{step.label}</span>
+                                          <span className="landing-view-transport-step-value">{step.value}</span>
+                                        </div>
+                                      </div>
+                                      {stepIdx < steps.length - 1 && (
+                                        <div className="landing-view-transport-track" aria-hidden="true" style={{ "--stagger-index": stepIdx }}>
+                                          <span className="landing-view-transport-track-line" />
+                                          <span className="landing-view-transport-track-truck">
+                                            {renderViewIcon("truck")}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </Fragment>
+                                  );
+                                })}
+                              </div>
+                            </>
+                          );
+                        })()}
+                        {transport.remarks && (
+                          <div className="row g-2 mt-2">
+                            <div className="col-md-6 col-12">
                               <label className="landing-view-label">Remarks</label>
                               <div className="landing-view-box">{transport.remarks}</div>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

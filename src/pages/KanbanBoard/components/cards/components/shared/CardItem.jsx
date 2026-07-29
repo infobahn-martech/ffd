@@ -46,6 +46,61 @@ ApiCardTypeIcon.propTypes = {
   }).isRequired,
 };
 
+/** Badge overlapping the user-avatar's corner: dynamic Fi/Lu icon from API `blockerIcon`. */
+function ApiCardBlockerBadge({ card }) {
+  const IconComponent = resolveIconComponentStrict(card.blockerIcon);
+
+  if (!IconComponent) return null;
+
+  return (
+    <span
+      className="card-api-blocker-badge"
+      title={card.blockerName}
+      style={{
+        backgroundColor: card.blockerColor || "#dc3545",
+      }}
+      aria-hidden
+    >
+      <IconComponent size={10} color="#fff" />
+    </span>
+  );
+}
+
+ApiCardBlockerBadge.propTypes = {
+  card: PropTypes.shape({
+    blockerIcon: PropTypes.string,
+    blockerColor: PropTypes.string,
+    blockerName: PropTypes.string,
+  }).isRequired,
+};
+
+/** Centered row below the entity logo: dynamic Fi/Lu icon from API `stickerIcon`. */
+function ApiCardStickerBadge({ card }) {
+  const IconComponent = resolveIconComponentStrict(card.stickerIcon);
+
+  if (!IconComponent) return null;
+
+  return (
+    <div className="card-api-sticker-row" title={card.stickerName}>
+      <span
+        className="card-api-sticker-badge"
+        style={{ backgroundColor: card.stickerColor || "#2563eb" }}
+        aria-hidden
+      >
+        <IconComponent size={14} color="#fff" />
+      </span>
+    </div>
+  );
+}
+
+ApiCardStickerBadge.propTypes = {
+  card: PropTypes.shape({
+    stickerIcon: PropTypes.string,
+    stickerColor: PropTypes.string,
+    stickerName: PropTypes.string,
+  }).isRequired,
+};
+
 /** Circular KPI used in API card summary row (classic + compact). */
 function ApiCardCircularKpi({ progress }) {
   const pct = Math.min(100, Math.max(0, Number(progress)));
@@ -224,8 +279,15 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
+// Taxi Boat Captain (21) / Taxi Boat Operator (20): show card_name here instead of task_name.
+const TAXI_BOAT_ROLE_IDS = new Set(["20", "21"]);
+
 function ApiCardTaskLine({ card }) {
-  const taskName = getApiCardTaskName(card);
+  const roleId = card.workflow_role_id != null ? String(card.workflow_role_id) : "";
+  const taskName =
+    TAXI_BOAT_ROLE_IDS.has(roleId) && hasText(card.cardName)
+      ? String(card.cardName).trim()
+      : getApiCardTaskName(card);
   if (!hasText(taskName)) return null;
   return (
     <p className="card-api-task-name" title={taskName}>
@@ -253,8 +315,11 @@ function ApiKanbanCardShrunk({ card, setSelectedCard }) {
           {displayTitle}
         </div>
         {usernameInitial ? (
-          <span className="card-api-user-avatar" title={hasText(card.user) ? String(card.user).trim() : undefined} aria-hidden>
-            {usernameInitial}
+          <span className="card-api-avatar-wrap">
+            <span className="card-api-user-avatar" title={hasText(card.user) ? String(card.user).trim() : undefined} aria-hidden>
+              {usernameInitial}
+            </span>
+            <ApiCardBlockerBadge card={card} />
           </span>
         ) : null}
       </div>
@@ -334,6 +399,8 @@ function ApiKanbanCardFull({
         </div>
       )}
 
+      <ApiCardStickerBadge card={card} />
+
       <div className="card-title-row card-title-row--api">
         <div className="card-api-title-row">
           <h3
@@ -344,12 +411,15 @@ function ApiKanbanCardFull({
             {displayTitle}
           </h3>
           {usernameInitial ? (
-            <span
-              className="card-api-user-avatar"
-              title={hasText(card.user) ? String(card.user).trim() : undefined}
-              aria-hidden
-            >
-              {usernameInitial}
+            <span className="card-api-avatar-wrap">
+              <span
+                className="card-api-user-avatar"
+                title={hasText(card.user) ? String(card.user).trim() : undefined}
+                aria-hidden
+              >
+                {usernameInitial}
+              </span>
+              <ApiCardBlockerBadge card={card} />
             </span>
           ) : null}
         </div>
@@ -872,6 +942,12 @@ CardItem.propTypes = {
     wasteDisposalCount: PropTypes.number,
     launchHire: PropTypes.string,
     launchHireCount: PropTypes.number,
+    blockerIcon: PropTypes.string,
+    blockerColor: PropTypes.string,
+    blockerName: PropTypes.string,
+    stickerIcon: PropTypes.string,
+    stickerColor: PropTypes.string,
+    stickerName: PropTypes.string,
     footerShowIcons: PropTypes.arrayOf(PropTypes.string),
     footerSubtasks: PropTypes.number,
     footerDeadline: PropTypes.string,

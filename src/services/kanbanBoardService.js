@@ -11,6 +11,10 @@ const getFullBoard = (boardId) =>
 const updateCardColor = (payload) =>
   Gateway.post('/kanban_card/update_card_color', payload);
 
+/** @param {{ card_id: string|number, title: string }} payload */
+const updateCardTitle = (payload) =>
+  Gateway.post('/kanban_card/update_card_title', payload);
+
 const getCardTypesByBoard = (boardId) =>
   Gateway.get(`/kanban_card/card_types_by_board/${encodeURIComponent(String(boardId))}`);
 
@@ -59,9 +63,40 @@ const updateSubtask = (formData) =>
 const completeSubtask = (subtaskId, isCompleted) =>
   Gateway.post('/kanban_card/complete_subtask', { subtask_id: subtaskId, is_completed: isCompleted });
 
+/** POST multipart FormData — { card_id, comment_text, mentions (JSON array of user ids), attachment? } */
+const addCardComment = (formData) =>
+  Gateway.post('/kanban_card/add_card_comment', formData);
+
+/** GET — comments for a card; response: { data: [{ comment_id, user_id, user_name, comment_text, mentions, attachment, attachment_url, created_date, updated_date }] } */
+const getCardComments = (cardId) =>
+  Gateway.get(`/kanban_card/get_card_comments/${encodeURIComponent(String(cardId))}`);
+
+/** POST multipart FormData — { comment_id, comment_text, mentions (JSON array of user ids), attachment? } */
+const updateCardComment = (formData) =>
+  Gateway.post('/kanban_card/update_card_comment', formData);
+
+const deleteCardComment = (commentId) =>
+  Gateway.post(`/kanban_card/delete_card_comment/${encodeURIComponent(String(commentId))}`);
+
+/** POST — { card_id, note_text }; response: { data: { note_id, card_id, note_text, created_by, created_date } } */
+const addCardNote = (payload) =>
+  Gateway.post('/kanban_card/add_card_note', payload);
+
+/** GET — notes for a card; response: { data: [{ note_id, card_id, note_text, created_by, created_by_name, created_date, updated_by, updated_date }] } */
+const getCardNotes = (cardId) =>
+  Gateway.get(`/kanban_card/get_card_notes/${encodeURIComponent(String(cardId))}`);
+
+/** POST — { note_id, note_text }; response: { data: { note_text, updated_by, updated_date } } */
+const updateCardNote = (payload) =>
+  Gateway.post('/kanban_card/update_card_note', payload);
+
+const deleteCardNote = (noteId) =>
+  Gateway.post(`/kanban_card/delete_card_note/${encodeURIComponent(String(noteId))}`);
+
 export default {
   getFullBoard,
   updateCardColor,
+  updateCardTitle,
   getCardTypesByBoard,
   updateCardType,
   getCardBlockersByBoard,
@@ -74,4 +109,12 @@ export default {
   createSubtask,
   updateSubtask,
   completeSubtask,
+  addCardComment,
+  getCardComments,
+  updateCardComment,
+  deleteCardComment,
+  addCardNote,
+  getCardNotes,
+  updateCardNote,
+  deleteCardNote,
 };

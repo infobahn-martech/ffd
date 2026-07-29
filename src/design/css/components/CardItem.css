@@ -741,6 +741,49 @@
   border: 1px solid #bae6fd;
 }
 
+.card-api-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.card-api-sticker-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 6px 0;
+  padding: 6px 0;
+  border-top: 1px solid #eaeef3;
+  border-bottom: 1px solid #eaeef3;
+}
+
+.card-api-sticker-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.card-api-blocker-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
 .card-api-task-name {
   font-size: 11px;
   font-weight: 600;
@@ -775,7 +818,7 @@
   min-width: 0;
   padding: 6px 0 4px 0;
   margin: 0;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #eaeef3;
   box-sizing: border-box;
 }
 
@@ -852,6 +895,10 @@
   background: #1e3a5f;
   color: #93c5fd;
   border-color: #334155;
+}
+
+.kanban-card-dark.kanban-card--api .card-api-blocker-badge {
+  border-color: #18181b;
 }
 
 .kanban-card-dark.kanban-card--api .card-api-summary-row {

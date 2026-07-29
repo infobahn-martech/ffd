@@ -28,6 +28,11 @@ export function applyDepartureGetDetailToForm({ responseBody, eventFields = [], 
     handleChange("nextPort")({ target: { value: nextPort } });
   }
 
+  const clearanceDeliveredBy = String(root.clearance_delivered_by ?? "").trim();
+  if (clearanceDeliveredBy) {
+    handleChange("clearance_delivered_by")({ target: { value: clearanceDeliveredBy } });
+  }
+
   const emailRequestDocUrl = String(root.email_request_doc_url ?? "").trim();
   if (emailRequestDocUrl) {
     const fileName =

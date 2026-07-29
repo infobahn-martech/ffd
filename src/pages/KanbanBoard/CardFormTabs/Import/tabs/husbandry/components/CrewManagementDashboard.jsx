@@ -530,13 +530,16 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
     const stepKey = kind === "passport" ? "passport" : "iqama";
     const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
-    const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
     const label = kind === "passport" ? "Passport" : "Iqama";
 
     setUploadSteps((prev) => ({ ...prev, [stepKey]: { ...prev[stepKey], status: "uploading" } }));
 
     const formData = new FormData();
-    files.forEach((file) => formData.append(fileFieldName, file));
+    if (kind === "passport") {
+      files.forEach((file, index) => formData.append(`passports[${index}]`, file));
+    } else {
+      files.forEach((file) => formData.append("iqamas[]", file));
+    }
 
     try {
       await uploadAction({ formData });
@@ -766,11 +769,14 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
 
     const setUploading = kind === "passport" ? setIsUploadingPassports : setIsUploadingIqamas;
     const uploadAction = kind === "passport" ? uploadPassportCopies : uploadIqamaCopies;
-    const fileFieldName = kind === "passport" ? "passports[]" : "iqamas[]";
     const label = kind === "passport" ? "Passport" : "Iqama";
 
     const formData = new FormData();
-    files.forEach((file) => formData.append(fileFieldName, file));
+    if (kind === "passport") {
+      files.forEach((file, index) => formData.append(`passports[${index}]`, file));
+    } else {
+      files.forEach((file) => formData.append("iqamas[]", file));
+    }
 
     setUploading(true);
     try {

@@ -6,8 +6,62 @@ import { PermissionModal } from "../Permission/Modals/AddEditPermission";
 import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useUserReducer from "../../store/UserReducer";
+import useAuthReducer from "../../store/AuthReducer";
+import usePermissions from "../../shared/hooks/usePermissions";
+import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from "../../shared/constants/permissions";
 
 const User = () => {
+  // User Management → Users is fully migrated to the new permission system:
+  // the backend permission response (profileData.permissions.sections) for
+  // the CURRENTLY LOGGED-IN user is authoritative here — no legacy role OR.
+  // Do not confuse this with PermissionModal below, which edits a target
+  // row's own permissions via the legacy per-user permission admin feature.
+  const profileData = useAuthReducer((state) => state.profileData);
+  const { hasPermission } = usePermissions();
+  const canViewUsers = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.VIEW,
+  });
+  const canAddUser = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.ADD,
+  });
+  const canEditUser = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.EDIT,
+  });
+  const canManagePermission = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.PERMISSION,
+  });
+  const canArchiveUser = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.ARCHIVE,
+  });
+  const canToggleUserStatus = hasPermission({
+    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
+    submoduleKey: PERMISSION_SUBMODULES.USERS,
+    actionKey: PERMISSION_ACTIONS.TOGGLE_STATUS,
+  });
+
+  // TEMPORARY: verify permission evaluation for the logged-in user. Remove after verification.
+  useEffect(() => {
+    console.log({
+      role: profileData?.role,
+      canViewUsers,
+      canAddUser,
+      canEditUser,
+      canManagePermission,
+      canArchiveUser,
+      canToggleUserStatus,
+    });
+  }, [profileData, canViewUsers, canAddUser, canEditUser, canManagePermission, canArchiveUser, canToggleUserStatus]);
+
   const [params, setParams] = useState({
     page: 1,
     searchTerm: "",
@@ -119,20 +173,31 @@ const User = () => {
       thclass: "tb-head",
       contentClass: "table-content",
       cell: RenderAction,
-      onEditClick: (row) => setShowUserModal(row),
+      canEditUser,
+      canManagePermission,
+      canArchiveUser,
+      canToggleUserStatus,
+      onEditClick: (row) => {
+        if (!canEditUser) return;
+        setShowUserModal(row);
+      },
       onToggleClick: (row) => {
+        if (!canToggleUserStatus) return;
         activateUser({ user_id: row?.user_id, cb: () => getUsers({ params }) });
       },
       onPermissionClick: async (row) => {
+        if (!canManagePermission) return;
         setSelectedUser(row);
         await getUserPermissions({ userId: row?.user_id });
         setShowPermissionModal(true);
       },
       onDeleteClick: (row) => {
+        if (!canArchiveUser) return;
         setSelectedUser(row);
         setShowDeleteModal(true);
       },
       onUnarchiveClick: (row) => {
+        if (!canArchiveUser) return;
         setSelectedUser(row);
         setShowUnarchiveModal(true);
       },
@@ -145,12 +210,15 @@ const User = () => {
           <div className="container-fluid">
             <CommonHeader
               tableTitle="Users"
-              isAddEnabled
+              isAddEnabled={canAddUser}
               addModalLabel="Add User"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
-              onAddModalClick={() => setShowUserModal(true)}
+              onAddModalClick={() => {
+                if (!canAddUser) return;
+                setShowUserModal(true);
+              }}
               exportTitle="Export"
               exportLoader={false}
             />

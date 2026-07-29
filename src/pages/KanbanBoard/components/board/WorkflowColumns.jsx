@@ -10,6 +10,7 @@ import {
 } from "../../utils/columnHelpers";
 import {
   BOARD_COLUMN_GAP_PX,
+  WORKFLOW_ROW_MIN_HEIGHT,
   getBoardGridTemplateColumns,
   getColumnWidth,
 } from "../../utils/boardGridHelpers";
@@ -33,7 +34,7 @@ export default function WorkflowColumns({
   layoutView,
 }) {
   const collapsedColumnIds = collapsedColumns[workflow.id] ?? EMPTY_COLLAPSED_SET;
-  const maxHeight = maxColumnHeights[workflow.id] || 0;
+  const maxHeight = Math.max(maxColumnHeights[workflow.id] || 0, WORKFLOW_ROW_MIN_HEIGHT);
 
   const swimlaneOrder = workflow.swimlaneOrder?.length
     ? workflow.swimlaneOrder
@@ -204,7 +205,7 @@ export default function WorkflowColumns({
                         setSelectedCard={onSelectCard}
                         isCollapsed={isCollapsed}
                         onContextMenu={onContextMenu}
-                        columnHeight={maxHeight > 0 ? maxHeight : undefined}
+                        columnHeight={maxHeight}
                         onHeightChange={onHeightChange}
                         isClassicLayout={isClassicLayout}
                         isModernLayout={isModernLayout}

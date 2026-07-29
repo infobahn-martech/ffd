@@ -31,14 +31,6 @@ const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const TABLE_PAGE_SIZE = 5;
 
-const INVOICE_BRANCH_OPTIONS = [
-  { value: "Sedres Dammam", label: "Sedres Dammam" },
-  { value: "Sedres Rastanura", label: "Sedres Rastanura" },
-  { value: "Sedres Jubail", label: "Sedres Jubail" },
-  { value: "Sedres Khafji", label: "Sedres Khafji" },
-  { value: "Sedres Saffaniya", label: "Sedres Saffaniya" },
-];
-
 const EMPTY_TRANSPORT_FORM = {
   requestEmail: [],
   selectedCrew: [],
@@ -227,12 +219,15 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     loadingVehicleTypes,
     inhouseDrivers,
     loadingInhouseDrivers,
+    invoiceBranches,
+    loadingInvoiceBranches,
     isSavingTransport,
     fetchCallDetails,
     fetchTransportRequests,
     fetchTransportCompanies,
     fetchVehicleTypes,
     fetchInhouseDrivers,
+    fetchInvoiceBranches,
     createTransportRequest,
     updateTransportRequestDetail,
   } = useCoordinatorTransportReducer();
@@ -313,6 +308,10 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   useEffect(() => {
     fetchVehicleTypes();
   }, [fetchVehicleTypes]);
+
+  useEffect(() => {
+    fetchInvoiceBranches();
+  }, [fetchInvoiceBranches]);
 
   useEffect(() => {
     fetchInhouseDrivers(transportForm.vehicleTypeId);
@@ -596,6 +595,15 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     [vehicleTypes]
   );
 
+  const invoiceBranchOptions = useMemo(
+    () =>
+      invoiceBranches.map((b) => ({
+        value: b?.branch_name ?? "",
+        label: b?.branch_name ?? "",
+      })),
+    [invoiceBranches]
+  );
+
   const inhouseDriverOptions = useMemo(
     () =>
       inhouseDrivers.map((d) => ({
@@ -719,8 +727,9 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
                       <FormSelect
                         value={transportForm.invoiceBranch}
                         onChange={(e) => updateTransportField("invoiceBranch", e.target.value)}
-                        options={INVOICE_BRANCH_OPTIONS}
-                        placeholder="Select branch..."
+                        options={invoiceBranchOptions}
+                        placeholder={loadingInvoiceBranches ? "Loading..." : "Select branch..."}
+                        disabled={loadingInvoiceBranches}
                       />
                     </FormField>
                   </FieldRow>

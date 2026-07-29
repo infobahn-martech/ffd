@@ -1,0 +1,27 @@
+.comments-tab-comment-author {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.comments-tab-comment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.comments-tab-comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.comments-tab-editing-banner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
