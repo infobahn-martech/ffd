@@ -1,10 +1,9 @@
 import PropTypes from "prop-types";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "react-bootstrap";
+import { FiEye, FiDownload, FiMail, FiSend, FiUser, FiCalendar, FiFileText } from "react-icons/fi";
 import CustomModal from "../../../../../../components/CustomModal";
-import CardTabListLoading from "../../../../../../components/CardTabListLoading";
 import reportsService from "../../../../../../services/reportsService";
-import "../../../../../../design/scss/attachments.scss";
 import "../../../../../../design/scss/operations.scss";
 
 const mapReportRow = (raw, index) => ({
@@ -63,89 +62,80 @@ const sanitizeFilename = (name) => {
   return base.slice(0, 120);
 };
 
-const ReportIcon = () => (
-  <div className="file-icon-default">
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="6" fill="#2563EB" />
-      <path
-        d="M8 10h16M8 16h12M8 22h14"
-        stroke="white"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  </div>
-);
+const TYPE_TAG_COLORS = ["#00368C", "#0E7C7B", "#8552C6", "#C25E2E", "#2E7D32", "#B23B6B"];
 
-const ReportRow = ({ report, cardColor, onView, onDownload }) => {
+const getTypeTagColor = (type) => {
+  const source = type || "?";
+  let hash = 0;
+  for (let i = 0; i < source.length; i += 1) {
+    hash = source.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return TYPE_TAG_COLORS[Math.abs(hash) % TYPE_TAG_COLORS.length];
+};
+
+const ReportDocRow = ({ report, accentColor, onView, onDownload }) => {
   const title = report.subject || report.reportType || "Report";
   const ccStr = formatCcDisplay(report.ccEmails);
-  const metaParts = [
-    formatDateTime(report.createdAt),
-    report.createdBy ? `by ${report.createdBy}` : null,
-    report.fromEmail ? `From ${report.fromEmail}` : null,
-    report.toEmail ? `To ${report.toEmail}` : null,
-    ccStr ? `CC ${ccStr}` : null,
-  ].filter(Boolean);
 
   return (
-    <div className="attachment-item">
-      <div className="attachment-icon-wrapper">
-        <ReportIcon />
+    <div className="reports-doc-row">
+      <div className="reports-doc-icon" style={{ background: accentColor }}>
+        <FiFileText size={16} />
       </div>
-      <div className="attachment-details">
-        <div className="attachment-name">{title}</div>
-        <div className="attachment-meta">
-          {metaParts.map((part, i) => (
-            <span key={`${part}-${i}`}>
-              {i > 0 ? <span className="attachment-separator">•</span> : null}
-              <span className="attachment-date">{part}</span>
+      <div className="reports-doc-content">
+        <p className="reports-doc-title" title={title}>
+          {title}
+        </p>
+        <div className="reports-doc-meta">
+          <span className="reports-doc-meta-item">
+            <FiCalendar size={11} />
+            <span className="reports-doc-meta-text">
+              {formatDateTime(report.createdAt)}
+              {report.createdBy ? ` · ${report.createdBy}` : ""}
             </span>
-          ))}
+          </span>
+          {report.fromEmail ? (
+            <span className="reports-doc-meta-item">
+              <FiSend size={11} />
+              <span className="reports-doc-meta-text" title={report.fromEmail}>
+                {report.fromEmail}
+              </span>
+            </span>
+          ) : null}
+          {report.toEmail ? (
+            <span className="reports-doc-meta-item">
+              <FiUser size={11} />
+              <span className="reports-doc-meta-text" title={report.toEmail}>
+                {report.toEmail}
+              </span>
+            </span>
+          ) : null}
+          {ccStr ? (
+            <span className="reports-doc-meta-item">
+              <FiMail size={11} />
+              <span className="reports-doc-meta-text" title={ccStr}>
+                CC {ccStr}
+              </span>
+            </span>
+          ) : null}
         </div>
       </div>
-      <div className="attachment-actions">
+      <div className="reports-doc-actions">
         <button
           type="button"
-          className="attachment-action-btn view"
-          title="View report"
-          style={{ "--card-color": cardColor }}
-          onClick={() => onView(report)}
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M9 4C5 4 2.27 6.11 1 9C2.27 11.89 5 14 9 14C13 14 15.73 11.89 17 9C15.73 6.11 13 4 9 4Z"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="attachment-action-btn download"
-          title="Download body as HTML"
-          style={{ "--card-color": cardColor }}
+          className="reports-doc-action-btn"
           onClick={() => onDownload(report)}
+          title="Download body as HTML"
+          aria-label="Download report"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <FiDownload size={14} />
         </button>
       </div>
     </div>
   );
 };
 
-ReportRow.propTypes = {
+ReportDocRow.propTypes = {
   report: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     reportType: PropTypes.string,
@@ -157,12 +147,36 @@ ReportRow.propTypes = {
     createdAt: PropTypes.string,
     createdBy: PropTypes.string,
   }).isRequired,
-  cardColor: PropTypes.string,
+  accentColor: PropTypes.string,
   onView: PropTypes.func.isRequired,
   onDownload: PropTypes.func.isRequired,
 };
 
 const bodyLooksLikeHtml = (text) => /<[a-z][\s\S]*>/i.test(text);
+
+const ReportsSkeleton = () => (
+  <>
+    {[0, 1].map((cardIdx) => (
+      <div className="reports-section-card reports-skeleton-card" key={cardIdx} aria-hidden="true">
+        <div className="reports-section-header">
+          <span className="reports-skeleton-bar reports-skeleton-bar--label" />
+          <span className="reports-skeleton-bar reports-skeleton-bar--count" />
+        </div>
+        <div className="reports-doc-list">
+          {[0, 1].map((rowIdx) => (
+            <div className="reports-doc-row" key={rowIdx}>
+              <span className="reports-skeleton-icon" />
+              <div className="reports-doc-content">
+                <span className="reports-skeleton-bar reports-skeleton-bar--title" />
+                <span className="reports-skeleton-bar reports-skeleton-bar--meta" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </>
+);
 
 function Reports({ card, formValues }) {
   const cardColor = card?.color || "#2A00FF";
@@ -256,11 +270,11 @@ function Reports({ card, formValues }) {
 
   return (
     <div className="cardform-body">
-      <div className="cardform-left-full attachments-content-wrapper" style={{ "--card-color": cardColor }}>
-        <div className="attachments-list-header">
-          <h3 className="attachments-list-title">
-            <span className="attachments-list-title-bar" />
-            REPORT LIST
+      <div className="cardform-left-full reports-view" style={{ "--card-color": cardColor }}>
+        <div className="reports-card-view-header">
+          <h3 className="reports-card-view-title">
+            <span className="reports-card-view-title-bar" />
+            REPORTS
           </h3>
         </div>
         {!callId ? (
@@ -268,7 +282,7 @@ function Reports({ card, formValues }) {
             <p>No call identifier available for reports.</p>
           </div>
         ) : loading ? (
-          <CardTabListLoading message="Loading reports…" cardColor={cardColor} />
+          <ReportsSkeleton />
         ) : error ? (
           <div className="cf-empty-row">
             <p>{error}</p>
@@ -278,33 +292,30 @@ function Reports({ card, formValues }) {
             <p>No reports available.</p>
           </div>
         ) : (
-          <div className="attachments-list">
-            <div className="attachments-categories">
-              {categoryKeys.map((category) => {
-                const items = groupedByType[category];
-                if (!items?.length) return null;
-                return (
-                  <div className="attachment-category" key={category}>
-                    <div className="attachment-category-header">
-                      <h4 className="attachment-category-label">{category}</h4>
-                      <span className="attachment-category-count">({items.length})</span>
-                    </div>
-                    <div className="attachments-items">
-                      {items.map((report) => (
-                        <ReportRow
-                          key={report.id}
-                          report={report}
-                          cardColor={cardColor}
-                          onView={setPreview}
-                          onDownload={handleDownload}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          categoryKeys.map((category) => {
+            const items = groupedByType[category];
+            if (!items?.length) return null;
+            const accentColor = getTypeTagColor(category);
+            return (
+              <div className="reports-section-card" key={category}>
+                <div className="reports-section-header">
+                  <h4 className="reports-section-label">{category}</h4>
+                  <span className="reports-section-count">{items.length}</span>
+                </div>
+                <div className="reports-doc-list">
+                  {items.map((report) => (
+                    <ReportDocRow
+                      key={report.id}
+                      report={report}
+                      accentColor={accentColor}
+                      onView={setPreview}
+                      onDownload={handleDownload}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
@@ -323,48 +334,45 @@ function Reports({ card, formValues }) {
         }
         body={
           preview ? (
-            <div className="reports-email-detail" style={{ padding: "8px 4px", maxHeight: "70vh", overflowY: "auto" }}>
-              <div style={{ fontSize: 13, color: "#444", marginBottom: 12, display: "grid", gap: 6 }}>
+            <div className="reports-preview-content" style={{ minHeight: "auto", alignItems: "stretch", display: "block" }}>
+              <div className="reports-preview-info">
                 {preview.reportType ? (
-                  <div>
-                    <strong>Type:</strong> {preview.reportType}
+                  <div className="reports-preview-info-row">
+                    <span className="reports-preview-label">Type</span>
+                    <span className="reports-preview-value">{preview.reportType}</span>
                   </div>
                 ) : null}
                 {preview.fromEmail ? (
-                  <div>
-                    <strong>From:</strong> {preview.fromEmail}
+                  <div className="reports-preview-info-row">
+                    <span className="reports-preview-label">From</span>
+                    <span className="reports-preview-value">{preview.fromEmail}</span>
                   </div>
                 ) : null}
                 {preview.toEmail ? (
-                  <div>
-                    <strong>To:</strong> {preview.toEmail}
+                  <div className="reports-preview-info-row">
+                    <span className="reports-preview-label">To</span>
+                    <span className="reports-preview-value">{preview.toEmail}</span>
                   </div>
                 ) : null}
                 {formatCcDisplay(preview.ccEmails) ? (
-                  <div>
-                    <strong>CC:</strong> {formatCcDisplay(preview.ccEmails)}
+                  <div className="reports-preview-info-row">
+                    <span className="reports-preview-label">CC</span>
+                    <span className="reports-preview-value">{formatCcDisplay(preview.ccEmails)}</span>
                   </div>
                 ) : null}
-                <div>
-                  <strong>Sent:</strong> {formatDateTime(preview.createdAt)}
-                  {preview.createdBy ? ` · ${preview.createdBy}` : ""}
+                <div className="reports-preview-info-row">
+                  <span className="reports-preview-label">Sent</span>
+                  <span className="reports-preview-value">
+                    {formatDateTime(preview.createdAt)}
+                    {preview.createdBy ? ` · ${preview.createdBy}` : ""}
+                  </span>
                 </div>
               </div>
-              <div style={{ borderTop: "1px solid #eee", paddingTop: 12 }}>
+              <div className="reports-preview-body-panel">
                 {bodyLooksLikeHtml(preview.body) ? (
                   <div className="reports-email-body-html" dangerouslySetInnerHTML={{ __html: preview.body }} />
                 ) : (
-                  <pre
-                    style={{
-                      margin: 0,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      fontSize: 13,
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    {preview.body || "—"}
-                  </pre>
+                  <pre className="reports-preview-body-pre">{preview.body || "—"}</pre>
                 )}
               </div>
             </div>
