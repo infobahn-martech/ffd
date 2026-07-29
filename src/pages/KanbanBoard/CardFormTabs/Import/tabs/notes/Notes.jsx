@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
+import DOMPurify from "dompurify";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
+import "../../../../../../design/scss/comments.scss";
 import callFileService from "../../../../../../services/callFileService";
+import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
+import { notify } from "../../../../../../components/Toaster";
+import DeleteConfirmationModal from "../../../../../../components/DeleteConfirmationModal";
 
 const QUILL_MODULES = {
     toolbar: [
@@ -26,6 +32,14 @@ const isEmptyHtmlContent = (html) => {
 };
 
 const getCardId = (card) => card?.id || card?.card_id || card?.call_id;
+
+const mapNoteFromResponse = (row) => ({
+    id: row.note_id,
+    userName: row.created_by_name ?? "",
+    content: row.note_text,
+    created_date: row.created_date ?? null,
+    updated_date: row.updated_date ?? null,
+});
 
 const mapManagersFromResponse = (rows) =>
     (rows || []).map((row) => ({
@@ -57,9 +71,35 @@ function Notes({ card }) {
     const [mentionSearch, setMentionSearch] = useState("");
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
     const [isManagersLoading, setIsManagersLoading] = useState(false);
+    const [notes, setNotes] = useState([]);
+    const [isNotesLoading, setIsNotesLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editingNoteId, setEditingNoteId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedNote, setSelectedNote] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const notes = card?.notes ?? [];
+    const cardId = getCardId(card);
     const hasNotes = notes.length > 0;
+
+    const loadNotes = useCallback(async () => {
+        if (!cardId) return;
+
+        setIsNotesLoading(true);
+        try {
+            const { data } = await kanbanBoardService.getCardNotes(cardId);
+            const rows = unwrapListResponse(data);
+            setNotes(rows.map(mapNoteFromResponse));
+        } catch {
+            setNotes([]);
+        } finally {
+            setIsNotesLoading(false);
+        }
+    }, [cardId]);
+
+    useEffect(() => {
+        loadNotes();
+    }, [loadNotes]);
 
     useEffect(() => {
         let cancelled = false;
@@ -158,13 +198,94 @@ function Notes({ card }) {
         [addMentionedUserId, closeMentionDropdown]
     );
 
-    const handleSave = () => {
-        if (isEmptyHtmlContent(noteText)) return;
+    const handleEditOpen = useCallback(
+        (note) => {
+            setEditingNoteId(note.id);
+            setNoteText(note.content);
+            closeMentionDropdown();
+        },
+        [closeMentionDropdown]
+    );
 
+    const handleEditCancel = useCallback(() => {
+        setEditingNoteId(null);
         setNoteText("");
         setSelectedMentionUserIds([]);
         closeMentionDropdown();
-    };
+    }, [closeMentionDropdown]);
+
+    const handleSave = useCallback(async () => {
+        if (isEmptyHtmlContent(noteText) || !cardId || isSaving) return;
+
+        const isEditing = Boolean(editingNoteId);
+
+        setIsSaving(true);
+        try {
+            const { data } = isEditing
+                ? await kanbanBoardService.updateCardNote({
+                      note_id: editingNoteId,
+                      note_text: noteText,
+                  })
+                : await kanbanBoardService.addCardNote({
+                      card_id: cardId,
+                      note_text: noteText,
+                  });
+            await loadNotes();
+            notify(
+                data?.message || (isEditing ? "Note updated successfully." : "Note added successfully."),
+                "success"
+            );
+            setEditingNoteId(null);
+            setNoteText("");
+            setSelectedMentionUserIds([]);
+            closeMentionDropdown();
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                (editingNoteId ? "Failed to update note." : "Failed to add note.");
+            notify(typeof msg === "string" ? msg : "Failed to save note.", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [noteText, cardId, isSaving, editingNoteId, closeMentionDropdown, loadNotes]);
+
+    const handleDeleteOpen = useCallback((note) => {
+        setSelectedNote(note);
+        setShowDeleteModal(true);
+    }, []);
+
+    const handleDeleteCancel = useCallback(() => {
+        if (isDeleting) return;
+        setShowDeleteModal(false);
+        setSelectedNote(null);
+    }, [isDeleting]);
+
+    const handleDeleteConfirm = useCallback(async () => {
+        if (!selectedNote) return;
+
+        setIsDeleting(true);
+        try {
+            const { data } = await kanbanBoardService.deleteCardNote(selectedNote.id);
+            await loadNotes();
+            notify(data?.message || "Note deleted successfully.", "success");
+            if (editingNoteId === selectedNote.id) {
+                handleEditCancel();
+            }
+            setShowDeleteModal(false);
+            setSelectedNote(null);
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                "Failed to delete note.";
+            notify(typeof msg === "string" ? msg : "Failed to delete note.", "error");
+        } finally {
+            setIsDeleting(false);
+        }
+    }, [selectedNote, editingNoteId, handleEditCancel, loadNotes]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -173,6 +294,18 @@ function Notes({ card }) {
                     <section className="comments-tab-editor" aria-label="Write a note">
                         <div className="comments-tab-card comments-tab-card--editor">
                             <div className="comments-tab-editor-body">
+                                {editingNoteId ? (
+                                    <div className="comments-tab-editing-banner">
+                                        <button
+                                            type="button"
+                                            className="subtasks-tab-cancel-btn"
+                                            onClick={handleEditCancel}
+                                            disabled={isSaving}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ) : null}
                                 <div className="comments-tab-mention-host">
                                     <div className="react-quill-wrapper comments-tab-quill">
                                         <ReactQuill
@@ -244,8 +377,11 @@ function Notes({ card }) {
                                         type="button"
                                         className="comments-tab-save-btn"
                                         onClick={handleSave}
+                                        disabled={isSaving || isEmptyHtmlContent(noteText)}
                                     >
-                                        Save
+                                        {editingNoteId
+                                            ? (isSaving ? "Updating..." : "Update")
+                                            : (isSaving ? "Saving..." : "Save")}
                                     </button>
                                 </div>
                             </div>
@@ -255,20 +391,45 @@ function Notes({ card }) {
                     <section className="comments-tab-list" aria-label="Notes">
                         <div className="comments-tab-card comments-tab-card--list">
                             <div className="comments-tab-list-scroll">
-                                {!hasNotes ? (
+                                {isNotesLoading ? (
+                                    <p className="comments-tab-empty">Loading notes...</p>
+                                ) : !hasNotes ? (
                                     <p className="comments-tab-empty">No notes added yet.</p>
                                 ) : (
                                     <ul className="comments-tab-list-items">
                                         {notes.map((note, index) => (
-                                            <li className="comments-tab-comment-card" key={index}>
-                                                <div className="comments-tab-comment-avatar">
-                                                    <img src={note.avatar} alt="avatar" />
-                                                </div>
+                                            <li className="comments-tab-comment-card" key={note.id ?? index}>
+                                                <div className="comments-tab-comment-avatar" />
                                                 <div className="comments-tab-comment-content">
-                                                    <p>{note.content}</p>
-                                                    {note.updated ? (
+                                                    <div className="comments-tab-comment-header">
+                                                        {note.userName ? (
+                                                            <p className="comments-tab-comment-author">{note.userName}</p>
+                                                        ) : <span />}
+                                                        <div className="comments-tab-comment-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleEditOpen(note)}
+                                                                aria-label="Edit note"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiEdit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleDeleteOpen(note)}
+                                                                aria-label="Delete note"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiTrash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }} />
+                                                    {note.updated_date || note.created_date ? (
                                                         <p className="notes-tab-note-updated">
-                                                            {note.updated}
+                                                            {note.updated_date ?? note.created_date}
                                                         </p>
                                                     ) : null}
                                                 </div>
@@ -281,6 +442,14 @@ function Notes({ card }) {
                     </section>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                show={showDeleteModal}
+                onCancel={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                isLoading={isDeleting}
+                deleteText="Are you sure you want to delete this note?"
+            />
         </div>
     );
 }

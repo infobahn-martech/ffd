@@ -314,6 +314,9 @@ export function mapBoardWorkflowFromApi(workflow) {
     swimlaneOrder,
     swimlanes,
     cards,
+    isPinned: workflow.is_pinned === "1" || workflow.is_pinned === 1 || workflow.is_pinned === true,
+    isCollapsed:
+      workflow.is_collapsed === "1" || workflow.is_collapsed === 1 || workflow.is_collapsed === true,
   };
 
   return normalizeWorkflowFromApi(raw);
