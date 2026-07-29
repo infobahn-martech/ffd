@@ -1743,7 +1743,7 @@
 .so-wo-modal-footer {
   flex-shrink: 0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 10px;
   padding: 18px 32px;
   border-top: 1px solid #eef0f5;
@@ -1772,6 +1772,16 @@
 
   &:hover:not(:disabled) {
     background: #e2e8f0;
+  }
+}
+
+.so-wo-btn-share {
+  background: #e7f9ee;
+  color: #128c3e;
+  border: 1px solid #bdf0d0;
+
+  &:hover:not(:disabled) {
+    background: #d4f5e0;
   }
 }
 
