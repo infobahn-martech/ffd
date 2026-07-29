@@ -38,6 +38,7 @@ import {
   mergeOptionIfMissing,
 } from "../../../../../../shared/helpers/callFileFormOptions";
 import { buildCreateCallFileFormData } from "../../../../../../shared/helpers/createCallFilePayload";
+import { getItem } from "../../../../../../shared/helpers/localStorage";
 import { notify } from "../../../../../../components/Toaster";
 import Gateway from "../../../../../../gateway/gateway";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
@@ -1213,7 +1214,7 @@ MultiSelectEmail.propTypes = {
   hasError: PropTypes.bool,
 };
 
-// Generic multi-select with checkbox options (no add-new footer / filter).
+// Generic multi-select with checkbox options and a search filter (no add-new footer).
 const MultiSelectField = ({
   value = [],
   onChange,
@@ -1228,6 +1229,7 @@ const MultiSelectField = ({
   emptyMessage = "No options found",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [filterQuery, setFilterQuery] = useState("");
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -1238,6 +1240,18 @@ const MultiSelectField = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) setFilterQuery("");
+  }, [isOpen]);
+
+  const filterPlaceholder = useMemo(() => deriveSearchPlaceholder(placeholder), [placeholder]);
+
+  const filteredOptions = useMemo(() => {
+    const q = filterQuery.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((o) => String(o.label).toLowerCase().includes(q));
+  }, [options, filterQuery]);
 
   const valuesEqual = (a, b) => String(a) === String(b);
   const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
@@ -1288,15 +1302,25 @@ const MultiSelectField = ({
         <span className="cf-multi-select-arrow">▼</span>
       </div>
       {isOpen && !disabled && (
-        <div className="cf-multi-select-dropdown cf-multi-select-dropdown--menu-height">
+        <div className="cf-multi-select-dropdown cf-multi-select-dropdown--menu-height cf-multi-select-dropdown--filterable">
+          <div className="cf-multi-select-filter" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="text"
+              className="cf-multi-select-filter-input"
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              placeholder={filterPlaceholder}
+              autoComplete="off"
+            />
+          </div>
           <div className="cf-multi-select-results">
             <div className="cf-multi-select-options-scroll">
               {isLoading ? (
                 <div className="cf-multi-select-no-results">Loading...</div>
-              ) : options.length === 0 ? (
-                <div className="cf-multi-select-no-results">{emptyMessage}</div>
+              ) : filteredOptions.length === 0 ? (
+                <div className="cf-multi-select-no-results">{options.length === 0 ? emptyMessage : "No results found"}</div>
               ) : (
-                options.map((option) => {
+                filteredOptions.map((option) => {
                   const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
                   return (
                     <div
@@ -1750,9 +1774,7 @@ const getPreviewRecipients = ({ dailyReportEmailOptions = [], dailyValues = [] }
   return daily.length ? daily.join(", ") : "—";
 };
 
-const getPreviewSubject = ({ cardTitle = "", typeOfCall = "", vesselName = "", port = "" }) => {
-  const normalizedTitle = normalizePreviewValue(cardTitle);
-  if (normalizedTitle) return normalizedTitle;
+const getPreviewSubject = ({ typeOfCall = "", vesselName = "", port = "" }) => {
   const parts = [typeOfCall, vesselName, port].map((item) => normalizePreviewValue(item)).filter(Boolean);
   if (parts.length) return parts.join(" - ");
   return "Appointment Acceptance";
@@ -2054,7 +2076,6 @@ EmailPreviewAttachmentChip.propTypes = {
 
 const EmailPreviewPanel = ({
   ownerOptions,
-  formValues,
   dailyReportEmailOptions,
   callTypeOptions,
   vesselNameOptions,
@@ -2138,7 +2159,6 @@ const EmailPreviewPanel = ({
     fallbackToValue
   );
   const subjectFallback = getPreviewSubject({
-    cardTitle: formValues?.cardTitle || "",
     typeOfCall: getOptionLabel(callTypeOptions, getFieldValue("typeOfCall")) || getFieldValue("typeOfCall"),
     vesselName: getOptionLabel(vesselNameOptions, getFieldValue("vesselName")) || getFieldValue("vesselName"),
     port: getOptionLabel(portSelectOptions, getFieldValue("port")) || getFieldValue("port"),
@@ -2305,7 +2325,6 @@ EmailPreviewPanel.propTypes = {
       label: PropTypes.string,
     })
   ),
-  formValues: PropTypes.object,
   dailyReportEmailOptions: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -3072,7 +3091,6 @@ function General({
     const resolvedToEmail =
       !resolvedToEmailRaw || resolvedToEmailRaw === "—" ? "" : String(resolvedToEmailRaw).trim();
     const subjectFallback = getPreviewSubject({
-      cardTitle: formValues?.cardTitle || "",
       typeOfCall:
         getOptionLabel(callTypeOptions, getFieldValue("typeOfCall")) || getFieldValue("typeOfCall"),
       vesselName:
@@ -5062,7 +5080,7 @@ ${body}
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"), getItem("userName"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -5105,7 +5123,7 @@ ${body}
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"), getItem("userName"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -5267,7 +5285,7 @@ ${body}
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"), getItem("userName"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -5373,7 +5391,7 @@ ${body}
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"), getItem("userName"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -5477,7 +5495,7 @@ ${body}
                               <OwnerField
                                 value={getFieldValue("owner")}
                                 onChange={handleChange("owner")}
-                                options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
+                                options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"), getItem("userName"))}
                                 placeholder="Select owner"
                                 disabled={masterInputsDisabled}
                               />
@@ -6201,7 +6219,6 @@ ${body}
                       <div className="general-info-right">
                         <EmailPreviewPanel
                           ownerOptions={ownerOptions}
-                          formValues={formValues}
                           dailyReportEmailOptions={dailyReportEmailOptions}
                           callTypeOptions={callTypeOptions}
                           vesselNameOptions={vesselNameOptions}
