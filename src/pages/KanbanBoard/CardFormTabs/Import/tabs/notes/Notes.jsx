@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiFileText, FiClock, FiX, FiSend } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
-import "../../../../../../design/scss/comments.scss";
+import "../../../../../../design/scss/notes.scss";
 import callFileService from "../../../../../../services/callFileService";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import { unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
@@ -32,6 +32,19 @@ const isEmptyHtmlContent = (html) => {
 };
 
 const getCardId = (card) => card?.id || card?.card_id || card?.call_id;
+
+const AVATAR_COLORS = ["#00368C", "#0E7C7B", "#8552C6", "#C25E2E", "#2E7D32", "#B23B6B"];
+
+const getAvatarColor = (name) => {
+    const source = name || "?";
+    let hash = 0;
+    for (let i = 0; i < source.length; i += 1) {
+        hash = source.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+const getInitial = (name) => (name || "?").trim().charAt(0).toUpperCase() || "?";
 
 const mapNoteFromResponse = (row) => ({
     id: row.note_id,
@@ -289,25 +302,35 @@ function Notes({ card }) {
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
-            <div className="comments-tab">
-                <div className="comments-tab-layout">
-                    <section className="comments-tab-editor" aria-label="Write a note">
-                        <div className="comments-tab-card comments-tab-card--editor">
-                            <div className="comments-tab-editor-body">
+            <div className="notes-tab">
+                <div className="notes-tab-layout">
+                    <section className="notes-tab-editor" aria-label="Write a note">
+                        <div className="notes-tab-panel">
+                            <div className="notes-tab-editor-body">
+                                <p className="notes-tab-eyebrow">
+                                    {editingNoteId ? "Edit note" : "New note"}
+                                </p>
+
                                 {editingNoteId ? (
-                                    <div className="comments-tab-editing-banner">
+                                    <div className="notes-tab-editing-banner">
+                                        <span className="notes-tab-editing-label">
+                                            <FiEdit2 size={12} />
+                                            Editing note
+                                        </span>
                                         <button
                                             type="button"
-                                            className="subtasks-tab-cancel-btn"
+                                            className="notes-tab-editing-cancel"
                                             onClick={handleEditCancel}
                                             disabled={isSaving}
+                                            aria-label="Cancel editing"
                                         >
-                                            Cancel
+                                            <FiX size={13} />
                                         </button>
                                     </div>
                                 ) : null}
-                                <div className="comments-tab-mention-host">
-                                    <div className="react-quill-wrapper comments-tab-quill">
+
+                                <div className="notes-tab-mention-host">
+                                    <div className="react-quill-wrapper notes-tab-quill">
                                         <ReactQuill
                                             ref={quillRef}
                                             theme="snow"
@@ -322,16 +345,16 @@ function Notes({ card }) {
 
                                     {mentionOpen && (
                                         <div
-                                            className="comments-tab-mention-dropdown"
+                                            className="notes-tab-mention-dropdown"
                                             role="listbox"
                                             aria-label="Mention a user"
                                         >
                                             {isManagersLoading ? (
-                                                <p className="comments-tab-mention-status">
+                                                <p className="notes-tab-mention-status">
                                                     Loading users...
                                                 </p>
                                             ) : filteredManagers.length === 0 ? (
-                                                <p className="comments-tab-mention-status">
+                                                <p className="notes-tab-mention-status">
                                                     No users found
                                                 </p>
                                             ) : (
@@ -339,7 +362,7 @@ function Notes({ card }) {
                                                     <button
                                                         key={manager.user_id}
                                                         type="button"
-                                                        className="comments-tab-mention-option"
+                                                        className="notes-tab-mention-option"
                                                         role="option"
                                                         onMouseDown={(event) =>
                                                             event.preventDefault()
@@ -348,21 +371,19 @@ function Notes({ card }) {
                                                             handleSelectManager(manager)
                                                         }
                                                     >
-                                                        <span className="comments-tab-mention-avatar">
+                                                        <span className="notes-tab-mention-avatar">
                                                             {manager.avatar ? (
                                                                 <img
                                                                     src={manager.avatar}
                                                                     alt=""
                                                                 />
                                                             ) : (
-                                                                <span className="comments-tab-mention-avatar-fallback">
-                                                                    {(manager.user_name || "?")
-                                                                        .charAt(0)
-                                                                        .toUpperCase()}
+                                                                <span className="notes-tab-mention-avatar-fallback">
+                                                                    {getInitial(manager.user_name)}
                                                                 </span>
                                                             )}
                                                         </span>
-                                                        <span className="comments-tab-mention-name">
+                                                        <span className="notes-tab-mention-name">
                                                             {manager.user_name}
                                                         </span>
                                                     </button>
@@ -372,63 +393,87 @@ function Notes({ card }) {
                                     )}
                                 </div>
 
-                                <div className="comments-tab-save-row">
+                                <div className="notes-tab-save-row">
                                     <button
                                         type="button"
-                                        className="comments-tab-save-btn"
+                                        className="notes-tab-save-btn"
                                         onClick={handleSave}
                                         disabled={isSaving || isEmptyHtmlContent(noteText)}
                                     >
+                                        <FiSend size={14} />
                                         {editingNoteId
                                             ? (isSaving ? "Updating..." : "Update")
-                                            : (isSaving ? "Saving..." : "Save")}
+                                            : (isSaving ? "Saving..." : "Save note")}
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    <section className="comments-tab-list" aria-label="Notes">
-                        <div className="comments-tab-card comments-tab-card--list">
-                            <div className="comments-tab-list-scroll">
+                    <section className="notes-tab-list" aria-label="Notes">
+                        <div className="notes-tab-panel">
+                            <div className="notes-tab-list-header">
+                                <p className="notes-tab-list-title">Notes</p>
+                                {hasNotes ? (
+                                    <span className="notes-tab-list-count">{notes.length}</span>
+                                ) : null}
+                            </div>
+                            <div className="notes-tab-list-scroll">
                                 {isNotesLoading ? (
-                                    <p className="comments-tab-empty">Loading notes...</p>
+                                    <div className="notes-tab-empty">
+                                        <p>Loading notes...</p>
+                                    </div>
                                 ) : !hasNotes ? (
-                                    <p className="comments-tab-empty">No notes added yet.</p>
+                                    <div className="notes-tab-empty">
+                                        <FiFileText size={28} />
+                                        <p>No notes added yet.</p>
+                                    </div>
                                 ) : (
-                                    <ul className="comments-tab-list-items">
+                                    <ul className="notes-tab-list-items">
                                         {notes.map((note, index) => (
-                                            <li className="comments-tab-comment-card" key={note.id ?? index}>
-                                                <div className="comments-tab-comment-avatar" />
-                                                <div className="comments-tab-comment-content">
-                                                    <div className="comments-tab-comment-header">
+                                            <li
+                                                className={`notes-tab-note-card${editingNoteId === note.id ? " notes-tab-note-card--editing" : ""}`}
+                                                key={note.id ?? index}
+                                            >
+                                                <div
+                                                    className="notes-tab-note-avatar"
+                                                    style={{ background: getAvatarColor(note.userName) }}
+                                                >
+                                                    {getInitial(note.userName)}
+                                                </div>
+                                                <div className="notes-tab-note-content">
+                                                    <div className="notes-tab-note-header">
                                                         {note.userName ? (
-                                                            <p className="comments-tab-comment-author">{note.userName}</p>
+                                                            <p className="notes-tab-note-author">{note.userName}</p>
                                                         ) : <span />}
-                                                        <div className="comments-tab-comment-actions">
+                                                        <div className="notes-tab-note-actions">
                                                             <button
                                                                 type="button"
-                                                                className="subtasks-tab-edit-btn"
+                                                                className="notes-tab-icon-btn"
                                                                 onClick={() => handleEditOpen(note)}
                                                                 aria-label="Edit note"
                                                                 disabled={isSaving}
                                                             >
-                                                                <FiEdit2 size={14} />
+                                                                <FiEdit2 size={13} />
                                                             </button>
                                                             <button
                                                                 type="button"
-                                                                className="subtasks-tab-edit-btn"
+                                                                className="notes-tab-icon-btn notes-tab-icon-btn--danger"
                                                                 onClick={() => handleDeleteOpen(note)}
                                                                 aria-label="Delete note"
                                                                 disabled={isSaving}
                                                             >
-                                                                <FiTrash2 size={14} />
+                                                                <FiTrash2 size={13} />
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }} />
+                                                    <div
+                                                        className="notes-tab-note-body"
+                                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }}
+                                                    />
                                                     {note.updated_date || note.created_date ? (
-                                                        <p className="notes-tab-note-updated">
+                                                        <p className="notes-tab-note-time">
+                                                            <FiClock size={11} />
                                                             {note.updated_date ?? note.created_date}
                                                         </p>
                                                     ) : null}
