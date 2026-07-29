@@ -116,12 +116,22 @@ const buildWhenFieldsWatchList = (formState) => formState.whenFields.map((f) => 
 // rejected. "every_week"/"every_month" (the other two RECURRENCE_SCHEDULE_OPTIONS entries)
 // have no confirmed regular_field_id yet, so they're intentionally left unsent rather than
 // guessed.
-const RECURRENCE_REGULAR_FIELD_ID = {
+export const RECURRENCE_REGULAR_FIELD_ID = {
   every_day: 20,
   every_workday: 63,
   advanced_schedule: 64,
   predefined_interval: 65,
 };
+
+// The 4 reserved regular_field_ids above are recurrence-pill markers, not real watchable
+// card fields — a saved rule's when_fields always echoes one of them back (see
+// buildRecurrenceWhenField below), and BusinessRuleFormModal.jsx's edit-mode restore effect
+// must exclude them from the separate "watch this field" chip list it rebuilds from the same
+// when_fields array. Without this, reopening a recurring-create-cards rule silently carries
+// that marker into whenFields state (invisible in the UI, since this trigger type renders the
+// recurrence pill instead of the chip list) and re-saving sends it back as a stray duplicate
+// when_fields entry alongside the real recurrence entry.
+export const RECURRENCE_REGULAR_FIELD_IDS = Object.values(RECURRENCE_REGULAR_FIELD_ID);
 
 // RRULE's 2-letter weekday codes (see WEEKDAY_KEY_TO_RRULE in BusinessRuleFormModal.jsx) to
 // the 3-letter cron abbreviation the advanced_schedule example actually uses

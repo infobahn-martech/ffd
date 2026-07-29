@@ -20,7 +20,7 @@ import {
   TRIGGER_CODE_TO_ICON, RELATIONAL_CREATE_ACTION_ORIGIN_LABELS,
 } from './businessRulesData';
 import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
-import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels, isCreateSubtaskAction, getRelationTypeFromLabel } from './buildBusinessRulePayload';
+import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels, isCreateSubtaskAction, getRelationTypeFromLabel, RECURRENCE_REGULAR_FIELD_IDS } from './buildBusinessRulePayload';
 import ThenGroupRawSummary from './ThenGroupRawSummary';
 import DateTimePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DateTimePickerField';
 import DynamicIcon from './DynamicIcon';
@@ -7188,6 +7188,11 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
     if (!isEditMode || !businessRuleDetailsReady) return;
     const realWhenFields = (businessRuleDetails.when_fields ?? [])
       .filter((wf) => wf.regular_field_id != null || wf.custom_field_id != null)
+      // Recurring-schedule marker fields (every_day/every_workday/advanced_schedule/
+      // predefined_interval) are restored separately into recurrenceSchedule state below —
+      // they aren't real "watch this field" chips, so must not leak into whenFields here.
+      // See RECURRENCE_REGULAR_FIELD_IDS in buildBusinessRulePayload.js for why.
+      .filter((wf) => !RECURRENCE_REGULAR_FIELD_IDS.includes(Number(wf.regular_field_id)))
       .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0))
       .map((wf) => {
         const fieldType = wf.regular_field_id != null ? 'regular' : 'custom';
