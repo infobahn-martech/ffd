@@ -26,6 +26,10 @@ export default function SwimlaneColumnCell({
   layoutView = null,
 }) {
   const EMPTY_DROP_ZONE_MIN_HEIGHT = 720;
+  /* Only fall back to the big placeholder height when nothing else in the row sets a
+     height — otherwise an empty column would stretch the whole swimlane row to 720px
+     even when its siblings only need ~200px (all cells share one CSS grid row). */
+  const isUnconstrainedEmpty = cards.length === 0 && !columnHeight;
   const cellRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
@@ -39,7 +43,10 @@ export default function SwimlaneColumnCell({
   };
 
   useLayoutEffect(() => {
-    if (!cellRef.current || !onHeightChange) return;
+    /* Empty columns must never report their height into the shared row-height pool: their
+       own placeholder min-height (see isUnconstrainedEmpty) would otherwise get baked into
+       maxColumnHeights and stretch every column in the row, with no way to shrink back down. */
+    if (!cellRef.current || !onHeightChange || cards.length === 0) return;
 
     const measureHeight = () => {
       if (cellRef.current) {
@@ -62,7 +69,7 @@ export default function SwimlaneColumnCell({
   }, [cards.length, column.id, laneId, onHeightChange, isCollapsed]);
 
   useEffect(() => {
-    if (!cellRef.current || !onHeightChange) return;
+    if (!cellRef.current || !onHeightChange || cards.length === 0) return;
 
     const measureHeight = () => {
       if (cellRef.current) {
@@ -120,7 +127,7 @@ export default function SwimlaneColumnCell({
           <div
             className={`card-list card-list--swimlane-grid ${
               snapshot.isDraggingOver ? "drag-over" : ""
-            } ${cards.length === 0 ? "card-list--empty" : ""}`}
+            } ${isUnconstrainedEmpty ? "card-list--empty" : ""}`}
             ref={provided.innerRef}
             {...provided.droppableProps}
             style={{
@@ -132,7 +139,7 @@ export default function SwimlaneColumnCell({
               justifyItems: "start",
               alignItems: "start",
               alignContent: "start",
-              minHeight: cards.length === 0 ? `${EMPTY_DROP_ZONE_MIN_HEIGHT}px` : undefined,
+              minHeight: isUnconstrainedEmpty ? `${EMPTY_DROP_ZONE_MIN_HEIGHT}px` : undefined,
               ...(column.backgroundColor ? { backgroundColor: column.backgroundColor } : {}),
             }}
           >
