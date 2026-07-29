@@ -1166,8 +1166,11 @@ const createEmptyPartySection = () => ({
                   their turn — once they've proceeded (workflow has moved
                   past credit_controller), the Manager card becomes visible
                   to them too, but stays locked (view-only) via the existing
-                  fieldsDisabled/actionsDisabled role checks below. */}
-              {!isControllerRole || !stageActive.credit_controller ? (
+                  fieldsDisabled/actionsDisabled role checks below.
+                  isCeoRole is checked first so the TEMPORARY role_id "2"/"3"
+                  CEO-testers (see isCeoRole above) always see this card too,
+                  same as the CEO card's own bypass below. */}
+              {isCeoRole || !isControllerRole || !stageActive.credit_controller ? (
                 <ApprovalCard
                   title="Manager - Offshore Marine Logistics Comments"
                   commentsLabel="Manager - Offshore Marine Logistics comments"

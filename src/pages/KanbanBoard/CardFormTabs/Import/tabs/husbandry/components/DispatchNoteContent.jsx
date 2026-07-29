@@ -895,7 +895,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                       <div className="dispatch-edit-checkbox-group">
                         <label className="dispatch-edit-checkbox-label">
-                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.packing_required || false} onChange={(e) => handleEditItemChange(item.id, "packing_required", e.target.checked)} disabled={!item.packing_required_original} />
+                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.packing_required || false} onChange={(e) => handleEditItemChange(item.id, "packing_required", e.target.checked)} />
                           <span>Packing Required</span>
                         </label>
                         {item.packing_required && (
@@ -916,7 +916,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
 
                       <div className="dispatch-edit-checkbox-group">
                         <label className="dispatch-edit-checkbox-label">
-                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.transportation_required || false} onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)} disabled={!item.transportation_required_original} />
+                          <input type="checkbox" className="dispatch-edit-checkbox" checked={item.transportation_required || false} onChange={(e) => handleEditItemChange(item.id, "transportation_required", e.target.checked)} />
                           <span>Transportation Required</span>
                         </label>
                         {item.transportation_required && (
