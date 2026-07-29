@@ -1696,6 +1696,10 @@ function CardForm({
   const isCustomVariant = effectiveVariant === "custom";
   const isTaxiBoatVariant = effectiveVariant === "taxi-boat";
   const isDAVariant = effectiveVariant === "da";
+  // kanban_board/get_full_board/{id} echoes board_id per workflow (data.js mapBoardWorkflowFromApi);
+  // boardId here is the same id this board was fetched with, so board_id "3" identifies the
+  // real Centralized DA Desk board — this replaces the old static/demo DA workflow injection.
+  const isDABoard = String(boardId ?? "") === "3";
   const isGROStyleView = isGROVariant || isCustomVariant;
   const isDriverStyleView = isDriverVariant || isHotelVariant;
   const isSubTaskCard = card?.isSubTask === true;
@@ -2024,22 +2028,22 @@ function CardForm({
 
   const TOP_TABS = useMemo(() => {
     const base = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
-    const withDAOnly = isDAVariant && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
+    const withDAOnly = (isDAVariant || isDABoard) && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
     const withExport = showExportTabs && !isDAModule && !isSimplifiedMode
       ? withExportTabs(withDAOnly)
       : withDAOnly;
     return isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
-  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, isHusbandryCall]);
+  }, [isDAModule, isSimplifiedMode, isDAVariant, isDABoard, showExportTabs, isHusbandryCall]);
 
   const ENABLED_TABS = useMemo(() => {
     const base = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
-    const withDAOnly = isDAVariant && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
+    const withDAOnly = (isDAVariant || isDABoard) && !isDAModule && !isSimplifiedMode ? [...base, DA_ONLY_TAB] : base;
     const withExport = showExportTabs && !isDAModule && !isSimplifiedMode
       ? withExportTabs(withDAOnly)
       : withDAOnly;
     const withHusbandry = isHusbandryCall ? withExport.filter((tab) => tab !== "Operation") : withExport;
     return lockOperationForExport ? withHusbandry.filter((tab) => tab !== "Operation") : withHusbandry;
-  }, [isDAModule, isSimplifiedMode, isDAVariant, showExportTabs, isHusbandryCall, lockOperationForExport]);
+  }, [isDAModule, isSimplifiedMode, isDAVariant, isDABoard, showExportTabs, isHusbandryCall, lockOperationForExport]);
 
   useEffect(() => {
     setActiveTopTab(defaultTab);
