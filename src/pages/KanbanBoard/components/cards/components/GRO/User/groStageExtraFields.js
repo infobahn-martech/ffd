@@ -1,7 +1,7 @@
 import { buildGroArrivalTimeObjectsPayload } from "./groCardUtils";
 
 export const GRO_CREW_IMMIGRATION_STATUS = {
-  ON_HOLD: "On Hold",
+  ON_HOLD: "Pending",
   COMPLETED: "Completed",
 };
 
@@ -31,6 +31,7 @@ export const GRO_EXTRA_STAGE_FIELD_KEYS = {
 export const createEmptyExtraStageFields = () => ({
   crew_immigration_status: "",
   on_hold_reason: "",
+  immigration_doc: null,
   inward_clearance_copy: null,
   custom_inspection_status: "",
   failed_reason: "",
@@ -59,7 +60,7 @@ export const validateGroExtraStageFields = (stageId, fields = {}) => {
       errors.crew_immigration_status = "Crew Immigration Status is required.";
     }
     if (data.crew_immigration_status === GRO_CREW_IMMIGRATION_STATUS.ON_HOLD && !trimText(data.on_hold_reason)) {
-      errors.on_hold_reason = "On Hold Reason is required.";
+      errors.on_hold_reason = "Remarks is required.";
     }
   }
 
@@ -108,6 +109,7 @@ export const appendGroArrivalStageFieldsToFormData = (formData, stageId, fields 
     if (data.crew_immigration_status === GRO_CREW_IMMIGRATION_STATUS.ON_HOLD) {
       appendTextField(formData, "immigration_remarks", data.on_hold_reason);
     }
+    appendFileField(formData, "immigration_doc", data.immigration_doc);
   }
 
   if (stageId === 8) {
@@ -175,6 +177,7 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
   if (stageId === 7) {
     if (t.immigration_status) scalarValues.crew_immigration_status = t.immigration_status;
     if (t.immigration_remarks) scalarValues.on_hold_reason = t.immigration_remarks;
+    fileInfo.immigration_doc = resolveGroSavedFileInfo(t.immigration_doc);
   }
 
   if (stageId === 8) {
