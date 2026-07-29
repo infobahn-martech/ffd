@@ -741,6 +741,13 @@ const createEmptyPartySection = () => ({
     // getApprovalStageGating above — this just surfaces that state visibly to
     // every role viewing the tab, not only the CEO who put it on hold.
     const isOnHold = details?.workflow?.current_stage === "on_hold";
+    // While on hold, CEO's stage doesn't match getApprovalStageGating's three
+    // known stages (current_stage is "on_hold", not "ceo"), so stageActive.ceo
+    // alone would lock the CEO out of their own card. The CEO needs to stay
+    // able to act — enter values, upload documents, and hit Approved — to
+    // resolve the hold; only the "On Hold" button itself should disable once
+    // already on hold, since re-clicking it is a no-op.
+    const isCeoStageUsable = stageActive.ceo || isOnHold;
 
     // "Approved" doesn't advance workflow.current_stage (only "proceed_to_*"
     // does), so stageActive alone can't stop the Approved button from being
@@ -1142,7 +1149,7 @@ const createEmptyPartySection = () => ({
                     ? "Already approved by CEO."
                     : getStageWaitMessage(details?.workflow, "ceo")
                 }
-                isActiveStage={stageActive.ceo && isCeoRole}
+                isActiveStage={isCeoStageUsable && isCeoRole}
               />
             </div>
           </div>
