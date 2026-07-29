@@ -65,14 +65,16 @@
 
   // Buttons disable silently with no explanation otherwise — this tells a
   // section's viewer (of any role) which earlier stage still needs to act
-  // before this section's own buttons unlock. Sections already passed (stage
-  // index before current) or the currently active one get no message; only
-  // ones still pending do.
+  // before this section's own buttons unlock. Only the stage immediately
+  // next in line shows this — e.g. while Credit Controller is still active,
+  // the Manager card says "Waiting for Credit Controller" but the CEO card
+  // (two steps away) stays silent until it's actually Manager's turn, since
+  // a message about a stage that isn't even next yet is just premature noise.
   const getStageWaitMessage = (effectiveStage, stage) => {
     if (!effectiveStage || effectiveStage === stage) return null;
     const currentIndex = APPROVAL_STAGE_ORDER.indexOf(effectiveStage);
     const stageIndex = APPROVAL_STAGE_ORDER.indexOf(stage);
-    if (currentIndex === -1 || stageIndex <= currentIndex) return null;
+    if (currentIndex === -1 || stageIndex !== currentIndex + 1) return null;
     return `Waiting for ${APPROVAL_STAGE_LABELS[effectiveStage]} to proceed`;
   };
 
@@ -794,13 +796,11 @@ const createEmptyPartySection = () => ({
     // approves/proceeds, that exception closes and DA reverts to view-only
     // like everyone else — see canEditCreditControllerSection below.
     const isDaRole = String(userRoleId) === "22";
-    // TEMPORARY: role_id "2" (Credit Controller) and role_id "3" (Port
-    // Supervisor) are also being let in as CEO for testing, alongside the
-    // real CEO role_id "23" — per explicit user request to test CEO behavior
-    // without a real CEO login. Remove both extra checks once CEO testing
+    // TEMPORARY: role_id "3" (Port Supervisor) is also being let in as CEO
+    // for testing, alongside the real CEO role_id "23" — per explicit user
+    // request. Remove `|| String(userRoleId) === "3"` once CEO testing
     // is done.
-    const isCeoRole =
-      String(userRoleId) === "23" || String(userRoleId) === "2" || String(userRoleId) === "3";
+    const isCeoRole = String(userRoleId) === "23" || String(userRoleId) === "3";
     // Vessel party image uploads are restricted to Credit Controller and CEO
     // only, per user confirmation — not Manager, unlike the section gating above.
     const canEditPartyImages = isControllerRole || isCeoRole;
@@ -1199,13 +1199,16 @@ const createEmptyPartySection = () => ({
                 />
               ) : null}
 
-              {/* Same phased reveal as the Manager card above: Manager only
-                  sees the CEO card once they've proceeded past their own
-                  stage. Controller never sees it; CEO/other roles always do.
-                  isCeoRole is checked first so the TEMPORARY role_id "2"/"3"
-                  CEO-testers (see isCeoRole above) always see this card
-                  despite role_id "2" also being isControllerRole. */}
-              {isCeoRole || (!isControllerRole && (!isManagerRole || isStagePassed(effectiveStage, "manager_ofm"))) ? (
+              {/* Same phased reveal as the Manager card above, and now also
+                  applied to CEO's own view of their own card: both Manager
+                  and CEO only see the CEO card once Manager has proceeded
+                  (isStagePassed handles the "Manager clicked Approved but
+                  didn't proceed" case correctly — that keeps effectiveStage
+                  at "manager_ofm", so it stays hidden). Controller never
+                  sees it; every other role (DA, generic viewers) always
+                  does. */}
+              {!isControllerRole &&
+              ((!isManagerRole && !isCeoRole) || isStagePassed(effectiveStage, "manager_ofm")) ? (
                 <ApprovalCard
                   title="CEO Comments"
                   commentsLabel="CEO comments"
