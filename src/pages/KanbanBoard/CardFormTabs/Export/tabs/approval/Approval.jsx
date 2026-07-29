@@ -1055,7 +1055,12 @@ const createEmptyPartySection = () => ({
                 secondaryActionLabel="Proceed to Manager"
                 onPrimaryAction={handleCreditControllerApproved}
                 onSecondaryAction={handleCreditControllerProceedToOperator}
-                actionsDisabled={saveStatus === "saving" || !stageActive.credit_controller || !isControllerRole}
+                actionsDisabled={
+                  saveStatus === "saving" ||
+                  !stageActive.credit_controller ||
+                  !isControllerRole ||
+                  creditControllerApproved
+                }
                 primaryDisabled={
                   saveStatus === "saving" ||
                   !stageActive.credit_controller ||
