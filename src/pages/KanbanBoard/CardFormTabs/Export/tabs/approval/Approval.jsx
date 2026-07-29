@@ -305,7 +305,8 @@ const createEmptyPartySection = () => ({
     secondaryLabel,
     onPrimaryClick,
     onSecondaryClick,
-    disabled,
+    primaryDisabled,
+    secondaryDisabled,
   }) {
     const secondaryButtonClass =
       secondaryLabel === "On Hold" ? "btn-onhold" : "btn-proceed";
@@ -316,7 +317,7 @@ const createEmptyPartySection = () => ({
           type="button"
           className="action-btn btn-approved"
           onClick={onPrimaryClick}
-          disabled={disabled}
+          disabled={primaryDisabled}
         >
           <FiCheckCircle size={22} />
           {primaryLabel}
@@ -326,7 +327,7 @@ const createEmptyPartySection = () => ({
           type="button"
           className={`action-btn ${secondaryButtonClass}`}
           onClick={onSecondaryClick}
-          disabled={disabled}
+          disabled={secondaryDisabled}
         >
           {secondaryLabel === "On Hold" ? (
             <FiClock size={22} />
@@ -344,7 +345,8 @@ const createEmptyPartySection = () => ({
     secondaryLabel: PropTypes.string.isRequired,
     onPrimaryClick: PropTypes.func.isRequired,
     onSecondaryClick: PropTypes.func.isRequired,
-    disabled: PropTypes.bool,
+    primaryDisabled: PropTypes.bool,
+    secondaryDisabled: PropTypes.bool,
   };
 
   // Backend accepts multiple files per section (e.g. credit_controller_documents[]
@@ -479,6 +481,8 @@ const createEmptyPartySection = () => ({
     onSecondaryAction,
     helperText,
     actionsDisabled,
+    primaryDisabled,
+    secondaryDisabled,
     fieldsDisabled = false,
     stageWaitMessage,
     isActiveStage = false,
@@ -513,7 +517,8 @@ const createEmptyPartySection = () => ({
             secondaryLabel={secondaryActionLabel}
             onPrimaryClick={onPrimaryAction}
             onSecondaryClick={onSecondaryAction}
-            disabled={actionsDisabled}
+            primaryDisabled={primaryDisabled ?? actionsDisabled}
+            secondaryDisabled={secondaryDisabled ?? actionsDisabled}
           />
           {stageWaitMessage ? <p className="approval-stage-wait-text">{stageWaitMessage}</p> : null}
         </div>
@@ -538,6 +543,8 @@ const createEmptyPartySection = () => ({
     helperText: PropTypes.string,
     fieldsDisabled: PropTypes.bool,
     actionsDisabled: PropTypes.bool,
+    primaryDisabled: PropTypes.bool,
+    secondaryDisabled: PropTypes.bool,
     stageWaitMessage: PropTypes.string,
     isActiveStage: PropTypes.bool,
   };
@@ -736,6 +743,13 @@ const createEmptyPartySection = () => ({
     // getApprovalStageGating above — this just surfaces that state visibly to
     // every role viewing the tab, not only the CEO who put it on hold.
     const isOnHold = details?.workflow?.current_stage === "on_hold";
+    // While on hold, CEO's stage doesn't match getApprovalStageGating's three
+    // known stages (current_stage is "on_hold", not "ceo"), so stageActive.ceo
+    // alone would lock the CEO out of their own card. The CEO needs to stay
+    // able to act — enter values, upload documents, and hit Approved — to
+    // resolve the hold; only the "On Hold" button itself should disable once
+    // already on hold, since re-clicking it is a no-op.
+    const isCeoStageUsable = stageActive.ceo || isOnHold;
 
     useEffect(() => {
       if (callId) {
@@ -1076,12 +1090,13 @@ const createEmptyPartySection = () => ({
                 onPrimaryAction={handleCeoApproved}
                 onSecondaryAction={handleCeoOnHold}
                 helperText="Require Digital Signature of CEO"
-                actionsDisabled={saveStatus === "saving" || !stageActive.ceo || !isCeoRole}
+                primaryDisabled={saveStatus === "saving" || !isCeoStageUsable || !isCeoRole}
+                secondaryDisabled={saveStatus === "saving" || !stageActive.ceo || !isCeoRole || isOnHold}
                 fieldsDisabled={!isCeoRole}
                 stageWaitMessage={
                   isOnHold ? "This process is on hold." : getStageWaitMessage(details?.workflow, "ceo")
                 }
-                isActiveStage={stageActive.ceo && isCeoRole}
+                isActiveStage={isCeoStageUsable && isCeoRole}
               />
             </div>
           </div>
