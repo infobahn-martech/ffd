@@ -17,6 +17,7 @@ function SalesOrder({
       <div className="operation-content-container">
         <div className="operation-right">
           <SalesOrderList
+            card={card}
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}

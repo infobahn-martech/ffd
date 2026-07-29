@@ -4,8 +4,9 @@ import { FiFilePlus, FiFileText, FiClipboard, FiTool, FiCheck, FiChevronLeft, Fi
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../../../design/scss/salesOrder.scss";
-import { PORT_OPTIONS } from "../../../../../../shared/constants/ports";
+import { PORT_OPTIONS, PORT_OPTIONS_WITH_ID } from "../../../../../../shared/constants/ports";
 import salesOrderService from "../../../../../../services/salesOrderService";
+import callFileService from "../../../../../../services/callFileService";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
 import GeneratePOModal from "./GeneratePOModal";
@@ -268,6 +269,21 @@ PreviewModal.propTypes = {
 
 const TAX_CODE_OPTIONS = ["15%", "5%", "0%"];
 const TYPE_OF_PO_OPTIONS = ["Inhouse", "Outhouse PO", "Multiple PO"];
+
+const EMPTY_NEW_ITEM_FORM = {
+  callFile: "",
+  itemNo: "",
+  tariffId: "",
+  itemDescription: "",
+  qty: "",
+  unitPrice: "",
+  discount: "0",
+  taxCode: "15%",
+  typeOfPo: "",
+  supplierCode: "",
+  supplierName: "",
+  documents: [],
+};
 
 const isThirdParty = (value) => value === 1 || value === "1" || value === true;
 
@@ -576,6 +592,7 @@ SalesOrderPagination.propTypes = {
 };
 
 const SalesOrderList = ({
+  card,
   formValues,
   handleChange,
   cardColor,
@@ -617,19 +634,56 @@ const SalesOrderList = ({
   const [showSummaryPopover, setShowSummaryPopover] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const [newItemForm, setNewItemForm] = useState({
-    callFile: "",
-    itemNo: "",
-    itemDescription: "",
-    qty: "",
-    unitPrice: "",
-    discount: "0",
-    taxCode: "15%",
-    typeOfPo: "",
-    supplierCode: "",
-    supplierName: "",
-    documents: [],
-  });
+  const [newItemForm, setNewItemForm] = useState(EMPTY_NEW_ITEM_FORM);
+
+  // Item code lookup + item details autofill (sales_order/get_item_codes, sales_order/get_item_details)
+  const [itemCodeOptions, setItemCodeOptions] = useState([]);
+  const [isLoadingItemCodes, setIsLoadingItemCodes] = useState(false);
+  const [isLoadingItemDetails, setIsLoadingItemDetails] = useState(false);
+  const [isSavingItem, setIsSavingItem] = useState(false);
+
+  const callId = card?.call_id ?? card?.callId ?? null;
+
+  // card_file/get_call_detail — the kanban `card` prop doesn't carry port_id/main_billing_entity_id,
+  // so fetch it directly (same pattern used by Operation.jsx / General.jsx).
+  const [callDetailData, setCallDetailData] = useState(null);
+
+  useEffect(() => {
+    if (!callId) {
+      setCallDetailData(null);
+      return;
+    }
+    let cancelled = false;
+    callFileService
+      .getCallDetail(callId)
+      .then((response) => {
+        if (cancelled) return;
+        const body = response?.data;
+        setCallDetailData(body?.data ?? body ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setCallDetailData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
+
+  const entityId =
+    callDetailData?.main_billing_entity_id ??
+    formValues.mainBillingEntity ??
+    card?.main_billing_entity_id ??
+    card?.mainBillingEntity ??
+    null;
+  const portId = useMemo(
+    () =>
+      callDetailData?.port_id ??
+      card?.port_id ??
+      card?.portId ??
+      PORT_OPTIONS_WITH_ID.find((p) => p.name === soPort)?.id ??
+      null,
+    [callDetailData, card, soPort]
+  );
 
   // State for checkbox selection (exclude DA module)
   const [selectedItems, setSelectedItems] = useState(new Set());
@@ -690,6 +744,34 @@ const SalesOrderList = ({
   };
 
   const { grouped, ungrouped } = groupByCallFile(paginatedOrderList);
+
+  // Load item codes for the SO's port as soon as the Sales Order tab is opened
+  useEffect(() => {
+    if (!portId) {
+      setItemCodeOptions([]);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingItemCodes(true);
+    salesOrderService
+      .getItemCodes(portId)
+      .then((response) => {
+        if (cancelled) return;
+        const body = response?.data;
+        setItemCodeOptions(body?.status === "success" && Array.isArray(body?.data) ? body.data : []);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setItemCodeOptions([]);
+        useAlertReducer.getState().error("Failed to load item codes for the selected port.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingItemCodes(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [portId]);
 
   // Toggle accordion for callFile
   const toggleCallFileAccordion = (callFile) => {
@@ -860,19 +942,7 @@ const SalesOrderList = ({
   };
 
   const handleAddNewItem = () => {
-    setNewItemForm({
-      callFile: "",
-      itemNo: "",
-      itemDescription: "",
-      qty: "",
-      unitPrice: "",
-      discount: "0",
-      taxCode: "15%",
-      typeOfPo: "",
-      supplierCode: "",
-      supplierName: "",
-      documents: [],
-    });
+    setNewItemForm(EMPTY_NEW_ITEM_FORM);
     setIsAccordionOpen(true);
   };
 
@@ -883,44 +953,103 @@ const SalesOrderList = ({
     }));
   };
 
-  const handleSaveNewItem = () => {
-    if (!newItemForm.itemNo || !newItemForm.itemDescription) {
-      alert("Please fill in Item No and Item Description");
+  // Item code selected from the port's tariff list — autofill description/price via get_item_details
+  const handleItemCodeSelect = async (itemCode) => {
+    const option = itemCodeOptions.find((o) => o.item_code === itemCode);
+    setNewItemForm((prev) => ({ ...prev, itemNo: itemCode, tariffId: option?.tariff_id ?? "" }));
+
+    if (!option?.tariff_id) return;
+
+    setIsLoadingItemDetails(true);
+    try {
+      const response = await salesOrderService.getItemDetails(option.tariff_id, entityId);
+      const body = response?.data;
+      if (body?.status === "success" && body?.data) {
+        const details = body.data;
+        setNewItemForm((prev) => ({
+          ...prev,
+          itemDescription: details.item_name || prev.itemDescription,
+          unitPrice: details.price ?? details.default_price ?? prev.unitPrice,
+        }));
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to load item details.";
+      useAlertReducer.getState().error(msg);
+    } finally {
+      setIsLoadingItemDetails(false);
+    }
+  };
+
+  const handleSaveNewItem = async () => {
+    if (!newItemForm.tariffId || !newItemForm.itemDescription) {
+      alert("Please select an Item No");
       return;
     }
+    if (!callId) {
+      useAlertReducer.getState().error("No call identifier available for this card.");
+      return;
+    }
+    if (isSavingItem) return;
 
-    const currentList = salesOrderList.length > 0 ? salesOrderList : [];
-    const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
-
-    const newItem = {
-      id: maxId + 1,
-      callFile: newItemForm.callFile || null,
-      itemNo: newItemForm.itemNo,
-      itemDescription: newItemForm.itemDescription,
-      qty: parseFloat(newItemForm.qty) || 1,
-      unitPrice: parseFloat(newItemForm.unitPrice) || 0,
+    const payload = {
+      call_id: callId,
+      tariff_id: newItemForm.tariffId,
+      quantity: parseFloat(newItemForm.qty) || 1,
+      type_PO: newItemForm.typeOfPo || "",
+      supporting_docu: (newItemForm.documents || []).map((d) => d.name).join(", "),
+      vendor_id: newItemForm.supplierCode || "",
       discount: parseFloat(newItemForm.discount) || 0,
-      taxCode: newItemForm.taxCode || "15%",
-      typeOfPo: newItemForm.typeOfPo || "",
-      supplierCode: newItemForm.supplierCode || "",
-      supplierName: newItemForm.supplierName || "",
-      documents: newItemForm.documents || [],
-      poStatus: "Draft",
-      workOrder: "",
     };
-    newItem.totalAmount = calcRowTotal(newItem);
 
-    handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
+    setIsSavingItem(true);
+    try {
+      const response = await salesOrderService.saveSalesOrderItem(payload);
+      const body = response?.data;
+      if (body?.status !== "success") {
+        throw new Error(body?.message || "Failed to save sales order item.");
+      }
 
-    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "", documents: [] };
-    setIsAccordionOpen(false);
-    setNewItemForm(emptyForm);
+      const currentList = salesOrderList.length > 0 ? salesOrderList : [];
+      const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
+
+      const newItem = {
+        id: body.so_item_id ?? maxId + 1,
+        callFile: newItemForm.callFile || null,
+        itemNo: newItemForm.itemNo,
+        itemDescription: newItemForm.itemDescription,
+        qty: parseFloat(newItemForm.qty) || 1,
+        unitPrice: parseFloat(newItemForm.unitPrice) || 0,
+        discount: parseFloat(newItemForm.discount) || 0,
+        taxCode: newItemForm.taxCode || "15%",
+        typeOfPo: newItemForm.typeOfPo || "",
+        supplierCode: newItemForm.supplierCode || "",
+        supplierName: newItemForm.supplierName || "",
+        documents: newItemForm.documents || [],
+        poStatus: "Draft",
+        workOrder: "",
+      };
+      newItem.totalAmount = calcRowTotal(newItem);
+
+      handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
+      useAlertReducer.getState().success("Sales order item saved successfully.");
+
+      setIsAccordionOpen(false);
+      setNewItemForm(EMPTY_NEW_ITEM_FORM);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to save sales order item.";
+      useAlertReducer.getState().error(msg);
+    } finally {
+      setIsSavingItem(false);
+    }
   };
 
   const handleCancel = () => {
-    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "", documents: [] };
     setIsAccordionOpen(false);
-    setNewItemForm(emptyForm);
+    setNewItemForm(EMPTY_NEW_ITEM_FORM);
   };
 
   // Checkbox selection handlers (only for non-DA module)
@@ -1543,30 +1672,25 @@ const SalesOrderList = ({
               <div className="sales-order-add-accordion-body">
                 <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
                   <div className="sales-order-add-form-field">
-                    <label>Call File</label>
-                    <select
-                      value={newItemForm.callFile}
-                      onChange={(e) => handleFormChange("callFile", e.target.value)}
-                      className="sales-order-add-form-input"
-                    >
-                      <option value="">Select Call File...</option>
-                      <option value="CALL-001">CALL-001</option>
-                      <option value="CALL-002">CALL-002</option>
-                      <option value="CALL-003">CALL-003</option>
-                      <option value="CALL-004">CALL-004</option>
-                      <option value="CALL-005">CALL-005</option>
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field">
                     <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
-                    <input
-                      type="text"
+                    <select
                       value={newItemForm.itemNo}
-                      onChange={(e) => handleFormChange("itemNo", e.target.value)}
-                      placeholder="e.g., ITEM-001"
+                      onChange={(e) => handleItemCodeSelect(e.target.value)}
                       className="sales-order-add-form-input"
+                      disabled={!portId || isLoadingItemCodes || isLoadingItemDetails}
                       required
-                    />
+                    >
+                      <option value="">
+                        {!portId
+                          ? "Select Port first..."
+                          : isLoadingItemCodes
+                          ? "Loading item codes..."
+                          : "Select Item No..."}
+                      </option>
+                      {itemCodeOptions.map((o) => (
+                        <option key={o.tariff_id} value={o.item_code}>{o.item_code}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
                     <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
@@ -1680,8 +1804,9 @@ const SalesOrderList = ({
                     type="button"
                     onClick={handleSaveNewItem}
                     className="sales-order-add-form-save"
+                    disabled={isSavingItem}
                   >
-                    Save
+                    {isSavingItem ? "Saving..." : "Save"}
                   </button>
                 </div>
               </div>
@@ -2047,6 +2172,7 @@ const SalesOrderList = ({
 };
 
 SalesOrderList.propTypes = {
+  card: PropTypes.object,
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
