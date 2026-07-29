@@ -3,10 +3,12 @@ import PropTypes from "prop-types";
 import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
-  Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown,
+  Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Search,
 } from "lucide-react";
 import billingEntityService from "../../../../../../services/billingEntityService";
+import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
+import { getInitials } from "../../../../../../shared/utils/utils";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
 const SUB_TABS = [
@@ -36,6 +38,7 @@ const TYPE_ICON = {
   "billing-entity": Tag,
   files: UploadCloud,
   readonly: Clock,
+  user: User,
 };
 
 const FIELD_ICON_OVERRIDES = {
@@ -46,8 +49,8 @@ const FIELD_ICON_OVERRIDES = {
 
 const RAW_FIELDS_CONFIG = [
   // Card
-  { key: "owner", label: "Owner", type: "text", group: "card", placeholder: "e.g. Mohammed Al Qallaf" },
-  { key: "coOwners", label: "Co-owners", type: "text", group: "card", placeholder: "e.g. Shibili" },
+  { key: "owner", label: "Owner", type: "user", group: "card", placeholder: "Search a user…" },
+  { key: "coOwners", label: "Co-owners", type: "user", group: "card", placeholder: "Search a user…" },
   { key: "deadline", label: "Deadline", type: "date", group: "card" },
   { key: "size", label: "Size", type: "text", group: "card", placeholder: "e.g. M" },
   { key: "customCardId", label: "Custom card ID", type: "text", group: "card", placeholder: "e.g. DA-2026-001" },
@@ -144,6 +147,123 @@ function TextField({ label, icon, value, placeholder, onChange }) {
 }
 
 TextField.propTypes = {
+  label: PropTypes.string.isRequired,
+  icon: PropTypes.elementType.isRequired,
+  value: PropTypes.string.isRequired,
+  placeholder: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+};
+
+// Owner / Co-owners — avatar-trigger + floating search panel, same interaction pattern as
+// the app's other user pickers (UserPickerField in BusinessRuleFormModal.jsx): a chevron
+// trigger showing the picked user's initials, opening a panel that searches
+// users/get_non_vendor_users instead of accepting arbitrary free text.
+function UserSearchField({ label, icon, value, placeholder, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filterText, setFilterText] = useState("");
+  const [results, setResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceRef = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const query = filterText.trim();
+    clearTimeout(debounceRef.current);
+    setIsSearching(true);
+    debounceRef.current = setTimeout(() => {
+      const params = { page: 1, limit: 10, ...(query ? { search: query } : {}) };
+      userService.getNonVendorUsers({ params })
+        .then(({ data }) => setResults(Array.isArray(data?.data) ? data.data : []))
+        .catch(() => setResults([]))
+        .finally(() => setIsSearching(false));
+    }, query ? 350 : 0);
+    return () => clearTimeout(debounceRef.current);
+  }, [filterText, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onDocMouseDown = (e) => {
+      if (panelRef.current?.contains(e.target)) return;
+      if (triggerRef.current?.contains(e.target)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [isOpen]);
+
+  const handleToggle = () => {
+    setIsOpen((prev) => !prev);
+    setFilterText("");
+  };
+
+  const handlePick = (user) => {
+    onChange(user?.name ?? "");
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="da-cf-tile da-cf-user-search">
+      <TileLabel icon={icon}>{label}</TileLabel>
+      <button
+        type="button"
+        ref={triggerRef}
+        className="da-cf-input da-cf-user-search-trigger"
+        onClick={handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className="da-cf-user-search-avatar" aria-hidden>{getInitials(value) || <User size={13} />}</span>
+        <span className={`da-cf-user-search-trigger-name${value ? "" : " da-cf-user-search-trigger-name--empty"}`}>
+          {value || placeholder || "Select a user"}
+        </span>
+        <ChevronDown size={15} className="da-cf-user-search-chevron" aria-hidden />
+      </button>
+
+      {isOpen && (
+        <div className="da-cf-user-search-dropdown" ref={panelRef}>
+          <div className="da-cf-user-search-filter">
+            <Search size={13} className="da-cf-user-search-filter-icon" aria-hidden />
+            <input
+              type="text"
+              placeholder="Search a user…"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="da-cf-user-search-list">
+            <button type="button" className="da-cf-user-search-row" onClick={() => handlePick(null)}>
+              <span className="da-cf-user-search-avatar" aria-hidden><User size={13} /></span>
+              <span className="da-cf-user-search-name">None</span>
+            </button>
+            {isSearching ? (
+              <div className="da-cf-user-search-empty">Searching…</div>
+            ) : results.length === 0 ? (
+              <div className="da-cf-user-search-empty">No matches</div>
+            ) : (
+              results.map((user) => (
+                <button
+                  type="button"
+                  key={user.user_id}
+                  className="da-cf-user-search-row"
+                  onClick={() => handlePick(user)}
+                >
+                  <span className="da-cf-user-search-avatar" aria-hidden>{getInitials(user.name)}</span>
+                  <span className="da-cf-user-search-name">{user.name}</span>
+                  {user.role && <span className="da-cf-user-search-role">{user.role}</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+UserSearchField.propTypes = {
   label: PropTypes.string.isRequired,
   icon: PropTypes.elementType.isRequired,
   value: PropTypes.string.isRequired,
@@ -632,6 +752,17 @@ function DA({ formValues }) {
       case "text":
         return (
           <TextField
+            key={field.key}
+            label={field.label}
+            icon={field.icon}
+            value={value}
+            placeholder={field.placeholder}
+            onChange={(v) => updateField(field.key, v)}
+          />
+        );
+      case "user":
+        return (
+          <UserSearchField
             key={field.key}
             label={field.label}
             icon={field.icon}

@@ -32,6 +32,7 @@ import useKanbanManagementReducer, { isKanbanManagementRowDisabled } from '../..
 import useAuthReducer from '../../../store/AuthReducer';
 import useWorkFlowReducer from '../../../store/WorkFlowReducer';
 import workflowService from '../../../services/workflowService';
+import userService from '../../../services/userService';
 import { pickForegroundOnSwimlaneBackground } from '../../../pages/EditWorkflows/workflow.utils';
 import { getInitials, stripHtmlTags } from '../../../shared/utils/utils';
 import DatePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DatePickerField';
@@ -5826,6 +5827,33 @@ function UserPickerField({ label, users, valueUserId, onChange }) {
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
 
+  // Backend search (users/get_non_vendor_users?search=...) so Owner/Co-owner isn't limited
+  // to whatever page of users happened to preload into the shared CommonReducer list.
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchDebounceRef = useRef(null);
+  // Kept separately from `users` so a name picked from search results (outside the
+  // preloaded list) still displays correctly on the trigger button.
+  const [pickedUser, setPickedUser] = useState(null);
+
+  useEffect(() => {
+    const query = filterText.trim();
+    clearTimeout(searchDebounceRef.current);
+    if (!query) {
+      setSearchResults(null);
+      setIsSearching(false);
+      return undefined;
+    }
+    setIsSearching(true);
+    searchDebounceRef.current = setTimeout(() => {
+      userService.getNonVendorUsers({ params: { page: 1, limit: 10, search: query } })
+        .then(({ data }) => setSearchResults(Array.isArray(data?.data) ? data.data : []))
+        .catch(() => setSearchResults([]))
+        .finally(() => setIsSearching(false));
+    }, 350);
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [filterText]);
+
   const updatePosition = () => {
     const el = triggerRef.current;
     if (!el) return;
@@ -5869,12 +5897,13 @@ function UserPickerField({ label, users, valueUserId, onChange }) {
     };
   }, [isOpen]);
 
-  const selectedUser = (users ?? []).find((u) => String(u.user_id) === String(valueUserId));
+  const selectedUser = pickedUser
+    ?? (users ?? []).find((u) => String(u.user_id) === String(valueUserId));
   const name = selectedUser?.name || 'None';
-  const query = filterText.trim().toLowerCase();
-  const filteredUsers = query ? (users ?? []).filter((u) => u.name?.toLowerCase().includes(query)) : (users ?? []);
+  const filteredUsers = searchResults ?? (users ?? []);
 
   const handlePick = (user) => {
+    setPickedUser(user ?? null);
     onChange(user?.user_id ?? '');
     setIsOpen(false);
   };
@@ -5916,7 +5945,9 @@ function UserPickerField({ label, users, valueUserId, onChange }) {
                 <span className="br-owner-picker-row-name">None</span>
               </button>
             </div>
-            {filteredUsers.length === 0 ? (
+            {isSearching ? (
+              <div className="br-property-picker-empty">Searching…</div>
+            ) : filteredUsers.length === 0 ? (
               <div className="br-property-picker-empty">No matches</div>
             ) : (
               filteredUsers.map((user) => (
