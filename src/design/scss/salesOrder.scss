@@ -328,6 +328,80 @@
   cursor: default;
 }
 
+/* Make the shared MUI DatePickerField look like the plain so-header-input text fields
+   around it (the field's own box/border already comes from .so-header-field). */
+.so-header-field .so-header-input.cf-datetime-picker .cf-datetime-input-field {
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root {
+    min-height: auto;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    font-family: "Manrope", sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  .MuiPickersInputBase-root:hover,
+  .MuiOutlinedInput-root:hover,
+  .MuiInputBase-root:hover,
+  .MuiPickersInputBase-root.Mui-focused,
+  .MuiOutlinedInput-root.Mui-focused,
+  .MuiInputBase-root.Mui-focused {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  // MUI X Date Pickers v9 renders the field as a PickersOutlinedInput, whose border
+  // lives on this fieldset (not .MuiOutlinedInput-notchedOutline like classic MUI inputs).
+  .MuiPickersInputBase-notchedOutline,
+  .MuiPickersOutlinedInput-notchedOutline {
+    border: none !important;
+  }
+
+  .MuiOutlinedInput-input,
+  .MuiPickersInputBase-sectionsContainer {
+    padding: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  .MuiOutlinedInput-input::placeholder {
+    font-weight: 500;
+    color: #b3bace;
+    font-size: 13.5px;
+    opacity: 1;
+  }
+
+  .MuiInputAdornment-root {
+    margin-left: 4px;
+  }
+
+  .MuiSvgIcon-root {
+    color: #99a1b7;
+    font-size: 16px;
+  }
+
+  .MuiPickersInputBase-root.Mui-disabled,
+  .MuiOutlinedInput-root.Mui-disabled,
+  .MuiInputBase-root.Mui-disabled {
+    background: transparent !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #5b6178 !important;
+  }
+
+  .MuiPickersInputBase-root.Mui-disabled .MuiSvgIcon-root,
+  .MuiOutlinedInput-root.Mui-disabled .MuiSvgIcon-root,
+  .MuiInputBase-root.Mui-disabled .MuiSvgIcon-root {
+    opacity: 0.6;
+  }
+}
+
 .so-input-required {
   color: #c0392b;
 }

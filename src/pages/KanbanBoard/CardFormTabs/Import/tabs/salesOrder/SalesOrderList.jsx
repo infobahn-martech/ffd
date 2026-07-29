@@ -7,6 +7,7 @@ import "../../../../../../design/scss/salesOrder.scss";
 import { PORT_OPTIONS, PORT_OPTIONS_WITH_ID } from "../../../../../../shared/constants/ports";
 import salesOrderService from "../../../../../../services/salesOrderService";
 import callFileService from "../../../../../../services/callFileService";
+import DatePickerField from "../../../shared/components/DatePickerField";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
 import GeneratePOModal from "./GeneratePOModal";
@@ -1572,31 +1573,31 @@ const SalesOrderList = ({
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Posting Date</label>
-              <input
-                type="date"
+              <DatePickerField
+                dateValue={soPostingDate}
+                dateFieldName="soPostingDate"
+                disabled
                 className="so-header-input so-header-input-readonly"
-                value={soPostingDate}
-                readOnly
               />
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Delivery Date</label>
-              <input
-                type="date"
+              <DatePickerField
+                dateValue={soDeliveryDate}
+                onDateChange={handleChange("soDeliveryDate")}
+                dateFieldName="soDeliveryDate"
+                disabled={readOnly}
                 className="so-header-input"
-                value={soDeliveryDate}
-                onChange={handleChange("soDeliveryDate")}
-                readOnly={readOnly}
               />
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Document Date</label>
-              <input
-                type="date"
+              <DatePickerField
+                dateValue={soDocumentDate}
+                onDateChange={handleChange("soDocumentDate")}
+                dateFieldName="soDocumentDate"
+                disabled={readOnly}
                 className="so-header-input"
-                value={soDocumentDate}
-                onChange={handleChange("soDocumentDate")}
-                readOnly={readOnly}
               />
             </div>
             <div className="so-header-field">
