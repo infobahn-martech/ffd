@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { FiEdit2 } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiCheck, FiClock, FiPaperclip, FiCheckSquare } from "react-icons/fi";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../../shared/components/DateTimePickerField";
 import useCommonReducer from "../../../../../../store/CommonReducer";
@@ -8,6 +8,7 @@ import { notify } from "../../../../../../components/Toaster";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/css/common/CardForm.css";
+import "../../../../../../design/scss/subtasks.scss";
 
 const mapUserToOption = (user) => ({
     value: String(user.user_id),
@@ -81,6 +82,24 @@ const formatDueDateTime = (dateStr, timeStr) => {
 };
 
 const getInitials = (name) => (name || "?").charAt(0).toUpperCase();
+
+const AVATAR_COLORS = ["#00368C", "#0E7C7B", "#8552C6", "#C25E2E", "#2E7D32", "#B23B6B"];
+
+const getAvatarColor = (name) => {
+    const source = name || "?";
+    let hash = 0;
+    for (let i = 0; i < source.length; i += 1) {
+        hash = source.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+const isTaskOverdue = (task) => {
+    if (task.completed || !task.dueDate) return false;
+    const due = new Date(`${task.dueDate}T${task.dueTime || "23:59"}:00`);
+    if (Number.isNaN(due.getTime())) return false;
+    return due.getTime() < Date.now();
+};
 
 function Subtasks({ card }) {
     const [tasks, setTasks] = useState([]);
@@ -230,26 +249,27 @@ function Subtasks({ card }) {
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
-            <div className="subtasks-tab">
-                <div className="subtasks-tab-layout">
-                    <section className="subtasks-tab-editor" aria-label="Add a task">
-                        <div className="subtasks-tab-card subtasks-tab-card--editor">
-                            <div className="subtasks-tab-editor-body">
-                                <h3 className="subtasks-tab-form-title">Add Task</h3>
+            <div className="task-tab">
+                <div className="task-tab-layout">
+                    <section className="task-tab-editor" aria-label="Add a task">
+                        <div className="task-tab-panel">
+                            <div className="task-tab-editor-body">
+                                <p className="task-tab-eyebrow">New task</p>
+                                <h3 className="task-tab-form-title">Add Task</h3>
 
-                                <div className="subtasks-tab-field-row">
-                                    <div className="subtasks-tab-field">
-                                        <label className="subtasks-tab-label" htmlFor="subtask-assignee">
+                                <div className="task-tab-field-row">
+                                    <div className="task-tab-field">
+                                        <label className="task-tab-label" htmlFor="subtask-assignee">
                                             Assign User
                                         </label>
-                                        <div className="subtasks-tab-assignee-row">
+                                        <div className="task-tab-assignee-row">
                                             <UserOptionAvatar
                                                 avatarUrl={selectedAssigneeAvatar}
                                                 label={selectedAssigneeName}
-                                                className="subtasks-tab-assignee-avatar"
+                                                className="task-tab-assignee-avatar"
                                             />
                                             <SearchableSelect
-                                                className="cf-owner-searchable-select subtasks-tab-assignee-select"
+                                                className="cf-owner-searchable-select"
                                                 value={assignUserId === "" ? "" : String(assignUserId)}
                                                 onChange={(event) => setAssignUserId(event.target.value)}
                                                 options={userOptions}
@@ -270,8 +290,8 @@ function Subtasks({ card }) {
                                         </div>
                                     </div>
 
-                                    <div className="subtasks-tab-field subtasks-tab-field--due-date">
-                                        <label className="subtasks-tab-label" htmlFor="subtask-due-date">
+                                    <div className="task-tab-field">
+                                        <label className="task-tab-label" htmlFor="subtask-due-date">
                                             Due Date &amp; Time
                                         </label>
                                         <DateTimePickerField
@@ -288,18 +308,18 @@ function Subtasks({ card }) {
                                         />
                                     </div>
 
-                                    <div className="subtasks-tab-field subtasks-tab-field--document">
-                                        <label className="subtasks-tab-label" htmlFor="subtask-document">
+                                    <div className="task-tab-field">
+                                        <label className="task-tab-label" htmlFor="subtask-document">
                                             Document
                                         </label>
                                         {documentFile ? (
-                                            <div className="subtasks-tab-doc-chip">
-                                                <span className="subtasks-tab-doc-name" title={documentFile.name}>
+                                            <div className="task-tab-doc-chip">
+                                                <span className="task-tab-doc-name" title={documentFile.name}>
                                                     {documentFile.name}
                                                 </span>
                                                 <button
                                                     type="button"
-                                                    className="subtasks-tab-doc-remove"
+                                                    className="task-tab-doc-remove"
                                                     onClick={handleRemoveDocument}
                                                     aria-label="Remove document"
                                                     disabled={isSaving}
@@ -308,12 +328,13 @@ function Subtasks({ card }) {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <label className="subtasks-tab-doc-upload" htmlFor="subtask-document">
+                                            <label className="task-tab-doc-upload" htmlFor="subtask-document">
+                                                <FiPaperclip size={13} />
                                                 <span>Upload document</span>
                                                 <input
                                                     id="subtask-document"
                                                     type="file"
-                                                    className="subtasks-tab-doc-input"
+                                                    className="task-tab-doc-input"
                                                     onChange={handleDocumentChange}
                                                     disabled={isSaving}
                                                 />
@@ -322,13 +343,13 @@ function Subtasks({ card }) {
                                     </div>
                                 </div>
 
-                                <div className="subtasks-tab-field">
-                                    <label className="subtasks-tab-label" htmlFor="subtask-title">
+                                <div className="task-tab-field">
+                                    <label className="task-tab-label" htmlFor="subtask-title">
                                         Task title / description
                                     </label>
                                     <textarea
                                         id="subtask-title"
-                                        className="subtasks-tab-textarea"
+                                        className="task-tab-textarea"
                                         rows={4}
                                         placeholder="Enter task title or description..."
                                         value={title}
@@ -337,55 +358,66 @@ function Subtasks({ card }) {
                                     />
                                 </div>
 
-                                <div className="subtasks-tab-save-row">
+                                <div className="task-tab-save-row">
                                     <button
                                         type="button"
-                                        className="subtasks-tab-save-btn"
+                                        className="task-tab-save-btn"
                                         onClick={handleSave}
                                         disabled={!title.trim() || isSaving}
                                     >
-                                        {isSaving ? "Saving..." : "Save"}
+                                        <FiPlus size={14} />
+                                        {isSaving ? "Saving..." : "Add Task"}
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    <section className="subtasks-tab-list" aria-label="Subtasks">
-                        <div className="subtasks-tab-card subtasks-tab-card--list">
-                            <div className="subtasks-tab-list-scroll">
+                    <section className="task-tab-list" aria-label="Subtasks">
+                        <div className="task-tab-panel">
+                            <div className="task-tab-list-header">
+                                <p className="task-tab-list-title">Tasks</p>
+                                {hasTasks ? <span className="task-tab-list-count">{tasks.length}</span> : null}
+                            </div>
+                            <div className="task-tab-list-scroll">
                                 {isLoading ? (
-                                    <p className="subtasks-tab-empty">Loading tasks...</p>
+                                    <div className="task-tab-empty">
+                                        <p>Loading tasks...</p>
+                                    </div>
                                 ) : !hasTasks ? (
-                                    <p className="subtasks-tab-empty">No tasks added yet.</p>
+                                    <div className="task-tab-empty">
+                                        <FiCheckSquare size={28} />
+                                        <p>No tasks added yet.</p>
+                                    </div>
                                 ) : (
-                                    <ul className="subtasks-tab-list-items">
+                                    <ul className="task-tab-list-items">
                                         {tasks.map((task) => {
                                             const assigneeName = task.assignee?.user_name || "Unassigned";
                                             const isEditing = editingId === task.id;
+                                            const overdue = isTaskOverdue(task);
 
                                             return (
                                                 <li
-                                                    className={`subtasks-tab-task-card${task.completed ? " subtasks-tab-task-card--completed" : ""}`}
+                                                    className={`task-tab-task-card${task.completed ? " task-tab-task-card--completed" : ""}${isEditing ? " task-tab-task-card--editing" : ""}`}
                                                     key={task.id}
                                                 >
                                                     {isEditing ? (
-                                                        <div className="subtasks-tab-edit-form">
-                                                            <div className="subtasks-tab-field">
-                                                                <label className="subtasks-tab-label">Description</label>
+                                                        <div className="task-tab-edit-form">
+                                                            <div className="task-tab-field">
+                                                                <label className="task-tab-label">Description</label>
                                                                 <textarea
-                                                                    className="subtasks-tab-textarea"
+                                                                    className="task-tab-textarea"
                                                                     rows={3}
                                                                     value={editDescription}
                                                                     onChange={(e) => setEditDescription(e.target.value)}
                                                                     disabled={isUpdating}
                                                                 />
                                                             </div>
-                                                            <div className="subtasks-tab-field-row">
-                                                                <div className="subtasks-tab-field">
-                                                                    <label className="subtasks-tab-label">Assign User</label>
+                                                            <div className="task-tab-field-row">
+                                                                <div className="task-tab-field">
+                                                                    <label className="task-tab-label">Assign User</label>
                                                                     <SearchableSelect
-                                                                        className="cf-owner-searchable-select subtasks-tab-assignee-select"
+                                                                        className="cf-owner-searchable-select"
                                                                         value={editAssignedTo === "" ? "" : String(editAssignedTo)}
                                                                         onChange={(e) => setEditAssignedTo(e.target.value)}
                                                                         options={userOptions}
@@ -400,8 +432,8 @@ function Subtasks({ card }) {
                                                                         )}
                                                                     />
                                                                 </div>
-                                                                <div className="subtasks-tab-field subtasks-tab-field--due-date">
-                                                                    <label className="subtasks-tab-label">Due Date &amp; Time</label>
+                                                                <div className="task-tab-field">
+                                                                    <label className="task-tab-label">Due Date &amp; Time</label>
                                                                     <DateTimePickerField
                                                                         dateValue={editDueDate}
                                                                         timeValue={editDueTime}
@@ -412,65 +444,75 @@ function Subtasks({ card }) {
                                                                         disabled={isUpdating}
                                                                     />
                                                                 </div>
-                                                                <div className="subtasks-tab-field subtasks-tab-field--document">
-                                                                    <label className="subtasks-tab-label">Document</label>
+                                                                <div className="task-tab-field">
+                                                                    <label className="task-tab-label">Document</label>
                                                                     {editDocumentFile ? (
-                                                                        <div className="subtasks-tab-doc-chip">
-                                                                            <span className="subtasks-tab-doc-name" title={editDocumentFile.name}>{editDocumentFile.name}</span>
-                                                                            <button type="button" className="subtasks-tab-doc-remove" onClick={() => setEditDocumentFile(null)} disabled={isUpdating}>&times;</button>
+                                                                        <div className="task-tab-doc-chip">
+                                                                            <span className="task-tab-doc-name" title={editDocumentFile.name}>{editDocumentFile.name}</span>
+                                                                            <button type="button" className="task-tab-doc-remove" onClick={() => setEditDocumentFile(null)} disabled={isUpdating}>&times;</button>
                                                                         </div>
                                                                     ) : (
-                                                                        <label className="subtasks-tab-doc-upload">
+                                                                        <label className="task-tab-doc-upload">
+                                                                            <FiPaperclip size={13} />
                                                                             <span>Upload document</span>
-                                                                            <input type="file" className="subtasks-tab-doc-input" disabled={isUpdating} onChange={(e) => setEditDocumentFile(e.target.files?.[0] ?? null)} />
+                                                                            <input type="file" className="task-tab-doc-input" disabled={isUpdating} onChange={(e) => setEditDocumentFile(e.target.files?.[0] ?? null)} />
                                                                         </label>
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            <div className="subtasks-tab-save-row">
-                                                                <button type="button" className="subtasks-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || isUpdating}>
+                                                            <div className="task-tab-edit-actions">
+                                                                <button type="button" className="task-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || isUpdating}>
+                                                                    <FiCheck size={14} />
                                                                     {isUpdating ? "Saving..." : "Update"}
                                                                 </button>
-                                                                <button type="button" className="subtasks-tab-cancel-btn" onClick={handleEditCancel} disabled={isUpdating}>
+                                                                <button type="button" className="task-tab-cancel-btn" onClick={handleEditCancel} disabled={isUpdating}>
                                                                     Cancel
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <div className="subtasks-tab-task-header">
-                                                                <span className="subtasks-tab-task-title">{task.title}</span>
-                                                                <div className="subtasks-tab-task-actions">
-                                                                    <span className={`subtasks-tab-status-badge subtasks-tab-status-badge--${task.completed ? "completed" : "pending"}`}>
+                                                            <div className="task-tab-task-header">
+                                                                <p className="task-tab-task-title">{task.title}</p>
+                                                                <div className="task-tab-task-actions">
+                                                                    <span className={`task-tab-status-badge task-tab-status-badge--${task.completed ? "completed" : "pending"}`}>
                                                                         {task.completed ? "Completed" : "Pending"}
                                                                     </span>
                                                                     <button
                                                                         type="button"
-                                                                        className="subtasks-tab-edit-btn"
+                                                                        className="task-tab-icon-btn"
                                                                         onClick={() => handleEditOpen(task)}
                                                                         aria-label="Edit task"
                                                                     >
-                                                                        <FiEdit2 size={14} />
+                                                                        <FiEdit2 size={13} />
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <div className="subtasks-tab-task-meta">
-                                                                <span className="subtasks-tab-task-avatar">
-                                                                    <span className="subtasks-tab-task-avatar-fallback">{getInitials(assigneeName)}</span>
+                                                            <div className="task-tab-task-meta">
+                                                                <span
+                                                                    className="task-tab-task-avatar"
+                                                                    style={{ background: getAvatarColor(assigneeName) }}
+                                                                >
+                                                                    {getInitials(assigneeName)}
                                                                 </span>
-                                                                <span className="subtasks-tab-task-assignee">{assigneeName}</span>
+                                                                <span className="task-tab-task-assignee">{assigneeName}</span>
                                                                 {task.dueDate && (
-                                                                    <span className="subtasks-tab-task-due">
+                                                                    <span className={`task-tab-task-due${overdue ? " task-tab-task-due--overdue" : ""}`}>
+                                                                        <FiClock size={11} />
                                                                         Due {formatDueDateTime(task.dueDate, task.dueTime)}
                                                                     </span>
                                                                 )}
                                                                 {task.document && (
                                                                     task.document.url ? (
-                                                                        <a className="subtasks-tab-task-doc" href={task.document.url} target="_blank" rel="noopener noreferrer" title={task.document.name}>
+                                                                        <a className="task-tab-task-doc" href={task.document.url} target="_blank" rel="noopener noreferrer" title={task.document.name}>
+                                                                            <FiPaperclip size={11} />
                                                                             {task.document.name}
                                                                         </a>
                                                                     ) : (
-                                                                        <span className="subtasks-tab-task-doc" title={task.document.name}>{task.document.name}</span>
+                                                                        <span className="task-tab-task-doc" title={task.document.name}>
+                                                                            <FiPaperclip size={11} />
+                                                                            {task.document.name}
+                                                                        </span>
                                                                     )
                                                                 )}
                                                             </div>
