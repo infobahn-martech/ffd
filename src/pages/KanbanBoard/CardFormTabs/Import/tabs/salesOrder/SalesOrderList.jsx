@@ -1333,6 +1333,13 @@ const SalesOrderList = ({
         </div>
       </td>
 
+      {/* PO No. */}
+      <td>
+        <div className="sales-order-table-cell">
+          {order.poNo || "—"}
+        </div>
+      </td>
+
       {/* Type of PO */}
       <td>
         <div className="sales-order-table-cell">
@@ -1416,13 +1423,176 @@ const SalesOrderList = ({
             compact
           />
           {!readOnly && (
-            <button
-              type="button"
-              className="sales-order-add-button"
-              onClick={handleAddNewItem}
-            >
-              + Add Item
-            </button>
+            <div className="sales-order-add-button-wrap">
+              <button
+                type="button"
+                className="sales-order-add-button"
+                onClick={handleAddNewItem}
+              >
+                + Add Item
+              </button>
+
+              {/* Add Item Popover — anchored directly below the button */}
+              {isAccordionOpen && (
+                <>
+                  <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
+                  <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
+                  <div className="sales-order-add-accordion-header">
+                    <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      className="sales-order-add-accordion-close"
+                      style={{ color: cardColor }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="sales-order-add-accordion-body">
+                    <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                      <div className="sales-order-add-form-field">
+                        <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
+                        <select
+                          value={newItemForm.itemNo}
+                          onChange={(e) => handleItemCodeSelect(e.target.value)}
+                          className="sales-order-add-form-input"
+                          disabled={!portId || isLoadingItemCodes || isLoadingItemDetails}
+                          required
+                        >
+                          <option value="">
+                            {!portId
+                              ? "Select Port first..."
+                              : isLoadingItemCodes
+                              ? "Loading item codes..."
+                              : "Select Item No..."}
+                          </option>
+                          {itemCodeOptions.map((o) => (
+                            <option key={o.tariff_id} value={o.item_code}>{o.item_code}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
+                        <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
+                        <input
+                          type="text"
+                          value={newItemForm.itemDescription}
+                          onChange={(e) => handleFormChange("itemDescription", e.target.value)}
+                          placeholder="e.g., Container Handling Service"
+                          className="sales-order-add-form-input"
+                          required
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Quantity</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={newItemForm.qty}
+                          onChange={(e) => handleFormChange("qty", e.target.value)}
+                          placeholder="1"
+                          className="sales-order-add-form-input"
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Unit Price</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={newItemForm.unitPrice}
+                          onChange={(e) => handleFormChange("unitPrice", e.target.value)}
+                          placeholder="0.00"
+                          className="sales-order-add-form-input"
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Discount</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={newItemForm.discount}
+                          onChange={(e) => handleFormChange("discount", e.target.value)}
+                          placeholder="0"
+                          className="sales-order-add-form-input"
+                        />
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Tax Code</label>
+                        <select
+                          value={newItemForm.taxCode}
+                          onChange={(e) => handleFormChange("taxCode", e.target.value)}
+                          className="sales-order-add-form-input"
+                        >
+                          {TAX_CODE_OPTIONS.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Type of PO</label>
+                        <select
+                          value={newItemForm.typeOfPo}
+                          onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
+                          className="sales-order-add-form-input"
+                        >
+                          <option value="">— Select —</option>
+                          {TYPE_OF_PO_OPTIONS.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Supporting Documents</label>
+                        <div className="sales-order-add-form-docs">
+                          {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
+                        </div>
+                      </div>
+                      <div className="sales-order-add-form-field">
+                        <label>Supplier Code</label>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <input
+                            type="text"
+                            value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
+                            readOnly
+                            placeholder="— Select vendor —"
+                            className="sales-order-add-form-input"
+                            style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setVendorModalTarget("new")}
+                            className="sales-order-supplier-select-btn"
+                          >
+                            {newItemForm.supplierCode ? "Change" : "Select"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="sales-order-add-form-actions">
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        className="sales-order-add-form-cancel"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveNewItem}
+                        className="sales-order-add-form-save"
+                        disabled={isSavingItem}
+                      >
+                        {isSavingItem ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -1633,167 +1803,6 @@ const SalesOrderList = ({
 
         {/* Right: Table view + Accounting Summary — wider column */}
         <div className="so-right-panel">
-          {/* Add Item Popover */}
-          {!readOnly && isAccordionOpen && (
-            <>
-              <div className="sales-order-add-popover-backdrop" onClick={handleCancel} />
-              <div className="sales-order-add-accordion sales-order-add-popover" style={{ "--card-color": cardColor }}>
-              <div className="sales-order-add-accordion-header">
-                <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="sales-order-add-accordion-close"
-                  style={{ color: cardColor }}
-                >
-                  ×
-                </button>
-              </div>
-              <div className="sales-order-add-accordion-body">
-                <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-                  <div className="sales-order-add-form-field">
-                    <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
-                    <select
-                      value={newItemForm.itemNo}
-                      onChange={(e) => handleItemCodeSelect(e.target.value)}
-                      className="sales-order-add-form-input"
-                      disabled={!portId || isLoadingItemCodes || isLoadingItemDetails}
-                      required
-                    >
-                      <option value="">
-                        {!portId
-                          ? "Select Port first..."
-                          : isLoadingItemCodes
-                          ? "Loading item codes..."
-                          : "Select Item No..."}
-                      </option>
-                      {itemCodeOptions.map((o) => (
-                        <option key={o.tariff_id} value={o.item_code}>{o.item_code}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
-                    <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
-                    <input
-                      type="text"
-                      value={newItemForm.itemDescription}
-                      onChange={(e) => handleFormChange("itemDescription", e.target.value)}
-                      placeholder="e.g., Container Handling Service"
-                      className="sales-order-add-form-input"
-                      required
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Quantity</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={newItemForm.qty}
-                      onChange={(e) => handleFormChange("qty", e.target.value)}
-                      placeholder="1"
-                      className="sales-order-add-form-input"
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Unit Price</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={newItemForm.unitPrice}
-                      onChange={(e) => handleFormChange("unitPrice", e.target.value)}
-                      placeholder="0.00"
-                      className="sales-order-add-form-input"
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Discount</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      value={newItemForm.discount}
-                      onChange={(e) => handleFormChange("discount", e.target.value)}
-                      placeholder="0"
-                      className="sales-order-add-form-input"
-                    />
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Tax Code</label>
-                    <select
-                      value={newItemForm.taxCode}
-                      onChange={(e) => handleFormChange("taxCode", e.target.value)}
-                      className="sales-order-add-form-input"
-                    >
-                      {TAX_CODE_OPTIONS.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Type of PO</label>
-                    <select
-                      value={newItemForm.typeOfPo}
-                      onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
-                      className="sales-order-add-form-input"
-                    >
-                      <option value="">— Select —</option>
-                      {TYPE_OF_PO_OPTIONS.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Supporting Documents</label>
-                    <div className="sales-order-add-form-docs">
-                      {renderSupportingDocsControl(newItemForm.documents, () => setDocumentModalTarget("new"))}
-                    </div>
-                  </div>
-                  <div className="sales-order-add-form-field">
-                    <label>Supplier Code</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <input
-                        type="text"
-                        value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
-                        readOnly
-                        placeholder="— Select vendor —"
-                        className="sales-order-add-form-input"
-                        style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setVendorModalTarget("new")}
-                        className="sales-order-supplier-select-btn"
-                      >
-                        {newItemForm.supplierCode ? "Change" : "Select"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className="sales-order-add-form-actions">
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="sales-order-add-form-cancel"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveNewItem}
-                    className="sales-order-add-form-save"
-                    disabled={isSavingItem}
-                  >
-                    {isSavingItem ? "Saving..." : "Save"}
-                  </button>
-                </div>
-              </div>
-              </div>
-            </>
-          )}
-
           {/* Sticky Bulk Action Bar */}
           {!isDAModule && selectedItems.size > 0 && (
             <div ref={bulkActionBarRef} className="so-bulk-action-bar">
@@ -1887,6 +1896,7 @@ const SalesOrderList = ({
                   {renderTableHeader("Tax Code", "col-tax")}
                   {renderTableHeader("Total Amount", "col-total")}
                   {renderTableHeader("Work Order No.", "col-work-order")}
+                  {renderTableHeader("PO No.", "col-po-no")}
                   {renderTableHeader("Type of PO", "col-type-po")}
                   {renderTableHeader("Third Party", "col-third-party")}
                   {renderTableHeader("Supporting Documents", "col-documents")}
@@ -1897,7 +1907,7 @@ const SalesOrderList = ({
                 {displayOrderList.length === 0 && !isLoadingSalesOrder && (
                   <tr>
                     <td
-                      colSpan={isDAModule ? 12 : 13}
+                      colSpan={isDAModule ? 13 : 14}
                       style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                     >
                       No sales order line items for this call.
@@ -1930,7 +1940,7 @@ const SalesOrderList = ({
                         }}
                         style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                       >
-                        <td colSpan={isDAModule ? 12 : 13} style={{ padding: "12px 16px" }}>
+                        <td colSpan={isDAModule ? 13 : 14} style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                               {!isDAModule && (

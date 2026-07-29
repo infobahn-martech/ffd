@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
-import { FiEdit2, FiTrash2, FiPaperclip } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiPaperclip, FiCornerUpLeft } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/scss/comments.scss";
@@ -248,6 +248,25 @@ function Comments({ card }) {
         [addMentionedUserId, closeMentionDropdown]
     );
 
+    const handleReply = useCallback(
+        (comment) => {
+            const editor = quillRef.current?.getEditor?.();
+            if (!editor || !comment.userName) return;
+
+            editor.focus();
+            const mentionText = `@${comment.userName} `;
+            const insertIndex = Math.max(editor.getLength() - 1, 0);
+            editor.insertText(insertIndex, mentionText, "user");
+            editor.setSelection(insertIndex + mentionText.length, 0, "user");
+
+            setCommentText(editor.root.innerHTML);
+            const manager = managers.find((item) => item.user_name === comment.userName);
+            if (manager) addMentionedUserId(manager.user_id);
+            closeMentionDropdown();
+        },
+        [managers, addMentionedUserId, closeMentionDropdown]
+    );
+
     const handleEditOpen = useCallback(
         (comment) => {
             setEditingCommentId(comment.id);
@@ -377,6 +396,15 @@ function Comments({ card }) {
                                                             ) : null}
                                                         </div>
                                                         <div className="comments-tab-comment-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="subtasks-tab-edit-btn"
+                                                                onClick={() => handleReply(comment)}
+                                                                aria-label="Reply to comment"
+                                                                disabled={isSaving}
+                                                            >
+                                                                <FiCornerUpLeft size={14} />
+                                                            </button>
                                                             <button
                                                                 type="button"
                                                                 className="subtasks-tab-edit-btn"
