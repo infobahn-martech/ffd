@@ -495,8 +495,13 @@
   }
 }
 
-/* Add Item Popover — floats over the table in the right panel instead of
-   pushing it down; backdrop dims the full modal so clicking away closes it. */
+/* Add Item Popover — anchored directly under the "+ Add Item" button instead
+   of floating over the table; backdrop dims the page so clicking away closes it. */
+.sales-order-add-button-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .sales-order-add-popover-backdrop {
   position: fixed;
   inset: 0;
@@ -506,15 +511,22 @@
 
 .sales-order-add-popover {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: calc(100% + 10px);
   right: 0;
   margin: 0;
-  width: auto;
+  width: 900px;
+  max-width: 90vw;
   max-height: 70vh;
   overflow-y: auto;
   box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(15, 23, 42, 0.04);
   z-index: 60;
+}
+
+@media (max-width: 960px) {
+  .sales-order-add-popover {
+    width: 96vw;
+    right: -100px;
+  }
 }
 
 .sales-order-add-accordion-header {
@@ -819,7 +831,7 @@
   border-spacing: 0;
   table-layout: fixed !important;
   width: 100%;
-  min-width: 1580px;
+  min-width: 1700px;
   margin: 0;
   overflow: visible !important;
 }
@@ -1275,6 +1287,11 @@
     min-width: 130px;
   }
 
+  .col-po-no {
+    width: 9%;
+    min-width: 120px;
+  }
+
   .col-type-po {
     width: 12%;
     min-width: 160px;
@@ -1344,9 +1361,10 @@
   max-width: 100%;
 }
 
-/* Accounting Summary — centered modal opened via the Summary button in the header */
+/* Accounting Summary — always visible at the bottom of the page */
 .so-summary-section {
-  margin: 20px 0 0;
+  margin: 0;
+  padding: 0;
 }
 
 .so-summary-section-title {
