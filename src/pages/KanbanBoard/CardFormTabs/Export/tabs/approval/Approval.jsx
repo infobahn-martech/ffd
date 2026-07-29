@@ -305,7 +305,8 @@ const createEmptyPartySection = () => ({
     secondaryLabel,
     onPrimaryClick,
     onSecondaryClick,
-    disabled,
+    primaryDisabled,
+    secondaryDisabled,
   }) {
     const secondaryButtonClass =
       secondaryLabel === "On Hold" ? "btn-onhold" : "btn-proceed";
@@ -316,7 +317,7 @@ const createEmptyPartySection = () => ({
           type="button"
           className="action-btn btn-approved"
           onClick={onPrimaryClick}
-          disabled={disabled}
+          disabled={primaryDisabled}
         >
           <FiCheckCircle size={22} />
           {primaryLabel}
@@ -326,7 +327,7 @@ const createEmptyPartySection = () => ({
           type="button"
           className={`action-btn ${secondaryButtonClass}`}
           onClick={onSecondaryClick}
-          disabled={disabled}
+          disabled={secondaryDisabled}
         >
           {secondaryLabel === "On Hold" ? (
             <FiClock size={22} />
@@ -344,7 +345,8 @@ const createEmptyPartySection = () => ({
     secondaryLabel: PropTypes.string.isRequired,
     onPrimaryClick: PropTypes.func.isRequired,
     onSecondaryClick: PropTypes.func.isRequired,
-    disabled: PropTypes.bool,
+    primaryDisabled: PropTypes.bool,
+    secondaryDisabled: PropTypes.bool,
   };
 
   // Backend accepts multiple files per section (e.g. credit_controller_documents[]
@@ -479,6 +481,7 @@ const createEmptyPartySection = () => ({
     onSecondaryAction,
     helperText,
     actionsDisabled,
+    primaryDisabled,
     fieldsDisabled = false,
     stageWaitMessage,
     isActiveStage = false,
@@ -513,7 +516,8 @@ const createEmptyPartySection = () => ({
             secondaryLabel={secondaryActionLabel}
             onPrimaryClick={onPrimaryAction}
             onSecondaryClick={onSecondaryAction}
-            disabled={actionsDisabled}
+            primaryDisabled={primaryDisabled !== undefined ? primaryDisabled : actionsDisabled}
+            secondaryDisabled={actionsDisabled}
           />
           {stageWaitMessage ? <p className="approval-stage-wait-text">{stageWaitMessage}</p> : null}
         </div>
@@ -538,6 +542,7 @@ const createEmptyPartySection = () => ({
     helperText: PropTypes.string,
     fieldsDisabled: PropTypes.bool,
     actionsDisabled: PropTypes.bool,
+    primaryDisabled: PropTypes.bool,
     stageWaitMessage: PropTypes.string,
     isActiveStage: PropTypes.bool,
   };
@@ -737,6 +742,13 @@ const createEmptyPartySection = () => ({
     // every role viewing the tab, not only the CEO who put it on hold.
     const isOnHold = details?.workflow?.current_stage === "on_hold";
 
+    // "Approved" doesn't advance workflow.current_stage (only "proceed_to_*"
+    // does), so stageActive alone can't stop the Approved button from being
+    // clicked again — check the section's own persisted status instead.
+    const creditControllerApproved = details?.credit_controller?.status === "approved";
+    const managerApproved = details?.manager_ofm?.status === "approved";
+    const ceoApproved = details?.ceo?.status === "approved";
+
     useEffect(() => {
       if (callId) {
         getExportApprovalDetails(callId);
@@ -865,22 +877,30 @@ const createEmptyPartySection = () => ({
       debouncedAutoSave,
     ]);
 
-    // Whichever role acts first (Approved or Proceed), the approval finishes
-    // for all three stages in one save — the workflow is no longer gated on
-    // getting each of the three roles to act in sequence, per user request.
-    const approveAllStages = useCallback(() => {
+    const handleCreditControllerApproved = useCallback(() => {
       debouncedAutoSave.cancel();
-      runSave({
-        sections: { credit_controller: "approved", manager_ofm: "approved", ceo: "approved" },
-        successMessage: "All approvals completed.",
-      });
+      runSave({ sections: { credit_controller: "approved" } });
     }, [debouncedAutoSave, runSave]);
 
-    const handleCreditControllerApproved = approveAllStages;
-    const handleCreditControllerProceedToOperator = approveAllStages;
-    const handleManagerApproved = approveAllStages;
-    const handleManagerProceedToCeo = approveAllStages;
-    const handleCeoApproved = approveAllStages;
+    const handleCreditControllerProceedToOperator = useCallback(() => {
+      debouncedAutoSave.cancel();
+      runSave({ sections: { credit_controller: "proceed_to_operator" } });
+    }, [debouncedAutoSave, runSave]);
+
+    const handleManagerApproved = useCallback(() => {
+      debouncedAutoSave.cancel();
+      runSave({ sections: { manager_ofm: "approved" } });
+    }, [debouncedAutoSave, runSave]);
+
+    const handleManagerProceedToCeo = useCallback(() => {
+      debouncedAutoSave.cancel();
+      runSave({ sections: { manager_ofm: "proceed_to_ceo" } });
+    }, [debouncedAutoSave, runSave]);
+
+    const handleCeoApproved = useCallback(() => {
+      debouncedAutoSave.cancel();
+      runSave({ sections: { ceo: "approved" } });
+    }, [debouncedAutoSave, runSave]);
 
     const handleCeoOnHold = useCallback(() => {
       debouncedAutoSave.cancel();
@@ -1035,8 +1055,24 @@ const createEmptyPartySection = () => ({
                 secondaryActionLabel="Proceed to Manager"
                 onPrimaryAction={handleCreditControllerApproved}
                 onSecondaryAction={handleCreditControllerProceedToOperator}
-                actionsDisabled={saveStatus === "saving" || !stageActive.credit_controller || !isControllerRole}
+                actionsDisabled={
+                  saveStatus === "saving" ||
+                  !stageActive.credit_controller ||
+                  !isControllerRole ||
+                  creditControllerApproved
+                }
+                primaryDisabled={
+                  saveStatus === "saving" ||
+                  !stageActive.credit_controller ||
+                  !isControllerRole ||
+                  creditControllerApproved
+                }
                 fieldsDisabled={!isControllerRole}
+                stageWaitMessage={
+                  creditControllerApproved
+                    ? "Already approved by Credit Controller."
+                    : getStageWaitMessage(details?.workflow, "credit_controller")
+                }
                 isActiveStage={stageActive.credit_controller && isControllerRole}
               />
 
@@ -1056,8 +1092,18 @@ const createEmptyPartySection = () => ({
                 onSecondaryAction={handleManagerProceedToCeo}
                 helperText="Require Digital Signature of OFM department Manager"
                 actionsDisabled={saveStatus === "saving" || !stageActive.manager_ofm || !isManagerRole}
+                primaryDisabled={
+                  saveStatus === "saving" ||
+                  !stageActive.manager_ofm ||
+                  !isManagerRole ||
+                  managerApproved
+                }
                 fieldsDisabled={!isManagerRole}
-                stageWaitMessage={getStageWaitMessage(details?.workflow, "manager_ofm")}
+                stageWaitMessage={
+                  managerApproved
+                    ? "Already approved by Manager."
+                    : getStageWaitMessage(details?.workflow, "manager_ofm")
+                }
                 isActiveStage={stageActive.manager_ofm && isManagerRole}
               />
 
@@ -1077,9 +1123,24 @@ const createEmptyPartySection = () => ({
                 onSecondaryAction={handleCeoOnHold}
                 helperText="Require Digital Signature of CEO"
                 actionsDisabled={saveStatus === "saving" || !stageActive.ceo || !isCeoRole}
+                // Being on hold locks stageActive.ceo (it's not any of the three
+                // named stages), but the CEO is the one who put it on hold and
+                // must still be able to click Approved to resume — so the
+                // stage check is skipped in that case only, unlike the
+                // secondary "On Hold" button above which stays locked.
+                primaryDisabled={
+                  saveStatus === "saving" ||
+                  !isCeoRole ||
+                  ceoApproved ||
+                  (!stageActive.ceo && !isOnHold)
+                }
                 fieldsDisabled={!isCeoRole}
                 stageWaitMessage={
-                  isOnHold ? "This process is on hold." : getStageWaitMessage(details?.workflow, "ceo")
+                  isOnHold
+                    ? "This process is on hold."
+                    : ceoApproved
+                    ? "Already approved by CEO."
+                    : getStageWaitMessage(details?.workflow, "ceo")
                 }
                 isActiveStage={stageActive.ceo && isCeoRole}
               />
