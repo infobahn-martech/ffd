@@ -5,6 +5,7 @@ import {
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
   Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
 } from "lucide-react";
+import { notify } from "../../../../../../components/Toaster";
 import billingEntityService from "../../../../../../services/billingEntityService";
 import daService from "../../../../../../services/daService";
 import userService from "../../../../../../services/userService";
@@ -216,7 +217,7 @@ function UserSearchField({ label, icon, value, placeholder, onChange }) {
   };
 
   const handlePick = (user) => {
-    onChange(user?.name ?? "");
+    onChange(user?.name ?? "", user);
     setIsOpen(false);
   };
 
@@ -690,6 +691,9 @@ RelativesSection.propTypes = {
 function DA({ card, formValues }) {
   const [activeSubTab, setActiveSubTab] = useState("summary");
   const [fieldValues, setFieldValues] = useState(makeInitialFieldState);
+  // co_owner_id isn't a visible field — UserSearchField only exposes the picked user's
+  // name — but api/da/save_card_tab needs the id, so it's tracked alongside coOwners.
+  const [coOwnerId, setCoOwnerId] = useState(null);
   const [lastMovedDisplay] = useState(() => formatTimestamp(new Date()));
 
   // api/da/summary_tab/{call_id} — feeds the Summary sub-tab with the real,
@@ -715,6 +719,65 @@ function DA({ card, formValues }) {
       });
     return () => { cancelled = true; };
   }, [callId]);
+
+  // api/da/card_tab/{call_id} — hydrates the editable "Card" sub-tab fields
+  // (owner, co-owner, deadline, size, custom card ID, tags) with the backend's
+  // saved values once, when the card first loads.
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    daService.getCardTab(callId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const cardData = data?.data;
+        if (!cardData) return;
+        setFieldValues((prev) => ({
+          ...prev,
+          owner: cardData.owner_name ?? prev.owner,
+          coOwners: cardData.co_owner_name ?? prev.coOwners,
+          deadline: cardData.deadline ?? prev.deadline,
+          size: cardData.size ?? prev.size,
+          customCardId: cardData.custom_card_id ?? prev.customCardId,
+          tags: cardData.tags
+            ? cardData.tags.split(",").map((t) => t.trim()).filter(Boolean)
+            : prev.tags,
+        }));
+        setCoOwnerId(cardData.co_owner_id ?? null);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [callId]);
+
+  // api/da/save_card_tab/{call_id} — persists the Card sub-tab fields. current_sticker_id
+  // comes from the card's global sticker picker (formValues.card_sticker_id, set via the
+  // "Sticker" button in the card header) rather than a field on this tab.
+  const [isSavingCardTab, setIsSavingCardTab] = useState(false);
+
+  const handleSaveCardTab = useCallback(async () => {
+    if (callId == null) {
+      notify("Call ID is required before saving.", "error", "top-center");
+      return;
+    }
+    const stickerId = formValues?.card_sticker_id ?? formValues?.sticker_id;
+
+    const formData = new FormData();
+    if (coOwnerId != null && coOwnerId !== "") formData.append("co_owner_id", coOwnerId);
+    if (stickerId != null && stickerId !== "") formData.append("current_sticker_id", stickerId);
+    formData.append("deadline", fieldValues.deadline || "");
+    formData.append("size", fieldValues.size || "");
+    formData.append("custom_card_id", fieldValues.customCardId || "");
+    formData.append("tags", fieldValues.tags.join(", "));
+
+    setIsSavingCardTab(true);
+    try {
+      await daService.saveCardTab(callId, formData);
+      notify("Card details saved.", "success", "top-center");
+    } catch (err) {
+      notify(err?.response?.data?.message || "Failed to save card details.", "error", "top-center");
+    } finally {
+      setIsSavingCardTab(false);
+    }
+  }, [callId, coOwnerId, formValues, fieldValues]);
 
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -821,7 +884,10 @@ function DA({ card, formValues }) {
             icon={field.icon}
             value={value}
             placeholder={field.placeholder}
-            onChange={(v) => updateField(field.key, v)}
+            onChange={(v, user) => {
+              updateField(field.key, v);
+              if (field.key === "coOwners") setCoOwnerId(user?.user_id ?? null);
+            }}
           />
         );
       case "date":
@@ -934,6 +1000,16 @@ function DA({ card, formValues }) {
           <h4 className="da-cf-group-title">{activeTabMeta.label}</h4>
           {activeSubTab !== "summary" && activeSubTab !== "more" && (
             <span className="da-cf-group-count">{activeFields.length} field{activeFields.length === 1 ? "" : "s"}</span>
+          )}
+          {activeSubTab === "card" && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handleSaveCardTab}
+              disabled={isSavingCardTab || callId == null}
+            >
+              {isSavingCardTab ? "Saving…" : "Save"}
+            </button>
           )}
         </div>
 
