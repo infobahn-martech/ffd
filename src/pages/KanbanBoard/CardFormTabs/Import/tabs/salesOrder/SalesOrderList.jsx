@@ -9,6 +9,7 @@ import salesOrderService from "../../../../../../services/salesOrderService";
 import callFileService from "../../../../../../services/callFileService";
 import DatePickerField from "../../../shared/components/DatePickerField";
 import useAlertReducer from "../../../../../../store/AlertReducer";
+import useAuthReducer from "../../../../../../store/AuthReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
 import GeneratePOModal from "./GeneratePOModal";
 import GoodsReceiptPOModal from "./GoodsReceiptPOModal";
@@ -624,6 +625,9 @@ const SalesOrderList = ({
   const branch = formValues.branch || "";
   const soContactEmail = formValues.email || "";
   const srtNumber = formValues.srtNumber || "";
+  const loggedInUserName = useAuthReducer((state) => state.profileData?.name || state.authData?.name || "");
+  const soOwner = formValues.soOwner || loggedInUserName;
+  const soRemarks = formValues.soRemarks || "";
 
   const portOptions = useMemo(() => {
     if (!soPort || PORT_OPTIONS.includes(soPort)) return PORT_OPTIONS;
@@ -632,7 +636,6 @@ const SalesOrderList = ({
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
-  const [showSummaryPopover, setShowSummaryPopover] = useState(false);
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [newItemForm, setNewItemForm] = useState(EMPTY_NEW_ITEM_FORM);
@@ -934,14 +937,6 @@ const SalesOrderList = ({
     );
   };
 
-  // Row-level status badge (defaults to "Pending")
-  const getRowStatusClass = (status) => {
-    const s = (status || "").toLowerCase();
-    if (s.includes("approve")) return "so-row-status-approved";
-    if (s.includes("reject") || s.includes("cancel")) return "so-row-status-rejected";
-    return "so-row-status-pending";
-  };
-
   const handleAddNewItem = () => {
     setNewItemForm(EMPTY_NEW_ITEM_FORM);
     setIsAccordionOpen(true);
@@ -1179,7 +1174,7 @@ const SalesOrderList = ({
       document_date: soDocumentDate,
       discount_percentage: discountPercentage,
       rounding: 0,
-      remarks: formValues.soRemarks || "",
+      remarks: soRemarks,
     };
 
     setIsGeneratingPO(true);
@@ -1401,15 +1396,6 @@ const SalesOrderList = ({
           )}
         </div>
       </td>
-
-      {/* Status */}
-      <td>
-        <div className="sales-order-table-cell">
-          <span className={`so-row-status-badge ${getRowStatusClass(order.status)}`}>
-            {order.status || "Pending"}
-          </span>
-        </div>
-      </td>
     </tr>
     );
   };
@@ -1429,13 +1415,6 @@ const SalesOrderList = ({
             onPageChange={setCurrentPage}
             compact
           />
-          <button
-            type="button"
-            className="sales-order-add-button sales-order-summary-button"
-            onClick={() => setShowSummaryPopover(true)}
-          >
-            Summary
-          </button>
           {!readOnly && (
             <button
               type="button"
@@ -1815,98 +1794,6 @@ const SalesOrderList = ({
             </>
           )}
 
-          {/* Accounting Summary Popover — opened via the Summary button in the header */}
-          {showSummaryPopover && (() => {
-            const amountFromForm = (v) => {
-              if (v == null || v === "") return null;
-              const n = parseFloat(String(v).replace(/,/g, ""));
-              return Number.isFinite(n) ? n : null;
-            };
-
-            const subtotalCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              return sum + qty * unitPrice;
-            }, 0);
-            const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const discount = parseFloat(item.discount) || 0;
-              return sum + qty * unitPrice * (discount / 100);
-            }, 0);
-            const totalTaxCalc = displayOrderList.reduce((sum, item) => {
-              const qty = parseFloat(item.qty) || 0;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const discount = parseFloat(item.discount) || 0;
-              const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
-              const discountedTotal = qty * unitPrice * (1 - discount / 100);
-              return sum + discountedTotal * taxRate;
-            }, 0);
-            const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
-
-            const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
-            const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
-            const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
-            const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
-            const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
-
-            return (
-              <div
-                className="so-summary-modal-backdrop"
-                onClick={(e) => { if (e.target === e.currentTarget) setShowSummaryPopover(false); }}
-              >
-                <div className="so-summary-modal">
-                  <div className="so-summary-modal-header">
-                    <h3 className="so-summary-modal-title">Accounting Summary</h3>
-                    <button
-                      type="button"
-                      onClick={() => setShowSummaryPopover(false)}
-                      className="so-summary-modal-close"
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="so-summary-modal-body">
-                    <div className="so-accounting-grid">
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Currency</span>
-                        <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
-                      </div>
-                      <div className="so-accounting-divider" />
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Subtotal</span>
-                        <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
-                      </div>
-                      {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
-                        <div className="so-accounting-row">
-                          <span className="so-accounting-label">Discount</span>
-                          <span className="so-accounting-value">
-                            {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
-                          </span>
-                        </div>
-                      )}
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Total Discount</span>
-                        <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
-                      </div>
-                      <div className="so-accounting-row">
-                        <span className="so-accounting-label">Total Tax</span>
-                        <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
-                      </div>
-                      <div className="so-accounting-divider" />
-                      <div className="so-accounting-row so-accounting-grand">
-                        <span className="so-accounting-label">Grand Total</span>
-                        <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
           {/* Sticky Bulk Action Bar */}
           {!isDAModule && selectedItems.size > 0 && (
             <div ref={bulkActionBarRef} className="so-bulk-action-bar">
@@ -2004,14 +1891,13 @@ const SalesOrderList = ({
                   {renderTableHeader("Third Party", "col-third-party")}
                   {renderTableHeader("Supporting Documents", "col-documents")}
                   {renderTableHeader("Supplier Code", "col-supplier")}
-                  {renderTableHeader("Status", "col-status")}
                 </tr>
               </thead>
               <tbody>
                 {displayOrderList.length === 0 && !isLoadingSalesOrder && (
                   <tr>
                     <td
-                      colSpan={isDAModule ? 13 : 14}
+                      colSpan={isDAModule ? 12 : 13}
                       style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                     >
                       No sales order line items for this call.
@@ -2044,7 +1930,7 @@ const SalesOrderList = ({
                         }}
                         style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                       >
-                        <td colSpan={isDAModule ? 13 : 14} style={{ padding: "12px 16px" }}>
+                        <td colSpan={isDAModule ? 12 : 13} style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                               {!isDAModule && (
@@ -2099,6 +1985,101 @@ const SalesOrderList = ({
         </div>
       </div>
 
+      {/* Accounting Summary — always visible at the bottom of the page */}
+      {(() => {
+        const amountFromForm = (v) => {
+          if (v == null || v === "") return null;
+          const n = parseFloat(String(v).replace(/,/g, ""));
+          return Number.isFinite(n) ? n : null;
+        };
+
+        const subtotalCalc = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          return sum + qty * unitPrice;
+        }, 0);
+        const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          return sum + qty * unitPrice * (discount / 100);
+        }, 0);
+        const totalTaxCalc = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
+          const discountedTotal = qty * unitPrice * (1 - discount / 100);
+          return sum + discountedTotal * taxRate;
+        }, 0);
+        const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
+
+        const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
+        const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
+        const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
+        const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
+        const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
+
+        return (
+          <div className="so-summary-section">
+            <h3 className="so-summary-section-title">Accounting Summary</h3>
+            <div className="so-summary-extra-fields">
+              <div className="so-header-field">
+                <label className="so-header-label">Owner</label>
+                <input
+                  type="text"
+                  className="so-header-input so-header-input-readonly"
+                  value={soOwner}
+                  readOnly
+                />
+              </div>
+              <div className="so-header-field so-summary-remarks-field">
+                <label className="so-header-label">Remarks</label>
+                <textarea
+                  className="so-header-input so-summary-remarks-textarea"
+                  placeholder="Add internal remarks..."
+                  value={soRemarks}
+                  onChange={handleChange("soRemarks")}
+                  readOnly={readOnly}
+                />
+              </div>
+            </div>
+            <div className="so-accounting-grid">
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Currency</span>
+                <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+              </div>
+              <div className="so-accounting-divider" />
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Subtotal</span>
+                <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+              </div>
+              {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
+                <div className="so-accounting-row">
+                  <span className="so-accounting-label">Discount</span>
+                  <span className="so-accounting-value">
+                    {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                  </span>
+                </div>
+              )}
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Total Discount</span>
+                <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+              </div>
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Total Tax</span>
+                <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+              </div>
+              <div className="so-accounting-divider" />
+              <div className="so-accounting-row so-accounting-grand">
+                <span className="so-accounting-label">Grand Total</span>
+                <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Work Order Creation Modal */}
       {showWorkOrderModal && (
         <WorkOrderCreationModal
@@ -2142,8 +2123,8 @@ const SalesOrderList = ({
           branch={branch}
           contactPerson={soContactPerson}
           localCurrency={soBpCurrency}
-          owner={formValues.soOwner || ""}
-          remarks={formValues.soRemarks || ""}
+          owner={soOwner}
+          remarks={soRemarks}
           onCopyToGoodsReceipt={handleCopyToGoodsReceipt}
         />
       )}
