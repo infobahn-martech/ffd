@@ -155,14 +155,23 @@ const resolveGroSavedFileInfo = (value) => {
     return { file_name: url.split("/").pop() || "Uploaded file", file_url: url };
   }
   if (typeof value === "object") {
-    const url = value.file_url ?? value.url ?? value.document_url ?? "";
-    if (!String(url).trim()) return null;
+    const url = String(value.file_url ?? value.url ?? value.document_url ?? "").trim();
+    const name = String(value.file_name ?? value.name ?? "").trim();
+    if (!url && !name) return null;
     return {
-      file_name: value.file_name ?? value.name ?? String(url).split("/").pop() ?? "Uploaded file",
-      file_url: url,
+      file_name: name || url.split("/").pop() || "Uploaded file",
+      file_url: url || null,
     };
   }
   return null;
+};
+
+/** Falls back to `taskDetails.documents[]` (matched by document_name) when a stage has no flat *_doc field. */
+const resolveGroDocumentByName = (taskDetails, documentName) => {
+  const docs = Array.isArray(taskDetails?.documents) ? taskDetails.documents : [];
+  const target = String(documentName).trim().toLowerCase();
+  const match = docs.find((doc) => String(doc?.document_name ?? "").trim().toLowerCase() === target);
+  return match ? resolveGroSavedFileInfo(match) : null;
 };
 
 /**
@@ -177,7 +186,9 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
   if (stageId === 7) {
     if (t.immigration_status) scalarValues.crew_immigration_status = t.immigration_status;
     if (t.immigration_remarks) scalarValues.on_hold_reason = t.immigration_remarks;
-    fileInfo.immigration_doc = resolveGroSavedFileInfo(t.immigration_doc);
+    fileInfo.immigration_doc =
+      resolveGroSavedFileInfo(t.immigration_doc) ??
+      resolveGroDocumentByName(t, "Crew Immigration Document");
   }
 
   if (stageId === 8) {
@@ -205,7 +216,9 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
   }
 
   if (stageId === 12) {
-    fileInfo.outward_clearance_copy = resolveGroSavedFileInfo(t.outward_clearance_doc);
+    fileInfo.outward_clearance_copy =
+      resolveGroSavedFileInfo(t.outward_clearance_doc) ??
+      resolveGroDocumentByName(t, "Outward Clearance");
   }
 
   return { scalarValues, fileInfo };

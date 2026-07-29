@@ -65,8 +65,12 @@ export function matchVesselApiFieldKey(labelEn) {
   return match ? match[0] : null;
 }
 
-/** Writes fieldValues (keyed by the same `row-N` fieldKey) into the blank cell(s) of each row. */
-export function injectVesselRegFieldValues(html, fieldValues) {
+/**
+ * Writes fieldValues (keyed by the same `row-N` fieldKey) into the blank cell(s) of each row.
+ * When a row has two value cells, the first gets the typed value and the second gets its
+ * Arabic translation (falls back to the typed value while the translation is pending).
+ */
+export function injectVesselRegFieldValues(html, fieldValues, translations = {}) {
   if (!html || typeof DOMParser === "undefined") return html;
   const doc = new DOMParser().parseFromString(html, "text/html");
   const table = doc.querySelector("table");
@@ -75,11 +79,12 @@ export function injectVesselRegFieldValues(html, fieldValues) {
     Array.from(table.querySelectorAll("tr")).forEach((tr, index) => {
       const cells = getRowCells(tr);
       if (cells.length < 2) return;
-      const value = fieldValues?.[`row-${index}`];
+      const fieldKey = `row-${index}`;
+      const value = fieldValues?.[fieldKey];
       if (!value) return;
       const valueCells = cells.length > 2 ? cells.slice(1, cells.length - 1) : [cells[cells.length - 1]];
-      valueCells.forEach((cell) => {
-        cell.textContent = value;
+      valueCells.forEach((cell, cellIndex) => {
+        cell.textContent = cellIndex === 0 ? value : translations?.[fieldKey] || value;
       });
     });
   }

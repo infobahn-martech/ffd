@@ -5,6 +5,9 @@ import VesselBoardingArabicPreview from "./VesselBoardingArabicPreview";
 import { extractVesselRegTemplateFields, matchVesselApiFieldKey } from "./vesselRegTemplateFields";
 import groService from "../../../../../../../services/groService";
 import vesselService from "../../../../../../../services/vesselService";
+import translateService from "../../../../../../../services/translateService";
+
+const TRANSLATE_DEBOUNCE_MS = 500;
 
 /** Vessel Inward Registration boarding view — vessel particulars (from the port's pass template) + Arabic document preview. */
 const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistrationView(
@@ -13,8 +16,10 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
 ) {
   const [templateData, setTemplateData] = useState(null);
   const [fieldValues, setFieldValues] = useState({});
+  const [translations, setTranslations] = useState({});
   const [vesselData, setVesselData] = useState(null);
   const previewRef = useRef(null);
+  const translatedSourceRef = useRef({});
 
   useEffect(() => {
     if (!portId) return;
@@ -42,7 +47,34 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
 
   useEffect(() => {
     setFieldValues({});
+    setTranslations({});
+    translatedSourceRef.current = {};
   }, [templateData]);
+
+  // Translate each field's typed/prefilled English value to Arabic for the preview's 3rd
+  // column, debounced so it doesn't fire on every keystroke, and skips values already sent.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Object.entries(fieldValues).forEach(([fieldKey, value]) => {
+        const trimmed = String(value ?? "").trim();
+        if (!trimmed || translatedSourceRef.current[fieldKey] === trimmed) return;
+        translatedSourceRef.current[fieldKey] = trimmed;
+        translateService
+          .translateToArabic(trimmed)
+          .then((res) => {
+            const translated = res?.data?.data?.translated_value;
+            if (translated) {
+              setTranslations((prev) => ({ ...prev, [fieldKey]: translated }));
+            }
+          })
+          .catch(() => {
+            translatedSourceRef.current[fieldKey] = null;
+          });
+      });
+    }, TRANSLATE_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [fieldValues]);
 
   useEffect(() => {
     if (!callId) {
@@ -160,7 +192,11 @@ const VesselInwardRegistrationView = forwardRef(function VesselInwardRegistratio
             </div>
           </div>
           <div ref={previewRef}>
-            <VesselBoardingArabicPreview fieldValues={fieldValues} templateData={templateData} />
+            <VesselBoardingArabicPreview
+              fieldValues={fieldValues}
+              translations={translations}
+              templateData={templateData}
+            />
           </div>
         </div>
       </div>
