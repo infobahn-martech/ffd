@@ -44,10 +44,6 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
     });
   };
 
-  // const handleDelete = (id) => {
-  //   // TODO: Implement delete functionality when API is available
-  //   console.log('Delete item:', id);
-  // };
 
   return (
     <CustomModal
