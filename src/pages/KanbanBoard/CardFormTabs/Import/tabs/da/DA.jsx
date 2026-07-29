@@ -3,9 +3,10 @@ import PropTypes from "prop-types";
 import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
-  Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Search,
+  Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
 } from "lucide-react";
 import billingEntityService from "../../../../../../services/billingEntityService";
+import daService from "../../../../../../services/daService";
 import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
 import { getInitials } from "../../../../../../shared/utils/utils";
@@ -117,6 +118,22 @@ const makeInitialFieldState = () => {
 const formatTimestamp = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+// api/da/summary_tab returns "YYYY-MM-DD HH:mm:ss" — render it the same way the rest of
+// the app displays timestamps (en-GB, 12h clock).
+const formatApiDateTime = (raw) => {
+  if (!raw) return null;
+  const d = new Date(String(raw).replace(" ", "T"));
+  if (isNaN(d)) return raw;
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
 
 function TileLabel({ icon, children }) {
@@ -513,15 +530,25 @@ AutoBillingEntityField.propTypes = {
   isLoading: PropTypes.bool.isRequired,
 };
 
-function SummaryPanel({ fieldValues, billingEntityLabel }) {
+function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
+
+  // api/da/summary_tab/{call_id} is the source of truth once it loads; until then, or if
+  // it comes back without a field, fall back to what's already been typed in other tabs.
+  const isSummaryPending = isLoadingSummary && !summaryData;
+  const apiValue = (key, fallback) =>
+    isSummaryPending ? "Loading…" : (summaryData?.[key] || fallback);
+  const apiDateValue = (key, fallback) =>
+    isSummaryPending ? "Loading…" : (formatApiDateTime(summaryData?.[key]) || fallback);
+
   const stats = [
     { label: "Vessel", value: fieldValues.vesselName, icon: Ship },
     { label: "Owner", value: fieldValues.owner, icon: User },
-    { label: "Inward Clearance", value: formatDateTime(fieldValues.inwardClearanceDate), icon: CalendarCheck },
-    { label: "Outward Clearance", value: formatDateTime(fieldValues.outwardClearanceDate), icon: CalendarCheck },
-    { label: "Billing Entity", value: billingEntityLabel || null, icon: Package },
-    { label: "SAP Sales Order No", value: fieldValues.sapSalesOrderNo, icon: Receipt },
+    { label: "Vessel Owner", value: apiValue("vessel_owner", null), icon: Building2 },
+    { label: "Inward Clearance", value: apiDateValue("inward_clearance_date", formatDateTime(fieldValues.inwardClearanceDate)), icon: CalendarCheck },
+    { label: "Outward Clearance", value: apiDateValue("outward_clearance_date", formatDateTime(fieldValues.outwardClearanceDate)), icon: CalendarCheck },
+    { label: "Billing Entity", value: apiValue("billing_entity", billingEntityLabel || null), icon: Package },
+    { label: "SAP Sales Order No", value: apiValue("sap_sales_order_no", fieldValues.sapSalesOrderNo), icon: Receipt },
   ];
 
   return (
@@ -547,6 +574,8 @@ function SummaryPanel({ fieldValues, billingEntityLabel }) {
 SummaryPanel.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   billingEntityLabel: PropTypes.string,
+  summaryData: PropTypes.object,
+  isLoadingSummary: PropTypes.bool,
 };
 
 function ListRowsSection({ label, icon, rows, collapsed, onToggleCollapse, onAdd, onChangeRow, onRemoveRow, placeholder }) {
@@ -658,10 +687,34 @@ RelativesSection.propTypes = {
   onRemoveRow: PropTypes.func.isRequired,
 };
 
-function DA({ formValues }) {
+function DA({ card, formValues }) {
   const [activeSubTab, setActiveSubTab] = useState("summary");
   const [fieldValues, setFieldValues] = useState(makeInitialFieldState);
   const [lastMovedDisplay] = useState(() => formatTimestamp(new Date()));
+
+  // api/da/summary_tab/{call_id} — feeds the Summary sub-tab with the real,
+  // backend-resolved values (clearance dates, billing entity, SAP sales order no,
+  // vessel owner) instead of relying only on locally-typed fields from other tabs.
+  const callId = card?.call_id ?? card?.callId ?? card?.id ?? null;
+  const [summaryData, setSummaryData] = useState(null);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    setIsLoadingSummary(true);
+    daService.getSummaryTab(callId)
+      .then(({ data }) => {
+        if (!cancelled) setSummaryData(data?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setSummaryData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSummary(false);
+      });
+    return () => { cancelled = true; };
+  }, [callId]);
 
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -885,7 +938,12 @@ function DA({ formValues }) {
         </div>
 
         {activeSubTab === "summary" ? (
-          <SummaryPanel fieldValues={fieldValues} billingEntityLabel={billingEntityLabel} />
+          <SummaryPanel
+            fieldValues={fieldValues}
+            billingEntityLabel={billingEntityLabel}
+            summaryData={summaryData}
+            isLoadingSummary={isLoadingSummary}
+          />
         ) : activeSubTab === "more" ? (
           <div className="da-cf-more">
             {LIST_SECTIONS.map((section) => (

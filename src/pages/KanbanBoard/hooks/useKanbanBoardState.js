@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialData, TASK_WORKFLOW_TEMPLATE } from "../../../shared/helpers/data";
 import { ensureStaticWorkflows, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
-import { ensureDAWorkflow, DA_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/DAWorkflowData";
 import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
 import {
   mapFullBoardApiResponse,
@@ -24,7 +23,7 @@ const sortByPinState = (mapped) => {
 
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(() =>
-    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : [TASK_WORKFLOW_WITH_DEMO, DA_WORKFLOW_WITH_DEMO]
+    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : [TASK_WORKFLOW_WITH_DEMO]
   );
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
@@ -48,7 +47,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       const res = await kanbanBoardService.getFullBoard(selectedBoardId);
       const payload = res?.data;
       const mapped = sortByPinState(mapFullBoardApiResponse(payload));
-      setWorkflows(ensureDAWorkflow(ensureStaticWorkflows(mapped.length ? mapped : [])));
+      setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
       setBoardBackground(extractFullBoardBackground(payload));
       setSelectedCard((prev) => {
         if (!prev?.id) return prev;
@@ -59,7 +58,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       setBoardLoadError(null);
     } catch (e) {
       const msg = e?.message ?? String(e);
-      setWorkflows([TASK_WORKFLOW_WITH_DEMO, DA_WORKFLOW_WITH_DEMO]);
+      setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
       setBoardLoadError("Could not load board data.");
     } finally {
       setBoardLoading(false);
@@ -93,13 +92,13 @@ export default function useKanbanBoardState(selectedBoardId) {
         const payload = res?.data;
         const mapped = sortByPinState(mapFullBoardApiResponse(payload));
         if (cancelled) return;
-        setWorkflows(ensureDAWorkflow(ensureStaticWorkflows(mapped.length ? mapped : [])));
+        setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
         setBoardBackground(extractFullBoardBackground(payload));
         setBoardLoadError(null);
       } catch (e) {
         if (!cancelled) {
           const msg = e?.message ?? String(e);
-          setWorkflows([TASK_WORKFLOW_WITH_DEMO, DA_WORKFLOW_WITH_DEMO]);
+          setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
           setBoardLoadError("Could not load board data.");
         }
       } finally {
