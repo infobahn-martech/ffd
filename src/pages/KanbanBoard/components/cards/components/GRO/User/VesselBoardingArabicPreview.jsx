@@ -79,13 +79,6 @@ export default function VesselBoardingArabicPreview({
           className="bulk-pass-arabic-more-description"
           dangerouslySetInnerHTML={{ __html: sanitizedMoreDescription }}
         />
-
-        <div className="bulk-pass-arabic-divider" />
-
-        <div className="bulk-pass-arabic-sign">
-          <span>الختم</span>
-          <span>التوقيع</span>
-        </div>
       </div>
     </div>
   );
