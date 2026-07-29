@@ -67,8 +67,9 @@ export function matchVesselApiFieldKey(labelEn) {
 
 /**
  * Writes fieldValues (keyed by the same `row-N` fieldKey) into the blank cell(s) of each row.
- * When a row has two value cells, the first gets the typed value and the second gets its
- * Arabic translation (falls back to the typed value while the translation is pending).
+ * Row markup is [labelAr, valueCell1, valueCell2, labelEn] but rendered dir="rtl", so
+ * valueCell1 (DOM order) lands in the visual column next to the Arabic label and gets the
+ * Arabic translation; valueCell2 lands next to the English label and keeps the typed value.
  */
 export function injectVesselRegFieldValues(html, fieldValues, translations = {}) {
   if (!html || typeof DOMParser === "undefined") return html;
@@ -84,7 +85,7 @@ export function injectVesselRegFieldValues(html, fieldValues, translations = {})
       if (!value) return;
       const valueCells = cells.length > 2 ? cells.slice(1, cells.length - 1) : [cells[cells.length - 1]];
       valueCells.forEach((cell, cellIndex) => {
-        cell.textContent = cellIndex === 0 ? value : translations?.[fieldKey] || value;
+        cell.textContent = cellIndex === 0 ? translations?.[fieldKey] || value : value;
       });
     });
   }
