@@ -9,11 +9,18 @@ import {
 } from "../../../shared/helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
+import { reorderWorkflowsByPinState } from "../utils/workflowHelpers";
 
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
 
 const isOperatorBoardId = (id) => String(id ?? "").toLowerCase() === "operator";
+
+/** Pinned workflows (from `is_pinned` on get_full_board) sort to the front, order preserved otherwise. */
+const sortByPinState = (mapped) => {
+  const pinState = Object.fromEntries(mapped.map((wf) => [wf.id, Boolean(wf.isPinned)]));
+  return reorderWorkflowsByPinState(pinState, mapped);
+};
 
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(() =>
@@ -40,7 +47,7 @@ export default function useKanbanBoardState(selectedBoardId) {
     try {
       const res = await kanbanBoardService.getFullBoard(selectedBoardId);
       const payload = res?.data;
-      const mapped = mapFullBoardApiResponse(payload);
+      const mapped = sortByPinState(mapFullBoardApiResponse(payload));
       setWorkflows(ensureDAWorkflow(ensureStaticWorkflows(mapped.length ? mapped : [])));
       setBoardBackground(extractFullBoardBackground(payload));
       setSelectedCard((prev) => {
@@ -84,7 +91,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       try {
         const res = await kanbanBoardService.getFullBoard(selectedBoardId);
         const payload = res?.data;
-        const mapped = mapFullBoardApiResponse(payload);
+        const mapped = sortByPinState(mapFullBoardApiResponse(payload));
         if (cancelled) return;
         setWorkflows(ensureDAWorkflow(ensureStaticWorkflows(mapped.length ? mapped : [])));
         setBoardBackground(extractFullBoardBackground(payload));
