@@ -1533,7 +1533,8 @@ const renderTabContent = (
   isDAModule = false,
   addModeSave = {},
   salesOrderApiLoading = false,
-  salesOrderApiError = null
+  salesOrderApiError = null,
+  onExportApprovalWorkflowActionCompleted
 ) => {
   const commonProps = {
     card,
@@ -1601,7 +1602,7 @@ const renderTabContent = (
       case "Appointment Details":
         return <General {...commonProps} />;
       case "Export Approval":
-        return <Approval {...commonProps} />;
+        return <Approval {...commonProps} onWorkflowActionCompleted={onExportApprovalWorkflowActionCompleted} />;
       case "Operation":
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
       case "Husbandry":
@@ -1938,6 +1939,26 @@ function CardForm({
       cancelled = true;
     };
   }, [show, isAddMode, card?.call_id, card?.callId, cardFormSyncKey]);
+
+  // callDetailSnapshot only loads once per modal-open (effect above) — it has
+  // no reason to refetch on its own while the same card stays open. The
+  // Export Approval tab's export_approval_status lives on this same snapshot
+  // and gates the "Operation" tab (see isExportApprovalCompleted below), so
+  // without this, approving/proceeding/holding inside that tab would leave
+  // the Operation tab lock stale until the modal is closed and reopened.
+  const refetchCallDetailSnapshot = useCallback(async () => {
+    if (isAddMode) return;
+    const callIdRaw = card?.call_id ?? card?.callId;
+    const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+    if (!callId) return;
+    try {
+      const { data } = await callFileService.getCallDetail(callId);
+      setCallDetailSnapshot(data?.data ?? null);
+    } catch {
+      // Keep whatever snapshot is already displayed rather than blanking it
+      // out on a transient refetch failure.
+    }
+  }, [isAddMode, card?.call_id, card?.callId]);
 
   useEffect(() => {
     if (isAddMode || !callDetailSnapshot?.call_type_id) return;
@@ -2548,7 +2569,8 @@ function CardForm({
                 isDAModule,
                 addModeSaveProps,
                 salesOrderApiLoading,
-                salesOrderApiError
+                salesOrderApiError,
+                refetchCallDetailSnapshot
               )}
           </>
         )}
