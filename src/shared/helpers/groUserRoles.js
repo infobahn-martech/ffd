@@ -25,8 +25,14 @@ export function isMWPUserRole(roleId) {
   return roleId === "10" || roleId === 10;
 }
 
+// DA (22) is included here at the user's request — DA should see everything
+// GRO Supervisor (6) sees (forced "gro" card variant + supervisor-flavored GRO view).
 export function isGROSupervisorRole(roleId) {
-  return roleId === "6" || roleId === 6 || roleId === "8" || roleId === 8;
+  return (
+    roleId === "6" || roleId === 6 ||
+    roleId === "8" || roleId === 8 ||
+    roleId === "22" || roleId === 22
+  );
 }
 
 export function isMWPSupervisorRole(roleId) {
