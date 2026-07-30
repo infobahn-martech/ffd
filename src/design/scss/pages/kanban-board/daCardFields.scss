@@ -491,11 +491,31 @@
   display: inline-flex;
 }
 
-.da-cf-file-name {
+.da-cf-file-name-wrap {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.da-cf-file-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+
+  &[href]:hover {
+    text-decoration: underline;
+  }
+}
+
+.da-cf-file-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--da-ink-faint);
 }
 
 .da-cf-file-remove {

@@ -137,6 +137,41 @@ const formatApiDateTime = (raw) => {
   });
 };
 
+// Splits "YYYY-MM-DD HH:mm:ss" into the {date, time} shape DateTimeField's
+// <input type="date"> / <input type="time"> pair expects.
+const parseApiDateTime = (raw) => {
+  if (!raw) return { date: "", time: "" };
+  const [datePart = "", timePart = ""] = String(raw).trim().split(" ");
+  return { date: datePart, time: timePart ? timePart.slice(0, 5) : "" };
+};
+
+// Reverse of parseApiDateTime — builds the "YYYY-MM-DD HH:mm:ss" string
+// api/da/save_appointment_clearance_tab expects from a DateTimeField's {date, time}.
+const combineApiDateTime = ({ date, time } = {}) => {
+  if (!date) return "";
+  return `${date} ${time ? `${time}:00` : "00:00:00"}`;
+};
+
+const getFileUrl = (filePath) => {
+  const base = (import.meta.env.VITE_API_ENDPOINT || "").replace(/\/+$/, "");
+  const path = String(filePath || "").replace(/^\/+/, "");
+  return path ? `${base}/${path}` : "";
+};
+
+// api/da/appointment_clearance_tab returns already-uploaded documents (attachment path +
+// uploader/date), not browser File objects — map them into the shape FileDropzone renders.
+const mapApiDocument = (doc) => {
+  const raw = doc?.attachment || "";
+  const name = raw.split("/").pop() || raw || "Document";
+  return {
+    name,
+    url: getFileUrl(raw),
+    stage_document_id: doc?.stage_document_id ?? null,
+    uploaded_by_name: doc?.uploaded_by_name ?? null,
+    created_date: doc?.created_date ?? null,
+  };
+};
+
 function TileLabel({ icon, children }) {
   const Icon = icon;
   return (
@@ -479,7 +514,19 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, onAddFil
           {files.map((file, i) => (
             <div className="da-cf-file-row" key={`${file.name}-${i}`}>
               <span className="da-cf-file-icon"><FileText size={14} /></span>
-              <span className="da-cf-file-name">{file.name}</span>
+              <div className="da-cf-file-name-wrap">
+                {file.url ? (
+                  <a className="da-cf-file-name" href={file.url} target="_blank" rel="noreferrer">{file.name}</a>
+                ) : (
+                  <span className="da-cf-file-name">{file.name}</span>
+                )}
+                {file.uploaded_by_name && (
+                  <span className="da-cf-file-meta">
+                    {file.uploaded_by_name}
+                    {file.created_date ? ` · ${formatApiDateTime(file.created_date)}` : ""}
+                  </span>
+                )}
+              </div>
               <button type="button" className="da-cf-file-remove" onClick={() => onRemoveFile(i)}>
                 <X size={14} />
               </button>
@@ -748,6 +795,38 @@ function DA({ card, formValues }) {
     return () => { cancelled = true; };
   }, [callId]);
 
+  // api/da/appointment_clearance_tab/{call_id} — hydrates the "Appointment & Clearance"
+  // sub-tab (clearance/operations dates + the Appointment Email documents already
+  // uploaded against this call) once, when the card first loads.
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    daService.getAppointmentClearanceTab(callId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const tabData = data?.data;
+        if (!tabData) return;
+        const appointmentEmailDocs = tabData.documents?.["Appointment Email"];
+        setFieldValues((prev) => ({
+          ...prev,
+          inwardClearanceDate: tabData.inward_clearance_date
+            ? parseApiDateTime(tabData.inward_clearance_date)
+            : prev.inwardClearanceDate,
+          outwardClearanceDate: tabData.outward_clearance_date
+            ? parseApiDateTime(tabData.outward_clearance_date)
+            : prev.outwardClearanceDate,
+          operationsCompletionDate: tabData.operations_completion_date
+            ? String(tabData.operations_completion_date).slice(0, 10)
+            : prev.operationsCompletionDate,
+          appointmentEmail: Array.isArray(appointmentEmailDocs)
+            ? appointmentEmailDocs.map(mapApiDocument)
+            : prev.appointmentEmail,
+        }));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [callId]);
+
   // api/da/save_card_tab/{call_id} — persists the Card sub-tab fields. current_sticker_id
   // comes from the card's global sticker picker (formValues.card_sticker_id, set via the
   // "Sticker" button in the card header) rather than a field on this tab.
@@ -778,6 +857,36 @@ function DA({ card, formValues }) {
       setIsSavingCardTab(false);
     }
   }, [callId, coOwnerId, formValues, fieldValues]);
+
+  // api/da/save_appointment_clearance_tab/{call_id} — persists the "Appointment &
+  // Clearance" sub-tab. Only newly-picked browser File objects in appointmentEmail are
+  // uploaded; documents already hydrated from the GET (mapApiDocument) aren't File
+  // instances and are skipped so they aren't re-uploaded.
+  const [isSavingAppointmentClearanceTab, setIsSavingAppointmentClearanceTab] = useState(false);
+
+  const handleSaveAppointmentClearanceTab = useCallback(async () => {
+    if (callId == null) {
+      notify("Call ID is required before saving.", "error", "top-center");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("inward_clearance_date", combineApiDateTime(fieldValues.inwardClearanceDate));
+    formData.append("outward_clearance_date", combineApiDateTime(fieldValues.outwardClearanceDate));
+    formData.append("operations_completion_date", fieldValues.operationsCompletionDate || "");
+    fieldValues.appointmentEmail
+      .filter((file) => file instanceof File)
+      .forEach((file) => formData.append("appointment_email[]", file));
+
+    setIsSavingAppointmentClearanceTab(true);
+    try {
+      await daService.saveAppointmentClearanceTab(callId, formData);
+      notify("Appointment & Clearance details saved.", "success", "top-center");
+    } catch (err) {
+      notify(err?.response?.data?.message || "Failed to save appointment & clearance details.", "error", "top-center");
+    } finally {
+      setIsSavingAppointmentClearanceTab(false);
+    }
+  }, [callId, fieldValues]);
 
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -1009,6 +1118,16 @@ function DA({ card, formValues }) {
               disabled={isSavingCardTab || callId == null}
             >
               {isSavingCardTab ? "Saving…" : "Save"}
+            </button>
+          )}
+          {activeSubTab === "appointmentClearance" && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handleSaveAppointmentClearanceTab}
+              disabled={isSavingAppointmentClearanceTab || callId == null}
+            >
+              {isSavingAppointmentClearanceTab ? "Saving…" : "Save"}
             </button>
           )}
         </div>
