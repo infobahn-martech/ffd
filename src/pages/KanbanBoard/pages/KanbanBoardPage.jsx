@@ -118,6 +118,21 @@ export default function KanbanBoardPage() {
     setAccordionMenuWorkflowId(null);
   }, []);
 
+  const handleToggleWorkflow = useCallback(
+    (workflowId) => {
+      workflowService
+        .toggleCollapseWorkflow(workflowId)
+        .then(() => {
+          toggleWorkflow(workflowId);
+        })
+        .catch((err) => {
+          const msg = err?.response?.data?.message ?? err.message ?? "Could not update workflow.";
+          notify(msg, "error");
+        });
+    },
+    [toggleWorkflow]
+  );
+
   const handleAccordionExpand = useCallback(() => {
     if (!accordionMenuWorkflowId) return;
     const workflowId = accordionMenuWorkflowId;
@@ -298,7 +313,7 @@ export default function KanbanBoardPage() {
           onColumnHeaderClick={handleColumnHeaderClick}
           onContextMenu={handleColumnContextMenu}
           onHeightChange={handleWorkflowColumnHeightChange}
-          onToggleWorkflow={toggleWorkflow}
+          onToggleWorkflow={handleToggleWorkflow}
           onAccordionMenuClick={handleAccordionMenuClick}
           isClassicLayout={isClassicLayout}
           isModernLayout={isModernLayout}
