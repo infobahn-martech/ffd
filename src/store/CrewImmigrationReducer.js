@@ -80,13 +80,12 @@ const useCrewImmigrationReducer = create((set) => ({
         }
     },
 
-    // crew/remove_immigration_crew_file accepts { call_id, crew_excel_upload_id }
+    // crew/remove_immigration_crew_file accepts { crew_excel_upload_id }
     // to delete a single uploaded crew list file.
-    removeCrewImmigrationFile: async ({ callId, crewExcelUploadId } = {}) => {
+    removeCrewImmigrationFile: async ({ crewExcelUploadId } = {}) => {
         try {
             set({ isBeingUpdated: true, errorMessage: '' });
             const { data } = await crewImmigrationService.removeImmigrationCrewFile({
-                call_id: callId,
                 crew_excel_upload_id: crewExcelUploadId,
             });
             set({ isBeingUpdated: false });

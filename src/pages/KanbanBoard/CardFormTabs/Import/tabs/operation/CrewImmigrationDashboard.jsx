@@ -420,15 +420,9 @@ const CrewImmigrationDashboard = ({ card, formValues, cardColor }) => {
     const fileKey = file?.crew_excel_upload_id ?? file?.crew_file;
     if (!fileKey) return;
 
-    const { resolvedCallId } = await resolveCallAndVesselIds();
-    if (!resolvedCallId) {
-      notify("Unable to delete: missing call information.", "error");
-      return;
-    }
-
     setDeletingFileKey(fileKey);
     try {
-      await removeCrewImmigrationFile({ callId: resolvedCallId, crewExcelUploadId: file.crew_excel_upload_id });
+      await removeCrewImmigrationFile({ crewExcelUploadId: file.crew_excel_upload_id });
       setListingRefreshTick((tick) => tick + 1);
       notify("Crew list file removed.", "success");
       setShowDeleteFileModal(false);
