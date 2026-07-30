@@ -67,6 +67,7 @@ export function mapBoardWorkflowFromApi(workflow) {
   if (wfId == null) return null;
 
   const title = workflow.workflow_name || "Untitled Workflow";
+  const isTaskWorkflow = title === "Task Workflow";
   const workflowRoleId = workflow.role_id ?? null;
   const boardId =
     workflow.board_id != null && workflow.board_id !== "" ? String(workflow.board_id) : undefined;
@@ -291,6 +292,13 @@ export function mapBoardWorkflowFromApi(workflow) {
                 : null,
             raw: card,
             cardSource: "api",
+            // Task Card modal (kanban_card/create_task_card) cards always live under the
+            // "Task Workflow" workflow name — that's the signal CardForm uses to show TaskCardDetailView.
+            isSubTask: isTaskWorkflow,
+            cardId: isTaskWorkflow ? cardId : undefined,
+            dueDate: isTaskWorkflow
+              ? (card.due_date != null && String(card.due_date).trim() !== "" ? String(card.due_date).trim() : "")
+              : undefined,
           };
 
           if (swimlanes[laneKey]?.cardMap?.[colKey]) {
