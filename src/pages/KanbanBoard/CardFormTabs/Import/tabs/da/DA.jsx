@@ -31,10 +31,10 @@ const LIST_SECTIONS = [
   { key: "linksOverview", label: "Links overview", icon: Link2, placeholder: "Add a link…", accent: "#059669" },
 ];
 
-// api/da/required_documents/{call_id} — read-only reference documents. Only the
-// MWP-tagged ones are currently rendered, inside the "MWP" inner-tab of the MWP &
-// Launch Hire sub-tab (see RequiredDocumentsSection below); the rest of this list
-// stays as the full shape of what the endpoint returns.
+// api/da/required_documents/{call_id} — read-only reference documents. The full list
+// (see RequiredDocumentsSection below) is shown at the bottom of the "Clearance Copies"
+// sub-tab; the MWP-tagged subset is also surfaced separately inside the "MWP" inner-tab
+// of the MWP & Launch Hire sub-tab.
 const REQUIRED_DOCUMENTS_CONFIG = [
   { key: "immigration_doc", label: "Crew Immigration", icon: User },
   { key: "inward_clearance_doc", label: "Inward Clearance", icon: CalendarCheck },
@@ -1252,7 +1252,7 @@ VesselSalesOrderSection.propTypes = {
 // Card sub-tab — framed, animated panel instead of bare tiles on the page
 // background (see .da-cf-card-panel* in daCardFields.scss): a pulsing icon
 // header and staggered fade-up entrance for the 3 fields it holds.
-function CardPanel({ fields, renderField, onSave, isSaving, saveDisabled }) {
+function CardPanel({ fields, renderField }) {
   return (
     <div className="da-cf-card-panel">
       <div className="da-cf-card-panel-header">
@@ -1261,14 +1261,6 @@ function CardPanel({ fields, renderField, onSave, isSaving, saveDisabled }) {
           <h4 className="da-cf-card-panel-title">Card</h4>
           <p className="da-cf-card-panel-subtitle">Identity, tags and movement info for this card.</p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={onSave}
-          disabled={isSaving || saveDisabled}
-        >
-          {isSaving ? "Saving…" : "Save"}
-        </button>
       </div>
       <div className="da-cf-card-panel-grid">
         {fields.map((field, index) => (
@@ -1284,9 +1276,6 @@ function CardPanel({ fields, renderField, onSave, isSaving, saveDisabled }) {
 CardPanel.propTypes = {
   fields: PropTypes.array.isRequired,
   renderField: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired,
-  isSaving: PropTypes.bool,
-  saveDisabled: PropTypes.bool,
 };
 
 function DA({ card, formValues, handleChange }) {
@@ -1699,9 +1688,6 @@ function DA({ card, formValues, handleChange }) {
           <CardPanel
             fields={activeFields}
             renderField={renderField}
-            onSave={handleSaveCardTab}
-            isSaving={isSavingCardTab}
-            saveDisabled={callId == null}
           />
         ) : activeSubTab === "appointmentClearance" ? (
           <AppointmentClearanceSection fieldValues={fieldValues} updateField={updateField} />
@@ -1782,9 +1768,15 @@ function DA({ card, formValues, handleChange }) {
             </div>
           </div>
         ) : activeSubTab === "clearanceCopies" ? (
-          <div className="da-cf-fields-grid da-cf-fields-grid--files2">
-            {activeFields.map((field) => renderField(field))}
-          </div>
+          <>
+            <div className="da-cf-fields-grid da-cf-fields-grid--files2">
+              {activeFields.map((field) => renderField(field))}
+            </div>
+            <RequiredDocumentsSection
+              documents={requiredDocuments}
+              isLoading={isLoadingRequiredDocuments}
+            />
+          </>
         ) : (
           <div
             className={`da-cf-fields-grid${FIXED_2COL_GROUPS.has(activeSubTab) ? " da-cf-fields-grid--fixed2" : ""}`}
