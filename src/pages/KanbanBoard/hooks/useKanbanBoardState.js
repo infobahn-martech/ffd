@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { initialData, TASK_WORKFLOW_TEMPLATE } from "../../../shared/helpers/data";
-import { ensureStaticWorkflows, TASK_WORKFLOW_WITH_DEMO } from "../../../shared/helpers/TDData";
+import { initialData } from "../../../shared/helpers/data";
 import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
 import {
   mapFullBoardApiResponse,
@@ -23,7 +22,7 @@ const sortByPinState = (mapped) => {
 
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(() =>
-    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : [TASK_WORKFLOW_WITH_DEMO]
+    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : []
   );
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
@@ -47,7 +46,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       const res = await kanbanBoardService.getFullBoard(selectedBoardId);
       const payload = res?.data;
       const mapped = sortByPinState(mapFullBoardApiResponse(payload));
-      setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
+      setWorkflows(mapped);
       setBoardBackground(extractFullBoardBackground(payload));
       setSelectedCard((prev) => {
         if (!prev?.id) return prev;
@@ -58,7 +57,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       setBoardLoadError(null);
     } catch (e) {
       const msg = e?.message ?? String(e);
-      setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
+      setWorkflows([]);
       setBoardLoadError("Could not load board data.");
     } finally {
       setBoardLoading(false);
@@ -92,13 +91,13 @@ export default function useKanbanBoardState(selectedBoardId) {
         const payload = res?.data;
         const mapped = sortByPinState(mapFullBoardApiResponse(payload));
         if (cancelled) return;
-        setWorkflows(ensureStaticWorkflows(mapped.length ? mapped : []));
+        setWorkflows(mapped);
         setBoardBackground(extractFullBoardBackground(payload));
         setBoardLoadError(null);
       } catch (e) {
         if (!cancelled) {
           const msg = e?.message ?? String(e);
-          setWorkflows([TASK_WORKFLOW_WITH_DEMO]);
+          setWorkflows([]);
           setBoardLoadError("Could not load board data.");
         }
       } finally {
@@ -115,92 +114,8 @@ export default function useKanbanBoardState(selectedBoardId) {
     const handleShowWorkspaces = () => setShowWorkspaces(true);
     const handleHideWorkspaces = () => setShowWorkspaces(false);
 
-    const handleSubtaskCardCreated = (e) => {
-      const card = e.detail;
-      const newCardId = `subtask-${card.id}`;
-      const newCard = {
-        id: newCardId,
-        laneId: "default",
-        columnId: "col-todo",
-        workflow_id: "wf-demo",
-        workflow_role_id: null,
-        workflow_name: "Task Workflow",
-        title: card.cardTitle || "Task Card",
-        name: card.dueDate ? card.dueDate.split(" ")[0] : "",
-        user: card.assignedUserName || "",
-        vesselName: card.cardTitle || "",
-        taskName: card.taskName || "",
-        dueDate: card.dueDate || "",
-        isSubTask: true,
-        progress: 0,
-        timeLeft: "0m 0s",
-        color: "#2e7d32",
-        cardName: card.cardTitle || "Task Card",
-        billingEntity: "",
-        cardSource: "api",
-        card_type_id: null,
-        card_tag_id: null,
-        card_blocker_id: null,
-        card_sticker_id: null,
-        entityLogo: null,
-        createdDate: "",
-        taskId: card.id ?? "",
-        cardId: card.id ?? "",
-        port: "",
-        callId: "",
-        vesselId: "",
-        userId: card.assignUserId || "",
-      };
-
-      setWorkflows((prev) => {
-        const wfIndex = prev.findIndex(
-          (wf) => wf.id === "wf-demo" || wf.title === "Task Workflow"
-        );
-
-        if (wfIndex === -1) {
-          const newWf = {
-            ...TASK_WORKFLOW_TEMPLATE,
-            cards: { [newCardId]: newCard },
-            swimlanes: {
-              default: {
-                id: "default",
-                title: "Default",
-                color: "#ffffff",
-                cardMap: {
-                  "col-todo": [newCardId],
-                  "col-progress": [],
-                  "col-done": [],
-                },
-              },
-            },
-            swimlaneOrder: ["default"],
-          };
-          return [...prev, newWf];
-        }
-
-        const wf = prev[wfIndex];
-        const laneId = wf.swimlaneOrder?.[0] ?? "default";
-        const colId = wf.columnOrder?.[0] ?? "col-todo";
-        const updatedCard = { ...newCard, laneId, columnId: colId };
-        const lane = wf.swimlanes?.[laneId] ?? {
-          id: laneId, title: "Default", color: "#ffffff", cardMap: {},
-        };
-        const updatedWf = {
-          ...wf,
-          cards: { ...wf.cards, [newCardId]: updatedCard },
-          swimlanes: {
-            ...wf.swimlanes,
-            [laneId]: {
-              ...lane,
-              cardMap: {
-                ...lane.cardMap,
-                [colId]: [...(lane.cardMap[colId] || []), newCardId],
-              },
-            },
-          },
-        };
-        return [...prev.slice(0, wfIndex), updatedWf, ...prev.slice(wfIndex + 1)];
-      });
+    const handleSubtaskCardCreated = () => {
+      refetchBoard();
     };
 
     window.addEventListener("kanban:show-workspaces", handleShowWorkspaces);
@@ -212,7 +127,7 @@ export default function useKanbanBoardState(selectedBoardId) {
       window.removeEventListener("kanban:hide-workspaces", handleHideWorkspaces);
       window.removeEventListener("subtask:card-created", handleSubtaskCardCreated);
     };
-  }, []);
+  }, [refetchBoard]);
 
   const handleSelectCard = useCallback((card) => {
     setSelectedCard(card);
