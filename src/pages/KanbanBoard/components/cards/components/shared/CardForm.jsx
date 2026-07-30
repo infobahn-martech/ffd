@@ -1651,8 +1651,16 @@ function CardForm({
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
+  // DA (22) shares the GRO Supervisor view for GRO-workflow cards, but on their own
+  // Centralized DA Desk board (board_id "3") they should get the normal DA card view
+  // (tab bar + "DA" tab) instead of the generic GRO fallback view.
+  const isDAUser = String(userRoleId ?? "") === "22";
+  const isDABoardCard = String(boardId ?? "") === "3";
   const effectiveVariant = (() => {
-    if (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) {
+    if (
+      (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) &&
+      !(isDAUser && isDABoardCard)
+    ) {
       return "gro";
     }
     if (
