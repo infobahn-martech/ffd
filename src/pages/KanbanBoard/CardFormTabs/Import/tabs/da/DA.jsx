@@ -604,7 +604,7 @@ FileDropzone.propTypes = {
 // for real data (step/date/state per call) once that API is available.
 const STATUS_TIMELINE_STEPS = [
   { key: "created", label: "DA Card Created", date: "2026-07-18", state: "done" },
-  { key: "appointmentEmail", label: "Appointment Email Uploaded", date: "2026-07-20", state: "done" },
+  { key: "appointmentEmail", label: "Appointment Email Uploaded", date: null, state: "current" },
   { key: "inwardClearance", label: "Inward Clearance", date: "2026-07-22", state: "done" },
   { key: "operationsCompletion", label: "Operations Completed", date: null, state: "current" },
   { key: "soApprovalPending", label: "To be sent for SO approval", date: null, state: "pending" },
@@ -629,15 +629,19 @@ function StatusTimelineSection({ steps, onStepClick }) {
               <div className="da-cf-timeline-step-marker">
                 <span
                   className="da-cf-timeline-step-icon"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onStepClick?.(index)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onStepClick?.(index);
-                    }
-                  }}
+                  role={step.state === "current" ? "button" : undefined}
+                  tabIndex={step.state === "current" ? 0 : undefined}
+                  onClick={step.state === "current" ? () => onStepClick?.(index) : undefined}
+                  onKeyDown={
+                    step.state === "current"
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onStepClick?.(index);
+                          }
+                        }
+                      : undefined
+                  }
                 >
                   <Icon size={14} />
                 </span>
@@ -679,22 +683,57 @@ StatusTimelineSection.propTypes = {
 function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
 
-  // Local-only progression: clicking a timeline step marks it (and everything before it)
-  // done and stamps it with today's date/time, since there's no backend status-history
-  // endpoint yet to drive this from real data (see STATUS_TIMELINE_STEPS above).
+  // Local-only progression for steps without a real backend field yet: clicking the active
+  // step marks it done and stamps it with today's date/time, then advances "current" to the
+  // next step, walking the chain forward one click at a time.
   const [timelineSteps, setTimelineSteps] = useState(() => STATUS_TIMELINE_STEPS.map((step) => ({ ...step })));
 
-  const handleTimelineStepClick = (clickedIndex) => {
-    const now = new Date();
-    const todayDate = now.toISOString().slice(0, 10);
-    const nowTime = now.toTimeString().slice(0, 5);
+  // Operations Completed is the one step with a real backend-synced date (operationsCompletionDate,
+  // see AppointmentClearanceSection) — once it's set, reflect that here instead of leaving this step
+  // on its hardcoded placeholder state, while every other step stays click-driven as before.
+  useEffect(() => {
+    if (!fieldValues.operationsCompletionDate) return;
     setTimelineSteps((prev) =>
-      prev.map((step, index) => {
-        if (index < clickedIndex) return { ...step, state: "done", date: step.date || todayDate };
-        if (index === clickedIndex) return { ...step, state: "current", date: todayDate, time: nowTime };
-        return { ...step, state: "pending", date: null, time: null };
+      prev.map((step) =>
+        step.key === "operationsCompletion"
+          ? { ...step, state: "done", date: fieldValues.operationsCompletionDate }
+          : step
+      )
+    );
+  }, [fieldValues.operationsCompletionDate]);
+
+  // Appointment Email Uploaded is wired the same way, driven by the real fieldValues.appointmentEmail
+  // upload (see AppointmentClearanceSection): once a file is present, mark it done — using the synced
+  // document's created_date if it came from the backend, falling back to today for a fresh upload —
+  // and advance "To be sent for SO approval" to the active step.
+  useEffect(() => {
+    if (!(fieldValues.appointmentEmail?.length > 0)) return;
+    const uploadedDate = fieldValues.appointmentEmail[0]?.created_date || new Date().toISOString().slice(0, 10);
+    setTimelineSteps((prev) =>
+      prev.map((step) => {
+        if (step.key === "appointmentEmail") return { ...step, state: "done", date: uploadedDate };
+        if (step.key === "soApprovalPending" && step.state === "pending") return { ...step, state: "current" };
+        return step;
       })
     );
+  }, [fieldValues.appointmentEmail]);
+
+  // Only the active ("current") step responds to a click — completing it and advancing
+  // "current" to the next step in the chain, so repeated clicks walk forward through the
+  // whole timeline in order instead of jumping straight to an arbitrary clicked step.
+  const handleTimelineStepClick = (clickedIndex) => {
+    setTimelineSteps((prev) => {
+      const currentIndex = prev.findIndex((step) => step.state === "current");
+      if (clickedIndex !== currentIndex || currentIndex === -1) return prev;
+      const now = new Date();
+      const todayDate = now.toISOString().slice(0, 10);
+      const nowTime = now.toTimeString().slice(0, 5);
+      return prev.map((step, index) => {
+        if (index === currentIndex) return { ...step, state: "done", date: step.date || todayDate, time: null };
+        if (index === currentIndex + 1) return { ...step, state: "current", date: todayDate, time: nowTime };
+        return step;
+      });
+    });
   };
 
   // api/da/summary_tab/{call_id} is the source of truth once it loads; until then, or if
