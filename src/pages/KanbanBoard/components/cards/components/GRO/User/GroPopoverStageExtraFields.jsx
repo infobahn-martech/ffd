@@ -114,16 +114,6 @@ function GroPopoverStageExtraFields({
             <span className="gro-inward-popover-field-error">{errors.crew_immigration_status}</span>
           ) : null}
         </div>
-        <PopoverFileUploadField
-          label="Immigration Document"
-          fieldKey="immigration_doc"
-          file={values?.immigration_doc}
-          existingFile={existingFiles?.immigration_doc}
-          error={errors?.immigration_doc}
-          disabled={disabled}
-          fileInputRefs={fileInputRefs}
-          onFileChange={onFileChange}
-        />
         {showOnHoldReason ? (
           <div className={`gro-inward-popover-field${errors?.on_hold_reason ? " gro-inward-popover-field--error" : ""}`}>
             <span className="gro-inward-popover-label">Remarks *</span>
@@ -140,6 +130,16 @@ function GroPopoverStageExtraFields({
             ) : null}
           </div>
         ) : null}
+        <PopoverFileUploadField
+          label="Crew Immigration"
+          fieldKey="immigration_doc"
+          file={values?.immigration_doc}
+          existingFile={existingFiles?.immigration_doc}
+          error={errors?.immigration_doc}
+          disabled={disabled}
+          fileInputRefs={fileInputRefs}
+          onFileChange={onFileChange}
+        />
       </>
     );
   }
