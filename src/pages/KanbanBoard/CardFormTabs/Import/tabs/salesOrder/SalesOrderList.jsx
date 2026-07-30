@@ -1308,7 +1308,18 @@ const SalesOrderList = ({
       {/* Discount % */}
       <td>
         <div className="sales-order-table-cell">
-          {`${order.discount ?? 0}%`}
+          {readOnly ? `${order.discount ?? 0}%` : (
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={order.discount ?? 0}
+              onChange={(e) => handleFieldChange(order.id, "discount", e.target.value)}
+              className="sales-order-qty-input"
+              style={cellStyle}
+            />
+          )}
         </div>
       </td>
 
@@ -2064,12 +2075,25 @@ const SalesOrderList = ({
                 <span className="so-accounting-label">Subtotal</span>
                 <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
               </div>
-              {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
+              {(!readOnly || (formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "")) && (
                 <div className="so-accounting-row">
                   <span className="so-accounting-label">Discount</span>
-                  <span className="so-accounting-value">
-                    {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
-                  </span>
+                  {readOnly ? (
+                    <span className="so-accounting-value">
+                      {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                    </span>
+                  ) : (
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formValues.soDiscountPercentage ?? ""}
+                      onChange={handleChange("soDiscountPercentage")}
+                      placeholder="0"
+                      className="so-accounting-discount-input"
+                    />
+                  )}
                 </div>
               )}
               <div className="so-accounting-row">
