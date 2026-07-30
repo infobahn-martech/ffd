@@ -463,6 +463,8 @@ const BOARD_META_PICKERS = {
   blocker: {
     header: "Card blocker",
     emptyLabel: "blockers",
+    showRowIcon: true,
+    showTopbarDynamicIcon: true,
     resolveSelectedId: resolveCardBlockerIdFromCard,
     listKeys: ["card_blockers", "blockers", "kanban_card_blockers"],
     normalizeRow: normalizeBoardCardBlockerRow,
