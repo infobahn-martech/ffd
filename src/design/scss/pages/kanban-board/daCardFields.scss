@@ -1401,15 +1401,20 @@ a.da-cf-file-name {
   color: var(--da-ink-faint);
   background: var(--da-surface);
   border: 1.5px solid var(--da-line);
-  cursor: pointer;
   transition: box-shadow 0.15s ease;
 }
 
-.da-cf-timeline-step-icon:hover {
+// Only the active step is clickable (see handleTimelineStepClick in DA.jsx — clicking it
+// completes it and advances to the next step), so only it gets the interactive affordance.
+.da-cf-timeline-step--current .da-cf-timeline-step-icon {
+  cursor: pointer;
+}
+
+.da-cf-timeline-step--current .da-cf-timeline-step-icon:hover {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--da-accent) 12%, transparent);
 }
 
-.da-cf-timeline-step-icon:focus-visible {
+.da-cf-timeline-step--current .da-cf-timeline-step-icon:focus-visible {
   outline: 2px solid var(--da-accent);
   outline-offset: 2px;
 }
