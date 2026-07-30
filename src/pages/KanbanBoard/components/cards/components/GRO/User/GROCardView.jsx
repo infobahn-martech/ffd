@@ -9,6 +9,7 @@ import {
   isGROSupervisorRole,
   isMWPSupervisorRole,
   isCustomClearanceSupervisorRole,
+  isPortSupervisorRole,
 } from "../../../../../../../shared/helpers/groUserRoles";
 import {
   PRE_ARRIVAL_GRO_ROLE_ID,
@@ -86,7 +87,10 @@ const GROCardView = forwardRef(function GROCardView(
   const isCustomClearance = mode === "custom";
   const hidePassTabs = mode === "gro" || isCustomClearance;
   const isGroSupervisorViewer =
-    isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
+    isGROSupervisorRole(userRoleId) ||
+    isGROSupervisorRole(Number(userRoleId)) ||
+    isPortSupervisorRole(userRoleId) ||
+    isPortSupervisorRole(Number(userRoleId));
   const isMwpSupervisorViewer =
     isMWPSupervisorRole(userRoleId) || isMWPSupervisorRole(Number(userRoleId));
   const isCustomClearanceSupervisorViewer =
