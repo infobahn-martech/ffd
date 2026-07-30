@@ -5,7 +5,7 @@ import { ROUTE_PATHS } from './paths';
 import {
   isRestrictedBoardUser,
   isRestrictedUserAllowedPath,
-  RESTRICTED_BOARD_HOME_PATH,
+  RESTRICTED_USER_FALLBACK_PATH,
 } from '../shared/helpers/restrictedBoardUser';
 import {
   isVendorRole,
@@ -54,7 +54,7 @@ function RouteGuard({ children, moduleKey, submoduleKey, actionKey, permissionOn
 
   if (isRestrictedBoardUser(userProfile)) {
     if (!isRestrictedUserAllowedPath(currentPath)) {
-      return <Navigate to={RESTRICTED_BOARD_HOME_PATH} replace />;
+      return <Navigate to={RESTRICTED_USER_FALLBACK_PATH} replace />;
     }
     return children;
   }

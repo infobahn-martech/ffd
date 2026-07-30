@@ -19,7 +19,6 @@ import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
-import { RESTRICTED_BOARD_HOME_PATH } from '../../../shared/helpers/restrictedBoardUser';
 import '../../../design/scss/structure/side-nav/AddDashboardModal.scss';
 
 const DASHBOARD_MENU_WIDTH = 200;
@@ -28,6 +27,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const {
+    workspaces,
     dashboards: apiDashboards,
     listAllDashboards,
     dashboardsLoading,
@@ -36,6 +36,12 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
     deleteDashboard,
     addEditLoader,
   } = useWorkSpaceReducer();
+
+  const restrictedBoardPath = useMemo(() => {
+    const boards = (workspaces ?? []).flatMap((w) => w.boards ?? []);
+    if (boards.length !== 1) return null;
+    return `/kanban-board/${boards[0].board_id}`;
+  }, [workspaces]);
 
   const [filterText, setFilterText] = useState('');
   const [collapsed, setCollapsed] = useState(false);
@@ -137,7 +143,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
   };
 
   const goRestrictedKanbanBoard = () => {
-    navigate(RESTRICTED_BOARD_HOME_PATH);
+    if (!restrictedBoardPath) return;
+    navigate(restrictedBoardPath);
   };
 
   const openDashboard = (dashboardId) => {
@@ -270,8 +277,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
               <button
                 type="button"
                 className={`kanban-sidebar-workspaces-nav-item ${
-                  pathname === RESTRICTED_BOARD_HOME_PATH ||
-                  pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
+                  restrictedBoardPath &&
+                  (pathname === restrictedBoardPath || pathname.startsWith(`${restrictedBoardPath}/`))
                     ? 'kanban-sidebar-workspaces-nav-item--active'
                     : ''
                 }`}
@@ -506,8 +513,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
             <button
               type="button"
               className={`kanban-sidebar-icon kanban-sidebar-icon--collapsed ${
-                pathname === RESTRICTED_BOARD_HOME_PATH ||
-                pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
+                restrictedBoardPath &&
+                (pathname === restrictedBoardPath || pathname.startsWith(`${restrictedBoardPath}/`))
                   ? 'active'
                   : ''
               }`}

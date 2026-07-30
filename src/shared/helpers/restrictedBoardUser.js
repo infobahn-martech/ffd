@@ -21,7 +21,8 @@ export const PORT_OPERATOR_ROLE_ID = '2';
 /** Port Manager — full Kanban sidebar (Add, On Station, Edit Workflow, Outlook, Settings) */
 export const KANBAN_FULL_SIDEBAR_ROLE_ID = '1';
 
-export const RESTRICTED_BOARD_HOME_PATH = '/kanban-board/1';
+/** Fallback landing path for restricted users when a route isn't allowed — not a specific board. */
+export const RESTRICTED_USER_FALLBACK_PATH = '/workspaces';
 
 function toRoleIdString(value) {
   return normalizeRoleId(value);
@@ -118,11 +119,6 @@ export function hasKanbanFullSidebar(user) {
 export function isRestrictedUserAllowedPath(pathname) {
   if (!pathname || typeof pathname !== 'string') return false;
   if (pathname === '/workspaces' || pathname.startsWith('/workspaces/')) return true;
-  if (
-    pathname === RESTRICTED_BOARD_HOME_PATH ||
-    pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
-  ) {
-    return true;
-  }
+  if (pathname.startsWith('/kanban-board/')) return true;
   return false;
 }

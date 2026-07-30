@@ -56,7 +56,6 @@ import { ROUTE_PATHS } from '../../router/paths';
 import {
   hasKanbanFullSidebar,
   isRestrictedBoardUser,
-  RESTRICTED_BOARD_HOME_PATH,
 } from '../../shared/helpers/restrictedBoardUser';
 import usePermissions from '../../shared/hooks/usePermissions';
 import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
@@ -123,6 +122,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const isPortManagerRole = String(userRoleId) === '1';
   const isPortSupervisorRole = String(userRoleId) === '3';
   const restrictedNav = isRestrictedBoardUser(userProfile);
+  // Classic sidebar only renders while already on a /kanban-board/* (or /compact)
+  // route for restricted nav, so the current board can be read straight from the URL.
+  const restrictedBoardBasePath = useMemo(
+    () => pathname.match(/^\/kanban-board\/[^/]+/)?.[0] ?? '/kanban-board',
+    [pathname]
+  );
   const { hasPermission } = usePermissions();
   // User Management → Users is fully migrated to the new permission system:
   // the backend permission response is authoritative here, no legacy OR.
@@ -537,12 +542,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       {
         menu: 'Kanban Board',
         isDefaultMenu: true,
-        to: RESTRICTED_BOARD_HOME_PATH,
+        to: restrictedBoardBasePath,
         icon: materialIcon,
         hasPermission: true,
       },
     ],
-    []
+    [restrictedBoardBasePath]
   );
 
   const [menuState, setMenuState] = useState(menus);
@@ -647,10 +652,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     if (restrictedNav) {
       if (pathname === '/workspaces' || pathname.startsWith('/workspaces/')) {
         setActiveKanbanIcon(4);
-      } else if (
-        pathname === RESTRICTED_BOARD_HOME_PATH ||
-        pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
-      ) {
+      } else {
         setActiveKanbanIcon(6);
       }
       return;
@@ -753,7 +755,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
           return;
         }
         if (item.label === 'Kanban Board') {
-          navigate(RESTRICTED_BOARD_HOME_PATH);
+          navigate(restrictedBoardBasePath);
           setActiveKanbanIcon(item.id);
           return;
         }
@@ -1006,8 +1008,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
                 activeKanbanIcon === item.id ||
                 (restrictedNav &&
                   item.label === 'Kanban Board' &&
-                  (pathname === RESTRICTED_BOARD_HOME_PATH ||
-                    pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`))) ||
+                  pathname.startsWith('/kanban-board/')) ||
                 (item.label === 'Filter' && showFilterPanel) ||
                 (item.label === 'Analytics' && pathname.includes('/analytics')) ||
                 (item.label === 'Board teams' && showBoardTeamsSubmenu) ||

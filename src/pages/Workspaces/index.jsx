@@ -18,7 +18,7 @@ import RenameBoardModal from './RenameBoardModal';
 import RenameWorkspaceModal from './RenameWorkspaceModal';
 import { getDashboardCanvasStyle, normalizeDashboardBackground } from '../../shared/utils/dashboardBackground';
 import useAuthReducer from '../../store/AuthReducer';
-import { isRestrictedBoardUser, RESTRICTED_BOARD_HOME_PATH } from '../../shared/helpers/restrictedBoardUser';
+import { isRestrictedBoardUser } from '../../shared/helpers/restrictedBoardUser';
 import { notify } from '../../components/Toaster';
 import usePermissions from '../../shared/hooks/usePermissions';
 import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
@@ -794,7 +794,7 @@ function Workspaces() {
                     className={`board-card ${!restrictedUser && openMenuId === board.id ? 'menu-open' : ''}`}
                     onClick={() => {
                       setIsNavigating(true);
-                      navigate(restrictedUser ? RESTRICTED_BOARD_HOME_PATH : `/kanban-board/${board.id}`);
+                      navigate(`/kanban-board/${board.id}`);
                     }}
                     style={{ cursor: 'pointer' }}
                   >
