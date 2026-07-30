@@ -417,6 +417,12 @@
       border: 1px solid #d6e4ff;
       color: #2563eb;
     }
+
+    &--pending {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      color: #6b7280;
+    }
   }
 
   .approval-upload-field,

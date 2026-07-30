@@ -270,7 +270,7 @@ const createEmptyPartySection = () => ({
   }
 
   FormField.propTypes = {
-    label: PropTypes.string,
+    label: PropTypes.node,
     children: PropTypes.node.isRequired,
     className: PropTypes.string,
     fullWidth: PropTypes.bool,
@@ -383,6 +383,8 @@ const createEmptyPartySection = () => ({
         <FiPauseCircle size={14} />
       ) : type === "proceeded" ? (
         <FiArrowRight size={14} />
+      ) : type === "pending" ? (
+        <FiLoader size={14} />
       ) : (
         <FiCheckCircle size={14} />
       );
@@ -395,7 +397,7 @@ const createEmptyPartySection = () => ({
   }
 
   ApprovalStatusBadge.propTypes = {
-    type: PropTypes.oneOf(["approved", "hold", "proceeded"]).isRequired,
+    type: PropTypes.oneOf(["approved", "hold", "proceeded", "pending"]).isRequired,
     children: PropTypes.node.isRequired,
   };
 
@@ -584,7 +586,7 @@ const createEmptyPartySection = () => ({
 
   ApprovalCard.propTypes = {
     title: PropTypes.string.isRequired,
-    commentsLabel: PropTypes.string.isRequired,
+    commentsLabel: PropTypes.node.isRequired,
     commentsValue: PropTypes.string.isRequired,
     onCommentsChange: PropTypes.func.isRequired,
     commentsPlaceholder: PropTypes.string,
@@ -602,7 +604,7 @@ const createEmptyPartySection = () => ({
     primaryDisabled: PropTypes.bool,
     stageWaitMessage: PropTypes.string,
     statusBadge: PropTypes.shape({
-      type: PropTypes.oneOf(["approved", "hold", "proceeded"]).isRequired,
+      type: PropTypes.oneOf(["approved", "hold", "proceeded", "pending"]).isRequired,
       text: PropTypes.string.isRequired,
     }),
     hideActions: PropTypes.bool,
@@ -1136,7 +1138,11 @@ const createEmptyPartySection = () => ({
             <div className="approval-action-cards-row">
               <ApprovalCard
                 title="Remarks / Recommendation"
-                commentsLabel="Remarks / recommendation from Credit Controller"
+                commentsLabel={
+                  <>
+                    Remarks / recommendation from Credit Controller <span className="text-danger">*</span>
+                  </>
+                }
                 commentsValue={creditControllerRemarks}
                 onCommentsChange={(e) => setCreditControllerRemarks(e.target.value)}
                 commentsPlaceholder="Enter remarks / recommendation from Credit Controller"
@@ -1147,16 +1153,28 @@ const createEmptyPartySection = () => ({
                 secondaryActionLabel="Proceed to Manager"
                 onPrimaryAction={handleCreditControllerApproved}
                 onSecondaryAction={handleCreditControllerProceedToOperator}
-                actionsDisabled={saveStatus === "saving" || !canEditCreditControllerSection}
-                primaryDisabled={saveStatus === "saving" || !canEditCreditControllerSection}
-                fieldsDisabled={!canEditCreditControllerSection}
+                actionsDisabled={
+                  saveStatus === "saving" ||
+                  !canEditCreditControllerSection ||
+                  !creditControllerRemarks.trim()
+                }
+                primaryDisabled={
+                  saveStatus === "saving" ||
+                  !canEditCreditControllerSection ||
+                  !creditControllerRemarks.trim()
+                }
+                fieldsDisabled={
+                  !canEditCreditControllerSection ||
+                  creditControllerApproved ||
+                  !stageActive.credit_controller
+                }
                 stageWaitMessage={getStageWaitMessage(effectiveStage, "credit_controller")}
                 statusBadge={
                   creditControllerApproved
                     ? { type: "approved", text: "Approved by Credit Controller" }
                     : !stageActive.credit_controller
                     ? { type: "proceeded", text: "Proceeded to Manager" }
-                    : null
+                    : { type: "pending", text: "Still processing by Credit Controller" }
                 }
                 hideActions={creditControllerApproved || !stageActive.credit_controller}
                 isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
@@ -1173,7 +1191,11 @@ const createEmptyPartySection = () => ({
               {isCeoRole || !isControllerRole || !stageActive.credit_controller ? (
                 <ApprovalCard
                   title="Manager - Offshore Marine Logistics Comments"
-                  commentsLabel="Manager - Offshore Marine Logistics comments"
+                  commentsLabel={
+                    <>
+                      Manager - Offshore Marine Logistics comments <span className="text-danger">*</span>
+                    </>
+                  }
                   commentsValue={managerComments}
                   onCommentsChange={(e) => setManagerComments(e.target.value)}
                   commentsPlaceholder="Enter manager comments"
@@ -1186,18 +1208,38 @@ const createEmptyPartySection = () => ({
                   onPrimaryAction={handleManagerApproved}
                   onSecondaryAction={handleManagerProceedToCeo}
                   helperText="Require Digital Signature of OFM department Manager"
-                  actionsDisabled={saveStatus === "saving" || !isManagerRole}
-                  primaryDisabled={saveStatus === "saving" || !isManagerRole}
-                  fieldsDisabled={!isManagerRole}
+                  actionsDisabled={
+                    saveStatus === "saving" || !isManagerRole || !managerComments.trim()
+                  }
+                  primaryDisabled={
+                    saveStatus === "saving" || !isManagerRole || !managerComments.trim()
+                  }
+                  fieldsDisabled={
+                    !isManagerRole ||
+                    managerApproved ||
+                    isStagePassed(effectiveStage, "manager_ofm")
+                  }
                   stageWaitMessage={getStageWaitMessage(effectiveStage, "manager_ofm")}
                   statusBadge={
                     managerApproved
                       ? { type: "approved", text: "Approved by Manager" }
                       : isStagePassed(effectiveStage, "manager_ofm")
                       ? { type: "proceeded", text: "Proceeded to CEO" }
+                      : stageActive.manager_ofm
+                      ? { type: "pending", text: "Still processing by Manager" }
                       : null
                   }
-                  hideActions={managerApproved || isStagePassed(effectiveStage, "manager_ofm")}
+                  // Non-Manager viewers (CEO, DA, Controller, generic
+                  // viewers) never see these buttons at all — only the
+                  // "Still processing by Manager" badge/wait text — since
+                  // they could never click them anyway (actionsDisabled
+                  // already locks them via !isManagerRole); showing greyed
+                  // buttons to everyone just read as confusing dead UI.
+                  hideActions={
+                    !isManagerRole ||
+                    managerApproved ||
+                    isStagePassed(effectiveStage, "manager_ofm")
+                  }
                   isActiveStage={stageActive.manager_ofm && isManagerRole}
                 />
               ) : null}
@@ -1214,7 +1256,11 @@ const createEmptyPartySection = () => ({
               ((!isManagerRole && !isCeoRole) || isStagePassed(effectiveStage, "manager_ofm")) ? (
                 <ApprovalCard
                   title="CEO Comments"
-                  commentsLabel="CEO comments"
+                  commentsLabel={
+                    <>
+                      CEO comments <span className="text-danger">*</span>
+                    </>
+                  }
                   commentsValue={ceoComments}
                   onCommentsChange={(e) => setCeoComments(e.target.value)}
                   commentsPlaceholder="Enter CEO comments"
@@ -1227,7 +1273,12 @@ const createEmptyPartySection = () => ({
                   onPrimaryAction={handleCeoApproved}
                   onSecondaryAction={handleCeoOnHold}
                   helperText="Require Digital Signature of CEO"
-                  actionsDisabled={saveStatus === "saving" || !stageActive.ceo || !isCeoRole}
+                  actionsDisabled={
+                    saveStatus === "saving" ||
+                    !stageActive.ceo ||
+                    !isCeoRole ||
+                    !ceoComments.trim()
+                  }
                   // Being on hold locks stageActive.ceo (it's not any of the three
                   // named stages), but the CEO is the one who put it on hold and
                   // must still be able to click Approved to resume — isCeoStageUsable
@@ -1235,9 +1286,17 @@ const createEmptyPartySection = () => ({
                   // secondary "On Hold" button above which stays locked via
                   // actionsDisabled/stageActive.ceo alone.
                   primaryDisabled={
-                    saveStatus === "saving" || !isCeoRole || ceoApproved || !isCeoStageUsable
+                    saveStatus === "saving" ||
+                    !isCeoRole ||
+                    ceoApproved ||
+                    !isCeoStageUsable ||
+                    !ceoComments.trim()
                   }
-                  fieldsDisabled={!isCeoRole}
+                  // ceoApproved locks fields once CEO is done — not isOnHold,
+                  // since the CEO must still be able to edit comments/upload
+                  // documents while on hold to actually resolve it (same
+                  // reasoning as primaryDisabled/isCeoStageUsable above).
+                  fieldsDisabled={!isCeoRole || ceoApproved}
                   stageWaitMessage={
                     isOnHold || ceoApproved ? null : getStageWaitMessage(effectiveStage, "ceo")
                   }

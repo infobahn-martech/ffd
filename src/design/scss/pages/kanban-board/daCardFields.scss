@@ -1095,6 +1095,41 @@
   text-decoration: underline;
 }
 
+.da-cf-existing-files {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.da-cf-existing-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--da-line);
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  color: var(--da-ink);
+  background: var(--da-sunken);
+}
+
+.da-cf-existing-file-meta {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--da-ink-faint);
+  white-space: nowrap;
+}
+
+a.da-cf-file-name {
+  color: var(--da-accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .da-cf-count-badge {
   display: inline-flex;
   align-items: center;

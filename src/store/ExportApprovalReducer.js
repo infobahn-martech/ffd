@@ -19,7 +19,11 @@ const useExportApprovalReducer = create((set) => ({
   getExportApprovalDetails: async (callId) => {
     if (!callId) return;
     try {
-      set({ isLoadingDetails: true });
+      // Clear the previous card's details immediately — otherwise this
+      // stays in the store until the new response lands, and the Approval
+      // tab's hydrate effect renders the OLD card's remarks/badges/fields
+      // for the whole fetch (visible as "old UI" when switching cards).
+      set({ isLoadingDetails: true, details: null });
       const { data } = await exportApprovalService.getExportApprovalDetails(callId);
       set({ details: data?.data ?? null, isLoadingDetails: false });
     } catch (error) {
