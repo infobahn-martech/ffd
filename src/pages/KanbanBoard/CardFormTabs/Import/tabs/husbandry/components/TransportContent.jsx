@@ -313,26 +313,6 @@
         return;
       }
 
-      if (!formValues.transportFromType) {
-        notify("From type is required.", "error", "top-center");
-        return;
-      }
-
-      if (!formValues.transportFromLocation) {
-        notify("From location is required.", "error", "top-center");
-        return;
-      }
-
-      if (!formValues.transportToType) {
-        notify("To type is required.", "error", "top-center");
-        return;
-      }
-
-      if (!formValues.transportToLocation) {
-        notify("To location is required.", "error", "top-center");
-        return;
-      }
-
       let launchHireBookingDatetime = "";
       if (isLaunchHire) {
         if (!formValues.transportLaunchHireLocation) {
