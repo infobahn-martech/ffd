@@ -5,16 +5,13 @@ import { FiUpload } from "react-icons/fi";
 import { notify } from "../../../../../../../components/Toaster";
 import crewService from "../../../../../../../services/crewService";
 import groService from "../../../../../../../services/groService";
-import { buildGroPassIssueDateString, computeGroPassUploadPopoverPosition, groApiErrorMessage } from "./groCardUtils";
+import { groApiErrorMessage } from "./groCardUtils";
 import { crewChangeRowFields, getCrewChangeCrewId, normalizeCrewChangeListResponse } from "./crewChangePassUtils";
-import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import CrewChangeCgPassGenerateView from "./CrewChangeCgPassGenerateView";
 
 const PAGE_SIZE = 10;
 
-const initialSingleForm = () => ({ passNo: "", issuePickerParts: { date: "", time: "" }, file: null });
-
-/** Crew Change stage: crew roster + CG Pass (templated) / Zawil Pass (manual) upload flows. */
+/** Crew Change stage: crew roster + CG Pass (templated or AI-read) / Zawil Pass (AI-read) upload flows. */
 export default function CrewChangePassPanel({ callId, portId }) {
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: PAGE_SIZE });
@@ -28,13 +25,10 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const [zawilBulkSubmitting, setZawilBulkSubmitting] = useState(false);
   const zawilBulkFileInputRef = useRef(null);
 
-  const [singleUploadType, setSingleUploadType] = useState(null);
-  const [singleUploadCrew, setSingleUploadCrew] = useState(null);
-  const [singlePopoverRect, setSinglePopoverRect] = useState(null);
-  const [singleForm, setSingleForm] = useState(initialSingleForm);
-  const [singleSubmitting, setSingleSubmitting] = useState(false);
-  const singleFileInputRef = useRef(null);
-  const singleTriggerRef = useRef(null);
+  // CG Pass single-row upload — no popover, just pick a file and it uploads immediately (AI-read).
+  const [cgSingleUploadCrewId, setCgSingleUploadCrewId] = useState(null);
+  const cgSingleUploadCrewRef = useRef(null);
+  const cgSingleFileInputRef = useRef(null);
 
   // Zawil Pass single-row upload — no popover, just pick a file and it uploads immediately.
   const [zawilSingleUploadCrewId, setZawilSingleUploadCrewId] = useState(null);
@@ -99,71 +93,32 @@ export default function CrewChangePassPanel({ callId, portId }) {
 
   const selectedRows = rows.filter((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
 
-  const resetSingleUploadForm = () => {
-    setSingleForm(initialSingleForm());
-    if (singleFileInputRef.current) singleFileInputRef.current.value = "";
+  // CG Pass single-row upload — no popover, just pick a file and it uploads immediately (AI-read).
+  const triggerCgSingleUpload = (crew) => {
+    cgSingleUploadCrewRef.current = crew;
+    if (cgSingleFileInputRef.current) cgSingleFileInputRef.current.value = "";
+    cgSingleFileInputRef.current?.click();
   };
 
-  const hideSingleUpload = useCallback(() => {
-    setSingleUploadType(null);
-    setSingleUploadCrew(null);
-    setSinglePopoverRect(null);
-    singleTriggerRef.current = null;
-    resetSingleUploadForm();
-    setSingleSubmitting(false);
-  }, []);
-
-  const openSingleUpload = (type, crew, e) => {
-    resetSingleUploadForm();
-    const btn = e?.currentTarget;
-    if (btn instanceof Element) {
-      singleTriggerRef.current = btn;
-      setSinglePopoverRect(btn.getBoundingClientRect());
-    }
-    setSingleUploadType(type);
-    setSingleUploadCrew(crew);
-  };
-
-  const syncSinglePopoverRect = useCallback(() => {
-    if (singleTriggerRef.current) setSinglePopoverRect(singleTriggerRef.current.getBoundingClientRect());
-  }, []);
-
-  useEffect(() => {
-    if (!singleUploadType) return undefined;
-    syncSinglePopoverRect();
-    const bump = () => syncSinglePopoverRect();
-    window.addEventListener("scroll", bump, true);
-    window.addEventListener("resize", bump);
-    return () => {
-      window.removeEventListener("scroll", bump, true);
-      window.removeEventListener("resize", bump);
-    };
-  }, [singleUploadType, syncSinglePopoverRect]);
-
-  // CG Pass single-row upload — pass no / issue date / document via the popover form.
-  const handleSingleUploadSubmit = async (e) => {
-    e.preventDefault();
-    if (!singleUploadCrew) return;
-    const issueDate = buildGroPassIssueDateString(singleForm.issuePickerParts);
-    if (!String(singleForm.passNo ?? "").trim() || !issueDate || !singleForm.file) {
-      notify("Pass no, issue date and document copy are required.", "warn");
-      return;
-    }
-    setSingleSubmitting(true);
+  const handleCgSingleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const crew = cgSingleUploadCrewRef.current;
+    if (!file || !crew) return;
+    const crewId = getCrewChangeCrewId(crew);
+    setCgSingleUploadCrewId(crewId);
     try {
       const formData = new FormData();
-      formData.append("pass_no", String(singleForm.passNo).trim());
-      formData.append("issue_date", issueDate);
-      formData.append("crew_id", String(getCrewChangeCrewId(singleUploadCrew)));
-      formData.append("document_copy", singleForm.file);
-      await groService.uploadCgPass(formData);
+      formData.append("cg_document[]", file);
+      formData.append("crew_id", String(crewId));
+      await groService.uploadCgPassAi(formData);
       notify("CG Pass uploaded successfully.", "success");
-      hideSingleUpload();
       fetchCrewList(pagination.page);
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
-      setSingleSubmitting(false);
+      setCgSingleUploadCrewId(null);
+      cgSingleUploadCrewRef.current = null;
     }
   };
 
@@ -195,38 +150,6 @@ export default function CrewChangePassPanel({ callId, portId }) {
       zawilSingleUploadCrewRef.current = null;
     }
   };
-
-  const singlePopoverStyle =
-    singleUploadType && singlePopoverRect != null ? computeGroPassUploadPopoverPosition(singlePopoverRect) : null;
-
-  const singlePortal =
-    singleUploadType && singlePopoverStyle && typeof document !== "undefined" && document.body
-      ? createPortal(
-          <div className="gro-pass-upload-popover" style={singlePopoverStyle} role="presentation">
-            <GroPassUploadPopoverForm
-              title="Upload CG Pass"
-              passNo={singleForm.passNo}
-              onPassNoChange={(e) => setSingleForm((prev) => ({ ...prev, passNo: e.target.value }))}
-              issuePickerParts={singleForm.issuePickerParts}
-              onIssueDateTimeChange={({ date, time }) =>
-                setSingleForm((prev) => ({
-                  ...prev,
-                  issuePickerParts: { date: date || "", time: time != null && time !== "" ? String(time).slice(0, 5) : "" },
-                }))
-              }
-              fileInputRef={singleFileInputRef}
-              fileName={singleForm.file?.name}
-              onFileInputChange={(e) => setSingleForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))}
-              onCancel={hideSingleUpload}
-              onSubmit={handleSingleUploadSubmit}
-              submitting={singleSubmitting}
-              formLevelError=""
-              hasIssueDateError={false}
-            />
-          </div>,
-          document.body
-        )
-      : null;
 
   const resetZawilBulkForm = () => {
     setZawilBulkFile(null);
@@ -385,9 +308,14 @@ export default function CrewChangePassPanel({ callId, portId }) {
                         className="gro-crew-change-row-upload-btn"
                         title={`Upload CG Pass for ${f.crewName}`}
                         aria-label={`Upload CG Pass for ${f.crewName}`}
-                        onClick={(e) => openSingleUpload("cg", row, e)}
+                        disabled={cgSingleUploadCrewId === f.crewId}
+                        onClick={() => triggerCgSingleUpload(row)}
                       >
-                        <FiUpload />
+                        {cgSingleUploadCrewId === f.crewId ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                        ) : (
+                          <FiUpload />
+                        )}
                       </button>
                     </td>
                     <td>
@@ -449,13 +377,18 @@ export default function CrewChangePassPanel({ callId, portId }) {
       </div>
 
       <input
+        ref={cgSingleFileInputRef}
+        type="file"
+        className="gro-premium-upload-input-hidden"
+        onChange={handleCgSingleFileChange}
+      />
+
+      <input
         ref={zawilSingleFileInputRef}
         type="file"
         className="gro-premium-upload-input-hidden"
         onChange={handleZawilSingleFileChange}
       />
-
-      {singlePortal}
 
       {showZawilBulkModal && typeof document !== "undefined" && document.body
         ? createPortal(
