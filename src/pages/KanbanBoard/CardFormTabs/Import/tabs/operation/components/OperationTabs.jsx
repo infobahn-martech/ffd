@@ -44,8 +44,8 @@ OperationTabIcon.propTypes = {
 
 const OperationTabs = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: OPERATION_TABS.CREW_IMMIGRATION, label: "Crew Immigration" },
     { id: OPERATION_TABS.PRE_ARRIVAL, label: "Pre Arrival" },
+    { id: OPERATION_TABS.CREW_IMMIGRATION, label: "Crew Immigration" },
     { id: OPERATION_TABS.ARRIVAL, label: "Arrival" },
     { id: OPERATION_TABS.DEPARTURE, label: "Departure" },
     { id: OPERATION_TABS.CHECK_LIST, label: "Check List" },
