@@ -275,7 +275,7 @@ const BlockersModal = ({ show, onClose }) => {
       centered
       size="xl"
     >
-      <Modal.Header className="blockers-modal-header">
+      <Modal.Header bsPrefix="blockers-modal-header">
         <Modal.Title className="blockers-modal-title">Blockers</Modal.Title>
         <button
           type="button"
@@ -287,222 +287,226 @@ const BlockersModal = ({ show, onClose }) => {
         </button>
       </Modal.Header>
       <Modal.Body className="blockers-modal-body tags-modal-body">
-        <div className="blockers-filter-bar">
-          <div className="blockers-filter-left">
-            <input
-              type="text"
-              className="blockers-filter-input"
-              placeholder="Filter"
-              value={searchValue}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
+        <div className="blockers-toolbar-section">
+          <div className="blockers-filter-bar">
+            <div className="blockers-filter-left">
+              <input
+                type="text"
+                className="blockers-filter-input"
+                placeholder="Filter"
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+            </div>
+            <div className="blockers-filter-right">
+              <button
+                type="button"
+                className="blockers-add-btn"
+                aria-label="Add blocker"
+                onClick={handleAddBlocker}
+              >
+                <FiPlus size={20} />
+              </button>
+            </div>
           </div>
-          <div className="blockers-filter-right">
-            <button
-              type="button"
-              className="blockers-add-btn"
-              aria-label="Add blocker"
-              onClick={handleAddBlocker}
-            >
-              <FiPlus size={20} />
-            </button>
-          </div>
+
+          {cardBlockersError && (
+            <div className="tags-modal-error-banner" role="alert">
+              <FiAlertCircle size={18} aria-hidden />
+              <span className="tags-modal-error-text">{cardBlockersError}</span>
+              <button
+                type="button"
+                className="tags-modal-error-retry"
+                onClick={() =>
+                  fetchKanbanCardBlockers({
+                    search: debouncedSearch,
+                    page: currentPage,
+                    limit,
+                  })
+                }
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
 
-        {cardBlockersError && (
-          <div className="tags-modal-error-banner" role="alert">
-            <FiAlertCircle size={18} aria-hidden />
-            <span className="tags-modal-error-text">{cardBlockersError}</span>
-            <button
-              type="button"
-              className="tags-modal-error-retry"
-              onClick={() =>
-                fetchKanbanCardBlockers({
-                  search: debouncedSearch,
-                  page: currentPage,
-                  limit,
-                })
-              }
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
-          <table className="blockers-table">
-            <thead>
-              <tr>
-                <th style={{ width: '40px' }}>
-                  <input
-                    type="checkbox"
-                    ref={selectAllCheckboxRef}
-                    checked={isAllSelected}
-                    onChange={handleSelectAll}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      cursor: 'pointer',
-                    }}
-                  />
-                </th>
-                <th style={{ width: '50px' }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M2 4h12M2 8h12M2 12h12"
-                      stroke="#666"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
+        <div className="blockers-table-section">
+          <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
+            <table className="blockers-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}>
+                    <input
+                      type="checkbox"
+                      ref={selectAllCheckboxRef}
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                      }}
                     />
-                    <circle cx="4" cy="4" r="1" fill="#666" />
-                    <circle cx="4" cy="8" r="1" fill="#666" />
-                    <circle cx="4" cy="12" r="1" fill="#666" />
-                  </svg>
-                </th>
-                <th>
-                  <div className="blockers-th-content">
-                    <span>Label</span>
-                  </div>
-                </th>
-                <th>
-                  <div className="blockers-th-content">
-                    <span>Availability level</span>
-                    <button type="button" className="blockers-th-info-btn">
-                      <FiInfo size={14} />
-                    </button>
-                  </div>
-                </th>
-                <th>
-                  <div className="blockers-th-content">
-                    <span>Boards</span>
-                  </div>
-                </th>
-                <th style={{ width: '40px' }}>
-                  <span>Action</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {cardBlockersLoading ? (
-                <tr>
-                  <td colSpan="6" className="tags-modal-loading-cell">
-                    Loading blockers…
-                  </td>
-                </tr>
-              ) : cardBlockers.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="6"
-                    style={{ textAlign: 'center', padding: '40px', color: '#999' }}
-                  >
-                    No blockers found
-                  </td>
-                </tr>
-              ) : (
-                cardBlockers.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(String(row.id))}
-                        onChange={() => handleCheckboxChange(row.id)}
-                        style={{
-                          width: '18px',
-                          height: '18px',
-                          cursor: 'pointer',
-                        }}
+                  </th>
+                  <th style={{ width: '50px' }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path
+                        d="M2 4h12M2 8h12M2 12h12"
+                        stroke="#666"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       />
-                    </td>
-                    <td>
-                      <BlockerIconSwatch color_code={row.color_code} iconKey={row.icon} />
-                    </td>
-                    <td>
-                      <span className="blockers-label-text">{row.label}</span>
-                    </td>
-                    <td>
-                      <span className="blockers-availability-text">{row.availabilityLevel}</span>
-                    </td>
-                    <td>
-                      <span className="blockers-boards-text">{row.boardsJoined}</span>
-                    </td>
-                    <td>
-                      <div
-                        ref={(el) => {
-                          actionMenuRefs.current[String(row.id)] = el;
-                        }}
-                        style={{ position: 'relative' }}
-                      >
-                        <button
-                          type="button"
-                          className="blockers-kebab-btn"
-                          aria-label="Action"
-                          onClick={(e) => handleActionMenuToggle(row.id, e)}
-                        >
-                          <FiMoreVertical size={18} />
-                        </button>
-                        {openActionMenuId === String(row.id) && (
-                          <div className="blockers-action-menu">
-                            {isKanbanManagementRowDisabled(row.status) ? (
-                              <button
-                                type="button"
-                                className="blockers-action-menu-item"
-                                onClick={() => handleEnable(row.blocker_id ?? row.id)}
-                              >
-                                Enable
-                              </button>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  className="blockers-action-menu-item"
-                                  onClick={() => handleEdit(row)}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  className="blockers-action-menu-item"
-                                  onClick={() => handleDisable(row.blocker_id ?? row.id)}
-                                >
-                                  Disable
-                                </button>
-                                <button
-                                  type="button"
-                                  className="blockers-action-menu-item blockers-action-menu-item-danger"
-                                  onClick={() => handleDelete(row.blocker_id ?? row.id)}
-                                >
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <circle cx="4" cy="4" r="1" fill="#666" />
+                      <circle cx="4" cy="8" r="1" fill="#666" />
+                      <circle cx="4" cy="12" r="1" fill="#666" />
+                    </svg>
+                  </th>
+                  <th>
+                    <div className="blockers-th-content">
+                      <span>Label</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="blockers-th-content">
+                      <span>Availability level</span>
+                      <button type="button" className="blockers-th-info-btn">
+                        <FiInfo size={14} />
+                      </button>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="blockers-th-content">
+                      <span>Boards</span>
+                    </div>
+                  </th>
+                  <th style={{ width: '40px' }}>
+                    <span>Action</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {cardBlockersLoading ? (
+                  <tr>
+                    <td colSpan="6" className="tags-modal-loading-cell">
+                      Loading blockers…
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="tags-modal-pagination">
-          <button
-            type="button"
-            className="tags-modal-pagination-btn"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage <= 1 || cardBlockersLoading}
-          >
-            Previous
-          </button>
-          <span className="tags-modal-pagination-page">Page {currentPage}</span>
-          <button
-            type="button"
-            className="tags-modal-pagination-btn"
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            disabled={!hasNextPage || cardBlockersLoading}
-          >
-            Next
-          </button>
+                ) : cardBlockers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      style={{ textAlign: 'center', padding: '40px', color: '#999' }}
+                    >
+                      No blockers found
+                    </td>
+                  </tr>
+                ) : (
+                  cardBlockers.map((row) => (
+                    <tr key={row.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(String(row.id))}
+                          onChange={() => handleCheckboxChange(row.id)}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <BlockerIconSwatch color_code={row.color_code} iconKey={row.icon} />
+                      </td>
+                      <td>
+                        <span className="blockers-label-text">{row.label}</span>
+                      </td>
+                      <td>
+                        <span className="blockers-availability-text">{row.availabilityLevel}</span>
+                      </td>
+                      <td>
+                        <span className="blockers-boards-text">{row.boardsJoined}</span>
+                      </td>
+                      <td>
+                        <div
+                          ref={(el) => {
+                            actionMenuRefs.current[String(row.id)] = el;
+                          }}
+                          style={{ position: 'relative' }}
+                        >
+                          <button
+                            type="button"
+                            className="blockers-kebab-btn"
+                            aria-label="Action"
+                            onClick={(e) => handleActionMenuToggle(row.id, e)}
+                          >
+                            <FiMoreVertical size={18} />
+                          </button>
+                          {openActionMenuId === String(row.id) && (
+                            <div className="blockers-action-menu">
+                              {isKanbanManagementRowDisabled(row.status) ? (
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleEnable(row.blocker_id ?? row.id)}
+                                >
+                                  Enable
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="blockers-action-menu-item"
+                                    onClick={() => handleEdit(row)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="blockers-action-menu-item"
+                                    onClick={() => handleDisable(row.blocker_id ?? row.id)}
+                                  >
+                                    Disable
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="blockers-action-menu-item blockers-action-menu-item-danger"
+                                    onClick={() => handleDelete(row.blocker_id ?? row.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="tags-modal-pagination">
+            <button
+              type="button"
+              className="tags-modal-pagination-btn"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage <= 1 || cardBlockersLoading}
+            >
+              Previous
+            </button>
+            <span className="tags-modal-pagination-page">Page {currentPage}</span>
+            <button
+              type="button"
+              className="tags-modal-pagination-btn"
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={!hasNextPage || cardBlockersLoading}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </Modal.Body>
       <NewBlockerModal
