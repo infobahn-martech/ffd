@@ -4,6 +4,10 @@
    ========================================================== */
 
 .approval-tab-content {
+  --approval-accent: #6d5ef5;
+  --approval-accent-2: #4f46e5;
+  --approval-accent-soft: rgba(109, 94, 245, 0.1);
+
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -18,36 +22,36 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    padding: 18px 22px;
+    padding: 20px 24px;
+    background: linear-gradient(180deg, #fafbff 0%, #f6f7fc 100%);
   }
 
   .approval-sections-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 4px;
     scrollbar-width: thin;
-    scrollbar-color: #aab4c3 #f1f5f9;
+    scrollbar-color: #c2c8f5 transparent;
 
     &::-webkit-scrollbar {
       width: 6px;
     }
 
     &::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 999px;
+      background: transparent;
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #aab4c3;
+      background: #c2c8f5;
       border-radius: 999px;
 
       &:hover {
-        background: #8b96a8;
+        background: var(--approval-accent);
       }
     }
   }
@@ -58,11 +62,21 @@
 
   .approval-form-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 20px 22px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 18px;
+    padding: 22px 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 14px 28px -20px rgba(76, 70, 190, 0.28);
     min-width: 0;
+    position: relative;
+    transition: box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s ease;
+    animation: approval-fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    &:hover {
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 20px 36px -22px rgba(76, 70, 190, 0.34);
+      transform: translateY(-2px);
+    }
   }
 
   .approval-party-cards-row,
@@ -72,6 +86,18 @@
     gap: 16px;
     align-items: stretch;
     width: 100%;
+
+    > * {
+      &:nth-child(1) {
+        animation-delay: 0.03s;
+      }
+      &:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.17s;
+      }
+    }
   }
 
   .approval-action-cards-row {
@@ -84,7 +110,23 @@
     flex-direction: column;
     min-height: 0;
     height: 100%;
-    padding: 16px 18px;
+    padding: 18px 20px;
+    overflow: hidden;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      border-radius: 18px 18px 0 0;
+      background: linear-gradient(90deg, var(--approval-accent) 0%, #a78bfa 100%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    &:hover::before {
+      opacity: 0.9;
+    }
   }
 
   .approval-action-card {
@@ -103,8 +145,14 @@
   }
 
   .approval-action-card--active {
-    border-color: #3e5cb6;
-    box-shadow: 0 0 0 2px rgba(62, 92, 182, 0.15), 0 1px 3px rgba(15, 23, 42, 0.05);
+    border-color: rgba(109, 94, 245, 0.45);
+    box-shadow: 0 0 0 1px rgba(109, 94, 245, 0.18), 0 16px 32px -18px rgba(109, 94, 245, 0.38);
+    animation: approval-fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both,
+      approval-glow-pulse 2.6s ease-in-out infinite;
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   .approval-card-body {
@@ -113,37 +161,38 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    scrollbar-color: #d8dbf5 transparent;
 
     &::-webkit-scrollbar {
       width: 4px;
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #d1d5db;
+      background: #d8dbf5;
       border-radius: 999px;
     }
   }
 
   .form-group-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0 0 16px 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e1b3a;
+    margin: 0 0 18px 0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-shrink: 0;
 
     &::before {
       content: "";
-      width: 3px;
+      width: 4px;
       height: 16px;
-      background: #000000;
-      border-radius: 2px;
+      background: linear-gradient(180deg, var(--approval-accent) 0%, var(--approval-accent-2) 100%);
+      border-radius: 3px;
       flex-shrink: 0;
+      box-shadow: 0 0 0 3px var(--approval-accent-soft);
     }
   }
 
@@ -163,19 +212,26 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
+    padding: 5px 12px;
+    border-radius: 999px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+    animation: approval-fade-in 0.25s ease both;
 
     &--saving {
-      color: #6b7280;
+      color: #6d6fa0;
+      background: #f1f1fb;
     }
 
     &--saved {
       color: #16a34a;
+      background: #eefdf3;
     }
 
     &--error {
       color: #dc2626;
+      background: #fef2f2;
     }
   }
 
@@ -208,7 +264,7 @@
   .approval-actions {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 14px;
     margin-top: 20px;
     width: 100%;
   }
@@ -219,57 +275,87 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
+    gap: 9px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    border: none;
+    color: #ffffff;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, filter 0.2s ease;
     width: 100%;
     min-width: 0;
+
+    svg {
+      transition: transform 0.2s ease;
+    }
   }
 
-  .action-btn:hover {
+  .action-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    filter: brightness(1.05);
+  }
+
+  .action-btn:hover:not(:disabled) svg {
+    transform: translateX(1px) scale(1.05);
+  }
+
+  .action-btn:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   .action-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    filter: grayscale(0.15);
   }
 
   .btn-approved {
-    background: #f5fbf7;
-    border: 1px solid #cdeed8;
-    color: #16a34a;
+    background: linear-gradient(135deg, #34d399 0%, #16a34a 100%);
+    box-shadow: 0 6px 16px -6px rgba(22, 163, 74, 0.55);
+  }
+
+  .btn-approved:hover:not(:disabled) {
+    box-shadow: 0 10px 22px -8px rgba(22, 163, 74, 0.6);
   }
 
   .btn-proceed {
-    background: #f4f8ff;
-    border: 1px solid #d6e4ff;
-    color: #2563eb;
+    background: linear-gradient(135deg, var(--approval-accent) 0%, var(--approval-accent-2) 100%);
+    box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.5);
+  }
+
+  .btn-proceed:hover:not(:disabled) {
+    box-shadow: 0 10px 22px -8px rgba(79, 70, 229, 0.55);
   }
 
   .btn-onhold {
-    background: #fff8ef;
-    border: 1px solid #ffe0b2;
-    color: #f97316;
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+    box-shadow: 0 6px 16px -6px rgba(234, 88, 12, 0.5);
+  }
+
+  .btn-onhold:hover:not(:disabled) {
+    box-shadow: 0 10px 22px -8px rgba(234, 88, 12, 0.55);
   }
 
   .approval-hold-banner {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: #fff8ef;
-    border: 1px solid #ffe0b2;
-    border-radius: 6px;
-    color: #c2410c;
+    gap: 10px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+    color: #9a3412;
     font-weight: 600;
     font-size: 13.5px;
+    box-shadow: 0 8px 20px -14px rgba(234, 88, 12, 0.5);
+    animation: approval-fade-in-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    svg {
+      animation: approval-icon-pulse 1.8s ease-in-out infinite;
+      flex-shrink: 0;
+    }
   }
 
   .approval-field {
@@ -284,12 +370,50 @@
     &.approval-field--full {
       grid-column: 1 / -1;
     }
+
+    label {
+      transition: color 0.2s ease;
+    }
+  }
+
+  .cf-input {
+    background: #f6f7fd;
+    border: 1.5px solid transparent;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+  }
+
+  .cf-input:hover {
+    background: #eeeffb;
+  }
+
+  .cf-input:focus-within {
+    background: #ffffff;
+    border-color: var(--approval-accent);
+    box-shadow: 0 0 0 3px var(--approval-accent-soft);
+  }
+
+  // Read-only Basic Details fields (Date, Requested by, Vessel Name, ETD,
+  // Billing entity) get a distinct "locked" treatment instead of looking
+  // editable like the rest of the form.
+  .cf-input:has(input[readonly]) {
+    background: linear-gradient(135deg, #f8f9fd 0%, #f0f1f9 100%);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    cursor: default;
+
+    &:hover {
+      background: linear-gradient(135deg, #f8f9fd 0%, #f0f1f9 100%);
+    }
+
+    input {
+      color: #55597a;
+      cursor: default;
+    }
   }
 
   .approval-textarea-wrap.cf-input {
     display: block;
     align-items: stretch;
-    padding: 10px 14px;
+    padding: 11px 14px;
     min-height: 0;
 
     textarea {
@@ -320,27 +444,27 @@
     }
 
     &:focus-within {
-      border-color: #3e5cb6;
-      background: #fafaff;
+      border-color: var(--approval-accent);
+      background: #fbfbff;
     }
 
     &.approval-textarea--green {
-      background-color: #e2efda;
+      background-color: #eaf6ee;
       border-color: #c5e0b4;
 
       &:focus-within {
-        background-color: #e2efda;
-        border-color: #9bc77a;
+        background-color: #eaf6ee;
+        border-color: #86c46a;
       }
     }
 
     &.approval-textarea--blue {
-      background-color: #ddebf7;
-      border-color: #b4c7e7;
+      background-color: #eef2fd;
+      border-color: #c7d3f5;
 
       &:focus-within {
-        background-color: #ddebf7;
-        border-color: #8aa8d8;
+        background-color: #eef2fd;
+        border-color: var(--approval-accent);
       }
     }
 
@@ -394,34 +518,40 @@
     gap: 6px;
     width: 100%;
     margin-bottom: 12px;
-    padding: 8px 14px;
-    border-radius: 10px;
+    padding: 9px 14px;
+    border-radius: 999px;
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.3;
+    letter-spacing: 0.1px;
+    animation: approval-fade-in-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 
     &--approved {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #16a34a;
+      background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
+      border: 1px solid #a7f3c8;
+      color: #15803d;
     }
 
     &--hold {
-      background: #fff7ed;
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
       border: 1px solid #fed7aa;
-      color: #ea580c;
+      color: #c2410c;
     }
 
     &--proceeded {
-      background: #f4f8ff;
-      border: 1px solid #d6e4ff;
-      color: #2563eb;
+      background: linear-gradient(135deg, #eef2fd 0%, #e3e9fc 100%);
+      border: 1px solid #c7d3f5;
+      color: var(--approval-accent-2);
     }
 
     &--pending {
       background: #f9fafb;
       border: 1px solid #e5e7eb;
       color: #6b7280;
+
+      svg {
+        animation: approval-save-status-spin 1.6s linear infinite;
+      }
     }
   }
 
@@ -443,11 +573,11 @@
     height: 48px;
     min-height: 48px;
     max-height: 48px;
-    border: 2px dashed #e2e8f0;
-    border-radius: 8px;
-    background: #fafbff;
+    border: 2px dashed #d9dcf4;
+    border-radius: 10px;
+    background: #f9f9ff;
     cursor: pointer;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     padding: 0 16px;
     display: flex;
     align-items: center;
@@ -456,8 +586,9 @@
 
     &:hover,
     &:focus-visible {
-      border-color: #3e5cb6;
-      background: #f8f9ff;
+      border-color: var(--approval-accent);
+      background: #f4f4ff;
+      box-shadow: 0 0 0 4px var(--approval-accent-soft);
       outline: none;
     }
   }
@@ -469,8 +600,9 @@
 
     &:hover,
     &:focus-visible {
-      border-color: #e2e8f0;
+      border-color: #d9dcf4;
       background: #f1f2f4;
+      box-shadow: none;
     }
   }
 
@@ -496,8 +628,8 @@
   }
 
   .approval-document-upload-link {
-    color: #3e5cb6;
-    font-weight: 600;
+    color: var(--approval-accent-2);
+    font-weight: 700;
   }
 
   .approval-document-upload-file {
@@ -550,20 +682,25 @@
 
     a {
       font-size: 12px;
-      color: #3e5cb6;
+      color: var(--approval-accent-2);
       text-decoration: underline;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       display: block;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: #372e9e;
+      }
     }
   }
 
   .approval-document-upload-remove {
     flex-shrink: 0;
     border: none;
-    background: #f3f4f6;
-    color: #6b7280;
+    background: #f0f1f9;
+    color: #6d6fa0;
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -574,15 +711,73 @@
     align-items: center;
     justify-content: center;
     padding: 0;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 
     &:hover {
-      background: #e5e7eb;
-      color: #374151;
+      background: #fee2e2;
+      color: #dc2626;
+      transform: scale(1.08);
     }
   }
 
   .cf-field .cf-input.date-time-row.cf-datetime-picker {
     width: 100%;
+  }
+
+  @keyframes approval-fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes approval-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes approval-glow-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 1px rgba(109, 94, 245, 0.18), 0 16px 32px -18px rgba(109, 94, 245, 0.38);
+    }
+    50% {
+      box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.24), 0 18px 36px -16px rgba(109, 94, 245, 0.46);
+    }
+  }
+
+  @keyframes approval-icon-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(0.9);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .approval-form-card,
+    .approval-action-card--active,
+    .approval-hold-banner,
+    .approval-status-badge,
+    .approval-save-status,
+    .approval-save-status-spin,
+    .approval-status-badge--pending svg,
+    .approval-hold-banner svg {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 
   @media (max-width: 1100px) {

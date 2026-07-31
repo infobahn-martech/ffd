@@ -758,7 +758,6 @@ const createEmptyPartySection = () => ({
 
     const callId = getCallId(card, formValues);
     const details = useExportApprovalReducer((state) => state.details);
-    const isLoadingDetails = useExportApprovalReducer((state) => state.isLoadingDetails);
     const branches = useExportApprovalReducer((state) => state.branches);
     const loadingBranches = useExportApprovalReducer((state) => state.loadingBranches);
     const fetchBranches = useExportApprovalReducer((state) => state.fetchBranches);
@@ -1020,12 +1019,6 @@ const createEmptyPartySection = () => ({
     return (
       <div className="general-tab-content approval-tab-content">
         <div className="cardform-body card-form-panel general-tab-body">
-          {isLoadingDetails ? (
-            <div className="text-center text-muted py-4">
-              <span className="spinner-border spinner-border-sm me-2" role="status" />
-              Loading approval details...
-            </div>
-          ) : null}
           <div className="approval-sections-wrapper">
             {isOnHold ? (
               <div className="approval-hold-banner">
