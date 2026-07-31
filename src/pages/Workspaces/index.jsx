@@ -97,7 +97,6 @@ function Workspaces() {
     archiveWorkspace,
     archiveBoard,
     changeBoardBackground,
-    removeBoardBackground,
     addEditLoader,
     updateBoardName,
   } = useWorkSpaceReducer();
@@ -329,9 +328,15 @@ function Workspaces() {
     }
   };
 
+  // "Remove background" resets to the app's default board background color
+  // rather than calling a dedicated remove endpoint — the backend only
+  // exposes change_background, so removal is just setting it back to this
+  // fixed color per API contract.
   const handleRemoveBoardBackground = (boardId) => {
-    removeBoardBackground({
+    changeBoardBackground({
       board_id: boardId,
+      background_type: 'color',
+      color: '#fbfbf5',
       cb: closeBoardMenus,
     });
   };
@@ -950,18 +955,16 @@ function Workspaces() {
                                         </div>
                                       )}
                                     </li>
-                                    {boardMenuBackground && (
-                                      <li role="none">
-                                        <button
-                                          type="button"
-                                          role="menuitem"
-                                          className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--danger"
-                                          onClick={() => handleRemoveBoardBackground(board.id)}
-                                        >
-                                          <span>Remove background</span>
-                                        </button>
-                                      </li>
-                                    )}
+                                    <li role="none">
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--danger"
+                                        onClick={() => handleRemoveBoardBackground(board.id)}
+                                      >
+                                        <span>Remove background</span>
+                                      </button>
+                                    </li>
                                   </ul>
                                 )}
                               </div>
