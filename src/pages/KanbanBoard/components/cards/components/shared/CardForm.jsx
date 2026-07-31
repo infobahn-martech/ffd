@@ -2208,24 +2208,6 @@ function CardForm({
     [close, onBoardRefresh]
   );
 
-  const handleClose = useCallback(async () => {
-    if (isClosingRef.current) return;
-    isClosingRef.current = true;
-    setIsClosing(true);
-    try {
-      if (onBoardRefresh) {
-        await onBoardRefresh();
-      } else {
-        await kanbanBoardService.getFullBoard(boardId ?? 1);
-      }
-    } catch (e) {
-    } finally {
-      close();
-      isClosingRef.current = false;
-      setIsClosing(false);
-    }
-  }, [close, onBoardRefresh, boardId]);
-
   useEffect(() => {
     if (!show) {
       isClosingRef.current = false;
@@ -2304,6 +2286,32 @@ function CardForm({
       });
     return () => { cancelled = true; };
   }, [show, isAddMode, isDaCardContext, card?.call_id, card?.callId, cardFormSyncKey]);
+
+  const handleClose = useCallback(async () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+    setIsClosing(true);
+    try {
+      if (onBoardRefresh) {
+        await onBoardRefresh();
+      } else {
+        await kanbanBoardService.getFullBoard(boardId ?? 1);
+      }
+    } catch (e) {
+    } finally {
+      // Backend gap: api/da/advance_stage doesn't yet persist the board's own column, so the
+      // refetch above can put a DA card back in its pre-move column. DA's own stage source
+      // (daCardStage, from api/da/card/{call_id}) is accurate — use it to correct the
+      // just-refetched board position for the card we were viewing before closing.
+      if (isDaCardContext && daCardStage?.column_name && card?.id && moveCardToColumn) {
+        const targetColumnId = getColumnIdFromStepLabel(daCardStage.column_name, columns, columnOrder);
+        if (targetColumnId) moveCardToColumn(card.id, targetColumnId);
+      }
+      close();
+      isClosingRef.current = false;
+      setIsClosing(false);
+    }
+  }, [close, onBoardRefresh, boardId, isDaCardContext, daCardStage, card?.id, moveCardToColumn, columns, columnOrder]);
 
   // Calculate current step from current column (supports sub-columns when columnOrder from DAdata).
   // For DA cards, prefer the stage reported by api/da/card/{call_id} (column_name) when it

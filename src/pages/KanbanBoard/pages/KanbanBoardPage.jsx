@@ -81,7 +81,7 @@ export default function KanbanBoardPage() {
   const { findCardColumn, moveCardToColumn, createDragEndHandler } = useKanbanDnD(
     workflows,
     setWorkflows,
-    { userProfile, refetchBoard }
+    { userProfile, refetchBoard, boardId: selectedBoardId }
   );
 
   useKanbanRoleAccess();

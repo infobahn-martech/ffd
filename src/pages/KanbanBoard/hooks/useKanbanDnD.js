@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { notify } from "../../../components/Toaster";
 import { userHasDeskStartTaskRole } from "../../../shared/helpers/groUserRoles";
 import taskCardService from "../../../services/taskCardService";
+import daService from "../../../services/daService";
 import {
   findColumnByCardId,
   findLaneColumnLocationForCard,
@@ -32,6 +33,15 @@ const dragApiErrorMessage = (err, fallback) => {
   const msg = err?.response?.data?.message ?? err?.message;
   return typeof msg === "string" && msg.trim() ? msg.trim() : fallback;
 };
+
+// Centralized DA Desk board (kanban_board/get_full_board board_id "3") — same id CardForm.jsx's
+// isDABoard check uses (via the route boardId prop, the id this board was actually fetched with).
+// Column moves here must persist via api/da/advance_stage so the card's DA modal (footer step /
+// status timeline) reflects the board move on reopen. Prefer the route boardId (authoritative,
+// matches CardForm.jsx exactly); fall back to the per-workflow board_id echoed by the API in case
+// a caller doesn't have the route id handy.
+const isDABoardWorkflow = (workflow, routeBoardId) =>
+  String(routeBoardId ?? workflow?.boardId ?? "") === "3";
 
 /** Matches WorkflowColumns / SwimlaneColumnCell droppable ids: `${laneId}::${columnStableId}` */
 export const parseSwimlaneDroppableId = (droppableId) => {
@@ -187,29 +197,33 @@ const ensureCardInColumn = (
   return nextWorkflows;
 };
 
-export default function useKanbanDnD(workflows, setWorkflows, { userProfile, refetchBoard } = {}) {
+export default function useKanbanDnD(workflows, setWorkflows, { userProfile, refetchBoard, boardId } = {}) {
   const findCardColumn = useCallback(
     (cardId) => findColumnByCardId(workflows, cardId),
     [workflows]
   );
 
+  // Resolves the card's current lane/column from `prev` (the live state at update time) rather
+  // than a closed-over `workflows` snapshot, so a caller that fires after an intervening state
+  // update (e.g. a board refetch that ran while this call was pending) still finds — and moves
+  // from — the card's real current position instead of a stale one.
   const moveCardToColumn = useCallback(
     (cardId, targetColumnId) => {
-      const workflow = findWorkflowByCardId(workflows, cardId);
-      if (!workflow) return;
+      setWorkflows((prev) => {
+        const workflow = findWorkflowByCardId(prev, cardId);
+        if (!workflow) return prev;
 
-      const laneCol = findLaneColumnLocationForCard(workflow, cardId);
-      const targetColKey = Object.keys(workflow.columns).find(
-        (k) => workflow.columns[k].id === targetColumnId
-      );
+        const laneCol = findLaneColumnLocationForCard(workflow, cardId);
+        const targetColKey = Object.keys(workflow.columns).find(
+          (k) => workflow.columns[k].id === targetColumnId
+        );
 
-      if (!laneCol || !targetColKey) return;
-      if (laneCol.columnKey === targetColKey) return;
+        if (!laneCol || !targetColKey) return prev;
+        if (laneCol.columnKey === targetColKey) return prev;
 
-      const { laneId, columnKey: sourceKey } = laneCol;
+        const { laneId, columnKey: sourceKey } = laneCol;
 
-      setWorkflows((prev) =>
-        prev.map((w) => {
+        return prev.map((w) => {
           if (w.id !== workflow.id) return w;
 
           const lane = w.swimlanes[laneId];
@@ -244,10 +258,10 @@ export default function useKanbanDnD(workflows, setWorkflows, { userProfile, ref
               [cardId]: { ...card, columnId: targetColKey },
             },
           };
-        })
-      );
+        });
+      });
     },
-    [workflows, setWorkflows]
+    [setWorkflows]
   );
 
   const createDragEndHandler = useCallback(
@@ -365,21 +379,63 @@ export default function useKanbanDnD(workflows, setWorkflows, { userProfile, ref
         return;
       }
 
-      setWorkflows((prev) =>
-        applyCrossColumnMove(prev, workflowId, {
-          src,
-          dest,
-          draggableId,
-          startColumnKey,
-          finishColumnKey,
-          sourceIndex: source.index,
-          destinationIndex: destination.index,
-          startLane,
-          finishLane,
-        })
-      );
+      const moveParams = {
+        src,
+        dest,
+        draggableId,
+        startColumnKey,
+        finishColumnKey,
+        sourceIndex: source.index,
+        destinationIndex: destination.index,
+        startLane,
+        finishLane,
+      };
+
+      // DA board: persist the column move via advance_stage so the card's DA modal
+      // (footer step / status timeline) shows the new stage next time it's opened, and so
+      // the move survives the board refetch that runs whenever a card modal closes.
+      if (isDABoardWorkflow(workflow, boardId)) {
+        const card = workflow.cards?.[draggableId];
+        const callIdRaw = card?.call_id ?? card?.callId;
+        const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+        const targetColumnId = workflow.columns?.[finishColumnKey]?.id;
+
+        // Can't identify the call / target column for advance_stage — don't move locally
+        // only, since that move would silently revert on the next board refetch.
+        if (!callId || !targetColumnId) {
+          notify("Could not move this card: missing call reference.", "error");
+          return;
+        }
+
+        setWorkflows((prev) => applyCrossColumnMove(prev, workflowId, moveParams));
+
+        try {
+          const { data } = await daService.advanceStage({ call_id: callId, column_id: targetColumnId });
+          if (!data?.status) {
+            throw new Error(data?.message || "Failed to move card to that stage.");
+          }
+        } catch (err) {
+          setWorkflows((prev) =>
+            applyCrossColumnMove(prev, workflowId, {
+              ...moveParams,
+              src: dest,
+              dest: src,
+              startColumnKey: finishColumnKey,
+              finishColumnKey: startColumnKey,
+              sourceIndex: destination.index,
+              destinationIndex: source.index,
+              startLane: finishLane,
+              finishLane: startLane,
+            })
+          );
+          notify(dragApiErrorMessage(err, "Failed to move card to that stage."), "error");
+        }
+        return;
+      }
+
+      setWorkflows((prev) => applyCrossColumnMove(prev, workflowId, moveParams));
     },
-    [workflows, setWorkflows, userProfile, refetchBoard]
+    [workflows, setWorkflows, userProfile, refetchBoard, boardId]
   );
 
   return {
