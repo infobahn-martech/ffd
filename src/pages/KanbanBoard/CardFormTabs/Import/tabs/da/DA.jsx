@@ -4,7 +4,7 @@ import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
   Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
-  CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck,
+  CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck, UserCog,
 } from "lucide-react";
 import { notify } from "../../../../../../components/Toaster";
 import billingEntityService from "../../../../../../services/billingEntityService";
@@ -14,16 +14,29 @@ import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../
 import { getInitials } from "../../../../../../shared/utils/utils";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
+// Card / Appointment & Clearance / MWP / Launch Hire / Clearance Copies / Invoices,
+// Fees & Certificates / Vessel & Sales Order tabs were folded into DA Operations and
+// DA Documents (see those branches below) and are no longer shown as their own tabs —
+// their FIELDS_CONFIG groups and render branches stay since Operation Details, DA
+// Documents etc. still read the same underlying fieldValues keys.
 const SUB_TABS = [
   { key: "summary", label: "Summary", icon: Sparkles },
-  { key: "card", label: "Card", icon: IdCard },
-  { key: "appointmentClearance", label: "Appointment & Clearance", icon: CalendarCheck },
-  { key: "mwp", label: "MWP", icon: ShieldCheck },
+  { key: "daOperator", label: "DA Operations", icon: UserCog },
+  { key: "daDocuments", label: "DA Documents", icon: FolderOpen },
+  { key: "more", label: "Link", icon: Paperclip },
+];
+
+// Tabs long enough that the "More below" scroll hint (see daOperationsRef in the DA
+// component) is worth showing.
+const SCROLL_HINT_TABS = ["summary", "daOperator", "daDocuments"];
+
+// Nested sub-tabs shown inside the "DA Operations" tab.
+const DA_OPERATOR_SUB_TABS = [
+  { key: "operationDetails", label: "Operation Details", icon: Anchor },
+  { key: "clearanceDetails", label: "Clearance Details", icon: CalendarCheck },
   { key: "launchHire", label: "Launch Hire", icon: Ship },
-  { key: "clearanceCopies", label: "Clearance Copies", icon: FileCheck },
-  { key: "invoicesFees", label: "Invoices, Fees & Certificates", icon: Receipt },
-  { key: "vesselSalesOrder", label: "Vessel & Sales Order", icon: Ship },
-  { key: "more", label: "More", icon: Paperclip },
+  { key: "invoice", label: "Invoice", icon: Receipt },
+  { key: "salesOrder", label: "Sales Order", icon: FileText },
 ];
 
 const LIST_SECTIONS = [
@@ -99,6 +112,23 @@ const RAW_FIELDS_CONFIG = [
   { key: "srnNo", label: "SRN No. (L & T)", type: "text", group: "vesselSalesOrder", placeholder: "e.g. 683/ CRPO 78/2026" },
   { key: "copyOfSalesOrder", label: "Copy of Sales order", type: "files", group: "vesselSalesOrder" },
   { key: "salesOrderSupportingDocs", label: "Sales Order Supporting documents", type: "files", group: "vesselSalesOrder", showCount: true },
+  // DA Operations > Operation Details — mirrors fields already captured in Card / Vessel
+  // & Sales Order above, kept in sync since they share the same fieldValues keys.
+  { key: "vesselName", label: "Vessel", type: "text", group: "operationDetails", placeholder: "e.g. MV Atlantic Star" },
+  { key: "coOwners", label: "Co-owner", type: "user", group: "operationDetails", placeholder: "Search a user…" },
+  { key: "serviceRequester", label: "Service requester", type: "text", group: "operationDetails", placeholder: "e.g. Jeffrey Steve" },
+  { key: "billingOthers", label: "Billing Note", type: "text", group: "operationDetails", placeholder: "e.g. Additional billing note" },
+  { key: "lastMoved", label: "Last moved", type: "readonly", group: "operationDetails" },
+  // DA Documents — file fields already captured in Launch Hire / Clearance Copies /
+  // Vessel & Sales Order above, gathered onto one page. sailingClearanceCopy is
+  // relabeled "Outward Clearance Copy" here to pair with Inward Clearance Copy.
+  { key: "launchHireSlips", label: "Launch Hire Slips", type: "files", group: "daDocuments" },
+  { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
+  { key: "sailingClearanceCopy", label: "Outward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
+  { key: "copyOfSalesOrder", label: "Sales Order Copy", type: "files", group: "daDocuments" },
+  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true },
+  { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "daDocuments", reserveSpace: true },
+  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, reserveSpace: true },
 ];
 
 const FIELDS_CONFIG = RAW_FIELDS_CONFIG.map((field) => ({
@@ -111,6 +141,81 @@ const FIELDS_BY_GROUP = FIELDS_CONFIG.reduce((acc, field) => {
   acc[field.group].push(field);
   return acc;
 }, {});
+
+// Owner, Vessel Owner and Billing Entity aren't editable anywhere in the app (they're
+// resolved from summary_tab / the billing entity lookup), so Operation Details shows
+// them as ReadonlyField tiles rather than routing them through renderField.
+const OPERATION_DETAILS_FIELDS_BY_KEY = (FIELDS_BY_GROUP.operationDetails ?? [])
+  .reduce((acc, f) => ({ ...acc, [f.key]: f }), {});
+
+const DA_DOCUMENTS_FIELDS_BY_KEY = (FIELDS_BY_GROUP.daDocuments ?? [])
+  .reduce((acc, f) => ({ ...acc, [f.key]: f }), {});
+
+// DA Documents shows only the "Attachments" and "Docs" free-form lists from the
+// "More" tab's LIST_SECTIONS — "Links overview" belongs to the separate Links tab.
+const DA_DOCUMENTS_LIST_SECTIONS = LIST_SECTIONS.filter((s) => s.key === "attachments" || s.key === "docs");
+
+// "More" tab now only shows "Docs" (Attachments moved to DA Documents, Links overview
+// to the separate Links tab), alongside the Relatives & Dependencies card below.
+const MORE_TAB_LIST_SECTIONS = LIST_SECTIONS.filter((s) => s.key === "docs");
+
+// DA Operations > Launch Hire — same card-hero treatment as the other DA Operations
+// sections (Clearance Details, Invoice, Sales Order): 3rd Party Launch hire and Road
+// Transport, minus the Launch Hire Slips upload, so it isn't the odd one out styled
+// as plain field tiles.
+const LAUNCH_HIRE_CARDS = [
+  { key: "thirdPartyLaunchHire", type: "text", icon: Ship, label: "3rd Party Launch hire (If any)", hint: "Name of the third-party company handling launch hire, if any.", accent: "#2563eb", placeholder: "e.g. Al Rashid Transport Co." },
+  { key: "roadTransport", type: "number-unit", icon: Hash, label: "Road Transport", hint: "Number of days required for road transport.", accent: "#d97706", unit: "DAYS", placeholder: "e.g. 3" },
+];
+
+function LaunchHireCardsSection({ fieldValues, updateField }) {
+  return (
+    <div className="da-cf-ac-grid">
+      {LAUNCH_HIRE_CARDS.map((card) => {
+        const Icon = card.icon;
+        const value = fieldValues[card.key];
+        return (
+          <div
+            className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
+            style={{ "--step-accent": card.accent }}
+            key={card.key}
+          >
+            <div className="da-cf-ac-card-head">
+              <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
+              <h5 className="da-cf-ac-card-title">{card.label}</h5>
+            </div>
+            <p className="da-cf-ac-card-hint">{card.hint}</p>
+            <div className="da-cf-ac-card-field">
+              {card.type === "number-unit" ? (
+                <NumberUnitField
+                  label={card.label}
+                  icon={Icon}
+                  unit={card.unit}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              ) : (
+                <TextField
+                  label={card.label}
+                  icon={Icon}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+LaunchHireCardsSection.propTypes = {
+  fieldValues: PropTypes.object.isRequired,
+  updateField: PropTypes.func.isRequired,
+};
 
 // Groups that mix full-width tiles (files/chips) with half-width ones need a fixed
 // column count so the full-width tiles end at the same edge as the row above them,
@@ -897,13 +1002,13 @@ RelativesSection.propTypes = {
 // Read-only list fed by api/da/required_documents/{call_id} — each entry is
 // either already uploaded elsewhere in the system (file_name/file_url set)
 // or still pending, unlike the editable FileDropzone fields above it.
-function RequiredDocumentsSection({ documents, isLoading, configs = REQUIRED_DOCUMENTS_CONFIG, title = "Required Documents", standalone = false }) {
+function RequiredDocumentsSection({ documents, isLoading, configs = REQUIRED_DOCUMENTS_CONFIG, title = "Required Documents", standalone = false, large = false }) {
   const uploadedCount = configs.filter((doc) => documents?.[doc.key]?.file_url).length;
   const totalCount = configs.length;
   const progressPct = totalCount ? Math.round((uploadedCount / totalCount) * 100) : 0;
 
   return (
-    <div className={`da-cf-required-docs${standalone ? " da-cf-required-docs--standalone" : ""}`}>
+    <div className={`da-cf-required-docs${standalone ? " da-cf-required-docs--standalone" : ""}${large ? " da-cf-required-docs--large" : ""}`}>
       <div className="da-cf-required-docs-header">
         <h5 className="da-cf-required-docs-title">{title}</h5>
         {!isLoading && (
@@ -954,6 +1059,7 @@ RequiredDocumentsSection.propTypes = {
   configs: PropTypes.arrayOf(PropTypes.shape({ key: PropTypes.string, label: PropTypes.string, icon: PropTypes.elementType, accent: PropTypes.string })),
   title: PropTypes.string,
   standalone: PropTypes.bool,
+  large: PropTypes.bool,
 };
 
 // Operations completion is a plain date (no time) — a lighter formatter than
@@ -1124,6 +1230,101 @@ AppointmentClearanceSection.propTypes = {
   isLoadingTimeObjects: PropTypes.bool,
 };
 
+// DA Operations > Clearance Details — the same 3 read-only date cards from
+// AppointmentClearanceSection above (Inward Clearance, Outward Clearance, Operations
+// Completion), minus the editable Appointment Email upload, reused here so the dates
+// stay in sync wherever they're shown.
+function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
+  const cards = [
+    {
+      key: "inwardClearanceDate",
+      icon: CalendarCheck,
+      label: "Inward Clearance Date",
+      hint: "Estimated / actual arrival times synced from the backend for this call.",
+      accent: "#0891b2",
+      isDone: arrivalTimeObjects.length > 0 || Boolean(fieldValues.inwardClearanceDate.date),
+      content: (
+        <TimeObjectRows
+          items={arrivalTimeObjects}
+          isLoading={isLoadingTimeObjects}
+          fallback={
+            <p className="da-cf-ac-readonly-value">
+              {fieldValues.inwardClearanceDate.date
+                ? formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))
+                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+            </p>
+          }
+        />
+      ),
+    },
+    {
+      key: "outwardClearanceDate",
+      icon: CalendarCheck,
+      label: "Outward Clearance Date",
+      hint: "Estimated / actual departure times synced from the backend for this call.",
+      accent: "#7c3aed",
+      isDone: departureTimeObjects.length > 0 || Boolean(fieldValues.outwardClearanceDate.date),
+      content: (
+        <TimeObjectRows
+          items={departureTimeObjects}
+          isLoading={isLoadingTimeObjects}
+          fallback={
+            <p className="da-cf-ac-readonly-value">
+              {fieldValues.outwardClearanceDate.date
+                ? formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))
+                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+            </p>
+          }
+        />
+      ),
+    },
+    {
+      key: "operationsCompletionDate",
+      icon: Anchor,
+      label: "Operation Completed Date",
+      hint: "Synced from the backend once operations are marked complete.",
+      accent: "#d97706",
+      isDone: Boolean(fieldValues.operationsCompletionDate),
+      content: (
+        <p className="da-cf-ac-readonly-value">
+          {fieldValues.operationsCompletionDate
+            ? formatDisplayDateOnly(fieldValues.operationsCompletionDate)
+            : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+        </p>
+      ),
+    },
+  ];
+
+  return (
+    <div className="da-cf-ac-grid da-cf-ac-grid--3col">
+      {cards.map((card) => {
+        const Icon = card.icon;
+        return (
+          <div
+            className={`da-cf-ac-card${card.isDone ? " da-cf-ac-card--done" : ""}`}
+            style={{ "--step-accent": card.accent }}
+            key={card.key}
+          >
+            <div className="da-cf-ac-card-head">
+              <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
+              <h5 className="da-cf-ac-card-title">{card.label}</h5>
+            </div>
+            <p className="da-cf-ac-card-hint">{card.hint}</p>
+            <div className="da-cf-ac-card-field">{card.content}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+ClearanceDetailsSection.propTypes = {
+  fieldValues: PropTypes.object.isRequired,
+  arrivalTimeObjects: PropTypes.array.isRequired,
+  departureTimeObjects: PropTypes.array.isRequired,
+  isLoadingTimeObjects: PropTypes.bool,
+};
+
 // Invoices, Fees & Certificates sub-tab — same 3 fields as before (taxInvoice, srtPoWbs,
 // invoiceAmount), just re-laid-out as a card-hero grid in the same visual language as
 // AppointmentClearanceSection (.da-cf-ac-*) instead of the plain field grid other tabs use.
@@ -1204,6 +1405,47 @@ InvoicesFeesSection.propTypes = {
   updateField: PropTypes.func.isRequired,
 };
 
+// DA Operations > Invoice — the same 3 cards from InvoicesFeesSection above (Tax
+// Invoice, SRT|PO|WBS, Invoice amount), minus its own hero header since the ops-card
+// wrapper already has a "Invoice" title.
+function InvoiceCardsSection({ fieldValues, updateField }) {
+  return (
+    <div className="da-cf-ac-grid da-cf-ac-grid--3col">
+      {INVOICES_FEES_CARDS.map((card) => {
+        const Icon = card.icon;
+        const value = fieldValues[card.key];
+        return (
+          <div
+            className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
+            style={{ "--step-accent": card.accent }}
+            key={card.key}
+          >
+            <div className="da-cf-ac-card-head">
+              <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
+              <h5 className="da-cf-ac-card-title">{card.label}</h5>
+            </div>
+            <p className="da-cf-ac-card-hint">{card.hint}</p>
+            <div className="da-cf-ac-card-field">
+              <TextField
+                label={card.label}
+                icon={Icon}
+                value={value}
+                placeholder={card.placeholder}
+                onChange={(v) => updateField(card.key, v)}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+InvoiceCardsSection.propTypes = {
+  fieldValues: PropTypes.object.isRequired,
+  updateField: PropTypes.func.isRequired,
+};
+
 // Vessel & Sales Order sub-tab — same card-hero treatment as AppointmentClearanceSection
 // and InvoicesFeesSection: each field (including the two file uploads) becomes its own
 // card in a .da-cf-ac-grid instead of the plain field grid other tabs still use.
@@ -1274,6 +1516,49 @@ function VesselSalesOrderSection({ fieldValues, updateField }) {
 }
 
 VesselSalesOrderSection.propTypes = {
+  fieldValues: PropTypes.object.isRequired,
+  updateField: PropTypes.func.isRequired,
+};
+
+// DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
+// VesselSalesOrderSection above, minus its own hero header and the vessel/file fields
+// not asked for here.
+const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter((card) => card.key === "sapSalesOrderNo" || card.key === "srnNo");
+
+function SalesOrderCardsSection({ fieldValues, updateField }) {
+  return (
+    <div className="da-cf-ac-grid">
+      {SALES_ORDER_CARDS.map((card) => {
+        const Icon = card.icon;
+        const value = fieldValues[card.key];
+        return (
+          <div
+            className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
+            style={{ "--step-accent": card.accent }}
+            key={card.key}
+          >
+            <div className="da-cf-ac-card-head">
+              <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
+              <h5 className="da-cf-ac-card-title">{card.label}</h5>
+            </div>
+            <p className="da-cf-ac-card-hint">{card.hint}</p>
+            <div className="da-cf-ac-card-field">
+              <TextField
+                label={card.label}
+                icon={Icon}
+                value={value}
+                placeholder={card.placeholder}
+                onChange={(v) => updateField(card.key, v)}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+SalesOrderCardsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   updateField: PropTypes.func.isRequired,
 };
@@ -1733,6 +2018,62 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
   const activeFields = FIELDS_BY_GROUP[activeSubTab] ?? [];
   const ActiveGroupIcon = activeTabMeta.icon;
 
+  // Summary, DA Operations and DA Documents each pack several sections onto one page
+  // (see their branches below), so it's easy to miss that there's more below the fold.
+  // This floating hint appears over whichever ancestor actually scrolls (the card form
+  // modal's body), and hides itself once the user has scrolled within a chevron's-height
+  // of the bottom. Only one of the three tabs is ever mounted at a time, so all three
+  // wrapper divs share this same ref.
+  const daOperationsRef = useRef(null);
+  const [showScrollHint, setShowScrollHint] = useState(false);
+
+  useEffect(() => {
+    if (!SCROLL_HINT_TABS.includes(activeSubTab)) {
+      setShowScrollHint(false);
+      return undefined;
+    }
+    const node = daOperationsRef.current;
+    if (!node) return undefined;
+
+    const getScrollParent = (el) => {
+      let current = el?.parentElement;
+      while (current) {
+        const { overflowY } = window.getComputedStyle(current);
+        if ((overflowY === "auto" || overflowY === "scroll") && current.scrollHeight > current.clientHeight) {
+          return current;
+        }
+        current = current.parentElement;
+      }
+      return document.scrollingElement || document.documentElement;
+    };
+
+    const scrollParent = getScrollParent(node);
+    const updateHint = () => {
+      const distanceFromBottom = scrollParent.scrollHeight - scrollParent.scrollTop - scrollParent.clientHeight;
+      setShowScrollHint(distanceFromBottom > 32);
+    };
+
+    updateHint();
+    scrollParent.addEventListener("scroll", updateHint);
+    window.addEventListener("resize", updateHint);
+    return () => {
+      scrollParent.removeEventListener("scroll", updateHint);
+      window.removeEventListener("resize", updateHint);
+    };
+  }, [activeSubTab]);
+
+  const handleScrollHintClick = () => {
+    const node = daOperationsRef.current;
+    if (!node) return;
+    let scrollParent = node.parentElement;
+    while (scrollParent) {
+      const { overflowY } = window.getComputedStyle(scrollParent);
+      if ((overflowY === "auto" || overflowY === "scroll") && scrollParent.scrollHeight > scrollParent.clientHeight) break;
+      scrollParent = scrollParent.parentElement;
+    }
+    (scrollParent || document.scrollingElement)?.scrollBy({ top: 320, behavior: "smooth" });
+  };
+
   return (
     <div className="cardform-body da-cf-panel">
       <div className="da-cf-save-banner">
@@ -1758,7 +2099,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
       </div>
 
       <div className="da-cf-subtab-body">
-        {activeSubTab !== "summary" && activeSubTab !== "card" && activeSubTab !== "mwp" && activeSubTab !== "launchHire" && (
+        {activeSubTab !== "summary" && activeSubTab !== "card" && activeSubTab !== "mwp" && activeSubTab !== "launchHire" && activeSubTab !== "daOperator" && activeSubTab !== "daDocuments" && (
           <div className="da-cf-group-header">
             <span className="da-cf-group-icon"><ActiveGroupIcon size={16} /></span>
             <h4 className="da-cf-group-title">{activeTabMeta.label}</h4>
@@ -1769,16 +2110,28 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         )}
 
         {activeSubTab === "summary" ? (
-          <SummaryPanel
-            fieldValues={fieldValues}
-            billingEntityLabel={billingEntityLabel}
-            summaryData={summaryData}
-            isLoadingSummary={isLoadingSummary}
-            statusTimeline={statusTimeline}
-            isLoadingStatusTimeline={isLoadingStatusTimeline}
-            onAdvanceDaStage={onAdvanceDaStage}
-            isAdvancingDaStage={isAdvancingDaStage}
-          />
+          <div className="da-cf-mwp-launch-hire" ref={daOperationsRef}>
+            <SummaryPanel
+              fieldValues={fieldValues}
+              billingEntityLabel={billingEntityLabel}
+              summaryData={summaryData}
+              isLoadingSummary={isLoadingSummary}
+              statusTimeline={statusTimeline}
+              isLoadingStatusTimeline={isLoadingStatusTimeline}
+            />
+
+            {showScrollHint && (
+              <button
+                type="button"
+                className="da-cf-scroll-hint"
+                onClick={handleScrollHintClick}
+                aria-label="Scroll down for more details"
+              >
+                <span>More below</span>
+                <ChevronDown size={16} />
+              </button>
+            )}
+          </div>
         ) : activeSubTab === "card" ? (
           <CardPanel
             fields={activeFields}
@@ -1802,15 +2155,15 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
           <div className="da-cf-more">
             <div className="da-cf-summary-hero">
               <div className="da-cf-summary-hero-main">
-                <p className="da-cf-summary-hero-eyebrow">More</p>
+                <p className="da-cf-summary-hero-eyebrow">Link</p>
                 <h2 className="da-cf-summary-title">Additional Details</h2>
                 <p className="da-cf-summary-hero-subtitle">
-                  Attachments, docs, links and related cards that don&rsquo;t fit anywhere else on this call.
+                  Docs and related cards that don&rsquo;t fit anywhere else on this call.
                 </p>
               </div>
             </div>
             <div className="da-cf-more-grid">
-              {LIST_SECTIONS.map((section) => (
+              {MORE_TAB_LIST_SECTIONS.map((section) => (
                 <ListRowsSection
                   key={section.key}
                   label={section.label}
@@ -1873,6 +2226,158 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                 {activeFields.map((field) => renderField(field))}
               </div>
             </div>
+          </div>
+        ) : activeSubTab === "daOperator" ? (
+          <div className="da-cf-mwp-launch-hire" ref={daOperationsRef}>
+            <div className="da-cf-summary-hero">
+              <div className="da-cf-summary-hero-main">
+                <p className="da-cf-summary-hero-eyebrow">DA Operations</p>
+                <h2 className="da-cf-summary-title">Operations Overview</h2>
+                <p className="da-cf-summary-hero-subtitle">
+                  Everything for this call in one place — no need to switch tabs.
+                </p>
+              </div>
+            </div>
+
+            <div className="da-cf-ops-grid">
+              {DA_OPERATOR_SUB_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isOperationDetails = tab.key === "operationDetails";
+                const isClearanceDetails = tab.key === "clearanceDetails";
+                const isLaunchHire = tab.key === "launchHire";
+                const isInvoice = tab.key === "invoice";
+                const isSalesOrder = tab.key === "salesOrder";
+                return (
+                  <section
+                    className={`da-cf-ops-card${isOperationDetails || isClearanceDetails || isLaunchHire || isInvoice || isSalesOrder ? " da-cf-ops-card--wide" : ""}`}
+                    key={tab.key}
+                  >
+                    <header className="da-cf-ops-card-header">
+                      <span className="da-cf-ops-card-icon"><Icon size={16} /></span>
+                      <h4 className="da-cf-ops-card-title">{tab.label}</h4>
+                    </header>
+                    <div className="da-cf-ops-card-body">
+                      {isOperationDetails ? (
+                        <>
+                          <div className="da-cf-fields-grid da-cf-fields-grid--fixed4">
+                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.vesselName)}
+                            <ReadonlyField
+                              label="Vessel Owner"
+                              icon={Building2}
+                              value={isLoadingSummary && !summaryData ? "Loading…" : (summaryData?.vessel_owner || "Not set yet")}
+                              accent="#d97706"
+                            />
+                            <ReadonlyField
+                              label="Owner"
+                              icon={User}
+                              value={isLoadingSummary && !summaryData ? "Loading…" : (summaryData?.call_owner_name || "Not set yet")}
+                              accent="#0d9488"
+                            />
+                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.coOwners)}
+                          </div>
+                          <div className="da-cf-fields-grid">
+                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.serviceRequester)}
+                            <ReadonlyField label="Billing Entity" icon={Package} value={billingEntityLabel || "Not set yet"} accent="#e11d48" />
+                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.billingOthers)}
+                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.lastMoved)}
+                          </div>
+                        </>
+                      ) : isClearanceDetails ? (
+                        <ClearanceDetailsSection
+                          fieldValues={fieldValues}
+                          arrivalTimeObjects={arrivalTimeObjects}
+                          departureTimeObjects={departureTimeObjects}
+                          isLoadingTimeObjects={isLoadingTimeObjects}
+                        />
+                      ) : isLaunchHire ? (
+                        <LaunchHireCardsSection fieldValues={fieldValues} updateField={updateField} />
+                      ) : isInvoice ? (
+                        <InvoiceCardsSection fieldValues={fieldValues} updateField={updateField} />
+                      ) : isSalesOrder ? (
+                        <SalesOrderCardsSection fieldValues={fieldValues} updateField={updateField} />
+                      ) : (
+                        <p className="da-cf-ac-readonly-value">
+                          <span className="da-cf-ac-readonly-empty">Coming soon.</span>
+                        </p>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+
+            {showScrollHint && (
+              <button
+                type="button"
+                className="da-cf-scroll-hint"
+                onClick={handleScrollHintClick}
+                aria-label="Scroll down for more details"
+              >
+                <span>More below</span>
+                <ChevronDown size={16} />
+              </button>
+            )}
+          </div>
+        ) : activeSubTab === "daDocuments" ? (
+          <div className="da-cf-mwp-launch-hire" ref={daOperationsRef}>
+            <div className="da-cf-summary-hero">
+              <div className="da-cf-summary-hero-main">
+                <p className="da-cf-summary-hero-eyebrow">DA Documents</p>
+                <h2 className="da-cf-summary-title">Documents Overview</h2>
+                <p className="da-cf-summary-hero-subtitle">
+                  Every document for this call in one place — no need to switch tabs.
+                </p>
+              </div>
+            </div>
+
+            <RequiredDocumentsSection
+              documents={requiredDocuments}
+              isLoading={isLoadingRequiredDocuments}
+              configs={MWP_REQUIRED_DOCUMENTS_CONFIG}
+              title="MWP Documents"
+              standalone
+              large
+            />
+
+            <div className="da-cf-fields-grid da-cf-fields-grid--files2">
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.launchHireSlips)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.inwardClearanceCopy)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.sailingClearanceCopy)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.copyOfSalesOrder)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.salesOrderSupportingDocs)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.fdaDispatchProof)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.supportingDocuments)}
+            </div>
+
+            <div className="da-cf-more-grid">
+              {DA_DOCUMENTS_LIST_SECTIONS.map((section) => (
+                <ListRowsSection
+                  key={section.key}
+                  label={section.label}
+                  icon={section.icon}
+                  rows={listSections[section.key].rows}
+                  collapsed={listSections[section.key].collapsed}
+                  onToggleCollapse={() => toggleListCollapse(section.key)}
+                  onAdd={() => addListRow(section.key)}
+                  onChangeRow={(i, v) => changeListRow(section.key, i, v)}
+                  onRemoveRow={(i) => removeListRow(section.key, i)}
+                  placeholder={section.placeholder}
+                  accent={section.accent}
+                />
+              ))}
+            </div>
+
+            {showScrollHint && (
+              <button
+                type="button"
+                className="da-cf-scroll-hint"
+                onClick={handleScrollHintClick}
+                aria-label="Scroll down for more details"
+              >
+                <span>More below</span>
+                <ChevronDown size={16} />
+              </button>
+            )}
           </div>
         ) : activeSubTab === "clearanceCopies" ? (
           <>

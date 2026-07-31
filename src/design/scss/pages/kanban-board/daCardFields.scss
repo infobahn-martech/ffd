@@ -101,6 +101,57 @@
   }
 }
 
+// "DA Operations" tab: every section (Operation Details, Clearance Details, Launch
+// Hire, Invoice, Sales Order) rendered as its own boxed card on one page, instead of
+// behind a second row of click-through tabs.
+.da-cf-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.da-cf-ops-card--wide {
+  grid-column: 1 / -1;
+}
+
+.da-cf-ops-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--da-surface);
+  border: 1px solid var(--da-line);
+  border-radius: 14px;
+  padding: 18px 20px 20px;
+}
+
+.da-cf-ops-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.da-cf-ops-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--da-accent);
+  opacity: 0.85;
+}
+
+.da-cf-ops-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--da-ink);
+  margin: 0;
+}
+
+.da-cf-ops-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .da-cf-group-header {
   display: flex;
   align-items: center;
@@ -116,6 +167,52 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+}
+
+// "More below" hint shown on the DA Operations page while there's unscrolled content
+// beneath the fold (see the daOperationsRef scroll-tracking effect in DA.jsx). Sticky
+// so it stays near the bottom of the scrollable card form body as the user scrolls,
+// and naturally scrolls away with the rest of the content once there's nothing left
+// below it to hint at.
+.da-cf-scroll-hint {
+  position: sticky;
+  bottom: 16px;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--da-accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(28, 32, 51, 0.25);
+  z-index: 6;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  svg {
+    animation: da-cf-scroll-hint-bounce 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes da-cf-scroll-hint-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
 }
 
 // Content pane below the hero. React remounts this (keyed on the active sub-tab)
@@ -138,6 +235,14 @@
   .da-cf-mwp-launch-hire-panel .da-cf-file-row:nth-child(#{$i}) {
     animation-delay: #{$i * 0.04}s;
   }
+}
+
+// Each tile's fade-up animation gives it its own stacking layer (same issue as
+// .da-cf-card-panel-tile below), so a tile further down — e.g. Last moved — paints
+// over an earlier tile's open user-search dropdown (e.g. Co-owner). Lift whichever
+// tile currently has its dropdown open above all its siblings.
+.da-cf-mwp-launch-hire-panel .da-cf-tile:has(.da-cf-user-search-dropdown) {
+  z-index: 20;
 }
 
 .da-cf-mwp-launch-hire-panel .da-cf-file-row {
@@ -190,6 +295,13 @@
 // edge as the row above instead of stretching across extra auto-fit columns.
 .da-cf-fields-grid--fixed2 {
   grid-template-columns: repeat(2, 1fr);
+}
+
+// DA Operator > Operation Details: Vessel / Vessel Owner / Owner / Co-owner pinned to
+// one row, with a second .da-cf-fields-grid (auto-fit) for the remaining fields below.
+.da-cf-fields-grid--fixed4 {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 20px;
 }
 
 // Time Objects sub-tab: entry count varies with the port/call-type config, so a fixed
@@ -912,6 +1024,38 @@
   margin-top: 0;
   padding-top: 0;
   border-top: none;
+}
+
+// DA Documents: MWP + MWP Subscription (SADAD) enlarged to match the other document
+// tiles on that page (the FileDropzone-based da-cf-tile grid below) and fill the row,
+// instead of the compact checklist chips used elsewhere (MWP tab, Clearance Copies).
+.da-cf-required-docs--large {
+  .da-cf-required-docs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .da-cf-required-doc-card {
+    align-items: center;
+    gap: 14px;
+    padding: 20px 44px 20px 20px;
+    border-radius: 12px;
+  }
+
+  .da-cf-required-doc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .da-cf-required-doc-label {
+    font-size: 13.5px;
+  }
+
+  .da-cf-required-doc-status,
+  .da-cf-required-doc-link {
+    font-size: 12.5px;
+  }
 }
 
 .da-cf-required-docs-header {
