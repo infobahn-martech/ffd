@@ -745,9 +745,10 @@ function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingS
     isSummaryPending ? "Loading…" : (formatApiDateTime(summaryData?.[key]) || fallback);
 
   const stats = [
-    { label: "Vessel", value: fieldValues.vesselName, icon: Ship, accent: "#2563eb" },
-    { label: "Owner", value: fieldValues.owner, icon: User, accent: "#0d9488" },
+    { label: "Vessel", value: apiValue("vessel_name", fieldValues.vesselName), icon: Ship, accent: "#2563eb" },
+    { label: "Owner", value: apiValue("call_owner_name", fieldValues.owner), icon: User, accent: "#0d9488" },
     { label: "Vessel Owner", value: apiValue("vessel_owner", null), icon: Building2, accent: "#d97706" },
+    { label: "Inward Clearance", value: apiDateValue("inward_clearance_date", formatDateTime(fieldValues.inwardClearanceDate)), icon: CalendarCheck, accent: "#0891b2" },
     { label: "Outward Clearance", value: apiDateValue("outward_clearance_date", formatDateTime(fieldValues.outwardClearanceDate)), icon: CalendarCheck, accent: "#7c3aed" },
     { label: "Billing Entity", value: apiValue("billing_entity", billingEntityLabel || null), icon: Package, accent: "#e11d48" },
     { label: "SAP Sales Order No", value: apiValue("sap_sales_order_no", fieldValues.sapSalesOrderNo), icon: Receipt, accent: "#059669" },
