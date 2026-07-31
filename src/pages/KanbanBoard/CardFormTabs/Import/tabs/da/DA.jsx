@@ -629,36 +629,31 @@ const mapStatusTimelineResponse = (rows) =>
       };
     });
 
-function StatusTimelineSection({ steps, onStepClick, isLoading }) {
+function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
   return (
     <>
       <div className="da-cf-timeline-header">
-        <h3 className="da-cf-summary-section-heading">Status Timeline</h3>
+        <h3 className="da-cf-summary-section-heading da-cf-timeline-heading">
+          <Clock size={14} className="da-cf-timeline-heading-icon" />
+          DA Status Timeline
+        </h3>
         {isLoading && steps.length === 0 && <span className="da-cf-summary-card-value--empty">Loading…</span>}
       </div>
       <div className="da-cf-timeline">
         {steps.map((step, index) => {
           const Icon = step.state === "done" ? CheckCircle2 : step.state === "current" ? Clock : CircleDashed;
+          // Only the "current" step's checkbox is checkable — checking it means "this
+          // stage is done" and advances to the *next* stage, resolved the same way the
+          // header sticker picker's DA advance already works (matching this stage's own
+          // label, then moving to the next column after it) so it succeeds/fails in
+          // exactly the same cases the sticker does, instead of a different (less
+          // reliable) direct self-match.
+          const isCheckable = Boolean(onStepClick) && step.state === "current" && !isAdvancing;
           return (
             <div className={`da-cf-timeline-step da-cf-timeline-step--${step.state}`} key={step.key}>
               <div className="da-cf-timeline-step-marker">
-                <span
-                  className="da-cf-timeline-step-icon"
-                  role={onStepClick && step.state === "current" ? "button" : undefined}
-                  tabIndex={onStepClick && step.state === "current" ? 0 : undefined}
-                  onClick={onStepClick && step.state === "current" ? () => onStepClick(index) : undefined}
-                  onKeyDown={
-                    onStepClick && step.state === "current"
-                      ? (e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            onStepClick(index);
-                          }
-                        }
-                      : undefined
-                  }
-                >
-                  <Icon size={14} />
+                <span className="da-cf-timeline-step-icon">
+                  <Icon size={16} />
                 </span>
                 {index < steps.length - 1 && (
                   <span className="da-cf-timeline-step-connector" title={steps[index + 1].label} />
@@ -673,6 +668,19 @@ function StatusTimelineSection({ steps, onStepClick, isLoading }) {
                       ? "In progress"
                       : "Not reached yet"}
                 </span>
+                {onStepClick && (
+                  <label
+                    className="da-cf-timeline-step-checkbox"
+                    title={isCheckable ? `Move to "${step.label}"` : undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={step.state === "done"}
+                      disabled={!isCheckable}
+                      onChange={() => onStepClick(step.label)}
+                    />
+                  </label>
+                )}
               </div>
             </div>
           );
@@ -694,9 +702,10 @@ StatusTimelineSection.propTypes = {
   ).isRequired,
   onStepClick: PropTypes.func,
   isLoading: PropTypes.bool,
+  isAdvancing: PropTypes.bool,
 };
 
-function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline }) {
+function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline, onAdvanceDaStage, isAdvancingDaStage }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
 
   const timelineSteps = useMemo(() => mapStatusTimelineResponse(statusTimeline), [statusTimeline]);
@@ -721,7 +730,12 @@ function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingS
 
   return (
     <div className="da-cf-summary">
-      <StatusTimelineSection steps={timelineSteps} isLoading={isLoadingStatusTimeline} />
+      <StatusTimelineSection
+        steps={timelineSteps}
+        isLoading={isLoadingStatusTimeline}
+        onStepClick={onAdvanceDaStage}
+        isAdvancing={isAdvancingDaStage}
+      />
 
       <h3 className="da-cf-summary-section-heading">Overview</h3>
 
@@ -756,6 +770,8 @@ SummaryPanel.propTypes = {
   isLoadingSummary: PropTypes.bool,
   statusTimeline: PropTypes.array,
   isLoadingStatusTimeline: PropTypes.bool,
+  onAdvanceDaStage: PropTypes.func,
+  isAdvancingDaStage: PropTypes.bool,
 };
 
 function ListRowsSection({ label, icon, rows, collapsed, onToggleCollapse, onAdd, onChangeRow, onRemoveRow, placeholder, accent }) {
@@ -1303,7 +1319,7 @@ CardPanel.propTypes = {
   isSaving: PropTypes.bool,
 };
 
-function DA({ card, formValues, handleChange }) {
+function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaStage, isAdvancingDaStage }) {
   const [activeSubTab, setActiveSubTab] = useState("summary");
   const [fieldValues, setFieldValues] = useState(makeInitialFieldState);
   // co_owner_id isn't a visible field — UserSearchField only exposes the picked user's
@@ -1336,10 +1352,15 @@ function DA({ card, formValues, handleChange }) {
     return () => { cancelled = true; };
   }, [callId]);
 
-  useEffect(() => fetchSummaryTab(), [fetchSummaryTab]);
+  useEffect(() => {
+    fetchSummaryTab();
+  }, [fetchSummaryTab, daStatusRefreshToken]);
 
   // api/da/status_timeline/{call_id} — real per-call status progression shown in the
   // Summary sub-tab's Status Timeline, replacing the old hardcoded/click-driven placeholder.
+  // Also refetches when daStatusRefreshToken bumps (CardForm's footer stepper / header
+  // sticker picker just advanced this call's DA stage), so this section updates immediately
+  // instead of only on the next time the card is opened.
   const [statusTimeline, setStatusTimeline] = useState([]);
   const [isLoadingStatusTimeline, setIsLoadingStatusTimeline] = useState(false);
 
@@ -1358,7 +1379,7 @@ function DA({ card, formValues, handleChange }) {
         if (!cancelled) setIsLoadingStatusTimeline(false);
       });
     return () => { cancelled = true; };
-  }, [callId]);
+  }, [callId, daStatusRefreshToken]);
 
   // api/da/card_tab/{call_id} — hydrates the editable "Card" sub-tab fields
   // (owner, co-owner, deadline, size, custom card ID, tags) with the backend's
@@ -1755,6 +1776,8 @@ function DA({ card, formValues, handleChange }) {
             isLoadingSummary={isLoadingSummary}
             statusTimeline={statusTimeline}
             isLoadingStatusTimeline={isLoadingStatusTimeline}
+            onAdvanceDaStage={onAdvanceDaStage}
+            isAdvancingDaStage={isAdvancingDaStage}
           />
         ) : activeSubTab === "card" ? (
           <CardPanel
@@ -1877,6 +1900,9 @@ DA.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
+  daStatusRefreshToken: PropTypes.number,
+  onAdvanceDaStage: PropTypes.func,
+  isAdvancingDaStage: PropTypes.bool,
 };
 
 export default DA;

@@ -1,3 +1,5 @@
+import { findWorkflowByCardId } from "./boardHelpers";
+
 /**
  * Resolves the stable column id used by CardForm / DnD (e.g. workflow-1-col-1).
  */
@@ -79,6 +81,65 @@ export const findColumnByCardId = (workflows, cardId) => {
     }
   }
   return null;
+};
+
+/**
+ * Pure version of the "move card to column" transform: returns a new workflows array with
+ * `cardId` relocated to the column whose real `.id` is `targetColumnId`, or the same array
+ * reference back if the card/column can't be resolved or it's already there. Used both by
+ * useKanbanDnD's moveCardToColumn (wrapped in setWorkflows) and by any bulk reconciliation
+ * pass that needs to relocate cards outside of a React state updater.
+ */
+export const movePureCardToColumn = (workflows, cardId, targetColumnId) => {
+  const workflow = findWorkflowByCardId(workflows, cardId);
+  if (!workflow) return workflows;
+
+  const laneCol = findLaneColumnLocationForCard(workflow, cardId);
+  const targetColKey = Object.keys(workflow.columns).find(
+    (k) => workflow.columns[k].id === targetColumnId
+  );
+
+  if (!laneCol || !targetColKey) return workflows;
+  if (laneCol.columnKey === targetColKey) return workflows;
+
+  const { laneId, columnKey: sourceKey } = laneCol;
+
+  return workflows.map((w) => {
+    if (w.id !== workflow.id) return w;
+
+    const lane = w.swimlanes[laneId];
+    if (!lane?.cardMap) return w;
+
+    const sourceIds = [...(lane.cardMap[sourceKey] || [])];
+    const idx = sourceIds.indexOf(cardId);
+    if (idx === -1) return w;
+    sourceIds.splice(idx, 1);
+
+    const targetIds = [...(lane.cardMap[targetColKey] || [])];
+    targetIds.unshift(cardId);
+
+    const card = w.cards[cardId];
+    if (!card) return w;
+
+    return {
+      ...w,
+      swimlanes: {
+        ...w.swimlanes,
+        [laneId]: {
+          ...lane,
+          cardMap: {
+            ...lane.cardMap,
+            [sourceKey]: sourceIds,
+            [targetColKey]: targetIds,
+          },
+        },
+      },
+      cards: {
+        ...w.cards,
+        [cardId]: { ...card, columnId: targetColKey },
+      },
+    };
+  });
 };
 
 export const findColumnLocationById = (workflows, columnId) => {
