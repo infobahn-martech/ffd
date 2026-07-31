@@ -2998,6 +2998,34 @@ $gro-supervisor-control-border: #d0d5dd;
   line-height: 1.4;
 }
 
+.cardform-type-picker-remove-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #dc2626;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.cardform-type-picker-remove-btn:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.cardform-type-picker-remove-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .cardform-type-picker-list {
   list-style: none;
   margin: 0;

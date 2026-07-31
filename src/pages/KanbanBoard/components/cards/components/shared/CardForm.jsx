@@ -7,7 +7,7 @@ import daService from "../../../../../../services/daService";
 import { mapSalesOrderResponse } from "../../../../../../shared/helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
-import { Tag, Layers3, AlertTriangle, Sticker, Pencil, Check } from "lucide-react";
+import { Tag, Layers3, AlertTriangle, Sticker, Pencil, Check, X } from "lucide-react";
 import { notify } from "../../../../../../components/Toaster";
 import "../../../../../../design/scss/pages/kanban-board/cardForm.scss";
 import "../../../../../../design/scss/general.scss";
@@ -454,9 +454,12 @@ const BOARD_META_PICKERS = {
       color_code: row.color_code,
       icon_name: row.iconKey,
     }),
+    manageType: "card_type",
     loadError: "Could not load card types.",
     updateError: "Could not update card type.",
     successMsg: "Card type updated.",
+    removeError: "Could not remove card type.",
+    removeSuccessMsg: "Card type removed.",
   },
   tag: {
     header: "Card tag",
@@ -469,6 +472,7 @@ const BOARD_META_PICKERS = {
     fetchByBoard: (boardId) => kanbanBoardService.getCardTagsByBoard(boardId),
     updateCard: (cardId, itemId) =>
       kanbanBoardService.updateCardTag({ card_id: cardId, card_tag_id: itemId }),
+    manageType: "card_tag",
     buildMeta: (row) => ({
       name: row.name,
       color_code: row.color_code,
@@ -477,6 +481,8 @@ const BOARD_META_PICKERS = {
     loadError: "Could not load card tags.",
     updateError: "Could not update card tag.",
     successMsg: "Card tag updated.",
+    removeError: "Could not remove card tag.",
+    removeSuccessMsg: "Card tag removed.",
   },
   blocker: {
     header: "Card blocker",
@@ -494,9 +500,12 @@ const BOARD_META_PICKERS = {
       color_code: row.color_code,
       icon_name: row.iconKey,
     }),
+    manageType: "card_blocker",
     loadError: "Could not load card blockers.",
     updateError: "Could not update card blocker.",
     successMsg: "Card blocker updated.",
+    removeError: "Could not remove card blocker.",
+    removeSuccessMsg: "Card blocker removed.",
   },
   sticker: {
     header: "Card sticker",
@@ -514,9 +523,12 @@ const BOARD_META_PICKERS = {
       color_code: row.color_code,
       icon_name: row.iconKey,
     }),
+    manageType: "card_sticker",
     loadError: "Could not load card stickers.",
     updateError: "Could not update card sticker.",
     successMsg: "Card sticker updated.",
+    removeError: "Could not remove card sticker.",
+    removeSuccessMsg: "Card sticker removed.",
   },
 };
 
@@ -546,6 +558,9 @@ const CardMetaPickerPopover = ({
   hasBoardId,
   showRowIcon = true,
   onSelect,
+  hasSelection = false,
+  removeLabel,
+  onRemove,
 }) => (
   <div
     ref={wrapRef}
@@ -555,6 +570,17 @@ const CardMetaPickerPopover = ({
     aria-label={header}
   >
     <div className="cardform-type-picker-header">{header}</div>
+    {hasSelection && (
+      <button
+        type="button"
+        className="cardform-type-picker-remove-btn"
+        onClick={onRemove}
+        disabled={saving}
+      >
+        <X size={14} aria-hidden />
+        <span>{removeLabel}</span>
+      </button>
+    )}
     {loading ? (
       <div className="cardform-type-picker-status">Loading…</div>
     ) : items.length === 0 ? (
@@ -603,6 +629,9 @@ CardMetaPickerPopover.propTypes = {
   hasBoardId: PropTypes.bool,
   showRowIcon: PropTypes.bool,
   onSelect: PropTypes.func.isRequired,
+  hasSelection: PropTypes.bool,
+  removeLabel: PropTypes.string,
+  onRemove: PropTypes.func,
 };
 
 // Sub-components
@@ -913,6 +942,58 @@ const TopBar = ({
     }
   };
 
+  const handleRemoveMetaItem = async (pickerKey) => {
+    if (metaSaving) return;
+    const config = BOARD_META_PICKERS[pickerKey];
+    if (!config || !selectedIds[pickerKey]) return;
+
+    if (isAddMode) {
+      setSelectedIds((prev) => ({ ...prev, [pickerKey]: null }));
+      setSelectedMeta((prev) => ({ ...prev, [pickerKey]: {} }));
+      metaPickerOnChange[pickerKey]?.(null, {});
+      setOpenPicker(null);
+      return;
+    }
+
+    const cardIdRaw = card?.id ?? card?.card_id;
+    if (cardIdRaw == null || String(cardIdRaw).trim() === "") {
+      notify(`Cannot remove card ${config.emptyLabel.slice(0, -1)}: missing card id.`, "error");
+      return;
+    }
+
+    const cardIdStr = String(cardIdRaw).trim();
+    setMetaSaving(true);
+    try {
+      const res = await kanbanBoardService.removeCardManagementItem({
+        card_id: cardIdStr,
+        manage_type: config.manageType,
+      });
+      const body = res?.data;
+      if (body && typeof body === "object" && body.status === "error") {
+        const msg =
+          typeof body.message === "string" && body.message.trim()
+            ? body.message
+            : config.removeError;
+        throw new Error(msg);
+      }
+
+      setSelectedIds((prev) => ({ ...prev, [pickerKey]: null }));
+      setSelectedMeta((prev) => ({ ...prev, [pickerKey]: {} }));
+      metaPickerOnChange[pickerKey]?.(null, {});
+      notify(config.removeSuccessMsg, "success");
+      setOpenPicker(null);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        config.removeError;
+      notify(typeof msg === "string" ? msg : config.removeError, "error");
+    } finally {
+      setMetaSaving(false);
+    }
+  };
+
   const handleTitleChange = (e) => {
     if (handleChange) {
       handleChange("cardTitle")(e);
@@ -1086,6 +1167,9 @@ const TopBar = ({
               hasBoardId={Boolean(resolvedBoardId)}
               showRowIcon={openPickerConfig.showRowIcon !== false}
               onSelect={(row) => handleSelectMetaItem(openPicker, row)}
+              hasSelection={Boolean(selectedIds[openPicker])}
+              removeLabel={`Remove ${openPickerConfig.emptyLabel.slice(0, -1)}`}
+              onRemove={() => handleRemoveMetaItem(openPicker)}
             />,
             document.body
           )}
