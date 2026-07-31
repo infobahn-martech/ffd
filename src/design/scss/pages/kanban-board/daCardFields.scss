@@ -25,6 +25,33 @@
   }
 }
 
+// The shared .cardform-body rule (CardForm.css) makes this panel's own scrollbar
+// fully transparent app-wide, which — now that scrolling further is only hinted at
+// via the one-time auto-scroll nudge above — left this tab with no visible way to
+// tell the content still scrolls. Override it here with a visible thin thumb, scoped
+// to this panel only so other tabs keep their existing (transparent) scrollbar.
+.cardform-body.da-cf-panel {
+  scrollbar-width: thin;
+  scrollbar-color: #c7cad8 transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c7cad8;
+    border-radius: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #9a9fb8;
+  }
+}
+
 .da-cf-save-banner {
   display: inline-flex;
   align-items: center;

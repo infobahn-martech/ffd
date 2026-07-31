@@ -2020,18 +2020,14 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
 
   // Summary, DA Operations and DA Documents each pack several sections onto one page
   // (see their branches below), so it's easy to miss that there's more below the fold.
-  // This floating hint appears over whichever ancestor actually scrolls (the card form
-  // modal's body), and hides itself once the user has scrolled within a chevron's-height
-  // of the bottom. Only one of the three tabs is ever mounted at a time, so all three
-  // wrapper divs share this same ref.
+  // Rather than making the user notice and click a hint, we nudge the scroll parent
+  // down automatically once when a tab with overflowing content is opened. Only one
+  // of the three tabs is ever mounted at a time, so all three wrapper divs share this
+  // same ref.
   const daOperationsRef = useRef(null);
-  const [showScrollHint, setShowScrollHint] = useState(false);
 
   useEffect(() => {
-    if (!SCROLL_HINT_TABS.includes(activeSubTab)) {
-      setShowScrollHint(false);
-      return undefined;
-    }
+    if (!SCROLL_HINT_TABS.includes(activeSubTab)) return undefined;
     const node = daOperationsRef.current;
     if (!node) return undefined;
 
@@ -2048,31 +2044,11 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     };
 
     const scrollParent = getScrollParent(node);
-    const updateHint = () => {
-      const distanceFromBottom = scrollParent.scrollHeight - scrollParent.scrollTop - scrollParent.clientHeight;
-      setShowScrollHint(distanceFromBottom > 32);
-    };
-
-    updateHint();
-    scrollParent.addEventListener("scroll", updateHint);
-    window.addEventListener("resize", updateHint);
-    return () => {
-      scrollParent.removeEventListener("scroll", updateHint);
-      window.removeEventListener("resize", updateHint);
-    };
-  }, [activeSubTab]);
-
-  const handleScrollHintClick = () => {
-    const node = daOperationsRef.current;
-    if (!node) return;
-    let scrollParent = node.parentElement;
-    while (scrollParent) {
-      const { overflowY } = window.getComputedStyle(scrollParent);
-      if ((overflowY === "auto" || overflowY === "scroll") && scrollParent.scrollHeight > scrollParent.clientHeight) break;
-      scrollParent = scrollParent.parentElement;
+    const distanceFromBottom = scrollParent.scrollHeight - scrollParent.scrollTop - scrollParent.clientHeight;
+    if (distanceFromBottom > 32) {
+      scrollParent.scrollBy({ top: 320, behavior: "smooth" });
     }
-    (scrollParent || document.scrollingElement)?.scrollBy({ top: 320, behavior: "smooth" });
-  };
+  }, [activeSubTab]);
 
   return (
     <div className="cardform-body da-cf-panel">
@@ -2119,18 +2095,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
               statusTimeline={statusTimeline}
               isLoadingStatusTimeline={isLoadingStatusTimeline}
             />
-
-            {showScrollHint && (
-              <button
-                type="button"
-                className="da-cf-scroll-hint"
-                onClick={handleScrollHintClick}
-                aria-label="Scroll down for more details"
-              >
-                <span>More below</span>
-                <ChevronDown size={16} />
-              </button>
-            )}
           </div>
         ) : activeSubTab === "card" ? (
           <CardPanel
@@ -2305,18 +2269,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                 );
               })}
             </div>
-
-            {showScrollHint && (
-              <button
-                type="button"
-                className="da-cf-scroll-hint"
-                onClick={handleScrollHintClick}
-                aria-label="Scroll down for more details"
-              >
-                <span>More below</span>
-                <ChevronDown size={16} />
-              </button>
-            )}
           </div>
         ) : activeSubTab === "daDocuments" ? (
           <div className="da-cf-mwp-launch-hire" ref={daOperationsRef}>
@@ -2366,18 +2318,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                 />
               ))}
             </div>
-
-            {showScrollHint && (
-              <button
-                type="button"
-                className="da-cf-scroll-hint"
-                onClick={handleScrollHintClick}
-                aria-label="Scroll down for more details"
-              >
-                <span>More below</span>
-                <ChevronDown size={16} />
-              </button>
-            )}
           </div>
         ) : activeSubTab === "clearanceCopies" ? (
           <>
