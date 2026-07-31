@@ -209,33 +209,30 @@
   }
 }
 
-/* Compact request-email upload zone (overrides the 200px default from operations.scss) */
-.coordinator-transport-request-upload .document-upload-zone {
-  height: auto !important;
-  min-height: 64px !important;
-  padding: 10px 14px !important;
+/* Request Email — view-only display (no upload/remove affordance) */
+.coordinator-transport-request-email-view {
   display: flex;
   align-items: center;
-  justify-content: center;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 1px solid #e2e6ef;
+  border-radius: 8px;
   box-sizing: border-box;
-  overflow: visible;
 }
 
-.coordinator-transport-request-upload .upload-zone-content {
+.coordinator-transport-request-email-view__file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
-  height: auto;
-  text-align: center;
-  gap: 2px;
-  overflow: visible;
 }
 
-.coordinator-transport-request-upload .upload-main-text {
+.coordinator-transport-request-email-view__name {
   font-size: 13px;
-  line-height: 1.3;
-}
-
-.coordinator-transport-request-upload .upload-sub-text {
-  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Compact documents upload zone (overrides the 200px default from operations.scss) */

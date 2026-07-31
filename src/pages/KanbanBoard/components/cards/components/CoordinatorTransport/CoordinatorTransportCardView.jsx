@@ -27,8 +27,6 @@ import "./CoordinatorTransportCardView.scss";
 
 const TRANSPORT_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.TRANSPORT];
 const EMPTY_DISPLAY = "—";
-const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
-const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const TABLE_PAGE_SIZE = 5;
 
 const EMPTY_TRANSPORT_FORM = {
@@ -203,7 +201,6 @@ CoordinatorTransportSummaryCard.propTypes = {
 };
 
 const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
-  const requestEmailInputRef = useRef(null);
   const documentsInputRef = useRef(null);
 
   const callId = useMemo(() => resolveCallId(cardData), [cardData]);
@@ -233,7 +230,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
   } = useCoordinatorTransportReducer();
 
   const [transportForm, setTransportForm] = useState(EMPTY_TRANSPORT_FORM);
-  const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
 
   const updateTransportField = useCallback((field, value) => {
@@ -350,51 +346,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
       inhouseDriverId: "",
     }));
   }, []);
-
-  const filterRequestEmailFiles = (files) =>
-    Array.from(files || []).filter((f) => REQUEST_EMAIL_EXT_RE.test(f.name));
-
-  const handleRequestEmailDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingEmail(true);
-  };
-  const handleRequestEmailDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingEmail(false);
-  };
-  const handleRequestEmailDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  const handleRequestEmailDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingEmail(false);
-    const raw = Array.from(e.dataTransfer.files || []);
-    const allowed = filterRequestEmailFiles(raw);
-    if (allowed.length === 0) {
-      if (raw.length > 0) {
-        notify("Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.", "warning", "top-center");
-      }
-      return;
-    }
-    updateTransportField("requestEmail", [fileToAttachment(allowed[0])]);
-  };
-  const handleRequestEmailFileInputChange = (e) => {
-    const raw = Array.from(e.target.files || []);
-    const allowed = filterRequestEmailFiles(raw);
-    if (allowed.length === 0) {
-      if (raw.length > 0) {
-        notify("Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.", "warning", "top-center");
-      }
-    } else {
-      updateTransportField("requestEmail", [fileToAttachment(allowed[0])]);
-    }
-    if (requestEmailInputRef.current) requestEmailInputRef.current.value = "";
-  };
-  const handleRequestEmailRemoveAttachment = () => updateTransportField("requestEmail", []);
 
   const handleDocumentsDragEnter = (e) => {
     e.preventDefault();
@@ -546,11 +497,6 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
     const formData = new FormData();
     formData.append("data", JSON.stringify(payload));
 
-    const requestEmailFile = transportForm.requestEmail?.[0]?.file;
-    if (requestEmailFile) {
-      formData.append("request_email", requestEmailFile);
-    }
-
     transportForm.documents.forEach((attachment, index) => {
       const file = attachment?.file ?? attachment;
       if (file instanceof File) {
@@ -640,23 +586,28 @@ const CoordinatorTransportCardView = ({ cardData, cardColor }) => {
               <div className="coordinator-transport-form-section">
                 <FormGroup icon="mail" label="Request Email" accent={TRANSPORT_ACCENT}>
                   <FormField>
-                    <div className="coordinator-transport-request-upload">
-                      <AttachmentsList
-                        attachments={transportForm.requestEmail}
-                        onAdd={() => {}}
-                        onRemove={handleRequestEmailRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingEmail}
-                        onDragEnter={handleRequestEmailDragEnter}
-                        onDragLeave={handleRequestEmailDragLeave}
-                        onDragOver={handleRequestEmailDragOver}
-                        onDrop={handleRequestEmailDrop}
-                        fileInputRef={requestEmailInputRef}
-                        onFileInputChange={handleRequestEmailFileInputChange}
-                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
-                        multiple={false}
-                        helperText=".msg, .eml, .pdf, .doc or .docx"
-                      />
+                    <div className="coordinator-transport-request-email-view">
+                      {transportForm.requestEmail?.[0] ? (
+                        <div className="coordinator-transport-request-email-view__file">
+                          <span className="coordinator-transport-request-email-view__name">
+                            {transportForm.requestEmail[0].name}
+                          </span>
+                          {transportForm.requestEmail[0].url ? (
+                            <button
+                              type="button"
+                              className="crew-pass-requests-table__doc-btn"
+                              onClick={() =>
+                                window.open(transportForm.requestEmail[0].url, "_blank", "noopener,noreferrer")
+                              }
+                              aria-label="View request email"
+                            >
+                              <FiEye size={15} />
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="coordinator-transport-table__empty-cell">{EMPTY_DISPLAY}</span>
+                      )}
                     </div>
                   </FormField>
                 </FormGroup>
