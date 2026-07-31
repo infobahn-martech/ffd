@@ -8009,6 +8009,59 @@ $send-report-optional: #80868b;
   height: 10px;
 }
 
+@keyframes reports-empty-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reports-empty-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.reports-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 20px;
+  text-align: center;
+  animation: reports-empty-fade-in 0.35s ease-out;
+}
+
+.reports-empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(42, 0, 255, 0.06);
+  color: var(--card-color, #2A00FF);
+  animation: reports-empty-float 2.6s ease-in-out infinite;
+}
+
+.reports-empty-state-text {
+  margin: 0;
+  color: #888;
+  font-size: 13px;
+  font-style: italic;
+}
+
 /* ==========================================================
    REPORTS PREVIEW MODAL (Bootstrap Modal)
    ========================================================== */

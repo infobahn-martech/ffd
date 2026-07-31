@@ -1,8 +1,6 @@
 import PropTypes from "prop-types";
 import { useEffect, useMemo, useState } from "react";
-import { Modal } from "react-bootstrap";
-import { FiEye, FiDownload, FiMail, FiSend, FiUser, FiCalendar, FiFileText } from "react-icons/fi";
-import CustomModal from "../../../../../../components/CustomModal";
+import { FiDownload, FiMail, FiSend, FiUser, FiCalendar, FiFileText, FiInbox } from "react-icons/fi";
 import reportsService from "../../../../../../services/reportsService";
 import "../../../../../../design/scss/operations.scss";
 
@@ -73,7 +71,7 @@ const getTypeTagColor = (type) => {
   return TYPE_TAG_COLORS[Math.abs(hash) % TYPE_TAG_COLORS.length];
 };
 
-const ReportDocRow = ({ report, accentColor, onView, onDownload }) => {
+const ReportDocRow = ({ report, accentColor, onDownload }) => {
   const title = report.subject || report.reportType || "Report";
   const ccStr = formatCcDisplay(report.ccEmails);
 
@@ -148,11 +146,21 @@ ReportDocRow.propTypes = {
     createdBy: PropTypes.string,
   }).isRequired,
   accentColor: PropTypes.string,
-  onView: PropTypes.func.isRequired,
   onDownload: PropTypes.func.isRequired,
 };
 
-const bodyLooksLikeHtml = (text) => /<[a-z][\s\S]*>/i.test(text);
+const ReportsEmptyState = ({ message }) => (
+  <div className="reports-empty-state">
+    <span className="reports-empty-state-icon">
+      <FiInbox size={26} />
+    </span>
+    <p className="reports-empty-state-text">{message}</p>
+  </div>
+);
+
+ReportsEmptyState.propTypes = {
+  message: PropTypes.string.isRequired,
+};
 
 const ReportsSkeleton = () => (
   <>
@@ -190,7 +198,6 @@ function Reports({ card, formValues }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     if (!callId) {
@@ -271,26 +278,14 @@ function Reports({ card, formValues }) {
   return (
     <div className="cardform-body">
       <div className="cardform-left-full reports-view" style={{ "--card-color": cardColor }}>
-        <div className="reports-card-view-header">
-          <h3 className="reports-card-view-title">
-            <span className="reports-card-view-title-bar" />
-            REPORTS
-          </h3>
-        </div>
         {!callId ? (
-          <div className="cf-empty-row">
-            <p>No call identifier available for reports.</p>
-          </div>
+          <ReportsEmptyState message="No call identifier available for reports." />
         ) : loading ? (
           <ReportsSkeleton />
         ) : error ? (
-          <div className="cf-empty-row">
-            <p>{error}</p>
-          </div>
+          <ReportsEmptyState message={error} />
         ) : reports.length === 0 ? (
-          <div className="cf-empty-row">
-            <p>No reports available.</p>
-          </div>
+          <ReportsEmptyState message="No reports available." />
         ) : (
           categoryKeys.map((category) => {
             const items = groupedByType[category];
@@ -308,7 +303,6 @@ function Reports({ card, formValues }) {
                       key={report.id}
                       report={report}
                       accentColor={accentColor}
-                      onView={setPreview}
                       onDownload={handleDownload}
                     />
                   ))}
@@ -318,88 +312,6 @@ function Reports({ card, formValues }) {
           })
         )}
       </div>
-
-      <CustomModal
-        className="reports-preview-modal"
-        dialgName="modal-dialog modal-dialog-centered modal-lg"
-        show={!!preview}
-        closeModal={() => setPreview(null)}
-        header={
-          <div className="reports-preview-modal-header">
-            <h3 className="reports-preview-modal-title">
-              <span className="reports-preview-modal-title-bar" style={{ backgroundColor: cardColor }} />
-              {preview?.subject || preview?.reportType || "Report"}
-            </h3>
-          </div>
-        }
-        body={
-          preview ? (
-            <div className="reports-preview-content" style={{ minHeight: "auto", alignItems: "stretch", display: "block" }}>
-              <div className="reports-preview-info">
-                {preview.reportType ? (
-                  <div className="reports-preview-info-row">
-                    <span className="reports-preview-label">Type</span>
-                    <span className="reports-preview-value">{preview.reportType}</span>
-                  </div>
-                ) : null}
-                {preview.fromEmail ? (
-                  <div className="reports-preview-info-row">
-                    <span className="reports-preview-label">From</span>
-                    <span className="reports-preview-value">{preview.fromEmail}</span>
-                  </div>
-                ) : null}
-                {preview.toEmail ? (
-                  <div className="reports-preview-info-row">
-                    <span className="reports-preview-label">To</span>
-                    <span className="reports-preview-value">{preview.toEmail}</span>
-                  </div>
-                ) : null}
-                {formatCcDisplay(preview.ccEmails) ? (
-                  <div className="reports-preview-info-row">
-                    <span className="reports-preview-label">CC</span>
-                    <span className="reports-preview-value">{formatCcDisplay(preview.ccEmails)}</span>
-                  </div>
-                ) : null}
-                <div className="reports-preview-info-row">
-                  <span className="reports-preview-label">Sent</span>
-                  <span className="reports-preview-value">
-                    {formatDateTime(preview.createdAt)}
-                    {preview.createdBy ? ` · ${preview.createdBy}` : ""}
-                  </span>
-                </div>
-              </div>
-              <div className="reports-preview-body-panel">
-                {bodyLooksLikeHtml(preview.body) ? (
-                  <div className="reports-email-body-html" dangerouslySetInnerHTML={{ __html: preview.body }} />
-                ) : (
-                  <pre className="reports-preview-body-pre">{preview.body || "—"}</pre>
-                )}
-              </div>
-            </div>
-          ) : null
-        }
-        footer={
-          <Modal.Footer className="reports-preview-modal-footer">
-            <button type="button" className="reports-preview-modal-btn secondary" onClick={() => setPreview(null)}>
-              Close
-            </button>
-            {preview ? (
-              <button
-                type="button"
-                className="reports-preview-modal-btn primary"
-                style={{ backgroundColor: cardColor }}
-                onClick={() => {
-                  handleDownload(preview);
-                }}
-              >
-                Download
-              </button>
-            ) : null}
-          </Modal.Footer>
-        }
-        createModal
-        bodyClassname="reports-preview-modal-body"
-      />
     </div>
   );
 }

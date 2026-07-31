@@ -254,7 +254,6 @@ function Subtasks({ card }) {
                     <section className="task-tab-editor" aria-label="Add a task">
                         <div className="task-tab-panel">
                             <div className="task-tab-editor-body">
-                                <p className="task-tab-eyebrow">New task</p>
                                 <h3 className="task-tab-form-title">Add Task</h3>
 
                                 <div className="task-tab-field-row">

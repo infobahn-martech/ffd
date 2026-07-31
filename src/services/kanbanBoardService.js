@@ -47,6 +47,10 @@ const getCardTagsByBoard = (boardId) =>
 const updateCardTag = (payload) =>
   Gateway.post('/kanban_card/update_card_tag', payload);
 
+/** @param {{ card_id: string|number, manage_type: 'card_type'|'card_tag'|'card_blocker'|'card_sticker' }} payload */
+const removeCardManagementItem = (payload) =>
+  Gateway.post('/kanban_card/remove_card_management_item', payload);
+
 /** GET — subtasks for a card; response: { data: [{ subtask_id, description, assigned_to, assigned_to_name, is_completed, due_date, document, document_url }] } */
 const getSubtasks = (cardId) =>
   Gateway.get(`/kanban_card/get_subtasks/${encodeURIComponent(String(cardId))}`);
@@ -105,6 +109,7 @@ export default {
   updateCardSticker,
   getCardTagsByBoard,
   updateCardTag,
+  removeCardManagementItem,
   getSubtasks,
   createSubtask,
   updateSubtask,

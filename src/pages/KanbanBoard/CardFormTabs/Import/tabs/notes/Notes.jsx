@@ -306,11 +306,7 @@ function Notes({ card }) {
                 <div className="notes-tab-layout">
                     <section className="notes-tab-editor" aria-label="Write a note">
                         <div className="notes-tab-panel">
-                            <div className="notes-tab-editor-body">
-                                <p className="notes-tab-eyebrow">
-                                    {editingNoteId ? "Edit note" : "New note"}
-                                </p>
-
+                            <div className="notes-tab-editor-body">                   
                                 {editingNoteId ? (
                                     <div className="notes-tab-editing-banner">
                                         <span className="notes-tab-editing-label">
