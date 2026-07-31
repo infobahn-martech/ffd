@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import {
   LineChart,
   Line,
@@ -16,113 +17,84 @@ import {
   Cell,
 } from "recharts";
 import { FiTrendingUp, FiUsers, FiCheckCircle, FiActivity, FiDollarSign } from "react-icons/fi";
+import dashboardService from "../../services/dashboardService";
 import "../../design/scss/dashboard.scss";
 import "../../design/scss/pages/dashboard/dashboard-content.scss";
 
+// Presentation metadata keyed by the stable `key` BE returns — API never sends icons/colors.
+const STAT_META = {
+  total_vessels: { icon: <FiActivity />, color: "#00368c" },
+  active_crew: { icon: <FiUsers />, color: "#10b981" },
+  completed_jobs: { icon: <FiCheckCircle />, color: "#3b82f6" },
+  revenue: { icon: <FiDollarSign />, color: "#f59e0b" },
+};
+
+const SERVICE_COLORS = {
+  transport: "#00368c",
+  medical: "#10b981",
+  hotel: "#3b82f6",
+  launch_hire: "#f59e0b",
+  warehouse: "#8b5cf6",
+  customs: "#ef4444",
+};
+
+const JOB_STATUS_COLORS = {
+  completed: "#10b981",
+  in_progress: "#3b82f6",
+  pending: "#f59e0b",
+  on_hold: "#ef4444",
+};
+
+const formatStatValue = (key, value) => {
+  if (key === "revenue") {
+    return value >= 1_000_000 ? `$${(value / 1_000_000).toFixed(1)}M` : `$${value.toLocaleString()}`;
+  }
+  return value.toLocaleString();
+};
+
 const Dashboard = () => {
-  // Static data for stat cards
-  const stats = [
-    {
-      title: "Total Vessels",
-      value: "142",
-      change: "+12%",
-      trend: "up",
-      icon: <FiActivity />,
-      color: "#00368c",
-    },
-    {
-      title: "Active Crew",
-      value: "1,234",
-      change: "+8%",
-      trend: "up",
-      icon: <FiUsers />,
-      color: "#10b981",
-    },
-    {
-      title: "Completed Jobs",
-      value: "856",
-      change: "+15%",
-      trend: "up",
-      icon: <FiCheckCircle />,
-      color: "#3b82f6",
-    },
-    {
-      title: "Revenue",
-      value: "$2.4M",
-      change: "+22%",
-      trend: "up",
-      icon: <FiDollarSign />,
-      color: "#f59e0b",
-    },
-  ];
+  const [overview, setOverview] = useState(null);
 
-  // Line chart data - Vessel arrivals over time
-  const vesselData = [
-    { month: "Jan", arrivals: 45, departures: 38 },
-    { month: "Feb", arrivals: 52, departures: 45 },
-    { month: "Mar", arrivals: 48, departures: 42 },
-    { month: "Apr", arrivals: 61, departures: 55 },
-    { month: "May", arrivals: 55, departures: 48 },
-    { month: "Jun", arrivals: 67, departures: 60 },
-    { month: "Jul", arrivals: 72, departures: 65 },
-    { month: "Aug", arrivals: 68, departures: 62 },
-    { month: "Sep", arrivals: 75, departures: 70 },
-    { month: "Oct", arrivals: 80, departures: 75 },
-    { month: "Nov", arrivals: 85, departures: 78 },
-    { month: "Dec", arrivals: 90, departures: 82 },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    dashboardService.getDashboardOverview().then((response) => {
+      if (isMounted) setOverview(response.data.data);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  // Bar chart data - Services by type
-  const serviceData = [
-    { name: "Transport", value: 320, color: "#00368c" },
-    { name: "Medical", value: 180, color: "#10b981" },
-    { name: "Hotel", value: 245, color: "#3b82f6" },
-    { name: "Launch Hire", value: 150, color: "#f59e0b" },
-    { name: "Warehouse", value: 195, color: "#8b5cf6" },
-    { name: "Customs", value: 220, color: "#ef4444" },
-  ];
+  const stats = useMemo(
+    () =>
+      (overview?.stats ?? []).map((stat) => ({
+        title: stat.label,
+        value: formatStatValue(stat.key, stat.value),
+        change: `${stat.change_percent > 0 ? "+" : ""}${stat.change_percent}%`,
+        trend: stat.trend,
+        icon: STAT_META[stat.key]?.icon,
+        color: STAT_META[stat.key]?.color,
+      })),
+    [overview]
+  );
 
-  // Pie chart data - Job status distribution
-  const jobStatusData = [
-    { name: "Completed", value: 45, color: "#10b981" },
-    { name: "In Progress", value: 30, color: "#3b82f6" },
-    { name: "Pending", value: 15, color: "#f59e0b" },
-    { name: "On Hold", value: 10, color: "#ef4444" },
-  ];
+  const vesselData = overview?.vessel_traffic ?? [];
+  const revenueData = overview?.revenue_trend ?? [];
+  const serviceRequestsData = overview?.service_requests_trend ?? [];
 
-  // Area chart data - Revenue trend
-  const revenueData = [
-    { month: "Jan", revenue: 180000, expenses: 120000 },
-    { month: "Feb", revenue: 195000, expenses: 125000 },
-    { month: "Mar", revenue: 210000, expenses: 130000 },
-    { month: "Apr", revenue: 225000, expenses: 135000 },
-    { month: "May", revenue: 240000, expenses: 140000 },
-    { month: "Jun", revenue: 255000, expenses: 145000 },
-    { month: "Jul", revenue: 270000, expenses: 150000 },
-    { month: "Aug", revenue: 285000, expenses: 155000 },
-    { month: "Sep", revenue: 300000, expenses: 160000 },
-    { month: "Oct", revenue: 315000, expenses: 165000 },
-    { month: "Nov", revenue: 330000, expenses: 170000 },
-    { month: "Dec", revenue: 345000, expenses: 175000 },
-  ];
+  const serviceData = useMemo(
+    () => (overview?.services_by_type ?? []).map((s) => ({ ...s, color: SERVICE_COLORS[s.key] })),
+    [overview]
+  );
 
-  // Monthly service requests data
-  const serviceRequestsData = [
-    { month: "Jan", requests: 285 },
-    { month: "Feb", requests: 310 },
-    { month: "Mar", requests: 295 },
-    { month: "Apr", requests: 340 },
-    { month: "May", requests: 325 },
-    { month: "Jun", requests: 380 },
-    { month: "Jul", requests: 395 },
-    { month: "Aug", requests: 375 },
-    { month: "Sep", requests: 410 },
-    { month: "Oct", requests: 435 },
-    { month: "Nov", requests: 450 },
-    { month: "Dec", requests: 475 },
-  ];
+  const jobStatusData = useMemo(
+    () => (overview?.job_status ?? []).map((s) => ({ ...s, color: JOB_STATUS_COLORS[s.key] })),
+    [overview]
+  );
 
-  const COLORS = ["#00368c", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"];
+  if (!overview) {
+    return <div className="dashboard-container">Loading dashboard...</div>;
+  }
 
   return (
     <div className="dashboard-container">
