@@ -5,9 +5,22 @@
   }
 
   .modal-content {
-    border-radius: 12px;
+    border-radius: 14px;
     border: none;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #00368c 0%, #2e7dd6 50%, #5fb8e0 100%);
+      z-index: 1;
+    }
   }
 
   .new-blocker-modal-header {
@@ -15,6 +28,8 @@
     justify-content: space-between;
     align-items: center;
     background: #ffffff;
+    padding: 18px 24px;
+    border-bottom: 1px solid #eef0f4;
 
     .new-blocker-modal-title {
       font-size: 20px;
@@ -44,27 +59,27 @@
   }
 
   .new-blocker-modal-body {
-    padding: 24px;
+    padding: 20px 24px;
     background: #ffffff;
   }
 
   .new-blocker-form {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 18px;
   }
 
   .new-blocker-row-fields {
     display: flex;
     align-items: flex-start;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
   }
 
   .new-blocker-field {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     flex-shrink: 0;
 
     &.new-blocker-field-full {
@@ -82,7 +97,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: 20px;
+    gap: 16px;
     width: 100%;
   }
 
@@ -109,12 +124,13 @@
   }
 
   .new-blocker-color-swatch {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: 2px solid #e2e2ea;
     cursor: pointer;
     padding: 0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     transition: all 0.2s ease;
 
     &:hover {
@@ -135,8 +151,8 @@
   }
 
   .new-blocker-icon-preview {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: 2px solid #e2e2ea;
     cursor: pointer;
@@ -144,6 +160,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     transition: all 0.2s ease;
     background: #ffffff;
 
@@ -262,7 +279,7 @@
   }
 
   .new-blocker-input {
-    padding: 12px 16px;
+    padding: 10px 16px;
     border: 1px solid #e2e2ea;
     border-radius: 8px;
     font-size: 14px;
@@ -285,7 +302,7 @@
 
   .new-blocker-select {
     width: 100%;
-    padding: 12px 40px 12px 16px;
+    padding: 10px 40px 10px 16px;
     border: 1px solid #e2e2ea;
     border-radius: 8px;
     font-size: 14px;
@@ -314,7 +331,7 @@
   .new-blocker-boards-text {
     font-size: 14px;
     color: #666;
-    margin: 0 0 12px 0;
+    margin: 0 0 10px 0;
     font-family: 'Manrope', sans-serif;
   }
 
@@ -461,8 +478,8 @@
     margin: 8px 12px;
     padding: 12px;
     border-radius: 12px;
-    background: #f9fafb;
-    border: 1px solid #eef0f3;
+    background: #f5f8ff;
+    border: 1px solid #e6ecfb;
   }
 
   .new-blocker-workspace-head {
@@ -577,7 +594,7 @@
 
   .new-blocker-modal-footer {
     border-top: 1px solid #e2e2ea;
-    padding: 16px 24px;
+    padding: 14px 24px;
     display: flex;
     justify-content: flex-end;
     background: #ffffff;
@@ -585,20 +602,21 @@
 
   .new-blocker-save-btn {
     padding: 10px 24px;
-    background: #00368c;
+    background: linear-gradient(135deg, #00368c 0%, #1f5db8 100%);
     color: #ffffff;
     border: none;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 54, 140, 0.22);
     transition: all 0.2s ease;
     font-family: 'Manrope', sans-serif;
 
     &:hover {
-      background: #002d6f;
+      background: linear-gradient(135deg, #002d6f 0%, #1a4fa0 100%);
       transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 54, 140, 0.2);
+      box-shadow: 0 6px 16px rgba(0, 54, 140, 0.28);
     }
 
     &:active {
