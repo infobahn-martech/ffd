@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
@@ -18,7 +18,8 @@ const SUB_TABS = [
   { key: "summary", label: "Summary", icon: Sparkles },
   { key: "card", label: "Card", icon: IdCard },
   { key: "appointmentClearance", label: "Appointment & Clearance", icon: CalendarCheck },
-  { key: "mwpLaunchHire", label: "MWP & Launch Hire", icon: Anchor },
+  { key: "mwp", label: "MWP", icon: ShieldCheck },
+  { key: "launchHire", label: "Launch Hire", icon: Ship },
   { key: "clearanceCopies", label: "Clearance Copies", icon: FileCheck },
   { key: "invoicesFees", label: "Invoices, Fees & Certificates", icon: Receipt },
   { key: "vesselSalesOrder", label: "Vessel & Sales Order", icon: Ship },
@@ -33,8 +34,7 @@ const LIST_SECTIONS = [
 
 // api/da/required_documents/{call_id} — read-only reference documents. The full list
 // (see RequiredDocumentsSection below) is shown at the bottom of the "Clearance Copies"
-// sub-tab; the MWP-tagged subset is also surfaced separately inside the "MWP" inner-tab
-// of the MWP & Launch Hire sub-tab.
+// sub-tab; the MWP-tagged subset is also surfaced separately inside the "MWP" sub-tab.
 const REQUIRED_DOCUMENTS_CONFIG = [
   { key: "immigration_doc", label: "Crew Immigration", icon: User },
   { key: "inward_clearance_doc", label: "Inward Clearance", icon: CalendarCheck },
@@ -48,11 +48,6 @@ const REQUIRED_DOCUMENTS_CONFIG = [
 ];
 
 const MWP_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter((doc) => doc.section === "mwp");
-
-const MWP_LAUNCH_HIRE_TABS = [
-  { key: "mwp", label: "MWP", icon: ShieldCheck },
-  { key: "launchHire", label: "Launch Hire", icon: Ship },
-];
 
 const TYPE_ICON = {
   text: Hash,
@@ -84,10 +79,10 @@ const RAW_FIELDS_CONFIG = [
   { key: "inwardClearanceDate", label: "Inward Clearance date", type: "datetime", group: "appointmentClearance" },
   { key: "outwardClearanceDate", label: "Outward Clearance Date", type: "datetime", group: "appointmentClearance" },
   { key: "operationsCompletionDate", label: "Operations completion date", type: "date", group: "appointmentClearance" },
-  // MWP & Launch Hire
-  { key: "launchHireSlips", label: "Launch Hire Slips", type: "files", group: "mwpLaunchHire" },
-  { key: "thirdPartyLaunchHire", label: "3rd Party Launch hire (If any)", type: "text", group: "mwpLaunchHire", placeholder: "e.g. Al Rashid Transport Co." },
-  { key: "roadTransport", label: "Road Transport", type: "number-unit", unit: "DAYS", group: "mwpLaunchHire", placeholder: "e.g. 3" },
+  // Launch Hire
+  { key: "launchHireSlips", label: "Launch Hire Slips", type: "files", group: "launchHire" },
+  { key: "thirdPartyLaunchHire", label: "3rd Party Launch hire (If any)", type: "text", group: "launchHire", placeholder: "e.g. Al Rashid Transport Co." },
+  { key: "roadTransport", label: "Road Transport", type: "number-unit", unit: "DAYS", group: "launchHire", placeholder: "e.g. 3" },
   // Clearance Copies
   { key: "sailingClearanceCopy", label: "Sailing Clearance Copy", type: "files", group: "clearanceCopies", reserveSpace: true },
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "clearanceCopies", reserveSpace: true },
@@ -120,7 +115,7 @@ const FIELDS_BY_GROUP = FIELDS_CONFIG.reduce((acc, field) => {
 // Groups that mix full-width tiles (files/chips) with half-width ones need a fixed
 // column count so the full-width tiles end at the same edge as the row above them,
 // instead of stretching across extra auto-fit columns on wide screens.
-const FIXED_2COL_GROUPS = new Set(["mwpLaunchHire"]);
+const FIXED_2COL_GROUPS = new Set(["launchHire"]);
 
 const makeInitialFieldState = () => {
   const state = {};
@@ -233,33 +228,49 @@ TextField.propTypes = {
   accent: PropTypes.string,
 };
 
+// Co-owners is DA-specific, so its picker is scoped to DA users (role_id 22 — see
+// isDaRole in Approval.jsx) via users/get_users_by_role, same function/payload used by
+// the other role-scoped user pickers in the app (e.g. GROCardView's assignee select).
+const CO_OWNER_ROLE_ID = 22;
+
 // Owner / Co-owners — avatar-trigger + floating search panel, same interaction pattern as
 // the app's other user pickers (UserPickerField in BusinessRuleFormModal.jsx): a chevron
-// trigger showing the picked user's initials, opening a panel that searches
-// users/get_non_vendor_users instead of accepting arbitrary free text.
+// trigger showing the picked user's initials, opening a panel to pick from the fetched
+// role-scoped user list (filtered client-side as you type, not a per-keystroke search call).
 function UserSearchField({ label, icon, value, placeholder, onChange, accent }) {
   const [isOpen, setIsOpen] = useState(false);
   const [filterText, setFilterText] = useState("");
-  const [results, setResults] = useState([]);
+  const [roleUsers, setRoleUsers] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const debounceRef = useRef(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const query = filterText.trim();
-    clearTimeout(debounceRef.current);
+    let cancelled = false;
     setIsSearching(true);
-    debounceRef.current = setTimeout(() => {
-      const params = { page: 1, limit: 10, ...(query ? { search: query } : {}) };
-      userService.getNonVendorUsers({ params })
-        .then(({ data }) => setResults(Array.isArray(data?.data) ? data.data : []))
-        .catch(() => setResults([]))
-        .finally(() => setIsSearching(false));
-    }, query ? 350 : 0);
-    return () => clearTimeout(debounceRef.current);
-  }, [filterText, isOpen]);
+    userService.getUsersByRole({ role_id: CO_OWNER_ROLE_ID })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+        setRoleUsers(
+          list.map((u) => ({
+            user_id: u.user_id ?? u.id,
+            name: u.name ?? u.user_name ?? u.full_name ?? `User ${u.user_id ?? u.id}`,
+            role: u.role,
+          }))
+        );
+      })
+      .catch(() => { if (!cancelled) setRoleUsers([]); })
+      .finally(() => { if (!cancelled) setIsSearching(false); });
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
+  const results = useMemo(() => {
+    const query = filterText.trim().toLowerCase();
+    if (!query) return roleUsers;
+    return roleUsers.filter((u) => (u.name || "").toLowerCase().includes(query));
+  }, [roleUsers, filterText]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -599,27 +610,31 @@ FileDropzone.propTypes = {
   onRemoveFile: PropTypes.func.isRequired,
 };
 
-// Placeholder status timeline — hardcoded until a backend status-history endpoint
-// exists for DA (no such endpoint in daService.js yet). Swap STATUS_TIMELINE_STEPS
-// for real data (step/date/state per call) once that API is available.
-const STATUS_TIMELINE_STEPS = [
-  { key: "created", label: "DA Card Created", date: "2026-07-18", state: "done" },
-  { key: "appointmentEmail", label: "Appointment Email Uploaded", date: null, state: "current" },
-  { key: "inwardClearance", label: "Inward Clearance", date: "2026-07-22", state: "done" },
-  { key: "operationsCompletion", label: "Operations Completed", date: null, state: "current" },
-  { key: "soApprovalPending", label: "To be sent for SO approval", date: null, state: "pending" },
-  { key: "soApprovalAwaiting", label: "Awaiting SO approval", date: null, state: "pending" },
-  { key: "invoiceIssuance", label: "Invoice Issuance", date: null, state: "pending" },
-  { key: "invoiceDispatched", label: "Invoice dispatched", date: null, state: "pending" },
-  { key: "awaitingPayment", label: "Awaiting payment", date: null, state: "pending" },
-  { key: "closedPaid", label: "Closed paid", date: null, state: "pending" },
-];
+// api/da/status_timeline/{call_id} rows: { status_name, sequence_order, state, reached_date }.
+// state comes back as "done" | "current" | "not_reached" — mapped to this section's
+// "done" | "current" | "pending" below.
+const STATUS_TIMELINE_STATE_MAP = { done: "done", current: "current", not_reached: "pending" };
 
-function StatusTimelineSection({ steps, onStepClick }) {
+const mapStatusTimelineResponse = (rows) =>
+  [...(Array.isArray(rows) ? rows : [])]
+    .sort((a, b) => Number(a?.sequence_order ?? 0) - Number(b?.sequence_order ?? 0))
+    .map((row) => {
+      const { date, time } = parseApiDateTime(row?.reached_date);
+      return {
+        key: String(row?.sequence_order ?? row?.status_name ?? ""),
+        label: row?.status_name ?? "",
+        date: date || null,
+        time: time || null,
+        state: STATUS_TIMELINE_STATE_MAP[row?.state] ?? "pending",
+      };
+    });
+
+function StatusTimelineSection({ steps, onStepClick, isLoading }) {
   return (
     <>
       <div className="da-cf-timeline-header">
         <h3 className="da-cf-summary-section-heading">Status Timeline</h3>
+        {isLoading && steps.length === 0 && <span className="da-cf-summary-card-value--empty">Loading…</span>}
       </div>
       <div className="da-cf-timeline">
         {steps.map((step, index) => {
@@ -629,15 +644,15 @@ function StatusTimelineSection({ steps, onStepClick }) {
               <div className="da-cf-timeline-step-marker">
                 <span
                   className="da-cf-timeline-step-icon"
-                  role={step.state === "current" ? "button" : undefined}
-                  tabIndex={step.state === "current" ? 0 : undefined}
-                  onClick={step.state === "current" ? () => onStepClick?.(index) : undefined}
+                  role={onStepClick && step.state === "current" ? "button" : undefined}
+                  tabIndex={onStepClick && step.state === "current" ? 0 : undefined}
+                  onClick={onStepClick && step.state === "current" ? () => onStepClick(index) : undefined}
                   onKeyDown={
-                    step.state === "current"
+                    onStepClick && step.state === "current"
                       ? (e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            onStepClick?.(index);
+                            onStepClick(index);
                           }
                         }
                       : undefined
@@ -678,63 +693,13 @@ StatusTimelineSection.propTypes = {
     })
   ).isRequired,
   onStepClick: PropTypes.func,
+  isLoading: PropTypes.bool,
 };
 
-function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary }) {
+function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
 
-  // Local-only progression for steps without a real backend field yet: clicking the active
-  // step marks it done and stamps it with today's date/time, then advances "current" to the
-  // next step, walking the chain forward one click at a time.
-  const [timelineSteps, setTimelineSteps] = useState(() => STATUS_TIMELINE_STEPS.map((step) => ({ ...step })));
-
-  // Operations Completed is the one step with a real backend-synced date (operationsCompletionDate,
-  // see AppointmentClearanceSection) — once it's set, reflect that here instead of leaving this step
-  // on its hardcoded placeholder state, while every other step stays click-driven as before.
-  useEffect(() => {
-    if (!fieldValues.operationsCompletionDate) return;
-    setTimelineSteps((prev) =>
-      prev.map((step) =>
-        step.key === "operationsCompletion"
-          ? { ...step, state: "done", date: fieldValues.operationsCompletionDate }
-          : step
-      )
-    );
-  }, [fieldValues.operationsCompletionDate]);
-
-  // Appointment Email Uploaded is wired the same way, driven by the real fieldValues.appointmentEmail
-  // upload (see AppointmentClearanceSection): once a file is present, mark it done — using the synced
-  // document's created_date if it came from the backend, falling back to today for a fresh upload —
-  // and advance "To be sent for SO approval" to the active step.
-  useEffect(() => {
-    if (!(fieldValues.appointmentEmail?.length > 0)) return;
-    const uploadedDate = fieldValues.appointmentEmail[0]?.created_date || new Date().toISOString().slice(0, 10);
-    setTimelineSteps((prev) =>
-      prev.map((step) => {
-        if (step.key === "appointmentEmail") return { ...step, state: "done", date: uploadedDate };
-        if (step.key === "soApprovalPending" && step.state === "pending") return { ...step, state: "current" };
-        return step;
-      })
-    );
-  }, [fieldValues.appointmentEmail]);
-
-  // Only the active ("current") step responds to a click — completing it and advancing
-  // "current" to the next step in the chain, so repeated clicks walk forward through the
-  // whole timeline in order instead of jumping straight to an arbitrary clicked step.
-  const handleTimelineStepClick = (clickedIndex) => {
-    setTimelineSteps((prev) => {
-      const currentIndex = prev.findIndex((step) => step.state === "current");
-      if (clickedIndex !== currentIndex || currentIndex === -1) return prev;
-      const now = new Date();
-      const todayDate = now.toISOString().slice(0, 10);
-      const nowTime = now.toTimeString().slice(0, 5);
-      return prev.map((step, index) => {
-        if (index === currentIndex) return { ...step, state: "done", date: step.date || todayDate, time: null };
-        if (index === currentIndex + 1) return { ...step, state: "current", date: todayDate, time: nowTime };
-        return step;
-      });
-    });
-  };
+  const timelineSteps = useMemo(() => mapStatusTimelineResponse(statusTimeline), [statusTimeline]);
 
   // api/da/summary_tab/{call_id} is the source of truth once it loads; until then, or if
   // it comes back without a field, fall back to what's already been typed in other tabs.
@@ -756,7 +721,7 @@ function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingS
 
   return (
     <div className="da-cf-summary">
-      <StatusTimelineSection steps={timelineSteps} onStepClick={handleTimelineStepClick} />
+      <StatusTimelineSection steps={timelineSteps} isLoading={isLoadingStatusTimeline} />
 
       <h3 className="da-cf-summary-section-heading">Overview</h3>
 
@@ -789,6 +754,8 @@ SummaryPanel.propTypes = {
   billingEntityLabel: PropTypes.string,
   summaryData: PropTypes.object,
   isLoadingSummary: PropTypes.bool,
+  statusTimeline: PropTypes.array,
+  isLoadingStatusTimeline: PropTypes.bool,
 };
 
 function ListRowsSection({ label, icon, rows, collapsed, onToggleCollapse, onAdd, onChangeRow, onRemoveRow, placeholder, accent }) {
@@ -982,11 +949,41 @@ const formatDisplayDateOnly = (isoDate) => {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 };
 
+// api/da/time_objects/{call_id} rows (ETA/ATA/ETD/ATD…), rendered as label/value pairs
+// inside the Inward Clearance / Outward Clearance cards below. Falls back to whatever's
+// passed in when this call has no matching time objects yet.
+function TimeObjectRows({ items, fallback, isLoading }) {
+  if (isLoading && !items.length) return <p className="da-cf-ac-readonly-value">Loading…</p>;
+  if (!items.length) return fallback;
+  return (
+    <div className="da-cf-ac-timeobject-rows">
+      {items.map((item) => (
+        <div className="da-cf-ac-timeobject-row" key={item.time_object_id}>
+          <span className="da-cf-ac-timeobject-label">{item.time_object}</span>
+          <span className="da-cf-ac-timeobject-value">{formatApiDateTime(item.time_object_value) || "—"}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+TimeObjectRows.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      time_object_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      time_object: PropTypes.string,
+      time_object_value: PropTypes.string,
+    })
+  ).isRequired,
+  fallback: PropTypes.node,
+  isLoading: PropTypes.bool,
+};
+
 // Appointment & Clearance sub-tab: only the Appointment Email is something the user
 // actually fills in here — the 3 clearance dates are populated from elsewhere in the
 // backend, so they're shown read-only (no inputs, no save) instead of editable fields,
 // and laid out as a 2x2 card grid rather than a step-by-step flow.
-function AppointmentClearanceSection({ fieldValues, updateField }) {
+function AppointmentClearanceSection({ fieldValues, updateField, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
   const cards = [
     {
       key: "appointmentEmail",
@@ -1010,16 +1007,22 @@ function AppointmentClearanceSection({ fieldValues, updateField }) {
       key: "inwardClearanceDate",
       icon: CalendarCheck,
       label: "Inward Clearance",
-      hint: "Synced from the backend once inward clearance is recorded.",
+      hint: "Estimated / actual arrival times synced from the backend for this call.",
       accent: "#0891b2",
       editable: false,
-      isDone: Boolean(fieldValues.inwardClearanceDate.date),
+      isDone: arrivalTimeObjects.length > 0 || Boolean(fieldValues.inwardClearanceDate.date),
       content: (
-        <p className="da-cf-ac-readonly-value">
-          {fieldValues.inwardClearanceDate.date
-            ? formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))
-            : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
-        </p>
+        <TimeObjectRows
+          items={arrivalTimeObjects}
+          isLoading={isLoadingTimeObjects}
+          fallback={
+            <p className="da-cf-ac-readonly-value">
+              {fieldValues.inwardClearanceDate.date
+                ? formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))
+                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+            </p>
+          }
+        />
       ),
     },
     {
@@ -1042,16 +1045,22 @@ function AppointmentClearanceSection({ fieldValues, updateField }) {
       key: "outwardClearanceDate",
       icon: CalendarCheck,
       label: "Outward Clearance",
-      hint: "Synced from the backend once outward clearance is recorded.",
+      hint: "Estimated / actual departure times synced from the backend for this call.",
       accent: "#7c3aed",
       editable: false,
-      isDone: Boolean(fieldValues.outwardClearanceDate.date),
+      isDone: departureTimeObjects.length > 0 || Boolean(fieldValues.outwardClearanceDate.date),
       content: (
-        <p className="da-cf-ac-readonly-value">
-          {fieldValues.outwardClearanceDate.date
-            ? formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))
-            : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
-        </p>
+        <TimeObjectRows
+          items={departureTimeObjects}
+          isLoading={isLoadingTimeObjects}
+          fallback={
+            <p className="da-cf-ac-readonly-value">
+              {fieldValues.outwardClearanceDate.date
+                ? formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))
+                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+            </p>
+          }
+        />
       ),
     },
   ];
@@ -1094,6 +1103,9 @@ function AppointmentClearanceSection({ fieldValues, updateField }) {
 AppointmentClearanceSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   updateField: PropTypes.func.isRequired,
+  arrivalTimeObjects: PropTypes.array.isRequired,
+  departureTimeObjects: PropTypes.array.isRequired,
+  isLoadingTimeObjects: PropTypes.bool,
 };
 
 // Invoices, Fees & Certificates sub-tab — same 3 fields as before (taxInvoice, srtPoWbs,
@@ -1253,7 +1265,7 @@ VesselSalesOrderSection.propTypes = {
 // Card sub-tab — framed, animated panel instead of bare tiles on the page
 // background (see .da-cf-card-panel* in daCardFields.scss): a pulsing icon
 // header and staggered fade-up entrance for the 3 fields it holds.
-function CardPanel({ fields, renderField }) {
+function CardPanel({ fields, renderField, onSave, isSaving }) {
   return (
     <div className="da-cf-card-panel">
       <div className="da-cf-card-panel-header">
@@ -1270,6 +1282,16 @@ function CardPanel({ fields, renderField }) {
           </div>
         ))}
       </div>
+      <div className="da-cf-card-panel-footer">
+        <button
+          type="button"
+          className="da-cf-card-panel-save-btn"
+          onClick={onSave}
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving…" : "Save"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1277,13 +1299,12 @@ function CardPanel({ fields, renderField }) {
 CardPanel.propTypes = {
   fields: PropTypes.array.isRequired,
   renderField: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  isSaving: PropTypes.bool,
 };
 
 function DA({ card, formValues, handleChange }) {
   const [activeSubTab, setActiveSubTab] = useState("summary");
-  // Inner toggle for the "MWP & Launch Hire" sub-tab — MWP shows the MWP-tagged
-  // required documents, Launch Hire shows the editable launch-hire fields below.
-  const [mwpLaunchHireTab, setMwpLaunchHireTab] = useState("mwp");
   const [fieldValues, setFieldValues] = useState(makeInitialFieldState);
   // co_owner_id isn't a visible field — UserSearchField only exposes the picked user's
   // name — but api/da/save_card_tab needs the id, so it's tracked alongside coOwners.
@@ -1316,6 +1337,28 @@ function DA({ card, formValues, handleChange }) {
   }, [callId]);
 
   useEffect(() => fetchSummaryTab(), [fetchSummaryTab]);
+
+  // api/da/status_timeline/{call_id} — real per-call status progression shown in the
+  // Summary sub-tab's Status Timeline, replacing the old hardcoded/click-driven placeholder.
+  const [statusTimeline, setStatusTimeline] = useState([]);
+  const [isLoadingStatusTimeline, setIsLoadingStatusTimeline] = useState(false);
+
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    setIsLoadingStatusTimeline(true);
+    daService.getStatusTimeline(callId)
+      .then(({ data }) => {
+        if (!cancelled) setStatusTimeline(Array.isArray(data?.data) ? data.data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setStatusTimeline([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingStatusTimeline(false);
+      });
+    return () => { cancelled = true; };
+  }, [callId]);
 
   // api/da/card_tab/{call_id} — hydrates the editable "Card" sub-tab fields
   // (owner, co-owner, deadline, size, custom card ID, tags) with the backend's
@@ -1399,6 +1442,32 @@ function DA({ card, formValues, handleChange }) {
       });
     return () => { cancelled = true; };
   }, [callId]);
+
+  // api/da/time_objects/{call_id} — arrival/departure timestamps (ETA/ATA/ETD/ATD etc.)
+  // recorded against this call's stages. Grouped by keyword below and surfaced inside the
+  // Inward Clearance / Outward Clearance cards of AppointmentClearanceSection.
+  const [timeObjects, setTimeObjects] = useState([]);
+  const [isLoadingTimeObjects, setIsLoadingTimeObjects] = useState(false);
+
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    setIsLoadingTimeObjects(true);
+    daService.getTimeObjects(callId)
+      .then(({ data }) => {
+        if (!cancelled) setTimeObjects(Array.isArray(data?.data) ? data.data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setTimeObjects([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingTimeObjects(false);
+      });
+    return () => { cancelled = true; };
+  }, [callId]);
+
+  const arrivalTimeObjects = timeObjects.filter((t) => /arrival/i.test(t.field_key || t.time_object || ""));
+  const departureTimeObjects = timeObjects.filter((t) => /departure/i.test(t.field_key || t.time_object || ""));
 
   // api/da/save_card_tab/{call_id} — persists the Card sub-tab fields. current_sticker_id
   // comes from the card's global sticker picker (formValues.card_sticker_id, set via the
@@ -1668,11 +1737,11 @@ function DA({ card, formValues, handleChange }) {
       </div>
 
       <div className="da-cf-subtab-body">
-        {activeSubTab !== "summary" && activeSubTab !== "card" && (
+        {activeSubTab !== "summary" && activeSubTab !== "card" && activeSubTab !== "mwp" && activeSubTab !== "launchHire" && (
           <div className="da-cf-group-header">
             <span className="da-cf-group-icon"><ActiveGroupIcon size={16} /></span>
             <h4 className="da-cf-group-title">{activeTabMeta.label}</h4>
-            {activeSubTab !== "more" && activeSubTab !== "appointmentClearance" && activeSubTab !== "mwpLaunchHire" && activeSubTab !== "invoicesFees" && activeSubTab !== "vesselSalesOrder" && (
+            {activeSubTab !== "more" && activeSubTab !== "appointmentClearance" && activeSubTab !== "invoicesFees" && activeSubTab !== "vesselSalesOrder" && (
               <span className="da-cf-group-count">{activeFields.length} field{activeFields.length === 1 ? "" : "s"}</span>
             )}
           </div>
@@ -1684,14 +1753,24 @@ function DA({ card, formValues, handleChange }) {
             billingEntityLabel={billingEntityLabel}
             summaryData={summaryData}
             isLoadingSummary={isLoadingSummary}
+            statusTimeline={statusTimeline}
+            isLoadingStatusTimeline={isLoadingStatusTimeline}
           />
         ) : activeSubTab === "card" ? (
           <CardPanel
             fields={activeFields}
             renderField={renderField}
+            onSave={handleSaveCardTab}
+            isSaving={isSavingCardTab}
           />
         ) : activeSubTab === "appointmentClearance" ? (
-          <AppointmentClearanceSection fieldValues={fieldValues} updateField={updateField} />
+          <AppointmentClearanceSection
+            fieldValues={fieldValues}
+            updateField={updateField}
+            arrivalTimeObjects={arrivalTimeObjects}
+            departureTimeObjects={departureTimeObjects}
+            isLoadingTimeObjects={isLoadingTimeObjects}
+          />
         ) : activeSubTab === "invoicesFees" ? (
           <InvoicesFeesSection fieldValues={fieldValues} updateField={updateField} />
         ) : activeSubTab === "vesselSalesOrder" ? (
@@ -1734,38 +1813,42 @@ function DA({ card, formValues, handleChange }) {
               />
             </div>
           </div>
-        ) : activeSubTab === "mwpLaunchHire" ? (
+        ) : activeSubTab === "mwp" ? (
           <div className="da-cf-mwp-launch-hire">
-            <div className="da-cf-inner-tabs">
-              {MWP_LAUNCH_HIRE_TABS.map((tab) => {
-                const InnerIcon = tab.icon;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    className={`da-cf-inner-tab${mwpLaunchHireTab === tab.key ? " da-cf-inner-tab--active" : ""}`}
-                    onClick={() => setMwpLaunchHireTab(tab.key)}
-                  >
-                    <InnerIcon size={13} />
-                    {tab.label}
-                  </button>
-                );
-              })}
+            <div className="da-cf-summary-hero">
+              <div className="da-cf-summary-hero-main">
+                <p className="da-cf-summary-hero-eyebrow">MWP</p>
+                <h2 className="da-cf-summary-title">MWP Documents</h2>
+                <p className="da-cf-summary-hero-subtitle">
+                  Track the MWP-related documents required for this call.
+                </p>
+              </div>
             </div>
-            <div className="da-cf-mwp-launch-hire-panel" key={mwpLaunchHireTab}>
-              {mwpLaunchHireTab === "mwp" ? (
-                <RequiredDocumentsSection
-                  documents={requiredDocuments}
-                  isLoading={isLoadingRequiredDocuments}
-                  configs={MWP_REQUIRED_DOCUMENTS_CONFIG}
-                  title="MWP Documents"
-                  standalone
-                />
-              ) : (
-                <div className="da-cf-fields-grid da-cf-fields-grid--launch-hire">
-                  {activeFields.map((field) => renderField(field))}
-                </div>
-              )}
+            <div className="da-cf-mwp-launch-hire-panel" key={activeSubTab}>
+              <RequiredDocumentsSection
+                documents={requiredDocuments}
+                isLoading={isLoadingRequiredDocuments}
+                configs={MWP_REQUIRED_DOCUMENTS_CONFIG}
+                title="MWP Documents"
+                standalone
+              />
+            </div>
+          </div>
+        ) : activeSubTab === "launchHire" ? (
+          <div className="da-cf-mwp-launch-hire">
+            <div className="da-cf-summary-hero">
+              <div className="da-cf-summary-hero-main">
+                <p className="da-cf-summary-hero-eyebrow">Launch Hire</p>
+                <h2 className="da-cf-summary-title">Launch Hire Details</h2>
+                <p className="da-cf-summary-hero-subtitle">
+                  Manage launch hire slips, 3rd party hire and road transport days for this call.
+                </p>
+              </div>
+            </div>
+            <div className="da-cf-mwp-launch-hire-panel" key={activeSubTab}>
+              <div className="da-cf-fields-grid da-cf-fields-grid--launch-hire">
+                {activeFields.map((field) => renderField(field))}
+              </div>
             </div>
           </div>
         ) : activeSubTab === "clearanceCopies" ? (
