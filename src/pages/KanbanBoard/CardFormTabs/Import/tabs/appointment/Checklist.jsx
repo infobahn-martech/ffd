@@ -814,10 +814,10 @@ function Checklist({
               </div>
             ))}
 
-          {!isViewOnly ? (
+          {!isViewOnly && !isLoading ? (
             <div className="checklist-actions">
               <ChecklistFooterActions
-                disabled={isLoading || saveLoading || selectedChecklistTypeIds.length === 0}
+                disabled={saveLoading || selectedChecklistTypeIds.length === 0}
                 loading={saveLoading}
                 onSaveConfirm={handleSaveConfirm}
               />
