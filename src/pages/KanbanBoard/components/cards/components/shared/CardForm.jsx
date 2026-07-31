@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import salesOrderService from "../../../../../../services/salesOrderService";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import callFileService from "../../../../../../services/callFileService";
+import daService from "../../../../../../services/daService";
 import { mapSalesOrderResponse } from "../../../../../../shared/helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -1202,10 +1203,9 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
         const isNextStepCompletedOrCurrent = isNextStepCompleted || isNextStepCurrent;
         const lineClass = isStepCompletedOrCurrent && isNextStepCompletedOrCurrent ? "completed-line" : "";
 
-        // Determine if this step is clickable (only adjacent steps, not the current step itself)
-        const isAdjacent = currentStep !== null && Math.abs(stepNumber - currentStep) === 1;
-        const isClickable = onStepClick && currentStep !== null && isAdjacent && stepNumber !== currentStep;
-        const isDisabled = onStepClick && currentStep !== null && !isAdjacent && stepNumber !== currentStep;
+        // Determine if this step is clickable (any step, other than the current step itself)
+        const isClickable = onStepClick && currentStep !== null && stepNumber !== currentStep;
+        const isDisabled = false;
 
         // Always use green colors
         const circleStyle = isStepCompletedOrCurrent
@@ -2275,30 +2275,86 @@ function CardForm({
     setActiveTopTab(tab);
   }, []);
 
-  // Calculate current step from current column (supports sub-columns when columnOrder from DAdata)
+  // api/da/card/{call_id} — DA's own source of truth for the card's current stage
+  // (column_name), used below to drive the footer step indicator for DA cards instead
+  // of relying solely on the generic board's local column state.
+  const [daCardStage, setDaCardStage] = useState(null);
+  const [isAdvancingStage, setIsAdvancingStage] = useState(false);
+  const isDaCardContext = isDAVariant || isDABoard;
+
+  useEffect(() => {
+    if (!show || isAddMode || !isDaCardContext) {
+      setDaCardStage(null);
+      return undefined;
+    }
+    const callIdRaw = card?.call_id ?? card?.callId;
+    const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+    if (!callId) {
+      setDaCardStage(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    daService.getCardStage(callId)
+      .then(({ data }) => {
+        if (!cancelled) setDaCardStage(data?.data ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setDaCardStage(null);
+      });
+    return () => { cancelled = true; };
+  }, [show, isAddMode, isDaCardContext, card?.call_id, card?.callId, cardFormSyncKey]);
+
+  // Calculate current step from current column (supports sub-columns when columnOrder from DAdata).
+  // For DA cards, prefer the stage reported by api/da/card/{call_id} (column_name) when it
+  // matches one of this board's step labels; falls back to the local column lookup otherwise.
   const currentStep = useMemo(() => {
+    if (isDaCardContext && daCardStage?.column_name) {
+      const stepFromApi = getStepNumberFromColumnTitle(daCardStage.column_name, columns, columnOrder);
+      if (stepFromApi) return stepFromApi;
+    }
     if (!currentColumn) return null;
     return getStepNumberFromColumnId(currentColumn.id, columns, columnOrder);
-  }, [currentColumn, columns, columnOrder]);
+  }, [isDaCardContext, daCardStage, currentColumn, columns, columnOrder]);
 
   const handleStepClick = useCallback((stepLabel, stepNumber) => {
-    if (!moveCardToColumn || !card?.id) return;
+    if (!card?.id) return;
     if (!validateGroCardBeforeAction()) return;
 
-    // Step-by-step validation: only allow moving to adjacent steps (forward or backward by 1)
-    if (currentStep !== null) {
-      const stepDifference = Math.abs(stepNumber - currentStep);
-      if (stepDifference !== 1 || stepNumber === currentStep) {
-        // Not an adjacent step or trying to click current step, don't allow the move
-        return;
-      }
+    // Allow jumping to any step directly; only block clicking the current step itself
+    if (currentStep !== null && stepNumber === currentStep) {
+      return;
     }
 
     const targetColumnId = getColumnIdFromStepLabel(stepLabel, columns, columnOrder);
-    if (targetColumnId) {
-      moveCardToColumn(card.id, targetColumnId);
+    if (!targetColumnId) return;
+
+    // DA cards persist via api/da/advance_stage; other boards still move locally only
+    // (no generic "move card" endpoint exists elsewhere in the app today).
+    if (isDaCardContext) {
+      const callIdRaw = card?.call_id ?? card?.callId;
+      const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+      if (!callId || isAdvancingStage) return;
+
+      setIsAdvancingStage(true);
+      daService.advanceStage({ call_id: callId, column_id: targetColumnId })
+        .then(({ data }) => {
+          if (data?.status && data?.current_stage) {
+            setDaCardStage((prev) => ({ ...prev, ...data.current_stage }));
+            if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
+          } else {
+            notify(data?.message || "Failed to move card to that stage.", "error");
+          }
+        })
+        .catch((err) => {
+          notify(err?.response?.data?.message || "Failed to move card to that stage.", "error");
+        })
+        .finally(() => setIsAdvancingStage(false));
+      return;
     }
-  }, [moveCardToColumn, card?.id, columns, columnOrder, currentStep, validateGroCardBeforeAction]);
+
+    if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
+  }, [moveCardToColumn, card?.id, card?.call_id, card?.callId, columns, columnOrder, currentStep, isDaCardContext, isAdvancingStage, validateGroCardBeforeAction]);
 
   // Non-GRO: topbar tracks card.color when it changes (visual only).
   useEffect(() => {

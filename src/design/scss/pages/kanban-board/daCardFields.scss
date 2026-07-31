@@ -108,74 +108,19 @@
   margin-bottom: 16px;
 }
 
-// Inner toggle for the "MWP & Launch Hire" sub-tab — switches between the MWP
-// required documents and the editable launch-hire fields, mirroring the main
-// sub-tab pill style but smaller so it reads as nested navigation.
-.da-cf-inner-tabs {
-  display: inline-flex;
-  gap: 4px;
-  background: var(--da-sunken);
-  border-radius: 10px;
-  padding: 3px;
-  margin-bottom: 18px;
-  // Shrink-to-fit + centered in the flex-column panel, instead of stretching
-  // full-width and leaving the buttons hugging the left edge.
-  align-self: center;
-}
-
-.da-cf-inner-tab {
-  border: none;
-  background: transparent;
-  padding: 7px 16px;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--da-ink-soft);
-  cursor: pointer;
-  border-radius: 7px;
-  transition: background 0.12s ease, color 0.12s ease;
-
-  &:hover {
-    color: var(--da-ink);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--da-accent);
-    outline-offset: -2px;
-  }
-}
-
-.da-cf-inner-tab--active {
-  color: var(--da-accent);
-  background: var(--da-surface);
-  box-shadow: 0 1px 2px rgba(28, 32, 51, 0.08);
-
-  svg {
-    opacity: 1;
-  }
-}
-
-.da-cf-inner-tab svg {
-  opacity: 0.65;
-  transition: opacity 0.12s ease;
-  margin-right: 5px;
-  vertical-align: -3px;
-  width: 15px;
-  height: 15px;
-}
-
-// Wraps the inner-tab toggle + content pane — stretches to fill the remaining height
-// of .da-cf-subtab-body (which is already flex:1) so the Launch Hire grid below has
-// real height to fill instead of collapsing to its content's natural height.
+// Shared wrapper for the "MWP" and "Launch Hire" sub-tabs' hero + content pane —
+// stretches to fill the remaining height of .da-cf-subtab-body (which is already
+// flex:1) so the Launch Hire grid below has real height to fill instead of
+// collapsing to its content's natural height.
 .da-cf-mwp-launch-hire {
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-// Content pane below the MWP/Launch Hire toggle. React remounts this (keyed on the
-// active inner-tab) on every switch, so the entrance animation below replays each
-// time instead of the content just snapping in.
+// Content pane below the hero. React remounts this (keyed on the active sub-tab)
+// on every switch, so the entrance animation below replays each time instead of
+// the content just snapping in.
 .da-cf-mwp-launch-hire-panel {
   flex: 1;
   display: flex;
@@ -297,7 +242,7 @@
   }
 }
 
-// Launch Hire inner-tab (MWP & Launch Hire sub-tab): the dropzone (Launch Hire Slips)
+// Launch Hire sub-tab: the dropzone (Launch Hire Slips)
 // keeps its own full-width row on top, and 3rd Party Launch hire + Road Transport
 // share one row of 2 columns below it — filling the full width/height of the panel.
 // Icon badge and tile padding are enlarged — same treatment as
@@ -492,6 +437,43 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+.da-cf-card-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--da-line) 70%, transparent);
+}
+
+.da-cf-card-panel-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: var(--da-accent);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
 }
 
 .da-cf-card-panel-tile {
@@ -914,8 +896,8 @@
 }
 
 // Read-only list fed by api/da/required_documents/{call_id}, shown below the
-// editable upload fields on the Clearance Copies sub-tab (and standalone inside
-// the MWP inner-tab). A checklist — progress summary + a grid of status cards —
+// editable upload fields on the Clearance Copies sub-tab (and standalone on
+// the MWP sub-tab). A checklist — progress summary + a grid of status cards —
 // rather than a plain file list, since these entries are a fixed checklist of
 // documents rather than freeform uploads.
 .da-cf-required-docs {
@@ -924,7 +906,7 @@
   border-top: 1px solid var(--da-line);
 }
 
-// Used when the section is the sole content of a tab (the MWP inner-tab) instead
+// Used when the section is the sole content of a tab (the MWP sub-tab) instead
 // of trailing below other fields — no separator needed in that context.
 .da-cf-required-docs--standalone {
   margin-top: 0;
@@ -1766,6 +1748,32 @@ a.da-cf-file-name {
   font-size: 13px;
   font-weight: 500;
   color: var(--da-ink-faint);
+}
+
+.da-cf-ac-timeobject-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.da-cf-ac-timeobject-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.da-cf-ac-timeobject-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--da-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.da-cf-ac-timeobject-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--da-ink);
 }
 
 @media (max-width: 900px) {
