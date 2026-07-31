@@ -6,8 +6,8 @@ import daService from "../../../services/daService";
 import {
   findColumnByCardId,
   findLaneColumnLocationForCard,
+  movePureCardToColumn,
 } from "../utils/columnHelpers";
-import { findWorkflowByCardId } from "../utils/boardHelpers";
 
 const normalizeColumnTitle = (title) =>
   String(title ?? "")
@@ -209,57 +209,7 @@ export default function useKanbanDnD(workflows, setWorkflows, { userProfile, ref
   // from — the card's real current position instead of a stale one.
   const moveCardToColumn = useCallback(
     (cardId, targetColumnId) => {
-      setWorkflows((prev) => {
-        const workflow = findWorkflowByCardId(prev, cardId);
-        if (!workflow) return prev;
-
-        const laneCol = findLaneColumnLocationForCard(workflow, cardId);
-        const targetColKey = Object.keys(workflow.columns).find(
-          (k) => workflow.columns[k].id === targetColumnId
-        );
-
-        if (!laneCol || !targetColKey) return prev;
-        if (laneCol.columnKey === targetColKey) return prev;
-
-        const { laneId, columnKey: sourceKey } = laneCol;
-
-        return prev.map((w) => {
-          if (w.id !== workflow.id) return w;
-
-          const lane = w.swimlanes[laneId];
-          if (!lane?.cardMap) return w;
-
-          const sourceIds = [...(lane.cardMap[sourceKey] || [])];
-          const idx = sourceIds.indexOf(cardId);
-          if (idx === -1) return w;
-          sourceIds.splice(idx, 1);
-
-          const targetIds = [...(lane.cardMap[targetColKey] || [])];
-          targetIds.unshift(cardId);
-
-          const card = w.cards[cardId];
-          if (!card) return w;
-
-          return {
-            ...w,
-            swimlanes: {
-              ...w.swimlanes,
-              [laneId]: {
-                ...lane,
-                cardMap: {
-                  ...lane.cardMap,
-                  [sourceKey]: sourceIds,
-                  [targetColKey]: targetIds,
-                },
-              },
-            },
-            cards: {
-              ...w.cards,
-              [cardId]: { ...card, columnId: targetColKey },
-            },
-          };
-        });
-      });
+      setWorkflows((prev) => movePureCardToColumn(prev, cardId, targetColumnId));
     },
     [setWorkflows]
   );
