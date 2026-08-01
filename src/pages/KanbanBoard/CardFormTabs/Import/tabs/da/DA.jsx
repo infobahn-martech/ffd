@@ -12,6 +12,7 @@ import daService from "../../../../../../services/daService";
 import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
 import { getInitials } from "../../../../../../shared/utils/utils";
+import { useDaLocalReachedDates } from "../../../../../../shared/store/daStore";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
 // Card / Appointment & Clearance / MWP / Launch Hire / Clearance Copies / Invoices,
@@ -747,16 +748,22 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
       <div className="da-cf-timeline">
         {steps.map((step, index) => {
           const Icon = step.state === "done" ? CheckCircle2 : step.state === "current" ? Clock : CircleDashed;
-          // Two click targets:
+          // Three click targets:
           // - "current" step's round moves the DA forward one stage. Sending
           //   api/da/update_status the CURRENT step's own status_name is a no-op (it's
           //   already that status), so this sends the *next* step's label instead.
-          // - a "done" step's round moves the DA back to that (earlier) stage, sending
-          //   that step's own label — it's not the current status, so it's not a no-op.
+          // - the "up next" pending step (right after the current one) does the same
+          //   forward move — clicking the step you're moving TO also completes the
+          //   current one, since both name the same destination status.
+          // - a "done" step's round moves the DA back one stage, but only the step right
+          //   before the current one — reverting is one-by-one too, not a jump straight
+          //   back to an arbitrary earlier stage.
+          const prevStep = steps[index - 1];
           const nextStep = steps[index + 1];
           const isForwardClickable = step.state === "current" && Boolean(nextStep);
-          const isBackClickable = step.state === "done";
-          const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isBackClickable);
+          const isUpNextClickable = step.state === "pending" && prevStep?.state === "current";
+          const isBackClickable = step.state === "done" && nextStep?.state === "current";
+          const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isUpNextClickable || isBackClickable);
           const targetLabel = isForwardClickable ? nextStep.label : step.label;
           return (
             <div className={`da-cf-timeline-step da-cf-timeline-step--${step.state}`} key={step.key}>
@@ -786,6 +793,7 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
                 </span>
                 {step.state === "done" && step.date && (
                   <span className="da-cf-timeline-step-date">
+                    <CalendarCheck size={10} className="da-cf-timeline-step-date-icon" aria-hidden />
                     {formatDisplayDateOnly(step.date)}{step.time ? ` · ${step.time}` : ""}
                   </span>
                 )}
@@ -813,10 +821,26 @@ StatusTimelineSection.propTypes = {
   isAdvancing: PropTypes.bool,
 };
 
-function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline, onAdvanceDaStage, isAdvancingDaStage }) {
+function SummaryPanel({ callId, fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline, onAdvanceDaStage, isAdvancingDaStage }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
 
-  const timelineSteps = useMemo(() => mapStatusTimelineResponse(statusTimeline), [statusTimeline]);
+  const getLocalReachedDate = useDaLocalReachedDates((s) => s.getReachedDate);
+
+  // api/da/update_status doesn't persist reached_date yet (backend gap) — for a step that's
+  // done but has no reached_date from the API, fall back to the client's own timestamp from
+  // when it was clicked (see setDaLocalReachedDate in CardForm.jsx). The API value always
+  // wins once the backend actually returns one.
+  const timelineSteps = useMemo(() => {
+    const mapped = mapStatusTimelineResponse(statusTimeline);
+    if (callId == null) return mapped;
+    return mapped.map((step) => {
+      if (step.state !== "done" || step.date) return step;
+      const fallback = getLocalReachedDate(String(callId).trim(), step.label);
+      if (!fallback) return step;
+      const { date, time } = parseApiDateTime(fallback);
+      return date ? { ...step, date, time: time || null } : step;
+    });
+  }, [statusTimeline, callId, getLocalReachedDate]);
 
   // api/da/summary_tab/{call_id} is the source of truth once it loads; until then, or if
   // it comes back without a field, fall back to what's already been typed in other tabs.
@@ -872,6 +896,7 @@ function SummaryPanel({ fieldValues, billingEntityLabel, summaryData, isLoadingS
 }
 
 SummaryPanel.propTypes = {
+  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   fieldValues: PropTypes.object.isRequired,
   billingEntityLabel: PropTypes.string,
   summaryData: PropTypes.object,
@@ -2091,6 +2116,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         {activeSubTab === "summary" ? (
           <div className="da-cf-mwp-launch-hire" ref={daOperationsRef}>
             <SummaryPanel
+              callId={callId}
               fieldValues={fieldValues}
               billingEntityLabel={billingEntityLabel}
               summaryData={summaryData}

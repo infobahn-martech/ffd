@@ -1555,6 +1555,29 @@ a.da-cf-file-name {
   width: 100%;
 }
 
+// Mirrors .da-cf-timeline-step-connector on the other side of the icon so the icon sits
+// centered in its column (equal-width columns either side) instead of flush against the
+// icon before it — keeps the label, which is centered under the whole column, lined up
+// with the icon above it. Hidden (but still occupies space, to keep the icon centered)
+// on the first step since there's no previous step to draw a line from.
+.da-cf-timeline-step-marker::before {
+  content: "";
+  flex: 1;
+  height: 3px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: var(--da-line);
+  visibility: hidden;
+}
+
+.da-cf-timeline-step:not(:first-child) .da-cf-timeline-step-marker::before {
+  visibility: visible;
+}
+
+.da-cf-timeline-step--done + .da-cf-timeline-step .da-cf-timeline-step-marker::before {
+  background: var(--da-accent);
+}
+
 .da-cf-timeline-step-icon {
   display: inline-flex;
   align-items: center;
@@ -1637,8 +1660,21 @@ a.da-cf-file-name {
 }
 
 .da-cf-timeline-step-date {
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
   color: var(--da-ink-soft);
+  background: color-mix(in srgb, var(--da-ink-soft) 10%, transparent);
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  margin-top: 1px;
+}
+
+.da-cf-timeline-step-date-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 
 // Small status pill under the label — done/current/pending mirror the round marker's own
@@ -1690,6 +1726,11 @@ a.da-cf-file-name {
     align-items: center;
     width: auto;
     align-self: stretch;
+  }
+
+  // Desktop-only: the vertical stacked layout below doesn't need the centering spacer.
+  .da-cf-timeline-step-marker::before {
+    display: none;
   }
 
   .da-cf-timeline-step-connector {
