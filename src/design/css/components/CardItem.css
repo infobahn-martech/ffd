@@ -1,21 +1,45 @@
 .kanban-card {
-  background: #fff;
-  border-radius: 6px;
-  padding: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  border: 1px solid #eee;
-  transition: all 0.2s ease;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
   position: relative;
   overflow: hidden;
-  cursor: default;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  isolation: isolate;
+
+  padding: 8px;
   margin: 0;
-  /* Ensure no extra margins causing spacing issues */
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(59, 130, 246, 0.08),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #fbfdff 55%,
+      #f3f7ff 100%
+    );
+
+  border: 1px solid rgba(0, 54, 140, 0.11);
+  border-radius: 14px;
+
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, 0.04),
+    0 8px 18px rgba(15, 23, 42, 0.07);
+
+  font-family: "Manrope", sans-serif;
+  font-weight: 600;
+  cursor: default;
+
+  user-select: none;
+
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease,
+    background 0.3s ease;
+
+  animation: kanbanCardEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1)
+    both;
 }
 
 /* Top colored border only (left border removed) */
@@ -30,6 +54,20 @@
   border-top-right-radius: 12px;
 }
 
+
+.kanban-card:hover {
+  transform: translateY(-5px) scale(1.012);
+
+  border-color: rgba(0, 54, 140, 0.25);
+
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.08),
+    0 18px 38px rgba(0, 54, 140, 0.14);
+}
+
+.kanban-card:hover::after {
+  left: 145%;
+}
 
 /* Drag styling */
 .kanban-card.dragging {
