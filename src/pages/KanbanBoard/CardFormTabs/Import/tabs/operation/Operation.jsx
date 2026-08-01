@@ -144,7 +144,7 @@ async function sendOperationReportRequest(payload) {
 }
 
 function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false, isAddMode = false }) {
-  const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.CREW_IMMIGRATION);
+  const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
   const [callDetailData, setCallDetailData] = useState(null);
   const [callDetailLoading, setCallDetailLoading] = useState(false);
   const [eventTypeFieldsByStage, setEventTypeFieldsByStage] = useState({

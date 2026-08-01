@@ -126,14 +126,14 @@ export const mapEventFields = (responseData) => {
 };
 
 export const FALLBACK_PRE_ARRIVAL_FIELDS = [
-  { event_name: "Expected time of arrival", keyPrefix: "expectedArrival", event_type_id: 1, sort_order: 1 },
-  { event_name: "Expected commencement of custom inspection", keyPrefix: "customsInspection", event_type_id: 2, sort_order: 2 },
-  { event_name: "Expected commencement of Immigration clearance for crew", keyPrefix: "immigrationClearance", event_type_id: 3, sort_order: 3 },
-  { event_name: "Expected completion of inward clearance", keyPrefix: "inwardClearance", event_type_id: 4, sort_order: 4 },
+  { event_name: "Expected Time of Arrival", keyPrefix: "expectedArrival", event_type_id: 1, sort_order: 1 },
+  { event_name: "Expected Commencement of Custom Inspection", keyPrefix: "customsInspection", event_type_id: 2, sort_order: 2 },
+  { event_name: "Expected Commencement of Immigration Clearance for crew", keyPrefix: "immigrationClearance", event_type_id: 3, sort_order: 3 },
+  { event_name: "Expected Completion of Inward Clearance", keyPrefix: "inwardClearance", event_type_id: 4, sort_order: 4 },
 ];
 
 export const FALLBACK_ARRIVAL_FIELDS = [
-  { event_name: "Actual time of arrival", keyPrefix: "actualArrival", stage_id: 2, sort_order: 1 },
+  { event_name: "Actual Time of Arrival", keyPrefix: "actualArrival", stage_id: 2, sort_order: 1 },
   { event_name: "Custom Inspection commenced", keyPrefix: "customInspectionCommenced", stage_id: 2, sort_order: 2 },
   { event_name: "Custom Inspection completed", keyPrefix: "customInspectionCompleted", stage_id: 2, sort_order: 3 },
   { event_name: "Crew immigration commenced", keyPrefix: "crewImmigrationCommenced", stage_id: 2, sort_order: 4 },
