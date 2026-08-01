@@ -1339,6 +1339,42 @@ a.da-cf-file-name {
 
 .da-cf-summary-hero-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// Autosave status pill for the "DA Operations" Save button (see OperationAutoSaveStatus
+// in DA.jsx) — mirrors the Export Approval tab's .approval-save-status treatment.
+.da-cf-autosave-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 999px;
+  animation: da-cf-fade-up 0.25s ease both;
+
+  &--saving {
+    color: var(--da-accent);
+    background: var(--da-accent-soft);
+  }
+
+  &--saved {
+    color: #16a34a;
+    background: #eefdf3;
+  }
+
+  &--error {
+    color: #dc2626;
+    background: #fef2f2;
+  }
+}
+
+.da-cf-autosave-status-spin {
+  animation: da-cf-spin 0.8s linear infinite;
 }
 
 .da-cf-summary-refresh-btn {
@@ -1946,6 +1982,12 @@ a.da-cf-file-name {
   margin: 4px 0 12px;
   font-size: 13.5px;
   color: var(--da-ink-soft);
+}
+
+// Cards with no hint paragraph (head goes straight into the field) still need the
+// breathing room the hint's margin used to provide.
+.da-cf-ac-card-head + .da-cf-ac-card-field {
+  margin-top: 14px;
 }
 
 .da-cf-ac-card-field {

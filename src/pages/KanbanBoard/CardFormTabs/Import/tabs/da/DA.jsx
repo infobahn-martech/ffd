@@ -4,8 +4,9 @@ import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
   Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
-  CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck, UserCog,
+  CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck, UserCog, Loader2, AlertCircle,
 } from "lucide-react";
+import { debounce } from "lodash";
 import { notify } from "../../../../../../components/Toaster";
 import billingEntityService from "../../../../../../services/billingEntityService";
 import daService from "../../../../../../services/daService";
@@ -38,6 +39,9 @@ const DA_OPERATOR_SUB_TABS = [
   { key: "invoice", label: "Invoice", icon: Receipt },
   { key: "salesOrder", label: "Sales Order", icon: FileText },
 ];
+
+// Matches the debounce delay used for the Export Approval tab's autosave (Approval.jsx).
+const AUTO_SAVE_DEBOUNCE_MS = 1200;
 
 const LIST_SECTIONS = [
   { key: "attachments", label: "Attachments", icon: Paperclip, placeholder: "Add an attachment link or name…", accent: "#2563eb" },
@@ -168,12 +172,15 @@ const LAUNCH_HIRE_CARDS = [
   { key: "roadTransport", type: "number-unit", icon: Hash, label: "Road Transport", hint: "Number of days required for road transport.", accent: "#d97706", unit: "DAYS", placeholder: "e.g. 3" },
 ];
 
-function LaunchHireCardsSection({ fieldValues, updateField }) {
+// Synced from api/da/operation_tab/{call_id} (third_party_launch_hire, road_transport_days),
+// so these are shown read-only rather than editable like the rest of DA Operations.
+function LaunchHireCardsSection({ fieldValues }) {
   return (
     <div className="da-cf-ac-grid">
       {LAUNCH_HIRE_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
+        const displayValue = card.type === "number-unit" && value ? `${value} ${card.unit}` : value;
         return (
           <div
             className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
@@ -184,26 +191,8 @@ function LaunchHireCardsSection({ fieldValues, updateField }) {
               <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
-            <p className="da-cf-ac-card-hint">{card.hint}</p>
             <div className="da-cf-ac-card-field">
-              {card.type === "number-unit" ? (
-                <NumberUnitField
-                  label={card.label}
-                  icon={Icon}
-                  unit={card.unit}
-                  value={value}
-                  placeholder={card.placeholder}
-                  onChange={(v) => updateField(card.key, v)}
-                />
-              ) : (
-                <TextField
-                  label={card.label}
-                  icon={Icon}
-                  value={value}
-                  placeholder={card.placeholder}
-                  onChange={(v) => updateField(card.key, v)}
-                />
-              )}
+              <ReadonlyField label={card.label} icon={Icon} value={displayValue || "Not set yet"} />
             </div>
           </div>
         );
@@ -214,7 +203,6 @@ function LaunchHireCardsSection({ fieldValues, updateField }) {
 
 LaunchHireCardsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
-  updateField: PropTypes.func.isRequired,
 };
 
 // Groups that mix full-width tiles (files/chips) with half-width ones need a fixed
@@ -1243,7 +1231,6 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
       key: "inwardClearanceDate",
       icon: CalendarCheck,
       label: "Inward Clearance Date",
-      hint: "Estimated / actual arrival times synced from the backend for this call.",
       accent: "#0891b2",
       isDone: arrivalTimeObjects.length > 0 || Boolean(fieldValues.inwardClearanceDate.date),
       content: (
@@ -1264,7 +1251,6 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
       key: "outwardClearanceDate",
       icon: CalendarCheck,
       label: "Outward Clearance Date",
-      hint: "Estimated / actual departure times synced from the backend for this call.",
       accent: "#7c3aed",
       isDone: departureTimeObjects.length > 0 || Boolean(fieldValues.outwardClearanceDate.date),
       content: (
@@ -1285,7 +1271,6 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
       key: "operationsCompletionDate",
       icon: Anchor,
       label: "Operation Completed Date",
-      hint: "Synced from the backend once operations are marked complete.",
       accent: "#d97706",
       isDone: Boolean(fieldValues.operationsCompletionDate),
       content: (
@@ -1312,7 +1297,6 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
               <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
-            <p className="da-cf-ac-card-hint">{card.hint}</p>
             <div className="da-cf-ac-card-field">{card.content}</div>
           </div>
         );
@@ -1410,13 +1394,18 @@ InvoicesFeesSection.propTypes = {
 
 // DA Operations > Invoice — the same 3 cards from InvoicesFeesSection above (Tax
 // Invoice, SRT|PO|WBS, Invoice amount), minus its own hero header since the ops-card
-// wrapper already has a "Invoice" title.
+// wrapper already has a "Invoice" title. Tax Invoice / Invoice amount are editable and
+// persisted via api/da/save_operation_tab/{call_id}; SRT|PO|WBS has no field in that
+// payload, so it stays read-only (synced from api/da/operation_tab/{call_id} only).
+const INVOICE_CARDS_EDITABLE_KEYS = ["taxInvoice", "invoiceAmount"];
+
 function InvoiceCardsSection({ fieldValues, updateField }) {
   return (
     <div className="da-cf-ac-grid da-cf-ac-grid--3col">
       {INVOICES_FEES_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
+        const isEditable = INVOICE_CARDS_EDITABLE_KEYS.includes(card.key);
         return (
           <div
             className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
@@ -1427,15 +1416,18 @@ function InvoiceCardsSection({ fieldValues, updateField }) {
               <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
-            <p className="da-cf-ac-card-hint">{card.hint}</p>
             <div className="da-cf-ac-card-field">
-              <TextField
-                label={card.label}
-                icon={Icon}
-                value={value}
-                placeholder={card.placeholder}
-                onChange={(v) => updateField(card.key, v)}
-              />
+              {isEditable ? (
+                <TextField
+                  label={card.label}
+                  icon={Icon}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              ) : (
+                <ReadonlyField label={card.label} icon={Icon} value={value || "Not set yet"} />
+              )}
             </div>
           </div>
         );
@@ -1525,7 +1517,9 @@ VesselSalesOrderSection.propTypes = {
 
 // DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
 // VesselSalesOrderSection above, minus its own hero header and the vessel/file fields
-// not asked for here.
+// not asked for here. SAP Sales Order No is editable and persisted via
+// api/da/save_operation_tab/{call_id}; SRN No. has no field in that payload, so it
+// stays read-only (synced from api/da/operation_tab/{call_id} only).
 const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter((card) => card.key === "sapSalesOrderNo" || card.key === "srnNo");
 
 function SalesOrderCardsSection({ fieldValues, updateField }) {
@@ -1534,6 +1528,7 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
       {SALES_ORDER_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
+        const isEditable = card.key === "sapSalesOrderNo";
         return (
           <div
             className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
@@ -1544,15 +1539,18 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
               <span className="da-cf-ac-card-icon"><Icon size={26} /></span>
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
-            <p className="da-cf-ac-card-hint">{card.hint}</p>
             <div className="da-cf-ac-card-field">
-              <TextField
-                label={card.label}
-                icon={Icon}
-                value={value}
-                placeholder={card.placeholder}
-                onChange={(v) => updateField(card.key, v)}
-              />
+              {isEditable ? (
+                <TextField
+                  label={card.label}
+                  icon={Icon}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              ) : (
+                <ReadonlyField label={card.label} icon={Icon} value={value || "Not set yet"} />
+              )}
             </div>
           </div>
         );
@@ -1564,6 +1562,38 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
 SalesOrderCardsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   updateField: PropTypes.func.isRequired,
+};
+
+// Inline status pill shown next to the "DA Operations" Save button, reflecting the
+// debounced autosave (see runSaveOperationTab / debouncedAutoSaveOperationTab in DA
+// below) — same idle/saving/saved/error states as the Export Approval tab's AutoSaveStatus.
+function OperationAutoSaveStatus({ status }) {
+  if (status === "saving") {
+    return (
+      <span className="da-cf-autosave-status da-cf-autosave-status--saving">
+        <Loader2 size={13} className="da-cf-autosave-status-spin" /> Saving…
+      </span>
+    );
+  }
+  if (status === "saved") {
+    return (
+      <span className="da-cf-autosave-status da-cf-autosave-status--saved">
+        <CheckCircle2 size={13} /> All changes saved
+      </span>
+    );
+  }
+  if (status === "error") {
+    return (
+      <span className="da-cf-autosave-status da-cf-autosave-status--error">
+        <AlertCircle size={13} /> Couldn&rsquo;t save changes
+      </span>
+    );
+  }
+  return null;
+}
+
+OperationAutoSaveStatus.propTypes = {
+  status: PropTypes.oneOf(["idle", "saving", "saved", "error"]),
 };
 
 // Card sub-tab — framed, animated panel instead of bare tiles on the page
@@ -1680,6 +1710,9 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         if (cancelled) return;
         const cardData = data?.data;
         if (!cardData) return;
+        // co_owner_id is watched by the DA Operations autosave effect further down —
+        // guard it so hydrating from the backend doesn't immediately re-save it.
+        skipNextOperationAutoSaveRef.current = true;
         setFieldValues((prev) => ({
           ...prev,
           owner: cardData.owner_name ?? prev.owner,
@@ -1694,6 +1727,50 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         setCoOwnerId(cardData.co_owner_id ?? null);
       })
       .catch(() => {});
+    return () => { cancelled = true; };
+  }, [callId]);
+
+  // api/da/operation_tab/{call_id} — hydrates the "DA Operations" sub-tabs (Operation
+  // Details, Launch Hire, Invoice, Sales Order) with the backend's saved values once,
+  // when the card first loads. operationTabData itself is also kept for the read-only
+  // Vessel Owner / Owner / Billing Entity / Last moved tiles in Operation Details.
+  const [operationTabData, setOperationTabData] = useState(null);
+  const [isLoadingOperationTab, setIsLoadingOperationTab] = useState(false);
+
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    setIsLoadingOperationTab(true);
+    daService.getOperationTab(callId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const opData = data?.data ?? null;
+        setOperationTabData(opData);
+        if (!opData) return;
+        // billing_note / tax_invoice_no / invoice_amount / sap_sales_order_no are
+        // watched by the DA Operations autosave effect further down — guard it so
+        // hydrating from the backend doesn't immediately re-save what it just fetched.
+        skipNextOperationAutoSaveRef.current = true;
+        setFieldValues((prev) => ({
+          ...prev,
+          vesselName: opData.vessel_name ?? prev.vesselName,
+          serviceRequester: opData.service_requester ?? prev.serviceRequester,
+          billingOthers: opData.billing_note ?? prev.billingOthers,
+          thirdPartyLaunchHire: opData.third_party_launch_hire ?? prev.thirdPartyLaunchHire,
+          roadTransport: opData.road_transport_days != null ? String(opData.road_transport_days) : prev.roadTransport,
+          taxInvoice: opData.tax_invoice_no ?? prev.taxInvoice,
+          srtPoWbs: opData.srt_po_wbs_ref ?? prev.srtPoWbs,
+          invoiceAmount: opData.invoice_amount ?? prev.invoiceAmount,
+          sapSalesOrderNo: opData.sap_sales_order_no ?? prev.sapSalesOrderNo,
+          srnNo: opData.srn_no ?? prev.srnNo,
+        }));
+      })
+      .catch(() => {
+        if (!cancelled) setOperationTabData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingOperationTab(false);
+      });
     return () => { cancelled = true; };
   }, [callId]);
 
@@ -1808,6 +1885,71 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
       setIsSavingCardTab(false);
     }
   }, [callId, coOwnerId, formValues, fieldValues]);
+
+  // api/da/save_operation_tab/{call_id} — persists the editable fields spread across
+  // the "DA Operations" sub-tab cards (Operation Details' Co-owner/Billing Note,
+  // Invoice's Tax Invoice/Invoice amount, Sales Order's SAP Sales Order No). Everything
+  // else in that tab (Vessel, Service requester, Launch Hire, SRT|PO|WBS, SRN No.) has
+  // no field in this payload and stays read-only, synced only from the GET above.
+  //
+  // Autosaves AUTO_SAVE_DEBOUNCE_MS after the last edit to any of those 5 fields, same
+  // debounce pattern as the Export Approval tab (Approval.jsx). latestOperationFormRef
+  // keeps the debounced closure reading fresh values instead of a stale snapshot.
+  // skipNextOperationAutoSaveRef is set right before the operation_tab/card_tab GETs
+  // hydrate these fields, so loading a card doesn't immediately re-save what it just
+  // fetched. There's no manual Save button — this is the only way these fields get
+  // persisted, and it runs silently, only updating the status pill (no toast).
+  const [operationSaveStatus, setOperationSaveStatus] = useState("idle");
+  const latestOperationFormRef = useRef(null);
+  latestOperationFormRef.current = {
+    coOwnerId,
+    billingNote: fieldValues.billingOthers,
+    taxInvoiceNo: fieldValues.taxInvoice,
+    invoiceAmount: fieldValues.invoiceAmount,
+    sapSalesOrderNo: fieldValues.sapSalesOrderNo,
+  };
+  const skipNextOperationAutoSaveRef = useRef(true);
+
+  const runSaveOperationTab = useCallback(async () => {
+    if (callId == null) return;
+    const { coOwnerId: co, billingNote, taxInvoiceNo, invoiceAmount, sapSalesOrderNo } = latestOperationFormRef.current;
+    const formData = new FormData();
+    if (co != null && co !== "") formData.append("co_owner_id", co);
+    formData.append("billing_note", billingNote || "");
+    formData.append("tax_invoice_no", taxInvoiceNo || "");
+    formData.append("invoice_amount", invoiceAmount || "");
+    formData.append("sap_sales_order_no", sapSalesOrderNo || "");
+
+    setOperationSaveStatus("saving");
+    try {
+      await daService.saveOperationTab(callId, formData);
+      setOperationSaveStatus("saved");
+    } catch {
+      setOperationSaveStatus("error");
+    }
+  }, [callId]);
+
+  const debouncedAutoSaveOperationTab = useMemo(
+    () => debounce(runSaveOperationTab, AUTO_SAVE_DEBOUNCE_MS),
+    [runSaveOperationTab],
+  );
+
+  useEffect(() => () => debouncedAutoSaveOperationTab.flush(), [debouncedAutoSaveOperationTab]);
+
+  useEffect(() => {
+    if (skipNextOperationAutoSaveRef.current) {
+      skipNextOperationAutoSaveRef.current = false;
+      return;
+    }
+    debouncedAutoSaveOperationTab();
+  }, [
+    coOwnerId,
+    fieldValues.billingOthers,
+    fieldValues.taxInvoice,
+    fieldValues.invoiceAmount,
+    fieldValues.sapSalesOrderNo,
+    debouncedAutoSaveOperationTab,
+  ]);
 
   // api/da/save_appointment_clearance_tab/{call_id} — persists the "Appointment &
   // Clearance" sub-tab. Only newly-picked browser File objects in appointmentEmail are
@@ -2206,6 +2348,9 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                   Everything for this call in one place — no need to switch tabs.
                 </p>
               </div>
+              <div className="da-cf-summary-hero-actions">
+                <OperationAutoSaveStatus status={operationSaveStatus} />
+              </div>
             </div>
 
             <div className="da-cf-ops-grid">
@@ -2229,26 +2374,41 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                       {isOperationDetails ? (
                         <>
                           <div className="da-cf-fields-grid da-cf-fields-grid--fixed4">
-                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.vesselName)}
+                            <ReadonlyField
+                              label="Vessel"
+                              icon={OPERATION_DETAILS_FIELDS_BY_KEY.vesselName.icon}
+                              value={isLoadingOperationTab && !operationTabData ? "Loading…" : (fieldValues.vesselName || "Not set yet")}
+                              accent={OPERATION_DETAILS_FIELDS_BY_KEY.vesselName.accent}
+                            />
                             <ReadonlyField
                               label="Vessel Owner"
                               icon={Building2}
-                              value={isLoadingSummary && !summaryData ? "Loading…" : (summaryData?.vessel_owner || "Not set yet")}
+                              value={isLoadingOperationTab && !operationTabData ? "Loading…" : (operationTabData?.vessel_owner || summaryData?.vessel_owner || "Not set yet")}
                               accent="#d97706"
                             />
                             <ReadonlyField
                               label="Owner"
                               icon={User}
-                              value={isLoadingSummary && !summaryData ? "Loading…" : (summaryData?.call_owner_name || "Not set yet")}
+                              value={isLoadingOperationTab && !operationTabData ? "Loading…" : (operationTabData?.call_owner_name || summaryData?.call_owner_name || "Not set yet")}
                               accent="#0d9488"
                             />
                             {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.coOwners)}
                           </div>
                           <div className="da-cf-fields-grid">
-                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.serviceRequester)}
-                            <ReadonlyField label="Billing Entity" icon={Package} value={billingEntityLabel || "Not set yet"} accent="#e11d48" />
+                            <ReadonlyField
+                              label="Service requester"
+                              icon={OPERATION_DETAILS_FIELDS_BY_KEY.serviceRequester.icon}
+                              value={isLoadingOperationTab && !operationTabData ? "Loading…" : (fieldValues.serviceRequester || "Not set yet")}
+                              accent={OPERATION_DETAILS_FIELDS_BY_KEY.serviceRequester.accent}
+                            />
+                            <ReadonlyField label="Billing Entity" icon={Package} value={operationTabData?.billing_entity || billingEntityLabel || "Not set yet"} accent="#e11d48" />
                             {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.billingOthers)}
-                            {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.lastMoved)}
+                            <ReadonlyField
+                              label="Last moved"
+                              icon={Clock}
+                              value={isLoadingOperationTab && !operationTabData ? "Loading…" : (formatApiDateTime(operationTabData?.stage_entered_date) || lastMovedDisplay)}
+                              accent={OPERATION_DETAILS_FIELDS_BY_KEY.lastMoved.accent}
+                            />
                           </div>
                         </>
                       ) : isClearanceDetails ? (
@@ -2259,7 +2419,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                           isLoadingTimeObjects={isLoadingTimeObjects}
                         />
                       ) : isLaunchHire ? (
-                        <LaunchHireCardsSection fieldValues={fieldValues} updateField={updateField} />
+                        <LaunchHireCardsSection fieldValues={fieldValues} />
                       ) : isInvoice ? (
                         <InvoiceCardsSection fieldValues={fieldValues} updateField={updateField} />
                       ) : isSalesOrder ? (
