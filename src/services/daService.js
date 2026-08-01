@@ -1,6 +1,8 @@
 import Gateway from '../gateway/gateway';
 
 const getSummaryTab = (callId) => Gateway.get(`/da/summary_tab/${callId}`);
+const getOperationTab = (callId) => Gateway.get(`/da/operation_tab/${callId}`);
+const saveOperationTab = (callId, formData) => Gateway.post(`/da/save_operation_tab/${callId}`, formData);
 const getCardTab = (callId) => Gateway.get(`/da/card_tab/${callId}`);
 const saveCardTab = (callId, formData) => Gateway.post(`/da/save_card_tab/${callId}`, formData);
 const getAppointmentClearanceTab = (callId) => Gateway.get(`/da/appointment_clearance_tab/${callId}`);
@@ -17,6 +19,8 @@ const updateStatus = (payload) => Gateway.post('/da/update_status', payload);
 
 export default {
   getSummaryTab,
+  getOperationTab,
+  saveOperationTab,
   getCardTab,
   saveCardTab,
   getAppointmentClearanceTab,
