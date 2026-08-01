@@ -2396,7 +2396,30 @@ function CardForm({
         if (!cancelled) setDaCardStage(null);
       });
     return () => { cancelled = true; };
-  }, [show, isAddMode, isDaCardContext, card?.call_id, card?.callId, cardFormSyncKey]);
+  }, [show, isAddMode, isDaCardContext, card?.call_id, card?.callId, cardFormSyncKey, daStatusRefreshToken]);
+
+  // DA cards: api/da/card/{call_id}'s current stage carries its own sticker
+  // (current_sticker_id / sticker_name) — whenever the Status Timeline round marker or the
+  // footer stepper moves the DA to a new stage, daCardStage refetches (see effect above) and
+  // this mirrors that stage's sticker onto the header's "Card sticker" picker too, instead of
+  // it staying stuck on whatever sticker was last picked manually. color_code/icon_name aren't
+  // confirmed on this endpoint, so those fall back to the card's current values rather than
+  // being blanked if the backend doesn't send them.
+  useEffect(() => {
+    if (!isDaCardContext || !daCardStage) return;
+    const stickerIdRaw = daCardStage.current_sticker_id ?? daCardStage.sticker_id;
+    if (stickerIdRaw == null || String(stickerIdRaw).trim() === "") return;
+    const nextId = String(stickerIdRaw).trim();
+    const existingId = resolveCardStickerIdFromCard(card);
+    if (existingId != null && String(existingId).trim() === nextId) return;
+    const cardIdRaw = card?.id ?? card?.card_id;
+    if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
+    patchCardSticker?.(String(cardIdRaw).trim(), nextId, {
+      name: daCardStage.sticker_name ?? card?.sticker_name,
+      color_code: daCardStage.sticker_color_code ?? card?.sticker_color_code,
+      icon_name: daCardStage.sticker_icon_name ?? card?.sticker_icon_name,
+    });
+  }, [isDaCardContext, daCardStage, card, patchCardSticker]);
 
   const handleClose = useCallback(async () => {
     if (isClosingRef.current) return;
@@ -2601,47 +2624,36 @@ function CardForm({
     [isAddMode, card?.id, card?.card_id, card?.call_id, card?.callId, patchCardSticker, isDaCardContext, columns, columnOrder, isAdvancingStage, moveCardToColumn]
   );
 
-  // DA Summary tab's Status Timeline: checking the "current" step's checkbox means "this
-  // stage is done" and advances to the *next* stage — same resolution the header sticker
-  // picker's DA advance already uses (getNextColumnIdAfterStepLabel: match this stage's own
-  // label in columnOrder, move to the column right after it), so it succeeds/fails in
-  // exactly the same cases the sticker does instead of a separately-behaving lookup. These
-  // DA milestone names ("Ops completed", "Invoice Issuance", etc.) come from
-  // api/da/status_timeline and don't all correspond to a column on every board a card can
-  // live on — when no match is found we show an error rather than guessing an id (see open
-  // issue: DA timeline checkbox has no valid column; a sequence_order fallback was tried and
-  // removed because it could coincidentally collide with a real column on a *different*
-  // board). Bumps daStatusRefreshToken so the timeline reflects the new stage immediately
-  // instead of only on next open.
+  // DA Summary tab's Status Timeline: clicking the "current" step's round marker moves the
+  // DA forward to the NEXT step (see nextStep in StatusTimelineSection, DA.jsx — sending the
+  // current step's own label is a no-op since it's already that status). api/da/status_timeline
+  // is display-only, so this is NOT the same action as api/da/advance_stage (that one moves the
+  // card between board columns and is used by the footer stepper / header sticker picker
+  // instead). Calls api/da/update_status with { call_id, status_name }, no sticker_id/
+  // kanban_card_id lookup needed. Bumps daStatusRefreshToken so both the timeline and
+  // daCardStage refetch immediately.
   const handleDaTimelineStepClick = useCallback(
-    (stepLabel) => {
-      if (!isDaCardContext || !card?.id || isAdvancingStage) return;
+    (statusName) => {
+      if (!isDaCardContext || isAdvancingStage) return;
       const callIdRaw = card?.call_id ?? card?.callId;
       const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
-      if (!callId) return;
-      const targetColumnId = getNextColumnIdAfterStepLabel(stepLabel, columns, columnOrder);
-      if (!targetColumnId) {
-        notify(`Couldn't find the next stage after "${stepLabel}" on this board.`, "error");
-        return;
-      }
+      if (!callId || !statusName) return;
 
       setIsAdvancingStage(true);
-      daService.advanceStage({ call_id: callId, column_id: targetColumnId })
+      daService.updateStatus({ call_id: callId, status_name: statusName })
         .then(({ data }) => {
-          if (data?.status && data?.current_stage) {
-            setDaCardStage((prev) => ({ ...prev, ...data.current_stage }));
-            setDaStatusRefreshToken((t) => t + 1);
-            if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
-          } else {
+          if (data && typeof data === "object" && data.status === "error") {
             notify(data?.message || "Failed to move card to that stage.", "error");
+            return;
           }
+          setDaStatusRefreshToken((t) => t + 1);
         })
         .catch((err) => {
           notify(err?.response?.data?.message || "Failed to move card to that stage.", "error");
         })
         .finally(() => setIsAdvancingStage(false));
     },
-    [isDaCardContext, card?.id, card?.call_id, card?.callId, columns, columnOrder, isAdvancingStage, moveCardToColumn]
+    [isDaCardContext, card?.call_id, card?.callId, isAdvancingStage]
   );
 
   const handleTopbarColorChange = useCallback(
