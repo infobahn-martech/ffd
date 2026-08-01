@@ -131,6 +131,7 @@ const User = () => {
       width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
+      cell: ({ row }) => <span>{row.port || "-"}</span>,
       sort: true,
     },
     {
@@ -141,7 +142,7 @@ const User = () => {
       contentClass: "table-content",
       cell: ({ row }) => (
         <span>
-          {`+${row.phone}`}
+          {row.phone ? `+${row.phone}` : "-"}
         </span>
       ),
       sort: true,
