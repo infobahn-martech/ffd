@@ -22,6 +22,7 @@ import {
   getFirstUserRoleId,
 } from "../../../../../../shared/helpers/groUserRoles";
 import useAuthReducer from "../../../../../../store/AuthReducer";
+import { useDaLocalReachedDates } from "../../../../../../shared/store/daStore";
 
 // Import Tab Components
 import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes, DA } from "../../../../CardFormTabs/Import";
@@ -188,6 +189,14 @@ const getNextColumnIdAfterStepLabel = (stepLabel, columns, columnOrder) => {
   if (matchedIndex === -1 || matchedIndex + 1 >= columnOrder.length) return null;
   const nextColId = columnOrder[matchedIndex + 1];
   return columns[nextColId]?.id ?? nextColId ?? null;
+};
+
+// "YYYY-MM-DD HH:mm:ss" — same format api/da endpoints already send/expect elsewhere
+// (see formatApiDateTime/combineApiDateTime in DA.jsx).
+const formatNowForApi = () => {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 };
 
 // Helper function to get step number from column title
@@ -2370,6 +2379,9 @@ function CardForm({
   const [daCardStage, setDaCardStage] = useState(null);
   const [isAdvancingStage, setIsAdvancingStage] = useState(false);
   const isDaCardContext = isDAVariant || isDABoard;
+  // Local fallback for reached_date since api/da/update_status doesn't persist it yet
+  // (backend gap) — see useDaLocalReachedDates and handleDaTimelineStepClick below.
+  const setDaLocalReachedDate = useDaLocalReachedDates((s) => s.setReachedDate);
   // Bumped whenever api/da/advance_stage succeeds (footer stepper or the header sticker
   // picker) so DA.jsx's Summary-tab Status Timeline (a separate fetch of
   // api/da/status_timeline/{call_id}) refetches immediately instead of only on next open.
@@ -2627,11 +2639,16 @@ function CardForm({
   // DA Summary tab's Status Timeline: clicking the "current" step's round marker moves the
   // DA forward to the NEXT step (see nextStep in StatusTimelineSection, DA.jsx — sending the
   // current step's own label is a no-op since it's already that status). api/da/status_timeline
-  // is display-only, so this is NOT the same action as api/da/advance_stage (that one moves the
-  // card between board columns and is used by the footer stepper / header sticker picker
-  // instead). Calls api/da/update_status with { call_id, status_name }, no sticker_id/
-  // kanban_card_id lookup needed. Bumps daStatusRefreshToken so both the timeline and
-  // daCardStage refetch immediately.
+  // is a separate, more granular list than the board's own columns (e.g. "To be sent for SRF"
+  // has no matching column), so this always calls api/da/update_status with { call_id,
+  // status_name, reached_date } — reached_date is the client's current date/time, stamping
+  // when the step was actually marked complete (the timeline row's own display of this value
+  // comes straight back from this same field, see reached_date in mapStatusTimelineResponse).
+  // When statusName *also* matches one of the board's columns (e.g. "Ops completed"), it
+  // additionally calls api/da/advance_stage — same direct-match lookup the footer stepper's
+  // jump-to-step uses (see handleStepClick above) — so the card's board column and header
+  // sticker (mirrored from daCardStage, see the effect above) move in step with the timeline
+  // instead of only the timeline updating.
   const handleDaTimelineStepClick = useCallback(
     (statusName) => {
       if (!isDaCardContext || isAdvancingStage) return;
@@ -2639,21 +2656,37 @@ function CardForm({
       const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
       if (!callId || !statusName) return;
 
+      const reachedDate = formatNowForApi();
       setIsAdvancingStage(true);
-      daService.updateStatus({ call_id: callId, status_name: statusName })
+      daService.updateStatus({ call_id: callId, status_name: statusName, reached_date: reachedDate })
         .then(({ data }) => {
           if (data && typeof data === "object" && data.status === "error") {
             notify(data?.message || "Failed to move card to that stage.", "error");
             return;
           }
+          // Backend doesn't persist reached_date yet — remember it locally so the
+          // timeline can still show a completion date/time until that's fixed.
+          setDaLocalReachedDate(callId, statusName, reachedDate);
           setDaStatusRefreshToken((t) => t + 1);
+
+          const targetColumnId = getColumnIdFromStepLabel(statusName, columns, columnOrder);
+          if (!targetColumnId) return undefined;
+
+          return daService.advanceStage({ call_id: callId, column_id: targetColumnId })
+            .then(({ data: advanceData }) => {
+              if (advanceData?.status && advanceData?.current_stage) {
+                setDaCardStage((prev) => ({ ...prev, ...advanceData.current_stage }));
+                setDaStatusRefreshToken((t) => t + 1);
+                if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
+              }
+            });
         })
         .catch((err) => {
           notify(err?.response?.data?.message || "Failed to move card to that stage.", "error");
         })
         .finally(() => setIsAdvancingStage(false));
     },
-    [isDaCardContext, card?.call_id, card?.callId, isAdvancingStage]
+    [isDaCardContext, card?.call_id, card?.callId, card?.id, isAdvancingStage, columns, columnOrder, moveCardToColumn, setDaLocalReachedDate]
   );
 
   const handleTopbarColorChange = useCallback(
