@@ -12,6 +12,8 @@ const getCardStage = (callId) => Gateway.get(`/da/card/${callId}`);
 const getStatusTimeline = (callId) => Gateway.get(`/da/status_timeline/${callId}`);
 /** @param {{ call_id: string|number, column_id: string|number }} payload */
 const advanceStage = (payload) => Gateway.post('/da/advance_stage', payload);
+/** @param {{ call_id: string|number, status_name: string }} payload */
+const updateStatus = (payload) => Gateway.post('/da/update_status', payload);
 
 export default {
   getSummaryTab,
@@ -24,4 +26,5 @@ export default {
   getCardStage,
   advanceStage,
   getStatusTimeline,
+  updateStatus,
 };

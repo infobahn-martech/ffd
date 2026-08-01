@@ -1539,7 +1539,28 @@ a.da-cf-file-name {
   color: var(--da-ink-faint);
   background: var(--da-surface);
   border: 2px solid var(--da-line);
+  padding: 0;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+// Clickable round marker mirrors the "current" step's checkbox (see onStepClick in
+// StatusTimelineSection, DA.jsx) so the circle itself can also be used to advance the stage.
+.da-cf-timeline-step-icon--clickable {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--da-accent);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--da-accent) 12%, transparent);
+  }
+
+  &:active {
+    transform: scale(0.88);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--da-accent) 25%, transparent);
+  }
 }
 
 .da-cf-timeline-step-connector {
@@ -1593,63 +1614,34 @@ a.da-cf-file-name {
   color: var(--da-ink-soft);
 }
 
-// Checking a step's box moves the DA directly to that stage (see onStepClick in
-// StatusTimelineSection, DA.jsx). Done steps render checked + disabled (locked-in, not
-// re-targetable from here); current/pending steps are checkable.
-.da-cf-timeline-step-checkbox {
-  margin-top: 4px;
+// Small status pill under the label — done/current/pending mirror the round marker's own
+// color coding above it (see .da-cf-timeline-step-icon / --done / --current) so the two
+// read as one status at a glance.
+.da-cf-timeline-status-badge {
   display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  line-height: 1.4;
+}
 
-  input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    position: relative;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    border-radius: 6px;
-    border: 1.5px solid var(--da-line);
-    background: var(--da-surface);
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+.da-cf-timeline-status-badge--done {
+  color: #1e9e52;
+  background: color-mix(in srgb, #1e9e52 12%, transparent);
+}
 
-    &::after {
-      content: "";
-      position: absolute;
-      top: 2px;
-      left: 5px;
-      width: 4px;
-      height: 8px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
-      opacity: 0;
-      transition: opacity 0.1s ease;
-    }
+.da-cf-timeline-status-badge--current {
+  color: var(--da-accent);
+  background: color-mix(in srgb, var(--da-accent) 14%, transparent);
+}
 
-    &:hover:not(:disabled) {
-      border-color: var(--da-accent);
-    }
-
-    &:checked {
-      background: var(--da-accent);
-      border-color: var(--da-accent);
-
-      &::after {
-        opacity: 1;
-      }
-    }
-
-    &:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--da-accent) 25%, transparent);
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.6;
-    }
-  }
+.da-cf-timeline-status-badge--pending {
+  color: var(--da-ink-faint);
+  background: color-mix(in srgb, var(--da-ink-faint) 10%, transparent);
 }
 
 @media (max-width: 768px) {

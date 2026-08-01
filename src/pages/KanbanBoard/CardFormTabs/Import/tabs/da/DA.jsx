@@ -747,44 +747,47 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
       <div className="da-cf-timeline">
         {steps.map((step, index) => {
           const Icon = step.state === "done" ? CheckCircle2 : step.state === "current" ? Clock : CircleDashed;
-          // Only the "current" step's checkbox is checkable — checking it means "this
-          // stage is done" and advances to the *next* stage, resolved the same way the
-          // header sticker picker's DA advance already works (matching this stage's own
-          // label, then moving to the next column after it) so it succeeds/fails in
-          // exactly the same cases the sticker does, instead of a different (less
-          // reliable) direct self-match.
-          const isCheckable = Boolean(onStepClick) && step.state === "current" && !isAdvancing;
+          // Two click targets:
+          // - "current" step's round moves the DA forward one stage. Sending
+          //   api/da/update_status the CURRENT step's own status_name is a no-op (it's
+          //   already that status), so this sends the *next* step's label instead.
+          // - a "done" step's round moves the DA back to that (earlier) stage, sending
+          //   that step's own label — it's not the current status, so it's not a no-op.
+          const nextStep = steps[index + 1];
+          const isForwardClickable = step.state === "current" && Boolean(nextStep);
+          const isBackClickable = step.state === "done";
+          const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isBackClickable);
+          const targetLabel = isForwardClickable ? nextStep.label : step.label;
           return (
             <div className={`da-cf-timeline-step da-cf-timeline-step--${step.state}`} key={step.key}>
               <div className="da-cf-timeline-step-marker">
-                <span className="da-cf-timeline-step-icon">
-                  <Icon size={16} />
-                </span>
+                {isClickable ? (
+                  <button
+                    type="button"
+                    className="da-cf-timeline-step-icon da-cf-timeline-step-icon--clickable"
+                    title={isBackClickable ? `Revert to "${targetLabel}"` : `Move to "${targetLabel}"`}
+                    onClick={() => onStepClick(targetLabel)}
+                  >
+                    <Icon size={16} />
+                  </button>
+                ) : (
+                  <span className="da-cf-timeline-step-icon">
+                    <Icon size={16} />
+                  </span>
+                )}
                 {index < steps.length - 1 && (
                   <span className="da-cf-timeline-step-connector" title={steps[index + 1].label} />
                 )}
               </div>
               <div className="da-cf-timeline-step-body">
                 <span className="da-cf-timeline-step-label">{step.label}</span>
-                <span className="da-cf-timeline-step-date">
-                  {step.date
-                    ? `${formatDisplayDateOnly(step.date)}${step.time ? ` · ${step.time}` : ""}`
-                    : step.state === "current"
-                      ? "In progress"
-                      : "Not reached yet"}
+                <span className={`da-cf-timeline-status-badge da-cf-timeline-status-badge--${step.state}`}>
+                  {step.state === "done" ? "Completed" : step.state === "current" ? "In progress" : "Not reached"}
                 </span>
-                {onStepClick && (
-                  <label
-                    className="da-cf-timeline-step-checkbox"
-                    title={isCheckable ? `Move to "${step.label}"` : undefined}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={step.state === "done"}
-                      disabled={!isCheckable}
-                      onChange={() => onStepClick(step.label)}
-                    />
-                  </label>
+                {step.state === "done" && step.date && (
+                  <span className="da-cf-timeline-step-date">
+                    {formatDisplayDateOnly(step.date)}{step.time ? ` · ${step.time}` : ""}
+                  </span>
                 )}
               </div>
             </div>
@@ -2118,6 +2121,8 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
               isLoadingSummary={isLoadingSummary}
               statusTimeline={statusTimeline}
               isLoadingStatusTimeline={isLoadingStatusTimeline}
+              onAdvanceDaStage={onAdvanceDaStage}
+              isAdvancingDaStage={isAdvancingDaStage}
             />
 
             {showScrollHint && (
