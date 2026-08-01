@@ -153,7 +153,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       icons.push(
         { id: 10, icon: FiMapPin, label: 'On Station' },
         { id: 11, icon: FiLayers, label: 'Task' },
-        { id: 7, icon: FiMail, label: 'Outlook' },
+        // { id: 7, icon: FiMail, label: 'Outlook' },
         { id: 8, icon: FiSettings, label: 'Settings' }
       );
       return icons;
