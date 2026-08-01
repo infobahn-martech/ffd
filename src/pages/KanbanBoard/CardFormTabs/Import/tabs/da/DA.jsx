@@ -122,11 +122,11 @@ const RAW_FIELDS_CONFIG = [
   // DA Documents — file fields already captured in Launch Hire / Clearance Copies /
   // Vessel & Sales Order above, gathered onto one page. sailingClearanceCopy is
   // relabeled "Outward Clearance Copy" here to pair with Inward Clearance Copy.
-  { key: "launchHireSlips", label: "Launch Hire Slips", type: "files", group: "daDocuments" },
+  { key: "launchHireSlips", label: "Launch Hire Slips", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "sailingClearanceCopy", label: "Outward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
-  { key: "copyOfSalesOrder", label: "Sales Order Copy", type: "files", group: "daDocuments" },
-  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true },
+  { key: "copyOfSalesOrder", label: "Sales Order Copy", type: "files", group: "daDocuments", reserveSpace: true },
+  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, reserveSpace: true },
 ];
