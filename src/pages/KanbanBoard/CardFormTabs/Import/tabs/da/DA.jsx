@@ -2011,6 +2011,69 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     }
   }, [callId, fieldValues]);
 
+  // api/da/save_documents_tab/{call_id} — persists the 3 "DA Documents" file fields that
+  // have no other backend source (see the documents_tab GET above): FDA Dispatch Proof,
+  // Supporting Documents, Sales Order Supporting Documents. Only newly-picked browser File
+  // objects are uploaded; documents already hydrated from the GET (mapApiDocument) aren't
+  // File instances and are skipped so they aren't re-uploaded.
+  //
+  // Same debounced-autosave pattern as DA Operations (runSaveOperationTab above) — no
+  // manual Save button here either, it runs silently AUTO_SAVE_DEBOUNCE_MS after the last
+  // file is added/removed, only updating the status pill (no toast).
+  // skipNextDocumentsAutoSaveRef is set right before the documents_tab GET hydrates these
+  // fields, so loading a card doesn't immediately re-save what it just fetched.
+  const [documentsSaveStatus, setDocumentsSaveStatus] = useState("idle");
+  const latestDocumentsFormRef = useRef(null);
+  latestDocumentsFormRef.current = {
+    fdaDispatchProof: fieldValues.fdaDispatchProof,
+    supportingDocuments: fieldValues.supportingDocuments,
+    salesOrderSupportingDocs: fieldValues.salesOrderSupportingDocs,
+  };
+  const skipNextDocumentsAutoSaveRef = useRef(true);
+
+  const runSaveDocumentsTab = useCallback(async () => {
+    if (callId == null) return;
+    const { fdaDispatchProof, supportingDocuments, salesOrderSupportingDocs } = latestDocumentsFormRef.current;
+    const formData = new FormData();
+    (fdaDispatchProof || [])
+      .filter((file) => file instanceof File)
+      .forEach((file) => formData.append("fda_dispatch_proof[]", file));
+    (supportingDocuments || [])
+      .filter((file) => file instanceof File)
+      .forEach((file) => formData.append("supporting_documents[]", file));
+    (salesOrderSupportingDocs || [])
+      .filter((file) => file instanceof File)
+      .forEach((file) => formData.append("sales_order_supporting_documents[]", file));
+
+    setDocumentsSaveStatus("saving");
+    try {
+      await daService.saveDocumentsTab(callId, formData);
+      setDocumentsSaveStatus("saved");
+    } catch {
+      setDocumentsSaveStatus("error");
+    }
+  }, [callId]);
+
+  const debouncedAutoSaveDocumentsTab = useMemo(
+    () => debounce(runSaveDocumentsTab, AUTO_SAVE_DEBOUNCE_MS),
+    [runSaveDocumentsTab],
+  );
+
+  useEffect(() => () => debouncedAutoSaveDocumentsTab.flush(), [debouncedAutoSaveDocumentsTab]);
+
+  useEffect(() => {
+    if (skipNextDocumentsAutoSaveRef.current) {
+      skipNextDocumentsAutoSaveRef.current = false;
+      return;
+    }
+    debouncedAutoSaveDocumentsTab();
+  }, [
+    fieldValues.fdaDispatchProof,
+    fieldValues.supportingDocuments,
+    fieldValues.salesOrderSupportingDocs,
+    debouncedAutoSaveDocumentsTab,
+  ]);
+
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
   }, []);
@@ -2101,6 +2164,9 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         const fdaDispatchProofDocs = documents["FDA Dispatch Proof"];
         const supportingDocumentsDocs = documents["Supporting Documents"];
         const salesOrderSupportingDocsDocs = documents["Sales Order Supporting Documents"];
+        // Watched by the DA Documents autosave effect further down — guard it so
+        // hydrating from the backend doesn't immediately re-save what it just fetched.
+        skipNextDocumentsAutoSaveRef.current = true;
         setFieldValues((prev) => ({
           ...prev,
           fdaDispatchProof: Array.isArray(fdaDispatchProofDocs)
@@ -2522,6 +2588,9 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                 <p className="da-cf-summary-hero-subtitle">
                   Every document for this call in one place — no need to switch tabs.
                 </p>
+              </div>
+              <div className="da-cf-summary-hero-actions">
+                <OperationAutoSaveStatus status={documentsSaveStatus} />
               </div>
             </div>
 
