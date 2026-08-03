@@ -162,18 +162,45 @@ const router = createBrowserRouter(
                 { path: "/kanban-board/:boardId", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                 // DA Module
                 { path: "/da-module", element: <RouteGuard><DAModule /></RouteGuard> },
-                // Workspaces
-                { path: "/workspaces", element: <RouteGuard><Workspaces /></RouteGuard> },
+                // Workspaces — fully migrated feature: the permission response is
+                // authoritative here (permissionOnly), the legacy role table is not consulted.
+                {
+                  path: "/workspaces",
+                  element: (
+                    <PermissionRoute
+                      moduleKey={PERMISSION_MODULES.KANBAN_WORKSPACE}
+                      actionKey={PERMISSION_ACTIONS.VIEW_WORKSPACE}
+                      permissionOnly
+                    >
+                      <Workspaces />
+                    </PermissionRoute>
+                  ),
+                },
                 {
                   path: "/workspaces/dashboard/:dashboardId",
                   element: (
-                    <RouteGuard>
+                    <PermissionRoute
+                      moduleKey={PERMISSION_MODULES.KANBAN_WORKSPACE}
+                      actionKey={PERMISSION_ACTIONS.VIEW_WORKSPACE}
+                      permissionOnly
+                    >
                       <Workspaces />
-                    </RouteGuard>
+                    </PermissionRoute>
                   ),
                 },
                 // Edit Workflow
-                { path: "/edit-workflow", element: <RouteGuard><EditWorkflows /></RouteGuard> },
+                {
+                  path: "/edit-workflow",
+                  element: (
+                    <PermissionRoute
+                      moduleKey={PERMISSION_MODULES.KANBAN_WORKSPACE}
+                      actionKey={PERMISSION_ACTIONS.EDIT_WORKFLOW}
+                      permissionOnly
+                    >
+                      <EditWorkflows />
+                    </PermissionRoute>
+                  ),
+                },
                 // Role Management - Super Admin, Admin only
                 { path: "/roles", element: <RouteGuard><Role /></RouteGuard> },
                 { path: "/permissions", element: <RouteGuard><Permission /></RouteGuard> },

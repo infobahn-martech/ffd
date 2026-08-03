@@ -136,6 +136,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     submoduleKey: PERMISSION_SUBMODULES.USERS,
     actionKey: PERMISSION_ACTIONS.VIEW,
   });
+  // Kanban Workspaces is fully migrated to the new permission system: the
+  // backend permission response is authoritative here, no legacy OR.
+  const canViewWorkspaceMenu = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+    actionKey: PERMISSION_ACTIONS.VIEW_WORKSPACE,
+  });
   const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
 
   const boardRouteMatchForEditWorkflow = pathname.match(/^\/kanban-board\/([^/]+)$/);
@@ -170,11 +176,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   }, [showEditWorkflowSidebarIcon, kanbanFullSidebar, isPortSupervisorRole]);
 
   const restrictedKanbanStripIcons = useMemo(
-    () => [
-      { id: 4, icon: FiInbox, label: 'Workspaces' },
-      { id: 6, icon: FiLayout, label: 'Kanban Board' },
-    ],
-    []
+    () =>
+      [
+        canViewWorkspaceMenu ? { id: 4, icon: FiInbox, label: 'Workspaces' } : null,
+        { id: 6, icon: FiLayout, label: 'Kanban Board' },
+      ].filter(Boolean),
+    [canViewWorkspaceMenu]
   );
 
   const workspacesIcons = [
@@ -537,7 +544,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         isDefaultMenu: true,
         to: '/workspaces',
         icon: dashboardIcon,
-        hasPermission: true,
+        hasPermission: canViewWorkspaceMenu,
       },
       {
         menu: 'Kanban Board',
@@ -547,7 +554,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         hasPermission: true,
       },
     ],
-    [restrictedBoardBasePath]
+    [restrictedBoardBasePath, canViewWorkspaceMenu]
   );
 
   const [menuState, setMenuState] = useState(menus);

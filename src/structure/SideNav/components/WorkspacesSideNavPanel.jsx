@@ -19,6 +19,8 @@ import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+import usePermissions from '../../../shared/hooks/usePermissions';
+import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../../../shared/constants/permissions';
 import '../../../design/scss/structure/side-nav/AddDashboardModal.scss';
 
 const DASHBOARD_MENU_WIDTH = 200;
@@ -42,6 +44,29 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
     if (boards.length !== 1) return null;
     return `/kanban-board/${boards[0].board_id}`;
   }, [workspaces]);
+
+  const { hasPermission } = usePermissions();
+  const canListDashboard = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+    actionKey: PERMISSION_ACTIONS.LIST_DASHBOARD,
+  });
+  const canAddDashboard = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+    actionKey: PERMISSION_ACTIONS.ADD_NEW_DASHBOARD,
+  });
+  const canRenameDashboard = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+    actionKey: PERMISSION_ACTIONS.RENAME_DASHBOARD,
+  });
+  const canUpdateDashboardBackground = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+    actionKey: PERMISSION_ACTIONS.UPDATE_DASHBOARD_BACKGROUND,
+  });
+  const canDeleteDashboard = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+    actionKey: PERMISSION_ACTIONS.DELETE_DASHBOARD,
+  });
+  const canManageDashboardItem = canRenameDashboard || canUpdateDashboardBackground || canDeleteDashboard;
 
   const [filterText, setFilterText] = useState('');
   const [collapsed, setCollapsed] = useState(false);
@@ -290,7 +315,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
             ) : null}
           </nav>
 
-          {!restrictedBoardUser ? (
+          {!restrictedBoardUser && canListDashboard ? (
             <div className="kanban-sidebar-workspaces-filter">
               <FiSearch className="kanban-sidebar-workspaces-filter-icon" aria-hidden />
               <input
@@ -305,47 +330,49 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
             </div>
           ) : null}
 
-          {!restrictedBoardUser ? <hr className="kanban-sidebar-workspaces-divider" aria-hidden /> : null}
+          {!restrictedBoardUser && canListDashboard ? <hr className="kanban-sidebar-workspaces-divider" aria-hidden /> : null}
 
-          <ul className="kanban-sidebar-workspaces-list">
-            {dashboardsLoading ? (
-              <li className="kanban-sidebar-workspaces-loading">Loading…</li>
-            ) : (
-              filtered.map((d) => {
-                const isActive = selectedDashboardId != null && String(selectedDashboardId) === String(d.id);
-                const menuOpen = openActionsId != null && String(openActionsId) === String(d.id);
-                return (
-                  <li
-                    key={d.id}
-                    className={`kanban-sidebar-workspaces-row ${isActive ? 'kanban-sidebar-workspaces-row--active' : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className="kanban-sidebar-workspaces-row-main"
-                      onClick={() => openDashboard(d.id)}
+          {canListDashboard ? (
+            <ul className="kanban-sidebar-workspaces-list">
+              {dashboardsLoading ? (
+                <li className="kanban-sidebar-workspaces-loading">Loading…</li>
+              ) : (
+                filtered.map((d) => {
+                  const isActive = selectedDashboardId != null && String(selectedDashboardId) === String(d.id);
+                  const menuOpen = openActionsId != null && String(openActionsId) === String(d.id);
+                  return (
+                    <li
+                      key={d.id}
+                      className={`kanban-sidebar-workspaces-row ${isActive ? 'kanban-sidebar-workspaces-row--active' : ''}`}
                     >
-                      <span className="kanban-sidebar-workspaces-dot" aria-hidden />
-                      <span className="kanban-sidebar-workspaces-name">{d.name}</span>
-                    </button>
-                    {!restrictedBoardUser ? (
-                      <div className="kanban-sidebar-workspaces-row-actions">
-                        <button
-                          ref={menuOpen ? menuBtnRef : undefined}
-                          type="button"
-                          className="kanban-sidebar-workspaces-row-menu"
-                          aria-label={`Actions for ${d.name}`}
-                          aria-expanded={menuOpen}
-                          onClick={(e) => toggleActionsMenu(e, d.id)}
-                        >
-                          <FiMoreVertical size={16} />
-                        </button>
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })
-            )}
-          </ul>
+                      <button
+                        type="button"
+                        className="kanban-sidebar-workspaces-row-main"
+                        onClick={() => openDashboard(d.id)}
+                      >
+                        <span className="kanban-sidebar-workspaces-dot" aria-hidden />
+                        <span className="kanban-sidebar-workspaces-name">{d.name}</span>
+                      </button>
+                      {!restrictedBoardUser && canManageDashboardItem ? (
+                        <div className="kanban-sidebar-workspaces-row-actions">
+                          <button
+                            ref={menuOpen ? menuBtnRef : undefined}
+                            type="button"
+                            className="kanban-sidebar-workspaces-row-menu"
+                            aria-label={`Actions for ${d.name}`}
+                            aria-expanded={menuOpen}
+                            onClick={(e) => toggleActionsMenu(e, d.id)}
+                          >
+                            <FiMoreVertical size={16} />
+                          </button>
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })
+              )}
+            </ul>
+          ) : null}
 
           <input
             ref={wallpaperInputRef}
@@ -357,7 +384,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
             onChange={handleWallpaperFile}
           />
 
-          {!restrictedBoardUser && openActionsId != null &&
+          {!restrictedBoardUser && canManageDashboardItem && openActionsId != null &&
             menuTargetDashboard &&
             createPortal(
               <div
@@ -374,6 +401,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
                 onClick={(e) => e.stopPropagation()}
               >
                 <ul className="kanban-dashboard-actions-menu-list" role="menu">
+                  {canRenameDashboard && (
                   <li role="none">
                     <button
                       type="button"
@@ -391,6 +419,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
                       <span>Rename</span>
                     </button>
                   </li>
+                  )}
+                  {canUpdateDashboardBackground && (
                   <li role="none" className="kanban-dashboard-actions-menu-item--sub">
                     <button
                       type="button"
@@ -474,6 +504,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
                       </ul>
                     )}
                   </li>
+                  )}
+                  {canDeleteDashboard && (
                   <li role="none">
                     <button
                       type="button"
@@ -485,12 +517,13 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
                       <span>Delete</span>
                     </button>
                   </li>
+                  )}
                 </ul>
               </div>,
               document.body
             )}
 
-          {!restrictedBoardUser ? (
+          {!restrictedBoardUser && canAddDashboard ? (
             <button type="button" className="kanban-sidebar-workspaces-new-db" onClick={onNewDashboard}>
               <span>+ New dashboard</span>
             </button>
@@ -525,7 +558,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
             >
               <FiLayout size={22} />
             </button>
-          ) : (
+          ) : canAddDashboard ? (
             <button
               type="button"
               className="kanban-sidebar-icon kanban-sidebar-icon--collapsed"
@@ -536,7 +569,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
             >
               <FiPlus size={22} />
             </button>
-          )}
+          ) : null}
           <Tooltip
             id="ws-sidebar-tt"
             place="right"

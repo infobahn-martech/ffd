@@ -14,6 +14,7 @@ import {
   getRoleId,
 } from '../shared/helpers/vendorDashboardRoles';
 import { checkHasPermission } from '../shared/utils/permissions';
+import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../shared/constants/permissions';
 
 // `moduleKey`/`submoduleKey`/`actionKey` are optional permission metadata
 // (new module/action permission system).
@@ -55,6 +56,25 @@ function RouteGuard({ children, moduleKey, submoduleKey, actionKey, permissionOn
   if (isRestrictedBoardUser(userProfile)) {
     if (!isRestrictedUserAllowedPath(currentPath)) {
       return <Navigate to={RESTRICTED_USER_FALLBACK_PATH} replace />;
+    }
+    // /workspaces is also this role class's fallback path (and Dashboard,
+    // like every other path, is outside their allowed set), so unlike every
+    // other allowed path here it still needs its own KANBAN_WORKSPACE check
+    // — but denying it can't Navigate anywhere in this role's allowed set
+    // without looping straight back into /workspaces, so render a terminal
+    // "no access" state in place instead of redirecting.
+    if (currentPath === '/workspaces' || currentPath.startsWith('/workspaces/')) {
+      const allowedWorkspace = checkHasPermission(permissionMap, {
+        moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE,
+        actionKey: PERMISSION_ACTIONS.VIEW_WORKSPACE,
+      });
+      if (!allowedWorkspace) {
+        return (
+          <div className="min-vh-100 d-flex align-items-center justify-content-center">
+            <p className="text-muted mb-0">You don't have access to this page.</p>
+          </div>
+        );
+      }
     }
     return children;
   }

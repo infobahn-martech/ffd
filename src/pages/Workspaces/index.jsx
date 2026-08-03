@@ -104,10 +104,20 @@ function Workspaces() {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedUser = isRestrictedBoardUser(userProfile);
   const { hasPermission } = usePermissions();
-  // Keep legacy role access until the role-based permission system is formally retired.
-  const canCreateWorkspace =
-    !restrictedUser ||
-    hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.CREATE_WORKSPACE });
+  // Kanban Workspaces is fully migrated to the new permission system: the
+  // backend permission response is authoritative for every action below, no
+  // legacy role-based OR.
+  const canCreateWorkspace = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.CREATE_WORKSPACE });
+  const canDeleteWorkspace = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.DELETE_WORKSPACE });
+  const canRenameWorkspace = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.RENAME_WORKSPACE });
+  const canArchiveWorkspace = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.ARCHIVE_WORKSPACE });
+  const canAddBoard = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.ADD_BOARD });
+  const canRenameBoard = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.RENAME_BOARD });
+  const canArchiveBoard = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.ARCHIVE_BOARD });
+  const canUpdateBoardBackground = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.UPDATE_BOARD_BACKGROUND });
+  const canEditWorkflows = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.EDIT_WORKFLOW });
+  const canManageWorkspaceMenu = canRenameWorkspace || canArchiveWorkspace;
+  const canManageBoardMenu = canRenameBoard || canUpdateBoardBackground || canEditWorkflows || canArchiveBoard;
 
   const currentDashboard = useMemo(() => {
     if (!isDashboardView || !Array.isArray(apiDashboards)) return null;
@@ -491,7 +501,7 @@ function Workspaces() {
     [currentDashboard]
   );
 
-  const headerActions = (!restrictedUser || canCreateWorkspace) ? (
+  const headerActions = (canCreateWorkspace || canDeleteWorkspace) ? (
     <div className="workspaces-header-actions">
       {canCreateWorkspace && (
         <button
@@ -506,7 +516,7 @@ function Workspaces() {
           </svg>
         </button>
       )}
-      {!restrictedUser && (
+      {canDeleteWorkspace && (
         <button
           type="button"
           className="workspaces-btn workspaces-btn-delete"
@@ -585,8 +595,9 @@ function Workspaces() {
                   </span>
                 )}
               </div>
-              {workspace.boards?.length > 0 && !restrictedUser && (
+              {workspace.boards?.length > 0 && (canAddBoard || canManageWorkspaceMenu) && (
                 <div className="workspace-card-actions">
+                  {canAddBoard && (
                   <button
                     type="button"
                     className="workspace-action-btn"
@@ -606,6 +617,8 @@ function Workspaces() {
                       />
                     </svg>
                   </button>
+                  )}
+                  {canManageWorkspaceMenu && (
                   <div className="workspace-menu-wrapper" ref={openWorkspaceMenuId === workspace.id ? workspaceMenuRef : null}>
                     <button
                       type="button"
@@ -622,6 +635,7 @@ function Workspaces() {
                     </button>
                     {openWorkspaceMenuId === workspace.id && (
                       <div className="workspace-context-menu">
+                        {canRenameWorkspace && (
                         <button
                           type="button"
                           className="workspace-context-menu-item"
@@ -641,6 +655,7 @@ function Workspaces() {
                           </svg>
                           <span>Rename</span>
                         </button>
+                        )}
                         {isDashboardView && currentDashboard && (
                           <>
                             {!workspaceIdsOnCurrentDashboard.has(String(workspace.id)) ? (
@@ -756,6 +771,7 @@ function Workspaces() {
                             <span>Add to Dashboard</span>
                           </button>
                         )}
+                        {canArchiveWorkspace && (
                         <button
                           type="button"
                           className="workspace-context-menu-item"
@@ -782,9 +798,11 @@ function Workspaces() {
                           </svg>
                           <span>Archive</span>
                         </button>
+                        )}
                       </div>
                     )}
                   </div>
+                  )}
                 </div>
               )}
             </div>
@@ -796,14 +814,14 @@ function Workspaces() {
                   return (
                   <div
                     key={board.id}
-                    className={`board-card ${!restrictedUser && openMenuId === board.id ? 'menu-open' : ''}`}
+                    className={`board-card ${canManageBoardMenu && openMenuId === board.id ? 'menu-open' : ''}`}
                     onClick={() => {
                       setIsNavigating(true);
                       navigate(`/kanban-board/${board.id}`);
                     }}
                     style={{ cursor: 'pointer' }}
                   >
-                    {!restrictedUser ? (
+                    {canManageBoardMenu ? (
                       <div className="board-card-header">
                         <div className="board-menu-wrapper" ref={openMenuId === board.id ? menuRef : null}>
                           <button
@@ -824,6 +842,7 @@ function Workspaces() {
                           </button>
                           {openMenuId === board.id && (
                             <div className="board-context-menu">
+                              {canRenameBoard && (
                               <button
                                 type="button"
                                 className="board-context-menu-item"
@@ -843,6 +862,8 @@ function Workspaces() {
                                 </svg>
                                 <span>Rename</span>
                               </button>
+                              )}
+                              {canUpdateBoardBackground && (
                               <div className="board-context-menu-item--sub">
                                 <button
                                   type="button"
@@ -968,6 +989,8 @@ function Workspaces() {
                                   </ul>
                                 )}
                               </div>
+                              )}
+                              {canEditWorkflows && (
                               <button
                                 type="button"
                                 className="board-context-menu-item"
@@ -1008,6 +1031,8 @@ function Workspaces() {
                                 </svg>
                                 <span>Edit Workflows</span>
                               </button>
+                              )}
+                              {canArchiveBoard && (
                               <button
                                 type="button"
                                 className="board-context-menu-item"
@@ -1027,6 +1052,7 @@ function Workspaces() {
                                 </svg>
                                 <span>Archive</span>
                               </button>
+                              )}
                             </div>
                           )}
                         </div>
