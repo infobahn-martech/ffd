@@ -736,9 +736,6 @@ function Arrival({
                 {showInwardClearanceTimestamp &&
                   renderDateTimeField("Inward Clearance Received", "inwardClearanceReceived", true)}
 
-                {renderDateTimeField("MWP Applied", "mwpApplied")}
-                {renderDateTimeField("MWP Received", "mwpReceived")}
-
                 <AdditionalTimeObjectsFields
                   value={formValues.arrivalAdditionalTimeObjects || []}
                   onChange={(next) =>
