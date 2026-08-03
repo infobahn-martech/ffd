@@ -4,7 +4,7 @@ import {
   X, FileText, UploadCloud, Hash, Tag, Clock, User, Ship,
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
   Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
-  CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck, UserCog, Loader2, AlertCircle,
+  CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck, UserCog, Loader2, AlertCircle, Eye,
 } from "lucide-react";
 import { debounce } from "lodash";
 import { notify } from "../../../../../../components/Toaster";
@@ -13,7 +13,7 @@ import daService from "../../../../../../services/daService";
 import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
 import { getInitials } from "../../../../../../shared/utils/utils";
-import { useDaLocalReachedDates } from "../../../../../../shared/store/daStore";
+import { useDaLocalReachedDates, useDaLocalLaunchHire } from "../../../../../../shared/store/daStore";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
 // Card / Appointment & Clearance / MWP / Launch Hire / Clearance Copies / Invoices,
@@ -83,6 +83,8 @@ const FIELD_ICON_OVERRIDES = {
   owner: User,
   coOwners: User,
   vesselName: Ship,
+  attachmentFiles: Paperclip,
+  docFiles: FolderOpen,
 };
 
 const RAW_FIELDS_CONFIG = [
@@ -134,6 +136,13 @@ const RAW_FIELDS_CONFIG = [
   { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, reserveSpace: true },
+  // Attachments / Docs — were free-form text/link rows (LIST_SECTIONS below); the
+  // documents_tab GET already returns these as real uploaded documents (same shape as
+  // FDA Dispatch Proof etc.), so they get the same drag-and-drop/view/delete FileDropzone
+  // treatment here instead. The "More" tab's own text-list "Docs" section is unrelated
+  // and untouched.
+  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
+  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
 ];
 
 const FIELDS_CONFIG = RAW_FIELDS_CONFIG.map((field) => ({
@@ -156,12 +165,8 @@ const OPERATION_DETAILS_FIELDS_BY_KEY = (FIELDS_BY_GROUP.operationDetails ?? [])
 const DA_DOCUMENTS_FIELDS_BY_KEY = (FIELDS_BY_GROUP.daDocuments ?? [])
   .reduce((acc, f) => ({ ...acc, [f.key]: f }), {});
 
-// DA Documents shows only the "Attachments" and "Docs" free-form lists from the
-// "More" tab's LIST_SECTIONS — "Links overview" belongs to the separate Links tab.
-const DA_DOCUMENTS_LIST_SECTIONS = LIST_SECTIONS.filter((s) => s.key === "attachments" || s.key === "docs");
-
-// "More" tab now only shows "Docs" (Attachments moved to DA Documents, Links overview
-// to the separate Links tab), alongside the Relatives & Dependencies card below.
+// "More" tab keeps its own free-form "Docs" text/link list (separate from DA Documents'
+// docFiles upload field above) — Links overview belongs to the separate Links tab.
 const MORE_TAB_LIST_SECTIONS = LIST_SECTIONS.filter((s) => s.key === "docs");
 
 // DA Operations > Launch Hire — same card-hero treatment as the other DA Operations
@@ -173,9 +178,12 @@ const LAUNCH_HIRE_CARDS = [
   { key: "roadTransport", type: "number-unit", icon: Hash, label: "Road Transport", hint: "Number of days required for road transport.", accent: "#d97706", unit: "DAYS", placeholder: "e.g. 3" },
 ];
 
-// Synced from api/da/operation_tab/{call_id} (third_party_launch_hire, road_transport_days),
-// so these are shown read-only rather than editable like the rest of DA Operations.
-function LaunchHireCardsSection({ fieldValues }) {
+// Synced from api/da/operation_tab/{call_id} (third_party_launch_hire, road_transport_days)
+// when the backend has a value. save_operation_tab has no field for either though, so once
+// a card has no value yet, they become editable inputs instead of staying permanently
+// read-only — typed values are saved via the local-only useDaLocalLaunchHire fallback
+// (updateLaunchHireField in DA below) since there's no real backend field to persist to.
+function LaunchHireCardsSection({ fieldValues, updateField }) {
   return (
     <div className="da-cf-ac-grid">
       {LAUNCH_HIRE_CARDS.map((card) => {
@@ -193,7 +201,26 @@ function LaunchHireCardsSection({ fieldValues }) {
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
             <div className="da-cf-ac-card-field">
-              <ReadonlyField label={card.label} icon={Icon} value={displayValue || "Not set yet"} />
+              {value ? (
+                <ReadonlyField label={card.label} icon={Icon} value={displayValue} />
+              ) : card.type === "number-unit" ? (
+                <NumberUnitField
+                  label={card.label}
+                  icon={Icon}
+                  unit={card.unit}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              ) : (
+                <TextField
+                  label={card.label}
+                  icon={Icon}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              )}
             </div>
           </div>
         );
@@ -204,6 +231,7 @@ function LaunchHireCardsSection({ fieldValues }) {
 
 LaunchHireCardsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
+  updateField: PropTypes.func.isRequired,
 };
 
 // Groups that mix full-width tiles (files/chips) with half-width ones need a fixed
@@ -592,7 +620,7 @@ ChipsField.propTypes = {
   accent: PropTypes.string,
 };
 
-function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveSpace, onAddFiles, onRemoveFile }) {
+function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveSpace, readOnly, isLoading, id, highlighted, onAddFiles, onRemoveFile }) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef(null);
 
@@ -615,35 +643,37 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
   };
 
   return (
-    <div className="da-cf-tile da-cf-tile--full">
+    <div id={id} className={`da-cf-tile da-cf-tile--full${highlighted ? " da-cf-tile--highlighted" : ""}`}>
       <TileLabel icon={icon}>
         {label}
         {showCount && files.length > 0 && <span className="da-cf-count-badge">{files.length}</span>}
       </TileLabel>
-      <div
-        className={`da-cf-dropzone${dragging ? " da-cf-dropzone--dragging" : ""}`}
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          handleFiles(e.dataTransfer.files);
-        }}
-      >
-        <UploadCloud size={18} className="da-cf-dropzone-icon" />
-        Drag files here or Click to upload
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          className="da-cf-dropzone-input"
-          onChange={(e) => {
-            handleFiles(e.target.files);
-            e.target.value = "";
+      {!readOnly && (
+        <div
+          className={`da-cf-dropzone${dragging ? " da-cf-dropzone--dragging" : ""}`}
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            handleFiles(e.dataTransfer.files);
           }}
-        />
-      </div>
+        >
+          <UploadCloud size={18} className="da-cf-dropzone-icon" />
+          Drag files here or Click to upload
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            className="da-cf-dropzone-input"
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </div>
+      )}
       {files.length > 0 ? (
         <div className="da-cf-file-list">
           {files.map((file, i) => (
@@ -662,9 +692,22 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
                   </span>
                 )}
               </div>
-              <button type="button" className="da-cf-file-remove" onClick={() => onRemoveFile(i)}>
-                <X size={14} />
-              </button>
+              {file.url && (
+                <a
+                  className="da-cf-file-view"
+                  href={file.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="View document"
+                >
+                  <Eye size={14} />
+                </a>
+              )}
+              {!readOnly && (
+                <button type="button" className="da-cf-file-remove" onClick={() => onRemoveFile(i)}>
+                  <X size={14} />
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -676,7 +719,9 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
           <div className="da-cf-file-row da-cf-file-row--placeholder">
             <span className="da-cf-file-icon"><FileText size={14} /></span>
             <div className="da-cf-file-name-wrap">
-              <span className="da-cf-file-name da-cf-file-name--placeholder">No file synced yet</span>
+              <span className="da-cf-file-name da-cf-file-name--placeholder">
+                {isLoading ? "Loading…" : "No file synced yet"}
+              </span>
             </div>
           </div>
         </div>
@@ -700,6 +745,10 @@ FileDropzone.propTypes = {
   showCount: PropTypes.bool,
   showDownloadAll: PropTypes.bool,
   reserveSpace: PropTypes.bool,
+  readOnly: PropTypes.bool,
+  isLoading: PropTypes.bool,
+  id: PropTypes.string,
+  highlighted: PropTypes.bool,
   onAddFiles: PropTypes.func.isRequired,
   onRemoveFile: PropTypes.func.isRequired,
 };
@@ -724,6 +773,13 @@ const mapStatusTimelineResponse = (rows) =>
     });
 
 function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
+  // A brand-new card's status_timeline comes back with every row "not_reached" (no
+  // "current" yet) since nothing's been advanced. The first step is where the DA
+  // process actually starts, so it displays as "in progress" from the outset instead
+  // of looking like nothing has happened — display only, step.state itself stays
+  // "pending" below so the click-to-activate logic (isFirstStepActivatable) is unaffected.
+  const noStepReachedYet = steps.length > 0 && steps.every((s) => s.state === "pending");
+
   return (
     <>
       <div className="da-cf-timeline-header">
@@ -735,7 +791,8 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
       </div>
       <div className="da-cf-timeline">
         {steps.map((step, index) => {
-          const Icon = step.state === "done" ? CheckCircle2 : step.state === "current" ? Clock : CircleDashed;
+          const displayState = noStepReachedYet && index === 0 ? "current" : step.state;
+          const Icon = displayState === "done" ? CheckCircle2 : displayState === "current" ? Clock : CircleDashed;
           // Three click targets:
           // - "current" step's round moves the DA forward one stage. Sending
           //   api/da/update_status the CURRENT step's own status_name is a no-op (it's
@@ -759,7 +816,7 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
           const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isUpNextClickable || isBackClickable || isFirstStepActivatable);
           const targetLabel = isForwardClickable ? nextStep.label : step.label;
           return (
-            <div className={`da-cf-timeline-step da-cf-timeline-step--${step.state}`} key={step.key}>
+            <div className={`da-cf-timeline-step da-cf-timeline-step--${displayState}`} key={step.key}>
               <div className="da-cf-timeline-step-marker">
                 {isClickable ? (
                   <button
@@ -781,8 +838,8 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
               </div>
               <div className="da-cf-timeline-step-body">
                 <span className="da-cf-timeline-step-label">{step.label}</span>
-                <span className={`da-cf-timeline-status-badge da-cf-timeline-status-badge--${step.state}`}>
-                  {step.state === "done" ? "Completed" : step.state === "current" ? "In progress" : "Not reached"}
+                <span className={`da-cf-timeline-status-badge da-cf-timeline-status-badge--${displayState}`}>
+                  {displayState === "done" ? "Completed" : displayState === "current" ? "In progress" : "Not reached"}
                 </span>
                 {step.state === "done" && step.date && (
                   <span className="da-cf-timeline-step-date">
@@ -814,7 +871,7 @@ StatusTimelineSection.propTypes = {
   isAdvancing: PropTypes.bool,
 };
 
-function SummaryPanel({ callId, fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline, onAdvanceDaStage, isAdvancingDaStage }) {
+function SummaryPanel({ callId, fieldValues, billingEntityLabel, summaryData, isLoadingSummary, statusTimeline, isLoadingStatusTimeline, onAdvanceDaStage, isAdvancingDaStage, onNavigateToDocTile }) {
   const formatDateTime = (dt) => (dt?.date ? `${dt.date}${dt.time ? ` · ${dt.time}` : ""}` : null);
 
   const getLocalReachedDate = useDaLocalReachedDates((s) => s.getReachedDate);
@@ -847,8 +904,8 @@ function SummaryPanel({ callId, fieldValues, billingEntityLabel, summaryData, is
     { label: "Vessel", value: apiValue("vessel_name", fieldValues.vesselName), icon: Ship, accent: "#2563eb" },
     { label: "Owner", value: apiValue("call_owner_name", fieldValues.owner), icon: User, accent: "#0d9488" },
     { label: "Vessel Owner", value: apiValue("vessel_owner", null), icon: Building2, accent: "#d97706" },
-    { label: "Inward Clearance", value: apiDateValue("inward_clearance_date", formatDateTime(fieldValues.inwardClearanceDate)), icon: CalendarCheck, accent: "#0891b2" },
-    { label: "Outward Clearance", value: apiDateValue("outward_clearance_date", formatDateTime(fieldValues.outwardClearanceDate)), icon: CalendarCheck, accent: "#7c3aed" },
+    { label: "Inward Clearance", value: apiDateValue("inward_clearance_date", formatDateTime(fieldValues.inwardClearanceDate)), icon: CalendarCheck, accent: "#0891b2", docTileKey: "inwardClearanceCopy" },
+    { label: "Outward Clearance", value: apiDateValue("outward_clearance_date", formatDateTime(fieldValues.outwardClearanceDate)), icon: CalendarCheck, accent: "#7c3aed", docTileKey: "sailingClearanceCopy" },
     { label: "Billing Entity", value: apiValue("billing_entity", billingEntityLabel || null), icon: Package, accent: "#e11d48" },
     { label: "SAP Sales Order No", value: apiValue("sap_sales_order_no", fieldValues.sapSalesOrderNo), icon: Receipt, accent: "#059669" },
   ];
@@ -867,11 +924,18 @@ function SummaryPanel({ callId, fieldValues, billingEntityLabel, summaryData, is
       <div className="da-cf-summary-cards">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
+          const isClickable = Boolean(stat.docTileKey && onNavigateToDocTile);
+          const goToDocTile = () => onNavigateToDocTile(stat.docTileKey);
           return (
             <div
-              className="da-cf-summary-card"
+              className={`da-cf-summary-card${isClickable ? " da-cf-summary-card--clickable" : ""}`}
               key={stat.label}
               style={{ "--stagger-index": index, "--summary-accent": stat.accent }}
+              role={isClickable ? "button" : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onClick={isClickable ? goToDocTile : undefined}
+              onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goToDocTile(); } } : undefined}
+              title={isClickable ? "View in DA Documents" : undefined}
             >
               <span className="da-cf-summary-card-icon"><Icon size={22} /></span>
               <div className="da-cf-summary-card-content">
@@ -880,6 +944,7 @@ function SummaryPanel({ callId, fieldValues, billingEntityLabel, summaryData, is
                   {stat.value || "Not filled in yet"}
                 </p>
               </div>
+              {isClickable && <ArrowUpRight size={14} className="da-cf-summary-card-arrow" />}
             </div>
           );
         })}
@@ -898,6 +963,7 @@ SummaryPanel.propTypes = {
   isLoadingStatusTimeline: PropTypes.bool,
   onAdvanceDaStage: PropTypes.func,
   isAdvancingDaStage: PropTypes.bool,
+  onNavigateToDocTile: PropTypes.func,
 };
 
 function ListRowsSection({ label, icon, rows, collapsed, onToggleCollapse, onAdd, onChangeRow, onRemoveRow, placeholder, accent }) {
@@ -1251,11 +1317,13 @@ AppointmentClearanceSection.propTypes = {
   isLoadingTimeObjects: PropTypes.bool,
 };
 
-// DA Operations > Clearance Details — the same 3 read-only date cards from
-// AppointmentClearanceSection above (Inward Clearance, Outward Clearance, Operations
-// Completion), minus the editable Appointment Email upload, reused here so the dates
-// stay in sync wherever they're shown.
-function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
+// DA Operations > Clearance Details — the same 3 date cards from AppointmentClearanceSection
+// above (Inward Clearance, Outward Clearance, Operations Completion), minus the editable
+// Appointment Email upload, reused here so the dates stay in sync wherever they're shown.
+// Each card is read-only once a value exists (synced from time_objects / appointment_clearance_tab)
+// but becomes a real input when the backend hasn't provided one yet, so the gap can be
+// filled in manually — saved via runSaveClearanceDetails in DA below (api/da/save_appointment_clearance_tab).
+function ClearanceDetailsSection({ fieldValues, updateField, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
   const cards = [
     {
       key: "inwardClearanceDate",
@@ -1268,11 +1336,20 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
           items={arrivalTimeObjects}
           isLoading={isLoadingTimeObjects}
           fallback={
-            <p className="da-cf-ac-readonly-value">
-              {fieldValues.inwardClearanceDate.date
-                ? formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))
-                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
-            </p>
+            fieldValues.inwardClearanceDate.date ? (
+              <p className="da-cf-ac-readonly-value">
+                {formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))}
+              </p>
+            ) : (
+              <DateTimeField
+                label="Inward Clearance Date"
+                icon={CalendarCheck}
+                date={fieldValues.inwardClearanceDate.date}
+                time={fieldValues.inwardClearanceDate.time}
+                onDateChange={(v) => updateField("inwardClearanceDate", { ...fieldValues.inwardClearanceDate, date: v })}
+                onTimeChange={(v) => updateField("inwardClearanceDate", { ...fieldValues.inwardClearanceDate, time: v })}
+              />
+            )
           }
         />
       ),
@@ -1288,11 +1365,20 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
           items={departureTimeObjects}
           isLoading={isLoadingTimeObjects}
           fallback={
-            <p className="da-cf-ac-readonly-value">
-              {fieldValues.outwardClearanceDate.date
-                ? formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))
-                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
-            </p>
+            fieldValues.outwardClearanceDate.date ? (
+              <p className="da-cf-ac-readonly-value">
+                {formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))}
+              </p>
+            ) : (
+              <DateTimeField
+                label="Outward Clearance Date"
+                icon={CalendarCheck}
+                date={fieldValues.outwardClearanceDate.date}
+                time={fieldValues.outwardClearanceDate.time}
+                onDateChange={(v) => updateField("outwardClearanceDate", { ...fieldValues.outwardClearanceDate, date: v })}
+                onTimeChange={(v) => updateField("outwardClearanceDate", { ...fieldValues.outwardClearanceDate, time: v })}
+              />
+            )
           }
         />
       ),
@@ -1303,12 +1389,17 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
       label: "Operation Completed Date",
       accent: "#d97706",
       isDone: Boolean(fieldValues.operationsCompletionDate),
-      content: (
+      content: fieldValues.operationsCompletionDate ? (
         <p className="da-cf-ac-readonly-value">
-          {fieldValues.operationsCompletionDate
-            ? formatDisplayDateOnly(fieldValues.operationsCompletionDate)
-            : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+          {formatDisplayDateOnly(fieldValues.operationsCompletionDate)}
         </p>
+      ) : (
+        <DateField
+          label="Operation Completed Date"
+          icon={Anchor}
+          value={fieldValues.operationsCompletionDate}
+          onChange={(v) => updateField("operationsCompletionDate", v)}
+        />
       ),
     },
   ];
@@ -1337,6 +1428,7 @@ function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTim
 
 ClearanceDetailsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
+  updateField: PropTypes.func.isRequired,
   arrivalTimeObjects: PropTypes.array.isRequired,
   departureTimeObjects: PropTypes.array.isRequired,
   isLoadingTimeObjects: PropTypes.bool,
@@ -1669,6 +1761,14 @@ CardPanel.propTypes = {
 
 function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaStage, isAdvancingDaStage }) {
   const [activeSubTab, setActiveSubTab] = useState("summary");
+  // Set when a Summary stat card (Inward/Outward Clearance) is clicked — switches to the
+  // DA Documents sub-tab and briefly highlights + scrolls to the matching Clearance Copy
+  // tile, then clears itself (see the scroll/highlight effect further down).
+  const [highlightedDocTile, setHighlightedDocTile] = useState(null);
+  const navigateToDocTile = useCallback((tileKey) => {
+    setActiveSubTab("daDocuments");
+    setHighlightedDocTile(tileKey);
+  }, []);
   const [fieldValues, setFieldValues] = useState(makeInitialFieldState);
   // co_owner_id isn't a visible field — UserSearchField only exposes the picked user's
   // name — but api/da/save_card_tab needs the id, so it's tracked alongside coOwners.
@@ -1766,6 +1866,8 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
   // Vessel Owner / Owner / Billing Entity / Last moved tiles in Operation Details.
   const [operationTabData, setOperationTabData] = useState(null);
   const [isLoadingOperationTab, setIsLoadingOperationTab] = useState(false);
+  const getLaunchHireOverride = useDaLocalLaunchHire((s) => s.getLaunchHireOverride);
+  const setLaunchHireOverride = useDaLocalLaunchHire((s) => s.setLaunchHireOverride);
 
   useEffect(() => {
     if (callId == null) return undefined;
@@ -1786,8 +1888,15 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
           vesselName: opData.vessel_name ?? prev.vesselName,
           serviceRequester: opData.service_requester ?? prev.serviceRequester,
           billingOthers: opData.billing_note ?? prev.billingOthers,
-          thirdPartyLaunchHire: opData.third_party_launch_hire ?? prev.thirdPartyLaunchHire,
-          roadTransport: opData.road_transport_days != null ? String(opData.road_transport_days) : prev.roadTransport,
+          // save_operation_tab has no field for either of these (see LaunchHireCardsSection),
+          // so an empty API value falls back to the local-only override (see
+          // useDaLocalLaunchHire) before finally falling back to whatever's already typed.
+          thirdPartyLaunchHire: opData.third_party_launch_hire
+            || getLaunchHireOverride(callId, "thirdPartyLaunchHire")
+            || prev.thirdPartyLaunchHire,
+          roadTransport: (opData.road_transport_days != null ? String(opData.road_transport_days) : "")
+            || getLaunchHireOverride(callId, "roadTransport")
+            || prev.roadTransport,
           taxInvoice: opData.tax_invoice_no ?? prev.taxInvoice,
           srtPoWbs: opData.srt_po_wbs_ref ?? prev.srtPoWbs,
           invoiceAmount: opData.invoice_amount ?? prev.invoiceAmount,
@@ -1802,7 +1911,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         if (!cancelled) setIsLoadingOperationTab(false);
       });
     return () => { cancelled = true; };
-  }, [callId]);
+  }, [callId, getLaunchHireOverride]);
 
   // api/da/appointment_clearance_tab/{call_id} — hydrates the "Appointment & Clearance"
   // sub-tab (clearance/operations dates + the Appointment Email documents already
@@ -1816,6 +1925,9 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         const tabData = data?.data;
         if (!tabData) return;
         const appointmentEmailDocs = tabData.documents?.["Appointment Email"];
+        // Watched by the Clearance Details autosave effect further down — guard it so
+        // hydrating from the backend doesn't immediately re-save what it just fetched.
+        skipNextClearanceAutoSaveRef.current = true;
         setFieldValues((prev) => ({
           ...prev,
           inwardClearanceDate: tabData.inward_clearance_date
@@ -1981,41 +2093,70 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     debouncedAutoSaveOperationTab,
   ]);
 
-  // api/da/save_appointment_clearance_tab/{call_id} — persists the "Appointment &
-  // Clearance" sub-tab. Only newly-picked browser File objects in appointmentEmail are
-  // uploaded; documents already hydrated from the GET (mapApiDocument) aren't File
-  // instances and are skipped so they aren't re-uploaded.
-  const [isSavingAppointmentClearanceTab, setIsSavingAppointmentClearanceTab] = useState(false);
+  // api/da/save_appointment_clearance_tab/{call_id} — persists Clearance Details' Inward/
+  // Outward Clearance Date + Operations Completion Date. These are only editable in
+  // ClearanceDetailsSection when the backend hasn't already synced a value via
+  // time_objects / this same GET — see the isDone/fallback branches there. Same silent
+  // debounced-autosave pattern as the rest of DA Operations/DA Documents (no manual Save
+  // button), own status pill on the Clearance Details card header since this is a
+  // separate endpoint from save_operation_tab. skipNextClearanceAutoSaveRef is set right
+  // before the appointment_clearance_tab GET above hydrates these fields, so loading a
+  // card doesn't immediately re-save what it just fetched.
+  const [clearanceDetailsSaveStatus, setClearanceDetailsSaveStatus] = useState("idle");
+  const latestClearanceDetailsFormRef = useRef(null);
+  latestClearanceDetailsFormRef.current = {
+    inwardClearanceDate: fieldValues.inwardClearanceDate,
+    outwardClearanceDate: fieldValues.outwardClearanceDate,
+    operationsCompletionDate: fieldValues.operationsCompletionDate,
+  };
+  const skipNextClearanceAutoSaveRef = useRef(true);
 
-  const handleSaveAppointmentClearanceTab = useCallback(async () => {
-    if (callId == null) {
-      notify("Call ID is required before saving.", "error", "top-center");
-      return;
-    }
+  const runSaveClearanceDetails = useCallback(async () => {
+    if (callId == null) return;
+    const { inwardClearanceDate, outwardClearanceDate, operationsCompletionDate } = latestClearanceDetailsFormRef.current;
     const formData = new FormData();
-    formData.append("inward_clearance_date", combineApiDateTime(fieldValues.inwardClearanceDate));
-    formData.append("outward_clearance_date", combineApiDateTime(fieldValues.outwardClearanceDate));
-    formData.append("operations_completion_date", fieldValues.operationsCompletionDate || "");
-    fieldValues.appointmentEmail
-      .filter((file) => file instanceof File)
-      .forEach((file) => formData.append("appointment_email[]", file));
+    formData.append("inward_clearance_date", combineApiDateTime(inwardClearanceDate));
+    formData.append("outward_clearance_date", combineApiDateTime(outwardClearanceDate));
+    formData.append("operations_completion_date", operationsCompletionDate || "");
 
-    setIsSavingAppointmentClearanceTab(true);
+    setClearanceDetailsSaveStatus("saving");
     try {
       await daService.saveAppointmentClearanceTab(callId, formData);
-      notify("Appointment & Clearance details saved.", "success", "top-center");
-    } catch (err) {
-      notify(err?.response?.data?.message || "Failed to save appointment & clearance details.", "error", "top-center");
-    } finally {
-      setIsSavingAppointmentClearanceTab(false);
+      setClearanceDetailsSaveStatus("saved");
+    } catch {
+      setClearanceDetailsSaveStatus("error");
     }
-  }, [callId, fieldValues]);
+  }, [callId]);
 
-  // api/da/save_documents_tab/{call_id} — persists the 3 "DA Documents" file fields that
+  const debouncedAutoSaveClearanceDetails = useMemo(
+    () => debounce(runSaveClearanceDetails, AUTO_SAVE_DEBOUNCE_MS),
+    [runSaveClearanceDetails],
+  );
+
+  useEffect(() => () => debouncedAutoSaveClearanceDetails.flush(), [debouncedAutoSaveClearanceDetails]);
+
+  useEffect(() => {
+    if (skipNextClearanceAutoSaveRef.current) {
+      skipNextClearanceAutoSaveRef.current = false;
+      return;
+    }
+    debouncedAutoSaveClearanceDetails();
+  }, [
+    fieldValues.inwardClearanceDate,
+    fieldValues.outwardClearanceDate,
+    fieldValues.operationsCompletionDate,
+    debouncedAutoSaveClearanceDetails,
+  ]);
+
+  // api/da/save_documents_tab/{call_id} — persists the 5 "DA Documents" file fields that
   // have no other backend source (see the documents_tab GET above): FDA Dispatch Proof,
-  // Supporting Documents, Sales Order Supporting Documents. Only newly-picked browser File
-  // objects are uploaded; documents already hydrated from the GET (mapApiDocument) aren't
-  // File instances and are skipped so they aren't re-uploaded.
+  // Supporting Documents, Sales Order Supporting Documents, Attachments, Docs. Only
+  // newly-picked browser File objects are uploaded; documents already hydrated from the
+  // GET (mapApiDocument) aren't File instances and are skipped so they aren't re-uploaded.
+  //
+  // attachments[] / docs[] follow the same snake_case-of-the-GET-key convention as the
+  // other 3 fields (fda_dispatch_proof[] etc.) — unverified against the backend since
+  // Attachments/Docs didn't have a file picker before this; confirm once testable.
   //
   // Same debounced-autosave pattern as DA Operations (runSaveOperationTab above) — no
   // manual Save button here either, it runs silently AUTO_SAVE_DEBOUNCE_MS after the last
@@ -2028,12 +2169,14 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     fdaDispatchProof: fieldValues.fdaDispatchProof,
     supportingDocuments: fieldValues.supportingDocuments,
     salesOrderSupportingDocs: fieldValues.salesOrderSupportingDocs,
+    attachmentFiles: fieldValues.attachmentFiles,
+    docFiles: fieldValues.docFiles,
   };
   const skipNextDocumentsAutoSaveRef = useRef(true);
 
   const runSaveDocumentsTab = useCallback(async () => {
     if (callId == null) return;
-    const { fdaDispatchProof, supportingDocuments, salesOrderSupportingDocs } = latestDocumentsFormRef.current;
+    const { fdaDispatchProof, supportingDocuments, salesOrderSupportingDocs, attachmentFiles, docFiles } = latestDocumentsFormRef.current;
     const formData = new FormData();
     (fdaDispatchProof || [])
       .filter((file) => file instanceof File)
@@ -2044,6 +2187,12 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     (salesOrderSupportingDocs || [])
       .filter((file) => file instanceof File)
       .forEach((file) => formData.append("sales_order_supporting_documents[]", file));
+    (attachmentFiles || [])
+      .filter((file) => file instanceof File)
+      .forEach((file) => formData.append("attachments[]", file));
+    (docFiles || [])
+      .filter((file) => file instanceof File)
+      .forEach((file) => formData.append("docs[]", file));
 
     setDocumentsSaveStatus("saving");
     try {
@@ -2071,12 +2220,22 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     fieldValues.fdaDispatchProof,
     fieldValues.supportingDocuments,
     fieldValues.salesOrderSupportingDocs,
+    fieldValues.attachmentFiles,
+    fieldValues.docFiles,
     debouncedAutoSaveDocumentsTab,
   ]);
 
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+  // Launch Hire's 2 fields have no save_operation_tab field (see LaunchHireCardsSection),
+  // so typed values also get mirrored into useDaLocalLaunchHire — the only place they're
+  // remembered across reopening the card, since there's no backend to persist them to.
+  const updateLaunchHireField = useCallback((key, value) => {
+    updateField(key, value);
+    if (callId != null) setLaunchHireOverride(callId, key, value);
+  }, [updateField, callId, setLaunchHireOverride]);
 
   const rowIdCounter = useRef(0);
   const nextRowId = () => `row-${++rowIdCounter.current}`;
@@ -2148,10 +2307,9 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
 
   // api/da/documents_tab/{call_id} — hydrates the "DA Documents" sub-tab once, when the
   // card first loads: FDA Dispatch Proof / Supporting Documents / Sales Order Supporting
-  // Documents (files fields with no other backend source, unlike the rest of daDocuments'
-  // fields which mirror values already fetched by operation_tab / appointment_clearance_tab
-  // above) plus the Attachments / Docs free-form lists, pre-filled with already-uploaded
-  // document names.
+  // Documents / Attachments / Docs (files fields with no other backend source, unlike the
+  // rest of daDocuments' fields which mirror values already fetched by operation_tab /
+  // appointment_clearance_tab above), plus the "More" tab's separate Docs text list.
   useEffect(() => {
     if (callId == null) return undefined;
     let cancelled = false;
@@ -2164,6 +2322,8 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         const fdaDispatchProofDocs = documents["FDA Dispatch Proof"];
         const supportingDocumentsDocs = documents["Supporting Documents"];
         const salesOrderSupportingDocsDocs = documents["Sales Order Supporting Documents"];
+        const attachmentsDocs = documents["Attachments"];
+        const docsDocs = documents["Docs"];
         // Watched by the DA Documents autosave effect further down — guard it so
         // hydrating from the backend doesn't immediately re-save what it just fetched.
         skipNextDocumentsAutoSaveRef.current = true;
@@ -2178,15 +2338,18 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
           salesOrderSupportingDocs: Array.isArray(salesOrderSupportingDocsDocs)
             ? salesOrderSupportingDocsDocs.map(mapApiDocument)
             : prev.salesOrderSupportingDocs,
+          attachmentFiles: Array.isArray(attachmentsDocs)
+            ? attachmentsDocs.map(mapApiDocument)
+            : prev.attachmentFiles,
+          docFiles: Array.isArray(docsDocs)
+            ? docsDocs.map(mapApiDocument)
+            : prev.docFiles,
         }));
 
-        const attachmentsDocs = documents["Attachments"];
-        const docsDocs = documents["Docs"];
+        // "More" tab's own free-form "Docs" text list — separate from docFiles above,
+        // pre-filled with the same document names.
         setListSections((prev) => ({
           ...prev,
-          attachments: Array.isArray(attachmentsDocs) && attachmentsDocs.length
-            ? { ...prev.attachments, rows: attachmentsDocs.map((doc) => ({ id: nextRowId(), value: mapApiDocument(doc).name })) }
-            : prev.attachments,
           docs: Array.isArray(docsDocs) && docsDocs.length
             ? { ...prev.docs, rows: docsDocs.map((doc) => ({ id: nextRowId(), value: mapApiDocument(doc).name })) }
             : prev.docs,
@@ -2203,7 +2366,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     setRelatives((prev) => prev.map((row, i) => (i === idx ? { ...row, value } : row)));
   const removeRelative = (idx) => setRelatives((prev) => prev.filter((_, i) => i !== idx));
 
-  const renderField = (field) => {
+  const renderField = (field, extraProps) => {
     const value = fieldValues[field.key];
     switch (field.type) {
       case "text":
@@ -2295,6 +2458,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             reserveSpace={field.reserveSpace}
             onAddFiles={(newFiles) => updateField(field.key, [...value, ...newFiles])}
             onRemoveFile={(i) => updateField(field.key, value.filter((_, idx) => idx !== i))}
+            {...extraProps}
           />
         );
       default:
@@ -2337,6 +2501,17 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
       scrollParent.scrollBy({ top: 320, behavior: "smooth" });
     }
   }, [activeSubTab]);
+
+  // Summary's Inward/Outward Clearance stat cards jump here via navigateToDocTile —
+  // scrolls to and briefly highlights the matching Clearance Copy tile in DA Documents,
+  // then clears itself.
+  useEffect(() => {
+    if (activeSubTab !== "daDocuments" || !highlightedDocTile) return undefined;
+    const node = document.getElementById(`da-doc-tile-${highlightedDocTile}`);
+    node?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timer = setTimeout(() => setHighlightedDocTile(null), 2200);
+    return () => clearTimeout(timer);
+  }, [activeSubTab, highlightedDocTile]);
 
   return (
     <div className="cardform-body da-cf-panel">
@@ -2385,6 +2560,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
               isLoadingStatusTimeline={isLoadingStatusTimeline}
               onAdvanceDaStage={onAdvanceDaStage}
               isAdvancingDaStage={isAdvancingDaStage}
+              onNavigateToDocTile={navigateToDocTile}
             />
           </div>
         ) : activeSubTab === "card" ? (
@@ -2513,6 +2689,11 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                     <header className="da-cf-ops-card-header">
                       <span className="da-cf-ops-card-icon"><Icon size={16} /></span>
                       <h4 className="da-cf-ops-card-title">{tab.label}</h4>
+                      {isClearanceDetails && (
+                        <span className="da-cf-ops-card-header-status">
+                          <OperationAutoSaveStatus status={clearanceDetailsSaveStatus} />
+                        </span>
+                      )}
                     </header>
                     <div className="da-cf-ops-card-body">
                       {isOperationDetails ? (
@@ -2558,12 +2739,13 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                       ) : isClearanceDetails ? (
                         <ClearanceDetailsSection
                           fieldValues={fieldValues}
+                          updateField={updateField}
                           arrivalTimeObjects={arrivalTimeObjects}
                           departureTimeObjects={departureTimeObjects}
                           isLoadingTimeObjects={isLoadingTimeObjects}
                         />
                       ) : isLaunchHire ? (
-                        <LaunchHireCardsSection fieldValues={fieldValues} />
+                        <LaunchHireCardsSection fieldValues={fieldValues} updateField={updateLaunchHireField} />
                       ) : isInvoice ? (
                         <InvoiceCardsSection fieldValues={fieldValues} updateField={updateField} />
                       ) : isSalesOrder ? (
@@ -2594,41 +2776,39 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
               </div>
             </div>
 
-            <RequiredDocumentsSection
-              documents={requiredDocuments}
-              isLoading={isLoadingRequiredDocuments}
-              configs={MWP_REQUIRED_DOCUMENTS_CONFIG}
-              title="MWP Documents"
-              standalone
-              large
-            />
-
             <div className="da-cf-fields-grid da-cf-fields-grid--files2">
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.launchHireSlips)}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.inwardClearanceCopy)}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.sailingClearanceCopy)}
+              {MWP_REQUIRED_DOCUMENTS_CONFIG.map((doc) => {
+                const entry = requiredDocuments?.[doc.key];
+                const files = entry?.file_url ? [{ name: entry.file_name || doc.label, url: entry.file_url }] : [];
+                return (
+                  <FileDropzone
+                    key={doc.key}
+                    label={doc.label}
+                    icon={doc.icon}
+                    files={files}
+                    reserveSpace
+                    readOnly
+                    isLoading={isLoadingRequiredDocuments}
+                    onAddFiles={() => {}}
+                    onRemoveFile={() => {}}
+                  />
+                );
+              })}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.inwardClearanceCopy, {
+                id: "da-doc-tile-inwardClearanceCopy",
+                highlighted: highlightedDocTile === "inwardClearanceCopy",
+              })}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.sailingClearanceCopy, {
+                id: "da-doc-tile-sailingClearanceCopy",
+                highlighted: highlightedDocTile === "sailingClearanceCopy",
+              })}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.copyOfSalesOrder)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.salesOrderSupportingDocs)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.fdaDispatchProof)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.supportingDocuments)}
-            </div>
-
-            <div className="da-cf-more-grid">
-              {DA_DOCUMENTS_LIST_SECTIONS.map((section) => (
-                <ListRowsSection
-                  key={section.key}
-                  label={section.label}
-                  icon={section.icon}
-                  rows={listSections[section.key].rows}
-                  collapsed={listSections[section.key].collapsed}
-                  onToggleCollapse={() => toggleListCollapse(section.key)}
-                  onAdd={() => addListRow(section.key)}
-                  onChangeRow={(i, v) => changeListRow(section.key, i, v)}
-                  onRemoveRow={(i) => removeListRow(section.key, i)}
-                  placeholder={section.placeholder}
-                  accent={section.accent}
-                />
-              ))}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.attachmentFiles)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.docFiles)}
             </div>
           </div>
         ) : activeSubTab === "clearanceCopies" ? (
