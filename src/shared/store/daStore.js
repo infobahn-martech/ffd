@@ -13,3 +13,18 @@ export const useDaLocalReachedDates = create((set, get) => ({
     })),
   getReachedDate: (callId, statusName) => get().reachedDates[`${callId}:${statusName}`] ?? null,
 }));
+
+// Local-only fallback for DA Operations > Launch Hire's "3rd Party Launch hire" and
+// "Road Transport" fields: api/da/save_operation_tab has no field for either (per DA.jsx's
+// LaunchHireCardsSection comment), so typed values are remembered here per call id instead
+// of vanishing the next time the card is opened. Same in-memory-only pattern as
+// useDaLocalReachedDates above — cleared on full page reload by design; once the backend
+// gains a real field for these, that value takes priority over this fallback.
+export const useDaLocalLaunchHire = create((set, get) => ({
+  overrides: {},
+  setLaunchHireOverride: (callId, key, value) =>
+    set((state) => ({
+      overrides: { ...state.overrides, [callId]: { ...state.overrides[callId], [key]: value } },
+    })),
+  getLaunchHireOverride: (callId, key) => get().overrides[callId]?.[key] ?? null,
+}));

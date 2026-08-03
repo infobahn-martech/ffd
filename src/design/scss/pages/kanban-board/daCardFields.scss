@@ -173,6 +173,12 @@
   margin: 0;
 }
 
+// Clearance Details' own autosave pill — a separate api/da/save_appointment_clearance_tab
+// endpoint from the rest of DA Operations' shared save_operation_tab pill above the grid.
+.da-cf-ops-card-header-status {
+  margin-left: auto;
+}
+
 .da-cf-ops-card-body {
   display: flex;
   flex-direction: column;
@@ -464,6 +470,19 @@
 
 .da-cf-tile--full {
   grid-column: 1 / -1;
+}
+
+// Briefly rings the tile a Summary stat card (Inward/Outward Clearance) deep-links to —
+// see highlightedDocTile / navigateToDocTile in DA.jsx. Clears itself after ~2s.
+.da-cf-tile--highlighted {
+  border-color: var(--da-accent);
+  box-shadow: 0 0 0 3px var(--da-accent-soft);
+  animation: da-cf-doc-tile-pulse 1.1s ease-in-out 2;
+}
+
+@keyframes da-cf-doc-tile-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--da-accent-soft); }
+  50% { box-shadow: 0 0 0 6px var(--da-accent-soft); }
 }
 
 .da-cf-tile-label {
@@ -1213,12 +1232,26 @@
   color: #1e9e52;
 }
 
+.da-cf-file-view {
+  border: none;
+  background: transparent;
+  color: var(--da-ink-faint);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--da-accent);
+  }
+}
+
 .da-cf-file-remove {
   border: none;
   background: transparent;
   color: var(--da-ink-faint);
   cursor: pointer;
   display: inline-flex;
+  flex-shrink: 0;
 
   &:hover {
     color: #e02020;
@@ -1527,6 +1560,33 @@ a.da-cf-file-name {
 .da-cf-summary-card-value--empty {
   font-style: italic;
   color: var(--da-ink-faint);
+}
+
+// Inward/Outward Clearance cards — clicking jumps to the matching Clearance Copy tile
+// in DA Documents (see navigateToDocTile in DA.jsx).
+.da-cf-summary-card--clickable {
+  position: relative;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--summary-accent, var(--da-accent));
+    outline-offset: 2px;
+  }
+}
+
+.da-cf-summary-card-arrow {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--summary-accent, var(--da-accent));
+  opacity: 0.55;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.da-cf-summary-card--clickable:hover .da-cf-summary-card-arrow,
+.da-cf-summary-card--clickable:focus-visible .da-cf-summary-card-arrow {
+  opacity: 1;
+  transform: translate(2px, -2px);
 }
 
 @media (max-width: 992px) {
