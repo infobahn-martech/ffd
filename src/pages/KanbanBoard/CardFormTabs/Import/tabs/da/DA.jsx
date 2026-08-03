@@ -2078,6 +2078,53 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     }));
   };
 
+  // api/da/documents_tab/{call_id} — hydrates the "DA Documents" sub-tab once, when the
+  // card first loads: FDA Dispatch Proof / Supporting Documents / Sales Order Supporting
+  // Documents (files fields with no other backend source, unlike the rest of daDocuments'
+  // fields which mirror values already fetched by operation_tab / appointment_clearance_tab
+  // above) plus the Attachments / Docs free-form lists, pre-filled with already-uploaded
+  // document names.
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    daService.getDocumentsTab(callId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const documents = data?.data?.documents;
+        if (!documents) return;
+
+        const fdaDispatchProofDocs = documents["FDA Dispatch Proof"];
+        const supportingDocumentsDocs = documents["Supporting Documents"];
+        const salesOrderSupportingDocsDocs = documents["Sales Order Supporting Documents"];
+        setFieldValues((prev) => ({
+          ...prev,
+          fdaDispatchProof: Array.isArray(fdaDispatchProofDocs)
+            ? fdaDispatchProofDocs.map(mapApiDocument)
+            : prev.fdaDispatchProof,
+          supportingDocuments: Array.isArray(supportingDocumentsDocs)
+            ? supportingDocumentsDocs.map(mapApiDocument)
+            : prev.supportingDocuments,
+          salesOrderSupportingDocs: Array.isArray(salesOrderSupportingDocsDocs)
+            ? salesOrderSupportingDocsDocs.map(mapApiDocument)
+            : prev.salesOrderSupportingDocs,
+        }));
+
+        const attachmentsDocs = documents["Attachments"];
+        const docsDocs = documents["Docs"];
+        setListSections((prev) => ({
+          ...prev,
+          attachments: Array.isArray(attachmentsDocs) && attachmentsDocs.length
+            ? { ...prev.attachments, rows: attachmentsDocs.map((doc) => ({ id: nextRowId(), value: mapApiDocument(doc).name })) }
+            : prev.attachments,
+          docs: Array.isArray(docsDocs) && docsDocs.length
+            ? { ...prev.docs, rows: docsDocs.map((doc) => ({ id: nextRowId(), value: mapApiDocument(doc).name })) }
+            : prev.docs,
+        }));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [callId]);
+
   const [relatives, setRelatives] = useState([]);
   const [relativesCollapsed, setRelativesCollapsed] = useState(false);
   const addRelative = () => setRelatives((prev) => [...prev, { id: nextRowId(), value: "" }]);

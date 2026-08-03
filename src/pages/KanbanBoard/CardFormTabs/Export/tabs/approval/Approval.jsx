@@ -1173,15 +1173,17 @@ const createEmptyPartySection = () => ({
                 isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
               />
 
-              {/* Controller only sees their own action card while it's still
-                  their turn — once they've proceeded (workflow has moved
-                  past credit_controller), the Manager card becomes visible
-                  to them too, but stays locked (view-only) via the existing
-                  fieldsDisabled/actionsDisabled role checks below.
-                  isCeoRole is checked first so the TEMPORARY role_id "2"/"3"
-                  CEO-testers (see isCeoRole above) always see this card too,
-                  same as the CEO card's own bypass below. */}
-              {isCeoRole || !isControllerRole || !stageActive.credit_controller ? (
+              {/* Nobody — Controller, Manager, CEO (including the TEMPORARY
+                  role_id "3" CEO-tester), DA, or generic viewers — sees the
+                  Manager card until Credit Controller has actually clicked
+                  "Proceed to Manager" (workflow moved past credit_controller).
+                  Credit Controller clicking "Approved" alone does not count;
+                  effectiveStage only leaves "credit_controller" once its
+                  status is "proceed_to_operator" (see getEffectiveStage).
+                  Once proceeded, the card becomes visible to everyone, locked
+                  (view-only) via the existing fieldsDisabled/actionsDisabled
+                  role checks below for anyone who isn't the Manager. */}
+              {!stageActive.credit_controller ? (
                 <ApprovalCard
                   title="Manager - Offshore Marine Logistics Comments"
                   commentsLabel={
