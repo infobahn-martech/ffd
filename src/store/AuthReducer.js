@@ -28,6 +28,7 @@ const useAuthReducer = create((set) => ({
   profileEditLoader: null,
   isProfileFetchLoading: false,
   permissionMap: normalizePermissionSections(undefined),
+  isFirstLogin: false,
   login: async ({ email, password, remember_me = false }) => {
     try {
       set({ isLoginLoading: true, errorMessage: "" });
@@ -86,6 +87,7 @@ const useAuthReducer = create((set) => ({
         isLoggedIn: true,
         isLoginLoading: false,
         errorMessage: "",
+        isFirstLogin: !!data?.is_first_login,
       });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
@@ -360,6 +362,7 @@ const useAuthReducer = create((set) => ({
       return { success: false, error: err?.response?.data?.message || err?.message || "Failed to reset password. Please try again." };
     }
   },
+  clearFirstLogin: () => set({ isFirstLogin: false }),
 }));
 
 export default useAuthReducer;
