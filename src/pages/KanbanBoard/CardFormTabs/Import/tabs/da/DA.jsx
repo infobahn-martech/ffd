@@ -1637,8 +1637,9 @@ VesselSalesOrderSection.propTypes = {
 // DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
 // VesselSalesOrderSection above, minus its own hero header and the vessel/file fields
 // not asked for here. SAP Sales Order No is editable and persisted via
-// api/da/save_operation_tab/{call_id}; SRN No. has no field in that payload, so it
-// stays read-only (synced from api/da/operation_tab/{call_id} only).
+// api/da/save_operation_tab/{call_id}; SRN No. has no field in that payload, so typed
+// values are saved via the local-only useDaLocalLaunchHire fallback (see updateField in
+// DA below) since there's no real backend field to persist it to.
 const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter((card) => card.key === "sapSalesOrderNo" || card.key === "srnNo");
 
 function SalesOrderCardsSection({ fieldValues, updateField }) {
@@ -1647,7 +1648,6 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
       {SALES_ORDER_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
-        const isEditable = card.key === "sapSalesOrderNo";
         return (
           <div
             className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
@@ -1659,17 +1659,13 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
             <div className="da-cf-ac-card-field">
-              {isEditable ? (
-                <TextField
-                  label={card.label}
-                  icon={Icon}
-                  value={value}
-                  placeholder={card.placeholder}
-                  onChange={(v) => updateField(card.key, v)}
-                />
-              ) : (
-                <ReadonlyField label={card.label} icon={Icon} value={value || "Not set yet"} />
-              )}
+              <TextField
+                label={card.label}
+                icon={Icon}
+                value={value}
+                placeholder={card.placeholder}
+                onChange={(v) => updateField(card.key, v)}
+              />
             </div>
           </div>
         );
@@ -1903,7 +1899,12 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             || prev.srtPoWbs,
           invoiceAmount: opData.invoice_amount ?? prev.invoiceAmount,
           sapSalesOrderNo: opData.sap_sales_order_no ?? prev.sapSalesOrderNo,
-          srnNo: opData.srn_no ?? prev.srnNo,
+          // save_operation_tab has no field for this (see SALES_ORDER_CARDS comment), so
+          // an empty API value falls back to the local-only override before finally
+          // falling back to whatever's already typed.
+          srnNo: opData.srn_no
+            || getLaunchHireOverride(callId, "srnNo")
+            || prev.srnNo,
         }));
       })
       .catch(() => {
@@ -2227,11 +2228,11 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     debouncedAutoSaveDocumentsTab,
   ]);
 
-  // thirdPartyLaunchHire/roadTransport/srtPoWbs have no save_operation_tab field (see
-  // LaunchHireCardsSection / INVOICE_CARDS_EDITABLE_KEYS), so typed values also get
-  // mirrored into useDaLocalLaunchHire — the only place they're remembered across
-  // reopening the card, since there's no backend to persist them to.
-  const LOCAL_ONLY_FIELD_KEYS = useMemo(() => new Set(["thirdPartyLaunchHire", "roadTransport", "srtPoWbs"]), []);
+  // thirdPartyLaunchHire/roadTransport/srtPoWbs/srnNo have no save_operation_tab field (see
+  // LaunchHireCardsSection / INVOICE_CARDS_EDITABLE_KEYS / SALES_ORDER_CARDS), so typed
+  // values also get mirrored into useDaLocalLaunchHire — the only place they're
+  // remembered across reopening the card, since there's no backend to persist them to.
+  const LOCAL_ONLY_FIELD_KEYS = useMemo(() => new Set(["thirdPartyLaunchHire", "roadTransport", "srtPoWbs", "srnNo"]), []);
 
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));

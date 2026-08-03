@@ -16,11 +16,11 @@ export const useDaLocalReachedDates = create((set, get) => ({
 
 // Local-only fallback for DA Operations fields that have no matching api/da/save_operation_tab
 // field: Launch Hire's "3rd Party Launch hire" and "Road Transport", Invoice's "SRT / PO /
-// WBS", and Operation Details' "Billing Entity" (see DA.jsx's updateField/billingEntityOverride).
-// Typed values are remembered here per call id instead of vanishing the next time the card is
-// opened. Same in-memory-only pattern as useDaLocalReachedDates above — cleared on full page
-// reload by design; once the backend gains a real field for these, that value takes priority
-// over this fallback.
+// WBS", Sales Order's "SRN No. (L & T)", and Operation Details' "Billing Entity" (see DA.jsx's
+// updateField/billingEntityOverride). Typed values are remembered here per call id instead of
+// vanishing the next time the card is opened. Same in-memory-only pattern as
+// useDaLocalReachedDates above — cleared on full page reload by design; once the backend gains
+// a real field for these, that value takes priority over this fallback.
 export const useDaLocalLaunchHire = create((set, get) => ({
   overrides: {},
   setLaunchHireOverride: (callId, key, value) =>
