@@ -22,6 +22,7 @@ import {
   normalizeImmigrationCrewRows,
   normalizeImmigrationCrewPagination,
   extractImmigrationBatchOptions,
+  extractImmigrationBatchCounts,
 } from "../../../../../../../services/cgAndZwailpassService";
 import useGROReducer from "../../../../../../../store/GROReducer";
 import GroSummaryCard, { GroSummaryFieldCard } from "./GroSummaryCard";
@@ -163,6 +164,7 @@ const GROCardView = forwardRef(function GROCardView(
   const [crewImmigrationPage, setCrewImmigrationPage] = useState(1);
   const [crewImmigrationPagination, setCrewImmigrationPagination] = useState(null);
   const [crewImmigrationBatchOptions, setCrewImmigrationBatchOptions] = useState([]);
+  const [crewImmigrationBatchCounts, setCrewImmigrationBatchCounts] = useState({});
   const [crewImmigrationBatchFilter, setCrewImmigrationBatchFilter] = useState("");
   const [showDynamicUploadModal, setShowDynamicUploadModal] = useState(false);
   const [dynamicUploadFile, setDynamicUploadFile] = useState(null);
@@ -902,6 +904,7 @@ const GROCardView = forwardRef(function GROCardView(
   useEffect(() => {
     setCrewImmigrationBatchFilter("");
     setCrewImmigrationBatchOptions([]);
+    setCrewImmigrationBatchCounts({});
   }, [activeTab, callId]);
 
   useEffect(() => {
@@ -921,9 +924,13 @@ const GROCardView = forwardRef(function GROCardView(
         if (cancelled) return;
         const envelope = res?.data?.data ?? res?.data ?? {};
         setCrewImmigrationBatchOptions(extractImmigrationBatchOptions(envelope));
+        setCrewImmigrationBatchCounts(extractImmigrationBatchCounts(envelope));
       })
       .catch(() => {
-        if (!cancelled) setCrewImmigrationBatchOptions([]);
+        if (!cancelled) {
+          setCrewImmigrationBatchOptions([]);
+          setCrewImmigrationBatchCounts({});
+        }
       });
     return () => {
       cancelled = true;
@@ -1828,6 +1835,7 @@ const GROCardView = forwardRef(function GROCardView(
           <CrewImmigrationPanel
             rows={crewImmigrationRows}
             batchOptions={crewImmigrationBatchOptions}
+            batchCounts={crewImmigrationBatchCounts}
             activeBatch={crewImmigrationBatchFilter}
             onSelectBatch={setCrewImmigrationBatchFilter}
             loading={crewImmigrationLoading}

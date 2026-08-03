@@ -155,3 +155,16 @@ export const extractImmigrationBatchOptions = (data) => {
   const batches = Array.isArray(data?.batches) ? data.batches : [];
   return batches.map((b) => b?.batch).filter(Boolean);
 };
+
+/**
+ * Crew count per batch from a get_immigration_crew_list response, for the batch tab labels.
+ */
+export const extractImmigrationBatchCounts = (data) => {
+  const batches = Array.isArray(data?.batches) ? data.batches : [];
+  const counts = {};
+  batches.forEach((b) => {
+    if (!b?.batch) return;
+    counts[b.batch] = Array.isArray(b?.crew) ? b.crew.length : 0;
+  });
+  return counts;
+};

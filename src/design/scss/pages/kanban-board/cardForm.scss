@@ -206,6 +206,30 @@
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
+.gro-card-view .gro-pass-segment-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.gro-card-view .gro-pass-segment-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
 .gro-card-view .gro-pass-segment:disabled {
   opacity: 0.55;
   cursor: not-allowed;

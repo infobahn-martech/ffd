@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 export default function CrewImmigrationPanel({
   rows,
   batchOptions,
+  batchCounts,
   activeBatch,
   onSelectBatch,
   loading,
@@ -11,6 +12,7 @@ export default function CrewImmigrationPanel({
 }) {
   const safeRows = Array.isArray(rows) ? rows : [];
   const safeBatchOptions = Array.isArray(batchOptions) ? batchOptions : [];
+  const safeBatchCounts = batchCounts && typeof batchCounts === "object" ? batchCounts : {};
 
   const currentPage = pagination?.page ?? 1;
   const limit = pagination?.limit || safeRows.length || 1;
@@ -31,17 +33,21 @@ export default function CrewImmigrationPanel({
         <div className="gro-crew-immigration-toolbar">
           <div className="gro-pass-segments" role="tablist" aria-label="Batch">
             {safeBatchOptions.map((b) => (
-              <button
-                key={b}
-                type="button"
-                role="tab"
-                aria-selected={activeBatch === b}
-                className={`gro-pass-segment${activeBatch === b ? " gro-pass-segment--active" : ""}`}
-                onClick={() => onSelectBatch?.(b)}
-                disabled={loading}
-              >
-                {b}
-              </button>
+              <div key={b} className="gro-pass-segment-wrap">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeBatch === b}
+                  className={`gro-pass-segment${activeBatch === b ? " gro-pass-segment--active" : ""}`}
+                  onClick={() => onSelectBatch?.(b)}
+                  disabled={loading}
+                >
+                  {b}
+                </button>
+                {safeBatchCounts[b] != null ? (
+                  <span className="gro-pass-segment-count">{safeBatchCounts[b]}</span>
+                ) : null}
+              </div>
             ))}
           </div>
         </div>
@@ -123,6 +129,7 @@ export default function CrewImmigrationPanel({
 CrewImmigrationPanel.propTypes = {
   rows: PropTypes.arrayOf(PropTypes.object),
   batchOptions: PropTypes.arrayOf(PropTypes.string),
+  batchCounts: PropTypes.objectOf(PropTypes.number),
   activeBatch: PropTypes.string,
   onSelectBatch: PropTypes.func,
   loading: PropTypes.bool,
