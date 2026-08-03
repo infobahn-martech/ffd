@@ -147,7 +147,7 @@ const RRULE_WEEKDAY_TO_CRON_ABBR = {
 // either into the 4 schedule_properties keys. Only the weekly-generator case is confirmed
 // against a real example (BYDAY=WE,SA -> { day: '?', month: '*', dow: 'WED,SAT', year: '*' });
 // daily/monthly/yearly are best-effort until confirmed against a real saved rule.
-const buildAdvancedScheduleFields = (advancedSchedule) => {
+export const buildAdvancedScheduleFields = (advancedSchedule) => {
   const raw = (advancedSchedule ?? '').trim();
   if (!raw) return { day: '*', month: '*', dow: '?', year: '*' };
 

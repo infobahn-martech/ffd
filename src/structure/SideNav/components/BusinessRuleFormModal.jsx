@@ -20,7 +20,7 @@ import {
   TRIGGER_CODE_TO_ICON, RELATIONAL_CREATE_ACTION_ORIGIN_LABELS,
 } from './businessRulesData';
 import { buildBoardMinimapWorkflows } from './boardMinimap.utils';
-import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels, isCreateSubtaskAction, getRelationTypeFromLabel, RECURRENCE_REGULAR_FIELD_IDS } from './buildBusinessRulePayload';
+import { buildCreateBusinessRulePayload, buildUpdateBusinessRulePayload, getUnconfiguredActionLabels, isCreateSubtaskAction, getRelationTypeFromLabel, RECURRENCE_REGULAR_FIELD_IDS, buildAdvancedScheduleFields } from './buildBusinessRulePayload';
 import ThenGroupRawSummary from './ThenGroupRawSummary';
 import DateTimePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DateTimePickerField';
 import DynamicIcon from './DynamicIcon';
@@ -135,7 +135,7 @@ const ADVANCED_SCHEDULE_DEFAULT_STATE = {
   dailyType: 'interval', intervalDays: '1',
   weeklyInterval: '1', weeklyDays: [],
   monthlyType: 'day', monthlyInterval: '1', monthlyDay: '1', monthlyOrdinal: '1', monthlyWeekday: 'monday',
-  yearlyType: 'date', yearlyMonth: '1', yearlyDay: '1', yearlyOrdinal: '1', yearlyWeekday: 'monday',
+  yearlyType: 'date', yearlyMonth: '1', yearlyDay: '1', yearlyOrdinal: '1', yearlyWeekday: 'monday', yearlyWeekdayMonth: '1',
   customDay: '*', customMonth: '*', customDow: '?', customYear: '*',
 };
 
@@ -180,7 +180,7 @@ function parseAdvancedScheduleValue(value) {
       return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'yearly', yearlyType: 'date', yearlyMonth: parts.BYMONTH ?? '1', yearlyDay: parts.BYMONTHDAY };
     }
     const { ordinal, weekday } = byDayToOrdinalWeekday(parts.BYDAY);
-    return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'yearly', yearlyType: 'weekday', yearlyMonth: parts.BYMONTH ?? '1', yearlyOrdinal: ordinal, yearlyWeekday: weekday };
+    return { ...ADVANCED_SCHEDULE_DEFAULT_STATE, period: 'yearly', yearlyType: 'weekday', yearlyWeekdayMonth: parts.BYMONTH ?? '1', yearlyOrdinal: ordinal, yearlyWeekday: weekday };
   }
   return ADVANCED_SCHEDULE_DEFAULT_STATE;
 }
@@ -213,70 +213,50 @@ function buildAdvancedScheduleValue(state) {
   }
   // yearly
   if (state.yearlyType === 'weekday') {
-    return `FREQ=YEARLY;BYMONTH=${state.yearlyMonth};BYDAY=${state.yearlyOrdinal}${WEEKDAY_KEY_TO_RRULE[state.yearlyWeekday]}`;
+    return `FREQ=YEARLY;BYMONTH=${state.yearlyWeekdayMonth};BYDAY=${state.yearlyOrdinal}${WEEKDAY_KEY_TO_RRULE[state.yearlyWeekday]}`;
   }
   return `FREQ=YEARLY;BYMONTH=${state.yearlyMonth};BYMONTHDAY=${Math.min(31, Math.max(1, parseInt(state.yearlyDay, 10) || 1))}`;
 }
 
-// Turns one custom-cron field's raw value into the noun/phrase summarizeCustomCron below
-// slots into the "Every ... every ... every ..." sentence — '*' reads as the bare unit name
-// ("day"/"month"/"year"), '?' (no specific value, day-of-month/day-of-week only) drops the
-// field from the sentence entirely, and anything else is described as literally as it can be.
-function describeCronFieldSummary(rawValue, fieldKey) {
-  const value = (rawValue ?? '').trim();
-  if (!value || value === '*') return fieldKey === 'dow' ? null : fieldKey;
-  if (value === '?') return null;
-  if (fieldKey === 'month' && /^\d+$/.test(value)) {
-    return ADVANCED_SCHEDULE_MONTH_OPTIONS.find((o) => o.key === value)?.label ?? value;
-  }
-  if (fieldKey === 'dow' && /^\d+$/.test(value)) {
-    return CRON_DOW_INDEX_TO_LABEL[parseInt(value, 10) % 7] ?? value;
-  }
-  return value;
-}
-
-function summarizeCustomCron(state) {
-  const segments = [
-    describeCronFieldSummary(state.customDay, 'day'),
-    describeCronFieldSummary(state.customMonth, 'month'),
-    describeCronFieldSummary(state.customDow, 'dow'),
-    describeCronFieldSummary(state.customYear, 'year'),
-  ].filter(Boolean);
-  if (segments.length === 0) return 'Not Set';
-  return `Every ${segments.map((s, i) => (i === 0 ? s : `every ${s}`)).join(' ')}`;
-}
-
+// WHEN column's "Advanced schedule is" pill shows the raw cron symbols (day month dow
+// year) rather than an English sentence, matching the Custom cron expression tab's own
+// 4-field layout — same conversion buildBusinessRulePayload.js uses to build the actual
+// saved schedule_properties, so the pill always matches what gets sent to the backend
+// regardless of which tab (generator or custom) produced the value.
 function summarizeAdvancedSchedule(state) {
-  if (state.mode === 'custom') return summarizeCustomCron(state);
+  const { day, month, dow, year } = buildAdvancedScheduleFields(buildAdvancedScheduleValue(state));
+  return `${day} ${month} ${dow} ${year}`;
+}
 
-  if (state.period === 'daily') {
-    return state.dailyType === 'weekday'
-      ? 'Every weekday'
-      : `Every ${Math.max(1, parseInt(state.intervalDays, 10) || 1)} day(s)`;
+const CRON_DOW_ABBR_TO_LABEL = {
+  SUN: 'Sunday', MON: 'Monday', TUE: 'Tuesday', WED: 'Wednesday', THU: 'Thursday', FRI: 'Friday', SAT: 'Saturday',
+  0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday',
+};
+
+// Custom cron expression tab's own banner (unlike the WHEN pill above) reads the 4 raw
+// fields back out as plain English, same style this reference product's generator uses
+// ("On day 1 in January every year") — filled in for the field combinations the tab
+// realistically produces; anything unrecognized (a hand-typed exotic expression) falls
+// back to the raw "day month dow year" string itself.
+function describeCronFields(day, month, dow, year) {
+  const d = (day ?? '*').trim() || '*';
+  const m = (month ?? '*').trim() || '*';
+  const w = (dow ?? '?').trim() || '?';
+  const monthLabel = /^\d+$/.test(m) ? ADVANCED_SCHEDULE_MONTH_OPTIONS.find((o) => o.key === m)?.label : null;
+
+  if (d === '*' && m === '*' && (w === '?' || w === '*')) return 'Every day';
+  if (/^\d+$/.test(d) && m === '*' && w === '?') return `On day ${d} of every month`;
+  if (/^\d+$/.test(d) && monthLabel && w === '?') return `On day ${d} in ${monthLabel} every year`;
+
+  if (d === '?' && w !== '?' && w !== '*') {
+    const dowLabels = w.split(',')
+      .map((code) => CRON_DOW_ABBR_TO_LABEL[code.trim().toUpperCase()] ?? code.trim())
+      .join(', ');
+    if (m === '*') return `Every week on ${dowLabels}`;
+    if (monthLabel) return `Every ${dowLabels} in ${monthLabel}`;
   }
-  if (state.period === 'weekly') {
-    const n = Math.max(1, parseInt(state.weeklyInterval, 10) || 1);
-    const days = state.weeklyDays.length > 0 ? state.weeklyDays : ['monday'];
-    const dayLabels = WEEKDAY_OPTIONS.filter((o) => days.includes(o.key)).map((o) => o.label.slice(0, 3)).join(', ');
-    return `Every ${n} week(s) on ${dayLabels}`;
-  }
-  if (state.period === 'monthly') {
-    const n = Math.max(1, parseInt(state.monthlyInterval, 10) || 1);
-    if (state.monthlyType === 'weekday') {
-      const ordinalLabel = ADVANCED_SCHEDULE_ORDINAL_OPTIONS.find((o) => o.key === state.monthlyOrdinal)?.label ?? 'first';
-      const weekdayLabel = WEEKDAY_OPTIONS.find((o) => o.key === state.monthlyWeekday)?.label ?? 'Monday';
-      return `The ${ordinalLabel} ${weekdayLabel} of every ${n} month(s)`;
-    }
-    return `Day ${Math.min(31, Math.max(1, parseInt(state.monthlyDay, 10) || 1))} of every ${n} month(s)`;
-  }
-  // yearly
-  const monthLabel = ADVANCED_SCHEDULE_MONTH_OPTIONS.find((o) => o.key === state.yearlyMonth)?.label ?? 'January';
-  if (state.yearlyType === 'weekday') {
-    const ordinalLabel = ADVANCED_SCHEDULE_ORDINAL_OPTIONS.find((o) => o.key === state.yearlyOrdinal)?.label ?? 'first';
-    const weekdayLabel = WEEKDAY_OPTIONS.find((o) => o.key === state.yearlyWeekday)?.label ?? 'Monday';
-    return `The ${ordinalLabel} ${weekdayLabel} of ${monthLabel}`;
-  }
-  return `Every ${monthLabel} ${Math.min(31, Math.max(1, parseInt(state.yearlyDay, 10) || 1))}`;
+
+  return `${d} ${m} ${w} ${(year ?? '*').trim() || '*'}`;
 }
 
 // "Update card details" actions that reference actual users rather than a free-text
@@ -1282,7 +1262,14 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
               role="tab"
               aria-selected={state.mode === 'custom'}
               className={`br-cron-seg-btn${state.mode === 'custom' ? ' br-cron-seg-btn--active' : ''}`}
-              onClick={() => update({ mode: 'custom' })}
+              onClick={() => {
+                if (state.mode === 'custom') return;
+                // Carry the Cron generator's current selection over as the equivalent raw
+                // fields (same conversion the WHEN pill uses) instead of resetting to
+                // wildcards, so switching tabs doesn't discard what was already configured.
+                const { day, month, dow, year } = buildAdvancedScheduleFields(buildAdvancedScheduleValue(state));
+                update({ mode: 'custom', customDay: day, customMonth: month, customDow: dow, customYear: year });
+              }}
             >
               Custom cron expression
             </button>
@@ -1290,7 +1277,9 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
 
           {state.mode === 'custom' ? (
             <div className="br-cron-panel br-cron-custom-panel">
-              <div className="br-cron-custom-summary">{summarizeCustomCron(state)}</div>
+              <div className="br-cron-custom-summary">
+                {describeCronFields(state.customDay, state.customMonth, state.customDow, state.customYear)}
+              </div>
 
               <div className="br-cron-custom-fields">
                 {CRON_CUSTOM_FIELDS.map((field) => (
@@ -1375,17 +1364,6 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
 
               {state.period === 'weekly' && (
                 <div className="br-cron-panel">
-                  <div className="br-cron-radio-row">
-                    Every
-                    <input
-                      type="number"
-                      min="1"
-                      className="br-cron-inline-input"
-                      value={state.weeklyInterval}
-                      onChange={(e) => update({ weeklyInterval: e.target.value })}
-                    />
-                    week(s) on
-                  </div>
                   <div className="br-cron-weekday-row">
                     {WEEKDAY_OPTIONS.map((day) => (
                       <button
@@ -1439,7 +1417,6 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
                       checked={state.monthlyType === 'weekday'}
                       onChange={() => update({ monthlyType: 'weekday' })}
                     />
-                    The
                     <select
                       className="br-cron-inline-select"
                       value={state.monthlyOrdinal}
@@ -1520,8 +1497,8 @@ function AdvancedScheduleModal({ show, onClose, value, onSave }) {
                     of
                     <select
                       className="br-cron-inline-select"
-                      value={state.yearlyMonth}
-                      onChange={(e) => update({ yearlyMonth: e.target.value })}
+                      value={state.yearlyWeekdayMonth}
+                      onChange={(e) => update({ yearlyType: 'weekday', yearlyWeekdayMonth: e.target.value })}
                     >
                       {ADVANCED_SCHEDULE_MONTH_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                     </select>
