@@ -739,19 +739,6 @@ function Checklist({
     <>
       <div className="operation-content-header checklist-page-header">
         <h3 className="operation-content-title">Checklist Information</h3>
-        <div className="checklist-header-right">
-          <ChecklistMultiSelect
-            className="checklist-header-type-select"
-            value={selectedChecklistTypeIds}
-            onChange={handleChecklistTypeChange}
-            options={checklistTypeOptions}
-            placeholder={checklistTypeOptions.length ? "Select checklist type..." : "No checklist types available"}
-            disabled={isViewOnly || typeLoading || !prerequisiteState.canLoadChecklists}
-          />
-          {onOpenReportPreview && !isViewOnly ? (
-            <SendReportButton onClick={handleOpenChecklistReport} cardColor={cardColor} tabName="Check List" />
-          ) : null}
-        </div>
       </div>
 
       <div className="checklist-tab-layout checklist-tab-layout--full">
