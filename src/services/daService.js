@@ -9,6 +9,7 @@ const getAppointmentClearanceTab = (callId) => Gateway.get(`/da/appointment_clea
 const saveAppointmentClearanceTab = (callId, formData) =>
   Gateway.post(`/da/save_appointment_clearance_tab/${callId}`, formData);
 const getRequiredDocuments = (callId) => Gateway.get(`/da/required_documents/${callId}`);
+const getDocumentsTab = (callId) => Gateway.get(`/da/documents_tab/${callId}`);
 const getTimeObjects = (callId) => Gateway.get(`/da/time_objects/${callId}`);
 const getCardStage = (callId) => Gateway.get(`/da/card/${callId}`);
 const getStatusTimeline = (callId) => Gateway.get(`/da/status_timeline/${callId}`);
@@ -26,6 +27,7 @@ export default {
   getAppointmentClearanceTab,
   saveAppointmentClearanceTab,
   getRequiredDocuments,
+  getDocumentsTab,
   getTimeObjects,
   getCardStage,
   advanceStage,
