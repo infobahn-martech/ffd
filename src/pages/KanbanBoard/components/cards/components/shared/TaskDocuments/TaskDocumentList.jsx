@@ -11,7 +11,7 @@ function TaskDocumentList({
   return (
     <div className={`gro-document-list ${listClassName}`.trim()}>
       {isLoading ? <div className="gro-document-loading">{loadingMessage}</div> : null}
-      {isEmpty && emptyMessage ? (
+      {!isLoading && isEmpty && emptyMessage ? (
         <div className="gro-supervisor-doc-empty" role="status">
           {emptyMessage}
         </div>
