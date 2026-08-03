@@ -29,10 +29,10 @@
   z-index: 1350;
 
   .cardform-panel {
-    max-width: 960px;
-    width: 92%;
+    // max-width: 960px;
+    width: 98%;
     max-height: calc(100vh - 3rem);
-    height: auto;
+    height: 95%;
 
     @media (max-width: 991px) {
       max-width: 95%;
