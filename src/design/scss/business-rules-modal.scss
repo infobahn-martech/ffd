@@ -699,7 +699,6 @@ body .modal-backdrop.fade.business-rule-form-modal-backdrop,
 body .modal-backdrop.business-rule-form-modal-backdrop.show {
   z-index: 1065 !important;
   background-color: rgba(15, 23, 42, 0.6) !important;
-  backdrop-filter: blur(4px) !important;
 }
 
 body .modal.fade.business-rule-form-modal,
@@ -2754,7 +2753,6 @@ body .modal-backdrop.fade.card-property-match-modal-backdrop,
 body .modal-backdrop.card-property-match-modal-backdrop.show {
   z-index: 1075 !important;
   background-color: rgba(15, 23, 42, 0.6) !important;
-  backdrop-filter: blur(4px) !important;
 }
 
 body .modal.fade.card-property-match-modal,
@@ -5058,7 +5056,6 @@ $br-card-preview-accent: #1F9D6E;
 
 .br-cancel-confirm-backdrop {
   background-color: rgba(15, 23, 42, 0.6) !important;
-  backdrop-filter: blur(4px) !important;
 }
 
 .br-cancel-confirm-content {
