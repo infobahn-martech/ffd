@@ -1162,7 +1162,7 @@ function Workspaces() {
               Add Widget
             </button> */}
           </div>
-          <div className="workspaces-dashboard-canvas" style={dashboardCanvasStyle}>
+          <div className="workspaces-dashboard-canvas">
             <div className="workspaces-dashboard-inner">
               {workspacesListSection}
             </div>
