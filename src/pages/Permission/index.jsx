@@ -82,7 +82,7 @@ const Permission = () => {
       <div className="prospect employee">
         <div className="container-fluid">
           <CommonHeader
-            tableTitle="Role and Permission"
+            tableTitle="Roles and Permissions"
             isAddEnabled
             onAddModalClick={() => setShowPermissionModal(true)}
             addModalLabel="Add Role/Permission"
