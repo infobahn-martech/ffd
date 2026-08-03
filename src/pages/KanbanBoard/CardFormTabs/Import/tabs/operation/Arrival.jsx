@@ -34,9 +34,6 @@ import {
 } from "./arrivalDetailApply";
 import { isEventFieldRequired, OPERATION_STAGE_IDS } from "./operationConstants";
 
-const ARRIVAL_CUSTOMS_FIELD_KEYS = new Set(["ATA", "CIC", "CIC_1"]);
-const ARRIVAL_IMMIGRATION_FIELD_KEYS = new Set(["CIC_2", "CIC_3"]);
-
 const FALLBACK_ARRIVAL_TIME_OBJECT_FIELDS = [
   {
     event_name: "Actual Time of Arrival",
@@ -82,30 +79,13 @@ const resolveArrivalTimeObjectFields = (apiFields = []) => {
   return [...source].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 };
 
-const splitArrivalTimeObjectFields = (fields = []) => {
-  const hasFieldKeys = fields.some((field) => String(field?.field_key || "").trim());
-  if (hasFieldKeys) {
-    return {
-      customs: fields.filter((field) =>
-        ARRIVAL_CUSTOMS_FIELD_KEYS.has(String(field?.field_key || "").toUpperCase())
-      ),
-      immigration: fields.filter((field) =>
-        ARRIVAL_IMMIGRATION_FIELD_KEYS.has(String(field?.field_key || "").toUpperCase())
-      ),
-    };
-  }
-  return {
-    customs: fields.slice(0, 3),
-    immigration: fields.slice(3, 5),
-  };
-};
-
 function Arrival({
   formValues,
   handleChange,
   cardColor,
   isViewOnly = false,
   arrivalStageFields = [],
+  postArrivalStageFields = [],
   callId = "",
   portId = "",
   callTypeId = "",
@@ -220,12 +200,19 @@ function Arrival({
     () => resolveArrivalTimeObjectFields(arrivalStageFields),
     [arrivalStageFields]
   );
-  const { customs: arrivalCustomsTimeFields, immigration: arrivalImmigrationTimeFields } = useMemo(
-    () => splitArrivalTimeObjectFields(arrivalTimeObjectFields),
-    [arrivalTimeObjectFields]
+  const postArrivalTimeObjectFields = useMemo(
+    () =>
+      [...(Array.isArray(postArrivalStageFields) ? postArrivalStageFields : [])].sort(
+        (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+      ),
+    [postArrivalStageFields]
+  );
+  const combinedArrivalTimeFields = useMemo(
+    () => [...arrivalTimeObjectFields, ...postArrivalTimeObjectFields],
+    [arrivalTimeObjectFields, postArrivalTimeObjectFields]
   );
 
-  useApplyStageTimeObjectValues(arrivalTimeObjectFields, formValues, handleChange);
+  useApplyStageTimeObjectValues(combinedArrivalTimeFields, formValues, handleChange);
 
   const customInspectionStatusOptions = [
     { value: "Passed", label: "Passed" },
@@ -250,7 +237,7 @@ function Arrival({
       return false;
     }
 
-    for (const field of arrivalTimeObjectFields) {
+    for (const field of combinedArrivalTimeFields) {
       if (!isEventFieldRequired(field)) continue;
       const keyPrefix = field?.keyPrefix;
       if (!keyPrefix) continue;
@@ -316,7 +303,7 @@ function Arrival({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const arrivalEventFieldsApplyKey = arrivalTimeObjectFields
+  const arrivalEventFieldsApplyKey = combinedArrivalTimeFields
     .map((field) =>
       [field.keyPrefix, field.time_object_id ?? field.event_type_id ?? "", field.field_key ?? ""].join(":")
     )
@@ -340,7 +327,7 @@ function Arrival({
       applyArrivalGetDetailToForm({
         responseBody: detail,
         arrivalEventFields: arrivalTimeObjectFields,
-        postArrivalEventFields: [],
+        postArrivalEventFields: postArrivalTimeObjectFields,
         handleChange,
       });
 
@@ -379,7 +366,7 @@ function Arrival({
       const resolvedCallTypeId = resolveFormId(callTypeId, formValues?.call_type_id, formValues?.typeOfCall, formValues?.callTypeId);
       if (!resolvedCallId || !resolvedPortId || !resolvedCallTypeId) return;
 
-      const timeObjects = buildTimeObjectsPayload(arrivalTimeObjectFields, formValues);
+      const timeObjects = buildTimeObjectsPayload(combinedArrivalTimeFields, formValues);
 
       try {
         const response = await appointmentAcceptanceService.getArrivalTemplateByPortCallType({
@@ -416,7 +403,7 @@ function Arrival({
     return () => {
       cancelled = true;
     };
-  }, [callId, portId, callTypeId, formValues, arrivalTimeObjectFields, reportDraft.reportType]);
+  }, [callId, portId, callTypeId, formValues, combinedArrivalTimeFields, reportDraft.reportType]);
 
   const handleReportTypeChange = (nextType) => {
     emailPreviewFromDetailRef.current = false;
@@ -432,7 +419,7 @@ function Arrival({
     if (!validateArrivalBeforeSave()) return false;
 
     const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
-    const saveTimeObjects = buildSaveTimeObjectsPayload(arrivalTimeObjectFields, formValues);
+    const saveTimeObjects = buildSaveTimeObjectsPayload(combinedArrivalTimeFields, formValues);
 
     const fd = new FormData();
     fd.append("call_id", String(resolvedCallId));
@@ -500,7 +487,7 @@ function Arrival({
         applyArrivalGetDetailToForm({
           responseBody: detail,
           arrivalEventFields: arrivalTimeObjectFields,
-          postArrivalEventFields: [],
+          postArrivalEventFields: postArrivalTimeObjectFields,
           handleChange,
         });
       }
@@ -598,7 +585,7 @@ function Arrival({
         applyArrivalGetDetailToForm({
           responseBody: detail,
           arrivalEventFields: arrivalTimeObjectFields,
-          postArrivalEventFields: [],
+          postArrivalEventFields: postArrivalTimeObjectFields,
           handleChange,
         });
       }
@@ -627,7 +614,7 @@ function Arrival({
           applyArrivalGetDetailToForm({
             responseBody: detail,
             arrivalEventFields: arrivalTimeObjectFields,
-            postArrivalEventFields: [],
+            postArrivalEventFields: postArrivalTimeObjectFields,
             handleChange,
           });
         }
@@ -669,7 +656,7 @@ function Arrival({
                 }
               >
                 <DynamicDateTimeFields
-                  eventFields={arrivalCustomsTimeFields}
+                  eventFields={combinedArrivalTimeFields}
                   formValues={formValues}
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
@@ -696,13 +683,6 @@ function Arrival({
                     />
                   </FormField>
                 )}
-
-                <DynamicDateTimeFields
-                  eventFields={arrivalImmigrationTimeFields}
-                  formValues={formValues}
-                  handleChange={handleChange}
-                  isViewOnly={isViewOnly}
-                />
 
                 <FormField label="Crew Immigration Status">
                   <FormSelect
@@ -809,6 +789,7 @@ Arrival.propTypes = {
   onRemoveLink: PropTypes.func,
   isViewOnly: PropTypes.bool,
   arrivalStageFields: PropTypes.array,
+  postArrivalStageFields: PropTypes.array,
   callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
