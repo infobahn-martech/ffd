@@ -110,7 +110,7 @@ const RAW_FIELDS_CONFIG = [
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "clearanceCopies", reserveSpace: true },
   // Invoices, Fees & Certificates
   { key: "taxInvoice", label: "Tax Invoice", type: "text", group: "invoicesFees", placeholder: "e.g. INV-88213" },
-  { key: "srtPoWbs", label: "SRT|PO|WBS", type: "text", group: "invoicesFees", placeholder: "e.g. SRT-2201/PO-9982" },
+  { key: "srtPoWbs", label: "SRT / PO / WBS", type: "text", group: "invoicesFees", placeholder: "e.g. SRT-2201/PO-9982" },
   { key: "invoiceAmount", label: "Invoice amount (Including VAT)", type: "text", group: "invoicesFees", placeholder: "e.g. 12,500.00" },
   // Vessel & Sales Order
   { key: "vesselName", label: "VESSEL NAME", type: "text", group: "vesselSalesOrder", placeholder: "e.g. MV Atlantic Star" },
@@ -1449,7 +1449,7 @@ const INVOICES_FEES_CARDS = [
   {
     key: "srtPoWbs",
     icon: Hash,
-    label: "SRT|PO|WBS",
+    label: "SRT / PO / WBS",
     hint: "Cross-reference codes for SRT, PO and WBS tracking.",
     accent: "#0891b2",
     placeholder: "e.g. SRT-2201/PO-9982",
