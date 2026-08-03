@@ -179,17 +179,15 @@ const LAUNCH_HIRE_CARDS = [
 ];
 
 // Synced from api/da/operation_tab/{call_id} (third_party_launch_hire, road_transport_days)
-// when the backend has a value. save_operation_tab has no field for either though, so once
-// a card has no value yet, they become editable inputs instead of staying permanently
-// read-only — typed values are saved via the local-only useDaLocalLaunchHire fallback
-// (updateLaunchHireField in DA below) since there's no real backend field to persist to.
+// when the backend has a value, but always editable regardless — save_operation_tab has no
+// field for either, so typed values are saved via the local-only useDaLocalLaunchHire
+// fallback (see updateField in DA below) since there's no real backend field to persist to.
 function LaunchHireCardsSection({ fieldValues, updateField }) {
   return (
     <div className="da-cf-ac-grid">
       {LAUNCH_HIRE_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
-        const displayValue = card.type === "number-unit" && value ? `${value} ${card.unit}` : value;
         return (
           <div
             className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
@@ -201,9 +199,7 @@ function LaunchHireCardsSection({ fieldValues, updateField }) {
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
             <div className="da-cf-ac-card-field">
-              {value ? (
-                <ReadonlyField label={card.label} icon={Icon} value={displayValue} />
-              ) : card.type === "number-unit" ? (
+              {card.type === "number-unit" ? (
                 <NumberUnitField
                   label={card.label}
                   icon={Icon}
@@ -1515,11 +1511,12 @@ InvoicesFeesSection.propTypes = {
 };
 
 // DA Operations > Invoice — the same 3 cards from InvoicesFeesSection above (Tax
-// Invoice, SRT|PO|WBS, Invoice amount), minus its own hero header since the ops-card
-// wrapper already has a "Invoice" title. Tax Invoice / Invoice amount are editable and
-// persisted via api/da/save_operation_tab/{call_id}; SRT|PO|WBS has no field in that
-// payload, so it stays read-only (synced from api/da/operation_tab/{call_id} only).
-const INVOICE_CARDS_EDITABLE_KEYS = ["taxInvoice", "invoiceAmount"];
+// Invoice, SRT / PO / WBS, Invoice amount), minus its own hero header since the ops-card
+// wrapper already has a "Invoice" title. All 3 are editable; Tax Invoice / Invoice amount
+// persist via api/da/save_operation_tab/{call_id}, while SRT / PO / WBS has no field in
+// that payload, so typed values are saved via the local-only useDaLocalLaunchHire
+// fallback (see updateField in DA below) since there's no real backend field to persist to.
+const INVOICE_CARDS_EDITABLE_KEYS = ["taxInvoice", "invoiceAmount", "srtPoWbs"];
 
 function InvoiceCardsSection({ fieldValues, updateField }) {
   return (
@@ -1640,8 +1637,9 @@ VesselSalesOrderSection.propTypes = {
 // DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
 // VesselSalesOrderSection above, minus its own hero header and the vessel/file fields
 // not asked for here. SAP Sales Order No is editable and persisted via
-// api/da/save_operation_tab/{call_id}; SRN No. has no field in that payload, so it
-// stays read-only (synced from api/da/operation_tab/{call_id} only).
+// api/da/save_operation_tab/{call_id}; SRN No. has no field in that payload, so typed
+// values are saved via the local-only useDaLocalLaunchHire fallback (see updateField in
+// DA below) since there's no real backend field to persist it to.
 const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter((card) => card.key === "sapSalesOrderNo" || card.key === "srnNo");
 
 function SalesOrderCardsSection({ fieldValues, updateField }) {
@@ -1650,7 +1648,6 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
       {SALES_ORDER_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
-        const isEditable = card.key === "sapSalesOrderNo";
         return (
           <div
             className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
@@ -1662,17 +1659,13 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
             <div className="da-cf-ac-card-field">
-              {isEditable ? (
-                <TextField
-                  label={card.label}
-                  icon={Icon}
-                  value={value}
-                  placeholder={card.placeholder}
-                  onChange={(v) => updateField(card.key, v)}
-                />
-              ) : (
-                <ReadonlyField label={card.label} icon={Icon} value={value || "Not set yet"} />
-              )}
+              <TextField
+                label={card.label}
+                icon={Icon}
+                value={value}
+                placeholder={card.placeholder}
+                onChange={(v) => updateField(card.key, v)}
+              />
             </div>
           </div>
         );
@@ -1898,10 +1891,20 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             || getLaunchHireOverride(callId, "roadTransport")
             || prev.roadTransport,
           taxInvoice: opData.tax_invoice_no ?? prev.taxInvoice,
-          srtPoWbs: opData.srt_po_wbs_ref ?? prev.srtPoWbs,
+          // save_operation_tab has no field for this (see INVOICE_CARDS_EDITABLE_KEYS
+          // comment), so an empty API value falls back to the local-only override before
+          // finally falling back to whatever's already typed.
+          srtPoWbs: opData.srt_po_wbs_ref
+            || getLaunchHireOverride(callId, "srtPoWbs")
+            || prev.srtPoWbs,
           invoiceAmount: opData.invoice_amount ?? prev.invoiceAmount,
           sapSalesOrderNo: opData.sap_sales_order_no ?? prev.sapSalesOrderNo,
-          srnNo: opData.srn_no ?? prev.srnNo,
+          // save_operation_tab has no field for this (see SALES_ORDER_CARDS comment), so
+          // an empty API value falls back to the local-only override before finally
+          // falling back to whatever's already typed.
+          srnNo: opData.srn_no
+            || getLaunchHireOverride(callId, "srnNo")
+            || prev.srnNo,
         }));
       })
       .catch(() => {
@@ -2225,25 +2228,25 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     debouncedAutoSaveDocumentsTab,
   ]);
 
+  // thirdPartyLaunchHire/roadTransport/srtPoWbs/srnNo have no save_operation_tab field (see
+  // LaunchHireCardsSection / INVOICE_CARDS_EDITABLE_KEYS / SALES_ORDER_CARDS), so typed
+  // values also get mirrored into useDaLocalLaunchHire — the only place they're
+  // remembered across reopening the card, since there's no backend to persist them to.
+  const LOCAL_ONLY_FIELD_KEYS = useMemo(() => new Set(["thirdPartyLaunchHire", "roadTransport", "srtPoWbs", "srnNo"]), []);
+
   const updateField = useCallback((key, value) => {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  // Launch Hire's 2 fields have no save_operation_tab field (see LaunchHireCardsSection),
-  // so typed values also get mirrored into useDaLocalLaunchHire — the only place they're
-  // remembered across reopening the card, since there's no backend to persist them to.
-  const updateLaunchHireField = useCallback((key, value) => {
-    updateField(key, value);
-    if (callId != null) setLaunchHireOverride(callId, key, value);
-  }, [updateField, callId, setLaunchHireOverride]);
+    if (LOCAL_ONLY_FIELD_KEYS.has(key) && callId != null) setLaunchHireOverride(callId, key, value);
+  }, [callId, setLaunchHireOverride, LOCAL_ONLY_FIELD_KEYS]);
 
   const rowIdCounter = useRef(0);
   const nextRowId = () => `row-${++rowIdCounter.current}`;
 
-  // Billing Entity isn't entered here — it's already captured in the Appointment
-  // Details / Operation tabs (formValues.mainBillingEntity / vesselBillingEntity /
-  // tugBillingEntity / otherBillingEntity), so this tab just resolves that id to a
-  // display name and mirrors it, read-only.
+  // Billing Entity defaults to whatever's already captured in the Appointment Details /
+  // Operation tabs (formValues.mainBillingEntity / vesselBillingEntity / tugBillingEntity /
+  // otherBillingEntity), resolved to a display name below — but same as
+  // thirdPartyLaunchHire/roadTransport/srtPoWbs, save_operation_tab has no field for it,
+  // so it's editable here via the same local-only useDaLocalLaunchHire fallback.
   const [billingEntityOptions, setBillingEntityOptions] = useState([]);
 
   useEffect(() => {
@@ -2270,6 +2273,20 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
   const billingEntityLabel = billingEntityId
     ? billingEntityOptions.find((opt) => opt.value === String(billingEntityId))?.label ?? ""
     : "";
+
+  // Manual edits to Billing Entity (see comment above billingEntityOptions) are kept
+  // client-side only, the same as thirdPartyLaunchHire/roadTransport/srtPoWbs — seeded
+  // from useDaLocalLaunchHire so a typed value survives reopening the card.
+  const [billingEntityOverride, setBillingEntityOverride] = useState("");
+  useEffect(() => {
+    if (callId == null) return;
+    setBillingEntityOverride(getLaunchHireOverride(callId, "billingEntity") || "");
+  }, [callId, getLaunchHireOverride]);
+  const billingEntityDisplayValue = billingEntityOverride || operationTabData?.billing_entity || billingEntityLabel || "";
+  const updateBillingEntity = (value) => {
+    setBillingEntityOverride(value);
+    if (callId != null) setLaunchHireOverride(callId, "billingEntity", value);
+  };
 
   const [listSections, setListSections] = useState(() => ({
     attachments: { rows: [], collapsed: false },
@@ -2726,7 +2743,14 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                               value={isLoadingOperationTab && !operationTabData ? "Loading…" : (fieldValues.serviceRequester || "Not set yet")}
                               accent={OPERATION_DETAILS_FIELDS_BY_KEY.serviceRequester.accent}
                             />
-                            <ReadonlyField label="Billing Entity" icon={Package} value={operationTabData?.billing_entity || billingEntityLabel || "Not set yet"} accent="#e11d48" />
+                            <TextField
+                              label="Billing Entity"
+                              icon={Package}
+                              value={billingEntityDisplayValue}
+                              placeholder="e.g. Al Rashid Shipping Agency"
+                              onChange={updateBillingEntity}
+                              accent="#e11d48"
+                            />
                             {renderField(OPERATION_DETAILS_FIELDS_BY_KEY.billingOthers)}
                             <ReadonlyField
                               label="Last moved"
@@ -2745,7 +2769,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                           isLoadingTimeObjects={isLoadingTimeObjects}
                         />
                       ) : isLaunchHire ? (
-                        <LaunchHireCardsSection fieldValues={fieldValues} updateField={updateLaunchHireField} />
+                        <LaunchHireCardsSection fieldValues={fieldValues} updateField={updateField} />
                       ) : isInvoice ? (
                         <InvoiceCardsSection fieldValues={fieldValues} updateField={updateField} />
                       ) : isSalesOrder ? (
