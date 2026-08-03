@@ -3257,8 +3257,8 @@ body.kanban-workspaces-sidebar-open .workspaces-header .workspaces-header-right 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 20px 24px;
+  gap: 20px;
+  padding: 24px 24px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
@@ -3266,8 +3266,7 @@ body.kanban-workspaces-sidebar-open .workspaces-header .workspaces-header-right 
   font-size: 15px;
   font-weight: 600;
   color: #00368c;
-  margin-bottom: 12px;
-  margin-top: 12px;
+  margin :12px
 }
 
 .workspaces-dashboard-toolbar-sep {
@@ -3301,7 +3300,6 @@ body.kanban-workspaces-sidebar-open .workspaces-header .workspaces-header-right 
 .workspaces-dashboard-canvas {
   min-height: 732px;
   border-radius: 16px;
-  padding: 24px;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
