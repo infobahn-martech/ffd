@@ -33,7 +33,8 @@ const normalizeTemplateAttachments = (rawAttachments) => {
 };
 
 export const extractReportTemplateFields = (templatePayload) => {
-  const rawData = templatePayload?.data?.data ?? templatePayload?.data ?? templatePayload ?? {};
+  const body = templatePayload?.data ?? templatePayload ?? {};
+  const rawData = body?.data ?? body;
   const row = Array.isArray(rawData) ? rawData[0] || {} : rawData;
   const rawBody = firstNonEmptyString(row?.message, row?.body, row?.email_body, row?.template);
   return {
@@ -42,6 +43,8 @@ export const extractReportTemplateFields = (templatePayload) => {
     cc: firstNonEmptyString(row?.cc, row?.cc_emails, row?.cc_email),
     subject: htmlToPlainText(firstNonEmptyString(row?.subject, row?.email_subject)),
     message: ensureHtmlForQuill(rawBody),
-    attachments: normalizeTemplateAttachments(row?.attachments),
+    attachments: normalizeTemplateAttachments(
+      body?.attachment ?? body?.attachments ?? row?.attachments ?? row?.attachment
+    ),
   };
 };
