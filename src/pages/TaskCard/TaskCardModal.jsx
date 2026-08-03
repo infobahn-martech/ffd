@@ -202,99 +202,105 @@ function TaskCardModal({ show, onClose }) {
                 </div>
 
                 <div className="tc-body">
-                    <h3 className="tc-form-title">Create Task Card</h3>
-
-                    <div className="tc-field">
-                        <label className="tc-label" htmlFor="tc-task-name">
-                            Task Description <span className="text-danger">*</span>
-                        </label>
-                        <div className="comments-tab-mention-host">
-                            <textarea
-                                ref={textareaRef}
-                                id="tc-task-name"
-                                className={`tc-textarea${taskNameError ? " is-invalid" : ""}`}
-                                rows={3}
-                                placeholder="Enter task description... (type @ to mention)"
-                                value={taskName}
-                                onChange={handleTaskNameChange}
-                                onBlur={() => setTimeout(closeMentionDropdown, 150)}
-                            />
-
-                            {mentionOpen && (
-                                <div
-                                    className="comments-tab-mention-dropdown"
-                                    role="listbox"
-                                    aria-label="Mention a user"
-                                >
-                                    {filteredMentionUsers.length === 0 ? (
-                                        <p className="comments-tab-mention-status">No users found</p>
-                                    ) : (
-                                        filteredMentionUsers.map((user) => (
-                                            <button
-                                                key={user.user_id}
-                                                type="button"
-                                                className="comments-tab-mention-option"
-                                                role="option"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => handleSelectMentionUser(user)}
-                                            >
-                                                <span className="comments-tab-mention-avatar">
-                                                    {user.avatar_path || user.avatar ? (
-                                                        <img src={user.avatar_path || user.avatar} alt="" />
-                                                    ) : (
-                                                        <span className="comments-tab-mention-avatar-fallback">
-                                                            {(user.name || "?").charAt(0).toUpperCase()}
-                                                        </span>
-                                                    )}
-                                                </span>
-                                                <span className="comments-tab-mention-name">{user.name}</span>
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-                            )}
+                    <div className="tc-card">
+                        <div className="tc-card-header">
+                            <span className="tc-card-icon">
+                                <Layers3 size={15} aria-hidden />
+                            </span>
+                            <h3 className="tc-form-title">Create Task Card</h3>
                         </div>
-                        {taskNameError && <span className="tc-field-error">{taskNameError}</span>}
-                    </div>
 
-                    <div className="tc-field-row">
-                        <div className="tc-field">
-                            <label className="tc-label">Assign User</label>
-                            <SearchableSelect
-                                className="cf-owner-searchable-select"
-                                value={assignUserId === "" ? "" : String(assignUserId)}
-                                onChange={(e) => setAssignUserId(e.target.value)}
-                                options={userOptions}
-                                placeholder="Select user"
-                                searchPlaceholder={deriveSearchPlaceholder("Select user")}
-                                renderOption={(option) => (
-                                    <div className="cf-searchable-option-with-avatar tc-user-option">
-                                        <UserOptionAvatar avatarUrl={option.avatar} label={option.label} className="cf-owner-avatar--sm tc-user-avatar" />
-                                        <span className="tc-user-name">{option.label}</span>
+                        <div className="tc-field-row">
+                            <div className="tc-field">
+                                <label className="tc-label">Assign User</label>
+                                <SearchableSelect
+                                    className="cf-owner-searchable-select"
+                                    value={assignUserId === "" ? "" : String(assignUserId)}
+                                    onChange={(e) => setAssignUserId(e.target.value)}
+                                    options={userOptions}
+                                    placeholder="Select user"
+                                    searchPlaceholder={deriveSearchPlaceholder("Select user")}
+                                    renderOption={(option) => (
+                                        <div className="cf-searchable-option-with-avatar tc-user-option">
+                                            <UserOptionAvatar avatarUrl={option.avatar} label={option.label} className="cf-owner-avatar--sm tc-user-avatar" />
+                                            <span className="tc-user-name">{option.label}</span>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="tc-field">
+                                <label className="tc-label">Due Date &amp; Time</label>
+                                <DateTimePickerField
+                                    dateValue={dueDate}
+                                    timeValue={dueTime}
+                                    onDateChange={(e) => setDueDate(e.target.value)}
+                                    onTimeChange={(e) => setDueTime(e.target.value)}
+                                    dateFieldName="dueDate"
+                                    timeFieldName="dueTime"
+                                    placeholder="Select date and time"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="tc-field tc-field--grow">
+                            <label className="tc-label" htmlFor="tc-task-name">
+                                Task Description <span className="text-danger">*</span>
+                            </label>
+                            <div className="comments-tab-mention-host">
+                                <textarea
+                                    ref={textareaRef}
+                                    id="tc-task-name"
+                                    className={`tc-textarea tc-textarea--grow${taskNameError ? " is-invalid" : ""}`}
+                                    placeholder="Enter task description... (type @ to mention)"
+                                    value={taskName}
+                                    onChange={handleTaskNameChange}
+                                    onBlur={() => setTimeout(closeMentionDropdown, 150)}
+                                />
+
+                                {mentionOpen && (
+                                    <div
+                                        className="comments-tab-mention-dropdown"
+                                        role="listbox"
+                                        aria-label="Mention a user"
+                                    >
+                                        {filteredMentionUsers.length === 0 ? (
+                                            <p className="comments-tab-mention-status">No users found</p>
+                                        ) : (
+                                            filteredMentionUsers.map((user) => (
+                                                <button
+                                                    key={user.user_id}
+                                                    type="button"
+                                                    className="comments-tab-mention-option"
+                                                    role="option"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => handleSelectMentionUser(user)}
+                                                >
+                                                    <span className="comments-tab-mention-avatar">
+                                                        {user.avatar_path || user.avatar ? (
+                                                            <img src={user.avatar_path || user.avatar} alt="" />
+                                                        ) : (
+                                                            <span className="comments-tab-mention-avatar-fallback">
+                                                                {(user.name || "?").charAt(0).toUpperCase()}
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className="comments-tab-mention-name">{user.name}</span>
+                                                </button>
+                                            ))
+                                        )}
                                     </div>
                                 )}
-                            />
+                            </div>
+                            {taskNameError && <span className="tc-field-error">{taskNameError}</span>}
                         </div>
 
-                        <div className="tc-field">
-                            <label className="tc-label">Due Date &amp; Time</label>
-                            <DateTimePickerField
-                                dateValue={dueDate}
-                                timeValue={dueTime}
-                                onDateChange={(e) => setDueDate(e.target.value)}
-                                onTimeChange={(e) => setDueTime(e.target.value)}
-                                dateFieldName="dueDate"
-                                timeFieldName="dueTime"
-                                placeholder="Select date and time"
-                            />
+                        <div className="tc-save-row">
+                            <button type="button" className="tc-cancel-btn" onClick={handleClose} disabled={isSaving}>Cancel</button>
+                            <button type="button" className="tc-save-btn" onClick={handleSave} disabled={isSaving}>
+                                {isSaving ? "Creating..." : "Create Task"}
+                            </button>
                         </div>
-                    </div>
-
-                    <div className="tc-save-row">
-                        <button type="button" className="tc-cancel-btn" onClick={handleClose} disabled={isSaving}>Cancel</button>
-                        <button type="button" className="tc-save-btn" onClick={handleSave} disabled={isSaving}>
-                            {isSaving ? "Creating..." : "Create Task"}
-                        </button>
                     </div>
                 </div>
 
