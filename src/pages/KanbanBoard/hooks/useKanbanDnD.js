@@ -269,7 +269,8 @@ export default function useKanbanDnD(workflows, setWorkflows, { userProfile, ref
         setWorkflows((prev) => applyCrossColumnMove(prev, workflowId, moveParams));
 
         try {
-          await taskCardService.startTask(draggableId);
+          const taskId = workflow.cards?.[draggableId]?.taskId ?? "";
+          await taskCardService.startTask(draggableId, taskId);
           if (refetchBoard) {
             await refetchBoard();
           }

@@ -2,8 +2,10 @@ import Gateway from "../gateway/gateway";
 
 const assignTask = (payload) => Gateway.post("task_card/assign_task", payload);
 
-const startTask = (cardId) =>
-  Gateway.get(`task_card/start_task/${encodeURIComponent(String(cardId))}`);
+const startTask = (cardId, taskId) =>
+  Gateway.get(`task_card/start_task/${encodeURIComponent(String(cardId))}`, {
+    params: { task_id: taskId ?? "" },
+  });
 
 /** @param {{ card_name: string, task_name: string, assigned_to: string|number, due_date: string }} payload */
 const createTaskCard = (payload) => Gateway.post("kanban_card/create_task_card", payload);
