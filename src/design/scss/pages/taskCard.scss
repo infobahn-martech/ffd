@@ -17,6 +17,7 @@ $tc-font:         "Manrope", sans-serif;
 // ── Topbar colour ─────────────────────────────────────────────────────────────
 .tc-topbar {
   background-color: $tc-green;
+  gap: 20px;
 }
 
 // ── Assign user dropdown — avatar + name ──────────────────────────────────────
