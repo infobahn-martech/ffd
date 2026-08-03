@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 import userService from "../../services/userService";
 import taskCardService from "../../services/taskCardService";
@@ -13,6 +15,39 @@ import "../../design/scss/invoice.scss";
 import DateTimePickerField from "../KanbanBoard/CardFormTabs/shared/components/DateTimePickerField";
 
 const MENTION_TRIGGER_REGEX = /@([^\s@]*)$/;
+
+const QUILL_MODULES = {
+    toolbar: [
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["blockquote", "link"],
+        ["clean"],
+    ],
+};
+
+const QUILL_FORMATS = ["bold", "italic", "underline", "strike", "list", "bullet", "blockquote", "link"];
+
+const stripHtmlContent = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+};
+
+const isEmptyHtmlContent = (html) => stripHtmlContent(html).length === 0;
+
+const getMentionContext = (editor) => {
+    const selection = editor.getSelection();
+    if (!selection) return null;
+
+    const textBefore = editor.getText(0, selection.index);
+    const match = textBefore.match(MENTION_TRIGGER_REGEX);
+    if (!match) return null;
+
+    return {
+        search: match[1] || "",
+        startIndex: selection.index - match[0].length,
+        matchLength: match[0].length,
+    };
+};
 
 const UserOptionAvatar = ({ avatarUrl, label, className = "" }) => {
     const letter = label ? String(label).trim().charAt(0).toUpperCase() : "U";
@@ -29,7 +64,7 @@ const UserOptionAvatar = ({ avatarUrl, label, className = "" }) => {
 };
 
 function TaskCardModal({ show, onClose }) {
-    const textareaRef = useRef(null);
+    const quillRef = useRef(null);
 
     const [cardTitle, setCardTitle] = useState("");
     const [taskName, setTaskName] = useState("");
@@ -42,7 +77,6 @@ function TaskCardModal({ show, onClose }) {
 
     const [mentionOpen, setMentionOpen] = useState(false);
     const [mentionSearch, setMentionSearch] = useState("");
-    const [mentionStartIndex, setMentionStartIndex] = useState(null);
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
 
     useEffect(() => {
@@ -67,43 +101,46 @@ function TaskCardModal({ show, onClose }) {
     const closeMentionDropdown = useCallback(() => {
         setMentionOpen(false);
         setMentionSearch("");
-        setMentionStartIndex(null);
     }, []);
 
-    const handleTaskNameChange = useCallback((e) => {
-        const val = e.target.value;
-        setTaskName(val);
-        if (val) setTaskNameError("");
-
-        const cursor = e.target.selectionStart;
-        const textBefore = val.slice(0, cursor);
-        const match = textBefore.match(MENTION_TRIGGER_REGEX);
-        if (match) {
+    const syncMentionState = useCallback((editor) => {
+        const context = getMentionContext(editor);
+        if (context) {
             setMentionOpen(true);
-            setMentionSearch(match[1] || "");
-            setMentionStartIndex(cursor - match[0].length);
-        } else {
-            closeMentionDropdown();
+            setMentionSearch(context.search);
+            return;
         }
+        closeMentionDropdown();
+    }, [closeMentionDropdown]);
+
+    const handleTaskDescriptionChange = useCallback((html, _delta, _source, editor) => {
+        setTaskName(html);
+        if (!isEmptyHtmlContent(html)) setTaskNameError("");
+        syncMentionState(editor);
+    }, [syncMentionState]);
+
+    const handleEditorBlur = useCallback(() => {
+        closeMentionDropdown();
     }, [closeMentionDropdown]);
 
     const handleSelectMentionUser = useCallback((user) => {
-        if (mentionStartIndex === null) return;
-        const before = taskName.slice(0, mentionStartIndex);
-        const after = taskName.slice(mentionStartIndex + 1 + mentionSearch.length);
-        const inserted = `@${user.name} `;
-        const newText = before + inserted + after;
-        setTaskName(newText);
+        const editor = quillRef.current?.getEditor?.();
+        if (!editor) return;
+
+        const context = getMentionContext(editor);
+        if (!context) return;
+
+        const mentionText = `@${user.name} `;
+        editor.deleteText(context.startIndex, context.matchLength, "user");
+        editor.insertText(context.startIndex, mentionText, "user");
+        editor.setSelection(context.startIndex + mentionText.length, 0, "user");
+
+        setTaskName(editor.root.innerHTML);
         setSelectedMentionUserIds((prev) =>
             prev.some((id) => String(id) === String(user.user_id)) ? prev : [...prev, user.user_id]
         );
         closeMentionDropdown();
-        setTimeout(() => {
-            const pos = before.length + inserted.length;
-            textareaRef.current?.focus();
-            textareaRef.current?.setSelectionRange(pos, pos);
-        }, 0);
-    }, [taskName, mentionSearch, mentionStartIndex, closeMentionDropdown]);
+    }, [closeMentionDropdown]);
 
     const handleReset = useCallback(() => {
         setCardTitle("");
@@ -122,7 +159,7 @@ function TaskCardModal({ show, onClose }) {
     }, [handleReset, onClose]);
 
     const handleSave = useCallback(async () => {
-        if (!taskName.trim()) {
+        if (isEmptyHtmlContent(taskName)) {
             setTaskNameError("Task description is required");
             return;
         }
@@ -137,7 +174,7 @@ function TaskCardModal({ show, onClose }) {
         try {
             const { data } = await taskCardService.createTaskCard({
                 card_name: cardTitle || "Task Card",
-                task_name: taskName.trim(),
+                task_name: taskName,
                 assigned_to: assignUserId,
                 due_date: dueDatePayload,
             });
@@ -145,7 +182,7 @@ function TaskCardModal({ show, onClose }) {
             const newTask = {
                 id: data?.card_id,
                 cardTitle: cardTitle || "Task Card",
-                taskName: taskName.trim(),
+                taskName,
                 assignUserId,
                 assignedUserName: assignedUser?.name || "",
                 dueDate: dueDateDisplay,
@@ -203,103 +240,108 @@ function TaskCardModal({ show, onClose }) {
 
                 <div className="tc-body">
                     <div className="tc-card">
-                        <div className="tc-card-header">
-                            <span className="tc-card-icon">
+                        <div className="cf-section-header">
+                            <div className="cf-section-icon">
                                 <Layers3 size={15} aria-hidden />
-                            </span>
-                            <h3 className="tc-form-title">Create Task Card</h3>
+                            </div>
+                            <div className="cf-section-title">Create Task Card</div>
                         </div>
 
-                        <div className="tc-field-row">
-                            <div className="tc-field">
-                                <label className="tc-label">Assign User</label>
-                                <SearchableSelect
-                                    className="cf-owner-searchable-select"
-                                    value={assignUserId === "" ? "" : String(assignUserId)}
-                                    onChange={(e) => setAssignUserId(e.target.value)}
-                                    options={userOptions}
-                                    placeholder="Select user"
-                                    searchPlaceholder={deriveSearchPlaceholder("Select user")}
-                                    renderOption={(option) => (
-                                        <div className="cf-searchable-option-with-avatar tc-user-option">
-                                            <UserOptionAvatar avatarUrl={option.avatar} label={option.label} className="cf-owner-avatar--sm tc-user-avatar" />
-                                            <span className="tc-user-name">{option.label}</span>
+                        <div className="tc-card-body">
+                            <div className="tc-field-row">
+                                <div className="tc-field">
+                                    <label className="tc-label">Assign User</label>
+                                    <SearchableSelect
+                                        className="cf-owner-searchable-select"
+                                        value={assignUserId === "" ? "" : String(assignUserId)}
+                                        onChange={(e) => setAssignUserId(e.target.value)}
+                                        options={userOptions}
+                                        placeholder="Select user"
+                                        searchPlaceholder={deriveSearchPlaceholder("Select user")}
+                                        renderOption={(option) => (
+                                            <div className="cf-searchable-option-with-avatar tc-user-option">
+                                                <UserOptionAvatar avatarUrl={option.avatar} label={option.label} className="cf-owner-avatar--sm tc-user-avatar" />
+                                                <span className="tc-user-name">{option.label}</span>
+                                            </div>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className="tc-field">
+                                    <label className="tc-label">Due Date &amp; Time</label>
+                                    <DateTimePickerField
+                                        dateValue={dueDate}
+                                        timeValue={dueTime}
+                                        onDateChange={(e) => setDueDate(e.target.value)}
+                                        onTimeChange={(e) => setDueTime(e.target.value)}
+                                        dateFieldName="dueDate"
+                                        timeFieldName="dueTime"
+                                        placeholder="Select date and time"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="tc-field tc-field--grow">
+                                <label className="tc-label" htmlFor="tc-task-name">
+                                    Task Description <span className="text-danger">*</span>
+                                </label>
+                                <div className="comments-tab-mention-host">
+                                    <div className="react-quill-wrapper comments-tab-quill">
+                                        <ReactQuill
+                                            ref={quillRef}
+                                            theme="snow"
+                                            value={taskName}
+                                            onChange={handleTaskDescriptionChange}
+                                            onBlur={handleEditorBlur}
+                                            modules={QUILL_MODULES}
+                                            formats={QUILL_FORMATS}
+                                            placeholder="Enter task description... (type @ to mention)"
+                                        />
+                                    </div>
+
+                                    {mentionOpen && (
+                                        <div
+                                            className="comments-tab-mention-dropdown"
+                                            role="listbox"
+                                            aria-label="Mention a user"
+                                        >
+                                            {filteredMentionUsers.length === 0 ? (
+                                                <p className="comments-tab-mention-status">No users found</p>
+                                            ) : (
+                                                filteredMentionUsers.map((user) => (
+                                                    <button
+                                                        key={user.user_id}
+                                                        type="button"
+                                                        className="comments-tab-mention-option"
+                                                        role="option"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => handleSelectMentionUser(user)}
+                                                    >
+                                                        <span className="comments-tab-mention-avatar">
+                                                            {user.avatar_path || user.avatar ? (
+                                                                <img src={user.avatar_path || user.avatar} alt="" />
+                                                            ) : (
+                                                                <span className="comments-tab-mention-avatar-fallback">
+                                                                    {(user.name || "?").charAt(0).toUpperCase()}
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        <span className="comments-tab-mention-name">{user.name}</span>
+                                                    </button>
+                                                ))
+                                            )}
                                         </div>
                                     )}
-                                />
+                                </div>
+                                {taskNameError && <span className="tc-field-error">{taskNameError}</span>}
                             </div>
 
-                            <div className="tc-field">
-                                <label className="tc-label">Due Date &amp; Time</label>
-                                <DateTimePickerField
-                                    dateValue={dueDate}
-                                    timeValue={dueTime}
-                                    onDateChange={(e) => setDueDate(e.target.value)}
-                                    onTimeChange={(e) => setDueTime(e.target.value)}
-                                    dateFieldName="dueDate"
-                                    timeFieldName="dueTime"
-                                    placeholder="Select date and time"
-                                />
+                            <div className="tc-save-row">
+                                <button type="button" className="tc-cancel-btn" onClick={handleClose} disabled={isSaving}>Cancel</button>
+                                <button type="button" className="tc-save-btn" onClick={handleSave} disabled={isSaving}>
+                                    {isSaving ? "Creating..." : "Create Task"}
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="tc-field tc-field--grow">
-                            <label className="tc-label" htmlFor="tc-task-name">
-                                Task Description <span className="text-danger">*</span>
-                            </label>
-                            <div className="comments-tab-mention-host">
-                                <textarea
-                                    ref={textareaRef}
-                                    id="tc-task-name"
-                                    className={`tc-textarea tc-textarea--grow${taskNameError ? " is-invalid" : ""}`}
-                                    placeholder="Enter task description... (type @ to mention)"
-                                    value={taskName}
-                                    onChange={handleTaskNameChange}
-                                    onBlur={() => setTimeout(closeMentionDropdown, 150)}
-                                />
-
-                                {mentionOpen && (
-                                    <div
-                                        className="comments-tab-mention-dropdown"
-                                        role="listbox"
-                                        aria-label="Mention a user"
-                                    >
-                                        {filteredMentionUsers.length === 0 ? (
-                                            <p className="comments-tab-mention-status">No users found</p>
-                                        ) : (
-                                            filteredMentionUsers.map((user) => (
-                                                <button
-                                                    key={user.user_id}
-                                                    type="button"
-                                                    className="comments-tab-mention-option"
-                                                    role="option"
-                                                    onMouseDown={(e) => e.preventDefault()}
-                                                    onClick={() => handleSelectMentionUser(user)}
-                                                >
-                                                    <span className="comments-tab-mention-avatar">
-                                                        {user.avatar_path || user.avatar ? (
-                                                            <img src={user.avatar_path || user.avatar} alt="" />
-                                                        ) : (
-                                                            <span className="comments-tab-mention-avatar-fallback">
-                                                                {(user.name || "?").charAt(0).toUpperCase()}
-                                                            </span>
-                                                        )}
-                                                    </span>
-                                                    <span className="comments-tab-mention-name">{user.name}</span>
-                                                </button>
-                                            ))
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                            {taskNameError && <span className="tc-field-error">{taskNameError}</span>}
-                        </div>
-
-                        <div className="tc-save-row">
-                            <button type="button" className="tc-cancel-btn" onClick={handleClose} disabled={isSaving}>Cancel</button>
-                            <button type="button" className="tc-save-btn" onClick={handleSave} disabled={isSaving}>
-                                {isSaving ? "Creating..." : "Create Task"}
-                            </button>
                         </div>
                     </div>
                 </div>
