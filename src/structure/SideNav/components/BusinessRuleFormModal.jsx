@@ -38,6 +38,7 @@ import { getInitials, stripHtmlTags } from '../../../shared/utils/utils';
 import DatePickerField from '../../../pages/KanbanBoard/CardFormTabs/shared/components/DatePickerField';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { PRIMARY_PRESET_COLORS, SECONDARY_PRESET_COLORS, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import toastSuccessIcon from '../../../assets/images/toast-success.svg';
 
 Quill.register({ 'modules/table-better': QuillTableBetter }, true);
@@ -12304,29 +12305,12 @@ function BusinessRuleFormModal({ show, rule: ruleProp, businessRuleId, boardName
       onSave={handleSaveSharePermissions}
     />
 
-    <Modal
+    <DeleteConfirmationModal
       show={showCancelConfirm}
-      onHide={handleCancelClose}
-      className="br-cancel-confirm-modal"
-      dialogClassName="br-cancel-confirm-dialog"
-      backdropClassName="br-cancel-confirm-backdrop"
-      backdrop="static"
-    >
-      <div className="br-cancel-confirm-content">
-        <button type="button" className="br-cancel-confirm-close-btn" onClick={handleCancelClose}>
-          <FiX size={16} />
-        </button>
-        <p className="br-cancel-confirm-text">Are you sure you want to cancel creating a new business rule?</p>
-        <div className="br-cancel-confirm-actions">
-          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--no" onClick={handleCancelClose}>
-            No
-          </button>
-          <button type="button" className="br-cancel-confirm-btn br-cancel-confirm-btn--yes" onClick={handleConfirmClose}>
-            Yes
-          </button>
-        </div>
-      </div>
-    </Modal>
+      onCancel={handleCancelClose}
+      onConfirm={handleConfirmClose}
+      deleteText="Are you sure you want to cancel creating a new business rule?"
+    />
     </>
   );
 }
