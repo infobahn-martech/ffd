@@ -101,6 +101,55 @@ ApiCardStickerBadge.propTypes = {
   }).isRequired,
 };
 
+/** Single service-count badge: icon + count. Hidden when count is 0/empty. */
+function ApiCardCountBadge({ IconComp, count, label }) {
+  const value = Number(count);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return (
+    <span className="card-api-count-badge" title={label}>
+      <IconComp size={13} color="#2563eb" />
+      <span>{value}</span>
+    </span>
+  );
+}
+
+ApiCardCountBadge.propTypes = {
+  IconComp: PropTypes.elementType.isRequired,
+  count: PropTypes.number,
+  label: PropTypes.string.isRequired,
+};
+
+/** Row of API service-count icons (transport/hotel/medical/material/waste) shown on full API cards. */
+function ApiCardCountIconsRow({ card }) {
+  const hasAny =
+    Number(card.transportCount) > 0 ||
+    Number(card.hotelCount) > 0 ||
+    Number(card.medicalCount) > 0 ||
+    Number(card.materialManagementCount) > 0 ||
+    Number(card.wasteDisposalCount) > 0;
+  if (!hasAny) return null;
+
+  return (
+    <div className="card-api-count-icons-row">
+      <ApiCardCountBadge IconComp={CarIcon} count={card.transportCount} label="Transport" />
+      <ApiCardCountBadge IconComp={HotelIcon} count={card.hotelCount} label="Hotel" />
+      <ApiCardCountBadge IconComp={MedicalIcon} count={card.medicalCount} label="Medical" />
+      <ApiCardCountBadge IconComp={MaterialManagementIcon} count={card.materialManagementCount} label="Material Management" />
+      <ApiCardCountBadge IconComp={WasteDisposalIcon} count={card.wasteDisposalCount} label="Waste Disposal" />
+    </div>
+  );
+}
+
+ApiCardCountIconsRow.propTypes = {
+  card: PropTypes.shape({
+    transportCount: PropTypes.number,
+    hotelCount: PropTypes.number,
+    medicalCount: PropTypes.number,
+    materialManagementCount: PropTypes.number,
+    wasteDisposalCount: PropTypes.number,
+  }).isRequired,
+};
+
 /** Circular KPI used in API card summary row (classic + compact). */
 function ApiCardCircularKpi({ progress }) {
   const pct = Math.min(100, Math.max(0, Number(progress)));
@@ -430,6 +479,8 @@ function ApiKanbanCardFull({
           </p>
         ) : null}
       </div>
+
+      <ApiCardCountIconsRow card={card} />
 
       {showSummaryRow ? (
         <div className="card-api-summary-row">
@@ -929,11 +980,12 @@ CardItem.propTypes = {
     taskName: PropTypes.string,
     taskId: PropTypes.string,
     transport: PropTypes.string,
-    transportCount: PropTypes.number,
+    transportCount: PropTypes.number, // API cards: see ApiCardCountIconsRow
     hotel: PropTypes.string,
     hotelCount: PropTypes.number,
     medicalService: PropTypes.string,
     medicalServiceCount: PropTypes.number,
+    medicalCount: PropTypes.number, // API cards: medical_count
     onStation: PropTypes.string,
     onStationCount: PropTypes.number,
     materialManagement: PropTypes.string,

@@ -891,6 +891,24 @@
   justify-content: flex-end;
 }
 
+.card-api-count-icons-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0 6px 0;
+  margin: 0;
+}
+
+.card-api-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+}
+
 .card-api-summary-row .card-api-kpi .circular-progress {
   margin-top: 0;
 }
@@ -927,6 +945,10 @@
 
 .kanban-card-dark.kanban-card--api .card-api-timeline {
   color: #e5e5e5;
+}
+
+.kanban-card-dark.kanban-card--api .card-api-count-badge {
+  color: #d4d4d8;
 }
 
 .kanban-card-dark.kanban-card--api .card-api-user-avatar {
