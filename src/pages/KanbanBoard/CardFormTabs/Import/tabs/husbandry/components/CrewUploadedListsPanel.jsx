@@ -56,16 +56,6 @@ const CrewUploadedCard = ({ upload, movementTypeLabel, onPreview }) => {
         )}
       </div>
       <span className="crew-uploaded-card__badge">{movementTypeLabel}</span>
-      <div className="crew-uploaded-card__actions">
-        <button
-          type="button"
-          className="crew-uploaded-card__action"
-          onClick={() => onPreview(upload.movementType)}
-          disabled={isUploading}
-        >
-          Preview
-        </button>
-      </div>
     </div>
   );
 };
