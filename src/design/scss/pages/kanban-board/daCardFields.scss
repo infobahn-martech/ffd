@@ -1276,17 +1276,14 @@
   cursor: pointer;
 }
 
-.da-cf-download-all:hover {
+.da-cf-download-all:hover:not(:disabled) {
   text-decoration: underline;
 }
 
 .da-cf-download-all:disabled {
   color: var(--da-ink-faint);
   cursor: not-allowed;
-
-  &:hover {
-    text-decoration: none;
-  }
+  text-decoration: none;
 }
 
 .da-cf-existing-files {

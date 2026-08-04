@@ -290,6 +290,26 @@ export function mapBoardWorkflowFromApi(workflow) {
               card.card_type_name != null && String(card.card_type_name).trim() !== ""
                 ? String(card.card_type_name).trim()
                 : null,
+            transportCount:
+              card.transport_count != null && String(card.transport_count).trim() !== ""
+                ? Number(card.transport_count)
+                : null,
+            hotelCount:
+              card.hotel_count != null && String(card.hotel_count).trim() !== ""
+                ? Number(card.hotel_count)
+                : null,
+            medicalCount:
+              card.medical_count != null && String(card.medical_count).trim() !== ""
+                ? Number(card.medical_count)
+                : null,
+            materialManagementCount:
+              card.material_management_count != null && String(card.material_management_count).trim() !== ""
+                ? Number(card.material_management_count)
+                : null,
+            wasteDisposalCount:
+              card.waste_disposal != null && String(card.waste_disposal).trim() !== ""
+                ? Number(card.waste_disposal)
+                : null,
             raw: card,
             cardSource: "api",
             // Task Card modal (kanban_card/create_task_card) cards always live under the

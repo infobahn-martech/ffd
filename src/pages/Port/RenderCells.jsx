@@ -1,8 +1,6 @@
 import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 
-// import eye from '../../assets/images/eye.svg';
-// import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import { getInitials } from '../../shared/utils/utils';
 

@@ -136,16 +136,18 @@ const RAW_FIELDS_CONFIG = [
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "sailingClearanceCopy", label: "Outward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "copyOfSalesOrder", label: "Sales Order Copy", type: "files", group: "daDocuments", reserveSpace: true },
-  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
+  // documentName values below match api/da/download_section_zip's document_name param —
+  // same snake_case keys already used by save_documents_tab's formData fields.
+  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "sales_order_supporting_documents", reserveSpace: true },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "daDocuments", reserveSpace: true },
-  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, reserveSpace: true, documentName: "supporting_documents" },
+  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "supporting_documents", reserveSpace: true },
   // Attachments / Docs — were free-form text/link rows (LIST_SECTIONS below); the
   // documents_tab GET already returns these as real uploaded documents (same shape as
   // FDA Dispatch Proof etc.), so they get the same drag-and-drop/view/delete FileDropzone
   // treatment here instead. The "Link" tab's own free-form "Links overview" list is
   // unrelated and untouched.
-  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
-  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
+  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "attachments", reserveSpace: true },
+  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "docs", reserveSpace: true },
 ];
 
 const FIELDS_CONFIG = RAW_FIELDS_CONFIG.map((field) => ({
@@ -787,7 +789,7 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
       {showDownloadAll && files.length > 0 && (
         <div className="da-cf-file-actions-row">
           <button type="button" className="da-cf-download-all" onClick={handleDownloadAll} disabled={isDownloadingZip}>
-            <FileArchive size={13} />
+            {isDownloadingZip ? <Loader2 size={13} className="da-cf-autosave-status-spin" /> : <FileArchive size={13} />}
             {isDownloadingZip ? "Downloading…" : "Download all as ZIP"}
           </button>
         </div>
