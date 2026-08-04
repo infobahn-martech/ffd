@@ -790,11 +790,7 @@ const createEmptyPartySection = () => ({
     // untouched here).
     const isControllerRole = String(userRoleId) === "2";
     const isManagerRole = String(userRoleId) === "1";
-    // TEMPORARY: role_id "3" (Port Supervisor) is also being let in as CEO
-    // for testing, alongside the real CEO role_id "23" — per explicit user
-    // request. Remove `|| String(userRoleId) === "3"` once CEO testing
-    // is done.
-    const isCeoRole = String(userRoleId) === "23" || String(userRoleId) === "3";
+    const isCeoRole = String(userRoleId) === "23";
     // DA (role_id 22) gets stand-in edit access to the Credit Controller
     // section again, per explicit user request — this is a new decision,
     // not a revert of the 2026-08-03 removal (see canEditCreditControllerSection
@@ -1169,15 +1165,30 @@ const createEmptyPartySection = () => ({
                     ? { type: "approved", text: "Approved by Credit Controller" }
                     : !stageActive.credit_controller
                     ? { type: "proceeded", text: "Proceeded to Manager" }
+                    // "Still processing by Credit Controller" is only useful to
+                    // someone waiting on this stage — Controller and DA are the
+                    // ones who'd act on it, so telling them it's "still
+                    // processing by Credit Controller" is just noise about
+                    // their own pending action, per explicit user request.
+                    : canEditCreditControllerSection
+                    ? null
                     : { type: "pending", text: "Still processing by Credit Controller" }
                 }
-                hideActions={creditControllerApproved || !stageActive.credit_controller}
+                // Viewers who can't edit this section (Manager, CEO, generic
+                // viewers) see the "Still processing by Credit Controller"
+                // badge instead — the buttons would just sit there disabled,
+                // which reads as confusing dead UI (same reasoning as the
+                // Manager card's hideActions below).
+                hideActions={
+                  creditControllerApproved ||
+                  !stageActive.credit_controller ||
+                  !canEditCreditControllerSection
+                }
                 isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
               />
 
-              {/* Nobody — Controller, Manager, CEO (including the TEMPORARY
-                  role_id "3" CEO-tester), DA, or generic viewers — sees the
-                  Manager card until Credit Controller has actually clicked
+              {/* Nobody — Controller, Manager, CEO, DA, or generic viewers —
+                  sees the Manager card until Credit Controller has actually clicked
                   "Proceed to Manager" (workflow moved past credit_controller).
                   Credit Controller clicking "Approved" alone does not count;
                   effectiveStage only leaves "credit_controller" once its
