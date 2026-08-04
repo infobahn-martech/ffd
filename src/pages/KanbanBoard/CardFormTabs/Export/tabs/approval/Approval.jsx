@@ -778,28 +778,17 @@ const createEmptyPartySection = () => ({
     );
 
     const userRoleId = useAuthReducer((state) => state.profileData?.role?.role_id);
-    // Each role owns exactly one section — Port Operator (Credit Controller),
-    // Port Manager (Manager - OFM), Port Admin (CEO). Every other role gets
-    // all three sections locked (view-only), regardless of workflow stage.
-    // Manager/Controller/CEO checks use "1"/"2"/"23" directly (not
-    // ROLE_IDS.PORT_MANAGER="5" / ROLE_IDS.PORT_OPERATOR="4" /
-    // ROLE_IDS.PORT_ADMIN="3") because the user confirmed via live login test
-    // that role_id 1 is Port Manager, role_id 2 is Credit Controller, and role_id
-    // 23 is CEO in this environment's actual data, which does not match
-    // rolePermissions.js's assumed mapping (used app-wide for routing, left
-    // untouched here).
-    const isControllerRole = String(userRoleId) === "2";
-    const isManagerRole = String(userRoleId) === "1";
-    // TEMPORARY: role_id "3" (Port Supervisor) is also being let in as CEO
-    // for testing, alongside the real CEO role_id "23" — per explicit user
-    // request. Remove `|| String(userRoleId) === "3"` once CEO testing
-    // is done.
-    const isCeoRole = String(userRoleId) === "23" || String(userRoleId) === "3";
-    // DA (role_id 22) gets stand-in edit access to the Credit Controller
-    // section again, per explicit user request — this is a new decision,
-    // not a revert of the 2026-08-03 removal (see canEditCreditControllerSection
-    // below for how it's bounded).
-    const isDaRole = String(userRoleId) === "22";
+    // Each role owns exactly one section — Credit Controller, Manager (OFM), CEO.
+    // Every other role gets all three sections locked (view-only), regardless
+    // of workflow stage. Per explicit user confirmation (Permission Fix,
+    // 2026-08-04): Credit Controller = role_id 22 (DA — the earlier "2" mapping
+    // and the separate DA stand-in-access logic are both superseded by this),
+    // Manager = role_id 1 or 3, CEO = role_id 23 only. Not ROLE_IDS.* (used
+    // app-wide for routing, left untouched here) since that mapping doesn't
+    // match this environment's actual data.
+    const isControllerRole = String(userRoleId) === "22";
+    const isManagerRole = String(userRoleId) === "1" || String(userRoleId) === "3";
+    const isCeoRole = String(userRoleId) === "23";
     // Vessel party image uploads are restricted to Credit Controller and CEO
     // only, per user confirmation — not Manager, unlike the section gating above.
     const canEditPartyImages = isControllerRole || isCeoRole;
@@ -820,14 +809,11 @@ const createEmptyPartySection = () => ({
     // already on hold, since re-clicking it is a no-op.
     const isCeoStageUsable = stageActive.ceo || isOnHold;
 
-    // Real Credit Controller always edits this section; DA gets the same
-    // stand-in edit access, but only up to the point Credit Controller has
+    // Credit Controller (role_id 22) edits this section up to the point it has
     // acted — once creditControllerApproved or the stage has moved on
     // (!stageActive.credit_controller), the existing fieldsDisabled/hideActions
-    // checks below lock it for DA the same way they already do for Controller,
-    // so DA can't touch it after Credit Controller has approved or proceeded.
-    // Every other role stays view-only, same as before.
-    const canEditCreditControllerSection = isControllerRole || isDaRole;
+    // checks below lock it. Every other role stays view-only.
+    const canEditCreditControllerSection = isControllerRole;
 
     // "Approved" doesn't advance the effective stage (only "proceed_to_*"
     // does), so stageActive alone can't stop the Approved button from being
@@ -1175,9 +1161,9 @@ const createEmptyPartySection = () => ({
                 isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
               />
 
-              {/* Nobody — Controller, Manager, CEO (including the TEMPORARY
-                  role_id "3" CEO-tester), DA, or generic viewers — sees the
-                  Manager card until Credit Controller has actually clicked
+              {/* Nobody — Controller, Manager (role_id 1 or 3), CEO, or generic
+                  viewers — sees the Manager card until Credit Controller has
+                  actually clicked
                   "Proceed to Manager" (workflow moved past credit_controller).
                   Credit Controller clicking "Approved" alone does not count;
                   effectiveStage only leaves "credit_controller" once its
@@ -1226,7 +1212,7 @@ const createEmptyPartySection = () => ({
                       ? { type: "pending", text: "Still processing by Manager" }
                       : null
                   }
-                  // Non-Manager viewers (CEO, DA, Controller, generic
+                  // Non-Manager viewers (CEO, Controller, generic
                   // viewers) never see these buttons at all — only the
                   // "Still processing by Manager" badge/wait text — since
                   // they could never click them anyway (actionsDisabled
@@ -1242,7 +1228,7 @@ const createEmptyPartySection = () => ({
               ) : null}
 
               {/* Same phased reveal as the Manager card above, applied to
-                  every non-Controller viewer (Manager, CEO, DA, generic
+                  every non-Controller viewer (Manager, CEO, generic
                   viewers alike): the CEO card only appears once Manager has
                   actually proceeded to CEO (isStagePassed handles the
                   "Manager clicked Approved but didn't proceed" case
