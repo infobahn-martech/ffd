@@ -12,7 +12,7 @@ import billingEntityService from "../../../../../../services/billingEntityServic
 import daService from "../../../../../../services/daService";
 import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
-import { getInitials } from "../../../../../../shared/utils/utils";
+import { getInitials, downloadFile } from "../../../../../../shared/utils/utils";
 import { useDaLocalReachedDates, useDaLocalLaunchHire } from "../../../../../../shared/store/daStore";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
@@ -133,16 +133,18 @@ const RAW_FIELDS_CONFIG = [
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "sailingClearanceCopy", label: "Outward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "copyOfSalesOrder", label: "Sales Order Copy", type: "files", group: "daDocuments", reserveSpace: true },
-  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
+  // documentName values below match api/da/download_section_zip's document_name param —
+  // same snake_case keys already used by save_documents_tab's formData fields.
+  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "sales_order_supporting_documents", reserveSpace: true },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "daDocuments", reserveSpace: true },
-  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, reserveSpace: true },
+  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "supporting_documents", reserveSpace: true },
   // Attachments / Docs — were free-form text/link rows (LIST_SECTIONS below); the
   // documents_tab GET already returns these as real uploaded documents (same shape as
   // FDA Dispatch Proof etc.), so they get the same drag-and-drop/view/delete FileDropzone
   // treatment here instead. The "More" tab's own text-list "Docs" section is unrelated
   // and untouched.
-  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
-  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, reserveSpace: true },
+  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "attachments", reserveSpace: true },
+  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "docs", reserveSpace: true },
 ];
 
 const FIELDS_CONFIG = RAW_FIELDS_CONFIG.map((field) => ({
@@ -616,8 +618,9 @@ ChipsField.propTypes = {
   accent: PropTypes.string,
 };
 
-function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveSpace, readOnly, isLoading, id, highlighted, onAddFiles, onRemoveFile }) {
+function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveSpace, readOnly, isLoading, id, highlighted, callId, documentName, onAddFiles, onRemoveFile }) {
   const [dragging, setDragging] = useState(false);
+  const [downloadingZip, setDownloadingZip] = useState(false);
   const inputRef = useRef(null);
 
   const handleFiles = useCallback((fileList) => {
@@ -625,17 +628,21 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
     if (arr.length) onAddFiles(arr);
   }, [onAddFiles]);
 
-  const handleDownloadAll = () => {
-    files.forEach((file) => {
-      const url = URL.createObjectURL(file);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-    });
+  // api/da/download_section_zip/{call_id}?document_name= — returns the zip file directly
+  // as the response body, so it's saved via a blob URL rather than window.open.
+  const handleDownloadAll = async () => {
+    if (callId == null || !documentName || downloadingZip) return;
+    setDownloadingZip(true);
+    try {
+      const response = await daService.downloadSectionZip(callId, documentName);
+      const blob = new Blob([response.data], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      downloadFile({ link: url, fileName: `${documentName}_${callId}.zip` });
+    } catch (err) {
+      notify(err?.response?.data?.message || "Failed to download ZIP.", "error", "top-center");
+    } finally {
+      setDownloadingZip(false);
+    }
   };
 
   return (
@@ -724,9 +731,9 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
       ) : null}
       {showDownloadAll && files.length > 0 && (
         <div className="da-cf-file-actions-row">
-          <button type="button" className="da-cf-download-all" onClick={handleDownloadAll}>
-            <FileArchive size={13} />
-            Download all as ZIP
+          <button type="button" className="da-cf-download-all" onClick={handleDownloadAll} disabled={downloadingZip}>
+            {downloadingZip ? <Loader2 size={13} className="da-cf-autosave-status-spin" /> : <FileArchive size={13} />}
+            {downloadingZip ? "Downloading…" : "Download all as ZIP"}
           </button>
         </div>
       )}
@@ -745,6 +752,8 @@ FileDropzone.propTypes = {
   isLoading: PropTypes.bool,
   id: PropTypes.string,
   highlighted: PropTypes.bool,
+  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  documentName: PropTypes.string,
   onAddFiles: PropTypes.func.isRequired,
   onRemoveFile: PropTypes.func.isRequired,
 };
@@ -2497,6 +2506,8 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             files={value}
             showCount={field.showCount}
             showDownloadAll={field.showDownloadAll}
+            documentName={field.documentName}
+            callId={callId}
             reserveSpace={field.reserveSpace}
             onAddFiles={(newFiles) => updateField(field.key, [...value, ...newFiles])}
             onRemoveFile={(i) => handleRemoveDocument(field.key, i)}
