@@ -47,6 +47,7 @@ const getTypeLabel = (type) => {
   if (type === "pdf") return "PDF Document";
   if (type === "doc") return "Word Document";
   if (type === "xls") return "Excel Spreadsheet";
+  if (type === "image") return "Image";
   return "Document";
 };
 
@@ -152,10 +153,12 @@ const DocumentPreview = ({ document }) => {
 
   const fileType = getFileType(document);
   const isPdf = fileType === "pdf";
+  const isImage = fileType === "image";
   const hasPreviewUrl = Boolean(document.previewUrl);
   // Only PDFs render safely inside an <iframe>; other file types (e.g. .msg, .doc)
   // aren't inline-renderable and the browser triggers a download of the raw
   // file_url instead of displaying it, so those fall back to the placeholder.
+  // Images render directly via <img> instead.
   const canEmbedPreview = hasPreviewUrl && isPdf;
 
   const handleView = () => {
@@ -229,6 +232,12 @@ const DocumentPreview = ({ document }) => {
             src={document.previewUrl}
             title={document.name}
             className="document-preview__iframe"
+          />
+        ) : isImage && hasPreviewUrl ? (
+          <img
+            src={document.previewUrl}
+            alt={document.name}
+            className="doc-lib-preview-image"
           />
         ) : isPdf ? (
           <PdfPreviewMock fileName={document.name} />

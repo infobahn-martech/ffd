@@ -336,11 +336,14 @@ const getFileExtension = (fileName = "") => {
   return match ? match[1] : "";
 };
 
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
+
 const resolveFileType = (fileName) => {
   const ext = getFileExtension(fileName);
   if (ext === "pdf") return "pdf";
   if (ext === "doc" || ext === "docx") return "doc";
   if (ext === "xls" || ext === "xlsx" || ext === "csv") return "xls";
+  if (IMAGE_EXTENSIONS.includes(ext)) return "image";
   return "file";
 };
 

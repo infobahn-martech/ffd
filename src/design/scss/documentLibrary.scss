@@ -671,6 +671,15 @@
   background: #f8fafc;
 }
 
+.doc-lib-preview-image {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
 .doc-lib-preview-mock {
   border-radius: 12px;
   overflow: hidden;
