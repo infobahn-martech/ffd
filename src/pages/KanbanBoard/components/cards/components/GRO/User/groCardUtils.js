@@ -686,11 +686,14 @@ const parseGroTimeObjectValue = (value) => {
 };
 
 /**
- * arrival/get_task_details — maps its saved `time_objects: [{ time_object_id, time_object_value }]`
- * onto the current stage's time-object field definitions, producing the same shape as timeObjectValues.
+ * arrival/get_task_details — maps its saved `time_objects` onto the current stage's time-object
+ * field definitions, producing the same shape as timeObjectValues. The API groups saved entries by
+ * stage (`[{ stage_id, items: [{ time_object_id, time_object_value }] }]`), so entries are flattened
+ * before matching; a flat `[{ time_object_id, time_object_value }]` shape is also accepted.
  */
 export const applyGroSavedTimeObjectValues = (timeObjectDefs, savedTimeObjects) => {
-  const saved = Array.isArray(savedTimeObjects) ? savedTimeObjects : [];
+  const rawSaved = Array.isArray(savedTimeObjects) ? savedTimeObjects : [];
+  const saved = rawSaved.flatMap((entry) => (Array.isArray(entry?.items) ? entry.items : [entry]));
   const values = {};
   (Array.isArray(timeObjectDefs) ? timeObjectDefs : []).forEach((item) => {
     const id = item?.time_object_id;
