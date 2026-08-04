@@ -1774,15 +1774,13 @@ VesselSalesOrderSection.propTypes = {
 
 // DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
 // VesselSalesOrderSection above, minus its own hero header and the vessel/file fields
-// not asked for here, plus its Sales Order Supporting Documents upload so this sub-tab
-// has drag-and-drop for those docs too (shares fieldValues.salesOrderSupportingDocs and
-// the save_documents_tab autosave with the DA Documents tab's copy of this same field).
+// not asked for here.
 // SAP Sales Order No is editable and persisted via api/da/save_operation_tab/{call_id};
 // SRN No. has no field in that payload, so typed values are saved via the local-only
 // useDaLocalLaunchHire fallback (see updateField in DA below) since there's no real
 // backend field to persist it to.
 const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter(
-  (card) => card.key === "sapSalesOrderNo" || card.key === "srnNo" || card.key === "salesOrderSupportingDocs"
+  (card) => card.key === "sapSalesOrderNo" || card.key === "srnNo"
 );
 
 function SalesOrderCardsSection({ fieldValues, updateField, onRemoveDocument, callId }) {
