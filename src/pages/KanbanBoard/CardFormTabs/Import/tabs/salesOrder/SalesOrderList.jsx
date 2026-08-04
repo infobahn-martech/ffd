@@ -1767,8 +1767,7 @@ const SalesOrderList = ({
                 className="so-header-input"
                 placeholder="Enter ship name..."
                 value={soShipName}
-                onChange={handleChange("soShipName")}
-                readOnly={readOnly}
+                readOnly
               />
             </div>
             <div className="so-header-field">
