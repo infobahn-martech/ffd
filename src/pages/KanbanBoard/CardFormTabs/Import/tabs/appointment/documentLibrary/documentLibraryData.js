@@ -382,53 +382,32 @@ const normalizeAttachmentDoc = (doc, folderKey, fallbackId) => {
  * Transform the `attachments/get_all_attachments` response into the folder
  * tree + flat documents shape consumed by the document library components.
  *
- * Stage documents become top-level folders that hold documents directly.
- * Checklist documents become role folders (parents) → task folders (children).
+ * The API returns an array of document sections, each holding its own
+ * documents. Every section becomes a top-level folder.
  *
- * @param {{ stage_documents?: Object, checklist_documents?: Array }} payload
+ * @param {Array<{ document_section: string, documents: Array }>} payload
  * @returns {{ folderTree: Array, documents: Array }}
  */
 export const transformAttachmentsResponse = (payload) => {
-  const stageDocuments = payload?.stage_documents ?? {};
-  const checklistDocuments = payload?.checklist_documents ?? [];
+  const sections = Array.isArray(payload) ? payload : [];
 
   const folderTree = [];
   const documents = [];
 
-  Object.entries(stageDocuments).forEach(([stageName, stageDocs]) => {
-    const folderKey = `stage::${stageName}`;
+  sections.forEach((section) => {
+    const sectionName = section?.document_section;
+    if (!sectionName) return;
+
+    const folderKey = `stage::${sectionName}`;
     folderTree.push({
       name: folderKey,
-      label: stageName,
-      icon: resolveFolderIcon(stageName),
+      label: sectionName,
+      icon: resolveFolderIcon(sectionName),
       children: [],
     });
 
-    (Array.isArray(stageDocs) ? stageDocs : []).forEach((doc, index) => {
+    (Array.isArray(section?.documents) ? section.documents : []).forEach((doc, index) => {
       documents.push(normalizeAttachmentDoc(doc, folderKey, `${folderKey}::${index}`));
-    });
-  });
-
-  (Array.isArray(checklistDocuments) ? checklistDocuments : []).forEach((role) => {
-    const roleKey = `role::${role?.role_id}`;
-    const children = [];
-
-    (Array.isArray(role?.tasks) ? role.tasks : []).forEach((task) => {
-      const taskKey = `task::${role?.role_id}::${task?.task_id}`;
-      children.push({ name: taskKey, label: task?.task_name || "Task" });
-
-      (Array.isArray(task?.documents) ? task.documents : []).forEach((doc, index) => {
-        const docId =
-          doc?.document_id != null ? `doc::${doc.document_id}` : `${taskKey}::${index}`;
-        documents.push(normalizeAttachmentDoc(doc, taskKey, docId));
-      });
-    });
-
-    folderTree.push({
-      name: roleKey,
-      label: role?.role_name || "Role",
-      icon: FOLDER_ICON_TYPES.CHECKLIST,
-      children,
     });
   });
 
