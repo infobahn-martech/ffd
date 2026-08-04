@@ -57,10 +57,8 @@ const LIST_SECTIONS = [
 // sub-tab; the MWP-tagged subset is also surfaced separately inside the "MWP" sub-tab.
 const REQUIRED_DOCUMENTS_CONFIG = [
   { key: "immigration_doc", label: "Crew Immigration", icon: User },
-  { key: "inward_clearance_doc", label: "Inward Clearance", icon: CalendarCheck },
   { key: "mwp_doc", label: "MWP", icon: ShieldCheck, section: "mwp", accent: "#0891b2" },
   { key: "mwp_subscription_sadad", label: "MWP Subscription (SADAD)", icon: Banknote, section: "mwp", accent: "#d97706" },
-  { key: "outward_clearance_doc", label: "Outward Clearance", icon: CalendarCheck },
   { key: "final_bayan_doc", label: "Final Bayan", icon: FileText },
   { key: "mawani_invoice", label: "Mawani Invoice", icon: Receipt },
   { key: "ibtikar_invoice", label: "Ibtikar Invoice", icon: Receipt },
@@ -68,7 +66,12 @@ const REQUIRED_DOCUMENTS_CONFIG = [
 ];
 
 const MWP_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter((doc) => doc.section === "mwp");
-const OTHER_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter((doc) => doc.section !== "mwp");
+const FINAL_BAYAN_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter(
+  (doc) => doc.key === "final_bayan_doc" || doc.key === "cargo_final_bayan"
+);
+const OTHER_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter(
+  (doc) => doc.section !== "mwp" && doc.key !== "final_bayan_doc" && doc.key !== "cargo_final_bayan"
+);
 
 const TYPE_ICON = {
   text: Hash,
@@ -109,7 +112,7 @@ const RAW_FIELDS_CONFIG = [
   // Clearance Copies
   { key: "sailingClearanceCopy", label: "Sailing Clearance Copy", type: "files", group: "clearanceCopies", reserveSpace: true },
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "clearanceCopies", reserveSpace: true },
-  { key: "supportingDocuments", label: "SUPPORTING DOCUMENTS", type: "files", group: "clearanceCopies", showCount: true, showDownloadAll: true, reserveSpace: true, documentName: "supporting_documents" },
+  { key: "supportingDocuments", label: "SUPPORTING DOCUMENTS", type: "files", group: "clearanceCopies", showCount: true, showDownloadAll: true, reserveSpace: true, documentName: "Supporting Documents" },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "clearanceCopies", reserveSpace: true },
   // Invoices, Fees & Certificates
   { key: "taxInvoice", label: "Tax Invoice", type: "text", group: "invoicesFees", placeholder: "e.g. INV-88213" },
@@ -136,18 +139,19 @@ const RAW_FIELDS_CONFIG = [
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "sailingClearanceCopy", label: "Outward Clearance Copy", type: "files", group: "daDocuments", reserveSpace: true },
   { key: "copyOfSalesOrder", label: "Sales Order Copy", type: "files", group: "daDocuments", reserveSpace: true },
-  // documentName values below match api/da/download_section_zip's document_name param —
-  // same snake_case keys already used by save_documents_tab's formData fields.
-  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "sales_order_supporting_documents", reserveSpace: true },
+  // documentName values below must be the exact document group label from
+  // documents_tab's response (Title Case, spaces) — download_section_zip matches
+  // on this literal string, not the save_documents_tab snake_case formData keys.
+  { key: "salesOrderSupportingDocs", label: "Sales Order supporting docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "Sales Order Supporting Documents", reserveSpace: true },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "daDocuments", reserveSpace: true },
-  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "supporting_documents", reserveSpace: true },
+  { key: "supportingDocuments", label: "Supporting Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "Supporting Documents", reserveSpace: true },
   // Attachments / Docs — were free-form text/link rows (LIST_SECTIONS below); the
   // documents_tab GET already returns these as real uploaded documents (same shape as
   // FDA Dispatch Proof etc.), so they get the same drag-and-drop/view/delete FileDropzone
   // treatment here instead. The "Link" tab's own free-form "Links overview" list is
   // unrelated and untouched.
-  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "attachments", reserveSpace: true },
-  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "docs", reserveSpace: true },
+  { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "Attachments", reserveSpace: true },
+  { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "Docs", reserveSpace: true },
 ];
 
 const FIELDS_CONFIG = RAW_FIELDS_CONFIG.map((field) => ({
@@ -621,15 +625,19 @@ ChipsField.propTypes = {
   accent: PropTypes.string,
 };
 
-// The browser's own new-tab viewer already gives PDFs a print/download toolbar, but
-// plain images open with no chrome around them at all — so image files get their own
-// lightbox (view) with explicit Download/Print actions instead of a bare new tab.
+// Image and PDF files get their own lightbox (view) with explicit Download/Print
+// actions instead of a bare new tab; other file types still just open in a new tab.
 const IMAGE_FILE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"]);
 const isImageFile = (file) => {
   const name = file?.name || file?.url || "";
   const ext = name.split(".").pop()?.toLowerCase();
   return IMAGE_FILE_EXTENSIONS.has(ext);
 };
+const isPdfFile = (file) => {
+  const name = file?.name || file?.url || "";
+  return name.split(".").pop()?.toLowerCase() === "pdf";
+};
+const isPreviewableFile = (file) => isImageFile(file) || isPdfFile(file);
 
 function FileDropzone({ label, icon, files, showCount, showDownloadAll, documentName, callId, reserveSpace, readOnly, isLoading, id, highlighted, onAddFiles, onRemoveFile }) {
   const [dragging, setDragging] = useState(false);
@@ -639,7 +647,14 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
 
   const handleFiles = useCallback((fileList) => {
     const arr = Array.from(fileList || []);
-    if (arr.length) onAddFiles(arr);
+    if (!arr.length) return;
+    // Freshly picked File objects have no .url until the backend roundtrip finishes,
+    // so the eye icon (isPreviewableFile below) would stay hidden until then — give
+    // previewable types a local blob URL right away so preview works immediately.
+    arr.forEach((file) => {
+      if (isPreviewableFile(file)) file.url = URL.createObjectURL(file);
+    });
+    onAddFiles(arr);
   }, [onAddFiles]);
 
   // api/da/download_section_zip/{call_id}?document_name= — comes back as a real zip
@@ -663,7 +678,7 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${documentName || label}.zip`;
+      link.download = `${label || documentName}.zip`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -688,6 +703,27 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
     if (!previewFile) return;
     const win = window.open(previewFile.url, "_blank");
     if (win) win.onload = () => win.print();
+  };
+
+  // A plain <a href download> doesn't reliably force a save (some browsers just
+  // navigate/open the file instead, e.g. for blob: URLs) — fetching the bytes and
+  // clicking a detached link is the same proven approach handleDownloadAll uses above.
+  const handleDownloadPreview = async () => {
+    if (!previewFile) return;
+    try {
+      const response = await fetch(previewFile.url);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = previewFile.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      notify("Failed to download file.", "error", "top-center");
+    }
   };
 
   return (
@@ -742,12 +778,12 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
                 )}
               </div>
               {file.url && (
-                isImageFile(file) ? (
+                isPreviewableFile(file) ? (
                   <button
                     type="button"
                     className="da-cf-file-view"
                     onClick={() => setPreviewFile(file)}
-                    title="View image"
+                    title="View document"
                   >
                     <Eye size={14} />
                   </button>
@@ -806,15 +842,10 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
           <div className="da-cf-image-preview-header">
             <span className="da-cf-image-preview-title">{previewFile.name}</span>
             <div className="da-cf-image-preview-actions">
-              <a
-                className="da-cf-file-view"
-                href={previewFile.url}
-                download={previewFile.name}
-                title="Download image"
-              >
+              <button type="button" className="da-cf-file-view" onClick={handleDownloadPreview} title="Download">
                 <Download size={16} />
-              </a>
-              <button type="button" className="da-cf-file-view" onClick={handlePrintPreview} title="Print image">
+              </button>
+              <button type="button" className="da-cf-file-view" onClick={handlePrintPreview} title="Print">
                 <Printer size={16} />
               </button>
               <button type="button" className="da-cf-file-view" onClick={() => setPreviewFile(null)} title="Close">
@@ -823,7 +854,13 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, document
             </div>
           </div>
         }
-        body={<img className="da-cf-image-preview-img" src={previewFile.url} alt={previewFile.name} />}
+        body={
+          isPdfFile(previewFile) ? (
+            <iframe className="da-cf-pdf-preview-frame" src={previewFile.url} title={previewFile.name} />
+          ) : (
+            <img className="da-cf-image-preview-img" src={previewFile.url} alt={previewFile.name} />
+          )
+        }
       />
     )}
     </>
@@ -1667,7 +1704,9 @@ const VESSEL_SALES_ORDER_CARDS = [
   { key: "sapSalesOrderNo", type: "text", icon: Receipt, label: "SAP Sales Order No", hint: "SAP-generated sales order reference.", accent: "#d97706", placeholder: "e.g. 3035188" },
   { key: "srnNo", type: "text", icon: Tag, label: "SRN No. (L & T)", hint: "Service request number from L & T.", accent: "#7c3aed", placeholder: "e.g. 683/ CRPO 78/2026" },
   { key: "copyOfSalesOrder", type: "files", icon: FileText, label: "Copy of Sales Order", hint: "Upload the signed copy of the sales order.", accent: "#059669" },
-  { key: "salesOrderSupportingDocs", type: "files", icon: Paperclip, label: "Sales Order Supporting Documents", hint: "Any additional documents supporting the sales order.", accent: "#e11d48", showCount: true },
+  // documentName must match documents_tab's Title Case document group label — see the
+  // matching daDocuments field above (download_section_zip matches on this literal string).
+  { key: "salesOrderSupportingDocs", type: "files", icon: Paperclip, label: "Sales Order Supporting Documents", hint: "Any additional documents supporting the sales order.", accent: "#e11d48", showCount: true, showDownloadAll: true, documentName: "Sales Order Supporting Documents" },
 ];
 
 function VesselSalesOrderSection({ fieldValues, updateField, onRemoveDocument }) {
@@ -1735,21 +1774,27 @@ VesselSalesOrderSection.propTypes = {
 
 // DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
 // VesselSalesOrderSection above, minus its own hero header and the vessel/file fields
-// not asked for here. SAP Sales Order No is editable and persisted via
-// api/da/save_operation_tab/{call_id}; SRN No. has no field in that payload, so typed
-// values are saved via the local-only useDaLocalLaunchHire fallback (see updateField in
-// DA below) since there's no real backend field to persist it to.
-const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter((card) => card.key === "sapSalesOrderNo" || card.key === "srnNo");
+// not asked for here, plus its Sales Order Supporting Documents upload so this sub-tab
+// has drag-and-drop for those docs too (shares fieldValues.salesOrderSupportingDocs and
+// the save_documents_tab autosave with the DA Documents tab's copy of this same field).
+// SAP Sales Order No is editable and persisted via api/da/save_operation_tab/{call_id};
+// SRN No. has no field in that payload, so typed values are saved via the local-only
+// useDaLocalLaunchHire fallback (see updateField in DA below) since there's no real
+// backend field to persist it to.
+const SALES_ORDER_CARDS = VESSEL_SALES_ORDER_CARDS.filter(
+  (card) => card.key === "sapSalesOrderNo" || card.key === "srnNo" || card.key === "salesOrderSupportingDocs"
+);
 
-function SalesOrderCardsSection({ fieldValues, updateField }) {
+function SalesOrderCardsSection({ fieldValues, updateField, onRemoveDocument, callId }) {
   return (
     <div className="da-cf-ac-grid">
       {SALES_ORDER_CARDS.map((card) => {
         const Icon = card.icon;
         const value = fieldValues[card.key];
+        const isDone = card.type === "files" ? value.length > 0 : Boolean(value);
         return (
           <div
-            className={`da-cf-ac-card${value ? " da-cf-ac-card--done" : ""}`}
+            className={`da-cf-ac-card${isDone ? " da-cf-ac-card--done" : ""}`}
             style={{ "--step-accent": card.accent }}
             key={card.key}
           >
@@ -1758,13 +1803,27 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
               <h5 className="da-cf-ac-card-title">{card.label}</h5>
             </div>
             <div className="da-cf-ac-card-field">
-              <TextField
-                label={card.label}
-                icon={Icon}
-                value={value}
-                placeholder={card.placeholder}
-                onChange={(v) => updateField(card.key, v)}
-              />
+              {card.type === "files" ? (
+                <FileDropzone
+                  label={card.label}
+                  icon={Icon}
+                  files={value}
+                  showCount={card.showCount}
+                  showDownloadAll={card.showDownloadAll}
+                  documentName={card.documentName}
+                  callId={callId}
+                  onAddFiles={(newFiles) => updateField(card.key, [...value, ...newFiles])}
+                  onRemoveFile={(i) => onRemoveDocument(card.key, i)}
+                />
+              ) : (
+                <TextField
+                  label={card.label}
+                  icon={Icon}
+                  value={value}
+                  placeholder={card.placeholder}
+                  onChange={(v) => updateField(card.key, v)}
+                />
+              )}
             </div>
           </div>
         );
@@ -1776,6 +1835,8 @@ function SalesOrderCardsSection({ fieldValues, updateField }) {
 SalesOrderCardsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   updateField: PropTypes.func.isRequired,
+  onRemoveDocument: PropTypes.func.isRequired,
+  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 // Inline status pill shown next to the "DA Operations" Save button, reflecting the
@@ -2868,7 +2929,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                       ) : isInvoice ? (
                         <InvoiceCardsSection fieldValues={fieldValues} updateField={updateField} />
                       ) : isSalesOrder ? (
-                        <SalesOrderCardsSection fieldValues={fieldValues} updateField={updateField} />
+                        <SalesOrderCardsSection fieldValues={fieldValues} updateField={updateField} onRemoveDocument={handleRemoveDocument} callId={callId} />
                       ) : (
                         <p className="da-cf-ac-readonly-value">
                           <span className="da-cf-ac-readonly-empty">Coming soon.</span>
@@ -2896,14 +2957,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             </div>
 
             <div className="da-cf-fields-grid da-cf-fields-grid--files2">
-              {MWP_REQUIRED_DOCUMENTS_CONFIG.map((doc) => (
-                <RequiredDocTile
-                  key={doc.key}
-                  doc={doc}
-                  requiredDocuments={requiredDocuments}
-                  isLoading={isLoadingRequiredDocuments}
-                />
-              ))}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.inwardClearanceCopy, {
                 id: "da-doc-tile-inwardClearanceCopy",
                 highlighted: highlightedDocTile === "inwardClearanceCopy",
@@ -2914,13 +2967,24 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                 highlighted: highlightedDocTile === "sailingClearanceCopy",
                 readOnly: true,
               })}
+              {FINAL_BAYAN_REQUIRED_DOCUMENTS_CONFIG.map((doc) => (
+                <RequiredDocTile
+                  key={doc.key}
+                  doc={doc}
+                  requiredDocuments={requiredDocuments}
+                  isLoading={isLoadingRequiredDocuments}
+                />
+              ))}
+              {MWP_REQUIRED_DOCUMENTS_CONFIG.map((doc) => (
+                <RequiredDocTile
+                  key={doc.key}
+                  doc={doc}
+                  requiredDocuments={requiredDocuments}
+                  isLoading={isLoadingRequiredDocuments}
+                />
+              ))}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.copyOfSalesOrder, { readOnly: true })}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.salesOrderSupportingDocs)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.launchHireSlips, { readOnly: true })}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.fdaDispatchProof)}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.supportingDocuments)}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.attachmentFiles)}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.docFiles)}
               {OTHER_REQUIRED_DOCUMENTS_CONFIG.map((doc) => (
                 <RequiredDocTile
                   key={doc.key}
@@ -2929,6 +2993,12 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                   isLoading={isLoadingRequiredDocuments}
                 />
               ))}
+              {/* Drag-and-drop upload tiles grouped last, after the read-only/synced-only tiles above. */}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.salesOrderSupportingDocs)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.fdaDispatchProof)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.supportingDocuments)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.attachmentFiles)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.docFiles)}
             </div>
           </div>
         ) : activeSubTab === "clearanceCopies" ? (

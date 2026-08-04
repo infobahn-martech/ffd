@@ -1206,7 +1206,6 @@ const createEmptyPartySection = () => ({
                   secondaryActionLabel="Proceed to CEO"
                   onPrimaryAction={handleManagerApproved}
                   onSecondaryAction={handleManagerProceedToCeo}
-                  helperText="Require Digital Signature of OFM department Manager"
                   actionsDisabled={
                     saveStatus === "saving" || !isManagerRole || !managerComments.trim()
                   }
@@ -1225,7 +1224,13 @@ const createEmptyPartySection = () => ({
                       : isStagePassed(effectiveStage, "manager_ofm")
                       ? { type: "proceeded", text: "Proceeded to CEO" }
                       : stageActive.manager_ofm
-                      ? { type: "pending", text: "Still processing by Manager" }
+                      // Same reasoning as Credit Controller's badge above:
+                      // "Still processing by Manager" is noise to the Manager
+                      // themselves (it's their own pending action) — only
+                      // show it to viewers who are waiting on Manager.
+                      ? isManagerRole
+                        ? null
+                        : { type: "pending", text: "Still processing by Manager" }
                       : null
                   }
                   // Non-Manager viewers (CEO, Controller, generic
@@ -1269,7 +1274,6 @@ const createEmptyPartySection = () => ({
                   secondaryActionLabel="On Hold"
                   onPrimaryAction={handleCeoApproved}
                   onSecondaryAction={handleCeoOnHold}
-                  helperText="Require Digital Signature of CEO"
                   actionsDisabled={
                     saveStatus === "saving" ||
                     !stageActive.ceo ||
