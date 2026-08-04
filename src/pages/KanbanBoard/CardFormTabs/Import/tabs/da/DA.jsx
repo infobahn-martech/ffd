@@ -5,14 +5,16 @@ import {
   Sparkles, IdCard, CalendarCheck, Anchor, FileCheck, Receipt, Package,
   Paperclip, FolderOpen, Link2, GitBranch, Trash2, Plus, ArrowUpRight, ChevronDown, Building2, Search,
   CheckCircle2, CircleDashed, Banknote, FileArchive, ShieldCheck, UserCog, Loader2, AlertCircle, Eye,
+  Download, Printer,
 } from "lucide-react";
 import { debounce } from "lodash";
 import { notify } from "../../../../../../components/Toaster";
+import CustomModal from "../../../../../../components/CustomModal";
 import billingEntityService from "../../../../../../services/billingEntityService";
 import daService from "../../../../../../services/daService";
 import userService from "../../../../../../services/userService";
 import { mapBillingEntitiesToOptions, unwrapListResponse } from "../../../../../../shared/helpers/callFileFormOptions";
-import { getInitials, downloadFile } from "../../../../../../shared/utils/utils";
+import { getInitials } from "../../../../../../shared/utils/utils";
 import { useDaLocalReachedDates, useDaLocalLaunchHire } from "../../../../../../shared/store/daStore";
 import "../../../../../../design/scss/pages/kanban-board/daCardFields.scss";
 
@@ -66,6 +68,7 @@ const REQUIRED_DOCUMENTS_CONFIG = [
 ];
 
 const MWP_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter((doc) => doc.section === "mwp");
+const OTHER_REQUIRED_DOCUMENTS_CONFIG = REQUIRED_DOCUMENTS_CONFIG.filter((doc) => doc.section !== "mwp");
 
 const TYPE_ICON = {
   text: Hash,
@@ -106,7 +109,7 @@ const RAW_FIELDS_CONFIG = [
   // Clearance Copies
   { key: "sailingClearanceCopy", label: "Sailing Clearance Copy", type: "files", group: "clearanceCopies", reserveSpace: true },
   { key: "inwardClearanceCopy", label: "Inward Clearance Copy", type: "files", group: "clearanceCopies", reserveSpace: true },
-  { key: "supportingDocuments", label: "SUPPORTING DOCUMENTS", type: "files", group: "clearanceCopies", showCount: true, showDownloadAll: true, reserveSpace: true },
+  { key: "supportingDocuments", label: "SUPPORTING DOCUMENTS", type: "files", group: "clearanceCopies", showCount: true, showDownloadAll: true, reserveSpace: true, documentName: "supporting_documents" },
   { key: "fdaDispatchProof", label: "FDA Dispatch Proof", type: "files", group: "clearanceCopies", reserveSpace: true },
   // Invoices, Fees & Certificates
   { key: "taxInvoice", label: "Tax Invoice", type: "text", group: "invoicesFees", placeholder: "e.g. INV-88213" },
@@ -141,8 +144,8 @@ const RAW_FIELDS_CONFIG = [
   // Attachments / Docs — were free-form text/link rows (LIST_SECTIONS below); the
   // documents_tab GET already returns these as real uploaded documents (same shape as
   // FDA Dispatch Proof etc.), so they get the same drag-and-drop/view/delete FileDropzone
-  // treatment here instead. The "More" tab's own text-list "Docs" section is unrelated
-  // and untouched.
+  // treatment here instead. The "Link" tab's own free-form "Links overview" list is
+  // unrelated and untouched.
   { key: "attachmentFiles", label: "Attachments", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "attachments", reserveSpace: true },
   { key: "docFiles", label: "Docs", type: "files", group: "daDocuments", showCount: true, showDownloadAll: true, documentName: "docs", reserveSpace: true },
 ];
@@ -167,9 +170,9 @@ const OPERATION_DETAILS_FIELDS_BY_KEY = (FIELDS_BY_GROUP.operationDetails ?? [])
 const DA_DOCUMENTS_FIELDS_BY_KEY = (FIELDS_BY_GROUP.daDocuments ?? [])
   .reduce((acc, f) => ({ ...acc, [f.key]: f }), {});
 
-// "More" tab keeps its own free-form "Docs" text/link list (separate from DA Documents'
-// docFiles upload field above) — Links overview belongs to the separate Links tab.
-const MORE_TAB_LIST_SECTIONS = LIST_SECTIONS.filter((s) => s.key === "docs");
+// "Link" tab shows the free-form "Links overview" text/link list (separate from DA
+// Documents' docFiles upload field above).
+const MORE_TAB_LIST_SECTIONS = LIST_SECTIONS.filter((s) => s.key === "linksOverview");
 
 // DA Operations > Launch Hire — same card-hero treatment as the other DA Operations
 // sections (Clearance Details, Invoice, Sales Order): 3rd Party Launch hire and Road
@@ -618,9 +621,20 @@ ChipsField.propTypes = {
   accent: PropTypes.string,
 };
 
-function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveSpace, readOnly, isLoading, id, highlighted, callId, documentName, onAddFiles, onRemoveFile }) {
+// The browser's own new-tab viewer already gives PDFs a print/download toolbar, but
+// plain images open with no chrome around them at all — so image files get their own
+// lightbox (view) with explicit Download/Print actions instead of a bare new tab.
+const IMAGE_FILE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"]);
+const isImageFile = (file) => {
+  const name = file?.name || file?.url || "";
+  const ext = name.split(".").pop()?.toLowerCase();
+  return IMAGE_FILE_EXTENSIONS.has(ext);
+};
+
+function FileDropzone({ label, icon, files, showCount, showDownloadAll, documentName, callId, reserveSpace, readOnly, isLoading, id, highlighted, onAddFiles, onRemoveFile }) {
   const [dragging, setDragging] = useState(false);
-  const [downloadingZip, setDownloadingZip] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const inputRef = useRef(null);
 
   const handleFiles = useCallback((fileList) => {
@@ -628,24 +642,56 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
     if (arr.length) onAddFiles(arr);
   }, [onAddFiles]);
 
-  // api/da/download_section_zip/{call_id}?document_name= — returns the zip file directly
-  // as the response body, so it's saved via a blob URL rather than window.open.
+  // api/da/download_section_zip/{call_id}?document_name= — comes back as a real zip
+  // file, but a failed lookup returns a JSON error body with the same 200/blob
+  // response type, so the content-type is checked before treating it as a download
+  // (same pattern as exportExecutionLogsFile in BusinessRuleReducer).
   const handleDownloadAll = async () => {
-    if (callId == null || !documentName || downloadingZip) return;
-    setDownloadingZip(true);
+    if (callId == null || isDownloadingZip) return;
+    setIsDownloadingZip(true);
     try {
       const response = await daService.downloadSectionZip(callId, documentName);
-      const blob = new Blob([response.data], { type: "application/zip" });
+      const contentType = response.headers?.["content-type"] ?? "";
+      if (contentType.includes("json")) {
+        const text = await response.data.text();
+        let message = "Failed to download zip.";
+        try { message = JSON.parse(text)?.message ?? message; } catch { /* not JSON */ }
+        notify(message, "error", "top-center");
+        return;
+      }
+      const blob = new Blob([response.data], { type: contentType || "application/zip" });
       const url = URL.createObjectURL(blob);
-      downloadFile({ link: url, fileName: `${documentName}_${callId}.zip` });
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${documentName || label}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     } catch (err) {
-      notify(err?.response?.data?.message || "Failed to download ZIP.", "error", "top-center");
+      let message = "Failed to download zip.";
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          message = JSON.parse(text)?.message ?? message;
+        } catch { /* not JSON */ }
+      } else {
+        message = err?.response?.data?.message || message;
+      }
+      notify(message, "error", "top-center");
     } finally {
-      setDownloadingZip(false);
+      setIsDownloadingZip(false);
     }
   };
 
+  const handlePrintPreview = () => {
+    if (!previewFile) return;
+    const win = window.open(previewFile.url, "_blank");
+    if (win) win.onload = () => win.print();
+  };
+
   return (
+    <>
     <div id={id} className={`da-cf-tile da-cf-tile--full${highlighted ? " da-cf-tile--highlighted" : ""}`}>
       <TileLabel icon={icon}>
         {label}
@@ -696,15 +742,26 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
                 )}
               </div>
               {file.url && (
-                <a
-                  className="da-cf-file-view"
-                  href={file.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="View document"
-                >
-                  <Eye size={14} />
-                </a>
+                isImageFile(file) ? (
+                  <button
+                    type="button"
+                    className="da-cf-file-view"
+                    onClick={() => setPreviewFile(file)}
+                    title="View image"
+                  >
+                    <Eye size={14} />
+                  </button>
+                ) : (
+                  <a
+                    className="da-cf-file-view"
+                    href={file.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="View document"
+                  >
+                    <Eye size={14} />
+                  </a>
+                )
               )}
               {!readOnly && (
                 <button type="button" className="da-cf-file-remove" onClick={() => onRemoveFile(i)}>
@@ -731,13 +788,45 @@ function FileDropzone({ label, icon, files, showCount, showDownloadAll, reserveS
       ) : null}
       {showDownloadAll && files.length > 0 && (
         <div className="da-cf-file-actions-row">
-          <button type="button" className="da-cf-download-all" onClick={handleDownloadAll} disabled={downloadingZip}>
-            {downloadingZip ? <Loader2 size={13} className="da-cf-autosave-status-spin" /> : <FileArchive size={13} />}
-            {downloadingZip ? "Downloading…" : "Download all as ZIP"}
+          <button type="button" className="da-cf-download-all" onClick={handleDownloadAll} disabled={isDownloadingZip}>
+            {isDownloadingZip ? <Loader2 size={13} className="da-cf-autosave-status-spin" /> : <FileArchive size={13} />}
+            {isDownloadingZip ? "Downloading…" : "Download all as ZIP"}
           </button>
         </div>
       )}
     </div>
+    {previewFile && (
+      <CustomModal
+        show
+        closeModal={() => setPreviewFile(null)}
+        createModal
+        dialgName="da-cf-image-preview-dialog"
+        bodyClassname="da-cf-image-preview-body"
+        header={
+          <div className="da-cf-image-preview-header">
+            <span className="da-cf-image-preview-title">{previewFile.name}</span>
+            <div className="da-cf-image-preview-actions">
+              <a
+                className="da-cf-file-view"
+                href={previewFile.url}
+                download={previewFile.name}
+                title="Download image"
+              >
+                <Download size={16} />
+              </a>
+              <button type="button" className="da-cf-file-view" onClick={handlePrintPreview} title="Print image">
+                <Printer size={16} />
+              </button>
+              <button type="button" className="da-cf-file-view" onClick={() => setPreviewFile(null)} title="Close">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        }
+        body={<img className="da-cf-image-preview-img" src={previewFile.url} alt={previewFile.name} />}
+      />
+    )}
+    </>
   );
 }
 
@@ -747,15 +836,39 @@ FileDropzone.propTypes = {
   files: PropTypes.array.isRequired,
   showCount: PropTypes.bool,
   showDownloadAll: PropTypes.bool,
+  documentName: PropTypes.string,
+  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   reserveSpace: PropTypes.bool,
   readOnly: PropTypes.bool,
   isLoading: PropTypes.bool,
   id: PropTypes.string,
   highlighted: PropTypes.bool,
-  callId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  documentName: PropTypes.string,
   onAddFiles: PropTypes.func.isRequired,
   onRemoveFile: PropTypes.func.isRequired,
+};
+
+// Read-only tile for an api/da/required_documents/{call_id} entry — synced-only, no upload.
+function RequiredDocTile({ doc, requiredDocuments, isLoading }) {
+  const entry = requiredDocuments?.[doc.key];
+  const files = entry?.file_url ? [{ name: entry.file_name || doc.label, url: entry.file_url }] : [];
+  return (
+    <FileDropzone
+      label={doc.label}
+      icon={doc.icon}
+      files={files}
+      reserveSpace
+      readOnly
+      isLoading={isLoading}
+      onAddFiles={() => {}}
+      onRemoveFile={() => {}}
+    />
+  );
+}
+
+RequiredDocTile.propTypes = {
+  doc: PropTypes.shape({ key: PropTypes.string, label: PropTypes.string, icon: PropTypes.elementType }).isRequired,
+  requiredDocuments: PropTypes.object,
+  isLoading: PropTypes.bool,
 };
 
 // api/da/status_timeline/{call_id} rows: { status_name, sequence_order, state, reached_date }.
@@ -1326,10 +1439,9 @@ AppointmentClearanceSection.propTypes = {
 // DA Operations > Clearance Details — the same 3 date cards from AppointmentClearanceSection
 // above (Inward Clearance, Outward Clearance, Operations Completion), minus the editable
 // Appointment Email upload, reused here so the dates stay in sync wherever they're shown.
-// Each card is read-only once a value exists (synced from time_objects / appointment_clearance_tab)
-// but becomes a real input when the backend hasn't provided one yet, so the gap can be
-// filled in manually — saved via runSaveClearanceDetails in DA below (api/da/save_appointment_clearance_tab).
-function ClearanceDetailsSection({ fieldValues, updateField, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
+// All 3 are always read-only (synced from time_objects / appointment_clearance_tab) — this
+// data only ever comes from the backend, there's no manual-entry fallback.
+function ClearanceDetailsSection({ fieldValues, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
   const cards = [
     {
       key: "inwardClearanceDate",
@@ -1342,20 +1454,11 @@ function ClearanceDetailsSection({ fieldValues, updateField, arrivalTimeObjects,
           items={arrivalTimeObjects}
           isLoading={isLoadingTimeObjects}
           fallback={
-            fieldValues.inwardClearanceDate.date ? (
-              <p className="da-cf-ac-readonly-value">
-                {formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))}
-              </p>
-            ) : (
-              <DateTimeField
-                label="Inward Clearance Date"
-                icon={CalendarCheck}
-                date={fieldValues.inwardClearanceDate.date}
-                time={fieldValues.inwardClearanceDate.time}
-                onDateChange={(v) => updateField("inwardClearanceDate", { ...fieldValues.inwardClearanceDate, date: v })}
-                onTimeChange={(v) => updateField("inwardClearanceDate", { ...fieldValues.inwardClearanceDate, time: v })}
-              />
-            )
+            <p className="da-cf-ac-readonly-value">
+              {fieldValues.inwardClearanceDate.date
+                ? formatApiDateTime(combineApiDateTime(fieldValues.inwardClearanceDate))
+                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+            </p>
           }
         />
       ),
@@ -1371,20 +1474,11 @@ function ClearanceDetailsSection({ fieldValues, updateField, arrivalTimeObjects,
           items={departureTimeObjects}
           isLoading={isLoadingTimeObjects}
           fallback={
-            fieldValues.outwardClearanceDate.date ? (
-              <p className="da-cf-ac-readonly-value">
-                {formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))}
-              </p>
-            ) : (
-              <DateTimeField
-                label="Outward Clearance Date"
-                icon={CalendarCheck}
-                date={fieldValues.outwardClearanceDate.date}
-                time={fieldValues.outwardClearanceDate.time}
-                onDateChange={(v) => updateField("outwardClearanceDate", { ...fieldValues.outwardClearanceDate, date: v })}
-                onTimeChange={(v) => updateField("outwardClearanceDate", { ...fieldValues.outwardClearanceDate, time: v })}
-              />
-            )
+            <p className="da-cf-ac-readonly-value">
+              {fieldValues.outwardClearanceDate.date
+                ? formatApiDateTime(combineApiDateTime(fieldValues.outwardClearanceDate))
+                : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
+            </p>
           }
         />
       ),
@@ -1395,17 +1489,12 @@ function ClearanceDetailsSection({ fieldValues, updateField, arrivalTimeObjects,
       label: "Operation Completed Date",
       accent: "#d97706",
       isDone: Boolean(fieldValues.operationsCompletionDate),
-      content: fieldValues.operationsCompletionDate ? (
+      content: (
         <p className="da-cf-ac-readonly-value">
-          {formatDisplayDateOnly(fieldValues.operationsCompletionDate)}
+          {fieldValues.operationsCompletionDate
+            ? formatDisplayDateOnly(fieldValues.operationsCompletionDate)
+            : <span className="da-cf-ac-readonly-empty">Not set yet</span>}
         </p>
-      ) : (
-        <DateField
-          label="Operation Completed Date"
-          icon={Anchor}
-          value={fieldValues.operationsCompletionDate}
-          onChange={(v) => updateField("operationsCompletionDate", v)}
-        />
       ),
     },
   ];
@@ -1434,7 +1523,6 @@ function ClearanceDetailsSection({ fieldValues, updateField, arrivalTimeObjects,
 
 ClearanceDetailsSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
-  updateField: PropTypes.func.isRequired,
   arrivalTimeObjects: PropTypes.array.isRequired,
   departureTimeObjects: PropTypes.array.isRequired,
   isLoadingTimeObjects: PropTypes.bool,
@@ -1939,9 +2027,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         const tabData = data?.data;
         if (!tabData) return;
         const appointmentEmailDocs = tabData.documents?.["Appointment Email"];
-        // Watched by the Clearance Details autosave effect further down — guard it so
-        // hydrating from the backend doesn't immediately re-save what it just fetched.
-        skipNextClearanceAutoSaveRef.current = true;
         setFieldValues((prev) => ({
           ...prev,
           inwardClearanceDate: tabData.inward_clearance_date
@@ -2105,61 +2190,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     fieldValues.invoiceAmount,
     fieldValues.sapSalesOrderNo,
     debouncedAutoSaveOperationTab,
-  ]);
-
-  // api/da/save_appointment_clearance_tab/{call_id} — persists Clearance Details' Inward/
-  // Outward Clearance Date + Operations Completion Date. These are only editable in
-  // ClearanceDetailsSection when the backend hasn't already synced a value via
-  // time_objects / this same GET — see the isDone/fallback branches there. Same silent
-  // debounced-autosave pattern as the rest of DA Operations/DA Documents (no manual Save
-  // button), own status pill on the Clearance Details card header since this is a
-  // separate endpoint from save_operation_tab. skipNextClearanceAutoSaveRef is set right
-  // before the appointment_clearance_tab GET above hydrates these fields, so loading a
-  // card doesn't immediately re-save what it just fetched.
-  const [clearanceDetailsSaveStatus, setClearanceDetailsSaveStatus] = useState("idle");
-  const latestClearanceDetailsFormRef = useRef(null);
-  latestClearanceDetailsFormRef.current = {
-    inwardClearanceDate: fieldValues.inwardClearanceDate,
-    outwardClearanceDate: fieldValues.outwardClearanceDate,
-    operationsCompletionDate: fieldValues.operationsCompletionDate,
-  };
-  const skipNextClearanceAutoSaveRef = useRef(true);
-
-  const runSaveClearanceDetails = useCallback(async () => {
-    if (callId == null) return;
-    const { inwardClearanceDate, outwardClearanceDate, operationsCompletionDate } = latestClearanceDetailsFormRef.current;
-    const formData = new FormData();
-    formData.append("inward_clearance_date", combineApiDateTime(inwardClearanceDate));
-    formData.append("outward_clearance_date", combineApiDateTime(outwardClearanceDate));
-    formData.append("operations_completion_date", operationsCompletionDate || "");
-
-    setClearanceDetailsSaveStatus("saving");
-    try {
-      await daService.saveAppointmentClearanceTab(callId, formData);
-      setClearanceDetailsSaveStatus("saved");
-    } catch {
-      setClearanceDetailsSaveStatus("error");
-    }
-  }, [callId]);
-
-  const debouncedAutoSaveClearanceDetails = useMemo(
-    () => debounce(runSaveClearanceDetails, AUTO_SAVE_DEBOUNCE_MS),
-    [runSaveClearanceDetails],
-  );
-
-  useEffect(() => () => debouncedAutoSaveClearanceDetails.flush(), [debouncedAutoSaveClearanceDetails]);
-
-  useEffect(() => {
-    if (skipNextClearanceAutoSaveRef.current) {
-      skipNextClearanceAutoSaveRef.current = false;
-      return;
-    }
-    debouncedAutoSaveClearanceDetails();
-  }, [
-    fieldValues.inwardClearanceDate,
-    fieldValues.outwardClearanceDate,
-    fieldValues.operationsCompletionDate,
-    debouncedAutoSaveClearanceDetails,
   ]);
 
   // api/da/save_documents_tab/{call_id} — persists the 5 "DA Documents" file fields that
@@ -2417,6 +2447,45 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     setRelatives((prev) => prev.map((row, i) => (i === idx ? { ...row, value } : row)));
   const removeRelative = (idx) => setRelatives((prev) => prev.filter((_, i) => i !== idx));
 
+  // api/da/links_tab/{call_id} — pre-fills the "Link" tab's free-form "Links overview"
+  // and "Relatives & Dependencies" lists from the backend's structured links/relations,
+  // once when the card first loads. Both lists stay plain text rows (see
+  // ListRowsSection/RelativesSection) rather than becoming structured editable fields,
+  // since there's no save endpoint for this tab — this is read-only seed data the user
+  // can still edit/remove locally like any other row here.
+  useEffect(() => {
+    if (callId == null) return undefined;
+    let cancelled = false;
+    daService.getLinksTab(callId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const tabData = data?.data;
+        if (!tabData) return;
+        const links = Array.isArray(tabData.links) ? tabData.links : [];
+        const relations = Array.isArray(tabData.relations) ? tabData.relations : [];
+        if (links.length) {
+          setListSections((prev) => ({
+            ...prev,
+            linksOverview: {
+              ...prev.linksOverview,
+              rows: links.map((link) => ({
+                id: nextRowId(),
+                value: link.label ? `${link.label} - ${link.url}` : link.url,
+              })),
+            },
+          }));
+        }
+        if (relations.length) {
+          setRelatives(relations.map((relation) => ({
+            id: nextRowId(),
+            value: `${relation.billing_entity || "Related call"} #${relation.related_call_id} (${relation.relation_type})`,
+          })));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [callId]);
+
   const renderField = (field, extraProps) => {
     const value = fieldValues[field.key];
     switch (field.type) {
@@ -2568,11 +2637,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
 
   return (
     <div className="cardform-body da-cf-panel">
-      <div className="da-cf-save-banner">
-        <span className="da-cf-save-dot" />
-        Not saved yet — changes save automatically to this browser
-      </div>
-
       <div className="da-cf-subtabs">
         {SUB_TABS.map((tab) => {
           const Icon = tab.icon;
@@ -2643,7 +2707,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                 <p className="da-cf-summary-hero-eyebrow">Link</p>
                 <h2 className="da-cf-summary-title">Additional Details</h2>
                 <p className="da-cf-summary-hero-subtitle">
-                  Docs and related cards that don&rsquo;t fit anywhere else on this call.
+                  Links and related cards that don&rsquo;t fit anywhere else on this call.
                 </p>
               </div>
             </div>
@@ -2743,11 +2807,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                     <header className="da-cf-ops-card-header">
                       <span className="da-cf-ops-card-icon"><Icon size={16} /></span>
                       <h4 className="da-cf-ops-card-title">{tab.label}</h4>
-                      {isClearanceDetails && (
-                        <span className="da-cf-ops-card-header-status">
-                          <OperationAutoSaveStatus status={clearanceDetailsSaveStatus} />
-                        </span>
-                      )}
                     </header>
                     <div className="da-cf-ops-card-body">
                       {isOperationDetails ? (
@@ -2800,7 +2859,6 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
                       ) : isClearanceDetails ? (
                         <ClearanceDetailsSection
                           fieldValues={fieldValues}
-                          updateField={updateField}
                           arrivalTimeObjects={arrivalTimeObjects}
                           departureTimeObjects={departureTimeObjects}
                           isLoadingTimeObjects={isLoadingTimeObjects}
@@ -2838,38 +2896,39 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             </div>
 
             <div className="da-cf-fields-grid da-cf-fields-grid--files2">
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.launchHireSlips)}
-              {MWP_REQUIRED_DOCUMENTS_CONFIG.map((doc) => {
-                const entry = requiredDocuments?.[doc.key];
-                const files = entry?.file_url ? [{ name: entry.file_name || doc.label, url: entry.file_url }] : [];
-                return (
-                  <FileDropzone
-                    key={doc.key}
-                    label={doc.label}
-                    icon={doc.icon}
-                    files={files}
-                    reserveSpace
-                    readOnly
-                    isLoading={isLoadingRequiredDocuments}
-                    onAddFiles={() => {}}
-                    onRemoveFile={() => {}}
-                  />
-                );
-              })}
+              {MWP_REQUIRED_DOCUMENTS_CONFIG.map((doc) => (
+                <RequiredDocTile
+                  key={doc.key}
+                  doc={doc}
+                  requiredDocuments={requiredDocuments}
+                  isLoading={isLoadingRequiredDocuments}
+                />
+              ))}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.inwardClearanceCopy, {
                 id: "da-doc-tile-inwardClearanceCopy",
                 highlighted: highlightedDocTile === "inwardClearanceCopy",
+                readOnly: true,
               })}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.sailingClearanceCopy, {
                 id: "da-doc-tile-sailingClearanceCopy",
                 highlighted: highlightedDocTile === "sailingClearanceCopy",
+                readOnly: true,
               })}
-              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.copyOfSalesOrder)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.copyOfSalesOrder, { readOnly: true })}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.salesOrderSupportingDocs)}
+              {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.launchHireSlips, { readOnly: true })}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.fdaDispatchProof)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.supportingDocuments)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.attachmentFiles)}
               {renderField(DA_DOCUMENTS_FIELDS_BY_KEY.docFiles)}
+              {OTHER_REQUIRED_DOCUMENTS_CONFIG.map((doc) => (
+                <RequiredDocTile
+                  key={doc.key}
+                  doc={doc}
+                  requiredDocuments={requiredDocuments}
+                  isLoading={isLoadingRequiredDocuments}
+                />
+              ))}
             </div>
           </div>
         ) : activeSubTab === "clearanceCopies" ? (

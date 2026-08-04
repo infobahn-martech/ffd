@@ -795,6 +795,11 @@ const createEmptyPartySection = () => ({
     // request. Remove `|| String(userRoleId) === "3"` once CEO testing
     // is done.
     const isCeoRole = String(userRoleId) === "23" || String(userRoleId) === "3";
+    // DA (role_id 22) gets stand-in edit access to the Credit Controller
+    // section again, per explicit user request — this is a new decision,
+    // not a revert of the 2026-08-03 removal (see canEditCreditControllerSection
+    // below for how it's bounded).
+    const isDaRole = String(userRoleId) === "22";
     // Vessel party image uploads are restricted to Credit Controller and CEO
     // only, per user confirmation — not Manager, unlike the section gating above.
     const canEditPartyImages = isControllerRole || isCeoRole;
@@ -815,11 +820,14 @@ const createEmptyPartySection = () => ({
     // already on hold, since re-clicking it is a no-op.
     const isCeoStageUsable = stageActive.ceo || isOnHold;
 
-    // Only the real Credit Controller can edit this section — DA (and every
-    // other role) is view-only here, seeing just the status badge (e.g.
-    // "Still processing by Credit Controller") once Controller has
-    // approved/proceeded, same as the Manager/CEO cards below.
-    const canEditCreditControllerSection = isControllerRole;
+    // Real Credit Controller always edits this section; DA gets the same
+    // stand-in edit access, but only up to the point Credit Controller has
+    // acted — once creditControllerApproved or the stage has moved on
+    // (!stageActive.credit_controller), the existing fieldsDisabled/hideActions
+    // checks below lock it for DA the same way they already do for Controller,
+    // so DA can't touch it after Credit Controller has approved or proceeded.
+    // Every other role stays view-only, same as before.
+    const canEditCreditControllerSection = isControllerRole || isDaRole;
 
     // "Approved" doesn't advance the effective stage (only "proceed_to_*"
     // does), so stageActive alone can't stop the Approved button from being
