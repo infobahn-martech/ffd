@@ -1188,7 +1188,7 @@ TimeObjectRows.propTypes = {
 // actually fills in here — the 3 clearance dates are populated from elsewhere in the
 // backend, so they're shown read-only (no inputs, no save) instead of editable fields,
 // and laid out as a 2x2 card grid rather than a step-by-step flow.
-function AppointmentClearanceSection({ fieldValues, updateField, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
+function AppointmentClearanceSection({ fieldValues, updateField, onRemoveDocument, arrivalTimeObjects, departureTimeObjects, isLoadingTimeObjects }) {
   const cards = [
     {
       key: "appointmentEmail",
@@ -1204,7 +1204,7 @@ function AppointmentClearanceSection({ fieldValues, updateField, arrivalTimeObje
           icon={Paperclip}
           files={fieldValues.appointmentEmail}
           onAddFiles={(newFiles) => updateField("appointmentEmail", [...fieldValues.appointmentEmail, ...newFiles])}
-          onRemoveFile={(i) => updateField("appointmentEmail", fieldValues.appointmentEmail.filter((_, idx) => idx !== i))}
+          onRemoveFile={(i) => onRemoveDocument("appointmentEmail", i)}
         />
       ),
     },
@@ -1308,6 +1308,7 @@ function AppointmentClearanceSection({ fieldValues, updateField, arrivalTimeObje
 AppointmentClearanceSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   updateField: PropTypes.func.isRequired,
+  onRemoveDocument: PropTypes.func.isRequired,
   arrivalTimeObjects: PropTypes.array.isRequired,
   departureTimeObjects: PropTypes.array.isRequired,
   isLoadingTimeObjects: PropTypes.bool,
@@ -1572,7 +1573,7 @@ const VESSEL_SALES_ORDER_CARDS = [
   { key: "salesOrderSupportingDocs", type: "files", icon: Paperclip, label: "Sales Order Supporting Documents", hint: "Any additional documents supporting the sales order.", accent: "#e11d48", showCount: true },
 ];
 
-function VesselSalesOrderSection({ fieldValues, updateField }) {
+function VesselSalesOrderSection({ fieldValues, updateField, onRemoveDocument }) {
   return (
     <>
       <div className="da-cf-summary-hero">
@@ -1609,7 +1610,7 @@ function VesselSalesOrderSection({ fieldValues, updateField }) {
                     files={value}
                     showCount={card.showCount}
                     onAddFiles={(newFiles) => updateField(card.key, [...value, ...newFiles])}
-                    onRemoveFile={(i) => updateField(card.key, value.filter((_, idx) => idx !== i))}
+                    onRemoveFile={(i) => onRemoveDocument(card.key, i)}
                   />
                 ) : (
                   <TextField
@@ -1632,6 +1633,7 @@ function VesselSalesOrderSection({ fieldValues, updateField }) {
 VesselSalesOrderSection.propTypes = {
   fieldValues: PropTypes.object.isRequired,
   updateField: PropTypes.func.isRequired,
+  onRemoveDocument: PropTypes.func.isRequired,
 };
 
 // DA Operations > Sales Order — the SAP Sales Order No / SRN No. (L & T) cards from
@@ -2239,6 +2241,29 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
     if (LOCAL_ONLY_FIELD_KEYS.has(key) && callId != null) setLaunchHireOverride(callId, key, value);
   }, [callId, setLaunchHireOverride, LOCAL_ONLY_FIELD_KEYS]);
 
+  // Removing a file field entry: already-uploaded documents (mapApiDocument shape, not a
+  // browser File) carry a stage_document_id — those are persisted on the backend, so removal
+  // must call api/da/delete_document, unlike a freshly-picked File that's only ever local
+  // state until the next autosave. Optimistically removes, then rolls back + toasts on failure
+  // so a failed delete doesn't silently leave the user thinking the document is gone.
+  const handleRemoveDocument = useCallback((key, index) => {
+    const files = fieldValues[key] || [];
+    const file = files[index];
+    const documentId = file && !(file instanceof File) ? file.stage_document_id : null;
+
+    setFieldValues((prev) => ({ ...prev, [key]: (prev[key] || []).filter((_, idx) => idx !== index) }));
+
+    if (documentId == null) return;
+    daService.deleteDocument(documentId).catch((err) => {
+      setFieldValues((prev) => {
+        const next = [...(prev[key] || [])];
+        next.splice(index, 0, file);
+        return { ...prev, [key]: next };
+      });
+      notify(err?.response?.data?.message || "Failed to delete document.", "error", "top-center");
+    });
+  }, [fieldValues]);
+
   const rowIdCounter = useRef(0);
   const nextRowId = () => `row-${++rowIdCounter.current}`;
 
@@ -2474,7 +2499,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
             showDownloadAll={field.showDownloadAll}
             reserveSpace={field.reserveSpace}
             onAddFiles={(newFiles) => updateField(field.key, [...value, ...newFiles])}
-            onRemoveFile={(i) => updateField(field.key, value.filter((_, idx) => idx !== i))}
+            onRemoveFile={(i) => handleRemoveDocument(field.key, i)}
             {...extraProps}
           />
         );
@@ -2591,6 +2616,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
           <AppointmentClearanceSection
             fieldValues={fieldValues}
             updateField={updateField}
+            onRemoveDocument={handleRemoveDocument}
             arrivalTimeObjects={arrivalTimeObjects}
             departureTimeObjects={departureTimeObjects}
             isLoadingTimeObjects={isLoadingTimeObjects}
@@ -2598,7 +2624,7 @@ function DA({ card, formValues, handleChange, daStatusRefreshToken, onAdvanceDaS
         ) : activeSubTab === "invoicesFees" ? (
           <InvoicesFeesSection fieldValues={fieldValues} updateField={updateField} />
         ) : activeSubTab === "vesselSalesOrder" ? (
-          <VesselSalesOrderSection fieldValues={fieldValues} updateField={updateField} />
+          <VesselSalesOrderSection fieldValues={fieldValues} updateField={updateField} onRemoveDocument={handleRemoveDocument} />
         ) : activeSubTab === "more" ? (
           <div className="da-cf-more">
             <div className="da-cf-summary-hero">
