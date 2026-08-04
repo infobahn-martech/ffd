@@ -280,13 +280,39 @@ const GROCardView = forwardRef(function GROCardView(
     });
   }, []);
 
+  // Rebuilds the popover's field values from the last-fetched get_task_details response, rather than
+  // blanking them — closing/reopening the popover (e.g. via Cancel or switching tabs) must not lose
+  // previously saved values, since taskDetails only refetches when call/card/task id changes.
+  const getSavedInwardFieldsSnapshot = useCallback(() => {
+    const savedTimeObjectValues =
+      taskDetails && timeObjects.length > 0
+        ? applyGroSavedTimeObjectValues(timeObjects, taskDetails.time_objects)
+        : {};
+    const savedStage11TimeObjectValues =
+      taskDetails && groStageId === 10 && stage11TimeObjects.length > 0
+        ? applyGroSavedTimeObjectValues(stage11TimeObjects, taskDetails.time_objects)
+        : {};
+    const { scalarValues, fileInfo } =
+      taskDetails && groStageId != null
+        ? extractGroSavedExtraStageFields(groStageId, taskDetails)
+        : { scalarValues: {}, fileInfo: {} };
+    return {
+      timeObjectValues: savedTimeObjectValues,
+      stage11TimeObjectValues: savedStage11TimeObjectValues,
+      extraStageFields: { ...createEmptyExtraStageFields(), ...scalarValues },
+      fileInfo: fileInfo ?? {},
+    };
+  }, [taskDetails, timeObjects, stage11TimeObjects, groStageId]);
+
   const resetInwardClearanceFields = () => {
-    setTimeObjectValues({});
+    const saved = getSavedInwardFieldsSnapshot();
+    setTimeObjectValues(saved.timeObjectValues);
     setTimeObjectErrors({});
-    setStage11TimeObjectValues({});
+    setStage11TimeObjectValues(saved.stage11TimeObjectValues);
     setStage11TimeObjectErrors({});
-    setExtraStageFields(createEmptyExtraStageFields());
+    setExtraStageFields(saved.extraStageFields);
     setExtraStageFieldErrors({});
+    setExistingStageFiles(saved.fileInfo);
     resetExtraStageFileInputs();
   };
 
