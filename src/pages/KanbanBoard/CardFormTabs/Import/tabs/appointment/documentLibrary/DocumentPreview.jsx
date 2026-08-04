@@ -184,10 +184,6 @@ const DocumentPreview = ({ document }) => {
             {document.name}
           </h3>
           <dl className="doc-lib-preview-meta">
-            <div className="doc-lib-preview-meta-row">
-              <dt>Type</dt>
-              <dd>{getTypeLabel(fileType)}</dd>
-            </div>
             {document.size && (
               <div className="doc-lib-preview-meta-row">
                 <dt>Size</dt>
