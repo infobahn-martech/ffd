@@ -1155,9 +1155,25 @@ const createEmptyPartySection = () => ({
                     ? { type: "approved", text: "Approved by Credit Controller" }
                     : !stageActive.credit_controller
                     ? { type: "proceeded", text: "Proceeded to Manager" }
+                    // "Still processing by Credit Controller" is only useful to
+                    // someone waiting on this stage — Controller is the one
+                    // who'd act on it, so telling them it's "still processing
+                    // by Credit Controller" is just noise about their own
+                    // pending action, per explicit user request.
+                    : canEditCreditControllerSection
+                    ? null
                     : { type: "pending", text: "Still processing by Credit Controller" }
                 }
-                hideActions={creditControllerApproved || !stageActive.credit_controller}
+                // Viewers who can't edit this section (Manager, CEO, generic
+                // viewers) see the "Still processing by Credit Controller"
+                // badge instead — the buttons would just sit there disabled,
+                // which reads as confusing dead UI (same reasoning as the
+                // Manager card's hideActions below).
+                hideActions={
+                  creditControllerApproved ||
+                  !stageActive.credit_controller ||
+                  !canEditCreditControllerSection
+                }
                 isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
               />
 

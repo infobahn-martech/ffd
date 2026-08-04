@@ -7812,6 +7812,12 @@ $send-report-optional: #80868b;
   gap: 18px;
 }
 
+.reports-view:has(> .reports-empty-state) {
+  min-height: 60vh;
+  justify-content: center;
+  align-items: center;
+}
+
 .reports-section-card {
   background: #ffffff;
   border: 1px solid #e8eaf0;
@@ -8038,8 +8044,11 @@ $send-report-optional: #80868b;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 48px 20px;
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 24px;
   text-align: center;
+  border-radius: 12px;
   animation: reports-empty-fade-in 0.35s ease-out;
 }
 
@@ -8057,9 +8066,11 @@ $send-report-optional: #80868b;
 
 .reports-empty-state-text {
   margin: 0;
-  color: #888;
+  color: #7a7a7a;
   font-size: 13px;
-  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
 /* ==========================================================
