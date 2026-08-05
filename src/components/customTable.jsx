@@ -137,13 +137,15 @@ function CustomTable({
                   return (
                     <Fragment key={`pg${num}`}>
                       {gap && (
-                        <a
-                          href="#"
-                          className="page-link cursor-pointer link-dots"
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          ...
-                        </a>
+                        <li className="page-item disabled">
+                          <a
+                            href="#"
+                            className="page-link cursor-pointer link-dots"
+                            onClick={(e) => e.preventDefault()}
+                          >
+                            ...
+                          </a>
+                        </li>
                       )}
                       <li
                         className={`page-item${num === currentPage ? ' active' : ''}`}
