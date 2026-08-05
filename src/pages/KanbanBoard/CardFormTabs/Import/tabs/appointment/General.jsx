@@ -6274,6 +6274,10 @@ ${body}
                         <div className="general-info-tasks-card general-info-tasks-card--operation">
                           <OperationTasksPanel
                             cardColor={accentColor}
+                            callType={
+                              getOptionLabel(callTypeOptions, getFieldValue("typeOfCall")) ||
+                              getFieldValue("typeOfCall")
+                            }
                             isViewOnly={isViewMode}
                             embedded
                             taskSections={mappedOperationTaskSections}

@@ -415,6 +415,7 @@ TaskSection.propTypes = {
 
 function OperationTasksPanel({
   cardColor,
+  callType = "Import Call",
   isViewOnly = false,
   embedded = false,
   taskSections = [],
@@ -436,7 +437,7 @@ function OperationTasksPanel({
     >
       <div className="operation-task-card">
         <div className="operation-task-card-header">
-          <span className="operation-task-card-title">Import Call Operation Tasks</span>
+          <span className="operation-task-card-title">{callType} Operation Tasks</span>
         </div>
 
         <ul className="operation-task-list" role="list">
@@ -465,6 +466,7 @@ function OperationTasksPanel({
 
 OperationTasksPanel.propTypes = {
   cardColor: PropTypes.string,
+  callType: PropTypes.string,
   isViewOnly: PropTypes.bool,
   embedded: PropTypes.bool,
   taskSections: PropTypes.arrayOf(
