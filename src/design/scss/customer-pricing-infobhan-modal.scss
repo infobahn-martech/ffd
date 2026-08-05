@@ -88,12 +88,24 @@ body .customer-pricing-infobhan-modal {
     }
   }
 
+  .cpi-section--service-details {
+    padding: $space-5 $space-5 $space-8;
+
+    .cpi-section-title {
+      margin-bottom: $space-5;
+    }
+  }
+
   .cpi-section--table {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    padding-bottom: $space-4;
+    padding: $space-4 $space-5 $space-5;
+
+    .cpi-section-header {
+      margin-bottom: $space-4;
+    }
   }
 
   .cpi-section-header {
@@ -103,28 +115,60 @@ body .customer-pricing-infobhan-modal {
 
   .cpi-section-header--with-search {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: $space-4;
 
     @media (max-width: 767px) {
+      align-items: stretch;
       flex-direction: column;
     }
   }
 
+  /* Mirrors the app's common search box (CommonHeader's .search-group /
+     .input-group in table-common.scss — border lives on .input-group, icon
+     slot is transparent, input itself is borderless), scoped here since that
+     rule is nested under .prospect and won't reach a modal. */
   .cpi-client-search {
-    width: 260px;
+    width: 340px;
     flex-shrink: 0;
 
     @media (max-width: 767px) {
       width: 100%;
     }
 
+    .input-group {
+      align-items: center;
+      border: 1px solid #dbe7e8;
+      border-radius: $radius-md;
+    }
+
+    .input-group-text {
+      border: none;
+      background-color: transparent;
+      padding: 0 0 0 10px;
+
+      img {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
     .form-control {
       height: 36px;
       min-height: 36px;
-      font-size: 12px;
-      border-radius: $radius-sm;
+      border: none;
+      box-shadow: none !important;
+
+      &:focus {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      &::placeholder {
+        font-weight: 400;
+        color: #767b82;
+      }
     }
   }
 
@@ -143,48 +187,64 @@ body .customer-pricing-infobhan-modal {
     color: #6c7a93;
   }
 
-  /* Compact 2-column field grid ------------------------------------------ */
-
-  .cpi-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: $space-3 $space-4;
-
-    @media (max-width: 767px) {
-      grid-template-columns: 1fr;
-    }
-  }
+  /* Service Details grid uses the shared .cf-field-grid-2 (form-designs.scss)
+     for column layout + spacing; only field-level sizing overrides live here. */
 
   .cpi-field {
     .phone-wrapper,
     .form-floating.desig-inp {
       margin-bottom: 0;
     }
+
+    /* Item Code / Item Name / Default Price inherit a 12px teal border from
+       the global .form-floating rule — pin an explicit common border here so
+       all three (and Service Code's premium-select box) match exactly. */
+    .form-floating.desig-inp {
+      border: 1px solid #e2e2ea;
+      border-radius: $radius-sm;
+    }
   }
 
   /* Consistent, compact input sizing ------------------------------------- */
 
-  .phone-wrapper,
-  .form-floating.desig-inp {
+  .phone-wrapper {
     min-height: 44px;
+  }
+
+  /* The bordered box is the wrapper itself (input's own border is forced
+     none by the global .form-floating rule) — size the wrapper to exactly
+     44px border-box so it matches Service Code's premium-select box, and
+     let the input fill it rather than asserting its own fixed height. */
+  .form-floating.desig-inp {
+    height: 44px;
+    box-sizing: border-box;
   }
 
   .form-control,
   .premium-select .cf-multi-select-email-input {
-    min-height: 44px;
-    height: 44px;
     border-radius: $radius-sm;
     font-size: 13px;
     box-sizing: border-box;
   }
 
+  .premium-select .cf-multi-select-email-input {
+    min-height: 44px;
+    height: 44px;
+  }
+
+  /* Service Code: validation text alone is enough — no red border on error. */
+  .premium-select.is-invalid .cf-multi-select-email-input {
+    border-color: #e2e2ea;
+  }
+
   .form-floating.desig-inp > .form-control {
+    height: 100%;
+    min-height: 0;
     padding-top: 0.7rem !important;
   }
 
   .error {
     font-size: 11px;
-    margin-top: 2px;
     display: block;
   }
 

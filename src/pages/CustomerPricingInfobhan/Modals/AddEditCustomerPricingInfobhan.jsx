@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import searchIcon from "../../../assets/images/search-normal.svg";
 import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import useCustomerPricingInfobhanReducer from "../../../store/CustomerPricingInfobhanReducer";
@@ -178,11 +179,11 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                 <form id="customerPricingInfobhanForm" onSubmit={handleSubmit(onSubmit)}>
 
                     {/* Service Details */}
-                    <div className="cpi-section">
+                    <div className="cpi-section cpi-section--service-details">
                         <div className="cpi-section-header">
                             <h6 className="cpi-section-title">Service Details</h6>
                         </div>
-                        <div className="cpi-grid-2">
+                        <div className="cf-field-grid-2">
 
                             <div className="cpi-field">
                                 <div className="phone-wrapper">
@@ -218,7 +219,7 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                             <div className="cpi-field">
                                 <div className="form-floating desig-inp">
                                     <input
-                                        className={`form-control ${errors.item_code ? "is-invalid" : ""}`}
+                                        className="form-control"
                                         placeholder="Item Code"
                                         disabled={isEdit}
                                         {...register("item_code", { required: "Item Code is required" })}
@@ -233,7 +234,7 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                             <div className="cpi-field">
                                 <div className="form-floating desig-inp">
                                     <input
-                                        className={`form-control ${errors.item_name ? "is-invalid" : ""}`}
+                                        className="form-control"
                                         placeholder="Item Name"
                                         {...register("item_name", { required: "Item Name is required" })}
                                     />
@@ -249,7 +250,7 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className={`form-control ${errors.default_price ? "is-invalid" : ""}`}
+                                        className="form-control"
                                         placeholder="Default Price"
                                         {...register("default_price", {
                                             required: "Default Price is required",
@@ -274,14 +275,20 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                                 <h6 className="cpi-section-title">Client Price</h6>
                                 <p className="cpi-section-helper">Set custom pricing per billing entity</p>
                             </div>
-                            <div className="cpi-client-search">
-                                <input
-                                    type="text"
-                                    className="form-control form-control-sm"
-                                    placeholder="Search"
-                                    value={clientSearch}
-                                    onChange={(e) => setClientSearch(e.target.value)}
-                                />
+                            <div className="cpi-client-search search-group">
+                                <div className="input-group">
+                                    <span className="input-group-text">
+                                        <img src={searchIcon} alt="search" />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Search..."
+                                        autoComplete="off"
+                                        value={clientSearch}
+                                        onChange={(e) => setClientSearch(e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
                         {billingLoading ? (
