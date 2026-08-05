@@ -286,17 +286,7 @@ export default function useKanbanDnD(workflows, setWorkflows, { userProfile, ref
           );
         } catch (err) {
           setWorkflows((prev) =>
-            applyCrossColumnMove(prev, workflowId, {
-              ...moveParams,
-              src: dest,
-              dest: src,
-              startColumnKey: finishColumnKey,
-              finishColumnKey: startColumnKey,
-              sourceIndex: destination.index,
-              destinationIndex: source.index,
-              startLane: finishLane,
-              finishLane: startLane,
-            })
+            ensureCardInColumn(prev, workflowId, draggableId, startColumnKey, src.laneId, source.index)
           );
           notify(dragApiErrorMessage(err, "Failed to start task."), "error");
         }
