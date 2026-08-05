@@ -198,7 +198,7 @@ const DocumentPreview = ({ document }) => {
               <dd>{document.uploadedBy || "—"}</dd>
             </div>
             <div className="doc-lib-preview-meta-row">
-              <dt>Uploaded</dt>
+              <dt>Uploaded at</dt>
               <dd>{getUploadedDate(document) || "—"}</dd>
             </div>
           </dl>
