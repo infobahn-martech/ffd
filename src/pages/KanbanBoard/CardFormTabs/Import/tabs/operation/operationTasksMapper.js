@@ -76,6 +76,7 @@ function mapDocuments(documents) {
     id: String(doc?.document_id ?? doc?.id ?? `${doc?.document_name ?? "doc"}-${index}`),
     name: String(doc?.document_name ?? "Untitled document"),
     status: mapDocumentStatus(doc?.status),
+    url: doc?.file_url || "",
   }));
 }
 

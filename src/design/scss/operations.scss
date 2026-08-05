@@ -9712,6 +9712,16 @@ body .modal-backdrop.show {
   word-break: break-word;
 }
 
+a.operation-task-document-name--link {
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    color: var(--card-color, #4f46e5);
+  }
+}
+
 .operation-task-doc-status {
   display: inline-flex;
   align-items: center;

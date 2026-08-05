@@ -181,7 +181,18 @@ function TaskDocumentsAccordion({ documents, taskId }) {
             <ul className="operation-task-documents-list" role="list">
               {docList.map((doc) => (
                 <li key={doc.id} className="operation-task-document-row" role="listitem">
-                  <span className="operation-task-document-name">{doc.name}</span>
+                  {doc.url ? (
+                    <a
+                      className="operation-task-document-name operation-task-document-name--link"
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {doc.name}
+                    </a>
+                  ) : (
+                    <span className="operation-task-document-name">{doc.name}</span>
+                  )}
                   <DocumentStatusBadge status={doc.status} />
                 </li>
               ))}
@@ -199,6 +210,7 @@ TaskDocumentsAccordion.propTypes = {
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       name: PropTypes.string.isRequired,
       status: PropTypes.string,
+      url: PropTypes.string,
     })
   ),
   taskId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -355,6 +367,7 @@ TaskRow.propTypes = {
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         name: PropTypes.string.isRequired,
         status: PropTypes.string,
+        url: PropTypes.string,
       })
     ),
   }).isRequired,
@@ -495,6 +508,7 @@ OperationTasksPanel.propTypes = {
               id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
               name: PropTypes.string.isRequired,
               status: PropTypes.string,
+              url: PropTypes.string,
             })
           ),
         })
