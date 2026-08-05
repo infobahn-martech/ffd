@@ -1249,13 +1249,16 @@ const createEmptyPartySection = () => ({
               ) : null}
 
               {/* Same phased reveal as the Manager card above, applied to
-                  every non-Controller viewer (Manager, CEO, generic
-                  viewers alike): the CEO card only appears once Manager has
+                  every viewer (Controller, Manager, CEO, generic viewers
+                  alike): the CEO card only appears once Manager has
                   actually proceeded to CEO (isStagePassed handles the
                   "Manager clicked Approved but didn't proceed" case
                   correctly — that keeps effectiveStage at "manager_ofm", so
-                  it stays hidden). Controller never sees it at all. */}
-              {!isControllerRole && isStagePassed(effectiveStage, "manager_ofm") ? (
+                  it stays hidden). Controller sees it locked/read-only with
+                  the "Still processing by CEO" badge, same as any other
+                  non-CEO viewer (hideActions/fieldsDisabled below already
+                  gate on isCeoRole). */}
+              {isStagePassed(effectiveStage, "manager_ofm") ? (
                 <ApprovalCard
                   title="CEO Comments"
                   commentsLabel={
@@ -1306,13 +1309,25 @@ const createEmptyPartySection = () => ({
                       ? { type: "hold", text: "On hold by CEO" }
                       : ceoApproved
                       ? { type: "approved", text: "Approved by CEO" }
+                      : stageActive.ceo
+                      // Same reasoning as Manager's badge above: "Still
+                      // processing by CEO" is noise to the CEO themselves —
+                      // only show it to viewers (Manager, generic viewers)
+                      // who are waiting on CEO.
+                      ? isCeoRole
+                        ? null
+                        : { type: "pending", text: "Still processing by CEO" }
                       : null
                   }
-                  // Only the terminal "approved" outcome hides the buttons —
-                  // on hold must keep both visible/enabled so the CEO can
-                  // still click Approved to resume (see primaryDisabled note
-                  // above).
-                  hideActions={ceoApproved}
+                  // Non-CEO viewers (Manager, generic viewers) never see
+                  // these buttons at all — only the "Still processing by
+                  // CEO" badge — since they could never click them anyway
+                  // (actionsDisabled already locks them via !isCeoRole);
+                  // showing greyed buttons to everyone just read as
+                  // confusing dead UI. The terminal "approved" outcome
+                  // hides them for the CEO too; on hold keeps them visible
+                  // for the CEO so they can still click Approved to resume.
+                  hideActions={!isCeoRole || ceoApproved}
                   isActiveStage={isCeoStageUsable && isCeoRole}
                 />
               ) : null}

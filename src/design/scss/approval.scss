@@ -545,9 +545,9 @@
     }
 
     &--pending {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      color: #6b7280;
+      background: #f3f4f6;
+      border: 1px dashed #c4c9d4;
+      color: #667085;
 
       svg {
         animation: approval-save-status-spin 1.6s linear infinite;
