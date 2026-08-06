@@ -199,7 +199,7 @@ function GroPopoverStageExtraFields({
     return (
       <>
         <PopoverFileUploadField
-          label="Initial Bayan Doc"
+          label="Initial Bayan"
           fieldKey="initial_bayan_doc"
           file={values?.initial_bayan_doc}
           existingFile={existingFiles?.initial_bayan_doc}
@@ -210,7 +210,7 @@ function GroPopoverStageExtraFields({
           required
         />
         <PopoverFileUploadField
-          label="Final Bayan Doc"
+          label="Final Bayan"
           fieldKey="final_bayan_doc"
           file={values?.final_bayan_doc}
           existingFile={existingFiles?.final_bayan_doc}

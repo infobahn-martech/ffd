@@ -198,8 +198,10 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
   }
 
   if (stageId === 9) {
-    fileInfo.initial_bayan_doc = resolveGroSavedFileInfo(t.initial_bayan_doc);
-    fileInfo.final_bayan_doc = resolveGroSavedFileInfo(t.final_bayan_doc);
+    fileInfo.initial_bayan_doc =
+      resolveGroSavedFileInfo(t.initial_bayan_doc) ?? resolveGroDocumentByName(t, "Initial Bayan");
+    fileInfo.final_bayan_doc =
+      resolveGroSavedFileInfo(t.final_bayan_doc) ?? resolveGroDocumentByName(t, "Final Bayan");
   }
 
   if (stageId === 10) {
