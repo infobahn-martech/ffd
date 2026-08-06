@@ -1253,8 +1253,8 @@ const GROCardView = forwardRef(function GROCardView(
     }
 
     try {
-      await saveArrivalDocument({ formData });
-      notify("Arrival document saved successfully.", "success");
+      const saveRes = await saveArrivalDocument({ formData });
+      notify(saveRes?.message || "Arrival document saved successfully.", "success");
       const freshTaskDetails = await refreshTaskDetails();
       setShowInwardClearance(false);
       resetInwardClearanceFields(freshTaskDetails);
@@ -1500,8 +1500,8 @@ const GROCardView = forwardRef(function GROCardView(
 
       setIsDynamicUploadSubmitting(true);
       try {
-        await saveArrivalDocument({ formData });
-        notify("Document uploaded successfully.", "success");
+        const saveRes = await saveArrivalDocument({ formData });
+        notify(saveRes?.message || "Document uploaded successfully.", "success");
         const freshTaskDetails = await refreshTaskDetails();
         setShowDynamicUploadModal(false);
         setDynamicUploadFile(null);
