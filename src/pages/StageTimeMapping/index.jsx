@@ -145,7 +145,22 @@ const StageTimeMappings = () => {
                         <StageTimeMappingModal
                             showModal={showStageTimeMappingModal}
                             closeModal={() => setShowStageTimeMappingModal(false)}
-                            onSuccess={() => getStageTimeMappings?.(apiParams)}
+                            onSuccess={(meta) => {
+                                if (meta && !meta.isEdit) {
+                                    setParams((p) => ({ ...p, page: 1 }));
+                                    getStageTimeMappings?.({
+                                        ...apiParams,
+                                        page: 1,
+                                        pinFirst: {
+                                            stage_id: meta.stage_id,
+                                            port_id: meta.port_id,
+                                            call_type_id: meta.call_type_id,
+                                        },
+                                    });
+                                } else {
+                                    getStageTimeMappings?.(apiParams);
+                                }
+                            }}
                         />
                     )}
                     {!!showDeleteModal && (

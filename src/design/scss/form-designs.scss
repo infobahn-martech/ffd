@@ -687,13 +687,16 @@ input[type=number] {
 }
 
 .avatar-outer:hover .avatar-edit-icon {
-    background: #154e50;
+    background: #00368c;
 }
 
 .avatar-edit-pencil {
     width: 14px;
-    height: 18px;
-    filter: invert(1);
+    height: 14px;
+}
+
+.avatar-outer:hover .avatar-edit-pencil {
+    filter: brightness(0) invert(1);
 }
 
 .avatar-image:hover {

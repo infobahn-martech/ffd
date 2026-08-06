@@ -57,6 +57,20 @@ const useStageTimeMappingReducer = create((set) => ({
           }))
         : [];
 
+      if (params?.pinFirst) {
+        const { stage_id, port_id, call_type_id } = params.pinFirst;
+        const pinIdx = list.findIndex(
+          (row) =>
+            String(row.stage_id) === String(stage_id) &&
+            String(row.port_id) === String(port_id) &&
+            String(row.call_type_id) === String(call_type_id)
+        );
+        if (pinIdx > 0) {
+          const [pinnedRow] = list.splice(pinIdx, 1);
+          list.unshift(pinnedRow);
+        }
+      }
+
       const totalCount =
         Number(
           data?.pagination?.total ??

@@ -416,6 +416,10 @@ body .user-modal-sm .modal-dialog {
 /* Keep avatar centered */
 .user-modal-sm .avatar-wrapper {
   margin-top: 10px;
+
+  .avatar-image {
+    object-fit: cover;
+  }
 }
 
 /*

@@ -175,8 +175,6 @@ function CommonHeader({
                     <button
                       className="btn-common green-btn"
                       type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#createLeadModal"
                       onClick={onAddModalClick}
                     >
                       <span>
