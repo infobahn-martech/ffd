@@ -82,17 +82,7 @@ function TaskDocumentItem({
         </div>
       </div>
       <div className="gro-document-actions">
-        {hasFile && !isNotUploaded ? (
-          <button
-            type="button"
-            className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"
-            title="View"
-            aria-label="View"
-            onClick={() => onDocumentDownload(doc)}
-          >
-            <IconView />
-          </button>
-        ) : null}
+      
         {showVerifyActions && isPendingVerification ? (
           <button
             type="button"
@@ -126,6 +116,17 @@ function TaskDocumentItem({
           <button type="button" className="gro-doc-action-btn gro-doc-action-btn--rejected gro-doc-action-btn--readonly" tabIndex={-1} aria-label="Rejected">
             <IconCross />
             <span>Rejected</span>
+          </button>
+        ) : null}
+          {hasFile && !isNotUploaded ? (
+          <button
+            type="button"
+            className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"
+            title="View"
+            aria-label="View"
+            onClick={() => onDocumentDownload(doc)}
+          >
+            <IconView />
           </button>
         ) : null}
         {showVerifyActions && showDownload ? (
