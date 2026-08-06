@@ -143,10 +143,18 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     actionKey: PERMISSION_ACTIONS.VIEW_WORKSPACE,
   });
   const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
+  // Edit Workflow sidebar icon is gated by KANBAN_WORKFLOW/VIEW_WORKFLOW (the
+  // backend has no separate EDIT_WORKFLOW action — VIEW_WORKFLOW is access to
+  // the workflow builder page), matching the board card's "Edit Workflows" item.
+  const canEditWorkflow = hasPermission({
+    moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW,
+    actionKey: PERMISSION_ACTIONS.VIEW_WORKFLOW,
+  });
 
   const boardRouteMatchForEditWorkflow = pathname.match(/^\/kanban-board\/([^/]+)$/);
   const kanbanBoardIdForEditWorkflow = boardRouteMatchForEditWorkflow?.[1] ?? null;
   const showEditWorkflowSidebarIcon =
+    canEditWorkflow &&
     Boolean(kanbanBoardIdForEditWorkflow) &&
     String(kanbanBoardIdForEditWorkflow).toLowerCase() !== 'operator';
 

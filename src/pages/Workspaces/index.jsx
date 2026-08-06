@@ -115,7 +115,7 @@ function Workspaces() {
   const canRenameBoard = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.RENAME_BOARD });
   const canArchiveBoard = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.ARCHIVE_BOARD });
   const canUpdateBoardBackground = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.UPDATE_BOARD_BACKGROUND });
-  const canEditWorkflows = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKSPACE, actionKey: PERMISSION_ACTIONS.EDIT_WORKFLOW });
+  const canEditWorkflows = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.VIEW_WORKFLOW });
   const canManageWorkspaceMenu = canRenameWorkspace || canArchiveWorkspace;
   const canManageBoardMenu = canRenameBoard || canUpdateBoardBackground || canEditWorkflows || canArchiveBoard;
 

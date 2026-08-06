@@ -31,6 +31,9 @@ function WorkflowBoard({
   onRenameSwimlane,
   onDeleteSwimlane,
   onSwimlaneColorSelect,
+  canAddColumns,
+  canUpdateColumnColor,
+  canDeleteColumn,
 }) {
   const boardStructure = getBoardColumnStructure(workflow);
   const totalCols = boardStructure.reduce((sum, x) => sum + x.cols, 0);
@@ -108,6 +111,9 @@ function WorkflowBoard({
                 onStageLimitChange={onStageLimitChange}
                 onStageCardsPerRowChange={onStageCardsPerRowChange}
                 mutationTargets={mutationTargets}
+                canAddColumns={canAddColumns}
+                canUpdateColumnColor={canUpdateColumnColor}
+                canDeleteColumn={canDeleteColumn}
               />
             );
           })}
@@ -146,6 +152,9 @@ function WorkflowBoard({
           onSwimlaneColorSelect={onSwimlaneColorSelect}
           swimlaneIndex={index}
           mutationTargets={mutationTargets}
+          canAddColumns={canAddColumns}
+          canUpdateColumnColor={canUpdateColumnColor}
+          canDeleteColumn={canDeleteColumn}
         />
       ))}
     </div>

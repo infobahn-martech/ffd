@@ -40,6 +40,9 @@ function WorkflowAreaGrid({
   onStageLimitChange,
   onStageCardsPerRowChange,
   mutationTargets = {},
+  canAddColumns,
+  canUpdateColumnColor,
+  canDeleteColumn,
 }) {
   const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
 
@@ -84,7 +87,7 @@ function WorkflowAreaGrid({
               gridRow: `1 / span ${globalRows}`,
             }}
           >
-            {showStackedRails && stackedRailMetrics && (
+            {showStackedRails && stackedRailMetrics && canAddColumns && (
               <>
                 <div
                   className="workflow-insertion-rail workflow-insertion-rail-left"
@@ -248,6 +251,9 @@ function WorkflowAreaGrid({
               onDeleteStage={onDeleteStage}
               onStageLimitChange={onStageLimitChange}
               onStageCardsPerRowChange={onStageCardsPerRowChange}
+              canAddColumns={canAddColumns}
+              canUpdateColumnColor={canUpdateColumnColor}
+              canDeleteColumn={canDeleteColumn}
             />
           </div>
         );

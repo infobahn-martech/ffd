@@ -51,6 +51,9 @@ function WorkflowSwimlane({
   onSwimlaneColorSelect,
   swimlaneIndex,
   mutationTargets = {},
+  canAddColumns,
+  canUpdateColumnColor,
+  canDeleteColumn,
 }) {
   const globalRows = getGlobalRowsForSwimlane(swimlane, boardStructure);
   const [editingFieldKey, setEditingFieldKey] = useState(null);
@@ -475,6 +478,9 @@ function WorkflowSwimlane({
               onStageLimitChange={onStageLimitChange}
               onStageCardsPerRowChange={onStageCardsPerRowChange}
               mutationTargets={mutationTargets}
+              canAddColumns={canAddColumns}
+              canUpdateColumnColor={canUpdateColumnColor}
+              canDeleteColumn={canDeleteColumn}
             />
           );
         })}

@@ -193,8 +193,8 @@ const router = createBrowserRouter(
                   path: "/edit-workflow",
                   element: (
                     <PermissionRoute
-                      moduleKey={PERMISSION_MODULES.KANBAN_WORKSPACE}
-                      actionKey={PERMISSION_ACTIONS.EDIT_WORKFLOW}
+                      moduleKey={PERMISSION_MODULES.KANBAN_WORKFLOW}
+                      actionKey={PERMISSION_ACTIONS.VIEW_WORKFLOW}
                       permissionOnly
                     >
                       <EditWorkflows />

@@ -37,6 +37,9 @@ function WorkflowStageCard({
   onDeleteStage,
   onStageLimitChange,
   onStageCardsPerRowChange,
+  canAddColumns,
+  canUpdateColumnColor,
+  canDeleteColumn,
 }) {
   const showInlineAddButtons = isSingleInCol;
   const isStacked = !isSingleInCol;
@@ -200,7 +203,7 @@ function WorkflowStageCard({
             <span className="workflow-stage-mutation-skeleton" />
           </div>
         ) : null}
-        {isStageHovered && showInlineAddButtons && !columnBusy && (
+        {isStageHovered && showInlineAddButtons && !columnBusy && canAddColumns && (
           <div className="workflow-insertion-rail workflow-insertion-rail-left">
             <button
               className="workflow-column-add-btn workflow-column-add-left"
@@ -215,7 +218,7 @@ function WorkflowStageCard({
             </button>
           </div>
         )}
-        {isStageHovered && showInlineAddButtons && !columnBusy && (
+        {isStageHovered && showInlineAddButtons && !columnBusy && canAddColumns && (
           <div className="workflow-insertion-rail workflow-insertion-rail-right">
             <button
               className="workflow-column-add-btn workflow-column-add-right"
@@ -230,7 +233,7 @@ function WorkflowStageCard({
             </button>
           </div>
         )}
-        {isStageHovered && showAddSubcolumn && !columnBusy && (
+        {isStageHovered && showAddSubcolumn && !columnBusy && canAddColumns && (
           <div
             className={`workflow-insertion-rail workflow-insertion-rail-bottom bottom-add-grid${isChildColumn ? ' disabled' : ''}`}
           >
@@ -346,30 +349,33 @@ function WorkflowStageCard({
             ) : null}
           </div>
           <div className="stage-box-actions">
-            <button
-              ref={stageColorTriggerRef}
-              type="button"
-              className="stage-action-color-trigger"
-              title="Stage color"
-              aria-label="Stage color"
-              aria-haspopup="dialog"
-              aria-expanded={isStageColorPickerOpen}
-              aria-controls={`stage-color-picker-${stage.id}`}
-              onClick={openStageColorPicker}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  openStageColorPicker(event);
-                }
-              }}
-            >
-              <span
-                className="kanban-dashboard-actions-color-swatch stage-action-color-swatch"
-                style={{ backgroundColor: normalizeHexColor(displayColor) }}
-                aria-hidden
-              />
-            </button>
+            {canUpdateColumnColor ? (
+              <button
+                ref={stageColorTriggerRef}
+                type="button"
+                className="stage-action-color-trigger"
+                title="Stage color"
+                aria-label="Stage color"
+                aria-haspopup="dialog"
+                aria-expanded={isStageColorPickerOpen}
+                aria-controls={`stage-color-picker-${stage.id}`}
+                onClick={openStageColorPicker}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openStageColorPicker(event);
+                  }
+                }}
+              >
+                <span
+                  className="kanban-dashboard-actions-color-swatch stage-action-color-swatch"
+                  style={{ backgroundColor: normalizeHexColor(displayColor) }}
+                  aria-hidden
+                />
+              </button>
+            ) : null}
             {isStageColorPickerOpen &&
+              canUpdateColumnColor &&
               createPortal(
                 <div
                   className="workflow-stage-color-picker-anchor"
@@ -393,20 +399,22 @@ function WorkflowStageCard({
                 </div>,
                 document.body
               )}
-            <button
-              className="stage-action-icon stage-action-icon-delete"
-              type="button"
-              title="Delete stage"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteStage?.(workflowId, swimlaneId, stage.id);
-              }}
-              aria-label="Delete stage"
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 4H14M5 4V3C5 2.44772 5.44772 2 6 2H10C10.5523 2 11 2.44772 11 3V4M6 7V11M10 7V11M3 4L3 13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            {canDeleteColumn ? (
+              <button
+                className="stage-action-icon stage-action-icon-delete"
+                type="button"
+                title="Delete stage"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteStage?.(workflowId, swimlaneId, stage.id);
+                }}
+                aria-label="Delete stage"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 4H14M5 4V3C5 2.44772 5.44772 2 6 2H10C10.5523 2 11 2.44772 11 3V4M6 7V11M10 7V11M3 4L3 13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

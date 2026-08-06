@@ -28,6 +28,8 @@ function isNodeInColumnZone(node, colStackKey) {
 }
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
 import useAlertReducer from '../../store/AlertReducer';
+import usePermissions from '../../shared/hooks/usePermissions';
+import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
 
 const DEFAULT_WORKFLOWS = [
   {
@@ -71,6 +73,19 @@ function EditWorkflows() {
   } = useWorkFlowReducer();
 
   const { error: showError } = useAlertReducer();
+
+  const { hasPermission } = usePermissions();
+  const canCreateWorkflow = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.CREATE_WORKFLOW });
+  const canRenameWorkflow = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.RENAME_WORKFLOW });
+  const canDeleteWorkflow = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.DELETE_WORKFLOW });
+  const canDisableWorkflow = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.DISABLE_WORKFLOW });
+  const canCreateSwimlane = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.CREATE_SWIMLANE });
+  const canRenameSwimlane = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.RENAME_SWIMLANE });
+  const canDeleteSwimlane = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.DELETE_SWIMLANE });
+  const canUpdateSwimlaneColor = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.UPDATE_SWIMLANE_COLOR });
+  const canAddColumns = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.ADD_COLUMNS });
+  const canUpdateColumnColor = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.UPDATE_COLUMN_COLOR });
+  const canDeleteColumn = hasPermission({ moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW, actionKey: PERMISSION_ACTIONS.DELETE_COLUMN });
 
   const [boardName, setBoardName] = useState('Team workspace');
   const [description, setDescription] = useState('There is no description');
@@ -690,7 +705,7 @@ function EditWorkflows() {
                 <FiArrowLeft aria-hidden="true" />
                 Back To Board
               </button>
-              {!showNoWorkflowEmptyState ? (
+              {!showNoWorkflowEmptyState && canCreateWorkflow ? (
                 <button
                   type="button"
                   className="workflows-btn workflows-btn-create workflows-btn-create--toolbar"
@@ -722,15 +737,17 @@ function EditWorkflows() {
                   Add a workflow to define stages and swimlanes—then you can fine-tune columns and limits here.
                 </p>
               </div>
-              <div className="workflows-not-found-actions">
-                <button
-                  type="button"
-                  className="workflows-btn workflows-btn-create workflows-not-found-cta"
-                  onClick={() => setShowCreateWorkflowModal(true)}
-                >
-                  Create workflow
-                </button>
-              </div>
+              {canCreateWorkflow ? (
+                <div className="workflows-not-found-actions">
+                  <button
+                    type="button"
+                    className="workflows-btn workflows-btn-create workflows-not-found-cta"
+                    onClick={() => setShowCreateWorkflowModal(true)}
+                  >
+                    Create workflow
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         ) : workflows.length === 0 ? (
@@ -768,22 +785,24 @@ function EditWorkflows() {
                         ) : (
                           <h3 className="workflow-title">{workflow.name}</h3>
                         )}
-                        <button
-                          className="workflow-edit-btn"
-                          type="button"
-                          disabled={wfMutationPending}
-                          onClick={() => handleStartEditWorkflow(workflow.id, workflow.name)}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                              d="M12.75 2.25C12.9468 2.05322 13.1794 1.89585 13.4349 1.78609C13.6904 1.67633 13.9642 1.61621 14.2417 1.60879C14.5192 1.60137 14.7958 1.64677 15.0571 1.74253C15.3184 1.83829 15.5596 1.98259 15.7685 2.16831C15.9774 2.35403 16.1501 2.57764 16.2784 2.82806C16.4067 3.07848 16.4882 3.35112 16.5188 3.63191C16.5494 3.9127 16.5285 4.19687 16.4573 4.46985C16.3861 4.74283 16.2659 5.00005 16.1025 5.22831L15.0825 6.75L11.25 2.9175L12.7717 1.8975C13 1.73412 13.2572 1.61393 13.5302 1.54272C13.8032 1.47152 14.0874 1.45062 14.3682 1.48122C14.649 1.51182 14.9216 1.59334 15.172 1.72162C15.4225 1.8499 15.6461 2.02264 15.8318 2.23153C16.0175 2.44042 16.1618 2.68164 16.2576 2.94294C16.3534 3.20424 16.3988 3.48079 16.3913 3.75831C16.3839 4.03583 16.3238 4.30964 16.214 4.56512C16.1043 4.8206 15.9469 5.05322 15.75 5.25L6.375 14.625L2.25 15.75L3.375 11.625L12.75 2.25Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
+                        {canRenameWorkflow ? (
+                          <button
+                            className="workflow-edit-btn"
+                            type="button"
+                            disabled={wfMutationPending}
+                            onClick={() => handleStartEditWorkflow(workflow.id, workflow.name)}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M12.75 2.25C12.9468 2.05322 13.1794 1.89585 13.4349 1.78609C13.6904 1.67633 13.9642 1.61621 14.2417 1.60879C14.5192 1.60137 14.7958 1.64677 15.0571 1.74253C15.3184 1.83829 15.5596 1.98259 15.7685 2.16831C15.9774 2.35403 16.1501 2.57764 16.2784 2.82806C16.4067 3.07848 16.4882 3.35112 16.5188 3.63191C16.5494 3.9127 16.5285 4.19687 16.4573 4.46985C16.3861 4.74283 16.2659 5.00005 16.1025 5.22831L15.0825 6.75L11.25 2.9175L12.7717 1.8975C13 1.73412 13.2572 1.61393 13.5302 1.54272C13.8032 1.47152 14.0874 1.45062 14.3682 1.48122C14.649 1.51182 14.9216 1.59334 15.172 1.72162C15.4225 1.8499 15.6461 2.02264 15.8318 2.23153C16.0175 2.44042 16.1618 2.68164 16.2576 2.94294C16.3534 3.20424 16.3988 3.48079 16.3913 3.75831C16.3839 4.03583 16.3238 4.30964 16.214 4.56512C16.1043 4.8206 15.9469 5.05322 15.75 5.25L6.375 14.625L2.25 15.75L3.375 11.625L12.75 2.25Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        ) : null}
                         <Tooltip
                           id={`workflow-info-${workflow.id}`}
                           place="bottom"
@@ -810,22 +829,26 @@ function EditWorkflows() {
                     )}
                   </div>
                   <div className="workflow-header-right">
-                    <button
-                      type="button"
-                      className="workflow-action-link workflow-action-link-delete"
-                      disabled={wfMutationPending}
-                      onClick={() => handleDeleteWorkflow(workflow.id)}
-                    >
-                      Delete
-                    </button>
-                    <button
-                      type="button"
-                      className="workflow-action-link"
-                      disabled={wfMutationPending}
-                      onClick={() => handleDisableWorkflow(workflow.id)}
-                    >
-                      {workflowIsDisabled ? 'Enable' : 'Disable'}
-                    </button>
+                    {canDeleteWorkflow ? (
+                      <button
+                        type="button"
+                        className="workflow-action-link workflow-action-link-delete"
+                        disabled={wfMutationPending}
+                        onClick={() => handleDeleteWorkflow(workflow.id)}
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                    {canDisableWorkflow ? (
+                      <button
+                        type="button"
+                        className="workflow-action-link"
+                        disabled={wfMutationPending}
+                        onClick={() => handleDisableWorkflow(workflow.id)}
+                      >
+                        {workflowIsDisabled ? 'Enable' : 'Disable'}
+                      </button>
+                    ) : null}
                   </div>
                   {wfMutationPending ? (
                     <div className="workflow-header-mutation-overlay" aria-busy="true">
@@ -856,10 +879,13 @@ function EditWorkflows() {
                       onDeleteStage={handleDeleteStage}
                       onStageLimitChange={handleStageLimitChange}
                       onStageCardsPerRowChange={handleStageCardsPerRowChange}
-                      onAddSwimlane={handleAddSwimlane}
-                      onRenameSwimlane={handleRenameSwimlane}
-                      onDeleteSwimlane={handleDeleteSwimlane}
-                      onSwimlaneColorSelect={handleSwimlaneColorChange}
+                      onAddSwimlane={canCreateSwimlane ? handleAddSwimlane : undefined}
+                      onRenameSwimlane={canRenameSwimlane ? handleRenameSwimlane : undefined}
+                      onDeleteSwimlane={canDeleteSwimlane ? handleDeleteSwimlane : undefined}
+                      onSwimlaneColorSelect={canUpdateSwimlaneColor ? handleSwimlaneColorChange : undefined}
+                      canAddColumns={canAddColumns}
+                      canUpdateColumnColor={canUpdateColumnColor}
+                      canDeleteColumn={canDeleteColumn}
                     />
                   </div>
                 ) : null}
