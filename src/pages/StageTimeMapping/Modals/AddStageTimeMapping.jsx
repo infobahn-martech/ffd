@@ -236,7 +236,12 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
             payload,
             cb: () => {
                 closeModal();
-                onSuccess?.();
+                onSuccess?.({
+                    isEdit: isEditMode,
+                    stage_id: payload.stage_id,
+                    port_id: payload.port_id,
+                    call_type_id: payload.call_type_id,
+                });
             },
         });
     };
