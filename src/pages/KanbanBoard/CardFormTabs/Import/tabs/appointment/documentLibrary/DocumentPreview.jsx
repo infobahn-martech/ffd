@@ -154,12 +154,17 @@ const DocumentPreview = ({ document }) => {
   const fileType = getFileType(document);
   const isPdf = fileType === "pdf";
   const isImage = fileType === "image";
+  const isOffice = fileType === "doc" || fileType === "xls";
   const hasPreviewUrl = Boolean(document.previewUrl);
-  // Only PDFs render safely inside an <iframe>; other file types (e.g. .msg, .doc)
-  // aren't inline-renderable and the browser triggers a download of the raw
-  // file_url instead of displaying it, so those fall back to the placeholder.
-  // Images render directly via <img> instead.
+  // PDFs render directly in an <iframe>. Office files (.doc/.docx/.xls/.xlsx)
+  // aren't inline-renderable by the browser, so they're routed through
+  // Microsoft's Office Online Viewer, which requires the file_url to be
+  // publicly reachable. Other types (e.g. .msg) still fall back to the placeholder.
   const canEmbedPreview = hasPreviewUrl && isPdf;
+  const canEmbedOffice = hasPreviewUrl && isOffice;
+  const officeViewerUrl = canEmbedOffice
+    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(document.previewUrl)}`
+    : null;
 
   const handleView = () => {
     if (document.previewUrl) {
@@ -230,6 +235,12 @@ const DocumentPreview = ({ document }) => {
         {canEmbedPreview ? (
           <iframe
             src={document.previewUrl}
+            title={document.name}
+            className="document-preview__iframe"
+          />
+        ) : canEmbedOffice ? (
+          <iframe
+            src={officeViewerUrl}
             title={document.name}
             className="document-preview__iframe"
           />
