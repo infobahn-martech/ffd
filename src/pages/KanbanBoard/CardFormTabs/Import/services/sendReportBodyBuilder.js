@@ -63,9 +63,6 @@ export function buildArrivalReportBody(v) {
   }
   lines.push(
     `Vessel inward formalities completed: ${formatDateTimePair(v.vesselInwardFormalitiesCompletedDate, v.vesselInwardFormalitiesCompletedTime)}`,
-    `Marine work permit applied: ${formatDateTimePair(v.marineWorkPermitAppliedDate, v.marineWorkPermitAppliedTime)}`,
-    `Marine work permit issued: ${formatDateTimePair(v.marineWorkPermitIssuedDate, v.marineWorkPermitIssuedTime)}`,
-    `Marine work permit expires: ${formatDateTimePair(v.marineWorkPermitExpiresDate, v.marineWorkPermitExpiresTime)}`,
     "",
     "Remarks:",
     stripHtml(v.arrivalDescription) || "—",
@@ -85,9 +82,6 @@ export function buildArrivalDailyReportBody(v) {
     `Crew immigration status: ${v.crewImmigrationStatus || "—"}`,
     `Crew immigration completed: ${formatDateTimePair(v.crewImmigrationCompletedDate, v.crewImmigrationCompletedTime)}`,
     `Vessel inward formalities completed: ${formatDateTimePair(v.vesselInwardFormalitiesCompletedDate, v.vesselInwardFormalitiesCompletedTime)}`,
-    `Marine work permit applied: ${formatDateTimePair(v.marineWorkPermitAppliedDate, v.marineWorkPermitAppliedTime)}`,
-    `Marine work permit issued: ${formatDateTimePair(v.marineWorkPermitIssuedDate, v.marineWorkPermitIssuedTime)}`,
-    `Marine work permit expires: ${formatDateTimePair(v.marineWorkPermitExpiresDate, v.marineWorkPermitExpiresTime)}`,
     "",
     "Remarks:",
     stripHtml(v.arrivalDescription) || "—",

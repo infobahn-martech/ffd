@@ -73,6 +73,13 @@ const FALLBACK_ARRIVAL_TIME_OBJECT_FIELDS = [
   },
 ];
 
+/** Marine work permit fields are no longer collected on the Arrival tab — filtered out regardless of source (API or fallback). */
+const REMOVED_MARINE_WORK_PERMIT_EVENT_NAMES = new Set([
+  "marine work permit applied",
+  "marine work permit issued",
+  "marine work permit expires",
+]);
+
 const resolveArrivalTimeObjectFields = (apiFields = []) => {
   const source =
     Array.isArray(apiFields) && apiFields.length ? apiFields : FALLBACK_ARRIVAL_TIME_OBJECT_FIELDS;
@@ -202,9 +209,9 @@ function Arrival({
   );
   const postArrivalTimeObjectFields = useMemo(
     () =>
-      [...(Array.isArray(postArrivalStageFields) ? postArrivalStageFields : [])].sort(
-        (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-      ),
+      [...(Array.isArray(postArrivalStageFields) ? postArrivalStageFields : [])]
+        .filter((field) => !REMOVED_MARINE_WORK_PERMIT_EVENT_NAMES.has(String(field?.event_name ?? "").trim().toLowerCase()))
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)),
     [postArrivalStageFields]
   );
   const combinedArrivalTimeFields = useMemo(

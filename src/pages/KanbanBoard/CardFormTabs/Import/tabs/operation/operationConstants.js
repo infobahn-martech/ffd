@@ -139,9 +139,6 @@ export const FALLBACK_ARRIVAL_FIELDS = [
   { event_name: "Crew immigration commenced", keyPrefix: "crewImmigrationCommenced", stage_id: 2, sort_order: 4 },
   { event_name: "Crew immigration completed", keyPrefix: "crewImmigrationCompleted", stage_id: 2, sort_order: 5 },
   { event_name: "Vessel Inward formalities completed", keyPrefix: "vesselInwardFormalitiesCompleted", stage_id: 3, sort_order: 1 },
-  { event_name: "Marine work permit applied", keyPrefix: "marineWorkPermitApplied", stage_id: 3, sort_order: 2 },
-  { event_name: "Marine work permit issued", keyPrefix: "marineWorkPermitIssued", stage_id: 3, sort_order: 3 },
-  { event_name: "Marine work permit expires", keyPrefix: "marineWorkPermitExpires", stage_id: 3, sort_order: 4 },
 ];
 
 export const FALLBACK_DEPARTURE_FIELDS = [
