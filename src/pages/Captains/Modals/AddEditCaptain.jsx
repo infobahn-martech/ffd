@@ -155,6 +155,13 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Captain Name"
                                         {...register("captain_name", {
                                             required: "Captain name is required",
+                                            pattern: {
+                                                value: /^[A-Za-z\s]+$/,
+                                                message: "Captain name cannot contain numbers or special characters",
+                                            },
+                                            onChange: (e) => {
+                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                            },
                                         })}
                                     />
                                     <label>

@@ -446,6 +446,13 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                       required: "Vessel owner is required",
                       validate: (v) =>
                         v.trim().length > 0 || "Vessel owner is required",
+                      pattern: {
+                        value: /^[A-Za-z\s]+$/,
+                        message: "Vessel owner cannot contain numbers or special characters",
+                      },
+                      onChange: (e) => {
+                        e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                      },
                     })}
                   />
                   <label>

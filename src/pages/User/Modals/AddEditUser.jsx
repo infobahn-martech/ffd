@@ -319,6 +319,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                         value: /^[A-Za-z\s]+$/,
                         message: "Name cannot contain numbers or special characters",
                       },
+                      onChange: (e) => {
+                        e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                      },
                     })}
                   />
                   <label>

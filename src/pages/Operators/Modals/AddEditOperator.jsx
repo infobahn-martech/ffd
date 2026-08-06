@@ -150,6 +150,13 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Operator Name"
                                         {...register("operator_name", {
                                             required: "Operator name is required",
+                                            pattern: {
+                                                value: /^[A-Za-z\s]+$/,
+                                                message: "Operator name cannot contain numbers or special characters",
+                                            },
+                                            onChange: (e) => {
+                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                            },
                                         })}
                                     />
                                     <label>Operator Name <span className="text-danger">*</span></label>
@@ -166,6 +173,13 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Contact Person"
                                         {...register("contact_person", {
                                             required: "Contact person is required",
+                                            pattern: {
+                                                value: /^[A-Za-z\s]+$/,
+                                                message: "Contact person cannot contain numbers or special characters",
+                                            },
+                                            onChange: (e) => {
+                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                            },
                                         })}
                                     />
                                     <label>Contact Person <span className="text-danger">*</span></label>
