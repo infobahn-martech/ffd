@@ -7,7 +7,7 @@ import { getInitials } from '../../shared/utils/utils';
 export const RenderAction = ({  row, onDeleteClick }) => {
   return (
     <>
-      <Tooltip id="delete" place="bottom" content="Delete" />
+      <Tooltip id="delete" place="top" content="Delete" />
       <div className="actions">
         <span
           data-tooltip-id="delete"

@@ -8,8 +8,8 @@ import { getInitials } from '../../shared/utils/utils';
 export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
     return (
         <>
-            <Tooltip id="edit" place="bottom" content="Edit" />
-            {onDeleteClick && <Tooltip id="delete" place="bottom" content="Delete" />}
+            <Tooltip id="edit" place="top" content="Edit" />
+            {onDeleteClick && <Tooltip id="delete" place="top" content="Delete" />}
             <div className="actions">
                 <span
                     data-tooltip-id="edit"

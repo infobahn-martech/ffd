@@ -5,8 +5,8 @@ import trash from '../../assets/images/delete.svg';
 export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
   return (
     <>
-      <Tooltip id="vrt-edit" place="bottom" content="Edit" />
-      <Tooltip id="vrt-delete" place="bottom" content="Delete" />
+      <Tooltip id="vrt-edit" place="top" content="Edit" />
+      <Tooltip id="vrt-delete" place="top" content="Delete" />
       <div className="actions">
         <span
           data-tooltip-id="vrt-edit"

@@ -11,9 +11,9 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick })
 
     return (
         <>
-            <Tooltip id={toggleTipId} place="bottom" content={isActive ? 'Deactivate' : 'Activate'} />
-            <Tooltip id="edit" place="bottom" content="Edit" />
-            <Tooltip id="delete" place="bottom" content="Delete" />
+            <Tooltip id={toggleTipId} place="top" content={isActive ? 'Deactivate' : 'Activate'} />
+            <Tooltip id="edit" place="top" content="Edit" />
+            <Tooltip id="delete" place="top" content="Delete" />
             <div className="actions">
                 <span data-tooltip-id={toggleTipId} className="captain-toggle-wrap">
                     <label className="captain-toggle-switch">

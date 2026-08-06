@@ -5,7 +5,7 @@ import edit from '../../assets/images/edit.svg';
 export const RenderEditAction = ({ row, onEditClick }) => {
     return (
         <>
-            <Tooltip id="kpi-task-edit" place="bottom" content="Edit" />
+            <Tooltip id="kpi-task-edit" place="top" content="Edit" />
             <div className="actions">
                 <span
                     data-tooltip-id="kpi-task-edit"
