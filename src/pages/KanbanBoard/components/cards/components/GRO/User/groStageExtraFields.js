@@ -212,11 +212,18 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
     fileInfo.mwp_subscription_sadad_doc =
       resolveGroSavedFileInfo(t.mwp_subscription_sadad) ??
       resolveGroDocumentByName(t, "MWP Subscription SADAD");
-    fileInfo.mwp_copy = resolveGroSavedFileInfo(t.mwp_doc) ?? resolveGroDocumentByName(t, "MWP Copy");
+    fileInfo.mwp_copy = resolveGroSavedFileInfo(t.mwp_doc) ?? resolveGroDocumentByName(t, "Marine Work Permit");
+    // Stage 10's popover renders stage 11's fields alongside it (see GROCardView), so its saved
+    // file must be bound here too — stage 11 is never extracted on its own in that flow.
+    fileInfo.mwp_subscription_tax_invoice =
+      resolveGroSavedFileInfo(t.mwp_subscription_tax_invoice) ??
+      resolveGroDocumentByName(t, "MWP Subscription Tax Invoice");
   }
 
   if (stageId === 11) {
-    fileInfo.mwp_subscription_tax_invoice = resolveGroSavedFileInfo(t.mwp_subscription_tax_invoice);
+    fileInfo.mwp_subscription_tax_invoice =
+      resolveGroSavedFileInfo(t.mwp_subscription_tax_invoice) ??
+      resolveGroDocumentByName(t, "MWP Subscription Tax Invoice");
   }
 
   if (stageId === 12) {
