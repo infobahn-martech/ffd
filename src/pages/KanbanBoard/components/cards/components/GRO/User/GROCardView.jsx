@@ -285,29 +285,33 @@ const GROCardView = forwardRef(function GROCardView(
   // Rebuilds the popover's field values from the last-fetched get_task_details response, rather than
   // blanking them — closing/reopening the popover (e.g. via Cancel or switching tabs) must not lose
   // previously saved values, since taskDetails only refetches when call/card/task id changes.
-  const getSavedInwardFieldsSnapshot = useCallback(() => {
-    const savedTimeObjectValues =
-      taskDetails && timeObjects.length > 0
-        ? applyGroSavedTimeObjectValues(timeObjects, taskDetails.time_objects)
-        : {};
-    const savedStage11TimeObjectValues =
-      taskDetails && groStageId === 10 && stage11TimeObjects.length > 0
-        ? applyGroSavedTimeObjectValues(stage11TimeObjects, taskDetails.time_objects)
-        : {};
-    const { scalarValues, fileInfo } =
-      taskDetails && groStageId != null
-        ? extractGroSavedExtraStageFields(groStageId, taskDetails)
-        : { scalarValues: {}, fileInfo: {} };
-    return {
-      timeObjectValues: savedTimeObjectValues,
-      stage11TimeObjectValues: savedStage11TimeObjectValues,
-      extraStageFields: { ...createEmptyExtraStageFields(), ...scalarValues },
-      fileInfo: fileInfo ?? {},
-    };
-  }, [taskDetails, timeObjects, stage11TimeObjects, groStageId]);
+  const getSavedInwardFieldsSnapshot = useCallback(
+    (overrideTaskDetails) => {
+      const details = overrideTaskDetails !== undefined ? overrideTaskDetails : taskDetails;
+      const savedTimeObjectValues =
+        details && timeObjects.length > 0
+          ? applyGroSavedTimeObjectValues(timeObjects, details.time_objects)
+          : {};
+      const savedStage11TimeObjectValues =
+        details && groStageId === 10 && stage11TimeObjects.length > 0
+          ? applyGroSavedTimeObjectValues(stage11TimeObjects, details.time_objects)
+          : {};
+      const { scalarValues, fileInfo } =
+        details && groStageId != null
+          ? extractGroSavedExtraStageFields(groStageId, details)
+          : { scalarValues: {}, fileInfo: {} };
+      return {
+        timeObjectValues: savedTimeObjectValues,
+        stage11TimeObjectValues: savedStage11TimeObjectValues,
+        extraStageFields: { ...createEmptyExtraStageFields(), ...scalarValues },
+        fileInfo: fileInfo ?? {},
+      };
+    },
+    [taskDetails, timeObjects, stage11TimeObjects, groStageId]
+  );
 
-  const resetInwardClearanceFields = () => {
-    const saved = getSavedInwardFieldsSnapshot();
+  const resetInwardClearanceFields = (overrideTaskDetails) => {
+    const saved = getSavedInwardFieldsSnapshot(overrideTaskDetails);
     setTimeObjectValues(saved.timeObjectValues);
     setTimeObjectErrors({});
     setStage11TimeObjectValues(saved.stage11TimeObjectValues);
@@ -317,6 +321,27 @@ const GROCardView = forwardRef(function GROCardView(
     setExistingStageFiles(saved.fileInfo);
     resetExtraStageFileInputs();
   };
+
+  const fetchTaskDetails = useCallback(async () => {
+    if (callId == null || callId === "" || cardId == null || cardId === "" || !taskId) return null;
+    try {
+      const res = await groService.getTaskDetails({
+        call_id: Number(callId),
+        card_id: Number(cardId),
+        task_id: Number(taskId),
+      });
+      return res?.data?.data ?? res?.data ?? {};
+    } catch {
+      return null;
+    }
+  }, [callId, cardId, taskId]);
+
+  /** Re-fetches arrival/get_task_details and binds the latest saved values — call after every arrival/save_arrival_document. */
+  const refreshTaskDetails = useCallback(async () => {
+    const data = await fetchTaskDetails();
+    setTaskDetails(data);
+    return data;
+  }, [fetchTaskDetails]);
 
   const handleTimeObjectChange = useCallback(
     (fieldKey) =>
@@ -378,6 +403,7 @@ const GROCardView = forwardRef(function GROCardView(
         );
         await saveArrivalDocument({ formData });
         applyLocalChange(nowParts);
+        await refreshTaskDetails();
         const label = String(item?.time_object ?? "Time").trim() || "Time";
         notify(`${label} captured.`, "success");
       } catch (err) {
@@ -386,7 +412,7 @@ const GROCardView = forwardRef(function GROCardView(
         setCapturingTimeObjectKey(null);
       }
     },
-    [callId, taskId, saveArrivalDocument]
+    [callId, taskId, saveArrivalDocument, refreshTaskDetails]
   );
 
   const inwardTimeObjectFields = useMemo(
@@ -638,19 +664,13 @@ const GROCardView = forwardRef(function GROCardView(
     setTaskDetails(null);
     if (callId == null || callId === "" || cardId == null || cardId === "" || !taskId) return undefined;
     let cancelled = false;
-    groService
-      .getTaskDetails({ call_id: Number(callId), card_id: Number(cardId), task_id: Number(taskId) })
-      .then((res) => {
-        if (cancelled) return;
-        setTaskDetails(res?.data?.data ?? res?.data ?? {});
-      })
-      .catch(() => {
-        if (!cancelled) setTaskDetails(null);
-      });
+    fetchTaskDetails().then((data) => {
+      if (!cancelled) setTaskDetails(data);
+    });
     return () => {
       cancelled = true;
     };
-  }, [callId, cardId, taskId]);
+  }, [callId, cardId, taskId, fetchTaskDetails]);
 
   useEffect(() => {
     if (!taskDetails || groStageId == null) return;
@@ -1235,8 +1255,9 @@ const GROCardView = forwardRef(function GROCardView(
     try {
       await saveArrivalDocument({ formData });
       notify("Arrival document saved successfully.", "success");
+      const freshTaskDetails = await refreshTaskDetails();
       setShowInwardClearance(false);
-      resetInwardClearanceFields();
+      resetInwardClearanceFields(freshTaskDetails);
       await refreshGroDocuments();
       try {
         if (cardId != null && cardId !== "") {
@@ -1445,7 +1466,7 @@ const GROCardView = forwardRef(function GROCardView(
     async (e) => {
       e?.preventDefault?.();
       if (isDynamicUploadSubmitting) return;
-      if (!dynamicUploadFile) {
+      if (!dynamicUploadFile && !vesselRegSignedDocInfo) {
         notify("Please select a file to upload.", "warn");
         return;
       }
@@ -1469,7 +1490,9 @@ const GROCardView = forwardRef(function GROCardView(
       const formData = new FormData();
       formData.append("call_id", String(callId));
       formData.append("task_id", String(taskId));
-      formData.append("vessel_registration_doc", dynamicUploadFile);
+      if (dynamicUploadFile) {
+        formData.append("vessel_registration_doc", dynamicUploadFile);
+      }
       formData.append(
         "time_objects",
         JSON.stringify(buildGroArrivalTimeObjectsPayload(timeObjects, timeObjectValues))
@@ -1479,11 +1502,12 @@ const GROCardView = forwardRef(function GROCardView(
       try {
         await saveArrivalDocument({ formData });
         notify("Document uploaded successfully.", "success");
+        const freshTaskDetails = await refreshTaskDetails();
         setShowDynamicUploadModal(false);
         setDynamicUploadFile(null);
         setDynamicUploadType(null);
         if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
-        resetInwardClearanceFields();
+        resetInwardClearanceFields(freshTaskDetails);
         await refreshGroDocuments();
       } catch (err) {
         notify(groApiErrorMessage(err, "Failed to upload document."), "error");
@@ -1494,11 +1518,13 @@ const GROCardView = forwardRef(function GROCardView(
     [
       isDynamicUploadSubmitting,
       dynamicUploadFile,
+      vesselRegSignedDocInfo,
       callId,
       taskId,
       timeObjects,
       timeObjectValues,
       saveArrivalDocument,
+      refreshTaskDetails,
       refreshGroDocuments,
       resetInwardClearanceFields,
     ]
