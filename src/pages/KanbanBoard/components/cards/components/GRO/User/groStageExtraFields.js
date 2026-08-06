@@ -188,7 +188,7 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
     if (t.immigration_remarks) scalarValues.on_hold_reason = t.immigration_remarks;
     fileInfo.immigration_doc =
       resolveGroSavedFileInfo(t.immigration_doc) ??
-      resolveGroDocumentByName(t, "Crew Immigration Document");
+      resolveGroDocumentByName(t, "Crew Immigration");
   }
 
   if (stageId === 8) {
