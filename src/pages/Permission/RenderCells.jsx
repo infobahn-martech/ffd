@@ -13,7 +13,7 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onUnarchiveClick
   if (isArchived) {
     return (
       <>
-        <Tooltip id={unarchiveTipId} place="bottom" content="Unarchive" />
+        <Tooltip id={unarchiveTipId} place="top" content="Unarchive" />
         <div className="actions">
           <span
             data-tooltip-id={unarchiveTipId}
@@ -30,8 +30,8 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onUnarchiveClick
 
   return (
     <>
-      <Tooltip id="edit-role" place="bottom" content="Edit" />
-      <Tooltip id="archive-role" place="bottom" content="Archive" />
+      <Tooltip id="edit-role" place="top" content="Edit" />
+      <Tooltip id="archive-role" place="top" content="Archive" />
       <div className="actions">
         <span data-tooltip-id="edit-role" type="button" onClick={() => onEditClick(row)} className="edit">
           <img src={edit} alt="edit" />

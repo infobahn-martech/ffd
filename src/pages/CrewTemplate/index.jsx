@@ -200,6 +200,7 @@ const CrewTemplate = () => {
               tableTitle="Crew Template"
               isAddEnabled
               addModalLabel="Add Crew Template"
+              hideSearch
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }

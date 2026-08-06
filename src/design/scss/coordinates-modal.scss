@@ -1,6 +1,69 @@
+// react-select's own container border (form-designs.scss) outranks
+// Bootstrap's .is-invalid rule, so the "Coordinate type" select never
+// visibly turned red on validation error — override it here, scoped
+// to this modal's select only.
+.coordinates-type-select.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+// Coordinate type select matches the width of the Coordinates row's
+// text input (row width minus the scrollbar gutter and the add/remove
+// button cluster it sits beside).
+.coordinates-type-select {
+    width: calc(100% - 58px) !important;
+
+    .react-select__control {
+        width: 100%;
+    }
+}
+
+// prospect-modal.scss's global `span.error.text-danger` rule absolutely
+// positions field errors to the bottom of the nearest positioned ancestor
+// (here .modal-body), so the message renders next to the footer buttons
+// instead of under its field. Same override pattern used by other modals
+// (AddEditCGPassTemplate.scss, AddEditVesselRegistrationTemplate.scss).
+.lead-form span.error.text-danger {
+    position: static;
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+// Add proper spacing between form sections in coordinates modal
+.lead-form {
+    .mb-lg-3 {
+        margin-bottom: 1.75rem;
+    }
+
+    // Gap between coordinate type select and inline add form
+    .coordinates-new-type-inline {
+        margin-top: 0.75rem;
+    }
+
+    // Gap between sections
+    .mt-2 {
+        margin-top: 1.75rem !important;
+    }
+
+    // Label spacing
+    .form-label {
+        margin-bottom: 0.65rem;
+        display: block;
+    }
+
+    // Extra clearance below the "Coordinates" heading so the first row's
+    // floating label (form-designs.scss pops it up to top:-10px on focus)
+    // doesn't collide with the heading text above it.
+    .coordinates-section-header {
+        margin-bottom: 1.25rem !important;
+    }
+}
+
 .coordinates-list-scroll {
     max-height: 300px;
     overflow-y: auto;
+    overflow-x: visible;
+    padding-top: 12px; // room for the floating label that pops to top: -10px
     padding-right: 14px;
     scrollbar-width: thin;
     scrollbar-color: #aab4c3 transparent;
@@ -20,4 +83,25 @@
     &::-webkit-scrollbar-thumb:hover {
         background-color: #aab4c3;
     }
+}
+
+// Spacing for coordinate row items
+.coordinates-list-scroll {
+    .d-flex.align-items-start {
+        margin-bottom: 0.5rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    // Fix floating label being clipped when it floats up
+    .form-floating.desig-inp {
+        overflow: visible;
+    }
+}
+
+// Button group spacing in coordinate rows
+.d-flex.align-items-center.gap-1 {
+    gap: 0.5rem !important;
 }

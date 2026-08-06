@@ -6,7 +6,7 @@ import eye from '../../assets/images/eye.svg';
 export const RenderAction = ({ row, onViewClick }) => {
   return (
     <>
-      <Tooltip id="view" place="bottom" content="View" />
+      <Tooltip id="view" place="top" content="View" />
       <div className="actions">
         <span
           data-tooltip-id="view"

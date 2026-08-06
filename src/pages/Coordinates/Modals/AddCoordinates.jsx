@@ -285,7 +285,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                         <Select
                                             inputId="coordinates-type-select"
                                             classNamePrefix="react-select"
-                                            className={`form-control form-select react-select-container ${errors.coordinateType ? "is-invalid" : ""
+                                            className={`form-control form-select react-select-container coordinates-type-select ${errors.coordinateType ? "is-invalid" : ""
                                                 }`}
                                             placeholder="Select coordinate type…"
                                             isClearable
@@ -397,7 +397,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mt-2">
-                        <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                        <div className="coordinates-section-header d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                             <span className="form-label mb-0">
                                 Coordinates <span className="text-danger">*</span>
                             </span>

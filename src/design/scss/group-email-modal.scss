@@ -1,7 +1,21 @@
+// prospect-modal.scss's global `span.error.text-danger` rule absolutely
+// positions field errors to the bottom of the nearest positioned ancestor
+// (here .modal-body), so the email row error would float away from its
+// field instead of sitting under it. Same override pattern used by
+// coordinates-modal.scss.
+.lead-form span.error.text-danger {
+    position: static;
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
 .group-email-modal {
     &.modal-body {
         max-height: 60vh;
         overflow-y: auto;
+        overflow-x: visible;
+        padding-top: 8px;
 
         &::-webkit-scrollbar {
             width: 5px;
@@ -21,8 +35,63 @@
         }
     }
 
-    .phone-wrapper > .form-control {
-        font-size: 13px;
+    // Billing entity field spacing
+    .mb-lg-3 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    // phone-wrapper notched label — give top clearance so the label
+    // floats visibly above the box border
+    .phone-wrapper {
+        position: relative;
+        margin-top: 12px;
+        margin-bottom: 0;
+
+        .phone-label {
+            top: -9px;
+            left: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #fff;
+            padding: 0 6px;
+            z-index: 2;
+        }
+
+        >.form-control {
+            font-size: 13px;
+            min-height: 48px;
+            height: 48px;
+            border-radius: 8px;
+            border: 1px solid #e2e2ea;
+            padding: 10px 14px;
+            box-sizing: border-box;
+        }
+
+        // error message below the field, not overlapping
+        .error.text-danger {
+            position: static !important;
+            display: block;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+    }
+
+    // Email section gap from billing entity
+    .mt-3 {
+        margin-top: 1.5rem !important;
+    }
+
+    // Each email row: input + add/remove buttons side-by-side
+    .group-email-list {
+        .d-flex.align-items-start.gap-2 {
+            margin-bottom: 0;
+        }
+    }
+
+    // Float the email label visibly — overflow: visible so the label
+    // isn't clipped when it pops to top: -10px on focus/filled
+    .form-floating.desig-inp {
+        overflow: visible;
     }
 }
 

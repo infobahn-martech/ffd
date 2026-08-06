@@ -186,14 +186,14 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
 
                     {/* EMAIL LIST */}
                     <div className="mt-3">
-                        {fields.map((field, index) => (
-                            <div className="row align-items-center mb-2 g-1" key={field.id}>
-                                <div className="col-12">
-                                    <div className="form-floating desig-inp position-relative">
-                                        <input
-                                            type="hidden"
-                                            {...register(`emails.${index}.email_id`)}
-                                        />
+                        <div className="d-flex flex-column gap-2 group-email-list">
+                            {fields.map((field, index) => (
+                                <div className="d-flex align-items-start gap-2" key={field.id}>
+                                    <input
+                                        type="hidden"
+                                        {...register(`emails.${index}.email_id`)}
+                                    />
+                                    <div className="form-floating desig-inp flex-grow-1">
                                         <input
                                             type="email"
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
@@ -210,53 +210,44 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                         <label>
                                             Email <span className="text-danger">*</span>
                                         </label>
-
-                                        {index === fields.length - 1 ? (
-                                            <>
-                                                {fields.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        className="email-action-btn email-remove-btn email-remove-btn-last"
-                                                        onClick={() => remove(index)}
-                                                        title="Remove Email"
-                                                    >
-                                                        <FiX size={18} />
-                                                    </button>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    className="email-action-btn email-add-btn"
-                                                    onClick={() =>
-                                                        append({
-                                                            value: "",
-                                                            email_id: "",
-                                                        })
-                                                    }
-                                                    title="Add Email"
-                                                >
-                                                    <FiPlus size={18} />
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                className="email-action-btn email-remove-btn"
-                                                onClick={() => remove(index)}
-                                                title="Remove Email"
-                                            >
-                                                <FiX size={18} />
-                                            </button>
-                                        )}
-
                                         {errors.emails?.[index]?.value && (
-                                            <span className="error text-danger">
+                                            <span className="error text-danger d-block mt-1 small">
                                                 {errors.emails[index].value.message}
                                             </span>
                                         )}
                                     </div>
+                                    <div className="d-flex align-items-center gap-1 pt-2 flex-shrink-0">
+                                        {fields.length > 1 && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-danger"
+                                                onClick={() => remove(index)}
+                                                title="Remove Email"
+                                                aria-label="Remove email row"
+                                            >
+                                                <FiX size={18} />
+                                            </button>
+                                        )}
+                                        {index === fields.length - 1 && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-primary"
+                                                onClick={() =>
+                                                    append({
+                                                        value: "",
+                                                        email_id: "",
+                                                    })
+                                                }
+                                                title="Add Email"
+                                                aria-label="Add email row"
+                                            >
+                                                <FiPlus size={18} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </form>
             </div>

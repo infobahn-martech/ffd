@@ -31,7 +31,7 @@ export const RenderAction = ({
     const unarchiveTipId = `unarchive-user-${row?.user_id ?? 'row'}`;
     return (
       <>
-        <Tooltip id={unarchiveTipId} place="bottom" content="Unarchive" />
+        <Tooltip id={unarchiveTipId} place="top" content="Unarchive" />
         <div className="actions">
           <span
             data-tooltip-id={unarchiveTipId}
@@ -54,10 +54,10 @@ export const RenderAction = ({
 
   return (
     <>
-      {canToggleUserStatus && <Tooltip id={toggleTipId} place="bottom" content={isActive ? "Deactivate" : "Activate"} />}
-      {canEditUser && <Tooltip id={editTipId} place="bottom" content="Edit" />}
-      {canArchiveUser && <Tooltip id={archiveTipId} place="bottom" content="Archive" />}
-      {canManagePermission && <Tooltip id={permissionTipId} place="bottom" content="Permission" />}
+      {canToggleUserStatus && <Tooltip id={toggleTipId} place="top" content={isActive ? "Deactivate" : "Activate"} />}
+      {canEditUser && <Tooltip id={editTipId} place="top" content="Edit" />}
+      {canArchiveUser && <Tooltip id={archiveTipId} place="top" content="Archive" />}
+      {canManagePermission && <Tooltip id={permissionTipId} place="top" content="Permission" />}
       <div className="actions">
         {canToggleUserStatus && (
           <span
