@@ -241,7 +241,7 @@ function MyAccountsModal({ show, onClose }) {
             <div className="my-accounts-premium-inner">
               <div className="my-accounts-avatar-col">
                 <div className="my-accounts-avatar">
-                  <div className="profile-img" style={{ position: 'relative' }}>
+                  <div className="profile-img">
                     {formData.image && !isImageBroken ? (
                       <img
                         src={formData.image}
@@ -251,45 +251,45 @@ function MyAccountsModal({ show, onClose }) {
                     ) : (
                       <div className="my-accounts-initial">{getUserInitial()}</div>
                     )}
-                    {isEditing && (
-                      <label
-                        htmlFor="image-upload"
-                        className="camera-upload-btn"
-                        style={{
-                          position: 'absolute',
-                          bottom: '6px',
-                          right: '6px',
-                          backgroundColor: '#00368c',
-                          color: '#fff',
-                          borderRadius: '50%',
-                          width: '42px',
-                          height: '42px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          transition: 'transform 0.2s ease, background-color 0.2s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#002a6b';
-                          e.currentTarget.style.transform = 'scale(1.06)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#00368c';
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      >
-                        <FiCamera size={18} />
-                        <input
-                          id="image-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          style={{ display: 'none' }}
-                        />
-                      </label>
-                    )}
                   </div>
+                  {isEditing && (
+                    <label
+                      htmlFor="image-upload"
+                      className="camera-upload-btn"
+                      style={{
+                        position: 'absolute',
+                        bottom: '6px',
+                        right: '6px',
+                        backgroundColor: '#00368c',
+                        color: '#fff',
+                        borderRadius: '50%',
+                        width: '42px',
+                        height: '42px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s ease, background-color 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#002a6b';
+                        e.currentTarget.style.transform = 'scale(1.06)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#00368c';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <FiCamera size={18} />
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  )}
                 </div>
                 {errors.avatar && (
                   <div className="text-danger small mt-3 text-center px-1" style={{ maxWidth: '240px' }}>
@@ -381,48 +381,18 @@ function MyAccountsModal({ show, onClose }) {
                 <>
                   <button
                     type="button"
-                    className="btn-common btn-my-acct-cancel"
+                    className="btn-common btn-my-acct-cancel my-accounts-action-btn"
                     onClick={() => {
                       setIsEditing(false);
                       onClose();
-                    }}
-                    style={{
-                      padding: '12px 48px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      borderRadius: '10px',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#c5e0e2';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#DEF0F2';
-                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     Close
                   </button>
                   <button
                     type="button"
-                    className="btn-common edit-btn"
+                    className="btn-common edit-btn my-accounts-action-btn"
                     onClick={handleEdit}
-                    style={{
-                      padding: '12px 48px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      borderRadius: '10px',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#c5e0e2';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#DEF0F2';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
                   >
                     Edit
                   </button>
@@ -431,26 +401,9 @@ function MyAccountsModal({ show, onClose }) {
                 <>
                   <button
                     type="button"
-                    className="btn-common btn-my-acct-cancel"
+                    className="btn-common btn-my-acct-cancel my-accounts-action-btn"
                     onClick={handleCancel}
                     disabled={profileEditLoader}
-                    style={{
-                      padding: '12px 48px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      borderRadius: '10px',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!profileEditLoader) {
-                        e.currentTarget.style.backgroundColor = '#c5e0e2';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#DEF0F2';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
                   >
                     Cancel
                   </button>
