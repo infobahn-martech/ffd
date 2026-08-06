@@ -167,7 +167,7 @@ const resolveGroSavedFileInfo = (value) => {
 };
 
 /** Falls back to `taskDetails.documents[]` (matched by document_name) when a stage has no flat *_doc field. */
-const resolveGroDocumentByName = (taskDetails, documentName) => {
+export const resolveGroDocumentByName = (taskDetails, documentName) => {
   const docs = Array.isArray(taskDetails?.documents) ? taskDetails.documents : [];
   const target = String(documentName).trim().toLowerCase();
   const match = docs.find((doc) => String(doc?.document_name ?? "").trim().toLowerCase() === target);

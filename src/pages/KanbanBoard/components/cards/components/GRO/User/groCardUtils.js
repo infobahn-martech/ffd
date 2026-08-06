@@ -636,6 +636,16 @@ export const resolveGroTimeObjectValueKey = (item) => {
   return id != null && String(id).trim() !== "" ? String(id).trim() : resolveGroTimeObjectFieldKey(item);
 };
 
+/** Current date/time as { date: "YYYY-MM-DD", time: "HH:mm" }, for stamping a time-object field with "now". */
+export const resolveGroNowDateTimeParts = () => {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return {
+    date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+  };
+};
+
 const formatGroTimeObjectValue = (parts) => {
   const date = parts?.date != null ? String(parts.date).trim() : "";
   const time = parts?.time != null ? String(parts.time).trim() : "";

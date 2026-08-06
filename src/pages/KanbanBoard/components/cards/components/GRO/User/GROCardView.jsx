@@ -41,6 +41,7 @@ import {
   appendGroArrivalStageFieldsToFormData,
   groStageHasExtraFields,
   extractGroSavedExtraStageFields,
+  resolveGroDocumentByName,
   GRO_CREW_IMMIGRATION_STATUS,
   GRO_CUSTOM_INSPECTION_STATUS,
 } from "./groStageExtraFields";
@@ -59,6 +60,7 @@ import {
   resolveGroPortId,
   resolveGroStageIdFromTaskName,
   resolveGroTimeObjectValueKey,
+  resolveGroNowDateTimeParts,
   parseGroStageTimeObjectsResponse,
   validateGroRequiredTimeObjects,
   buildGroArrivalTimeObjectsPayload,
@@ -363,12 +365,7 @@ const GROCardView = forwardRef(function GROCardView(
         notify("Call id or task id is missing.", "error");
         return;
       }
-      const now = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      const nowParts = {
-        date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-        time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-      };
+      const nowParts = resolveGroNowDateTimeParts();
 
       setCapturingTimeObjectKey(fieldKey);
       try {
@@ -1417,6 +1414,11 @@ const GROCardView = forwardRef(function GROCardView(
 
   const dynamicUploadTitle = "Upload Signed Document";
 
+  const vesselRegSignedDocInfo = useMemo(
+    () => resolveGroDocumentByName(taskDetails, "Vessel Registration"),
+    [taskDetails]
+  );
+
   const openDynamicUploadModal = useCallback(() => {
     if (!isVesselInwardRegistrationActive) return;
     setDynamicUploadType("vessel_inward_registration");
@@ -1431,23 +1433,13 @@ const GROCardView = forwardRef(function GROCardView(
     setDynamicUploadFile(null);
     setDynamicUploadType(null);
     if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
-  }, [isDynamicUploadSubmitting]);
+    resetInwardClearanceFields();
+  }, [isDynamicUploadSubmitting, resetInwardClearanceFields]);
 
   const handleDynamicUploadFileSelect = useCallback((file) => {
     if (!file) return;
     setDynamicUploadFile(file);
   }, []);
-
-  const handleDynamicUploadDrop = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (isDynamicUploadSubmitting) return;
-      const file = e.dataTransfer?.files?.[0];
-      handleDynamicUploadFileSelect(file);
-    },
-    [isDynamicUploadSubmitting, handleDynamicUploadFileSelect]
-  );
 
   const handleDynamicUploadSubmit = useCallback(
     async (e) => {
@@ -1457,22 +1449,41 @@ const GROCardView = forwardRef(function GROCardView(
         notify("Please select a file to upload.", "warn");
         return;
       }
+      if (callId == null || callId === "") {
+        notify("Call id is missing.", "error");
+        return;
+      }
+      if (!taskId) {
+        notify("Task id is missing.", "error");
+        return;
+      }
 
-      const callTaskDocumentId =
-        documents.find((d) => d.call_task_document_id != null)?.call_task_document_id ?? "";
+      const timeValidationErrors = validateGroRequiredTimeObjects(timeObjects, timeObjectValues);
+      if (Object.keys(timeValidationErrors).length > 0) {
+        setTimeObjectErrors(timeValidationErrors);
+        notify("Please fill in all required time fields.", "warn");
+        return;
+      }
+      setTimeObjectErrors({});
 
       const formData = new FormData();
-      formData.append("call_task_document_id", callTaskDocumentId);
-      formData.append("file", dynamicUploadFile);
+      formData.append("call_id", String(callId));
+      formData.append("task_id", String(taskId));
+      formData.append("vessel_registration_doc", dynamicUploadFile);
+      formData.append(
+        "time_objects",
+        JSON.stringify(buildGroArrivalTimeObjectsPayload(timeObjects, timeObjectValues))
+      );
 
       setIsDynamicUploadSubmitting(true);
       try {
-        await groService.reuploadVesselRegDocument(formData);
+        await saveArrivalDocument({ formData });
         notify("Document uploaded successfully.", "success");
         setShowDynamicUploadModal(false);
         setDynamicUploadFile(null);
         setDynamicUploadType(null);
         if (dynamicUploadFileInputRef.current) dynamicUploadFileInputRef.current.value = "";
+        resetInwardClearanceFields();
         await refreshGroDocuments();
       } catch (err) {
         notify(groApiErrorMessage(err, "Failed to upload document."), "error");
@@ -1483,8 +1494,13 @@ const GROCardView = forwardRef(function GROCardView(
     [
       isDynamicUploadSubmitting,
       dynamicUploadFile,
-      documents,
+      callId,
+      taskId,
+      timeObjects,
+      timeObjectValues,
+      saveArrivalDocument,
       refreshGroDocuments,
+      resetInwardClearanceFields,
     ]
   );
 
@@ -1567,97 +1583,6 @@ const GROCardView = forwardRef(function GROCardView(
             hasIssueDateError={bulkPassFormError.includes("Issue date")}
             datetimePopperClassName="gro-pass-upload-datetime-popper"
           />
-        </div>,
-        document.body
-      )
-      : null;
-
-  const dynamicUploadPortal =
-    showDynamicUploadModal && typeof document !== "undefined" && document.body
-      ? createPortal(
-        <div
-          className="gro-stage-upload-modal-overlay"
-          role="presentation"
-          onClick={closeDynamicUploadModal}
-        >
-          <div
-            className="gro-stage-upload-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={dynamicUploadTitle}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="gro-inward-popover-header">{dynamicUploadTitle}</div>
-            <form onSubmit={handleDynamicUploadSubmit}>
-              <div className="gro-inward-popover-body">
-                <button
-                  type="button"
-                  className={`gro-stage-upload-dropzone${dynamicUploadFile ? " gro-stage-upload-dropzone--has-file" : ""}`}
-                  disabled={isDynamicUploadSubmitting}
-                  onClick={() => dynamicUploadFileInputRef.current?.click()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDynamicUploadDrop}
-                >
-                  <svg
-                    className="gro-stage-upload-dropzone-icon"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M12 16V4m0 0L8 8m4-4l4 4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M4 14v3a3 3 0 003 3h10a3 3 0 003-3v-3"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="gro-stage-upload-dropzone-text">
-                    Drag &amp; drop a file here, or click to browse
-                  </span>
-                  <span
-                    className="gro-stage-upload-filename"
-                    title={dynamicUploadFile?.name || ""}
-                  >
-                    {dynamicUploadFile?.name || "No file chosen"}
-                  </span>
-                </button>
-                <input
-                  ref={dynamicUploadFileInputRef}
-                  type="file"
-                  className="gro-premium-upload-input-hidden"
-                  disabled={isDynamicUploadSubmitting}
-                  onChange={(e) => handleDynamicUploadFileSelect(e.target.files?.[0] ?? null)}
-                />
-              </div>
-              <div className="gro-stage-upload-actions gro-inward-popover-footer">
-                <button
-                  type="button"
-                  className="gro-inward-popover-btn-cancel"
-                  disabled={isDynamicUploadSubmitting}
-                  onClick={closeDynamicUploadModal}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="gro-inward-popover-btn-submit"
-                  disabled={isDynamicUploadSubmitting}
-                >
-                  {isDynamicUploadSubmitting ? "Uploading…" : "Upload"}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>,
         document.body
       )
@@ -1786,15 +1711,114 @@ const GROCardView = forwardRef(function GROCardView(
                 )}
               </div>
               {showDynamicUploadIcon ? (
-                <button
-                  type="button"
-                  className="gro-stage-upload-icon-btn"
-                  title="Upload Signed Document"
-                  aria-label="Upload Signed Document"
-                  onClick={openDynamicUploadModal}
-                >
-                  Upload Signed Document
-                </button>
+                <div className="gro-inward-anchor">
+                  <button
+                    type="button"
+                    className={`gro-stage-upload-icon-btn${showDynamicUploadModal ? " gro-pass-segment--popover-open" : ""}`}
+                    title="Upload Signed Document"
+                    aria-label="Upload Signed Document"
+                    aria-expanded={showDynamicUploadModal}
+                    onClick={showDynamicUploadModal ? closeDynamicUploadModal : openDynamicUploadModal}
+                  >
+                    Upload Signed Document
+                  </button>
+                  {showDynamicUploadModal ? (
+                    <div className="gro-inward-popover" role="dialog" aria-label={dynamicUploadTitle}>
+                      <div className="gro-inward-popover-header">{dynamicUploadTitle}</div>
+                      <form onSubmit={handleDynamicUploadSubmit}>
+                        <div className="gro-inward-popover-body">
+                          <div className="gro-inward-popover-field">
+                            <span className="gro-inward-popover-label">Signed Document *</span>
+                            <div className="gro-premium-upload">
+                              <input
+                                ref={dynamicUploadFileInputRef}
+                                type="file"
+                                className="gro-premium-upload-input-hidden"
+                                disabled={isDynamicUploadSubmitting}
+                                onChange={(e) => handleDynamicUploadFileSelect(e.target.files?.[0] ?? null)}
+                              />
+                              <button
+                                type="button"
+                                className="gro-premium-upload-btn"
+                                disabled={isDynamicUploadSubmitting}
+                                onClick={() => dynamicUploadFileInputRef.current?.click()}
+                              >
+                                Choose file
+                              </button>
+                              {dynamicUploadFile ? (
+                                <span className="gro-premium-upload-filename" title={dynamicUploadFile.name}>
+                                  {dynamicUploadFile.name}
+                                </span>
+                              ) : vesselRegSignedDocInfo ? (
+                                <a
+                                  className="gro-premium-upload-filename gro-premium-upload-filename--uploaded"
+                                  href={vesselRegSignedDocInfo.file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={vesselRegSignedDocInfo.file_name}
+                                >
+                                  {vesselRegSignedDocInfo.file_name}
+                                </a>
+                              ) : (
+                                <span className="gro-premium-upload-filename">No file chosen</span>
+                              )}
+                            </div>
+                          </div>
+                          {timeObjectsLoading ? (
+                            <div className="gro-inward-popover-field">
+                              <span className="gro-inward-popover-label gro-inward-popover-loading">
+                                Loading time fields…
+                              </span>
+                            </div>
+                          ) : (
+                            inwardTimeObjectFields.map((field) => (
+                              <div
+                                key={field.fieldKey}
+                                className={`gro-inward-popover-field gro-inward-popover-datetime-full${field.error ? " gro-inward-popover-field--error" : ""}`}
+                              >
+                                <span className="gro-inward-popover-label">
+                                  {field.label}
+                                  {field.isRequired ? " *" : ""}
+                                </span>
+                                <div className="gro-inward-popover-datetime-row">
+                                  <DateTimePickerField
+                                    dateValue={field.pickerParts?.date ?? ""}
+                                    timeValue={field.pickerParts?.time ?? ""}
+                                    onDateTimeChange={field.onDateTimeChange}
+                                    placeholder="YYYY-MM-DD hh:mm"
+                                    popperClassName="gro-inward-datetime-popper"
+                                    disabled={isDynamicUploadSubmitting}
+                                    hasError={Boolean(field.error)}
+                                  />
+                                </div>
+                                {field.error ? (
+                                  <span className="gro-inward-popover-field-error">{field.error}</span>
+                                ) : null}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="gro-inward-popover-footer">
+                          <button
+                            type="button"
+                            className="gro-inward-popover-btn-cancel"
+                            disabled={isDynamicUploadSubmitting}
+                            onClick={closeDynamicUploadModal}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="gro-inward-popover-btn-submit"
+                            disabled={isDynamicUploadSubmitting}
+                          >
+                            {isDynamicUploadSubmitting ? "Saving..." : "Submit"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
               {(hidePassTabs &&
                 !isCrewImmigrationStage &&
@@ -1923,7 +1947,6 @@ const GROCardView = forwardRef(function GROCardView(
         )}
       </div>
       {bulkPassPortal}
-      {dynamicUploadPortal}
       <DocumentActionConfirmModal
         isOpen={isConfirmModalOpen}
         confirmAction={confirmAction}
