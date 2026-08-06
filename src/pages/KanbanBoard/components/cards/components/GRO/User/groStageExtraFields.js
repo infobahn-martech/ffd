@@ -208,9 +208,11 @@ export const extractGroSavedExtraStageFields = (stageId, taskDetails = {}) => {
     if (t.mwp_ticket_no) scalarValues.mwp_application_no = t.mwp_ticket_no;
     if (t.sadad_no) scalarValues.sadad_no = t.sadad_no;
     if (t.mwp_subscription_sadad_no) scalarValues.mwp_subscription_sadad_no = t.mwp_subscription_sadad_no;
-    fileInfo.sadad_doc = resolveGroSavedFileInfo(t.sadad_doc);
-    fileInfo.mwp_subscription_sadad_doc = resolveGroSavedFileInfo(t.mwp_subscription_sadad);
-    fileInfo.mwp_copy = resolveGroSavedFileInfo(t.mwp_doc);
+    fileInfo.sadad_doc = resolveGroSavedFileInfo(t.sadad_doc) ?? resolveGroDocumentByName(t, "SADAD");
+    fileInfo.mwp_subscription_sadad_doc =
+      resolveGroSavedFileInfo(t.mwp_subscription_sadad) ??
+      resolveGroDocumentByName(t, "MWP Subscription SADAD");
+    fileInfo.mwp_copy = resolveGroSavedFileInfo(t.mwp_doc) ?? resolveGroDocumentByName(t, "MWP Copy");
   }
 
   if (stageId === 11) {
