@@ -110,6 +110,13 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Contact Name"
                                         {...register("contact_name", {
                                             required: "Contact name is required",
+                                            pattern: {
+                                                value: /^[A-Za-z\s]+$/,
+                                                message: "Contact name cannot contain numbers or special characters",
+                                            },
+                                            onChange: (e) => {
+                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                            },
                                         })}
                                     />
                                     <label>

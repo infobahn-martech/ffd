@@ -97,9 +97,10 @@ function MyAccountsModal({ show, onClose }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    const nextValue = name === 'firstName' ? value.replace(/[^A-Za-z\s]/g, '') : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
     setErrors((prev) => {
       if (!prev[name]) return prev;
@@ -143,6 +144,9 @@ function MyAccountsModal({ show, onClose }) {
 
   const validate = () => {
     const next = {};
+    if (formData.firstName?.trim() && !/^[A-Za-z\s]+$/.test(formData.firstName.trim())) {
+      next.firstName = 'Only letters are allowed';
+    }
     const phoneDigits = (formData.phone || '').replace(/\D/g, '');
     if (phoneDigits && phoneDigits.length < 7) {
       next.phone = 'Enter a valid phone number';

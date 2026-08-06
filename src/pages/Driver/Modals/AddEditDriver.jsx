@@ -167,6 +167,13 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                         placeholder="Driver Name"
                                         {...register("driver_name", {
                                             required: "Driver name is required",
+                                            pattern: {
+                                                value: /^[A-Za-z\s]+$/,
+                                                message: "Driver name cannot contain numbers or special characters",
+                                            },
+                                            onChange: (e) => {
+                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                            },
                                         })}
                                     />
                                     <label>
