@@ -245,7 +245,7 @@ function MwpInfoPanel({
   const rows = [
     { label: "MWP Application No", value: mwpApplicationNo || "-" },
     { label: "SADAD No", value: sadadNo || "-" },
-    { label: "SADAD Attachment", value: <MwpDocLink url={sadadDocument} /> },
+    { label: "SADAD", value: <MwpDocLink url={sadadDocument} /> },
     { label: "SADAD Expiry", value: formatSadadExpiry(sadadExpiry) },
     { label: "MWP Subscription SADAD No", value: mwpSubscriptionSadadNo || "-" },
     { label: "MWP Subscription SADAD", value: <MwpDocLink url={mwpSubscriptionSadadDoc} /> },

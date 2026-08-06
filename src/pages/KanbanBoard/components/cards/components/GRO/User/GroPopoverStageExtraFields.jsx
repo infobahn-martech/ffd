@@ -241,7 +241,7 @@ function GroPopoverStageExtraFields({
           ) : null}
         </div>
         <PopoverFileUploadField
-          label="SADAD Attachment"
+          label="SADAD"
           fieldKey="sadad_doc"
           file={values?.sadad_doc}
           existingFile={existingFiles?.sadad_doc}
