@@ -118,15 +118,15 @@ export function mapTasksToSections(apiData) {
       documentCount,
       progress,
       documents,
-      sadadDocNo: task?.sadad_doc_no || "",
-      sadadDocument: task?.sadad_doc || "",
-      sadadExpiry: task?.sadad_expiry || "",
-      mwpApplicationNo: task?.mwp_ticket_no || task?.mwp_application_no || "",
+      mwpTicketNo: task?.mwp_ticket_no || "",
       sadadNo: task?.sadad_no || "",
+      sadadDocument: task?.sadad_doc || "",
       mwpSubscriptionSadadNo: task?.mwp_subscription_sadad_no || "",
-      mwpSubscriptionSadadDoc: task?.mwp_subscription_sadad_doc_url || task?.mwp_subscription_sadad_doc || "",
-      mwpCopy: task?.mwp_doc_url || task?.mwp_doc || task?.mwp_copy || "",
-      mwpSubscriptionTaxInvoice: task?.mwp_subscription_tax_invoice_doc_url || task?.mwp_subscription_tax_invoice_doc || "",
+      mwpSubscriptionSadadDoc: task?.mwp_subscription_sadad || "",
+      mwpDoc: task?.mwp_doc || "",
+      mwpIssueDate: task?.mwp_issue_date || "",
+      mwpExpiryDate: task?.mwp_expiry_date || "",
+      mwpSubscriptionTaxInvoice: task?.mwp_subscription_tax_invoice || "",
     });
   });
 

@@ -44,7 +44,7 @@ function getSectionInitials(title = "") {
     .join("");
 }
 
-function formatSadadExpiry(value) {
+function formatMwpDate(value) {
   if (!value) return "-";
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value).trim());
   if (!match) return String(value);
@@ -233,23 +233,25 @@ function MwpDocLink({ url }) {
 MwpDocLink.propTypes = { url: PropTypes.string };
 
 function MwpInfoPanel({
-  mwpApplicationNo,
+  mwpTicketNo,
   sadadNo,
   sadadDocument,
-  sadadExpiry,
   mwpSubscriptionSadadNo,
   mwpSubscriptionSadadDoc,
-  mwpCopy,
+  mwpDoc,
+  mwpIssueDate,
+  mwpExpiryDate,
   mwpSubscriptionTaxInvoice,
 }) {
   const rows = [
-    { label: "MWP Application No", value: mwpApplicationNo || "-" },
+    { label: "MWP Ticket No", value: mwpTicketNo || "-" },
     { label: "SADAD No", value: sadadNo || "-" },
     { label: "SADAD", value: <MwpDocLink url={sadadDocument} /> },
-    { label: "SADAD Expiry", value: formatSadadExpiry(sadadExpiry) },
     { label: "MWP Subscription SADAD No", value: mwpSubscriptionSadadNo || "-" },
     { label: "MWP Subscription SADAD", value: <MwpDocLink url={mwpSubscriptionSadadDoc} /> },
-    { label: "MWP Copy", value: <MwpDocLink url={mwpCopy} /> },
+    { label: "Marine Work Permit", value: <MwpDocLink url={mwpDoc} /> },
+    { label: "MWP Issued", value: formatMwpDate(mwpIssueDate) },
+    { label: "MWP Expiry", value: formatMwpDate(mwpExpiryDate) },
     { label: "MWP Subscription Tax Invoice", value: <MwpDocLink url={mwpSubscriptionTaxInvoice} /> },
   ];
 
@@ -276,13 +278,14 @@ function MwpInfoPanel({
 }
 
 MwpInfoPanel.propTypes = {
-  mwpApplicationNo: PropTypes.string,
+  mwpTicketNo: PropTypes.string,
   sadadNo: PropTypes.string,
   sadadDocument: PropTypes.string,
-  sadadExpiry: PropTypes.string,
   mwpSubscriptionSadadNo: PropTypes.string,
   mwpSubscriptionSadadDoc: PropTypes.string,
-  mwpCopy: PropTypes.string,
+  mwpDoc: PropTypes.string,
+  mwpIssueDate: PropTypes.string,
+  mwpExpiryDate: PropTypes.string,
   mwpSubscriptionTaxInvoice: PropTypes.string,
 };
 
@@ -328,13 +331,14 @@ function TaskRow({ task }) {
             <TaskProgressIndicator status={task.status} progress={task.progress} />
             {(String(task.id) === "6" || task.title === "Applying MWP") && (
               <MwpInfoPanel
-                mwpApplicationNo={task.mwpApplicationNo}
+                mwpTicketNo={task.mwpTicketNo}
                 sadadNo={task.sadadNo}
                 sadadDocument={task.sadadDocument}
-                sadadExpiry={task.sadadExpiry}
                 mwpSubscriptionSadadNo={task.mwpSubscriptionSadadNo}
                 mwpSubscriptionSadadDoc={task.mwpSubscriptionSadadDoc}
-                mwpCopy={task.mwpCopy}
+                mwpDoc={task.mwpDoc}
+                mwpIssueDate={task.mwpIssueDate}
+                mwpExpiryDate={task.mwpExpiryDate}
                 mwpSubscriptionTaxInvoice={task.mwpSubscriptionTaxInvoice}
               />
             )}
@@ -354,13 +358,14 @@ TaskRow.propTypes = {
     status: PropTypes.string,
     documentCount: PropTypes.number,
     progress: PropTypes.number,
-    mwpApplicationNo: PropTypes.string,
+    mwpTicketNo: PropTypes.string,
     sadadNo: PropTypes.string,
     sadadDocument: PropTypes.string,
-    sadadExpiry: PropTypes.string,
     mwpSubscriptionSadadNo: PropTypes.string,
     mwpSubscriptionSadadDoc: PropTypes.string,
-    mwpCopy: PropTypes.string,
+    mwpDoc: PropTypes.string,
+    mwpIssueDate: PropTypes.string,
+    mwpExpiryDate: PropTypes.string,
     mwpSubscriptionTaxInvoice: PropTypes.string,
     documents: PropTypes.arrayOf(
       PropTypes.shape({
@@ -494,14 +499,14 @@ OperationTasksPanel.propTypes = {
           status: PropTypes.string,
           documentCount: PropTypes.number,
           progress: PropTypes.number,
-          sadadDocNo: PropTypes.string,
           sadadDocument: PropTypes.string,
-          sadadExpiry: PropTypes.string,
-          mwpApplicationNo: PropTypes.string,
+          mwpTicketNo: PropTypes.string,
           sadadNo: PropTypes.string,
           mwpSubscriptionSadadNo: PropTypes.string,
           mwpSubscriptionSadadDoc: PropTypes.string,
-          mwpCopy: PropTypes.string,
+          mwpDoc: PropTypes.string,
+          mwpIssueDate: PropTypes.string,
+          mwpExpiryDate: PropTypes.string,
           mwpSubscriptionTaxInvoice: PropTypes.string,
           documents: PropTypes.arrayOf(
             PropTypes.shape({
