@@ -32,7 +32,6 @@ $my-acc-input-radius: 12px;
     box-shadow: $my-acc-shadow;
     padding: clamp(1.75rem, 3vw, 2.75rem) clamp(1.5rem, 3vw, 2.5rem);
     position: relative;
-    overflow: hidden;
 
     &::before {
       content: '';
@@ -193,9 +192,34 @@ $my-acc-input-radius: 12px;
       margin-top: 2rem;
     }
 
-    button.btn-my-acct-cancel {
-      background-color: #def0f2;
-      color: #00368c;
+    .my-accounts-action-btn {
+      padding: 12px 48px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      transition: all 0.2s ease;
+
+      &.btn-my-acct-cancel {
+        background-color: transparent;
+        color: $my-acc-brand;
+
+        &:hover:not(:disabled) {
+          background-color: rgba(0, 54, 140, 0.06);
+          transform: translateY(-2px);
+        }
+      }
+
+      &.edit-btn {
+        background-color: $my-acc-brand;
+        color: #fff;
+
+        &:hover:not(:disabled) {
+          background-color: $my-acc-brand-deep;
+          border-color: $my-acc-brand-deep;
+          transform: translateY(-2px);
+        }
+      }
     }
   }
 
