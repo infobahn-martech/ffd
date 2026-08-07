@@ -1508,7 +1508,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const renderConvertBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="convertToDispatchForm" onSubmit={handleConvertSubmit}>
+        <form id="convertToDispatchForm" className="material-edit-form" onSubmit={handleConvertSubmit}>
 
           {/* Basic Details */}
           <div className="landing-convert-section">
