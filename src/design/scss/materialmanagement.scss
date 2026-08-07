@@ -417,13 +417,16 @@ body .material-management-modal .modal-dialog {
 }
 
 body .material-management-modal .modal-content {
-  border-radius: 16px;
+  border: none;
+  border-radius: 18px;
   padding: 0;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
 }
 
 body .material-management-modal .modal-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 18px 24px;
+  border-bottom: 1px solid #eef0f5;
 }
 
 body .material-management-modal .modal-body {
@@ -453,8 +456,9 @@ body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
 }
 
 body .material-management-modal .modal-footer {
-  padding: 12px 24px;
-  border-top: 1px solid #f0f0f0;
+  padding: 14px 24px;
+  border-top: 1px solid #eef0f5;
+  background: #fafbfd;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -473,37 +477,63 @@ body .material-management-modal {
     color: #000000 !important;
   }
 
-  /* Buttons */
+  /* Buttons — solid brand-blue primary (matches the module's own .material-add-btn)
+     vs a quiet ghost/outline secondary, so Save and Cancel no longer read as
+     the same weight of action. */
   .btn-primary,
   .btn.btn-primary,
   button.btn-primary,
   button[type="submit"] {
-    background-color: #e2e6ff !important;
-    border-color: #e2e6ff !important;
-    color: #1a1a1a !important;
+    background-color: #00368c !important;
+    border-color: #00368c !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 54, 140, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
 
     &:hover,
-    &:focus,
+    &:focus {
+      background-color: #00368c !important;
+      border-color: #00368c !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 54, 140, 0.3);
+    }
+
     &:active {
-      background-color: #e2e6ff !important;
-      border-color: #e2e6ff !important;
-      opacity: 0.9;
+      background-color: #00368c !important;
+      border-color: #00368c !important;
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      background-color: #00368c !important;
+      border-color: #00368c !important;
+      opacity: 0.5;
+      box-shadow: none;
+      transform: none;
     }
   }
 
   .btn-secondary,
   .btn.btn-secondary,
   button.btn-secondary {
-    background-color: #e2e6ff !important;
-    border-color: #e2e6ff !important;
-    color: #1a1a1a !important;
+    background-color: #ffffff !important;
+    border-color: #dde1ea !important;
+    color: #3e4655 !important;
+    font-weight: 500;
+    box-shadow: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 
     &:hover,
-    &:focus,
+    &:focus {
+      background-color: #f5f6fa !important;
+      border-color: #c7cddb !important;
+      color: #3e4655 !important;
+    }
+
     &:active {
-      background-color: #e2e6ff !important;
-      border-color: #e2e6ff !important;
-      opacity: 0.9;
+      background-color: #eef0f5 !important;
+      border-color: #c7cddb !important;
     }
   }
 
@@ -634,9 +664,23 @@ body .material-management-modal {
     line-height: 1.3 !important;
   }
 
+  /* Upload sub-text (file type/size hint) — operations.scss's own two
+     competing .upload-sub-text rules resolve to an 11px, near-invisible
+     #999, which reads badly against the compact zone's bold 12px main
+     text. Pin it here so it's legible and consistently spaced. */
+  .upload-sub-text {
+    font-size: 11px !important;
+    color: #666 !important;
+    margin: 2px 0 0 0 !important;
+    line-height: 1.3 !important;
+  }
+
   /* Modal title */
   .modal-title {
-    color: #000000 !important;
+    color: #101828 !important;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
   }
 
   /* Force all single-line field triggers to the same height */
@@ -653,6 +697,7 @@ body .material-management-modal {
     padding: 0 14px !important;
     border: 1.5px solid #e2e2ea !important;
     border-radius: 8px !important;
+    background: transparent !important;
   }
 
   /* Dropdown options list — scrollable */
@@ -1729,66 +1774,6 @@ body .material-management-modal {
     min-height: 230px;
     padding: 20px 16px;
   }
-}
-
-/* Material Management Modal - Higher z-index to appear above CardForm (z-index: 1200) */
-/* Bootstrap modals are rendered in a portal at body level */
-body .material-management-modal {
-  z-index: 1300 !important;
-}
-
-body .material-management-modal.show {
-  z-index: 1300 !important;
-}
-
-body .material-management-modal .modal-dialog {
-  z-index: 1301 !important;
-  position: relative;
-  max-width: 900px !important;
-  width: 90% !important;
-  margin: 30px auto;
-}
-
-body .material-management-modal .modal-content {
-  border-radius: 16px;
-  padding: 0;
-}
-
-body .material-management-modal .modal-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-body .material-management-modal .modal-body {
-  padding: 24px 32px;
-  max-height: 70vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-body .material-management-modal .modal-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-body .material-management-modal .modal-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-body .material-management-modal .modal-body::-webkit-scrollbar-thumb {
-  background: transparent;
-}
-
-body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
-  background: transparent;
-}
-
-body .material-management-modal .modal-footer {
-  padding: 12px 24px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
 }
 
 /* Material Management modal — compact upload zone */

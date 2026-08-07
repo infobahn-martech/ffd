@@ -6,6 +6,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../../components/CustomModal";
 import DeleteConfirmationModal from "../../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import { validateDocumentFiles } from "./Husbandry.constants";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import LocationAutocomplete from "./LocationAutocomplete";
 import MaterialTablePagination from "./MaterialTablePagination";
@@ -14,6 +15,7 @@ import deleteIcon from "../../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../../assets/images/eye.svg";
 import printIcon from "../../../../../../../assets/images/print.svg";
 import useDispatchNoteReducer from "../../../../../../../store/DispatchNoteReducer";
+import useAlertReducer from "../../../../../../../store/AlertReducer";
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
 import logisticsWarehouseService from "../../../../../../../services/logisticsWarehouseService";
 import vehicleService from "../../../../../../../services/vehicleService";
@@ -90,12 +92,15 @@ const AttachmentsList = ({ attachments = [], onRemove, cardColor, isDragging, on
       onClick={() => fileInputRef.current?.click()}
       style={{ "--card-color": cardColor || "#00368c" }}
     >
-      <input ref={fileInputRef} type="file" className="file-input-hidden" accept="*/*" multiple onChange={onFileInputChange} />
+      <input ref={fileInputRef} type="file" className="file-input-hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple onChange={onFileInputChange} />
       <div className="upload-zone-content">
         <div className="upload-icon-wrapper"></div>
         <div className="upload-text-content">
           <p className="upload-main-text">
             Drag and drop your files here, or <span className="upload-link">click to browse</span>
+          </p>
+          <p className="upload-sub-text">
+            Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
           </p>
         </div>
       </div>
@@ -384,14 +389,20 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const handleDocumentsDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingDocuments(true); };
   const handleDocumentsDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingDocuments(false); };
   const handleDocumentsDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
+  const addDocumentFiles = (files) => {
+    const { validFiles, rejectedFiles } = validateDocumentFiles(files);
+    if (rejectedFiles.length > 0) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(rejectedFiles.map((f) => `"${f.name}" — ${f.reason}`).join("; "));
+    }
+    if (validFiles.length > 0) setFormData((prev) => ({ ...prev, documents: [...(prev.documents || []), ...validFiles.map((f) => ({ name: f.name, file: f, size: f.size }))] }));
+  };
   const handleDocumentsDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setIsDraggingDocuments(false);
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) setFormData((prev) => ({ ...prev, documents: [...(prev.documents || []), ...files.map((f) => ({ name: f.name, file: f, size: f.size }))] }));
+    addDocumentFiles(Array.from(e.dataTransfer.files || []));
   };
   const handleDocumentsFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) setFormData((prev) => ({ ...prev, documents: [...(prev.documents || []), ...files.map((f) => ({ name: f.name, file: f, size: f.size }))] }));
+    addDocumentFiles(Array.from(e.target.files || []));
     if (documentsFileInputRef.current) documentsFileInputRef.current.value = "";
   };
   const handleDocumentsRemove = (index) => {
