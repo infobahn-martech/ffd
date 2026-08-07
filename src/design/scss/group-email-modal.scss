@@ -109,9 +109,12 @@
         }
 
         // Buttons sit beside the input itself, not the label — offset by
-        // the same top clearance .phone-wrapper reserves for its notch
+        // the same top clearance .phone-wrapper reserves for its notch,
+        // then centered within the input's own height
         .email-row-actions {
             margin-top: 12px;
+            min-height: 48px;
+            align-items: center;
         }
     }
 }
