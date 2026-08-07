@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
-import { FiEdit2, FiTrash2, FiPaperclip, FiCornerUpLeft } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiCornerUpLeft, FiFile } from "react-icons/fi";
 import "react-quill/dist/quill.snow.css";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/scss/comments.scss";
@@ -41,6 +41,31 @@ const QUILL_FORMATS = [
 
 const MENTION_TRIGGER_REGEX = /@([^\s@]*)$/;
 
+const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const ALLOWED_ATTACHMENT_EXTENSIONS = [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
+
+const getFileExtension = (file) => `.${(file.name.split(".").pop() || "").toLowerCase()}`;
+
+const validateAttachmentFiles = (fileList) => {
+    const files = Array.from(fileList || []);
+    const valid = [];
+    const errors = [];
+
+    files.forEach((file) => {
+        if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(getFileExtension(file))) {
+            errors.push(`${file.name}: unsupported file type.`);
+            return;
+        }
+        if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+            errors.push(`${file.name}: exceeds 10MB size limit.`);
+            return;
+        }
+        valid.push(file);
+    });
+
+    return { valid, errors };
+};
+
 const stripHtmlContent = (html) => {
     if (!html) return "";
     return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
@@ -48,12 +73,27 @@ const stripHtmlContent = (html) => {
 
 const isEmptyHtmlContent = (html) => stripHtmlContent(html).length === 0;
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Comments store mentions as plain "@Name" text, not a distinct Quill blot, so
+// highlighting them means matching against known user names after sanitizing —
+// makes it visually obvious who a comment is replying to/mentioning.
+const highlightMentions = (safeHtml, mentionableNames) => {
+    if (!safeHtml || mentionableNames.length === 0) return safeHtml;
+
+    const sortedNames = [...mentionableNames].sort((a, b) => b.length - a.length);
+    const pattern = new RegExp(`@(${sortedNames.map(escapeRegExp).join("|")})`, "g");
+
+    return safeHtml.replace(pattern, '<span class="comments-tab-mention-highlight">@$1</span>');
+};
+
 const getInitial = (name) => (name || "?").trim().charAt(0).toUpperCase() || "?";
 
 const getCardId = (card) => card?.id || card?.card_id || card?.call_id;
 
 const mapCommentFromResponse = (row) => ({
     id: row.comment_id,
+    userId: row.user_id ?? null,
     userName: row.user_name ?? "",
     content: row.comment_text,
     mentions: row.mentions ?? [],
@@ -62,6 +102,92 @@ const mapCommentFromResponse = (row) => ({
         : null,
     created_date: row.created_date ?? null,
 });
+
+// Backend stores one attachment per comment row, so a multi-file send creates
+// several consecutive rows (same author/text). Group those back into a single
+// display card so the UI reads as one message with multiple files attached.
+const groupCommentsForDisplay = (commentsList) => {
+    const groups = [];
+
+    commentsList.forEach((comment) => {
+        const last = groups[groups.length - 1];
+        const belongsToLastGroup =
+            last &&
+            last.userName === (comment.userName || "") &&
+            last.content === comment.content;
+
+        if (belongsToLastGroup) {
+            if (comment.attachment) last.attachments.push(comment.attachment);
+            last.commentIds.push(comment.id);
+        } else {
+            groups.push({
+                id: comment.id,
+                userId: comment.userId,
+                userName: comment.userName,
+                content: comment.content,
+                mentions: comment.mentions,
+                created_date: comment.created_date,
+                attachments: comment.attachment ? [comment.attachment] : [],
+                commentIds: [comment.id],
+            });
+        }
+    });
+
+    return groups;
+};
+
+// A card is a "reply" when it @mentions the author of an earlier card — thread it
+// as a nested child under the nearest preceding card from that author, so replies
+// render indented under the message they're replying to instead of as flat, equal
+// top-level cards.
+const threadCommentsForDisplay = (groups) => {
+    const parentIdById = new Map();
+
+    groups.forEach((group, index) => {
+        const mentionedUserIds = (group.mentions || []).map((mention) => String(mention.user_id));
+        if (mentionedUserIds.length === 0) return;
+
+        for (let j = index - 1; j >= 0; j -= 1) {
+            if (group.userId != null && String(groups[j].userId) === String(group.userId)) continue;
+            if (mentionedUserIds.includes(String(groups[j].userId))) {
+                parentIdById.set(group.id, groups[j].id);
+                break;
+            }
+        }
+    });
+
+    const findRootId = (id) => {
+        let current = id;
+        const seen = new Set();
+        while (parentIdById.has(current) && !seen.has(current)) {
+            seen.add(current);
+            current = parentIdById.get(current);
+        }
+        return current;
+    };
+
+    const repliesByRootId = new Map();
+    const roots = [];
+
+    groups.forEach((group) => {
+        if (!parentIdById.has(group.id)) {
+            roots.push({ ...group, replies: [] });
+        }
+    });
+
+    groups.forEach((group) => {
+        if (!parentIdById.has(group.id)) return;
+        const rootId = findRootId(group.id);
+        if (!repliesByRootId.has(rootId)) repliesByRootId.set(rootId, []);
+        repliesByRootId.get(rootId).push(group);
+    });
+
+    roots.forEach((root) => {
+        root.replies = repliesByRootId.get(root.id) || [];
+    });
+
+    return roots;
+};
 
 const mapManagersFromResponse = (rows) =>
     (rows || []).map((row) => ({
@@ -85,15 +211,119 @@ const getMentionContext = (editor) => {
     };
 };
 
+function CommentCard({ group, isReply, expandAll, isSaving, mentionableNames, onReply, onEditOpen, onDeleteOpen }) {
+    return (
+        <li
+            className={`comments-tab-comment-card${isReply ? " comments-tab-comment-card--reply" : ""}`}
+        >
+            <div className="comments-tab-comment-avatar">
+                <span className="comments-tab-comment-avatar-fallback">
+                    {getInitial(group.userName)}
+                </span>
+            </div>
+            <div className="comments-tab-comment-content">
+                <div className="comments-tab-comment-header">
+                    <div className="comments-tab-comment-meta">
+                        {group.userName ? (
+                            <p className="comments-tab-comment-author">{group.userName}</p>
+                        ) : <span />}
+                        {group.created_date ? (
+                            <p className="notes-tab-note-updated">{group.created_date}</p>
+                        ) : null}
+                    </div>
+                    <div className="comments-tab-comment-actions">
+                        <button
+                            type="button"
+                            className="subtasks-tab-edit-btn"
+                            onClick={() => onReply(group)}
+                            aria-label="Reply to comment"
+                            disabled={isSaving}
+                        >
+                            <FiCornerUpLeft size={14} />
+                        </button>
+                        {group.commentIds.length === 1 && (
+                            <button
+                                type="button"
+                                className="subtasks-tab-edit-btn"
+                                onClick={() => onEditOpen(group)}
+                                aria-label="Edit comment"
+                                disabled={isSaving}
+                            >
+                                <FiEdit2 size={14} />
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className="subtasks-tab-edit-btn"
+                            onClick={() => onDeleteOpen(group)}
+                            aria-label="Delete comment"
+                            disabled={isSaving}
+                        >
+                            <FiTrash2 size={14} />
+                        </button>
+                    </div>
+                </div>
+                <div
+                    className={`comments-tab-comment-bubble${expandAll ? "" : " comments-tab-comment-bubble--clamped"}`}
+                    dangerouslySetInnerHTML={{
+                        __html: highlightMentions(DOMPurify.sanitize(group.content), mentionableNames),
+                    }}
+                />
+                {group.attachments.length > 0 && (
+                    <div className="comments-tab-comment-attachments">
+                        {group.attachments.map((attachment, attachmentIndex) =>
+                            attachment.url ? (
+                                <a
+                                    key={`${attachment.name}_${attachmentIndex}`}
+                                    className="subtasks-tab-task-doc comments-tab-attachment-row"
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={attachment.name}
+                                >
+                                    <FiFile size={12} className="comments-tab-attachment-icon" />
+                                    {attachment.name}
+                                </a>
+                            ) : (
+                                <span
+                                    key={`${attachment.name}_${attachmentIndex}`}
+                                    className="subtasks-tab-task-doc comments-tab-attachment-row"
+                                    title={attachment.name}
+                                >
+                                    <FiFile size={12} className="comments-tab-attachment-icon" />
+                                    {attachment.name}
+                                </span>
+                            )
+                        )}
+                    </div>
+                )}
+            </div>
+        </li>
+    );
+}
+
+CommentCard.propTypes = {
+    group: PropTypes.object.isRequired,
+    isReply: PropTypes.bool,
+    expandAll: PropTypes.bool,
+    isSaving: PropTypes.bool,
+    mentionableNames: PropTypes.array,
+    onReply: PropTypes.func.isRequired,
+    onEditOpen: PropTypes.func.isRequired,
+    onDeleteOpen: PropTypes.func.isRequired,
+};
+
 function Comments({ card }) {
     const quillRef = useRef(null);
+    const fileInputRef = useRef(null);
     const [commentText, setCommentText] = useState("");
     const [managers, setManagers] = useState([]);
     const [mentionOpen, setMentionOpen] = useState(false);
     const [mentionSearch, setMentionSearch] = useState("");
     const [selectedMentionUserIds, setSelectedMentionUserIds] = useState([]);
     const [isManagersLoading, setIsManagersLoading] = useState(false);
-    const [attachmentFile, setAttachmentFile] = useState(null);
+    const [attachmentFiles, setAttachmentFiles] = useState([]);
+    const [isAttachmentDragging, setIsAttachmentDragging] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [comments, setComments] = useState([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
@@ -104,6 +334,8 @@ function Comments({ card }) {
     const [commentFilter, setCommentFilter] = useState("");
     const [expandAll, setExpandAll] = useState(false);
     const [sendAsEmail, setSendAsEmail] = useState(false);
+    const [emailFrom, setEmailFrom] = useState("");
+    const [emailTo, setEmailTo] = useState("");
 
     const fromEmail = useAuthReducer((state) => state.profileData?.email);
 
@@ -121,6 +353,11 @@ function Comments({ card }) {
         [managers, selectedMentionUserIds]
     );
 
+    const mentionableNames = useMemo(
+        () => managers.map((manager) => manager.user_name).filter(Boolean),
+        [managers]
+    );
+
     const filteredComments = useMemo(() => {
         const term = commentFilter.trim().toLowerCase();
         if (!term) return comments;
@@ -131,6 +368,16 @@ function Comments({ card }) {
                 stripHtmlContent(comment.content).toLowerCase().includes(term)
         );
     }, [comments, commentFilter]);
+
+    const groupedComments = useMemo(
+        () => groupCommentsForDisplay(filteredComments),
+        [filteredComments]
+    );
+
+    const threadedComments = useMemo(
+        () => threadCommentsForDisplay(groupedComments),
+        [groupedComments]
+    );
 
     const loadComments = useCallback(async () => {
         if (!cardId) return;
@@ -150,6 +397,16 @@ function Comments({ card }) {
     useEffect(() => {
         loadComments();
     }, [loadComments]);
+
+    useEffect(() => {
+        if (fromEmail && !emailFrom) setEmailFrom(fromEmail);
+    }, [fromEmail, emailFrom]);
+
+    useEffect(() => {
+        if (mentionedNames.length > 0 && !emailTo) {
+            setEmailTo(mentionedNames.join(", "));
+        }
+    }, [mentionedNames, emailTo]);
 
     useEffect(() => {
         let cancelled = false;
@@ -272,7 +529,7 @@ function Comments({ card }) {
             setEditingCommentId(comment.id);
             setCommentText(comment.content);
             setSelectedMentionUserIds((comment.mentions || []).map((mention) => mention.user_id));
-            setAttachmentFile(null);
+            setAttachmentFiles([]);
             closeMentionDropdown();
         },
         [closeMentionDropdown]
@@ -282,38 +539,66 @@ function Comments({ card }) {
         setEditingCommentId(null);
         setCommentText("");
         setSelectedMentionUserIds([]);
-        setAttachmentFile(null);
+        setAttachmentFiles([]);
         closeMentionDropdown();
     }, [closeMentionDropdown]);
+
+    const buildCommentFormData = useCallback(
+        ({ isEditing, attachment }) => {
+            const formData = new FormData();
+            if (isEditing) {
+                formData.append("comment_id", String(editingCommentId));
+            } else {
+                formData.append("card_id", String(cardId));
+            }
+            formData.append("comment_text", commentText);
+            formData.append("mentions", JSON.stringify(selectedMentionUserIds));
+            if (attachment) formData.append("attachment", attachment);
+            return formData;
+        },
+        [cardId, commentText, editingCommentId, selectedMentionUserIds]
+    );
 
     const handleSave = useCallback(async () => {
         if (isEmptyHtmlContent(commentText) || !cardId || isSaving) return;
 
         const isEditing = Boolean(editingCommentId);
-        const formData = new FormData();
-        if (isEditing) {
-            formData.append("comment_id", String(editingCommentId));
-        } else {
-            formData.append("card_id", String(cardId));
-        }
-        formData.append("comment_text", commentText);
-        formData.append("mentions", JSON.stringify(selectedMentionUserIds));
-        if (attachmentFile) formData.append("attachment", attachmentFile);
 
         setIsSaving(true);
         try {
-            const { data } = isEditing
-                ? await kanbanBoardService.updateCardComment(formData)
-                : await kanbanBoardService.addCardComment(formData);
+            if (isEditing) {
+                // A comment can only carry one attachment on the backend, so editing
+                // keeps just the first selected file even if more were picked.
+                const { data } = await kanbanBoardService.updateCardComment(
+                    buildCommentFormData({ isEditing: true, attachment: attachmentFiles[0] ?? null })
+                );
+                notify(data?.message || "Comment updated successfully.", "success");
+            } else if (attachmentFiles.length > 1) {
+                // No multi-attachment support on the backend, so multiple files become
+                // one comment per file (same text/mentions), attached individually.
+                const results = await Promise.allSettled(
+                    attachmentFiles.map((file) =>
+                        kanbanBoardService.addCardComment(buildCommentFormData({ isEditing: false, attachment: file }))
+                    )
+                );
+                const failed = results.filter((result) => result.status === "rejected").length;
+                if (failed > 0) {
+                    notify(`${failed} of ${attachmentFiles.length} comments failed to add.`, "error");
+                } else {
+                    notify(`${attachmentFiles.length} comments added successfully.`, "success");
+                }
+            } else {
+                const { data } = await kanbanBoardService.addCardComment(
+                    buildCommentFormData({ isEditing: false, attachment: attachmentFiles[0] ?? null })
+                );
+                notify(data?.message || "Comment added successfully.", "success");
+            }
+
             await loadComments();
-            notify(
-                data?.message || (isEditing ? "Comment updated successfully." : "Comment added successfully."),
-                "success"
-            );
             setEditingCommentId(null);
             setCommentText("");
             setSelectedMentionUserIds([]);
-            setAttachmentFile(null);
+            setAttachmentFiles([]);
             closeMentionDropdown();
         } catch (error) {
             const msg =
@@ -325,7 +610,25 @@ function Comments({ card }) {
         } finally {
             setIsSaving(false);
         }
-    }, [commentText, cardId, isSaving, selectedMentionUserIds, attachmentFile, editingCommentId, closeMentionDropdown, loadComments]);
+    }, [commentText, cardId, isSaving, attachmentFiles, editingCommentId, buildCommentFormData, closeMentionDropdown, loadComments]);
+
+    const handleAttachFiles = useCallback((fileList) => {
+        const { valid, errors } = validateAttachmentFiles(fileList);
+        if (errors.length > 0) {
+            notify(errors.join(" "), "error");
+        }
+        if (valid.length === 0) return;
+
+        setAttachmentFiles((prev) => {
+            const existingKeys = new Set(prev.map((file) => `${file.name}_${file.size}`));
+            const additions = valid.filter((file) => !existingKeys.has(`${file.name}_${file.size}`));
+            return [...prev, ...additions];
+        });
+    }, []);
+
+    const handleRemoveAttachment = useCallback((index) => {
+        setAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
+    }, []);
 
     const handleDeleteOpen = useCallback((comment) => {
         setSelectedComment(comment);
@@ -341,12 +644,21 @@ function Comments({ card }) {
     const handleDeleteConfirm = useCallback(async () => {
         if (!selectedComment) return;
 
+        const commentIds = selectedComment.commentIds || [selectedComment.id];
+
         setIsDeleting(true);
         try {
-            const { data } = await kanbanBoardService.deleteCardComment(selectedComment.id);
+            const results = await Promise.allSettled(
+                commentIds.map((id) => kanbanBoardService.deleteCardComment(id))
+            );
+            const failed = results.filter((result) => result.status === "rejected").length;
             await loadComments();
-            notify(data?.message || "Comment deleted successfully.", "success");
-            if (editingCommentId === selectedComment.id) {
+            if (failed > 0) {
+                notify(`${failed} of ${commentIds.length} files failed to delete.`, "error");
+            } else {
+                notify("Comment deleted successfully.", "success");
+            }
+            if (commentIds.includes(editingCommentId)) {
                 handleEditCancel();
             }
             setShowDeleteModal(false);
@@ -374,79 +686,37 @@ function Comments({ card }) {
                                     <p className="comments-tab-empty">Loading comments...</p>
                                 ) : !hasComments ? (
                                     <p className="comments-tab-empty">No comments added yet.</p>
-                                ) : filteredComments.length === 0 ? (
+                                ) : groupedComments.length === 0 ? (
                                     <p className="comments-tab-empty">No comments match your filter.</p>
                                 ) : (
                                     <ul className="comments-tab-list-items">
-                                        {filteredComments.map((comment, index) => (
-                                            <li className="comments-tab-comment-card" key={comment.id ?? index}>
-                                                <div className="comments-tab-comment-avatar">
-                                                    <span className="comments-tab-comment-avatar-fallback">
-                                                        {getInitial(comment.userName)}
-                                                    </span>
-                                                </div>
-                                                <div className="comments-tab-comment-content">
-                                                    <div className="comments-tab-comment-header">
-                                                        <div className="comments-tab-comment-meta">
-                                                            {comment.userName ? (
-                                                                <p className="comments-tab-comment-author">{comment.userName}</p>
-                                                            ) : <span />}
-                                                            {comment.created_date ? (
-                                                                <p className="notes-tab-note-updated">{comment.created_date}</p>
-                                                            ) : null}
-                                                        </div>
-                                                        <div className="comments-tab-comment-actions">
-                                                            <button
-                                                                type="button"
-                                                                className="subtasks-tab-edit-btn"
-                                                                onClick={() => handleReply(comment)}
-                                                                aria-label="Reply to comment"
-                                                                disabled={isSaving}
-                                                            >
-                                                                <FiCornerUpLeft size={14} />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="subtasks-tab-edit-btn"
-                                                                onClick={() => handleEditOpen(comment)}
-                                                                aria-label="Edit comment"
-                                                                disabled={isSaving}
-                                                            >
-                                                                <FiEdit2 size={14} />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="subtasks-tab-edit-btn"
-                                                                onClick={() => handleDeleteOpen(comment)}
-                                                                aria-label="Delete comment"
-                                                                disabled={isSaving}
-                                                            >
-                                                                <FiTrash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        className={`comments-tab-comment-bubble${expandAll ? "" : " comments-tab-comment-bubble--clamped"}`}
-                                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment.content) }}
+                                        {threadedComments.map((root) => (
+                                            <li className="comments-tab-comment-thread" key={root.id}>
+                                                <ul className="comments-tab-list-items">
+                                                    <CommentCard
+                                                        group={root}
+                                                        isReply={false}
+                                                        expandAll={expandAll}
+                                                        isSaving={isSaving}
+                                                        mentionableNames={mentionableNames}
+                                                        onReply={handleReply}
+                                                        onEditOpen={handleEditOpen}
+                                                        onDeleteOpen={handleDeleteOpen}
                                                     />
-                                                    {comment.attachment ? (
-                                                        comment.attachment.url ? (
-                                                            <a
-                                                                className="subtasks-tab-task-doc"
-                                                                href={comment.attachment.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                title={comment.attachment.name}
-                                                            >
-                                                                {comment.attachment.name}
-                                                            </a>
-                                                        ) : (
-                                                            <span className="subtasks-tab-task-doc" title={comment.attachment.name}>
-                                                                {comment.attachment.name}
-                                                            </span>
-                                                        )
-                                                    ) : null}
-                                                </div>
+                                                    {root.replies.map((reply) => (
+                                                        <CommentCard
+                                                            key={reply.id}
+                                                            group={reply}
+                                                            isReply
+                                                            expandAll={expandAll}
+                                                            isSaving={isSaving}
+                                                            mentionableNames={mentionableNames}
+                                                            onReply={handleReply}
+                                                            onEditOpen={handleEditOpen}
+                                                            onDeleteOpen={handleDeleteOpen}
+                                                        />
+                                                    ))}
+                                                </ul>
                                             </li>
                                         ))}
                                     </ul>
@@ -462,17 +732,23 @@ function Comments({ card }) {
                                     <div className="comments-tab-email-fields">
                                         <div className="comments-tab-email-field">
                                             <span className="comments-tab-email-label">From</span>
-                                            <span className="comments-tab-email-value">
-                                                {fromEmail || "You"}
-                                            </span>
+                                            <input
+                                                type="email"
+                                                className="comments-tab-email-value comments-tab-email-input"
+                                                value={emailFrom}
+                                                onChange={(event) => setEmailFrom(event.target.value)}
+                                                placeholder="You"
+                                            />
                                         </div>
                                         <div className="comments-tab-email-field">
                                             <span className="comments-tab-email-label">To</span>
-                                            <span className="comments-tab-email-value">
-                                                {mentionedNames.length > 0
-                                                    ? mentionedNames.join(", ")
-                                                    : "Mention a user with @ to notify them"}
-                                            </span>
+                                            <input
+                                                type="text"
+                                                className="comments-tab-email-value comments-tab-email-input"
+                                                value={emailTo}
+                                                onChange={(event) => setEmailTo(event.target.value)}
+                                                placeholder="Mention a user with @ to notify them"
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -542,42 +818,74 @@ function Comments({ card }) {
                                     )}
                                 </div>
 
-                                <div className="comments-tab-action-row">
-                                    {attachmentFile ? (
-                                        <div className="comments-tab-doc-chip">
-                                            <span className="comments-tab-doc-name" title={attachmentFile.name}>
-                                                {attachmentFile.name}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className="subtasks-tab-doc-remove"
-                                                onClick={() => setAttachmentFile(null)}
-                                                aria-label="Remove attachment"
-                                                disabled={isSaving}
-                                            >
-                                                &times;
-                                            </button>
+                                <div className="comments-tab-upload-wrapper">
+                                    <span className="comments-tab-upload-label">File</span>
+                                    <div
+                                        className={`document-upload-zone comments-tab-upload-zone${isAttachmentDragging ? " dragging" : ""}${isSaving ? " is-loading" : ""}`}
+                                        onClick={() => !isSaving && fileInputRef.current?.click()}
+                                        onDragEnter={(event) => {
+                                            event.preventDefault();
+                                            if (!isSaving) setIsAttachmentDragging(true);
+                                        }}
+                                        onDragOver={(event) => {
+                                            event.preventDefault();
+                                            if (!isSaving) setIsAttachmentDragging(true);
+                                        }}
+                                        onDragLeave={() => setIsAttachmentDragging(false)}
+                                        onDrop={(event) => {
+                                            event.preventDefault();
+                                            setIsAttachmentDragging(false);
+                                            if (!isSaving) handleAttachFiles(event.dataTransfer.files);
+                                        }}
+                                    >
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            multiple
+                                            accept={ALLOWED_ATTACHMENT_EXTENSIONS.join(",")}
+                                            className="file-input-hidden"
+                                            onChange={(event) => {
+                                                handleAttachFiles(event.target.files);
+                                                event.target.value = "";
+                                            }}
+                                            disabled={isSaving}
+                                        />
+                                        <div className="upload-zone-content">
+                                            <div className="upload-text-content">
+                                                <p className="upload-main-text">
+                                                    Drag and drop your files here, or{" "}
+                                                    <span className="upload-link">click to browse</span>
+                                                </p>
+                                                <p className="upload-sub-text">
+                                                    Supports: PDF, DOC, DOCX, JPG, PNG, GIF, WEBP, BMP (Max 10MB per file)
+                                                </p>
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <label
-                                            className="comments-tab-attach-btn"
-                                            htmlFor="comment-attachment"
-                                            aria-label="Attach a file"
-                                            title="Attach a file"
-                                        >
-                                            <FiPaperclip size={15} />
-                                            <input
-                                                id="comment-attachment"
-                                                type="file"
-                                                className="subtasks-tab-doc-input"
-                                                onChange={(event) =>
-                                                    setAttachmentFile(event.target.files?.[0] ?? null)
-                                                }
-                                                disabled={isSaving}
-                                            />
-                                        </label>
-                                    )}
+                                    </div>
 
+                                    {attachmentFiles.length > 0 && (
+                                        <div className="comments-tab-doc-chip-list">
+                                            {attachmentFiles.map((file, index) => (
+                                                <div className="comments-tab-doc-chip" key={`${file.name}_${file.size}`}>
+                                                    <span className="comments-tab-doc-name" title={file.name}>
+                                                        {file.name}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        className="subtasks-tab-doc-remove"
+                                                        onClick={() => handleRemoveAttachment(index)}
+                                                        aria-label="Remove attachment"
+                                                        disabled={isSaving}
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="comments-tab-action-row">
                                     <label className="comments-tab-send-email-toggle">
                                         <input
                                             type="checkbox"
