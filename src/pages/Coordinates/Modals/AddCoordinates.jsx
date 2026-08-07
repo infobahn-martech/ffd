@@ -20,11 +20,7 @@ const selectStyles = {
         ...base,
         minHeight: 48,
         borderRadius: 8,
-        borderColor: "#e2e2ea",
         boxShadow: "none",
-        "&:hover": {
-            borderColor: "#e2e2ea",
-        },
     }),
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
     indicatorSeparator: () => ({ display: "none" }),
@@ -232,9 +228,9 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="coordinatesForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="mb-lg-3 mb-sm-0">
-                        <label className="form-label" htmlFor="coordinates-type-select">
-                            Coordinate type <span className="text-danger">*</span>
+                    <div className="mb-lg-3 mb-sm-0 coordinates-type-wrapper">
+                        <label className="phone-label" htmlFor="coordinates-type-select">
+                            Coordinate <span className="text-danger">*</span>
                         </label>
                         <Controller
                             name="coordinateType"
@@ -407,9 +403,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
 
                     <div className="mt-2">
                         <div className="coordinates-section-header d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                            <span className="form-label mb-0">
-                                Coordinates <span className="text-danger">*</span>
-                            </span>
+                            
                             {/* <span className="text-muted small">
                                 One pair per row (lat,lon). Use + to add more.
                             </span> */}
@@ -422,14 +416,13 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                         {...register(`coordinateRows.${index}.coordinates_id`)}
                                     />
                                     <div className="phone-wrapper flex-grow-1">
-                                        <label className="phone-label">Latitude, longitude</label>
                                         <input
                                             type="text"
                                             className={`form-control ${errors.coordinateRows?.[index]?.value || coordinatesListError
                                                 ? "is-invalid"
                                                 : ""
                                                 }`}
-                                            placeholder="e.g. 25.5222,52.7677"
+                                            placeholder=""
                                             disabled={isBeingUpdated}
                                             {...register(`coordinateRows.${index}.value`, {
                                                 maxLength: {
@@ -438,6 +431,9 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                                 },
                                             })}
                                         />
+                                        <span className="coordinates-fake-placeholder">
+                                            Coordinates <span className="text-danger">*</span>
+                                        </span>
                                     </div>
                                     <div className="d-flex align-items-center gap-1 coordinates-row-actions flex-shrink-0">
                                         {fields.length > 1 && (

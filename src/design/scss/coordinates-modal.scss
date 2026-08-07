@@ -1,9 +1,14 @@
-// react-select's own container border (form-designs.scss) outranks
-// Bootstrap's .is-invalid rule, so the "Coordinate type" select never
-// visibly turned red on validation error — override it here, scoped
-// to this modal's select only.
-.coordinates-type-select.is-invalid {
-    border-color: #dc3545 !important;
+// react-select's own container border (form-designs.scss) is on the outer
+// .react-select-container wrapper itself (the inner .react-select__control
+// border is forced to none), so both the default and invalid border color
+// have to be overridden here, scoped to this modal's select only.
+.coordinates-type-select {
+    border-color: #e2e2ea !important;
+    border-radius: 8px !important;
+
+    &.is-invalid {
+        border-color: #dc3545 !important;
+    }
 }
 
 // Coordinate type select matches the width of the Coordinates row's
@@ -51,14 +56,30 @@
         display: block;
     }
 
+    // "Coordinate type" label sits notched on the select's border, same
+    // treatment as the Latitude, longitude field's label below it
+    .coordinates-type-wrapper {
+        position: relative;
+        margin-top: 12px;
+
+        .phone-label {
+            top: -9px;
+            left: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #fff;
+            padding: 0 6px;
+            z-index: 2;
+        }
+    }
+
     // Gap below the "Coordinates" heading before the first row
     .coordinates-section-header {
         margin-bottom: 0.5rem !important;
     }
 
-    // Coordinates row field uses the notched-label .phone-wrapper style
-    // (same treatment as the Group Email modal's row inputs) instead of
-    // the mismatched form-floating/desig-inp pattern
+    // Coordinates row field: same box treatment as the Group Email modal's
+    // row inputs (no label — the placeholder carries the field name)
     .phone-wrapper {
         margin-top: 0;
         margin-bottom: 0;
@@ -75,8 +96,10 @@
             padding: 10px 14px;
             box-sizing: border-box;
 
+            // Match the Coordinate type select's placeholder color
             &::placeholder {
                 font-weight: 400;
+                color: #9ca3af;
             }
 
             // Keep the border static — no Bootstrap focus/hover/invalid
@@ -88,6 +111,27 @@
                 border-color: #e2e2ea;
                 box-shadow: none;
             }
+        }
+
+        // Fake placeholder ("Coordinates" + a real red "*" span) since a
+        // native placeholder attribute can't be partially colored. Sized by
+        // real text layout instead of a guessed pixel offset. Hidden once
+        // the field has a value (native :placeholder-shown toggle).
+        .coordinates-fake-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            transform: translateY(-50%);
+            font-size: 13px;
+            font-weight: 400;
+            color: #35475e;
+            line-height: 1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        >.form-control:not(:placeholder-shown) ~ .coordinates-fake-placeholder {
+            display: none;
         }
     }
 
@@ -109,7 +153,7 @@
     max-height: 300px;
     overflow-y: auto;
     overflow-x: visible;
-    padding-top: 12px; // room for the phone-label notch above the first row's border
+    padding-top: 4px;
     padding-right: 14px;
     scrollbar-width: thin;
     scrollbar-color: #aab4c3 transparent;
