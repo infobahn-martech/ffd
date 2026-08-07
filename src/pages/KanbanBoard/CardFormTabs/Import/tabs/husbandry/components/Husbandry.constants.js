@@ -82,6 +82,33 @@ export const LAUNCH_HIRE_LOCATION_OPTIONS = [
   { value: "Juaymah", label: "Juaymah" },
 ];
 
+// Document upload validation — shared by every Material Management document
+// dropzone (Inbound Order, Landing Note add/edit, Dispatch Note). Matches the
+// limits already enforced on Material Management's own item file upload.
+export const DOCUMENT_UPLOAD_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+export const DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"];
+
+/** Splits files into ones that pass type/size checks and ones rejected, each rejection paired with its reason. */
+export const validateDocumentFiles = (files) => {
+  const validFiles = [];
+  const rejectedFiles = [];
+
+  files.forEach((file) => {
+    const extension = "." + file.name.split(".").pop().toLowerCase();
+    if (!DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS.includes(extension)) {
+      rejectedFiles.push({ name: file.name, reason: `unsupported file type (${extension})` });
+      return;
+    }
+    if (file.size > DOCUMENT_UPLOAD_MAX_SIZE) {
+      rejectedFiles.push({ name: file.name, reason: "exceeds 10MB size limit" });
+      return;
+    }
+    validFiles.push(file);
+  });
+
+  return { validFiles, rejectedFiles };
+};
+
 export const TRANSPORT_ROUTE_LOCATION_OPTIONS = [
   { value: "Dammam airport", label: "Dammam airport" },
   { value: "Dammam", label: "Dammam" },

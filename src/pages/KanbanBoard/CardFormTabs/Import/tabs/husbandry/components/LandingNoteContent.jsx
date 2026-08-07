@@ -6,7 +6,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../../../../components/CustomModal";
 import DeleteConfirmationModal from "../../../../../../../components/DeleteConfirmationModal";
 import { FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
-import { LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
+import { LAUNCH_HIRE_LOCATION_OPTIONS, validateDocumentFiles } from "./Husbandry.constants";
 import { splitApiDateTimeParts, nextDayOf } from "../../../../../../../shared/helpers/dateTimeFieldUtils";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import LocationAutocomplete from "./LocationAutocomplete";
@@ -41,7 +41,7 @@ const AttachmentsList = ({ attachments = [], onRemove, cardColor, isDragging, on
           ref={fileInputRef}
           type="file"
           className="file-input-hidden"
-          accept="*/*"
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           multiple
           onChange={onFileInputChange}
         />
@@ -51,6 +51,9 @@ const AttachmentsList = ({ attachments = [], onRemove, cardColor, isDragging, on
             <p className="upload-main-text">
               Drag and drop your files here, or{" "}
               <span className="upload-link">click to browse</span>
+            </p>
+            <p className="upload-sub-text">
+              Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
             </p>
           </div>
         </div>
@@ -863,15 +866,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     e.stopPropagation();
   };
 
-  const handleDocumentsDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDocuments(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
+  const addDocumentFiles = (files) => {
+    const { validFiles, rejectedFiles } = validateDocumentFiles(files);
+    if (rejectedFiles.length > 0) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(rejectedFiles.map((f) => `"${f.name}" — ${f.reason}`).join("; "));
+    }
+    if (validFiles.length > 0) {
       const currentAttachments = convertFormData.documents || [];
-      const newAttachments = files.map((file) => ({
+      const newAttachments = validFiles.map((file) => ({
         name: file.name,
         file: file,
         size: file.size,
@@ -885,22 +888,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     }
   };
 
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+    addDocumentFiles(Array.from(e.dataTransfer.files || []));
+  };
+
   const handleDocumentsFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const currentAttachments = convertFormData.documents || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      setConvertFormData((prev) => ({
-        ...prev,
-        documents: updatedAttachments,
-      }));
-    }
+    addDocumentFiles(Array.from(e.target.files || []));
     if (documentsFileInputRef.current) {
       documentsFileInputRef.current.value = "";
     }
@@ -935,8 +931,14 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
   const addEditDocuments = (files) => {
     if (!files.length) return;
+    const { validFiles, rejectedFiles } = validateDocumentFiles(files);
+    if (rejectedFiles.length > 0) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(rejectedFiles.map((f) => `"${f.name}" — ${f.reason}`).join("; "));
+    }
+    if (!validFiles.length) return;
     const currentAttachments = formData.documents || [];
-    const newAttachments = files.map((file) => ({
+    const newAttachments = validFiles.map((file) => ({
       name: file.name,
       file: file,
       size: file.size,
@@ -1379,7 +1381,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </FormField>
                           </div>
                           <div className="col-md-3">
-                            <FormField label="Dispatch Date" className="dispatch-date-plain">
+                            <FormField label="Dispatch Date *" className="dispatch-date-plain">
                               <DateTimePickerField
                                 dateValue={item.dispatch_date}
                                 timeValue={item.dispatch_time}
@@ -1693,19 +1695,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="row g-2 mb-2">
                       <div className="col-md-6">
                         <FormField label="Order No">
-                          <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." readOnly disabled />
+                          <FormInput type="text" value={order.orderNo} onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)} placeholder="Order number..." disabled />
                         </FormField>
                       </div>
                       <div className="col-md-6">
                         <FormField label="PO/DO">
-                          <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." readOnly disabled />
+                          <FormInput type="text" value={order.poDo} onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)} placeholder="PO/DO..." disabled />
                         </FormField>
                       </div>
                     </div>
                     <div className="row g-2 mb-2">
                       <div className="col-md-8">
                         <FormField label="Description">
-                          <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." readOnly disabled />
+                          <FormInput type="text" value={order.description} onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)} placeholder="Description..." disabled />
                         </FormField>
                       </div>
                       <div className="col-md-4">

@@ -30,10 +30,32 @@
   }
 }
 
+// Material Management (Inbound Order / Landing Note) date & time inputs:
+// drop the shared date-picker's grey resting background.
+.material-edit-form .cf-datetime-picker .cf-datetime-input-field {
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiInputBase-root {
+    background: transparent;
+  }
+}
+
+// Disabled fields (order locked to an existing inbound item) render with
+// WebKit's own greyed-out text via -webkit-text-fill-color even when
+// `color` is overridden, leaving values unreadably faint. Force it.
+.material-edit-form .cf-input input:disabled,
+.material-edit-form .cf-input select:disabled,
+.material-edit-form .date-time-row input:disabled {
+  color: #33364a !important;
+  -webkit-text-fill-color: #33364a !important;
+  opacity: 1 !important;
+}
+
 // Dispatch Date is always an enabled field, but the shared date-picker's
 // resting background (#f5f6fb) reads as greyed-out/disabled. Plain white
 // here makes clear it's editable.
-.dispatch-date-plain .cf-datetime-input-field {
+.dispatch-date-plain .cf-datetime-input-field,
+.material-edit-form .dispatch-date-plain .cf-datetime-input-field {
   .MuiPickersInputBase-root,
   .MuiOutlinedInput-root,
   .MuiInputBase-root {

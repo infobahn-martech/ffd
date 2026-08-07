@@ -185,6 +185,28 @@
   margin-left: 10px;
 }
 
+// Launch Hire fields sit on the card's #f9fafb background — give the
+// date/time picker and location select an explicit white fill so they
+// read as inputs rather than blending into the card.
+.material-management-modal .dispatch-launch-hire-step-field {
+  .cf-datetime-picker .cf-datetime-input-field {
+    .MuiPickersInputBase-root,
+    .MuiOutlinedInput-root,
+    .MuiInputBase-root {
+      background: #ffffff;
+
+      &:hover,
+      &.Mui-focused {
+        background: #ffffff;
+      }
+    }
+  }
+
+  .cf-multi-select-email-input {
+    background: #ffffff !important;
+  }
+}
+
 .dispatch-launch-hire-step-icon-wrap {
   position: relative;
   flex-shrink: 0;
@@ -353,6 +375,22 @@
   border: 1px solid #e2e2ea !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+
+  // operations.scss's own .cf-select-portal rule (same class, since the
+  // dropdown portal escapes the modal DOM) styles this scrollbar blue
+  // (#3e5cb6) to match its module. Material Management uses the same
+  // neutral grey scrollbar as the modal body instead.
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #aab4c3 !important;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #8b96a8 !important;
+  }
 }
 
 // Google Places' own dropdown for LocationAutocomplete (Pick-Up From) is a

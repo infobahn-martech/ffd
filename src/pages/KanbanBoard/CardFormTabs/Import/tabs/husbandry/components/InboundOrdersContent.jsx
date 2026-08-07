@@ -9,6 +9,7 @@ import CustomModal from "../../../../../../../components/CustomModal";
 import DeleteConfirmationModal from "../../../../../../../components/DeleteConfirmationModal";
 import CardTabListLoading from "../../../../../../../components/CardTabListLoading";
 import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
+import { validateDocumentFiles } from "./Husbandry.constants";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import LocationAutocomplete from "./LocationAutocomplete";
 import editIcon from "../../../../../../../assets/images/edit.svg";
@@ -217,7 +218,7 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragg
           ref={fileInputRef}
           type="file"
           className="file-input-hidden"
-          accept="*/*"
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           multiple
           onChange={onFileInputChange}
         />
@@ -227,6 +228,9 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragg
             <p className="upload-main-text">
               Drag and drop your files here, or{" "}
               <span className="upload-link">click to browse</span>
+            </p>
+            <p className="upload-sub-text">
+              Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
             </p>
           </div>
         </div>
@@ -1218,15 +1222,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     e.stopPropagation();
   };
 
-  const handleDocumentsDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDocuments(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
+  const addDocumentFiles = (files) => {
+    const { validFiles, rejectedFiles } = validateDocumentFiles(files);
+    if (rejectedFiles.length > 0) {
+      const { error: showError } = useAlertReducer.getState();
+      showError(rejectedFiles.map((f) => `"${f.name}" — ${f.reason}`).join("; "));
+    }
+    if (validFiles.length > 0) {
       const currentAttachments = convertFormData.documents || [];
-      const newAttachments = files.map((file) => ({
+      const newAttachments = validFiles.map((file) => ({
         name: file.name,
         file: file,
         size: file.size,
@@ -1240,22 +1244,15 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }
   };
 
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+    addDocumentFiles(Array.from(e.dataTransfer.files || []));
+  };
+
   const handleDocumentsFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const currentAttachments = convertFormData.documents || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      setConvertFormData((prev) => ({
-        ...prev,
-        documents: updatedAttachments,
-      }));
-    }
+    addDocumentFiles(Array.from(e.target.files || []));
     if (documentsFileInputRef.current) {
       documentsFileInputRef.current.value = "";
     }
@@ -1879,7 +1876,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             value={order.orderNo}
                             onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)}
                             placeholder="Enter order number..."
-                            readOnly={!!order.inbound_item_id}
                             disabled={!!order.inbound_item_id}
                           />
                         </FormField>
@@ -1892,7 +1888,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             value={order.poDo}
                             onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)}
                             placeholder="Enter PO/DO number..."
-                            readOnly={!!order.inbound_item_id}
                             disabled={!!order.inbound_item_id}
                           />
                         </FormField>
@@ -1906,7 +1901,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
                             placeholder="Enter quantity..."
                             className={convertFormErrors[`co${index}_quantity`] ? "is-invalid" : ""}
-                            readOnly={!!order.inbound_item_id}
                             disabled={!!order.inbound_item_id}
                           />
                         </FormField>
@@ -1920,7 +1914,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             value={order.description}
                             onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)}
                             placeholder="Enter description..."
-                            readOnly={!!order.inbound_item_id}
                             disabled={!!order.inbound_item_id}
                           />
                         </FormField>
@@ -1987,7 +1980,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                                 value={order.pickUpFrom}
                                 onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
                                 placeholder="Enter pick-up location..."
-                                readOnly={!!order.inbound_item_id}
                                 disabled={!!order.inbound_item_id}
                               />
                             </FormField>
@@ -2046,7 +2038,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </div>
 
                         <div className="col-lg-4 col-md-6">
-                          <FormField label="Dispatch Date" className="dispatch-date-plain">
+                          <FormField label="Dispatch Date *" className="dispatch-date-plain">
                             <DateTimePickerField
                               dateValue={order.dispatchDate}
                               timeValue={order.dispatchTime}
