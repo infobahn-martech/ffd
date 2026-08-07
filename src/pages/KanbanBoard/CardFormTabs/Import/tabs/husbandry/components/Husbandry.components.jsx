@@ -11,9 +11,9 @@ import { getInitials } from "../../../../../../../shared/utils/utils";
 // Sub-components
 const CREW_DIRECT_NAV_SUBTABS = [
   // { id: "crewChange", label: "Crew Change" },
-  { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
-  { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
   { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
+  { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
+  { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
   { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
   { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical" },
 ];
