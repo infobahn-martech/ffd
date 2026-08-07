@@ -43,9 +43,10 @@ const FolderRowIcon = () => (
 );
 
 const FileTypeIcon = ({ type }) => {
-  const label = type === "pdf" ? "PDF" : type === "doc" ? "DOC" : type === "xls" ? "XLS" : "FILE";
+  const label =
+    type === "pdf" ? "PDF" : type === "doc" ? "DOC" : type === "xls" ? "XLS" : type === "msg" ? "MSG" : "FILE";
   const modifier =
-    type === "pdf" ? "pdf" : type === "doc" ? "doc" : type === "xls" ? "xls" : "default";
+    type === "pdf" ? "pdf" : type === "doc" ? "doc" : type === "xls" ? "xls" : type === "msg" ? "msg" : "default";
 
   return (
     <div className={`doc-lib-file-icon doc-lib-file-icon--${modifier}`} aria-hidden>

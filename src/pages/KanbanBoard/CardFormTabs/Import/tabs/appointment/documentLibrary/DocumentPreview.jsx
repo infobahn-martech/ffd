@@ -48,6 +48,7 @@ const getTypeLabel = (type) => {
   if (type === "doc") return "Word Document";
   if (type === "xls") return "Excel Spreadsheet";
   if (type === "image") return "Image";
+  if (type === "msg") return "Outlook Message";
   return "Document";
 };
 
@@ -121,13 +122,24 @@ PdfPreviewMock.propTypes = {
   fileName: PropTypes.string.isRequired,
 };
 
+const DocumentPlaceholderIcon = () => (
+  <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="12" y="8" width="32" height="40" rx="4" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="1.5" />
+    <path d="M20 22H36M20 28H32M20 34H28" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+const MsgPlaceholderIcon = () => (
+  <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="14" width="40" height="28" rx="4" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="1.5" />
+    <path d="M9 16L28 31L47 16" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const PlaceholderPreview = ({ type }) => (
   <div className="doc-lib-preview-mock doc-lib-preview-mock--placeholder">
     <div className="doc-lib-preview-placeholder-icon" aria-hidden>
-      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="12" y="8" width="32" height="40" rx="4" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="1.5" />
-        <path d="M20 22H36M20 28H32M20 34H28" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
+      {type === "msg" ? <MsgPlaceholderIcon /> : <DocumentPlaceholderIcon />}
     </div>
     <p className="doc-lib-preview-placeholder-title">Preview not available</p>
     <p className="doc-lib-preview-placeholder-text">

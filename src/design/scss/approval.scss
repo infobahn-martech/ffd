@@ -377,35 +377,30 @@
   }
 
   .cf-input {
-    background: #f6f7fd;
-    border: 1.5px solid transparent;
-    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+    background: #fafafa;
+    border: 1.5px solid #e5e7eb;
+    box-shadow: none;
   }
 
   .cf-input:hover {
-    background: #eeeffb;
+    background: #f3f4f6;
+    border-color: #d1d5db;
   }
 
   .cf-input:focus-within {
     background: #ffffff;
-    border-color: var(--approval-accent);
-    box-shadow: 0 0 0 3px var(--approval-accent-soft);
+    border-color: #9ca3af;
+    box-shadow: none;
   }
 
   // Read-only Basic Details fields (Date, Requested by, Vessel Name, ETD,
-  // Billing entity) get a distinct "locked" treatment instead of looking
-  // editable like the rest of the form.
+  // Billing entity) keep the same look as editable fields so the layout
+  // stays visually consistent — only the text and cursor signal "view only".
   .cf-input:has(input[readonly]) {
-    background: linear-gradient(135deg, #f8f9fd 0%, #f0f1f9 100%);
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
     cursor: default;
 
-    &:hover {
-      background: linear-gradient(135deg, #f8f9fd 0%, #f0f1f9 100%);
-    }
-
     input {
-      color: #55597a;
+      color: #6b7280;
       cursor: default;
     }
   }
@@ -444,44 +439,25 @@
     }
 
     &:focus-within {
-      border-color: var(--approval-accent);
-      background: #fbfbff;
-    }
-
-    &.approval-textarea--green {
-      background-color: #eaf6ee;
-      border-color: #c5e0b4;
-
-      &:focus-within {
-        background-color: #eaf6ee;
-        border-color: #86c46a;
-      }
-    }
-
-    &.approval-textarea--blue {
-      background-color: #eef2fd;
-      border-color: #c7d3f5;
-
-      &:focus-within {
-        background-color: #eef2fd;
-        border-color: var(--approval-accent);
-      }
+      border-color: #9ca3af;
+      background: #ffffff;
     }
 
     // .cf-input's shared disabled styling (general.scss) only covers input/select,
     // not textarea — this mirrors it here so role-locked comment fields look
-    // consistently disabled instead of plain/enabled-looking.
+    // consistently disabled instead of plain/enabled-looking, while still
+    // matching the same neutral background as every other field.
     &:has(textarea:disabled) {
-      background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
-      border-color: #e3e5f2 !important;
+      background: #fafafa !important;
+      border-color: #e5e7eb !important;
       opacity: 1;
       cursor: not-allowed;
-      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+      box-shadow: none;
     }
 
     textarea:disabled {
       background: transparent !important;
-      color: #33364a !important;
+      color: #6b7280 !important;
       cursor: not-allowed !important;
       opacity: 1;
       font-weight: 500;
@@ -573,9 +549,9 @@
     height: 48px;
     min-height: 48px;
     max-height: 48px;
-    border: 2px dashed #d9dcf4;
+    border: 2px dashed #d1d5db;
     border-radius: 10px;
-    background: #f9f9ff;
+    background: #fafafa;
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     padding: 0 16px;
@@ -586,9 +562,9 @@
 
     &:hover,
     &:focus-visible {
-      border-color: var(--approval-accent);
-      background: #f4f4ff;
-      box-shadow: 0 0 0 4px var(--approval-accent-soft);
+      border-color: #9ca3af;
+      background: #f3f4f6;
+      box-shadow: none;
       outline: none;
     }
   }
@@ -600,7 +576,7 @@
 
     &:hover,
     &:focus-visible {
-      border-color: #d9dcf4;
+      border-color: #d1d5db;
       background: #f1f2f4;
       box-shadow: none;
     }

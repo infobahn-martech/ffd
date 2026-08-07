@@ -343,6 +343,7 @@ const resolveFileType = (fileName) => {
   if (ext === "pdf") return "pdf";
   if (ext === "doc" || ext === "docx") return "doc";
   if (ext === "xls" || ext === "xlsx" || ext === "csv") return "xls";
+  if (ext === "msg" || ext === "eml") return "msg";
   if (IMAGE_EXTENSIONS.includes(ext)) return "image";
   return "file";
 };
