@@ -193,7 +193,10 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                         type="hidden"
                                         {...register(`emails.${index}.email_id`)}
                                     />
-                                    <div className="form-floating desig-inp flex-grow-1">
+                                    <div className="phone-wrapper flex-grow-1">
+                                        <label className="phone-label">
+                                            Email <span className="text-danger">*</span>
+                                        </label>
                                         <input
                                             type="email"
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
@@ -207,16 +210,13 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                                 },
                                             })}
                                         />
-                                        <label>
-                                            Email <span className="text-danger">*</span>
-                                        </label>
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger d-block mt-1 small">
                                                 {errors.emails[index].value.message}
                                             </span>
                                         )}
                                     </div>
-                                    <div className="d-flex align-items-center gap-1 pt-2 flex-shrink-0">
+                                    <div className="d-flex align-items-center gap-1 email-row-actions flex-shrink-0">
                                         {fields.length > 1 && (
                                             <button
                                                 type="button"
