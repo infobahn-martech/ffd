@@ -214,7 +214,7 @@ function Subtasks({ card }) {
 
     const handleSave = useCallback(async () => {
         const trimmedTitle = title.trim();
-        if (!trimmedTitle || !cardId) return;
+        if (!trimmedTitle || !assignUserId || !dueDate || !cardId) return;
 
         const formData = new FormData();
         formData.append("card_id", String(cardId));
@@ -257,7 +257,7 @@ function Subtasks({ card }) {
 
     const handleUpdate = useCallback(async (taskId) => {
         const trimmed = editDescription.trim();
-        if (!trimmed) return;
+        if (!trimmed || !editAssignedTo || !editDueDate) return;
         setIsUpdating(true);
         try {
             const formData = new FormData();
@@ -290,7 +290,7 @@ function Subtasks({ card }) {
                                 <div className="task-tab-field-row">
                                     <div className="task-tab-field">
                                         <label className="task-tab-label" htmlFor="subtask-assignee">
-                                            Assign User
+                                            Assign User <span className="task-tab-required">*</span>
                                         </label>
                                         <div className="task-tab-assignee-row">
                                             <UserOptionAvatar
@@ -322,7 +322,7 @@ function Subtasks({ card }) {
 
                                     <div className="task-tab-field">
                                         <label className="task-tab-label" htmlFor="subtask-due-date">
-                                            Due Date &amp; Time
+                                            Due Date &amp; Time <span className="task-tab-required">*</span>
                                         </label>
                                         <DateTimePickerField
                                             dateValue={dueDate}
@@ -395,7 +395,7 @@ function Subtasks({ card }) {
                                         type="button"
                                         className="task-tab-save-btn"
                                         onClick={handleSave}
-                                        disabled={!title.trim() || isSaving}
+                                        disabled={!title.trim() || !assignUserId || !dueDate || isSaving}
                                     >
                                         <FiPlus size={14} />
                                         {isSaving ? "Saving..." : "Add Task"}
@@ -447,7 +447,7 @@ function Subtasks({ card }) {
                                                             </div>
                                                             <div className="task-tab-field-row">
                                                                 <div className="task-tab-field">
-                                                                    <label className="task-tab-label">Assign User</label>
+                                                                    <label className="task-tab-label">Assign User <span className="task-tab-required">*</span></label>
                                                                     <SearchableSelect
                                                                         className="cf-owner-searchable-select"
                                                                         value={editAssignedTo === "" ? "" : String(editAssignedTo)}
@@ -465,7 +465,7 @@ function Subtasks({ card }) {
                                                                     />
                                                                 </div>
                                                                 <div className="task-tab-field">
-                                                                    <label className="task-tab-label">Due Date &amp; Time</label>
+                                                                    <label className="task-tab-label">Due Date &amp; Time <span className="task-tab-required">*</span></label>
                                                                     <DateTimePickerField
                                                                         dateValue={editDueDate}
                                                                         timeValue={editDueTime}
@@ -494,7 +494,7 @@ function Subtasks({ card }) {
                                                                 </div>
                                                             </div>
                                                             <div className="task-tab-edit-actions">
-                                                                <button type="button" className="task-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || isUpdating}>
+                                                                <button type="button" className="task-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || !editAssignedTo || !editDueDate || isUpdating}>
                                                                     <FiCheck size={14} />
                                                                     {isUpdating ? "Saving..." : "Update"}
                                                                 </button>
