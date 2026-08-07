@@ -65,6 +65,20 @@
             border: 1px solid #e2e2ea;
             padding: 10px 14px;
             box-sizing: border-box;
+
+            &::placeholder {
+                font-weight: 400;
+            }
+
+            // Keep the border static — no Bootstrap focus/hover/invalid
+            // color or glow change, in any state
+            &:hover,
+            &:focus,
+            &.is-invalid,
+            &.is-invalid:focus {
+                border-color: #e2e2ea;
+                box-shadow: none;
+            }
         }
 
         // error message below the field, not overlapping
@@ -86,12 +100,22 @@
         .d-flex.align-items-start.gap-2 {
             margin-bottom: 0;
         }
-    }
 
-    // Float the email label visibly — overflow: visible so the label
-    // isn't clipped when it pops to top: -10px on focus/filled
-    .form-floating.desig-inp {
-        overflow: visible;
+        // Row email field uses the same notched-label style as Billing
+        // Entity above; let it shrink/grow within the row's flex layout
+        .phone-wrapper {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        // Buttons sit beside the input itself, not the label — offset by
+        // the same top clearance .phone-wrapper reserves for its notch,
+        // then centered within the input's own height
+        .email-row-actions {
+            margin-top: 12px;
+            min-height: 48px;
+            align-items: center;
+        }
     }
 }
 
