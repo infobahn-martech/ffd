@@ -6,6 +6,7 @@ import DateTimePickerField from "../../../shared/components/DateTimePickerField"
 import useCommonReducer from "../../../../../../store/CommonReducer";
 import { notify } from "../../../../../../components/Toaster";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
+import { DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS, DOCUMENT_UPLOAD_MAX_SIZE, validateDocumentFiles } from "../husbandry/components/Husbandry.constants";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/css/common/CardForm.css";
 import "../../../../../../design/scss/subtasks.scss";
@@ -94,6 +95,17 @@ const getAvatarColor = (name) => {
     return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 };
 
+const DOCUMENT_ACCEPT = DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS.join(",");
+const DOCUMENT_TYPE_LABELS = Array.from(
+    new Set(
+        DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS.map((ext) => {
+            const label = ext.replace(".", "").toUpperCase();
+            return label === "JPEG" ? "JPG" : label;
+        })
+    )
+);
+const DOCUMENT_HINT = `Supports ${DOCUMENT_TYPE_LABELS.join(", ")} (max ${DOCUMENT_UPLOAD_MAX_SIZE / (1024 * 1024)}MB)`;
+
 const isTaskOverdue = (task) => {
     if (task.completed || !task.dueDate) return false;
     const due = new Date(`${task.dueDate}T${task.dueTime || "23:59"}:00`);
@@ -174,7 +186,26 @@ function Subtasks({ card }) {
 
     const handleDocumentChange = useCallback((event) => {
         const file = event.target.files?.[0] || null;
-        setDocumentFile(file);
+        event.target.value = "";
+        if (!file) return;
+        const { validFiles, rejectedFiles } = validateDocumentFiles([file]);
+        if (rejectedFiles.length > 0) {
+            notify(`"${rejectedFiles[0].name}" — ${rejectedFiles[0].reason}`, "error");
+            return;
+        }
+        setDocumentFile(validFiles[0]);
+    }, []);
+
+    const handleEditDocumentChange = useCallback((event) => {
+        const file = event.target.files?.[0] || null;
+        event.target.value = "";
+        if (!file) return;
+        const { validFiles, rejectedFiles } = validateDocumentFiles([file]);
+        if (rejectedFiles.length > 0) {
+            notify(`"${rejectedFiles[0].name}" — ${rejectedFiles[0].reason}`, "error");
+            return;
+        }
+        setEditDocumentFile(validFiles[0]);
     }, []);
 
     const handleRemoveDocument = useCallback(() => {
@@ -333,18 +364,20 @@ function Subtasks({ card }) {
                                                 <input
                                                     id="subtask-document"
                                                     type="file"
+                                                    accept={DOCUMENT_ACCEPT}
                                                     className="task-tab-doc-input"
                                                     onChange={handleDocumentChange}
                                                     disabled={isSaving}
                                                 />
                                             </label>
                                         )}
+                                        <span className="task-tab-doc-hint">{DOCUMENT_HINT}</span>
                                     </div>
                                 </div>
 
                                 <div className="task-tab-field">
                                     <label className="task-tab-label" htmlFor="subtask-title">
-                                        Task title / description
+                                        Task title / description <span className="task-tab-required">*</span>
                                     </label>
                                     <textarea
                                         id="subtask-title"
@@ -403,7 +436,7 @@ function Subtasks({ card }) {
                                                     {isEditing ? (
                                                         <div className="task-tab-edit-form">
                                                             <div className="task-tab-field">
-                                                                <label className="task-tab-label">Description</label>
+                                                                <label className="task-tab-label">Description <span className="task-tab-required">*</span></label>
                                                                 <textarea
                                                                     className="task-tab-textarea"
                                                                     rows={3}
@@ -454,9 +487,10 @@ function Subtasks({ card }) {
                                                                         <label className="task-tab-doc-upload">
                                                                             <FiPaperclip size={13} />
                                                                             <span>Upload document</span>
-                                                                            <input type="file" className="task-tab-doc-input" disabled={isUpdating} onChange={(e) => setEditDocumentFile(e.target.files?.[0] ?? null)} />
+                                                                            <input type="file" accept={DOCUMENT_ACCEPT} className="task-tab-doc-input" disabled={isUpdating} onChange={handleEditDocumentChange} />
                                                                         </label>
                                                                     )}
+                                                                    <span className="task-tab-doc-hint">{DOCUMENT_HINT}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="task-tab-edit-actions">
