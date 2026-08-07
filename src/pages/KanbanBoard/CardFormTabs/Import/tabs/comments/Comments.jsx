@@ -254,7 +254,7 @@ function CommentCard({ group, isReply, expandAll, isSaving, mentionableNames, on
                         )}
                         <button
                             type="button"
-                            className="subtasks-tab-edit-btn"
+                            className="subtasks-tab-edit-btn comments-tab-delete-btn"
                             onClick={() => onDeleteOpen(group)}
                             aria-label="Delete comment"
                             disabled={isSaving}

@@ -32,6 +32,15 @@
   }
 }
 
+.comments-tab-comment-actions .comments-tab-delete-btn {
+  color: #e04848;
+
+  &:hover:not(:disabled) {
+    background: #fdeceb;
+    color: #d32f2f;
+  }
+}
+
 .comments-tab-list-scroll {
   overflow-y: auto;
   scrollbar-width: thin;
