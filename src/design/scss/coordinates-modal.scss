@@ -51,11 +51,57 @@
         display: block;
     }
 
-    // Extra clearance below the "Coordinates" heading so the first row's
-    // floating label (form-designs.scss pops it up to top:-10px on focus)
-    // doesn't collide with the heading text above it.
+    // Gap below the "Coordinates" heading before the first row
     .coordinates-section-header {
-        margin-bottom: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    // Coordinates row field uses the notched-label .phone-wrapper style
+    // (same treatment as the Group Email modal's row inputs) instead of
+    // the mismatched form-floating/desig-inp pattern
+    .phone-wrapper {
+        margin-top: 0;
+        margin-bottom: 0;
+        flex: 1 1 auto;
+        min-width: 0;
+
+        >.form-control {
+            font-size: 13px;
+            font-weight: 400;
+            min-height: 48px;
+            height: 48px;
+            border-radius: 8px;
+            border: 1px solid #e2e2ea;
+            padding: 10px 14px;
+            box-sizing: border-box;
+
+            &::placeholder {
+                font-weight: 400;
+            }
+
+            // Keep the border static — no Bootstrap focus/hover/invalid
+            // color or glow change, in any state
+            &:hover,
+            &:focus,
+            &.is-invalid,
+            &.is-invalid:focus {
+                border-color: #e2e2ea;
+                box-shadow: none;
+            }
+        }
+    }
+
+    // Buttons sit beside the input itself, centered within its height
+    .coordinates-row-actions {
+        min-height: 48px;
+        align-items: center;
+    }
+
+    // Own class instead of the "mt-2" utility — the .mt-2 section-spacing
+    // override above (1.75rem) would otherwise match this too and blow up
+    // the gap under the coordinates list
+    .coordinates-list-error {
+        margin-top: 0.5rem;
     }
 }
 
@@ -63,7 +109,7 @@
     max-height: 300px;
     overflow-y: auto;
     overflow-x: visible;
-    padding-top: 12px; // room for the floating label that pops to top: -10px
+    padding-top: 12px; // room for the phone-label notch above the first row's border
     padding-right: 14px;
     scrollbar-width: thin;
     scrollbar-color: #aab4c3 transparent;
@@ -93,11 +139,6 @@
         &:last-child {
             margin-bottom: 0;
         }
-    }
-
-    // Fix floating label being clipped when it floats up
-    .form-floating.desig-inp {
-        overflow: visible;
     }
 }
 

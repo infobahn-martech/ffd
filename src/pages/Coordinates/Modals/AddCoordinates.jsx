@@ -20,9 +20,18 @@ const selectStyles = {
         ...base,
         minHeight: 48,
         borderRadius: 8,
+        borderColor: "#e2e2ea",
         boxShadow: "none",
+        "&:hover": {
+            borderColor: "#e2e2ea",
+        },
     }),
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    indicatorSeparator: () => ({ display: "none" }),
+    dropdownIndicator: (base) => ({
+        ...base,
+        padding: "8px 10px 8px 4px",
+    }),
     placeholder: (base) => ({
         ...base,
         color: "#9ca3af",
@@ -412,7 +421,8 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                         type="hidden"
                                         {...register(`coordinateRows.${index}.coordinates_id`)}
                                     />
-                                    <div className="form-floating desig-inp flex-grow-1">
+                                    <div className="phone-wrapper flex-grow-1">
+                                        <label className="phone-label">Latitude, longitude</label>
                                         <input
                                             type="text"
                                             className={`form-control ${errors.coordinateRows?.[index]?.value || coordinatesListError
@@ -428,9 +438,8 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                                 },
                                             })}
                                         />
-                                        <label>Latitude, longitude</label>
                                     </div>
-                                    <div className="d-flex align-items-center gap-1 pt-2 flex-shrink-0">
+                                    <div className="d-flex align-items-center gap-1 coordinates-row-actions flex-shrink-0">
                                         {fields.length > 1 && (
                                             <button
                                                 type="button"
@@ -460,7 +469,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                             ))}
                         </div>
                         {coordinatesListError && (
-                            <span className="error text-danger d-block mt-2 small">
+                            <span className="error text-danger d-block coordinates-list-error small">
                                 {coordinatesListError}
                             </span>
                         )}
