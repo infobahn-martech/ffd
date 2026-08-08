@@ -913,8 +913,8 @@ RequiredDocTile.propTypes = {
 // "done" | "current" | "pending" below.
 const STATUS_TIMELINE_STATE_MAP = { done: "done", current: "current", not_reached: "pending" };
 
-const mapStatusTimelineResponse = (rows) =>
-  [...(Array.isArray(rows) ? rows : [])]
+const mapStatusTimelineResponse = (rows) => {
+  const mapped = [...(Array.isArray(rows) ? rows : [])]
     .sort((a, b) => Number(a?.sequence_order ?? 0) - Number(b?.sequence_order ?? 0))
     .map((row) => {
       const { date, time } = parseApiDateTime(row?.reached_date);
@@ -927,16 +927,23 @@ const mapStatusTimelineResponse = (rows) =>
       };
     });
 
-function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
-  // A brand-new card's status_timeline comes back with every row "not_reached" (no
-  // "current" yet) since nothing's been advanced. The first step is where the DA
-  // process actually starts, so it displays as "in progress" from the outset instead
-  // of looking like nothing has happened — display only, step.state itself stays
-  // "pending" below so the click-to-activate logic (isFirstStepActivatable) is unaffected.
-  const noStepReachedYet = steps.length > 0 && steps.every((s) => s.state === "pending");
+  // api/da/status_timeline doesn't reliably send back a "current" row — a brand-new
+  // card returns every row "not_reached", and advancing past a step (see
+  // handleDaTimelineStepClick, CardForm.jsx) only flips the completed row to "done"
+  // without promoting the next one to "current". Derive it client-side so the
+  // click-to-advance logic below (isForwardClickable) always has a "current" step to
+  // act on: the first non-done row after the last "done" one is the one in progress.
+  if (!mapped.some((step) => step.state === "current")) {
+    const nextPending = mapped.find((step) => step.state !== "done");
+    if (nextPending) nextPending.state = "current";
+  }
 
+  return mapped;
+};
+
+function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
   return (
-    <>
+    <div className="da-cf-timeline-card">
       <div className="da-cf-timeline-header">
         <h3 className="da-cf-summary-section-heading da-cf-timeline-heading">
           <Clock size={14} className="da-cf-timeline-heading-icon" />
@@ -946,7 +953,7 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
       </div>
       <div className="da-cf-timeline">
         {steps.map((step, index) => {
-          const displayState = noStepReachedYet && index === 0 ? "current" : step.state;
+          const displayState = step.state;
           const Icon = displayState === "done" ? CheckCircle2 : displayState === "current" ? Clock : CircleDashed;
           // Three click targets:
           // - "current" step's round moves the DA forward one stage. Sending
@@ -958,17 +965,12 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
           // - a "done" step's round moves the DA back one stage, but only the step right
           //   before the current one — reverting is one-by-one too, not a jump straight
           //   back to an arbitrary earlier stage.
-          // - the very first step has no prior step to be "current", so if the DA hasn't
-          //   reached it yet (still "pending"), clicking it activates it directly instead
-          //   of relying on the "up next" rule above — otherwise it was only reachable via
-          //   the header card-sticker picker (see handleTopbarCardStickerChange, CardForm.jsx).
           const prevStep = steps[index - 1];
           const nextStep = steps[index + 1];
           const isForwardClickable = step.state === "current" && Boolean(nextStep);
           const isUpNextClickable = step.state === "pending" && prevStep?.state === "current";
           const isBackClickable = step.state === "done" && nextStep?.state === "current";
-          const isFirstStepActivatable = index === 0 && step.state === "pending";
-          const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isUpNextClickable || isBackClickable || isFirstStepActivatable);
+          const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isUpNextClickable || isBackClickable);
           const targetLabel = isForwardClickable ? nextStep.label : step.label;
           return (
             <div className={`da-cf-timeline-step da-cf-timeline-step--${displayState}`} key={step.key}>
@@ -1007,7 +1009,7 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
           );
         })}
       </div>
-    </>
+    </div>
   );
 }
 

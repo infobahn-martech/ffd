@@ -1608,12 +1608,24 @@ a.da-cf-file-name {
 
 // Status timeline — horizontal step row under the Summary stat cards. Reuses the
 // same accent/surface tokens as .da-cf-summary-card instead of introducing new colors.
+// Wrapped in its own card (same shape language as .da-cf-summary-card) so it reads as
+// a distinct panel instead of floating loose above the stat cards.
+.da-cf-timeline-card {
+  background: var(--da-surface);
+  border: 1.5px solid var(--da-line);
+  border-radius: 18px;
+  padding: 20px 22px 6px;
+  margin-bottom: 24px;
+  box-shadow: 0 3px 10px -6px rgba(15, 23, 42, 0.08);
+  animation: da-cf-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .da-cf-timeline-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 0 14px;
+  margin: 0 0 28px;
 }
 
 .da-cf-timeline-header .da-cf-summary-section-heading {
@@ -1635,9 +1647,8 @@ a.da-cf-file-name {
 .da-cf-timeline {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 6px 4px 8px;
-  margin-bottom: 20px;
+  gap: 10px;
+  padding: 17px 2px 14px;
   overflow-x: auto;
 }
 
@@ -1645,8 +1656,8 @@ a.da-cf-file-name {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-width: 132px;
+  gap: 14px;
+  min-width: 140px;
   flex: 1;
 }
 
@@ -1664,7 +1675,7 @@ a.da-cf-file-name {
 .da-cf-timeline-step-marker::before {
   content: "";
   flex: 1;
-  height: 3px;
+  height: 4px;
   margin-right: 6px;
   border-radius: 999px;
   background: var(--da-line);
@@ -1683,13 +1694,13 @@ a.da-cf-file-name {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   flex-shrink: 0;
   color: var(--da-ink-faint);
   background: var(--da-surface);
-  border: 2px solid var(--da-line);
+  border: 2.5px solid var(--da-line);
   padding: 0;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
@@ -1716,7 +1727,7 @@ a.da-cf-file-name {
 
 .da-cf-timeline-step-connector {
   flex: 1;
-  height: 3px;
+  height: 4px;
   margin-left: 6px;
   border-radius: 999px;
   background: var(--da-line);
@@ -1740,20 +1751,33 @@ a.da-cf-file-name {
   border-color: var(--da-accent);
   transform: scale(1.08);
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--da-accent) 18%, transparent);
+  animation: da-cf-timeline-pulse 2.2s ease-in-out infinite;
+}
+
+// Soft breathing ring on the active step so it reads as the one waiting for action,
+// distinct from done (solid fill) and pending (flat outline) markers at a glance.
+@keyframes da-cf-timeline-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--da-accent) 18%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--da-accent) 10%, transparent);
+  }
 }
 
 .da-cf-timeline-step-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 5px;
   text-align: center;
 }
 
 .da-cf-timeline-step-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--da-ink);
+  line-height: 1.35;
 }
 
 .da-cf-timeline-step--pending .da-cf-timeline-step-label {
@@ -1809,6 +1833,10 @@ a.da-cf-file-name {
 }
 
 @media (max-width: 768px) {
+  .da-cf-timeline-card {
+    padding: 16px 16px 4px;
+  }
+
   .da-cf-timeline {
     flex-direction: column;
     align-items: stretch;
