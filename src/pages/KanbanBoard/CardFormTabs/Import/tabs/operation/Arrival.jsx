@@ -157,7 +157,7 @@ function Arrival({
       })
       .filter(Boolean);
 
-  const renderDateTimeField = (label, keyPrefix, required = false) => (
+  const renderDateTimeField = (label, keyPrefix, required = false, forceDisabled = false) => (
     <FormField
       key={keyPrefix}
       label={required ? `${label} *` : label}
@@ -170,7 +170,7 @@ function Arrival({
         onTimeChange={handleChange(`${keyPrefix}Time`)}
         dateFieldName={`${keyPrefix}Date`}
         timeFieldName={`${keyPrefix}Time`}
-        disabled={isViewOnly}
+        disabled={isViewOnly || forceDisabled}
       />
     </FormField>
   );
@@ -667,6 +667,7 @@ function Arrival({
                   formValues={formValues}
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
+                  editableKeyPrefixes={["actualArrival"]}
                 />
 
                 <FormField label="Custom Inspection Status">
@@ -675,7 +676,7 @@ function Arrival({
                     onChange={handleChange("customInspectionStatus")}
                     options={customInspectionStatusOptions}
                     placeholder="Select status..."
-                    disabled={isViewOnly}
+                    disabled
                   />
                 </FormField>
 
@@ -686,7 +687,7 @@ function Arrival({
                       onChange={handleChange("customsRemarks")}
                       placeholder="Specify remarks..."
                       rows={3}
-                      disabled={isViewOnly}
+                      disabled
                     />
                   </FormField>
                 )}
@@ -697,7 +698,7 @@ function Arrival({
                     onChange={handleChange("crewImmigrationStatus")}
                     options={crewImmigrationStatusOptions}
                     placeholder="Select status..."
-                    disabled={isViewOnly}
+                    disabled
                   />
                 </FormField>
 
@@ -708,7 +709,7 @@ function Arrival({
                       onChange={handleChange("crewImmigrationHoldRemarks")}
                       placeholder="Specify remarks..."
                       rows={3}
-                      disabled={isViewOnly}
+                      disabled
                     />
                   </FormField>
                 )}
@@ -722,7 +723,7 @@ function Arrival({
                         value="Received"
                         checked={formValues.inwardClearanceStatus === "Received"}
                         onChange={handleChange("inwardClearanceStatus")}
-                        disabled={isViewOnly}
+                        disabled
                       />
                       <span>Received</span>
                     </label>
@@ -733,7 +734,7 @@ function Arrival({
                         value="Not Received"
                         checked={formValues.inwardClearanceStatus === "Not Received"}
                         onChange={handleChange("inwardClearanceStatus")}
-                        disabled={isViewOnly}
+                        disabled
                       />
                       <span>Not Received</span>
                     </label>
@@ -741,7 +742,7 @@ function Arrival({
                 </FormField>
 
                 {showInwardClearanceTimestamp &&
-                  renderDateTimeField("Inward Clearance Received", "inwardClearanceReceived", true)}
+                  renderDateTimeField("Inward Clearance Received", "inwardClearanceReceived", true, true)}
 
                 <AdditionalTimeObjectsFields
                   value={formValues.arrivalAdditionalTimeObjects || []}

@@ -98,7 +98,7 @@ OperationFormCard.propTypes = {
   topRightAction: PropTypes.node,
 };
 
-export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false }) => {
+export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false, editableKeyPrefixes = null }) => {
   if (!eventFields.length) return null;
 
   return eventFields.map((field) => {
@@ -106,6 +106,7 @@ export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChan
     const dateKey = `${keyPrefix}Date`;
     const timeKey = `${keyPrefix}Time`;
     const label = isEventFieldRequired(field) ? `${field.event_name} *` : field.event_name;
+    const isEditable = !editableKeyPrefixes || editableKeyPrefixes.includes(keyPrefix);
 
     return (
       <FormField key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`} label={label}>
@@ -116,7 +117,7 @@ export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChan
           onTimeChange={handleChange(timeKey)}
           dateFieldName={dateKey}
           timeFieldName={timeKey}
-          disabled={isViewOnly}
+          disabled={isViewOnly || !isEditable}
         />
       </FormField>
     );
@@ -135,6 +136,7 @@ DynamicDateTimeFields.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
+  editableKeyPrefixes: PropTypes.arrayOf(PropTypes.string),
 };
 
 // Build { fieldKey: value } updates from each event field's saved `time_object_value`
