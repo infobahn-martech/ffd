@@ -2,7 +2,12 @@
 
 .permInputs {
     display: flex;
-    align-items: center;
+    // top-align, not center: with the .form-field/.field-error architecture,
+    // a field with a validation error grows taller than its row neighbor —
+    // align-items:center would then vertically detach the shorter field from
+    // the row's top edge instead of letting the next row start below the
+    // taller one.
+    align-items: flex-start;
     justify-content: space-between;
     width: 100%;
 

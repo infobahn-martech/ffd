@@ -503,11 +503,21 @@ input[type=number] {
     padding-right: calc(1.5em + 0.75rem);
 }
 
-/* Shared DatePickerField layout for Add/Edit modal forms only */
+/* Shared DatePickerField layout for Add/Edit modal forms only — sized/aligned
+   to match the standard .form-floating text/select controls (same height,
+   border, radius, label position) rather than MUI's own outlined style, since
+   MUI's DatePicker doesn't expose a .form-control/.form-select child for the
+   normal floating-label CSS trick (:not(:placeholder-shown)~label) to key
+   off of. The label here is always in the "floated" position, matching where
+   a normal field's label lands once floated, since there's no way to detect
+   an empty MUI field via CSS alone. */
 .add-edit-modal-date-field {
     position: relative;
+    width: 100%;
+    min-width: 0;
     height: 50px;
     min-height: 50px;
+    box-sizing: border-box;
     padding: 0 !important;
     overflow: visible;
     border: 1px solid #bcdee2 !important;
@@ -516,6 +526,7 @@ input[type=number] {
 
     >.cf-date-picker {
         width: 100%;
+        min-width: 0;
         height: 100%;
         margin: 0;
         padding: 0;
@@ -530,9 +541,11 @@ input[type=number] {
         width: 100% !important;
         height: 100% !important;
         min-height: 50px !important;
+        margin: 0 !important;
         border: none !important;
         outline: none !important;
         background: transparent !important;
+        box-sizing: border-box !important;
     }
 
     .MuiPickersOutlinedInput-notchedOutline,
@@ -567,16 +580,23 @@ input[type=number] {
         margin: 0;
     }
 
+    // Matches the floated-state values of the standard .form-floating > label
+    // (form-designs.scss above): same top offset, padding, background,
+    // font-size and left inset, so a date field's label lands in the same
+    // visual spot a text/select field's label does once floated.
     >label {
         position: absolute;
-        top: -16px !important;
-        left: 2px;
-        height: auto !important;
-        padding: 0 6px;
-        background: #fff;
-        color: #35475e !important;
-        font-size: 12px !important;
-        line-height: 18px;
+        top: -10px !important;
+        left: 0;
+        margin-left: 10px;
+        padding: 5px 10px;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        height: unset !important;
+        color: $txtColor !important;
+        font-size: 13px;
+        line-height: normal;
         transform: none !important;
         z-index: 5;
     }
