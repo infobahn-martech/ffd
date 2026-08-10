@@ -186,7 +186,12 @@ body {
 
                 position: relative;
                 padding: 9px 0px 9px 0px;
-                width: 100%;
+                // A flex item of .input-group (Bootstrap's display:flex row) — width:100%
+                // here would claim the whole row and force the icon span onto its own line
+                // above it. flex-grow lets it fill remaining space instead, same as
+                // Bootstrap's own .input-group > .form-control sizing.
+                flex: 1 1 auto;
+                min-width: 0;
                 max-width: 289px;
                 border: none;
 
@@ -196,10 +201,6 @@ body {
 
                 @media($sm-991) {
                     padding: 8px 10px 6px 10px;
-                }
-
-                @media($sm-1199) {
-                    width: unset;
                 }
 
                 &:focus {

@@ -547,9 +547,8 @@ input[type=number] {
     }
 
     .error {
-        position: absolute;
-        left: 0;
-        bottom: -18px;
+        display: block;
+        margin-top: 4px;
         font-size: 11px;
     }
 }

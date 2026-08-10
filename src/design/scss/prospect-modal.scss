@@ -260,11 +260,18 @@ input#selectedFile {
 
 
 
+// Validation message: normal document flow so the field container grows to
+// fit it instead of the message floating over the border/next row/next
+// column. (Previously position:absolute + bottom:-19px, which is exactly
+// what caused validation text to overlap adjacent fields/columns — this was
+// already worked around per-modal in a few places, e.g. .transport-company-modal
+// below; this is now the shared default so every form gets it for free.)
 span.error.text-danger {
-  position: absolute;
+  display: block;
+  position: static;
+  margin-top: 4px;
   font-size: 11px;
-  bottom: -19px;
-  // padding-top: 5px;
+  line-height: 1.35;
 }
 
 .modal-body {
