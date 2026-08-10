@@ -1427,11 +1427,15 @@ const GROCardView = forwardRef(function GROCardView(
     }
   }, [isGeneratingVesselPdf, callId, cardId, taskId, userRoleId, applyDocumentsByTaskResponse]);
 
+  const hasVesselRegistrationSignedDoc = Boolean(
+    callDetail?.arrival?.vessel_registration_document?.file_url
+  );
+
   const isVesselInwardRegistrationActive =
     hidePassTabs &&
     activeTab === GRO_ACTIVE_TABS.vesselInwardRegistration &&
     isVesselInwardRegistrationStage;
-  const showDynamicUploadIcon = isVesselInwardRegistrationActive;
+  const showDynamicUploadIcon = isVesselInwardRegistrationActive && !hasVesselRegistrationSignedDoc;
 
   const dynamicUploadTitle = "Upload Signed Document";
 
@@ -1679,7 +1683,7 @@ const GROCardView = forwardRef(function GROCardView(
                         {taskPanelTitle}
                       </button>
                     ) : null}
-                    {isVesselInwardRegistrationStage ? (
+                    {isVesselInwardRegistrationStage && !hasVesselRegistrationSignedDoc ? (
                       <button
                         type="button"
                         role="tab"
