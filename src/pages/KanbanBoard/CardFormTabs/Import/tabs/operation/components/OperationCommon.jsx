@@ -105,11 +105,16 @@ export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChan
     const keyPrefix = field.keyPrefix;
     const dateKey = `${keyPrefix}Date`;
     const timeKey = `${keyPrefix}Time`;
-    const label = isEventFieldRequired(field) ? `${field.event_name} *` : field.event_name;
     const isEditable = !editableKeyPrefixes || editableKeyPrefixes.includes(keyPrefix);
+    const baseLabel = isEventFieldRequired(field) ? `${field.event_name} *` : field.event_name;
+    const label = !isViewOnly && !isEditable ? `${baseLabel}` : baseLabel;
 
     return (
-      <FormField key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`} label={label}>
+      <FormField
+        key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`}
+        label={label}
+        className={!isViewOnly && !isEditable ? "cf-field--readonly" : ""}
+      >
         <DateTimePickerField
           dateValue={formValues[dateKey] || ""}
           timeValue={formValues[timeKey] || ""}
