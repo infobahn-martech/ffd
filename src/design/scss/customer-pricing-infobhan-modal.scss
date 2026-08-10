@@ -191,6 +191,10 @@ body .customer-pricing-infobhan-modal {
      for column layout + spacing; only field-level sizing overrides live here. */
 
   .cpi-field {
+    .form-field {
+      margin-bottom: 0;
+    }
+
     .phone-wrapper,
     .form-floating.desig-inp {
       margin-bottom: 0;

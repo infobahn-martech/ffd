@@ -1438,184 +1438,198 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
             <div className="checklist-top-fields-grid">
               <div className="checklist-top-field-item">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
-                    placeholder="Checklist Name"
-                    {...register("checklistName", { required: "Checklist Name is required" })}
-                  />
-                  <label>
-                    Checklist Name <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
+                      placeholder="Checklist Name"
+                      {...register("checklistName", { required: "Checklist Name is required" })}
+                    />
+                    <label>
+                      Checklist Name <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.checklistName && (
-                    <span className="error text-danger">{errors.checklistName.message}</span>
+                    <span className="field-error">{errors.checklistName.message}</span>
                   )}
                 </div>
               </div>
               <div className="checklist-top-field-item">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Call Type <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="callType"
-                    control={control}
-                    rules={{ required: "Call Type is required" }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={(callTypesOptions ?? []).map((callType) => ({
-                          value: String(callType?.call_type_id ?? ""),
-                          label: String(callType?.call_type ?? ""),
-                        }))}
-                        placeholder="Select Call Type"
-                        searchPlaceholder="Search call type..."
-                        hasError={Boolean(errors.callType)}
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">
+                      Call Type <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="callType"
+                      control={control}
+                      rules={{ required: "Call Type is required" }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(callTypesOptions ?? []).map((callType) => ({
+                            value: String(callType?.call_type_id ?? ""),
+                            label: String(callType?.call_type ?? ""),
+                          }))}
+                          placeholder="Select Call Type"
+                          searchPlaceholder="Search call type..."
+                          hasError={Boolean(errors.callType)}
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.callType && (
-                    <span className="error text-danger">{errors.callType.message}</span>
+                    <span className="field-error">{errors.callType.message}</span>
                   )}
                 </div>
               </div>
               <div className="checklist-top-field-item">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Port <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="port"
-                    control={control}
-                    rules={{ required: "Port is required" }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={(ports ?? []).map((portOption) => {
-                          const value =
-                            portOption.port_id != null && portOption.port_id !== ""
-                              ? String(portOption.port_id)
-                              : String(portOption._id ?? portOption.id ?? "");
-                          const label = portOption.port ?? portOption.name ?? value;
-                          return { value, label: String(label ?? "") };
-                        })}
-                        placeholder="Select Port"
-                        searchPlaceholder="Search port..."
-                        disabled={isLoadingPorts}
-                        hasError={Boolean(errors.port)}
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">
+                      Port <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="port"
+                      control={control}
+                      rules={{ required: "Port is required" }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(ports ?? []).map((portOption) => {
+                            const value =
+                              portOption.port_id != null && portOption.port_id !== ""
+                                ? String(portOption.port_id)
+                                : String(portOption._id ?? portOption.id ?? "");
+                            const label = portOption.port ?? portOption.name ?? value;
+                            return { value, label: String(label ?? "") };
+                          })}
+                          placeholder="Select Port"
+                          searchPlaceholder="Search port..."
+                          disabled={isLoadingPorts}
+                          hasError={Boolean(errors.port)}
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.port && (
-                    <span className="error text-danger">{errors.port.message}</span>
+                    <span className="field-error">{errors.port.message}</span>
                   )}
                 </div>
               </div>
 
               <div className="checklist-top-field-item">
-                <div className="phone-wrapper">
-                  <label className="phone-label">Asset Type</label>
-                  <Controller
-                    name="assetType"
-                    control={control}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          setValue("vesselType", "");
-                          setValue("tugType", "");
-                          setValue("bargeType", "");
-                        }}
-                        options={[
-                          { value: "vessel", label: "Vessel" },
-                          { value: "tug", label: "Tug" },
-                          { value: "barge", label: "Barge" },
-                        ]}
-                        placeholder="Select Asset Type"
-                        searchPlaceholder="Search asset type..."
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">Asset Type</label>
+                    <Controller
+                      name="assetType"
+                      control={control}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            setValue("vesselType", "");
+                            setValue("tugType", "");
+                            setValue("bargeType", "");
+                          }}
+                          options={[
+                            { value: "vessel", label: "Vessel" },
+                            { value: "tug", label: "Tug" },
+                            { value: "barge", label: "Barge" },
+                          ]}
+                          placeholder="Select Asset Type"
+                          searchPlaceholder="Search asset type..."
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
               {selectedAssetType === "vessel" && (
                 <div className="checklist-top-field-item">
-                  <div className="phone-wrapper">
-                    <label className="phone-label">Vessel Type</label>
-                    <Controller
-                      name="vesselType"
-                      control={control}
-                      render={({ field }) => (
-                        <PremiumSelect
-                          value={field.value != null ? String(field.value) : ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          options={(vesselTypes ?? []).map((type) => {
-                            const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
-                            const label = type.vessel_type ?? type.name ?? value;
-                            return { value: String(value ?? ""), label: String(label ?? "") };
-                          })}
-                          placeholder="Select Vessel Type"
-                          searchPlaceholder="Search vessel type..."
-                          disabled={isLoadingVesselTypes}
-                        />
-                      )}
-                    />
+                  <div className="form-field">
+                    <div className="phone-wrapper">
+                      <label className="phone-label">Vessel Type</label>
+                      <Controller
+                        name="vesselType"
+                        control={control}
+                        render={({ field }) => (
+                          <PremiumSelect
+                            value={field.value != null ? String(field.value) : ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            options={(vesselTypes ?? []).map((type) => {
+                              const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
+                              const label = type.vessel_type ?? type.name ?? value;
+                              return { value: String(value ?? ""), label: String(label ?? "") };
+                            })}
+                            placeholder="Select Vessel Type"
+                            searchPlaceholder="Search vessel type..."
+                            disabled={isLoadingVesselTypes}
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
 
               {selectedAssetType === "tug" && (
                 <div className="checklist-top-field-item">
-                  <div className="phone-wrapper">
-                    <label className="phone-label">Tug Type</label>
-                    <Controller
-                      name="tugType"
-                      control={control}
-                      render={({ field }) => (
-                        <PremiumSelect
-                          value={field.value != null ? String(field.value) : ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          options={(tugTypes ?? []).map((type) => {
-                            const value = type.tug_type_id ?? type._id ?? type.tug_type ?? type.name;
-                            const label = type.tug_type ?? type.name ?? value;
-                            return { value: String(value ?? ""), label: String(label ?? "") };
-                          })}
-                          placeholder="Select Tug Type"
-                          searchPlaceholder="Search tug type..."
-                          disabled={isLoadingTugTypes}
-                        />
-                      )}
-                    />
+                  <div className="form-field">
+                    <div className="phone-wrapper">
+                      <label className="phone-label">Tug Type</label>
+                      <Controller
+                        name="tugType"
+                        control={control}
+                        render={({ field }) => (
+                          <PremiumSelect
+                            value={field.value != null ? String(field.value) : ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            options={(tugTypes ?? []).map((type) => {
+                              const value = type.tug_type_id ?? type._id ?? type.tug_type ?? type.name;
+                              const label = type.tug_type ?? type.name ?? value;
+                              return { value: String(value ?? ""), label: String(label ?? "") };
+                            })}
+                            placeholder="Select Tug Type"
+                            searchPlaceholder="Search tug type..."
+                            disabled={isLoadingTugTypes}
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
 
               {selectedAssetType === "barge" && (
                 <div className="checklist-top-field-item">
-                  <div className="phone-wrapper">
-                    <label className="phone-label">Barge Type</label>
-                    <Controller
-                      name="bargeType"
-                      control={control}
-                      render={({ field }) => (
-                        <PremiumSelect
-                          value={field.value != null ? String(field.value) : ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          options={(bargeTypes ?? []).map((type) => {
-                            const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
-                            const label = type.barge_type ?? type.name ?? value;
-                            return { value: String(value ?? ""), label: String(label ?? "") };
-                          })}
-                          placeholder="Select Barge Type"
-                          searchPlaceholder="Search barge type..."
-                          disabled={isLoadingBargeTypes}
-                        />
-                      )}
-                    />
+                  <div className="form-field">
+                    <div className="phone-wrapper">
+                      <label className="phone-label">Barge Type</label>
+                      <Controller
+                        name="bargeType"
+                        control={control}
+                        render={({ field }) => (
+                          <PremiumSelect
+                            value={field.value != null ? String(field.value) : ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            options={(bargeTypes ?? []).map((type) => {
+                              const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
+                              const label = type.barge_type ?? type.name ?? value;
+                              return { value: String(value ?? ""), label: String(label ?? "") };
+                            })}
+                            placeholder="Select Barge Type"
+                            searchPlaceholder="Search barge type..."
+                            disabled={isLoadingBargeTypes}
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               )}

@@ -267,77 +267,83 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                 <form id="stageTimeMappingForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 col-lg-4 mb-3">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Call stage <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="stage_id"
-                                    control={control}
-                                    rules={{ required: "Call stage is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={stageSelectOptions}
-                                            placeholder="Select call stage"
-                                            searchPlaceholder="Search call stage..."
-                                            hasError={Boolean(errors.stage_id)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Call stage <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="stage_id"
+                                        control={control}
+                                        rules={{ required: "Call stage is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={stageSelectOptions}
+                                                placeholder="Select call stage"
+                                                searchPlaceholder="Search call stage..."
+                                                hasError={Boolean(errors.stage_id)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.stage_id && (
-                                    <span className="error text-danger">{errors.stage_id.message}</span>
+                                    <span className="field-error">{errors.stage_id.message}</span>
                                 )}
                             </div>
                         </div>
                         <div className="col-12 col-lg-4 mb-3">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Port <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="port_id"
-                                    control={control}
-                                    rules={{ required: "Port is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={portSelectOptions}
-                                            placeholder="Select port"
-                                            searchPlaceholder="Search port..."
-                                            hasError={Boolean(errors.port_id)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Port <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="port_id"
+                                        control={control}
+                                        rules={{ required: "Port is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={portSelectOptions}
+                                                placeholder="Select port"
+                                                searchPlaceholder="Search port..."
+                                                hasError={Boolean(errors.port_id)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.port_id && (
-                                    <span className="error text-danger">{errors.port_id.message}</span>
+                                    <span className="field-error">{errors.port_id.message}</span>
                                 )}
                             </div>
                         </div>
                         <div className="col-12 col-lg-4 mb-3">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Call type <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="call_type_id"
-                                    control={control}
-                                    rules={{ required: "Call type is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={callTypeSelectOptions}
-                                            placeholder="Select call type"
-                                            searchPlaceholder="Search call type..."
-                                            hasError={Boolean(errors.call_type_id)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Call type <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="call_type_id"
+                                        control={control}
+                                        rules={{ required: "Call type is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={callTypeSelectOptions}
+                                                placeholder="Select call type"
+                                                searchPlaceholder="Search call type..."
+                                                hasError={Boolean(errors.call_type_id)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.call_type_id && (
-                                    <span className="error text-danger">{errors.call_type_id.message}</span>
+                                    <span className="field-error">{errors.call_type_id.message}</span>
                                 )}
                             </div>
                         </div>

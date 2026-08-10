@@ -81,20 +81,22 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             {/* HOTEL NAME */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.hotel_name ? "is-invalid" : ""}`}
-                                        placeholder="Hotel Name"
-                                        {...register("hotel_name", {
-                                            required: "Hotel name is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Hotel Name <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.hotel_name ? "is-invalid" : ""}`}
+                                            placeholder="Hotel Name"
+                                            {...register("hotel_name", {
+                                                required: "Hotel name is required",
+                                            })}
+                                        />
+                                        <label>
+                                            Hotel Name <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.hotel_name && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.hotel_name.message}
                                         </span>
                                     )}
@@ -103,27 +105,29 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
 
                             {/* CONTACT NAME */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.contact_name ? "is-invalid" : ""}`}
-                                        placeholder="Contact Name"
-                                        {...register("contact_name", {
-                                            required: "Contact name is required",
-                                            pattern: {
-                                                value: /^[A-Za-z\s]+$/,
-                                                message: "Contact name cannot contain numbers or special characters",
-                                            },
-                                            onChange: (e) => {
-                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Contact Name <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.contact_name ? "is-invalid" : ""}`}
+                                            placeholder="Contact Name"
+                                            {...register("contact_name", {
+                                                required: "Contact name is required",
+                                                pattern: {
+                                                    value: /^[A-Za-z\s]+$/,
+                                                    message: "Contact name cannot contain numbers or special characters",
+                                                },
+                                                onChange: (e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Contact Name <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.contact_name && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_name.message}
                                         </span>
                                     )}
@@ -136,34 +140,36 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Contact No
-                                    </label>
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Contact No
+                                        </label>
 
-                                    <Controller
-                                        name="contact_no"
-                                        control={control}
-                                        rules={{
-                                            validate: (value) => {
-                                                if (!value) return true;
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return digits.length >= 7 || "Enter a valid phone number";
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
+                                        <Controller
+                                            name="contact_no"
+                                            control={control}
+                                            rules={{
+                                                validate: (value) => {
+                                                    if (!value) return true;
+                                                    const digits = (value || "").replace(/\D/g, "");
+                                                    return digits.length >= 7 || "Enter a valid phone number";
+                                                },
+                                            }}
+                                            render={({ field }) => (
+                                                <PhoneInput
+                                                    {...field}
+                                                    country="sa"
+                                                    enableSearch
+                                                    inputClass="phone-input"
+                                                    buttonClass="phone-flag"
+                                                />
+                                            )}
+                                        />
+                                    </div>
 
                                     {errors.contact_no && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_no.message}
                                         </span>
                                     )}
@@ -176,26 +182,28 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="email"
-                                        className={`form-control ${errors.contact_email ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="email@example.com"
-                                        {...register("contact_email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email address",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Email <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="email"
+                                            className={`form-control ${errors.contact_email ? "is-invalid" : ""
+                                                }`}
+                                            placeholder="email@example.com"
+                                            {...register("contact_email", {
+                                                required: "Email is required",
+                                                pattern: {
+                                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                    message: "Enter a valid email address",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Email <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
 
                                     {errors.contact_email && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_email.message}
                                         </span>
                                     )}
@@ -208,21 +216,23 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <textarea
-                                        className={`form-control ${errors.hotel_address ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Hotel Address"
-                                        style={{ minHeight: "80px" }}
-                                        {...register("hotel_address", {
-                                            required: "Hotel address is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Hotel Address <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <textarea
+                                            className={`form-control ${errors.hotel_address ? "is-invalid" : ""
+                                                }`}
+                                            placeholder="Hotel Address"
+                                            style={{ minHeight: "80px" }}
+                                            {...register("hotel_address", {
+                                                required: "Hotel address is required",
+                                            })}
+                                        />
+                                        <label>
+                                            Hotel Address <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.hotel_address && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.hotel_address.message}
                                         </span>
                                     )}

@@ -305,74 +305,80 @@ function MyAccountsModal({ show, onClose }) {
               <div className="profile-details my-accounts-fields">
                 <div className="row permInputs g-4">
                   <div className="col-12">
-                    <div className="form-floating">
-                      <input
-                        type="text"
-                        className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
-                        id="accountFullName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        placeholder="First name"
-                        autoComplete="name"
-                        style={{
-                          backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
-                          cursor: !isEditing ? 'not-allowed' : 'text',
-                        }}
-                      />
-                      <label htmlFor="accountFullName">
-                        First name
-                      </label>
+                    <div className="form-field">
+                      <div className="form-floating">
+                        <input
+                          type="text"
+                          className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
+                          id="accountFullName"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                          placeholder="First name"
+                          autoComplete="name"
+                          style={{
+                            backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                            cursor: !isEditing ? 'not-allowed' : 'text',
+                          }}
+                        />
+                        <label htmlFor="accountFullName">
+                          First name
+                        </label>
+                      </div>
                       {errors.firstName && (
-                        <span className="error text-danger small d-block mt-1">{errors.firstName}</span>
+                        <span className="field-error">{errors.firstName}</span>
                       )}
                     </div>
                   </div>
 
                   <div className="col-md-6">
-                    <div className="phone-wrapper">
-                      <label className="phone-label">
-                        Phone
-                      </label>
-                      <PhoneInput
-                        country="sa"
-                        enableSearch
-                        value={formData.phone}
-                        onChange={handlePhoneChange}
-                        disabled={!isEditing}
-                        inputClass={`phone-input ${errors.phone ? 'is-invalid' : ''}`}
-                        buttonClass="phone-flag"
-                      />
+                    <div className="form-field">
+                      <div className="phone-wrapper">
+                        <label className="phone-label">
+                          Phone
+                        </label>
+                        <PhoneInput
+                          country="sa"
+                          enableSearch
+                          value={formData.phone}
+                          onChange={handlePhoneChange}
+                          disabled={!isEditing}
+                          inputClass={`phone-input ${errors.phone ? 'is-invalid' : ''}`}
+                          buttonClass="phone-flag"
+                        />
+                      </div>
                       {errors.phone && (
-                        <span className="error text-danger small d-block mt-1">{errors.phone}</span>
+                        <span className="field-error">{errors.phone}</span>
                       )}
                     </div>
                   </div>
 
                   <div className="col-md-6">
-                    <div className="form-floating">
-                      <input
-                        type="email"
-                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        placeholder="Email"
-                        autoComplete="email"
-                        style={{
-                          backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
-                          cursor: !isEditing ? 'not-allowed' : 'text',
-                          opacity: !isEditing ? 0.95 : 1,
-                        }}
-                      />
-                      <label htmlFor="email">
-                        Email
-                      </label>
+                    <div className="form-field">
+                      <div className="form-floating">
+                        <input
+                          type="email"
+                          className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                          placeholder="Email"
+                          autoComplete="email"
+                          style={{
+                            backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                            cursor: !isEditing ? 'not-allowed' : 'text',
+                            opacity: !isEditing ? 0.95 : 1,
+                          }}
+                        />
+                        <label htmlFor="email">
+                          Email
+                        </label>
+                      </div>
                       {errors.email && (
-                        <span className="error text-danger small d-block mt-1">{errors.email}</span>
+                        <span className="field-error">{errors.email}</span>
                       )}
                     </div>
                   </div>

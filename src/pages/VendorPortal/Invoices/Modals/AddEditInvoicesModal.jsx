@@ -66,47 +66,52 @@ export function AddEditInvoicesModal({
                 <form id="invoiceForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="row">
                         <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.woNo ? "is-invalid" : ""}`}
-                                    placeholder="WO No"
-                                    {...register("woNo", {
-                                        required: "Work Order number is required",
-                                    })}
-                                />
-                                <label>
-                                    Work Order (WO) Number <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.woNo ? "is-invalid" : ""}`}
+                                        placeholder="WO No"
+                                        {...register("woNo", {
+                                            required: "Work Order number is required",
+                                        })}
+                                    />
+                                    <label>
+                                        Work Order (WO) Number <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.woNo && (
-                                    <span className="error text-danger">{errors.woNo.message}</span>
+                                    <span className="field-error">{errors.woNo.message}</span>
                                 )}
                             </div>
                         </div>
 
                         <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.poNo ? "is-invalid" : ""}`}
-                                    placeholder="PO No"
-                                    {...register("poNo", {
-                                        required: "Purchase Order number is required",
-                                    })}
-                                />
-                                <label>
-                                    Purchase Order (PO) Number <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.poNo ? "is-invalid" : ""}`}
+                                        placeholder="PO No"
+                                        {...register("poNo", {
+                                            required: "Purchase Order number is required",
+                                        })}
+                                    />
+                                    <label>
+                                        Purchase Order (PO) Number <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.poNo && (
-                                    <span className="error text-danger">{errors.poNo.message}</span>
+                                    <span className="field-error">{errors.poNo.message}</span>
                                 )}
                             </div>
                         </div>
 
                         <div className="col-md-12 mb-lg-3 mb-sm-0">
-                            <div className="desig-inp">
-                                <label className="form-label mb-2">
-                                    Tax Invoice Attachment <span className="text-danger">*</span>
-                                </label>
-                                <Controller
+                            <div className="form-field">
+                                <div className="desig-inp">
+                                    <label className="form-label mb-2">
+                                        Tax Invoice Attachment <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
                                     name="taxInvoiceFile"
                                     control={control}
                                     rules={{
@@ -217,8 +222,9 @@ export function AddEditInvoicesModal({
                                         );
                                     }}
                                 />
+                                </div>
                                 {errors.taxInvoiceFile && (
-                                    <span className="error text-danger d-block mt-1">
+                                    <span className="field-error">
                                         {errors.taxInvoiceFile.message}
                                     </span>
                                 )}

@@ -85,29 +85,31 @@ export default function ChangePasswordModal({ show, onClose }) {
 
                     {/* CURRENT PASSWORD — FULL ROW */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp desig-inp--password">
-                            <input
-                                type={showCurrentPassword ? "text" : "password"}
-                                className={`form-control ${errors.currentPassword ? "is-invalid" : ""}`}
-                                placeholder="Current Password"
-                                autoComplete="current-password"
-                                {...register("currentPassword", {
-                                    required: "Current password is required"
-                                })}
-                            />
-                            <label>
-                                Current Password <span className="text-danger">*</span>
-                            </label>
-                            <button
-                                type="button"
-                                className="password-toggle"
-                                onClick={() => setShowCurrentPassword((v) => !v)}
-                                aria-label={showCurrentPassword ? "Hide password" : "Show password"}
-                            >
-                                {showCurrentPassword ? <FiEyeOff /> : <FiEye />}
-                            </button>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp desig-inp--password">
+                                <input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    className={`form-control ${errors.currentPassword ? "is-invalid" : ""}`}
+                                    placeholder="Current Password"
+                                    autoComplete="current-password"
+                                    {...register("currentPassword", {
+                                        required: "Current password is required"
+                                    })}
+                                />
+                                <label>
+                                    Current Password <span className="text-danger">*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowCurrentPassword((v) => !v)}
+                                    aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showCurrentPassword ? <FiEyeOff /> : <FiEye />}
+                                </button>
+                            </div>
                             {errors.currentPassword && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.currentPassword.message}
                                 </span>
                             )}
@@ -116,33 +118,35 @@ export default function ChangePasswordModal({ show, onClose }) {
 
                     {/* CONFIRM PASSWORD — FULL ROW */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp desig-inp--password">
-                            <input
-                                type={showConfirmPassword ? "text" : "password"}
-                                className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
-                                placeholder="Confirm Password"
-                                autoComplete="new-password"
-                                {...register("confirmPassword", {
-                                    required: "Confirm password is required",
-                                    minLength: {
-                                        value: 6,
-                                        message: "Password must be at least 6 characters"
-                                    }
-                                })}
-                            />
-                            <label>
-                                Confirm Password <span className="text-danger">*</span>
-                            </label>
-                            <button
-                                type="button"
-                                className="password-toggle"
-                                onClick={() => setShowConfirmPassword((v) => !v)}
-                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                            >
-                                {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
-                            </button>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp desig-inp--password">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
+                                    placeholder="Confirm Password"
+                                    autoComplete="new-password"
+                                    {...register("confirmPassword", {
+                                        required: "Confirm password is required",
+                                        minLength: {
+                                            value: 6,
+                                            message: "Password must be at least 6 characters"
+                                        }
+                                    })}
+                                />
+                                <label>
+                                    Confirm Password <span className="text-danger">*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowConfirmPassword((v) => !v)}
+                                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                                </button>
+                            </div>
                             {errors.confirmPassword && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.confirmPassword.message}
                                 </span>
                             )}
@@ -151,31 +155,33 @@ export default function ChangePasswordModal({ show, onClose }) {
 
                     {/* RE-CONFIRM PASSWORD — FULL ROW */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp desig-inp--password">
-                            <input
-                                type={showReConfirmPassword ? "text" : "password"}
-                                className={`form-control ${errors.reConfirmPassword ? "is-invalid" : ""}`}
-                                placeholder="Re-Confirm Password"
-                                autoComplete="new-password"
-                                {...register("reConfirmPassword", {
-                                    required: "Re-confirm password is required",
-                                    validate: (value) =>
-                                        value === confirmPassword || "Passwords do not match"
-                                })}
-                            />
-                            <label>
-                                Re-Confirm Password <span className="text-danger">*</span>
-                            </label>
-                            <button
-                                type="button"
-                                className="password-toggle"
-                                onClick={() => setShowReConfirmPassword((v) => !v)}
-                                aria-label={showReConfirmPassword ? "Hide password" : "Show password"}
-                            >
-                                {showReConfirmPassword ? <FiEyeOff /> : <FiEye />}
-                            </button>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp desig-inp--password">
+                                <input
+                                    type={showReConfirmPassword ? "text" : "password"}
+                                    className={`form-control ${errors.reConfirmPassword ? "is-invalid" : ""}`}
+                                    placeholder="Re-Confirm Password"
+                                    autoComplete="new-password"
+                                    {...register("reConfirmPassword", {
+                                        required: "Re-confirm password is required",
+                                        validate: (value) =>
+                                            value === confirmPassword || "Passwords do not match"
+                                    })}
+                                />
+                                <label>
+                                    Re-Confirm Password <span className="text-danger">*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowReConfirmPassword((v) => !v)}
+                                    aria-label={showReConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showReConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                                </button>
+                            </div>
                             {errors.reConfirmPassword && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.reConfirmPassword.message}
                                 </span>
                             )}

@@ -51,20 +51,22 @@ export function JobStatusBEModal({ showModal, closeModal }) {
                     <div className="row">
                         {/* JOB STATUS NAME */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.jobStatusName ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Job Status Name"
-                                    {...register("jobStatusName", {
-                                        required: "Job status name is required"
-                                    })}
-                                />
-                                <label>
-                                    Job Status <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.jobStatusName ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="Job Status Name"
+                                        {...register("jobStatusName", {
+                                            required: "Job status name is required"
+                                        })}
+                                    />
+                                    <label>
+                                        Job Status <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.jobStatusName && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.jobStatusName.message}
                                     </span>
                                 )}
@@ -73,20 +75,22 @@ export function JobStatusBEModal({ showModal, closeModal }) {
 
                         {/* STATUS CODE */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.statusCode ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Status Code"
-                                    {...register("statusCode", {
-                                        required: "Status code is required"
-                                    })}
-                                />
-                                <label>
-                                    Status Code <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.statusCode ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="Status Code"
+                                        {...register("statusCode", {
+                                            required: "Status code is required"
+                                        })}
+                                    />
+                                    <label>
+                                        Status Code <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.statusCode && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.statusCode.message}
                                     </span>
                                 )}
@@ -98,26 +102,28 @@ export function JobStatusBEModal({ showModal, closeModal }) {
                     <div className="row">
                         {/* DISPLAY ORDER */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    type="number"
-                                    className={`form-control ${errors.order ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Display Order"
-                                    {...register("order", {
-                                        required: "Display order is required",
-                                        valueAsNumber: true,
-                                        min: {
-                                            value: 1,
-                                            message: "Order must be at least 1"
-                                        }
-                                    })}
-                                />
-                                <label>
-                                    Display Order <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="number"
+                                        className={`form-control ${errors.order ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="Display Order"
+                                        {...register("order", {
+                                            required: "Display order is required",
+                                            valueAsNumber: true,
+                                            min: {
+                                                value: 1,
+                                                message: "Order must be at least 1"
+                                            }
+                                        })}
+                                    />
+                                    <label>
+                                        Display Order <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.order && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.order.message}
                                     </span>
                                 )}
@@ -126,21 +132,23 @@ export function JobStatusBEModal({ showModal, closeModal }) {
 
                         {/* COLOR */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    type="color"
-                                    className={`form-control form-control-color ${errors.color ? "is-invalid" : ""
-                                        }`}
-                                    id="statusColor"
-                                    {...register("color", {
-                                        required: "Color is required"
-                                    })}
-                                />
-                                <label htmlFor="statusColor">
-                                    Status Color <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="color"
+                                        className={`form-control form-control-color ${errors.color ? "is-invalid" : ""
+                                            }`}
+                                        id="statusColor"
+                                        {...register("color", {
+                                            required: "Color is required"
+                                        })}
+                                    />
+                                    <label htmlFor="statusColor">
+                                        Status Color <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.color && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.color.message}
                                     </span>
                                 )}
@@ -183,14 +191,16 @@ export function JobStatusBEModal({ showModal, closeModal }) {
 
                     {/* DESCRIPTION — FULL ROW TEXTAREA */}
                     <div className="mb-lg-3 mb-sm-0 mt-3">
-                        <div className="form-floating desig-inp">
-                            <textarea
-                                className="form-control"
-                                placeholder="Description"
-                                style={{ height: "120px" }}
-                                {...register("description")}
-                            ></textarea>
-                            <label>Description</label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <textarea
+                                    className="form-control"
+                                    placeholder="Description"
+                                    style={{ height: "120px" }}
+                                    {...register("description")}
+                                ></textarea>
+                                <label>Description</label>
+                            </div>
                         </div>
                     </div>
                 </form>

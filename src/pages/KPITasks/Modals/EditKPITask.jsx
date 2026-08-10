@@ -93,84 +93,92 @@ export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="kpiTaskEditForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                className="form-control"
-                                placeholder="Task name"
-                                type="text"
-                                value={showModal?.task_name ?? "—"}
-                                readOnly
-                            />
-                            <label>
-                                Task name
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    className="form-control"
+                                    placeholder="Task name"
+                                    type="text"
+                                    value={showModal?.task_name ?? "—"}
+                                    readOnly
+                                />
+                                <label>
+                                    Task name
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Time type <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="time_type"
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={KPI_TIME_TYPE_OPTIONS}
-                                        placeholder="Select time type"
-                                        searchPlaceholder="Search time type..."
-                                        hasError={Boolean(errors.time_type)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Time type <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="time_type"
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={KPI_TIME_TYPE_OPTIONS}
+                                            placeholder="Select time type"
+                                            searchPlaceholder="Search time type..."
+                                            hasError={Boolean(errors.time_type)}
+                                        />
+                                    )}
+                                />
+                            </div>
                         </div>
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                className={`form-control ${errors.points ? "is-invalid" : ""}`}
-                                placeholder="Points"
-                                type="number"
-                                min="0"
-                                step="1"
-                                {...register("points", { required: "Points are required" })}
-                            />
-                            <label>
-                                Points <span className="text-danger">*</span>
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    className={`form-control ${errors.points ? "is-invalid" : ""}`}
+                                    placeholder="Points"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    {...register("points", { required: "Points are required" })}
+                                />
+                                <label>
+                                    Points <span className="text-danger">*</span>
+                                </label>
+                            </div>
                             {errors.points && (
-                                <span className="error text-danger">{errors.points.message}</span>
+                                <span className="field-error">{errors.points.message}</span>
                             )}
                         </div>
                     </div>
 
                     {timeType === TIME_TYPES.DURATION && (
                         <div className="mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.minutes ? "is-invalid" : ""}`}
-                                    placeholder="Minutes"
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    {...register("minutes", {
-                                        required: "Minutes are required",
-                                        validate: (v) => {
-                                            const n = Number(v);
-                                            return (!Number.isNaN(n) && n >= 0) || "Enter a valid number";
-                                        },
-                                    })}
-                                />
-                                <label>
-                                    Minutes <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.minutes ? "is-invalid" : ""}`}
+                                        placeholder="Minutes"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        {...register("minutes", {
+                                            required: "Minutes are required",
+                                            validate: (v) => {
+                                                const n = Number(v);
+                                                return (!Number.isNaN(n) && n >= 0) || "Enter a valid number";
+                                            },
+                                        })}
+                                    />
+                                    <label>
+                                        Minutes <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.minutes && (
-                                    <span className="error text-danger">{errors.minutes.message}</span>
+                                    <span className="field-error">{errors.minutes.message}</span>
                                 )}
                             </div>
                         </div>
@@ -178,17 +186,19 @@ export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
 
                     {timeType === TIME_TYPES.FIXED_TIME && (
                         <div className="mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.time ? "is-invalid" : ""}`}
-                                    type="time"
-                                    {...register("time", { required: "Time is required" })}
-                                />
-                                <label>
-                                    Time <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.time ? "is-invalid" : ""}`}
+                                        type="time"
+                                        {...register("time", { required: "Time is required" })}
+                                    />
+                                    <label>
+                                        Time <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.time && (
-                                    <span className="error text-danger">{errors.time.message}</span>
+                                    <span className="field-error">{errors.time.message}</span>
                                 )}
                             </div>
                         </div>
@@ -196,26 +206,28 @@ export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
 
                     {timeType === TIME_TYPES.BEFORE_EVENT && (
                         <div className="mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.hours ? "is-invalid" : ""}`}
-                                    placeholder="Hours"
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    {...register("hours", {
-                                        required: "Hours are required",
-                                        validate: (v) => {
-                                            const n = Number(v);
-                                            return (!Number.isNaN(n) && n >= 0) || "Enter a valid number";
-                                        },
-                                    })}
-                                />
-                                <label>
-                                    Hours before event <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.hours ? "is-invalid" : ""}`}
+                                        placeholder="Hours"
+                                        type="number"
+                                        min="0"
+                                        step="0.1"
+                                        {...register("hours", {
+                                            required: "Hours are required",
+                                            validate: (v) => {
+                                                const n = Number(v);
+                                                return (!Number.isNaN(n) && n >= 0) || "Enter a valid number";
+                                            },
+                                        })}
+                                    />
+                                    <label>
+                                        Hours before event <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.hours && (
-                                    <span className="error text-danger">{errors.hours.message}</span>
+                                    <span className="field-error">{errors.hours.message}</span>
                                 )}
                             </div>
                         </div>

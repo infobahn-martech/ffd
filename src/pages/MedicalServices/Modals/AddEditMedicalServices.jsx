@@ -91,24 +91,26 @@ export function MedicalServiceModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.service_code ? "is-invalid" : ""}`}
-                                        placeholder="Service Code"
-                                        {...register("service_code", {
-                                            required: "Service code is required",
-                                            minLength: {
-                                                value: 2,
-                                                message: "Service code must be at least 2 characters",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Service Code <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.service_code ? "is-invalid" : ""}`}
+                                            placeholder="Service Code"
+                                            {...register("service_code", {
+                                                required: "Service code is required",
+                                                minLength: {
+                                                    value: 2,
+                                                    message: "Service code must be at least 2 characters",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Service Code <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.service_code && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.service_code.message}
                                         </span>
                                     )}
@@ -116,24 +118,26 @@ export function MedicalServiceModal({ showModal, closeModal, onSuccess }) {
                             </div>
 
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.service_name ? "is-invalid" : ""}`}
-                                        placeholder="Service Name"
-                                        {...register("service_name", {
-                                            required: "Service name is required",
-                                            minLength: {
-                                                value: 2,
-                                                message: "Service name must be at least 2 characters",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Service Name <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.service_name ? "is-invalid" : ""}`}
+                                            placeholder="Service Name"
+                                            {...register("service_name", {
+                                                required: "Service name is required",
+                                                minLength: {
+                                                    value: 2,
+                                                    message: "Service name must be at least 2 characters",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Service Name <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.service_name && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.service_name.message}
                                         </span>
                                     )}
@@ -145,24 +149,26 @@ export function MedicalServiceModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <textarea
-                                        className={`form-control ${errors.description ? "is-invalid" : ""}`}
-                                        placeholder="Description"
-                                        style={{ minHeight: "80px" }}
-                                        {...register("description", {
-                                            required: "Description is required",
-                                            minLength: {
-                                                value: 3,
-                                                message: "Description must be at least 3 characters",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Description <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <textarea
+                                            className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                                            placeholder="Description"
+                                            style={{ minHeight: "80px" }}
+                                            {...register("description", {
+                                                required: "Description is required",
+                                                minLength: {
+                                                    value: 3,
+                                                    message: "Description must be at least 3 characters",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Description <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.description && (
-                                        <span className="error text-danger">{errors.description.message}</span>
+                                        <span className="field-error">{errors.description.message}</span>
                                     )}
                                 </div>
                             </div>

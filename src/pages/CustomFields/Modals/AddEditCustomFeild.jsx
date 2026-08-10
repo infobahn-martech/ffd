@@ -106,30 +106,32 @@ export function CustomFieldModal({ showModal, closeModal }) {
                     <div className="row">
                         {/* MODULE */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Module <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="module"
-                                    control={control}
-                                    rules={{ required: "Module is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={MODULE_OPTIONS.map((m) => ({
-                                                value: String(m.value),
-                                                label: String(m.label),
-                                            }))}
-                                            placeholder="Select Module"
-                                            searchPlaceholder="Search module..."
-                                            hasError={Boolean(errors.module)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Module <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="module"
+                                        control={control}
+                                        rules={{ required: "Module is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={MODULE_OPTIONS.map((m) => ({
+                                                    value: String(m.value),
+                                                    label: String(m.label),
+                                                }))}
+                                                placeholder="Select Module"
+                                                searchPlaceholder="Search module..."
+                                                hasError={Boolean(errors.module)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.module && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.module.message}
                                     </span>
                                 )}
@@ -138,20 +140,22 @@ export function CustomFieldModal({ showModal, closeModal }) {
 
                         {/* FIELD LABEL */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.customFieldName ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Custom Field Name"
-                                    {...register("customFieldName", {
-                                        required: "Custom field name is required",
-                                    })}
-                                />
-                                <label>
-                                    Custom Field Name <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.customFieldName ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="Custom Field Name"
+                                        {...register("customFieldName", {
+                                            required: "Custom field name is required",
+                                        })}
+                                    />
+                                    <label>
+                                        Custom Field Name <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.customFieldName && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.customFieldName.message}
                                     </span>
                                 )}
@@ -162,22 +166,24 @@ export function CustomFieldModal({ showModal, closeModal }) {
                     <div className="row">
                         {/* FIELD KEY */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.fieldKey ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="field_key"
-                                    {...register("fieldKey", {
-                                        required: "Field key is required",
-                                    })}
-                                // If you want it fully readonly, uncomment:
-                                // readOnly
-                                />
-                                <label>
-                                    Field Key <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.fieldKey ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="field_key"
+                                        {...register("fieldKey", {
+                                            required: "Field key is required",
+                                        })}
+                                    // If you want it fully readonly, uncomment:
+                                    // readOnly
+                                    />
+                                    <label>
+                                        Field Key <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.fieldKey && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.fieldKey.message}
                                     </span>
                                 )}
@@ -186,30 +192,32 @@ export function CustomFieldModal({ showModal, closeModal }) {
 
                         {/* FIELD TYPE */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Field Type <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="type"
-                                    control={control}
-                                    rules={{ required: "Field type is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={FIELD_TYPE_OPTIONS.map((ft) => ({
-                                                value: String(ft.value),
-                                                label: String(ft.label),
-                                            }))}
-                                            placeholder="Select Type"
-                                            searchPlaceholder="Search field type..."
-                                            hasError={Boolean(errors.type)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Field Type <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="type"
+                                        control={control}
+                                        rules={{ required: "Field type is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={FIELD_TYPE_OPTIONS.map((ft) => ({
+                                                    value: String(ft.value),
+                                                    label: String(ft.label),
+                                                }))}
+                                                placeholder="Select Type"
+                                                searchPlaceholder="Search field type..."
+                                                hasError={Boolean(errors.type)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.type && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.type.message}
                                     </span>
                                 )}
@@ -218,7 +226,7 @@ export function CustomFieldModal({ showModal, closeModal }) {
                     </div>
 
                     {/* DESCRIPTION — FULL ROW TEXTAREA */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <textarea
                                 className="form-control"
@@ -252,33 +260,35 @@ export function CustomFieldModal({ showModal, closeModal }) {
 
                         {/* STATUS */}
                         <div className="col-lg-4 mb-lg-3 mb-sm-0">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Status <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="isActive"
-                                    control={control}
-                                    rules={{ required: "Status is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={
-                                                field.value === undefined || field.value === null
-                                                    ? ""
-                                                    : String(Boolean(field.value))
-                                            }
-                                            onChange={(e) =>
-                                                field.onChange(e.target.value === "true")
-                                            }
-                                            options={CUSTOM_FIELD_STATUS_OPTIONS}
-                                            placeholder="Select status"
-                                            searchPlaceholder="Search status..."
-                                            hasError={Boolean(errors.isActive)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Status <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="isActive"
+                                        control={control}
+                                        rules={{ required: "Status is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={
+                                                    field.value === undefined || field.value === null
+                                                        ? ""
+                                                        : String(Boolean(field.value))
+                                                }
+                                                onChange={(e) =>
+                                                    field.onChange(e.target.value === "true")
+                                                }
+                                                options={CUSTOM_FIELD_STATUS_OPTIONS}
+                                                placeholder="Select status"
+                                                searchPlaceholder="Search status..."
+                                                hasError={Boolean(errors.isActive)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.isActive && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.isActive.message}
                                     </span>
                                 )}
@@ -287,26 +297,28 @@ export function CustomFieldModal({ showModal, closeModal }) {
 
                         {/* ORDER */}
                         <div className="col-lg-4 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    type="number"
-                                    className={`form-control ${errors.order ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Order"
-                                    {...register("order", {
-                                        required: "Display order is required",
-                                        valueAsNumber: true,
-                                        min: {
-                                            value: 1,
-                                            message: "Order must be at least 1",
-                                        },
-                                    })}
-                                />
-                                <label>
-                                    Display Order <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="number"
+                                        className={`form-control ${errors.order ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="Order"
+                                        {...register("order", {
+                                            required: "Display order is required",
+                                            valueAsNumber: true,
+                                            min: {
+                                                value: 1,
+                                                message: "Order must be at least 1",
+                                            },
+                                        })}
+                                    />
+                                    <label>
+                                        Display Order <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.order && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.order.message}
                                     </span>
                                 )}

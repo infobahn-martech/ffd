@@ -77,21 +77,23 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
                 <form id="logisticsWarehouseForm" onSubmit={handleSubmit(onSubmit)}>
                     {/* LOCATION */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                type="text"
-                                className={`form-control ${errors.location ? "is-invalid" : ""
-                                    }`}
-                                placeholder="Location"
-                                {...register("location", {
-                                    required: "Location is required"
-                                })}
-                            />
-                            <label>
-                                Location <span className="text-danger">*</span>
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    type="text"
+                                    className={`form-control ${errors.location ? "is-invalid" : ""
+                                        }`}
+                                    placeholder="Location"
+                                    {...register("location", {
+                                        required: "Location is required"
+                                    })}
+                                />
+                                <label>
+                                    Location <span className="text-danger">*</span>
+                                </label>
+                            </div>
                             {errors.location && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.location.message}
                                 </span>
                             )}
@@ -100,28 +102,30 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
 
                     {/* LOCATION TYPE */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Location Type <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="location_type"
-                                control={control}
-                                rules={{ required: "Location type is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={LOCATION_TYPE_OPTIONS}
-                                        placeholder="Select Location Type"
-                                        searchPlaceholder="Search location type..."
-                                        hasError={Boolean(errors.location_type)}
-                                        menuClassName="user-modal-premium-select-menu"
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Location Type <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="location_type"
+                                    control={control}
+                                    rules={{ required: "Location type is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={LOCATION_TYPE_OPTIONS}
+                                            placeholder="Select Location Type"
+                                            searchPlaceholder="Search location type..."
+                                            hasError={Boolean(errors.location_type)}
+                                            menuClassName="user-modal-premium-select-menu"
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.location_type && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.location_type.message}
                                 </span>
                             )}

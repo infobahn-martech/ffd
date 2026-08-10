@@ -57,23 +57,25 @@ export function RoleModal({
 
           {/* ROLE NAME — FULL ROW */}
           <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <input
-                className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
-                placeholder="Role Name"
-                {...register("roleName", {
-                  required: "Role name is required",
-                  minLength: {
-                    value: 3,
-                    message: "Role name must be at least 3 characters"
-                  }
-                })}
-              />
-              <label>
-                Role <span className="text-danger">*</span>
-              </label>
+            <div className="form-field">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
+                  placeholder="Role Name"
+                  {...register("roleName", {
+                    required: "Role name is required",
+                    minLength: {
+                      value: 3,
+                      message: "Role name must be at least 3 characters"
+                    }
+                  })}
+                />
+                <label>
+                  Role <span className="text-danger">*</span>
+                </label>
+              </div>
               {errors.roleName && (
-                <span className="error text-danger">
+                <span className="field-error">
                   {errors.roleName.message}
                 </span>
               )}
@@ -82,22 +84,24 @@ export function RoleModal({
 
           {/* DESCRIPTION — FULL ROW TEXTAREA */}
           <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <textarea
-                className="form-control"
-                placeholder="Description"
-                style={{ height: "120px" }}
-                {...register("description", {
-                  required: false,
-                  minLength: {
-                    value: 10,
-                    message: "Description must be at least 10 characters"
-                  }
-                })}
-              ></textarea>
-              <label>Description</label>
+            <div className="form-field">
+              <div className="form-floating desig-inp">
+                <textarea
+                  className="form-control"
+                  placeholder="Description"
+                  style={{ height: "120px" }}
+                  {...register("description", {
+                    required: false,
+                    minLength: {
+                      value: 10,
+                      message: "Description must be at least 10 characters"
+                    }
+                  })}
+                ></textarea>
+                <label>Description</label>
+              </div>
               {errors.description && (
-                <span className="error text-danger">
+                <span className="field-error">
                   {errors.description.message}
                 </span>
               )}

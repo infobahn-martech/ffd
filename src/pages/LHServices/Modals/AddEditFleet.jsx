@@ -93,20 +93,22 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="launchHireServiceForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                type="text"
-                                className={`form-control ${errors.service_name ? "is-invalid" : ""}`}
-                                placeholder="Service Name"
-                                {...register("service_name", {
-                                    required: "Service name is required",
-                                })}
-                            />
-                            <label>
-                                Service Name <span className="text-danger">*</span>
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    type="text"
+                                    className={`form-control ${errors.service_name ? "is-invalid" : ""}`}
+                                    placeholder="Service Name"
+                                    {...register("service_name", {
+                                        required: "Service name is required",
+                                    })}
+                                />
+                                <label>
+                                    Service Name <span className="text-danger">*</span>
+                                </label>
+                            </div>
                             {errors.service_name && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.service_name.message}
                                 </span>
                             )}
@@ -114,13 +116,15 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <textarea
-                                className="form-control"
-                                placeholder="Description"
-                                {...register("description")}
-                            />
-                            <label>Description</label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <textarea
+                                    className="form-control"
+                                    placeholder="Description"
+                                    {...register("description")}
+                                />
+                                <label>Description</label>
+                            </div>
                         </div>
                     </div>
                 </form>

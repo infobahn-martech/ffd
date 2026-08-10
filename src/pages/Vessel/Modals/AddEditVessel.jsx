@@ -319,61 +319,65 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 1: Billing Entity | Vessel Category */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Billing Entity <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="billingEntity"
-                    control={control}
-                    rules={{ required: "Billing entity is required" }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={(billingEntitiesData ?? []).map((entity) => ({
-                          value: String(entity.entity_id ?? ""),
-                          label: String(entity.billing_entity ?? ""),
-                        }))}
-                        placeholder="Select Billing Entity"
-                        searchPlaceholder="Search billing entity..."
-                        disabled={isLoadingBillingEntities}
-                        hasError={Boolean(errors.billingEntity)}
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">
+                      Billing Entity <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="billingEntity"
+                      control={control}
+                      rules={{ required: "Billing entity is required" }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(billingEntitiesData ?? []).map((entity) => ({
+                            value: String(entity.entity_id ?? ""),
+                            label: String(entity.billing_entity ?? ""),
+                          }))}
+                          placeholder="Select Billing Entity"
+                          searchPlaceholder="Search billing entity..."
+                          disabled={isLoadingBillingEntities}
+                          hasError={Boolean(errors.billingEntity)}
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.billingEntity && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.billingEntity.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    Vessel Category <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="vesselCategory"
-                    control={control}
-                    rules={{ required: "Vessel category is required" }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          setValue("vesselTypeId", "");
-                        }}
-                        options={VESSEL_CATEGORIES}
-                        placeholder="Select Vessel Category"
-                        searchPlaceholder="Search vessel category..."
-                        hasError={Boolean(errors.vesselCategory)}
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">
+                      Vessel Category <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="vesselCategory"
+                      control={control}
+                      rules={{ required: "Vessel category is required" }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            setValue("vesselTypeId", "");
+                          }}
+                          options={VESSEL_CATEGORIES}
+                          placeholder="Select Vessel Category"
+                          searchPlaceholder="Search vessel category..."
+                          hasError={Boolean(errors.vesselCategory)}
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.vesselCategory && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.vesselCategory.message}
                     </span>
                   )}
@@ -384,50 +388,54 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 2: Vessel Type (dynamic) | Vessel Name */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    {typeFieldConfig.label}{" "}
-                    <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="vesselTypeId"
-                    control={control}
-                    rules={{ required: `${typeFieldConfig.label} is required` }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={typeFieldConfig.options}
-                        placeholder={typeFieldConfig.placeholder}
-                        searchPlaceholder={typeFieldConfig.searchPlaceholder}
-                        disabled={!vesselCategory}
-                        hasError={Boolean(errors.vesselTypeId)}
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">
+                      {typeFieldConfig.label}{" "}
+                      <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="vesselTypeId"
+                      control={control}
+                      rules={{ required: `${typeFieldConfig.label} is required` }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={typeFieldConfig.options}
+                          placeholder={typeFieldConfig.placeholder}
+                          searchPlaceholder={typeFieldConfig.searchPlaceholder}
+                          disabled={!vesselCategory}
+                          hasError={Boolean(errors.vesselTypeId)}
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.vesselTypeId && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.vesselTypeId.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.vesselName ? "is-invalid" : ""}`}
-                    placeholder="Vessel Name"
-                    {...register("vesselName", {
-                      required: "Vessel name is required",
-                      validate: (v) =>
-                        v.trim().length > 0 || "Vessel name is required",
-                    })}
-                  />
-                  <label>
-                    Vessel Name <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.vesselName ? "is-invalid" : ""}`}
+                      placeholder="Vessel Name"
+                      {...register("vesselName", {
+                        required: "Vessel name is required",
+                        validate: (v) =>
+                          v.trim().length > 0 || "Vessel name is required",
+                      })}
+                    />
+                    <label>
+                      Vessel Name <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.vesselName && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.vesselName.message}
                     </span>
                   )}
@@ -438,49 +446,53 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 3: Vessel Owner | Vessel Principal */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.vesselOwner ? "is-invalid" : ""}`}
-                    placeholder="Vessel Owner"
-                    {...register("vesselOwner", {
-                      required: "Vessel owner is required",
-                      validate: (v) =>
-                        v.trim().length > 0 || "Vessel owner is required",
-                      pattern: {
-                        value: /^[A-Za-z\s]+$/,
-                        message: "Vessel owner cannot contain numbers or special characters",
-                      },
-                      onChange: (e) => {
-                        e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                      },
-                    })}
-                  />
-                  <label>
-                    Vessel Owner <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.vesselOwner ? "is-invalid" : ""}`}
+                      placeholder="Vessel Owner"
+                      {...register("vesselOwner", {
+                        required: "Vessel owner is required",
+                        validate: (v) =>
+                          v.trim().length > 0 || "Vessel owner is required",
+                        pattern: {
+                          value: /^[A-Za-z\s]+$/,
+                          message: "Vessel owner cannot contain numbers or special characters",
+                        },
+                        onChange: (e) => {
+                          e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                        },
+                      })}
+                    />
+                    <label>
+                      Vessel Owner <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.vesselOwner && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.vesselOwner.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.vesselPrincipal ? "is-invalid" : ""}`}
-                    placeholder="Vessel Charterer"
-                    {...register("vesselPrincipal", {
-                      required: "Vessel charter is required",
-                      validate: (v) =>
-                        v.trim().length > 0 || "Vessel charter is required",
-                    })}
-                  />
-                  <label>
-                    Vessel Charterer <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.vesselPrincipal ? "is-invalid" : ""}`}
+                      placeholder="Vessel Charterer"
+                      {...register("vesselPrincipal", {
+                        required: "Vessel charter is required",
+                        validate: (v) =>
+                          v.trim().length > 0 || "Vessel charter is required",
+                      })}
+                    />
+                    <label>
+                      Vessel Charterer <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.vesselPrincipal && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.vesselPrincipal.message}
                     </span>
                   )}
@@ -491,51 +503,55 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 4: IMO Number | Flag State */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.imoNumber ? "is-invalid" : ""}`}
-                    placeholder="IMO Number (7 digits)"
-                    type="text"
-                    inputMode="numeric"
-                    onInput={(e) => {
-                      e.target.value = e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 7);
-                    }}
-                    {...register("imoNumber", {
-                      required: "IMO number is required",
-                      pattern: {
-                        value: /^\d{7}$/,
-                        message: "IMO number must be exactly 7 digits",
-                      },
-                    })}
-                  />
-                  <label>
-                    IMO Number <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.imoNumber ? "is-invalid" : ""}`}
+                      placeholder="IMO Number (7 digits)"
+                      type="text"
+                      inputMode="numeric"
+                      onInput={(e) => {
+                        e.target.value = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 7);
+                      }}
+                      {...register("imoNumber", {
+                        required: "IMO number is required",
+                        pattern: {
+                          value: /^\d{7}$/,
+                          message: "IMO number must be exactly 7 digits",
+                        },
+                      })}
+                    />
+                    <label>
+                      IMO Number <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.imoNumber && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.imoNumber.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.flagState ? "is-invalid" : ""}`}
-                    placeholder="Flag State"
-                    {...register("flagState", {
-                      required: "Flag state is required",
-                      validate: (v) =>
-                        v.trim().length > 0 || "Flag state is required",
-                    })}
-                  />
-                  <label>
-                    Flag State <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.flagState ? "is-invalid" : ""}`}
+                      placeholder="Flag State"
+                      {...register("flagState", {
+                        required: "Flag state is required",
+                        validate: (v) =>
+                          v.trim().length > 0 || "Flag state is required",
+                      })}
+                    />
+                    <label>
+                      Flag State <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.flagState && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.flagState.message}
                     </span>
                   )}
@@ -546,48 +562,52 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 5: Gross Tonnage | Call Sign */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.grossTonnage ? "is-invalid" : ""}`}
-                    placeholder="Gross Tonnage"
-                    inputMode="decimal"
-                    {...register("grossTonnage", {
-                      required: "Gross tonnage is required",
-                      validate: (v) => {
-                        const n = Number(String(v).replace(/,/g, ""));
-                        if (Number.isNaN(n) || n < 0) {
-                          return "Enter a valid gross tonnage";
-                        }
-                        return true;
-                      },
-                    })}
-                  />
-                  <label>
-                    Gross Tonnage <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.grossTonnage ? "is-invalid" : ""}`}
+                      placeholder="Gross Tonnage"
+                      inputMode="decimal"
+                      {...register("grossTonnage", {
+                        required: "Gross tonnage is required",
+                        validate: (v) => {
+                          const n = Number(String(v).replace(/,/g, ""));
+                          if (Number.isNaN(n) || n < 0) {
+                            return "Enter a valid gross tonnage";
+                          }
+                          return true;
+                        },
+                      })}
+                    />
+                    <label>
+                      Gross Tonnage <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.grossTonnage && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.grossTonnage.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.callSign ? "is-invalid" : ""}`}
-                    placeholder="Call Sign"
-                    {...register("callSign", {
-                      required: "Call sign is required",
-                      validate: (v) =>
-                        v.trim().length > 0 || "Call sign is required",
-                    })}
-                  />
-                  <label>
-                    Call Sign <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.callSign ? "is-invalid" : ""}`}
+                      placeholder="Call Sign"
+                      {...register("callSign", {
+                        required: "Call sign is required",
+                        validate: (v) =>
+                          v.trim().length > 0 || "Call sign is required",
+                      })}
+                    />
+                    <label>
+                      Call Sign <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.callSign && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.callSign.message}
                     </span>
                   )}
@@ -598,46 +618,50 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 6: Year Built | Class Society */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.yearBuilt ? "is-invalid" : ""}`}
-                    placeholder="Year Built"
-                    type="text"
-                    inputMode="numeric"
-                    onInput={(e) => {
-                      e.target.value = e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 4);
-                    }}
-                    {...register("yearBuilt", {
-                      required: "Year built is required",
-                      validate: (v) => {
-                        const y = Number(String(v).trim());
-                        if (Number.isNaN(y) || y < 1900 || y > currentYear + 1) {
-                          return `Enter a year between 1900 and ${currentYear + 1}`;
-                        }
-                        return true;
-                      },
-                    })}
-                  />
-                  <label>
-                    Year Built <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.yearBuilt ? "is-invalid" : ""}`}
+                      placeholder="Year Built"
+                      type="text"
+                      inputMode="numeric"
+                      onInput={(e) => {
+                        e.target.value = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 4);
+                      }}
+                      {...register("yearBuilt", {
+                        required: "Year built is required",
+                        validate: (v) => {
+                          const y = Number(String(v).trim());
+                          if (Number.isNaN(y) || y < 1900 || y > currentYear + 1) {
+                            return `Enter a year between 1900 and ${currentYear + 1}`;
+                          }
+                          return true;
+                        },
+                      })}
+                    />
+                    <label>
+                      Year Built <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.yearBuilt && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.yearBuilt.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className={`form-control ${errors.classSociety ? "is-invalid" : ""}`}
-                    placeholder="Class Society"
-                    {...register("classSociety")}
-                  />
-                  <label>Class Society</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className={`form-control ${errors.classSociety ? "is-invalid" : ""}`}
+                      placeholder="Class Society"
+                      {...register("classSociety")}
+                    />
+                    <label>Class Society</label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -645,23 +669,27 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 7: P&I Club | Length Overall (LOA) */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className="form-control"
-                    placeholder="P&I Club"
-                    {...register("pnIClub")}
-                  />
-                  <label>P&I Club</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className="form-control"
+                      placeholder="P&I Club"
+                      {...register("pnIClub")}
+                    />
+                    <label>P&I Club</label>
+                  </div>
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className="form-control"
-                    placeholder="Length Overall (LOA)"
-                    {...register("lengthOverall")}
-                  />
-                  <label>Length Overall (LOA)</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className="form-control"
+                      placeholder="Length Overall (LOA)"
+                      {...register("lengthOverall")}
+                    />
+                    <label>Length Overall (LOA)</label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -669,23 +697,27 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* Row 8: Beam | Draft */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className="form-control"
-                    placeholder="Beam"
-                    {...register("beam")}
-                  />
-                  <label>Beam</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className="form-control"
+                      placeholder="Beam"
+                      {...register("beam")}
+                    />
+                    <label>Beam</label>
+                  </div>
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    className="form-control"
-                    placeholder="Draft"
-                    {...register("draft")}
-                  />
-                  <label>Draft</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      className="form-control"
+                      placeholder="Draft"
+                      {...register("draft")}
+                    />
+                    <label>Draft</label>
+                  </div>
                 </div>
               </div>
             </div>

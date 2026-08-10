@@ -143,41 +143,43 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                 >
                     {/* BILLING ENTITY SELECT */}
                     <div className="mb-lg-3 mb-sm-0 mt-2">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Billing Entity <span className="text-danger">*</span>
-                            </label>
-                            {isEdit ? (
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={showModal?.billing_entity ?? ""}
-                                    readOnly
-                                />
-                            ) : (
-                                <Controller
-                                    name="entity_id"
-                                    control={control}
-                                    rules={{ required: "Billing entity is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={(billingEntities ?? []).map((be) => ({
-                                                value: String(be.entity_id ?? ""),
-                                                label: String(be.billing_entity ?? ""),
-                                            }))}
-                                            placeholder={
-                                                billingLoading ? "Loading..." : "Select Billing Entity"
-                                            }
-                                            searchPlaceholder="Search billing entity..."
-                                            hasError={Boolean(errors.entity_id)}
-                                        />
-                                    )}
-                                />
-                            )}
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Billing Entity <span className="text-danger">*</span>
+                                </label>
+                                {isEdit ? (
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={showModal?.billing_entity ?? ""}
+                                        readOnly
+                                    />
+                                ) : (
+                                    <Controller
+                                        name="entity_id"
+                                        control={control}
+                                        rules={{ required: "Billing entity is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={(billingEntities ?? []).map((be) => ({
+                                                    value: String(be.entity_id ?? ""),
+                                                    label: String(be.billing_entity ?? ""),
+                                                }))}
+                                                placeholder={
+                                                    billingLoading ? "Loading..." : "Select Billing Entity"
+                                                }
+                                                searchPlaceholder="Search billing entity..."
+                                                hasError={Boolean(errors.entity_id)}
+                                            />
+                                        )}
+                                    />
+                                )}
+                            </div>
                             {errors.entity_id && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.entity_id.message}
                                 </span>
                             )}
@@ -193,25 +195,27 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                         type="hidden"
                                         {...register(`emails.${index}.email_id`)}
                                     />
-                                    <div className="phone-wrapper flex-grow-1">
-                                        <input
-                                            type="email"
-                                            className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
-                                                }`}
-                                            placeholder=""
-                                            {...register(`emails.${index}.value`, {
-                                                required: "Email is required",
-                                                pattern: {
-                                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                    message: "Enter a valid email address",
-                                                },
-                                            })}
-                                        />
-                                        <span className="email-fake-placeholder">
-                                            Email <span className="text-danger">*</span>
-                                        </span>
+                                    <div className="form-field flex-grow-1">
+                                        <div className="phone-wrapper">
+                                            <input
+                                                type="email"
+                                                className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
+                                                    }`}
+                                                placeholder=""
+                                                {...register(`emails.${index}.value`, {
+                                                    required: "Email is required",
+                                                    pattern: {
+                                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                        message: "Enter a valid email address",
+                                                    },
+                                                })}
+                                            />
+                                            <span className="email-fake-placeholder">
+                                                Email <span className="text-danger">*</span>
+                                            </span>
+                                        </div>
                                         {errors.emails?.[index]?.value && (
-                                            <span className="error text-danger d-block mt-1 small">
+                                            <span className="field-error">
                                                 {errors.emails[index].value.message}
                                             </span>
                                         )}

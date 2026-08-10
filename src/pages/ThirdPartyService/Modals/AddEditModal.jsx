@@ -79,7 +79,7 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
         <div className="modal-body">
             <div className="lead-form">
                 <form id="thirdPartyServiceForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <input
                                 className={`form-control ${errors.third_party_service ? "is-invalid" : ""}`}
@@ -91,15 +91,15 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
                             <label>
                                 Third Party Service <span className="text-danger">*</span>
                             </label>
-                            {errors.third_party_service && (
-                                <span className="error text-danger">
-                                    {errors.third_party_service.message}
-                                </span>
-                            )}
                         </div>
+                        {errors.third_party_service && (
+                            <span className="field-error">
+                                {errors.third_party_service.message}
+                            </span>
+                        )}
                     </div>
 
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <textarea
                                 className={`form-control ${errors.description ? "is-invalid" : ""}`}
@@ -107,10 +107,10 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
                                 {...register("description")}
                             />
                             <label>Description</label>
-                            {errors.description && (
-                                <span className="error text-danger">{errors.description.message}</span>
-                            )}
                         </div>
+                        {errors.description && (
+                            <span className="field-error">{errors.description.message}</span>
+                        )}
                     </div>
                 </form>
             </div>

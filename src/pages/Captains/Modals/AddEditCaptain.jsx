@@ -148,27 +148,29 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.captain_name ? "is-invalid" : ""}`}
-                                        placeholder="Captain Name"
-                                        {...register("captain_name", {
-                                            required: "Captain name is required",
-                                            pattern: {
-                                                value: /^[A-Za-z\s]+$/,
-                                                message: "Captain name cannot contain numbers or special characters",
-                                            },
-                                            onChange: (e) => {
-                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Captain Name <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.captain_name ? "is-invalid" : ""}`}
+                                            placeholder="Captain Name"
+                                            {...register("captain_name", {
+                                                required: "Captain name is required",
+                                                pattern: {
+                                                    value: /^[A-Za-z\s]+$/,
+                                                    message: "Captain name cannot contain numbers or special characters",
+                                                },
+                                                onChange: (e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Captain Name <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.captain_name && (
-                                        <span className="error text-danger">{errors.captain_name.message}</span>
+                                        <span className="field-error">{errors.captain_name.message}</span>
                                     )}
                                 </div>
                             </div>
@@ -179,60 +181,64 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Taxi Boat <span className="text-danger">*</span>
-                                    </label>
-                                    <Controller
-                                        name="taxi_boat_id"
-                                        control={control}
-                                        rules={{ required: "Taxi boat is required" }}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                options={taxiBoatList.map((boat) => ({
-                                                    value: String(boat.taxi_boat_id ?? ""),
-                                                    label: String(boat.taxi_boat_name ?? ""),
-                                                }))}
-                                                placeholder="Select Taxi Boat"
-                                                searchPlaceholder="Search taxi boat..."
-                                                hasError={Boolean(errors.taxi_boat_id)}
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Taxi Boat <span className="text-danger">*</span>
+                                        </label>
+                                        <Controller
+                                            name="taxi_boat_id"
+                                            control={control}
+                                            rules={{ required: "Taxi boat is required" }}
+                                            render={({ field }) => (
+                                                <PremiumSelect
+                                                    value={field.value != null ? String(field.value) : ""}
+                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    options={taxiBoatList.map((boat) => ({
+                                                        value: String(boat.taxi_boat_id ?? ""),
+                                                        label: String(boat.taxi_boat_name ?? ""),
+                                                    }))}
+                                                    placeholder="Select Taxi Boat"
+                                                    searchPlaceholder="Search taxi boat..."
+                                                    hasError={Boolean(errors.taxi_boat_id)}
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.taxi_boat_id && (
-                                        <span className="error text-danger">{errors.taxi_boat_id.message}</span>
+                                        <span className="field-error">{errors.taxi_boat_id.message}</span>
                                     )}
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Contact No
-                                    </label>
-                                    <Controller
-                                        name="contact_no"
-                                        control={control}
-                                        rules={{
-                                            validate: (value) => {
-                                                if (!value) return true;
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return digits.length >= 7 || "Enter a valid phone number";
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Contact No
+                                        </label>
+                                        <Controller
+                                            name="contact_no"
+                                            control={control}
+                                            rules={{
+                                                validate: (value) => {
+                                                    if (!value) return true;
+                                                    const digits = (value || "").replace(/\D/g, "");
+                                                    return digits.length >= 7 || "Enter a valid phone number";
+                                                },
+                                            }}
+                                            render={({ field }) => (
+                                                <PhoneInput
+                                                    {...field}
+                                                    country="sa"
+                                                    enableSearch
+                                                    inputClass="phone-input"
+                                                    buttonClass="phone-flag"
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.contact_no && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_no.message}
                                         </span>
                                     )}
@@ -245,14 +251,16 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="License No"
-                                        {...register("license_no")}
-                                    />
-                                    <label>License No</label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="License No"
+                                            {...register("license_no")}
+                                        />
+                                        <label>License No</label>
+                                    </div>
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
@@ -260,24 +268,26 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                                     name="license_expiry"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.license_expiry)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>License Expiry</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.license_expiry)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>License Expiry</label>
+                                            </div>
                                             {errors?.license_expiry ? (
-                                                <span className="error text-danger">{errors.license_expiry.message}</span>
+                                                <span className="field-error">{errors.license_expiry.message}</span>
                                             ) : null}
                                         </div>
                                     )}

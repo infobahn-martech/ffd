@@ -534,43 +534,47 @@ export function PermissionModal({
           {/* UPDATED: Role Text Field + Description Textarea (right side) */}
           <div className="permInputs row g-3">
             <div className="col-md-6">
-              <div className="form-floating desig-inp">
-                <input
-                  type="text"
-                  className={`form-control${roleError ? " is-invalid" : ""}`}
-                  id="floatingRole"
-                  placeholder="Role"
-                  value={
-                    isUserPermissionMode && selectedUser
-                      ? selectedUser.role ?? userPermissions?.[0]?.role ?? ""
-                      : roleText
-                  }
-                  readOnly={isUserPermissionMode && selectedUser}
-                  onChange={(e) => {
-                    setRoleText(e.target.value);
-                    if (roleError) setRoleError("");
-                  }}
-                />
-                <label htmlFor="floatingRole">Role
-                  <span className="text-danger">*</span>
-                </label>
+              <div className="form-field">
+                <div className="form-floating desig-inp">
+                  <input
+                    type="text"
+                    className={`form-control${roleError ? " is-invalid" : ""}`}
+                    id="floatingRole"
+                    placeholder="Role"
+                    value={
+                      isUserPermissionMode && selectedUser
+                        ? selectedUser.role ?? userPermissions?.[0]?.role ?? ""
+                        : roleText
+                    }
+                    readOnly={isUserPermissionMode && selectedUser}
+                    onChange={(e) => {
+                      setRoleText(e.target.value);
+                      if (roleError) setRoleError("");
+                    }}
+                  />
+                  <label htmlFor="floatingRole">Role
+                    <span className="text-danger">*</span>
+                  </label>
+                </div>
                 {roleError && (
-                  <span className="error text-danger">{roleError}</span>
+                  <span className="field-error">{roleError}</span>
                 )}
               </div>
             </div>
 
             <div className="col-md-6">
-              <div className="form-floating desig-inp">
-                <textarea
-                  className="form-control permission-description-textarea"
-                  id="floatingDesc"
-                  placeholder="Description"
-                  value={roleDescription}
-                  onChange={(e) => setRoleDescription(e.target.value)}
-                  readOnly={isUserPermissionMode && selectedUser}
-                />
-                <label htmlFor="floatingDesc">Description</label>
+              <div className="form-field">
+                <div className="form-floating desig-inp">
+                  <textarea
+                    className="form-control permission-description-textarea"
+                    id="floatingDesc"
+                    placeholder="Description"
+                    value={roleDescription}
+                    onChange={(e) => setRoleDescription(e.target.value)}
+                    readOnly={isUserPermissionMode && selectedUser}
+                  />
+                  <label htmlFor="floatingDesc">Description</label>
+                </div>
               </div>
             </div>
           </div>

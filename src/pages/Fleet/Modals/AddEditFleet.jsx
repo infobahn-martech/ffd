@@ -133,30 +133,34 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.taxi_boat_name ? "is-invalid" : ""}`}
-                                        placeholder="Taxi Boat Name"
-                                        {...register("taxi_boat_name", {
-                                            required: "Taxi boat name is required",
-                                        })}
-                                    />
-                                    <label>Taxi Boat Name <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.taxi_boat_name ? "is-invalid" : ""}`}
+                                            placeholder="Taxi Boat Name"
+                                            {...register("taxi_boat_name", {
+                                                required: "Taxi boat name is required",
+                                            })}
+                                        />
+                                        <label>Taxi Boat Name <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.taxi_boat_name && (
-                                        <span className="error text-danger">{errors.taxi_boat_name.message}</span>
+                                        <span className="field-error">{errors.taxi_boat_name.message}</span>
                                     )}
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Registration No"
-                                        {...register("registration_no")}
-                                    />
-                                    <label>Registration No</label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Registration No"
+                                            {...register("registration_no")}
+                                        />
+                                        <label>Registration No</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -166,41 +170,45 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">Operator <span className="text-danger">*</span></label>
-                                    <Controller
-                                        name="operator_id"
-                                        control={control}
-                                        rules={{ required: "Operator is required" }}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                options={operatorList.map((op) => ({
-                                                    value: String(op.operator_id ?? ""),
-                                                    label: String(op.operator_name ?? ""),
-                                                }))}
-                                                placeholder="Select Operator"
-                                                searchPlaceholder="Search operator..."
-                                                hasError={Boolean(errors.operator_id)}
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">Operator <span className="text-danger">*</span></label>
+                                        <Controller
+                                            name="operator_id"
+                                            control={control}
+                                            rules={{ required: "Operator is required" }}
+                                            render={({ field }) => (
+                                                <PremiumSelect
+                                                    value={field.value != null ? String(field.value) : ""}
+                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    options={operatorList.map((op) => ({
+                                                        value: String(op.operator_id ?? ""),
+                                                        label: String(op.operator_name ?? ""),
+                                                    }))}
+                                                    placeholder="Select Operator"
+                                                    searchPlaceholder="Search operator..."
+                                                    hasError={Boolean(errors.operator_id)}
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.operator_id && (
-                                        <span className="error text-danger">{errors.operator_id.message}</span>
+                                        <span className="field-error">{errors.operator_id.message}</span>
                                     )}
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="number"
-                                        className="form-control"
-                                        placeholder="Capacity (Persons)"
-                                        min="1"
-                                        {...register("capacity_persons")}
-                                    />
-                                    <label>Capacity (Persons)</label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="number"
+                                            className="form-control"
+                                            placeholder="Capacity (Persons)"
+                                            min="1"
+                                            {...register("capacity_persons")}
+                                        />
+                                        <label>Capacity (Persons)</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -214,24 +222,26 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                                     name="insurance_expiry"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.insurance_expiry)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>Insurance Expiry</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.insurance_expiry)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>Insurance Expiry</label>
+                                            </div>
                                             {errors?.insurance_expiry ? (
-                                                <span className="error text-danger">{errors.insurance_expiry.message}</span>
+                                                <span className="field-error">{errors.insurance_expiry.message}</span>
                                             ) : null}
                                         </div>
                                     )}
@@ -242,24 +252,26 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                                     name="certificate_expiry"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.certificate_expiry)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>Certificate Expiry</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.certificate_expiry)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>Certificate Expiry</label>
+                                            </div>
                                             {errors?.certificate_expiry ? (
-                                                <span className="error text-danger">{errors.certificate_expiry.message}</span>
+                                                <span className="field-error">{errors.certificate_expiry.message}</span>
                                             ) : null}
                                         </div>
                                     )}

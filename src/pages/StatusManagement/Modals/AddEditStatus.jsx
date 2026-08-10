@@ -48,7 +48,7 @@ export function StatusModal({ showModal, closeModal }) {
             <div className="lead-form">
                 <form id="statusForm" onSubmit={handleSubmit(onSubmit)}>
                     {/* STATUS NAME */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <input
                                 className={`form-control ${errors.statusName ? "is-invalid" : ""
@@ -61,16 +61,16 @@ export function StatusModal({ showModal, closeModal }) {
                             <label>
                                 Status Name <span className="text-danger">*</span>
                             </label>
-                            {errors.statusName && (
-                                <span className="error text-danger">
-                                    {errors.statusName.message}
-                                </span>
-                            )}
                         </div>
+                        {errors.statusName && (
+                            <span className="field-error">
+                                {errors.statusName.message}
+                            </span>
+                        )}
                     </div>
 
                     {/* STATUS CODE */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <input
                                 className="form-control"
@@ -82,7 +82,7 @@ export function StatusModal({ showModal, closeModal }) {
                     </div>
 
                     {/* DESCRIPTION */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <textarea
                                 className="form-control"
@@ -95,7 +95,7 @@ export function StatusModal({ showModal, closeModal }) {
                     </div>
 
                     {/* TYPE / MODULE */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="phone-wrapper">
                             <label className="phone-label">Type / Module</label>
                             <Controller
@@ -115,7 +115,7 @@ export function StatusModal({ showModal, closeModal }) {
                     </div>
 
                     {/* DISPLAY ORDER */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <input
                                 type="number"
@@ -128,7 +128,7 @@ export function StatusModal({ showModal, closeModal }) {
                     </div>
 
                     {/* STATUS COLOR */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <label className="mb-2 fw-semibold">Status Color</label>
                         <input
                             type="color"

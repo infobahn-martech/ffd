@@ -166,71 +166,77 @@ export function TaskManagementModal({ showModal, closeModal, onSuccess }) {
                 <form id="taskManagementForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 mb-3">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.task_name ? "is-invalid" : ""}`}
-                                    placeholder="Task Name"
-                                    {...register("task_name", { required: "Task Name is required" })}
-                                />
-                                <label>
-                                    Task Name <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.task_name ? "is-invalid" : ""}`}
+                                        placeholder="Task Name"
+                                        {...register("task_name", { required: "Task Name is required" })}
+                                    />
+                                    <label>
+                                        Task Name <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.task_name && (
-                                    <span className="error text-danger">{errors.task_name.message}</span>
+                                    <span className="field-error">{errors.task_name.message}</span>
                                 )}
                             </div>
                         </div>
                         <div className="col-12 mb-3">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Call type <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="call_type_id"
-                                    control={control}
-                                    rules={{ required: "Call type is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={callTypeSelectOptions}
-                                            placeholder="Select call type"
-                                            searchPlaceholder="Search call type..."
-                                            disabled={isBeingUpdated}
-                                            hasError={Boolean(errors.call_type_id)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Call type <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="call_type_id"
+                                        control={control}
+                                        rules={{ required: "Call type is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={callTypeSelectOptions}
+                                                placeholder="Select call type"
+                                                searchPlaceholder="Search call type..."
+                                                disabled={isBeingUpdated}
+                                                hasError={Boolean(errors.call_type_id)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.call_type_id && (
-                                    <span className="error text-danger">
+                                    <span className="field-error">
                                         {errors.call_type_id.message}
                                     </span>
                                 )}
                             </div>
                         </div>
                         <div className="col-12 mb-3">
-                            <div className="phone-wrapper">
-                                <label className="phone-label">
-                                    Port <span className="text-danger">*</span>
-                                </label>
-                                <Controller
-                                    name="port_id"
-                                    control={control}
-                                    rules={{ required: "Port is required" }}
-                                    render={({ field }) => (
-                                        <PremiumSelect
-                                            value={field.value != null ? String(field.value) : ""}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            options={portSelectOptions}
-                                            placeholder="Select port"
-                                            searchPlaceholder="Search port..."
-                                            disabled={isBeingUpdated}
-                                            hasError={Boolean(errors.port_id)}
-                                        />
-                                    )}
-                                />
+                            <div className="form-field">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Port <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="port_id"
+                                        control={control}
+                                        rules={{ required: "Port is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={portSelectOptions}
+                                                placeholder="Select port"
+                                                searchPlaceholder="Search port..."
+                                                disabled={isBeingUpdated}
+                                                hasError={Boolean(errors.port_id)}
+                                            />
+                                        )}
+                                    />
+                                </div>
                                 {errors.port_id && (
-                                    <span className="error text-danger">{errors.port_id.message}</span>
+                                    <span className="field-error">{errors.port_id.message}</span>
                                 )}
                             </div>
                         </div>

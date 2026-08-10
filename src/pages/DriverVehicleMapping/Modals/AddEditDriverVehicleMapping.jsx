@@ -221,72 +221,78 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
 
                     {/* DRIVER SELECT */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Driver <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="driver_id"
-                                control={control}
-                                rules={{ required: "Driver is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={driverSelectOptions}
-                                        placeholder="Select Driver"
-                                        searchPlaceholder="Search driver..."
-                                        hasError={Boolean(errors.driver_id)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Driver <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="driver_id"
+                                    control={control}
+                                    rules={{ required: "Driver is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={driverSelectOptions}
+                                            placeholder="Select Driver"
+                                            searchPlaceholder="Search driver..."
+                                            hasError={Boolean(errors.driver_id)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.driver_id && (
-                                <span className="error text-danger">{errors.driver_id.message}</span>
+                                <span className="field-error">{errors.driver_id.message}</span>
                             )}
                         </div>
                     </div>
 
                     {/* VEHICLE SELECT */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Vehicle <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="vehicle_type_id"
-                                control={control}
-                                rules={{ required: "Vehicle is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={vehicleSelectOptions}
-                                        placeholder="Select Vehicle"
-                                        searchPlaceholder="Search vehicle..."
-                                        hasError={Boolean(errors.vehicle_type_id)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Vehicle <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="vehicle_type_id"
+                                    control={control}
+                                    rules={{ required: "Vehicle is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={vehicleSelectOptions}
+                                            placeholder="Select Vehicle"
+                                            searchPlaceholder="Search vehicle..."
+                                            hasError={Boolean(errors.vehicle_type_id)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.vehicle_type_id && (
-                                <span className="error text-danger">{errors.vehicle_type_id.message}</span>
+                                <span className="field-error">{errors.vehicle_type_id.message}</span>
                             )}
                         </div>
                     </div>
 
                     {/* PLATE NO */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                type="text"
-                                className={`form-control ${errors.plate_no ? "is-invalid" : ""}`}
-                                placeholder=" "
-                                {...register("plate_no", { required: "Plate number is required" })}
-                            />
-                            <label>
-                                Plate No <span className="text-danger">*</span>
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    type="text"
+                                    className={`form-control ${errors.plate_no ? "is-invalid" : ""}`}
+                                    placeholder=" "
+                                    {...register("plate_no", { required: "Plate number is required" })}
+                                />
+                                <label>
+                                    Plate No <span className="text-danger">*</span>
+                                </label>
+                            </div>
                             {errors.plate_no && (
-                                <span className="error text-danger">{errors.plate_no.message}</span>
+                                <span className="field-error">{errors.plate_no.message}</span>
                             )}
                         </div>
                     </div>

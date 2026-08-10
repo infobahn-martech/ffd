@@ -143,48 +143,52 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.operator_name ? "is-invalid" : ""}`}
-                                        placeholder="Operator Name"
-                                        {...register("operator_name", {
-                                            required: "Operator name is required",
-                                            pattern: {
-                                                value: /^[A-Za-z\s]+$/,
-                                                message: "Operator name cannot contain numbers or special characters",
-                                            },
-                                            onChange: (e) => {
-                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                                            },
-                                        })}
-                                    />
-                                    <label>Operator Name <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.operator_name ? "is-invalid" : ""}`}
+                                            placeholder="Operator Name"
+                                            {...register("operator_name", {
+                                                required: "Operator name is required",
+                                                pattern: {
+                                                    value: /^[A-Za-z\s]+$/,
+                                                    message: "Operator name cannot contain numbers or special characters",
+                                                },
+                                                onChange: (e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                                },
+                                            })}
+                                        />
+                                        <label>Operator Name <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.operator_name && (
-                                        <span className="error text-danger">{errors.operator_name.message}</span>
+                                        <span className="field-error">{errors.operator_name.message}</span>
                                     )}
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.contact_person ? "is-invalid" : ""}`}
-                                        placeholder="Contact Person"
-                                        {...register("contact_person", {
-                                            required: "Contact person is required",
-                                            pattern: {
-                                                value: /^[A-Za-z\s]+$/,
-                                                message: "Contact person cannot contain numbers or special characters",
-                                            },
-                                            onChange: (e) => {
-                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                                            },
-                                        })}
-                                    />
-                                    <label>Contact Person <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.contact_person ? "is-invalid" : ""}`}
+                                            placeholder="Contact Person"
+                                            {...register("contact_person", {
+                                                required: "Contact person is required",
+                                                pattern: {
+                                                    value: /^[A-Za-z\s]+$/,
+                                                    message: "Contact person cannot contain numbers or special characters",
+                                                },
+                                                onChange: (e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                                },
+                                            })}
+                                        />
+                                        <label>Contact Person <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.contact_person && (
-                                        <span className="error text-danger">{errors.contact_person.message}</span>
+                                        <span className="field-error">{errors.contact_person.message}</span>
                                     )}
                                 </div>
                             </div>
@@ -195,50 +199,54 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="email"
-                                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                                        placeholder="Email"
-                                        {...register("email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email",
-                                            },
-                                        })}
-                                    />
-                                    <label>Email <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="email"
+                                            className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                                            placeholder="Email"
+                                            {...register("email", {
+                                                required: "Email is required",
+                                                pattern: {
+                                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                    message: "Enter a valid email",
+                                                },
+                                            })}
+                                        />
+                                        <label>Email <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.email && (
-                                        <span className="error text-danger">{errors.email.message}</span>
+                                        <span className="field-error">{errors.email.message}</span>
                                     )}
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">Contact No</label>
-                                    <Controller
-                                        name="contact_no"
-                                        control={control}
-                                        rules={{
-                                            validate: (value) => {
-                                                if (!value) return true;
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return digits.length >= 7 || "Enter a valid phone number";
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">Contact No</label>
+                                        <Controller
+                                            name="contact_no"
+                                            control={control}
+                                            rules={{
+                                                validate: (value) => {
+                                                    if (!value) return true;
+                                                    const digits = (value || "").replace(/\D/g, "");
+                                                    return digits.length >= 7 || "Enter a valid phone number";
+                                                },
+                                            }}
+                                            render={({ field }) => (
+                                                <PhoneInput
+                                                    {...field}
+                                                    country="sa"
+                                                    enableSearch
+                                                    inputClass="phone-input"
+                                                    buttonClass="phone-flag"
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.contact_no && (
-                                        <span className="error text-danger">{errors.contact_no.message}</span>
+                                        <span className="field-error">{errors.contact_no.message}</span>
                                     )}
                                 </div>
                             </div>
@@ -249,14 +257,16 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="License No"
-                                        {...register("license_no")}
-                                    />
-                                    <label>License No</label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="License No"
+                                            {...register("license_no")}
+                                        />
+                                        <label>License No</label>
+                                    </div>
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
@@ -264,24 +274,26 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     name="license_expiry"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.license_expiry)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>License Expiry</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.license_expiry)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>License Expiry</label>
+                                            </div>
                                             {errors?.license_expiry ? (
-                                                <span className="error text-danger">{errors.license_expiry.message}</span>
+                                                <span className="field-error">{errors.license_expiry.message}</span>
                                             ) : null}
                                         </div>
                                     )}
@@ -298,24 +310,26 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     name="contract_start_date"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.contract_start_date)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>Contract Start Date</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.contract_start_date)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>Contract Start Date</label>
+                                            </div>
                                             {errors?.contract_start_date ? (
-                                                <span className="error text-danger">{errors.contract_start_date.message}</span>
+                                                <span className="field-error">{errors.contract_start_date.message}</span>
                                             ) : null}
                                         </div>
                                     )}
@@ -326,24 +340,26 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     name="contract_expiry_date"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.contract_expiry_date)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>Contract Expiry Date</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.contract_expiry_date)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>Contract Expiry Date</label>
+                                            </div>
                                             {errors?.contract_expiry_date ? (
-                                                <span className="error text-danger">{errors.contract_expiry_date.message}</span>
+                                                <span className="field-error">{errors.contract_expiry_date.message}</span>
                                             ) : null}
                                         </div>
                                     )}
@@ -357,21 +373,23 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                         <div className="mb-lg-3 mb-sm-0">
                             <div className="permInputs row">
                                 <div className="col-lg-6 col-sm-12">
-                                    <div className="phone-wrapper">
-                                        <label className="phone-label">Status</label>
-                                        <Controller
-                                            name="status"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <PremiumSelect
-                                                    value={field.value != null ? String(field.value) : ""}
-                                                    onChange={(e) => field.onChange(e.target.value)}
-                                                    options={OPERATOR_STATUS_OPTIONS}
-                                                    placeholder="Select status..."
-                                                    searchPlaceholder="Search status..."
-                                                />
-                                            )}
-                                        />
+                                    <div className="form-field">
+                                        <div className="phone-wrapper">
+                                            <label className="phone-label">Status</label>
+                                            <Controller
+                                                name="status"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <PremiumSelect
+                                                        value={field.value != null ? String(field.value) : ""}
+                                                        onChange={(e) => field.onChange(e.target.value)}
+                                                        options={OPERATOR_STATUS_OPTIONS}
+                                                        placeholder="Select status..."
+                                                        searchPlaceholder="Search status..."
+                                                    />
+                                                )}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

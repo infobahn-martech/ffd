@@ -22,18 +22,6 @@
     }
 }
 
-// prospect-modal.scss's global `span.error.text-danger` rule absolutely
-// positions field errors to the bottom of the nearest positioned ancestor
-// (here .modal-body), so the message renders next to the footer buttons
-// instead of under its field. Same override pattern used by other modals
-// (AddEditCGPassTemplate.scss, AddEditVesselRegistrationTemplate.scss).
-.lead-form span.error.text-danger {
-    position: static;
-    display: block;
-    font-size: 11px;
-    margin-top: 4px;
-}
-
 // Add proper spacing between form sections in coordinates modal
 .lead-form {
     .mb-lg-3 {

@@ -111,33 +111,37 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
           <div className="permInputs row mb-lg-3">
 
             <div className="col-lg-6 col-sm-12 mb-3">
-              <div className="form-floating desig-inp">
-                <input
-                  className={`form-control ${errors.billingEntityName ? "is-invalid" : ""}`}
-                  placeholder="Billing Entity Name"
-                  disabled={isEdit}
-                  {...register("billingEntityName", { required: !isEdit && "Billing Entity Name is required" })}
-                />
-                <label>Billing Entity Name <span className="text-danger">*</span></label>
+              <div className="form-field">
+                <div className="form-floating desig-inp">
+                  <input
+                    className={`form-control ${errors.billingEntityName ? "is-invalid" : ""}`}
+                    placeholder="Billing Entity Name"
+                    disabled={isEdit}
+                    {...register("billingEntityName", { required: !isEdit && "Billing Entity Name is required" })}
+                  />
+                  <label>Billing Entity Name <span className="text-danger">*</span></label>
+                </div>
                 {errors.billingEntityName && (
-                  <span className="error text-danger">{errors.billingEntityName.message}</span>
+                  <span className="field-error">{errors.billingEntityName.message}</span>
                 )}
               </div>
             </div>
 
             <div className="col-lg-6 col-sm-12 mb-3">
-              <div className="form-floating desig-inp">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className={`form-control ${errors.creditLimit ? "is-invalid" : ""}`}
-                  placeholder="Credit Limit"
-                  {...register("creditLimit")}
-                />
-                <label>Credit Limit</label>
+              <div className="form-field">
+                <div className="form-floating desig-inp">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className={`form-control ${errors.creditLimit ? "is-invalid" : ""}`}
+                    placeholder="Credit Limit"
+                    {...register("creditLimit")}
+                  />
+                  <label>Credit Limit</label>
+                </div>
                 {errors.creditLimit && (
-                  <span className="error text-danger">{errors.creditLimit.message}</span>
+                  <span className="field-error">{errors.creditLimit.message}</span>
                 )}
               </div>
             </div>

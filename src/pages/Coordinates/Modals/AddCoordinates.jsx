@@ -228,7 +228,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="coordinatesForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="mb-lg-3 mb-sm-0 coordinates-type-wrapper">
+                    <div className="mb-lg-3 mb-sm-0 coordinates-type-wrapper form-field">
                         <label className="phone-label" htmlFor="coordinates-type-select">
                             Coordinate <span className="text-danger">*</span>
                         </label>
@@ -395,7 +395,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                             }}
                         />
                         {errors.coordinateType && (
-                            <span className="error text-danger d-block mt-1 small">
+                            <span className="field-error">
                                 {errors.coordinateType.message}
                             </span>
                         )}
@@ -465,7 +465,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                             ))}
                         </div>
                         {coordinatesListError && (
-                            <span className="error text-danger d-block coordinates-list-error small">
+                            <span className="field-error coordinates-list-error">
                                 {coordinatesListError}
                             </span>
                         )}

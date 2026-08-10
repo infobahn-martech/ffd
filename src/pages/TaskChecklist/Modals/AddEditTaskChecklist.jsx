@@ -75,31 +75,33 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="taskChecklistForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Select Role <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="role_id"
-                                control={control}
-                                rules={{ required: "Role is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={roleOptions.map((option) => ({
-                                            value: String(option.value),
-                                            label: String(option.label ?? ""),
-                                        }))}
-                                        placeholder="Select Role"
-                                        searchPlaceholder="Search role..."
-                                        disabled={isBeingUpdated}
-                                        hasError={Boolean(errors.role_id)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Select Role <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="role_id"
+                                    control={control}
+                                    rules={{ required: "Role is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={roleOptions.map((option) => ({
+                                                value: String(option.value),
+                                                label: String(option.label ?? ""),
+                                            }))}
+                                            placeholder="Select Role"
+                                            searchPlaceholder="Search role..."
+                                            disabled={isBeingUpdated}
+                                            hasError={Boolean(errors.role_id)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.role_id && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.role_id.message}
                                 </span>
                             )}
@@ -107,36 +109,38 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Select Task <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="task_ids"
-                                control={control}
-                                rules={{
-                                    validate: (value) =>
-                                        (Array.isArray(value) && value.length > 0) ||
-                                        "At least one task is required",
-                                }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        isMulti
-                                        value={(field.value || []).map(String)}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={taskOptions.map((option) => ({
-                                            value: String(option.value),
-                                            label: String(option.label ?? ""),
-                                        }))}
-                                        placeholder="Select Task(s)"
-                                        searchPlaceholder="Search task..."
-                                        disabled={isBeingUpdated}
-                                        hasError={Boolean(errors.task_ids)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Select Task <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="task_ids"
+                                    control={control}
+                                    rules={{
+                                        validate: (value) =>
+                                            (Array.isArray(value) && value.length > 0) ||
+                                            "At least one task is required",
+                                    }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            isMulti
+                                            value={(field.value || []).map(String)}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={taskOptions.map((option) => ({
+                                                value: String(option.value),
+                                                label: String(option.label ?? ""),
+                                            }))}
+                                            placeholder="Select Task(s)"
+                                            searchPlaceholder="Search task..."
+                                            disabled={isBeingUpdated}
+                                            hasError={Boolean(errors.task_ids)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.task_ids && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.task_ids.message}
                                 </span>
                             )}

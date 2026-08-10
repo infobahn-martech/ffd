@@ -73,17 +73,19 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
                 <form id="documentManagementForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 mb-3">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                                    placeholder="Name"
-                                    {...register("name", { required: "Name is required" })}
-                                />
-                                <label>
-                                    Name <span className="text-danger">*</span>
-                                </label>
+                            <div className="form-field">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                                        placeholder="Name"
+                                        {...register("name", { required: "Name is required" })}
+                                    />
+                                    <label>
+                                        Name <span className="text-danger">*</span>
+                                    </label>
+                                </div>
                                 {errors.name && (
-                                    <span className="error text-danger">{errors.name.message}</span>
+                                    <span className="field-error">{errors.name.message}</span>
                                 )}
                             </div>
                         </div>

@@ -87,7 +87,7 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
                 <form id="vehicleForm" onSubmit={handleSubmit(onSubmit)}>
 
                     {/* VEHICLE TYPE */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="form-floating desig-inp">
                             <input
                                 className={`form-control ${errors.vehicle_type ? "is-invalid" : ""
@@ -100,16 +100,16 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
                             <label>
                                 Vehicle Type <span className="text-danger">*</span>
                             </label>
-                            {errors.vehicle_type && (
-                                <span className="error text-danger">
-                                    {errors.vehicle_type.message}
-                                </span>
-                            )}
                         </div>
+                        {errors.vehicle_type && (
+                            <span className="field-error">
+                                {errors.vehicle_type.message}
+                            </span>
+                        )}
                     </div>
 
                     {/* VEHICLE PURPOSE */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="form-field">
                         <div className="phone-wrapper">
                             <label className="phone-label">
                                 Vehicle Purpose <span className="text-danger">*</span>
@@ -133,17 +133,17 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
                                     />
                                 )}
                             />
-                            {errors.vehicle_purpose && (
-                                <span className="error text-danger">
-                                    {errors.vehicle_purpose.message}
-                                </span>
-                            )}
                         </div>
+                        {errors.vehicle_purpose && (
+                            <span className="field-error">
+                                {errors.vehicle_purpose.message}
+                            </span>
+                        )}
                     </div>
 
                     {/* SEATER - Only show when Crew Transport is selected */}
                     {showSeater && (
-                        <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-field">
                             <div className="form-floating desig-inp">
                                 <input
                                     type="number"
@@ -161,12 +161,12 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
                                 <label>
                                     Seater <span className="text-danger">*</span>
                                 </label>
-                                {errors.seater && (
-                                    <span className="error text-danger">
-                                        {errors.seater.message}
-                                    </span>
-                                )}
                             </div>
+                            {errors.seater && (
+                                <span className="field-error">
+                                    {errors.seater.message}
+                                </span>
+                            )}
                         </div>
                     )}
 

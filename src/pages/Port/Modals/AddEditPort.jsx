@@ -54,30 +54,34 @@ export function PortModal({ showModal, closeModal }) {
 
     {/* Port Name */}
     <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.portName ? "is-invalid" : ""}`}
-          placeholder="Port Name"
-          {...register("portName", { required: "Port Name is required" })}
-        />
-        <label>Port Name <span className="text-danger">*</span></label>
+      <div className="form-field">
+        <div className="form-floating desig-inp">
+          <input
+            className={`form-control ${errors.portName ? "is-invalid" : ""}`}
+            placeholder="Port Name"
+            {...register("portName", { required: "Port Name is required" })}
+          />
+          <label>Port Name <span className="text-danger">*</span></label>
+        </div>
         {errors.portName && (
-          <span className="error text-danger">{errors.portName.message}</span>
+          <span className="field-error">{errors.portName.message}</span>
         )}
       </div>
     </div>
 
     {/* Location */}
     <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.location ? "is-invalid" : ""}`}
-          placeholder="Location"
-          {...register("location", { required: "Location is required" })}
-        />
-        <label>Location <span className="text-danger">*</span></label>
+      <div className="form-field">
+        <div className="form-floating desig-inp">
+          <input
+            className={`form-control ${errors.location ? "is-invalid" : ""}`}
+            placeholder="Location"
+            {...register("location", { required: "Location is required" })}
+          />
+          <label>Location <span className="text-danger">*</span></label>
+        </div>
         {errors.location && (
-          <span className="error text-danger">{errors.location.message}</span>
+          <span className="field-error">{errors.location.message}</span>
         )}
       </div>
     </div>
@@ -89,15 +93,17 @@ export function PortModal({ showModal, closeModal }) {
 
     {/* Contact Person */}
     <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.contactPerson ? "is-invalid" : ""}`}
-          placeholder="Contact Person"
-          {...register("contactPerson", { required: "Contact Person is required" })}
-        />
-        <label>Contact Person <span className="text-danger">*</span></label>
+      <div className="form-field">
+        <div className="form-floating desig-inp">
+          <input
+            className={`form-control ${errors.contactPerson ? "is-invalid" : ""}`}
+            placeholder="Contact Person"
+            {...register("contactPerson", { required: "Contact Person is required" })}
+          />
+          <label>Contact Person <span className="text-danger">*</span></label>
+        </div>
         {errors.contactPerson && (
-          <span className="error text-danger">{errors.contactPerson.message}</span>
+          <span className="field-error">{errors.contactPerson.message}</span>
         )}
       </div>
     </div>
@@ -105,35 +111,37 @@ export function PortModal({ showModal, closeModal }) {
     {/* Phone */}
 {/* Phone */}
 <div className="col-lg-6 col-sm-12 mb-3">
-  <div className="phone-wrapper">
-    <label className="phone-label">
-      Phone <span className="text-danger">*</span>
-    </label>
+  <div className="form-field">
+    <div className="phone-wrapper">
+      <label className="phone-label">
+        Phone <span className="text-danger">*</span>
+      </label>
 
-    <Controller
-      name="phone"
-      control={control}
-      rules={{
-        required: "Phone is required",
-        validate: (value) => {
-          const digits = (value || "").replace(/\D/g, "");
-          return digits.length >= 7 || "Enter a valid phone number";
-        },
-      }}
-      render={({ field }) => (
-        <PhoneInput
-          {...field}
-          country="ae"
-          enableSearch
-          inputClass="phone-input"
-          buttonClass="phone-flag"
-          placeholder=""
-        />
-      )}
-    />
+      <Controller
+        name="phone"
+        control={control}
+        rules={{
+          required: "Phone is required",
+          validate: (value) => {
+            const digits = (value || "").replace(/\D/g, "");
+            return digits.length >= 7 || "Enter a valid phone number";
+          },
+        }}
+        render={({ field }) => (
+          <PhoneInput
+            {...field}
+            country="ae"
+            enableSearch
+            inputClass="phone-input"
+            buttonClass="phone-flag"
+            placeholder=""
+          />
+        )}
+      />
+    </div>
 
     {errors.phone && (
-      <span className="error text-danger">{errors.phone.message}</span>
+      <span className="field-error">{errors.phone.message}</span>
     )}
   </div>
 </div>
@@ -146,41 +154,45 @@ export function PortModal({ showModal, closeModal }) {
 
     {/* Primary Email */}
     <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.primaryEmail ? "is-invalid" : ""}`}
-          placeholder="Primary Email"
-          {...register("primaryEmail", {
-            required: "Primary Email is required",
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Invalid email format",
-            },
-          })}
-        />
-        <label>Primary Email <span className="text-danger">*</span></label>
+      <div className="form-field">
+        <div className="form-floating desig-inp">
+          <input
+            className={`form-control ${errors.primaryEmail ? "is-invalid" : ""}`}
+            placeholder="Primary Email"
+            {...register("primaryEmail", {
+              required: "Primary Email is required",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Invalid email format",
+              },
+            })}
+          />
+          <label>Primary Email <span className="text-danger">*</span></label>
+        </div>
         {errors.primaryEmail && (
-          <span className="error text-danger">{errors.primaryEmail.message}</span>
+          <span className="field-error">{errors.primaryEmail.message}</span>
         )}
       </div>
     </div>
 
     {/* Secondary Email */}
     <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className="form-control"
-          placeholder="Secondary Email"
-          {...register("secondaryEmail", {
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Invalid email format",
-            },
-          })}
-        />
-        <label>Secondary Email</label>
+      <div className="form-field">
+        <div className="form-floating desig-inp">
+          <input
+            className="form-control"
+            placeholder="Secondary Email"
+            {...register("secondaryEmail", {
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Invalid email format",
+              },
+            })}
+          />
+          <label>Secondary Email</label>
+        </div>
         {errors.secondaryEmail && (
-          <span className="error text-danger">{errors.secondaryEmail.message}</span>
+          <span className="field-error">{errors.secondaryEmail.message}</span>
         )}
       </div>
     </div>
@@ -190,14 +202,16 @@ export function PortModal({ showModal, closeModal }) {
   {/* ROW 4 — Address FULL WIDTH */}
   <div className="permInputs row mb-lg-3">
     <div className="col-12">
-      <div className="form-floating desig-inp">
-        <textarea
-          className="form-control"
-          placeholder="Address"
-          style={{ height: "100px" }}
-          {...register("address")}
-        ></textarea>
-        <label>Address</label>
+      <div className="form-field">
+        <div className="form-floating desig-inp">
+          <textarea
+            className="form-control"
+            placeholder="Address"
+            style={{ height: "100px" }}
+            {...register("address")}
+          ></textarea>
+          <label>Address</label>
+        </div>
       </div>
     </div>
   </div>

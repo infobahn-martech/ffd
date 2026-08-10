@@ -612,51 +612,55 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               <div className="col-lg-6 col-sm-12">
-                <div className="desig-inp">
-                  <label className="mb-2 d-block">
-                    Port <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="port_id"
-                    control={control}
-                    rules={{ required: 'Port is required' }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ''}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={(ports ?? []).map((p) => {
-                          const id = p?.port_id ?? p?._id ?? p?.id;
-                          return {
-                            value: String(id ?? ''),
-                            label: String(p?.port ?? p?.name ?? p?.port_name ?? id ?? ''),
-                          };
-                        })}
-                        placeholder="Select Port"
-                        searchPlaceholder="Search port..."
-                        hasError={Boolean(errors.port_id)}
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="desig-inp">
+                    <label className="mb-2 d-block">
+                      Port <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="port_id"
+                      control={control}
+                      rules={{ required: 'Port is required' }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ''}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={(ports ?? []).map((p) => {
+                            const id = p?.port_id ?? p?._id ?? p?.id;
+                            return {
+                              value: String(id ?? ''),
+                              label: String(p?.port ?? p?.name ?? p?.port_name ?? id ?? ''),
+                            };
+                          })}
+                          placeholder="Select Port"
+                          searchPlaceholder="Search port..."
+                          hasError={Boolean(errors.port_id)}
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.port_id && (
-                    <span className="error text-danger">{errors.port_id.message}</span>
+                    <span className="field-error">{errors.port_id.message}</span>
                   )}
                 </div>
               </div>
 
               <div className="col-lg-6 col-sm-12">
-                <div className="desig-inp">
-                  <label className="mb-2 d-block">
-                    Template Name <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter template name"
-                    dir="auto"
-                    {...register('template_name', { required: 'Template name is required' })}
-                  />
+                <div className="form-field">
+                  <div className="desig-inp">
+                    <label className="mb-2 d-block">
+                      Template Name <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter template name"
+                      dir="auto"
+                      {...register('template_name', { required: 'Template name is required' })}
+                    />
+                  </div>
                   {errors.template_name && (
-                    <span className="error text-danger">{errors.template_name.message}</span>
+                    <span className="field-error">{errors.template_name.message}</span>
                   )}
                 </div>
               </div>
@@ -666,15 +670,17 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               <div className="col-12">
-                <div className="desig-inp">
-                  <label className="mb-2 d-block">Description</label>
-                  <textarea
-                    className="form-control"
-                    placeholder=""
-                    rows={3}
-                    dir="rtl"
-                    {...register('description')}
-                  />
+                <div className="form-field">
+                  <div className="desig-inp">
+                    <label className="mb-2 d-block">Description</label>
+                    <textarea
+                      className="form-control"
+                      placeholder=""
+                      rows={3}
+                      dir="rtl"
+                      {...register('description')}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -683,27 +689,29 @@ export function AddEditVesselRegistrationTemplateModal({ showModal, closeModal, 
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               <div className="col-12">
-                <div className="desig-inp">
-                  <label className="mb-2 d-block">
-                    Content <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="content"
-                    control={control}
-                    rules={{
-                      required: 'Content is required',
-                      validate: (v) => !isHtmlEmpty(v) || 'Content is required',
-                    }}
-                    render={({ field }) => (
-                      <QuillEditor
-                        value={field.value || ''}
-                        onChange={field.onChange}
-                        placeholder="Enter content..."
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="desig-inp">
+                    <label className="mb-2 d-block">
+                      Content <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="content"
+                      control={control}
+                      rules={{
+                        required: 'Content is required',
+                        validate: (v) => !isHtmlEmpty(v) || 'Content is required',
+                      }}
+                      render={({ field }) => (
+                        <QuillEditor
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          placeholder="Enter content..."
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.content && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.content.message}
                     </span>
                   )}

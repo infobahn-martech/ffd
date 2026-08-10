@@ -63,19 +63,21 @@ export function MaterialTypeModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="materialTypeForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                className={`form-control ${errors.material_type ? "is-invalid" : ""}`}
-                                placeholder="Material Type"
-                                {...register("material_type", {
-                                    required: "Material type is required",
-                                })}
-                            />
-                            <label>
-                                Material Type <span className="text-danger">*</span>
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    className={`form-control ${errors.material_type ? "is-invalid" : ""}`}
+                                    placeholder="Material Type"
+                                    {...register("material_type", {
+                                        required: "Material type is required",
+                                    })}
+                                />
+                                <label>
+                                    Material Type <span className="text-danger">*</span>
+                                </label>
+                            </div>
                             {errors.material_type && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.material_type.message}
                                 </span>
                             )}

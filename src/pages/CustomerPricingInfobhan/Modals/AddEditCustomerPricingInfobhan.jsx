@@ -186,30 +186,32 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                         <div className="cf-field-grid-2">
 
                             <div className="cpi-field">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Service Code <span className="text-danger">*</span>
-                                    </label>
-                                    <Controller
-                                        name="service_code_id"
-                                        control={control}
-                                        rules={{ required: "Service Code is required" }}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                options={serviceCodeOptions}
-                                                placeholder={
-                                                    isLoadingServiceCodes ? "Loading..." : "Select Service Code"
-                                                }
-                                                searchPlaceholder="Search service code..."
-                                                hasError={Boolean(errors.service_code_id)}
-                                                disabled={isEdit}
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Service Code <span className="text-danger">*</span>
+                                        </label>
+                                        <Controller
+                                            name="service_code_id"
+                                            control={control}
+                                            rules={{ required: "Service Code is required" }}
+                                            render={({ field }) => (
+                                                <PremiumSelect
+                                                    value={field.value != null ? String(field.value) : ""}
+                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    options={serviceCodeOptions}
+                                                    placeholder={
+                                                        isLoadingServiceCodes ? "Loading..." : "Select Service Code"
+                                                    }
+                                                    searchPlaceholder="Search service code..."
+                                                    hasError={Boolean(errors.service_code_id)}
+                                                    disabled={isEdit}
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.service_code_id && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.service_code_id.message}
                                         </span>
                                     )}
@@ -217,50 +219,56 @@ export function AddEditCustomerPricingInfobhan({ showModal, closeModal, onSucces
                             </div>
 
                             <div className="cpi-field">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        className="form-control"
-                                        placeholder="Item Code"
-                                        disabled={isEdit}
-                                        {...register("item_code", { required: "Item Code is required" })}
-                                    />
-                                    <label>Item Code <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            className="form-control"
+                                            placeholder="Item Code"
+                                            disabled={isEdit}
+                                            {...register("item_code", { required: "Item Code is required" })}
+                                        />
+                                        <label>Item Code <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.item_code && (
-                                        <span className="error text-danger">{errors.item_code.message}</span>
+                                        <span className="field-error">{errors.item_code.message}</span>
                                     )}
                                 </div>
                             </div>
 
                             <div className="cpi-field">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        className="form-control"
-                                        placeholder="Item Name"
-                                        {...register("item_name", { required: "Item Name is required" })}
-                                    />
-                                    <label>Item Name <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            className="form-control"
+                                            placeholder="Item Name"
+                                            {...register("item_name", { required: "Item Name is required" })}
+                                        />
+                                        <label>Item Name <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.item_name && (
-                                        <span className="error text-danger">{errors.item_name.message}</span>
+                                        <span className="field-error">{errors.item_name.message}</span>
                                     )}
                                 </div>
                             </div>
 
                             <div className="cpi-field">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        className="form-control"
-                                        placeholder="Default Price"
-                                        {...register("default_price", {
-                                            required: "Default Price is required",
-                                            validate: (v) =>
-                                                (v !== "" && !isNaN(Number(v))) || "Default Price must be numeric",
-                                        })}
-                                    />
-                                    <label>Default Price <span className="text-danger">*</span></label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            className="form-control"
+                                            placeholder="Default Price"
+                                            {...register("default_price", {
+                                                required: "Default Price is required",
+                                                validate: (v) =>
+                                                    (v !== "" && !isNaN(Number(v))) || "Default Price must be numeric",
+                                            })}
+                                        />
+                                        <label>Default Price <span className="text-danger">*</span></label>
+                                    </div>
                                     {errors.default_price && (
-                                        <span className="error text-danger">{errors.default_price.message}</span>
+                                        <span className="field-error">{errors.default_price.message}</span>
                                     )}
                                 </div>
                             </div>

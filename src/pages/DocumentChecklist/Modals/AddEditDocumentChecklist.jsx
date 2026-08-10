@@ -76,31 +76,33 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="documentChecklistForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Select Role <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="role_id"
-                                control={control}
-                                rules={{ required: "Role is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={roleOptions.map((option) => ({
-                                            value: String(option.value),
-                                            label: String(option.label ?? ""),
-                                        }))}
-                                        placeholder="Select Role"
-                                        searchPlaceholder="Search role..."
-                                        disabled={isBeingUpdated}
-                                        hasError={Boolean(errors.role_id)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Select Role <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="role_id"
+                                    control={control}
+                                    rules={{ required: "Role is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={roleOptions.map((option) => ({
+                                                value: String(option.value),
+                                                label: String(option.label ?? ""),
+                                            }))}
+                                            placeholder="Select Role"
+                                            searchPlaceholder="Search role..."
+                                            disabled={isBeingUpdated}
+                                            hasError={Boolean(errors.role_id)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.role_id && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.role_id.message}
                                 </span>
                             )}
@@ -108,46 +110,48 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="desig-inp document-checklist-select-wrap">
-                            <label className="mb-2 d-block">
-                                Select Document <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="document_ids"
-                                control={control}
-                                rules={{
-                                    validate: (value) =>
-                                        (Array.isArray(value) && value.length > 0) ||
-                                        "At least one document is required",
-                                }}
-                                render={({ field }) => {
-                                    const selectedDocumentOptions = documentOptions.filter((option) =>
-                                        (field.value || []).map(String).includes(String(option.value)),
-                                    );
+                        <div className="form-field">
+                            <div className="desig-inp document-checklist-select-wrap">
+                                <label className="mb-2 d-block">
+                                    Select Document <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="document_ids"
+                                    control={control}
+                                    rules={{
+                                        validate: (value) =>
+                                            (Array.isArray(value) && value.length > 0) ||
+                                            "At least one document is required",
+                                    }}
+                                    render={({ field }) => {
+                                        const selectedDocumentOptions = documentOptions.filter((option) =>
+                                            (field.value || []).map(String).includes(String(option.value)),
+                                        );
 
-                                    return (
-                                        <CommonSelect
-                                            isMulti
-                                            options={documentOptions}
-                                            value={selectedDocumentOptions}
-                                            onChange={(selected) => {
-                                                const values = Array.isArray(selected)
-                                                    ? selected.map((item) => String(item.value))
-                                                    : [];
-                                                field.onChange(values);
-                                            }}
-                                            placeholder="Select Document(s)"
-                                            className={`document-checklist-select ${errors.document_ids ? "is-invalid" : ""}`}
-                                            classNamePrefix="react-select"
-                                            isDisabled={isBeingUpdated}
-                                            menuPosition="fixed"
-                                            maxheight={220}
-                                        />
-                                    );
-                                }}
-                            />
+                                        return (
+                                            <CommonSelect
+                                                isMulti
+                                                options={documentOptions}
+                                                value={selectedDocumentOptions}
+                                                onChange={(selected) => {
+                                                    const values = Array.isArray(selected)
+                                                        ? selected.map((item) => String(item.value))
+                                                        : [];
+                                                    field.onChange(values);
+                                                }}
+                                                placeholder="Select Document(s)"
+                                                className={`document-checklist-select ${errors.document_ids ? "is-invalid" : ""}`}
+                                                classNamePrefix="react-select"
+                                                isDisabled={isBeingUpdated}
+                                                menuPosition="fixed"
+                                                maxheight={220}
+                                            />
+                                        );
+                                    }}
+                                />
+                            </div>
                             {errors.document_ids && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.document_ids.message}
                                 </span>
                             )}

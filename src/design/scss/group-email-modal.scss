@@ -1,15 +1,3 @@
-// prospect-modal.scss's global `span.error.text-danger` rule absolutely
-// positions field errors to the bottom of the nearest positioned ancestor
-// (here .modal-body), so the email row error would float away from its
-// field instead of sitting under it. Same override pattern used by
-// coordinates-modal.scss.
-.lead-form span.error.text-danger {
-    position: static;
-    display: block;
-    font-size: 11px;
-    margin-top: 4px;
-}
-
 .group-email-modal {
     &.modal-body {
         max-height: 60vh;
@@ -81,14 +69,6 @@
                 border-color: #e2e2ea;
                 box-shadow: none;
             }
-        }
-
-        // error message below the field, not overlapping
-        .error.text-danger {
-            position: static !important;
-            display: block;
-            font-size: 11px;
-            margin-top: 4px;
         }
     }
 

@@ -58,20 +58,22 @@ export function PackingTypeModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="packingTypeForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                className={`form-control ${errors.package_type ? "is-invalid" : ""}`}
-                                placeholder="Packaging Type Name"
-                                {...register("package_type", {
-                                    required: "Packaging type name is required"
-                                })}
-                            />
-                            <label>
-                                Packaging Type <span className="text-danger">*</span>
-                            </label>
+                        <div className="form-field">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    className={`form-control ${errors.package_type ? "is-invalid" : ""}`}
+                                    placeholder="Packaging Type Name"
+                                    {...register("package_type", {
+                                        required: "Packaging type name is required"
+                                    })}
+                                />
+                                <label>
+                                    Packaging Type <span className="text-danger">*</span>
+                                </label>
+                            </div>
 
                             {errors.package_type && (
-                                <span className="error text-danger">
+                                <span className="field-error">
                                     {errors.package_type.message}
                                 </span>
                             )}

@@ -159,28 +159,30 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             {/* DRIVER NAME */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.driver_name ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Driver Name"
-                                        {...register("driver_name", {
-                                            required: "Driver name is required",
-                                            pattern: {
-                                                value: /^[A-Za-z\s]+$/,
-                                                message: "Driver name cannot contain numbers or special characters",
-                                            },
-                                            onChange: (e) => {
-                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Driver Name <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.driver_name ? "is-invalid" : ""
+                                                }`}
+                                            placeholder="Driver Name"
+                                            {...register("driver_name", {
+                                                required: "Driver name is required",
+                                                pattern: {
+                                                    value: /^[A-Za-z\s]+$/,
+                                                    message: "Driver name cannot contain numbers or special characters",
+                                                },
+                                                onChange: (e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Driver Name <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.driver_name && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.driver_name.message}
                                         </span>
                                     )}
@@ -189,17 +191,19 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* EMPLOYEE NO */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.employee_no ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Driver No"
-                                        {...register("employee_no")}
-                                    />
-                                    <label>Driver No</label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.employee_no ? "is-invalid" : ""
+                                                }`}
+                                            placeholder="Driver No"
+                                            {...register("employee_no")}
+                                        />
+                                        <label>Driver No</label>
+                                    </div>
                                     {errors.employee_no && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.employee_no.message}
                                         </span>
                                     )}
@@ -217,24 +221,26 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                     name="joining_date"
                                     control={control}
                                     render={({ field }) => (
-                                        <div className="form-floating desig-inp add-edit-modal-date-field">
-                                            <DatePickerField
-                                                dateValue={field.value || ""}
-                                                dateFieldName={field.name}
-                                                onDateChange={(event) => field.onChange(event.target.value)}
-                                                hasError={Boolean(errors?.joining_date)}
-                                                placeholder=""
-                                                className="add-edit-modal-date-picker"
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                    },
-                                                }}
-                                            />
-                                            <label>Joining Date</label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp add-edit-modal-date-field">
+                                                <DatePickerField
+                                                    dateValue={field.value || ""}
+                                                    dateFieldName={field.name}
+                                                    onDateChange={(event) => field.onChange(event.target.value)}
+                                                    hasError={Boolean(errors?.joining_date)}
+                                                    placeholder=""
+                                                    className="add-edit-modal-date-picker"
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: "outlined",
+                                                            size: "small",
+                                                        },
+                                                    }}
+                                                />
+                                                <label>Joining Date</label>
+                                            </div>
                                             {errors?.joining_date ? (
-                                                <span className="error text-danger">{errors.joining_date.message}</span>
+                                                <span className="field-error">{errors.joining_date.message}</span>
                                             ) : null}
                                         </div>
                                     )}
@@ -243,14 +249,16 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* LOCATION */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.location ? "is-invalid" : ""}`}
-                                        placeholder="Location"
-                                        {...register("location")}
-                                    />
-                                    <label>Location</label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.location ? "is-invalid" : ""}`}
+                                            placeholder="Location"
+                                            {...register("location")}
+                                        />
+                                        <label>Location</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -261,37 +269,39 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             {/* CONTACT NO (PhoneInput) */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Contact No
-                                    </label>
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Contact No
+                                        </label>
 
-                                    <Controller
-                                        name="contact_no"
-                                        control={control}
-                                        rules={{
-                                            validate: (value) => {
-                                                if (!value) return true;
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return (
-                                                    digits.length >= 7 ||
-                                                    "Enter a valid phone number"
-                                                );
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
+                                        <Controller
+                                            name="contact_no"
+                                            control={control}
+                                            rules={{
+                                                validate: (value) => {
+                                                    if (!value) return true;
+                                                    const digits = (value || "").replace(/\D/g, "");
+                                                    return (
+                                                        digits.length >= 7 ||
+                                                        "Enter a valid phone number"
+                                                    );
+                                                },
+                                            }}
+                                            render={({ field }) => (
+                                                <PhoneInput
+                                                    {...field}
+                                                    country="sa"
+                                                    enableSearch
+                                                    inputClass="phone-input"
+                                                    buttonClass="phone-flag"
+                                                />
+                                            )}
+                                        />
+                                    </div>
 
                                     {errors.contact_no && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_no.message}
                                         </span>
                                     )}
@@ -300,21 +310,23 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* IQAMA NO */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.iqama_no ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Iqama No"
-                                        {...register("iqama_no", {
-                                            required: "Iqama number is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Iqama No <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.iqama_no ? "is-invalid" : ""
+                                                }`}
+                                            placeholder="Iqama No"
+                                            {...register("iqama_no", {
+                                                required: "Iqama number is required",
+                                            })}
+                                        />
+                                        <label>
+                                            Iqama No <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.iqama_no && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.iqama_no.message}
                                         </span>
                                     )}
@@ -327,34 +339,36 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">Nationality</label>
-                                    <Controller
-                                        name="nationality"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                options={(countries || []).map((c) => ({
-                                                    value: String(c.country_id ?? ""),
-                                                    label: String(
-                                                        c.country || c.country_code || c.country_id || "",
-                                                    ),
-                                                }))}
-                                                placeholder={
-                                                    isLoadingCountries || countries === null
-                                                        ? "Loading..."
-                                                        : "Select Nationality"
-                                                }
-                                                searchPlaceholder="Search nationality..."
-                                                disabled={isLoadingCountries || countries === null}
-                                                hasError={Boolean(errors.nationality)}
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">Nationality</label>
+                                        <Controller
+                                            name="nationality"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <PremiumSelect
+                                                    value={field.value != null ? String(field.value) : ""}
+                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    options={(countries || []).map((c) => ({
+                                                        value: String(c.country_id ?? ""),
+                                                        label: String(
+                                                            c.country || c.country_code || c.country_id || "",
+                                                        ),
+                                                    }))}
+                                                    placeholder={
+                                                        isLoadingCountries || countries === null
+                                                            ? "Loading..."
+                                                            : "Select Nationality"
+                                                    }
+                                                    searchPlaceholder="Search nationality..."
+                                                    disabled={isLoadingCountries || countries === null}
+                                                    hasError={Boolean(errors.nationality)}
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.nationality && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.nationality.message}
                                         </span>
                                     )}
@@ -363,61 +377,63 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* DRIVER FOR — Transport (1) / Material (2) */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Driver For <span className="text-danger">*</span>
-                                    </label>
-                                    <div
-                                        className="d-flex align-items-center flex-wrap gap-3 pt-2"
-                                        style={{ minHeight: 50 }}
-                                    >
-                                        <Controller
-                                            name="driver_for"
-                                            control={control}
-                                            rules={{ required: true }}
-                                            render={({ field }) => (
-                                                <>
-                                                    <div className="form-check form-check-inline mb-0">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="radio"
-                                                            id="driver_for_transport"
-                                                            checked={Number(field.value) === 1}
-                                                            onChange={() => field.onChange(1)}
-                                                            onBlur={field.onBlur}
-                                                            ref={field.ref}
-                                                            name={field.name}
-                                                        />
-                                                        <label
-                                                            className="form-check-label"
-                                                            htmlFor="driver_for_transport"
-                                                        >
-                                                            Transport
-                                                        </label>
-                                                    </div>
-                                                    <div className="form-check form-check-inline mb-0">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="radio"
-                                                            id="driver_for_material"
-                                                            checked={Number(field.value) === 2}
-                                                            onChange={() => field.onChange(2)}
-                                                            onBlur={field.onBlur}
-                                                            name={field.name}
-                                                        />
-                                                        <label
-                                                            className="form-check-label"
-                                                            htmlFor="driver_for_material"
-                                                        >
-                                                            Material
-                                                        </label>
-                                                    </div>
-                                                </>
-                                            )}
-                                        />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Driver For <span className="text-danger">*</span>
+                                        </label>
+                                        <div
+                                            className="d-flex align-items-center flex-wrap gap-3 pt-2"
+                                            style={{ minHeight: 50 }}
+                                        >
+                                            <Controller
+                                                name="driver_for"
+                                                control={control}
+                                                rules={{ required: true }}
+                                                render={({ field }) => (
+                                                    <>
+                                                        <div className="form-check form-check-inline mb-0">
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="radio"
+                                                                id="driver_for_transport"
+                                                                checked={Number(field.value) === 1}
+                                                                onChange={() => field.onChange(1)}
+                                                                onBlur={field.onBlur}
+                                                                ref={field.ref}
+                                                                name={field.name}
+                                                            />
+                                                            <label
+                                                                className="form-check-label"
+                                                                htmlFor="driver_for_transport"
+                                                            >
+                                                                Transport
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-check form-check-inline mb-0">
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="radio"
+                                                                id="driver_for_material"
+                                                                checked={Number(field.value) === 2}
+                                                                onChange={() => field.onChange(2)}
+                                                                onBlur={field.onBlur}
+                                                                name={field.name}
+                                                            />
+                                                            <label
+                                                                className="form-check-label"
+                                                                htmlFor="driver_for_material"
+                                                            >
+                                                                Material
+                                                            </label>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            />
+                                        </div>
                                     </div>
                                     {errors.driver_for && (
-                                        <span className="error text-danger d-block mt-1">
+                                        <span className="field-error">
                                             Please select Driver For
                                         </span>
                                     )}
@@ -430,24 +446,26 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             {/* EMAIL */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="email"
-                                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                                        placeholder="Email"
-                                        {...register("email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email address",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Email <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="email"
+                                            className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                                            placeholder="Email"
+                                            {...register("email", {
+                                                required: "Email is required",
+                                                pattern: {
+                                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                    message: "Enter a valid email address",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Email <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.email && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.email.message}
                                         </span>
                                     )}
@@ -456,39 +474,41 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* PORT */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Port <span className="text-danger">*</span>
-                                    </label>
-                                    <Controller
-                                        name="port_id"
-                                        control={control}
-                                        rules={{
-                                            validate: (val) =>
-                                                (Array.isArray(val) && val.length > 0) || "Port is required",
-                                        }}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                isMulti
-                                                value={field.value}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                options={(ports || []).map((p) => ({
-                                                    value: String(p.port_id ?? ""),
-                                                    label: String(p.port_name ?? p.port ?? p.port_id ?? ""),
-                                                }))}
-                                                placeholder={
-                                                    isLoadingPorts || ports === null
-                                                        ? "Loading..."
-                                                        : "Select Port"
-                                                }
-                                                searchPlaceholder="Search port..."
-                                                disabled={isLoadingPorts || ports === null}
-                                                hasError={Boolean(errors.port_id)}
-                                            />
-                                        )}
-                                    />
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Port <span className="text-danger">*</span>
+                                        </label>
+                                        <Controller
+                                            name="port_id"
+                                            control={control}
+                                            rules={{
+                                                validate: (val) =>
+                                                    (Array.isArray(val) && val.length > 0) || "Port is required",
+                                            }}
+                                            render={({ field }) => (
+                                                <PremiumSelect
+                                                    isMulti
+                                                    value={field.value}
+                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    options={(ports || []).map((p) => ({
+                                                        value: String(p.port_id ?? ""),
+                                                        label: String(p.port_name ?? p.port ?? p.port_id ?? ""),
+                                                    }))}
+                                                    placeholder={
+                                                        isLoadingPorts || ports === null
+                                                            ? "Loading..."
+                                                            : "Select Port"
+                                                    }
+                                                    searchPlaceholder="Search port..."
+                                                    disabled={isLoadingPorts || ports === null}
+                                                    hasError={Boolean(errors.port_id)}
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.port_id && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.port_id.message}
                                         </span>
                                     )}
