@@ -248,20 +248,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [], ser
           </p>
         </div>
 
-        <div className="husbandry-service-summary-grid">
-          {dashboardSummaryCards.map((card, index) => (
-            <div
-              key={card.label}
-              className="husbandry-service-summary-card"
-              style={{ "--stagger-index": index }}
-            >
-              <span className="husbandry-service-summary-label">{card.label}</span>
-              <span className="husbandry-service-summary-value">{card.value}</span>
-              {/* <span className="husbandry-service-summary-helper">{card.helper}</span> */}
-            </div>
-          ))}
-        </div>
-
         <div className="husbandry-service-options">
           {services.map((service, index) => {
             const bookedEntry = bookedServicesMap[service.id];
