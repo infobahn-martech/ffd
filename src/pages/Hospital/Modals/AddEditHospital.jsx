@@ -102,24 +102,26 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.hospital_name ? "is-invalid" : ""}`}
-                                        placeholder="Hospital Name"
-                                        {...register("hospital_name", {
-                                            required: "Hospital name is required",
-                                            minLength: {
-                                                value: 2,
-                                                message: "Hospital name must be at least 2 characters",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Hospital Name <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.hospital_name ? "is-invalid" : ""}`}
+                                            placeholder="Hospital Name"
+                                            {...register("hospital_name", {
+                                                required: "Hospital name is required",
+                                                minLength: {
+                                                    value: 2,
+                                                    message: "Hospital name must be at least 2 characters",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Hospital Name <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.hospital_name && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.hospital_name.message}
                                         </span>
                                     )}
@@ -127,27 +129,29 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                             </div>
 
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.contact_person ? "is-invalid" : ""}`}
-                                        placeholder="Contact Person"
-                                        {...register("contact_person", {
-                                            required: "Contact person is required",
-                                            pattern: {
-                                                value: /^[A-Za-z\s]+$/,
-                                                message: "Contact person cannot contain numbers or special characters",
-                                            },
-                                            onChange: (e) => {
-                                                e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Contact Person <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.contact_person ? "is-invalid" : ""}`}
+                                            placeholder="Contact Person"
+                                            {...register("contact_person", {
+                                                required: "Contact person is required",
+                                                pattern: {
+                                                    value: /^[A-Za-z\s]+$/,
+                                                    message: "Contact person cannot contain numbers or special characters",
+                                                },
+                                                onChange: (e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Contact Person <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.contact_person && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_person.message}
                                         </span>
                                     )}
@@ -159,34 +163,35 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Contact Number
-                                    </label>
+                                <div className="form-field">
+                                    <div className="phone-wrapper">
+                                        <label className="phone-label">
+                                            Contact Number
+                                        </label>
 
-                                    <Controller
-                                        name="contact_number"
-                                        control={control}
-                                        rules={{
-                                            validate: (value) => {
-                                                if (!value) return true;
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return digits.length >= 7 || "Enter a valid phone number";
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
-
+                                        <Controller
+                                            name="contact_number"
+                                            control={control}
+                                            rules={{
+                                                validate: (value) => {
+                                                    if (!value) return true;
+                                                    const digits = (value || "").replace(/\D/g, "");
+                                                    return digits.length >= 7 || "Enter a valid phone number";
+                                                },
+                                            }}
+                                            render={({ field }) => (
+                                                <PhoneInput
+                                                    {...field}
+                                                    country="sa"
+                                                    enableSearch
+                                                    inputClass="phone-input"
+                                                    buttonClass="phone-flag"
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                     {errors.contact_number && (
-                                        <span className="error text-danger">
+                                        <span className="field-error">
                                             {errors.contact_number.message}
                                         </span>
                                     )}
@@ -198,25 +203,26 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="email"
-                                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                                        placeholder="email@example.com"
-                                        {...register("email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email address",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Email <span className="text-danger">*</span>
-                                    </label>
-
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <input
+                                            type="email"
+                                            className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                                            placeholder="email@example.com"
+                                            {...register("email", {
+                                                required: "Email is required",
+                                                pattern: {
+                                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                    message: "Enter a valid email address",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Email <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.email && (
-                                        <span className="error text-danger">{errors.email.message}</span>
+                                        <span className="field-error">{errors.email.message}</span>
                                     )}
                                 </div>
                             </div>
@@ -226,24 +232,26 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <textarea
-                                        className={`form-control ${errors.location ? "is-invalid" : ""}`}
-                                        placeholder="Location"
-                                        style={{ minHeight: "80px" }}
-                                        {...register("location", {
-                                            required: "Location is required",
-                                            minLength: {
-                                                value: 3,
-                                                message: "Location must be at least 3 characters",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Location <span className="text-danger">*</span>
-                                    </label>
+                                <div className="form-field">
+                                    <div className="form-floating desig-inp">
+                                        <textarea
+                                            className={`form-control ${errors.location ? "is-invalid" : ""}`}
+                                            placeholder="Location"
+                                            style={{ minHeight: "80px" }}
+                                            {...register("location", {
+                                                required: "Location is required",
+                                                minLength: {
+                                                    value: 3,
+                                                    message: "Location must be at least 3 characters",
+                                                },
+                                            })}
+                                        />
+                                        <label>
+                                            Location <span className="text-danger">*</span>
+                                        </label>
+                                    </div>
                                     {errors.location && (
-                                        <span className="error text-danger">{errors.location.message}</span>
+                                        <span className="field-error">{errors.location.message}</span>
                                     )}
                                 </div>
                             </div>

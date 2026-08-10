@@ -282,27 +282,29 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             <div className="row g-3">
               {/* NAME */}
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <input
-                    type="text"
-                    className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                    placeholder="Name"
-                    {...register("name", {
-                      required: "Name is required",
-                      pattern: {
-                        value: /^[A-Za-z\s]+$/,
-                        message: "Name cannot contain numbers or special characters",
-                      },
-                      onChange: (e) => {
-                        e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                      },
-                    })}
-                  />
-                  <label>
-                    Name <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      type="text"
+                      className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                      placeholder="Name"
+                      {...register("name", {
+                        required: "Name is required",
+                        pattern: {
+                          value: /^[A-Za-z\s]+$/,
+                          message: "Name cannot contain numbers or special characters",
+                        },
+                        onChange: (e) => {
+                          e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                        },
+                      })}
+                    />
+                    <label>
+                      Name <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.name && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.name.message}
                     </span>
                   )}
@@ -311,24 +313,26 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
 
               {/* EMAIL */}
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <input
-                    type="email"
-                    className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                    placeholder="Email"
-                    {...register("email", {
-                      required: "Email is required",
-                      pattern: {
-                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                        message: "Enter a valid email",
-                      },
-                    })}
-                  />
-                  <label>
-                    Email <span className="text-danger">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      type="email"
+                      className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                      placeholder="Email"
+                      {...register("email", {
+                        required: "Email is required",
+                        pattern: {
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: "Enter a valid email",
+                        },
+                      })}
+                    />
+                    <label>
+                      Email <span className="text-danger">*</span>
+                    </label>
+                  </div>
                   {errors.email && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.email.message}
                     </span>
                   )}
@@ -341,16 +345,18 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
           <div className="mb-lg-3 mb-sm-0">
             <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <input
-                    type="text"
-                    className={`form-control ${errors.username ? "is-invalid" : ""}`}
-                    placeholder="Username"
-                    {...register("username")}
-                  />
-                  <label>Username</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <input
+                      type="text"
+                      className={`form-control ${errors.username ? "is-invalid" : ""}`}
+                      placeholder="Username"
+                      {...register("username")}
+                    />
+                    <label>Username</label>
+                  </div>
                   {errors.username && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.username.message}
                     </span>
                   )}
@@ -358,36 +364,38 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
               </div>
 
               <div className="col-lg-6 col-sm-12">
-                <div className="phone-wrapper">
-                  <label className="phone-label">
-                    User Role <span className="text-danger">*</span>
-                  </label>
-                  <Controller
-                    name="roleid"
-                    control={control}
-                    rules={{ required: "User role is required" }}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={roleSelectOptions}
-                        placeholder={
-                          isLoadingRoles ? "Loading roles..." : "Select User Role"
-                        }
-                        searchPlaceholder="Search role..."
-                        disabled={!isRolesReady}
-                        hasError={Boolean(errors.roleid)}
-                        menuPortalTarget={
-                          typeof document !== "undefined"
-                            ? document.body
-                            : undefined
-                        }
-                        menuClassName="user-modal-premium-select-menu"
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">
+                      User Role <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="roleid"
+                      control={control}
+                      rules={{ required: "User role is required" }}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={roleSelectOptions}
+                          placeholder={
+                            isLoadingRoles ? "Loading roles..." : "Select User Role"
+                          }
+                          searchPlaceholder="Search role..."
+                          disabled={!isRolesReady}
+                          hasError={Boolean(errors.roleid)}
+                          menuPortalTarget={
+                            typeof document !== "undefined"
+                              ? document.body
+                              : undefined
+                          }
+                          menuClassName="user-modal-premium-select-menu"
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.roleid && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.roleid.message}
                     </span>
                   )}
@@ -400,65 +408,68 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
           <div className="mb-lg-3 mb-sm-0">
             <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
-                <div className="phone-wrapper">
-                  <label className="phone-label">Phone</label>
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">Phone</label>
 
-                  <Controller
-                    name="phone"
-                    control={control}
-                    rules={{
-                      validate: (value) => {
-                        if (!value) return true;
-                        const digits = (value || "").replace(/\D/g, "");
-                        return digits.length >= 7 || "Enter a valid phone number";
-                      },
-                    }}
-                    render={({ field }) => (
-                      <PhoneInput
-                        {...field}
-                        country="sa"
-                        enableSearch
-                        inputClass="phone-input"
-                        buttonClass="phone-flag"
-                      />
-                    )}
-                  />
-
+                    <Controller
+                      name="phone"
+                      control={control}
+                      rules={{
+                        validate: (value) => {
+                          if (!value) return true;
+                          const digits = (value || "").replace(/\D/g, "");
+                          return digits.length >= 7 || "Enter a valid phone number";
+                        },
+                      }}
+                      render={({ field }) => (
+                        <PhoneInput
+                          {...field}
+                          country="sa"
+                          enableSearch
+                          inputClass="phone-input"
+                          buttonClass="phone-flag"
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.phone && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.phone.message}
                     </span>
                   )}
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12">
-                <div className="phone-wrapper">
-                  <label className="phone-label">Port</label>
-                  <Controller
-                    name="port_id"
-                    control={control}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={portSelectOptions}
-                        placeholder={
-                          isLoadingPorts ? "Loading ports..." : "Select Port"
-                        }
-                        searchPlaceholder="Search port..."
-                        disabled={!isPortsReady}
-                        hasError={Boolean(errors.port_id)}
-                        menuPortalTarget={
-                          typeof document !== "undefined"
-                            ? document.body
-                            : undefined
-                        }
-                        menuClassName="user-modal-premium-select-menu"
-                      />
-                    )}
-                  />
+                <div className="form-field">
+                  <div className="phone-wrapper">
+                    <label className="phone-label">Port</label>
+                    <Controller
+                      name="port_id"
+                      control={control}
+                      render={({ field }) => (
+                        <PremiumSelect
+                          value={field.value != null ? String(field.value) : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          options={portSelectOptions}
+                          placeholder={
+                            isLoadingPorts ? "Loading ports..." : "Select Port"
+                          }
+                          searchPlaceholder="Search port..."
+                          disabled={!isPortsReady}
+                          hasError={Boolean(errors.port_id)}
+                          menuPortalTarget={
+                            typeof document !== "undefined"
+                              ? document.body
+                              : undefined
+                          }
+                          menuClassName="user-modal-premium-select-menu"
+                        />
+                      )}
+                    />
+                  </div>
                   {errors.port_id && (
-                    <span className="error text-danger">
+                    <span className="field-error">
                       {errors.port_id.message}
                     </span>
                   )}
@@ -471,13 +482,15 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
           <div className="mb-lg-3 mb-sm-0">
             <div className="row g-3">
               <div className="col-12">
-                <div className="form-floating desig-inp">
-                  <textarea
-                    className="form-control address-textarea"
-                    placeholder="Address"
-                    {...register("address")}
-                  />
-                  <label>Address</label>
+                <div className="form-field">
+                  <div className="form-floating desig-inp">
+                    <textarea
+                      className="form-control address-textarea"
+                      placeholder="Address"
+                      {...register("address")}
+                    />
+                    <label>Address</label>
+                  </div>
                 </div>
               </div>
             </div>

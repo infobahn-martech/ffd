@@ -199,64 +199,68 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                     }}
                 >
                     <div className="mt-2">
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Billing Entity <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="entity_id"
-                                control={control}
-                                rules={{ required: "Billing entity is required" }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={(billingEntities ?? []).map((be) => ({
-                                            value: String(be.entity_id ?? ""),
-                                            label: String(be.billing_entity ?? ""),
-                                        }))}
-                                        placeholder={
-                                            billingLoading ? "Loading..." : "Select Billing Entity"
-                                        }
-                                        searchPlaceholder="Search billing entity..."
-                                        disabled={isEdit || billingLoading}
-                                        hasError={Boolean(errors.entity_id)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Billing Entity <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="entity_id"
+                                    control={control}
+                                    rules={{ required: "Billing entity is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={(billingEntities ?? []).map((be) => ({
+                                                value: String(be.entity_id ?? ""),
+                                                label: String(be.billing_entity ?? ""),
+                                            }))}
+                                            placeholder={
+                                                billingLoading ? "Loading..." : "Select Billing Entity"
+                                            }
+                                            searchPlaceholder="Search billing entity..."
+                                            disabled={isEdit || billingLoading}
+                                            hasError={Boolean(errors.entity_id)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.entity_id && (
-                                <span className="error text-danger">{errors.entity_id.message}</span>
+                                <span className="field-error">{errors.entity_id.message}</span>
                             )}
                         </div>
                     </div>
 
                     <div className={`billing-instruction-type-field ${showEmailFields ? "billing-instruction-type-field--compact" : ""}`}>
-                        <div className="phone-wrapper">
-                            <label className="phone-label">
-                                Instruction Type <span className="text-danger">*</span>
-                            </label>
-                            <Controller
-                                name="instruction_type"
-                                control={control}
-                                rules={{
-                                    validate: (value) =>
-                                        String(value ?? "").trim()
-                                            ? true
-                                            : "Instruction type is required",
-                                }}
-                                render={({ field }) => (
-                                    <PremiumSelect
-                                        value={field.value != null ? String(field.value) : ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        options={INSTRUCTION_TYPES}
-                                        placeholder="Select instruction type"
-                                        searchPlaceholder="Search instruction type..."
-                                        hasError={Boolean(errors.instruction_type)}
-                                    />
-                                )}
-                            />
+                        <div className="form-field">
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
+                                    Instruction Type <span className="text-danger">*</span>
+                                </label>
+                                <Controller
+                                    name="instruction_type"
+                                    control={control}
+                                    rules={{
+                                        validate: (value) =>
+                                            String(value ?? "").trim()
+                                                ? true
+                                                : "Instruction type is required",
+                                    }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={INSTRUCTION_TYPES}
+                                            placeholder="Select instruction type"
+                                            searchPlaceholder="Search instruction type..."
+                                            hasError={Boolean(errors.instruction_type)}
+                                        />
+                                    )}
+                                />
+                            </div>
                             {errors.instruction_type && (
-                                <span className="billing-instruction-field-error text-danger">
+                                <span className="field-error">
                                     {errors.instruction_type.message}
                                 </span>
                             )}
@@ -271,55 +275,57 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                             {fields.map((field, index) => (
                                 <div className="row align-items-center mb-2 g-1" key={field.id}>
                                     <div className="col-12">
-                                        <div className="form-floating desig-inp position-relative">
-                                            <input
-                                                type="email"
-                                                className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""}`}
-                                                placeholder="email@example.com"
-                                                style={{
-                                                    paddingRight:
-                                                        index === fields.length - 1 ? "80px" : "45px",
-                                                }}
-                                                {...register(`emails.${index}.value`)}
-                                            />
-                                            <label>
-                                                Email <span className="text-danger">*</span>
-                                            </label>
+                                        <div className="form-field">
+                                            <div className="form-floating desig-inp position-relative">
+                                                <input
+                                                    type="email"
+                                                    className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""}`}
+                                                    placeholder="email@example.com"
+                                                    style={{
+                                                        paddingRight:
+                                                            index === fields.length - 1 ? "80px" : "45px",
+                                                    }}
+                                                    {...register(`emails.${index}.value`)}
+                                                />
+                                                <label>
+                                                    Email <span className="text-danger">*</span>
+                                                </label>
 
-                                            {index === fields.length - 1 ? (
-                                                <>
-                                                    {fields.length > 1 && (
+                                                {index === fields.length - 1 ? (
+                                                    <>
+                                                        {fields.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                className="email-action-btn email-remove-btn email-remove-btn-last"
+                                                                onClick={() => remove(index)}
+                                                                title="Remove Email"
+                                                            >
+                                                                <FiX size={18} />
+                                                            </button>
+                                                        )}
                                                         <button
                                                             type="button"
-                                                            className="email-action-btn email-remove-btn email-remove-btn-last"
-                                                            onClick={() => remove(index)}
-                                                            title="Remove Email"
+                                                            className="email-action-btn email-add-btn"
+                                                            onClick={() => append({ value: "" })}
+                                                            title="Add Email"
                                                         >
-                                                            <FiX size={18} />
+                                                            <FiPlus size={18} />
                                                         </button>
-                                                    )}
+                                                    </>
+                                                ) : (
                                                     <button
                                                         type="button"
-                                                        className="email-action-btn email-add-btn"
-                                                        onClick={() => append({ value: "" })}
-                                                        title="Add Email"
+                                                        className="email-action-btn email-remove-btn"
+                                                        onClick={() => remove(index)}
+                                                        title="Remove Email"
                                                     >
-                                                        <FiPlus size={18} />
+                                                        <FiX size={18} />
                                                     </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    className="email-action-btn email-remove-btn"
-                                                    onClick={() => remove(index)}
-                                                    title="Remove Email"
-                                                >
-                                                    <FiX size={18} />
-                                                </button>
-                                            )}
+                                                )}
+                                            </div>
 
                                             {errors.emails?.[index]?.value && (
-                                                <span className="error text-danger d-block">
+                                                <span className="field-error">
                                                     {errors.emails[index].value.message}
                                                 </span>
                                             )}
@@ -331,7 +337,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                     )}
 
                     {showDescription && (
-                        <div>
+                        <div className="form-field">
                             <div className="phone-wrapper">
                                 <label className="phone-label billing-instruction-description-label">
                                     Description <span className="text-danger">*</span>
@@ -342,10 +348,10 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                                     rows={4}
                                     {...register("description")}
                                 />
-                                {errors.description && (
-                                    <span className="error text-danger">{errors.description.message}</span>
-                                )}
                             </div>
+                            {errors.description && (
+                                <span className="field-error">{errors.description.message}</span>
+                            )}
                         </div>
                     )}
                 </form>
