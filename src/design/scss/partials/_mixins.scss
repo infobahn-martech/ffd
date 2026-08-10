@@ -1,3 +1,12 @@
+/* responsive breakpoint mixin — wraps the $sm-N / $lg-N tokens in _variables.scss
+   so callers stop hand-rolling `@media($sm-991) { ... }` blocks.
+   Usage: @include respond($sm-767) { ... } */
+@mixin respond($breakpoint) {
+  @media (#{$breakpoint}) {
+    @content;
+  }
+}
+
 /* placeholder mixin */
 @mixin placeholder {
   ::-webkit-input-placeholder {

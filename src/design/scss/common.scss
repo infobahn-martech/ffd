@@ -16,6 +16,15 @@ body,
   letter-spacing: 0.2px;
 }
 
+// Safety net: no element anywhere should be able to force a page-level
+// horizontal scrollbar. Components that genuinely need horizontal scroll
+// (Kanban board, tables, tab bars) scroll inside their own container instead.
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-weight: 400;
 }

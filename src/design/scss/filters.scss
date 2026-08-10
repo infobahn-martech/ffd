@@ -26,9 +26,18 @@
     .inp-wrp {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
 
         .btn {
             margin: 0px 5px;
+        }
+
+        @media($sm-479) {
+            justify-content: center;
+
+            .btn {
+                margin: 5px;
+            }
         }
     }
 

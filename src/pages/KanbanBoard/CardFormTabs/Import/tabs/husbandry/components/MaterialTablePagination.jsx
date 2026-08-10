@@ -8,9 +8,9 @@ const MaterialTablePagination = ({ page, total, limit, onPageChange }) => {
   const end = Math.min(page * limit, total);
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
       <span>Showing {start} to {end} of {total} entries</span>
-      <div style={{ display: "flex", gap: "4px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
         <button
           onClick={() => onPageChange(Math.max(1, page - 1))}
           disabled={page === 1}

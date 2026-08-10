@@ -21,7 +21,7 @@ import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 
 import logo from '../../assets/images/SedresLogoWhite.png';
-import useWindowSize from '../../shared/hooks/useWindowSize';
+import { useBreakpoint } from '../../shared/hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -36,7 +36,7 @@ import { isVendorRole, getRoleId } from '../../shared/helpers/vendorDashboardRol
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePortal = null }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { width } = useWindowSize();
+  const { isMobile } = useBreakpoint();
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
@@ -48,7 +48,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   const { layoutView, setLayoutView } = useLayoutView();
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
   const dropdownRef = useRef(null);
-  const isMobile = width <= 991;
   const doLogout = useAuthReducer((state) => state.doLogout);
   const profileData = useAuthReducer((state) => state.profileData);
   const authData = useAuthReducer((state) => state.authData);

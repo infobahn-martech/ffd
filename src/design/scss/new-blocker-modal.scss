@@ -1,7 +1,7 @@
 .new-blocker-modal {
   .modal-dialog {
-    width: 1140px;
-    max-width: 1140px;
+    width: 100%;
+    max-width: min(1140px, calc(100vw - 2rem));
   }
 
   .modal-content {

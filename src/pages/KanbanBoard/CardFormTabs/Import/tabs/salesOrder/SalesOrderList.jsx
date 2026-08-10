@@ -1460,7 +1460,7 @@ const SalesOrderList = ({
                     </button>
                   </div>
                   <div className="sales-order-add-accordion-body">
-                    <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                    <div className="sales-order-add-form-grid">
                       <div className="sales-order-add-form-field">
                         <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
                         <select

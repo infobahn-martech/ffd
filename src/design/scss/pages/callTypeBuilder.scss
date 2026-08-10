@@ -56,6 +56,13 @@
   font-size: 13px;
   line-height: 1.5;
   color: #374151;
+
+  // Below this, a 420px fixed left panel can exceed the whole modal width
+  // and clip the right panel out of view entirely — stack instead.
+  @media (max-width: 767px) {
+    flex-direction: column;
+    overflow-y: auto;
+  }
 }
 
 .ct-split-left {
@@ -65,6 +72,13 @@
   flex-direction: column;
   border-right: 1px solid #e8e8f0;
   overflow: hidden;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid #e8e8f0;
+  }
 
   .ct-split-scroll-area {
     flex: 1;

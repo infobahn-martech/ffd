@@ -36,7 +36,7 @@ import billingIcon from '../../assets/images/icon-billing.svg';
 import usersIcon from '../../assets/images/icon-users.svg';
 import configIcon from '../../assets/images/icon-config.svg';
 
-import useWindowSize from '../../shared/hooks/useWindowSize';
+import { useBreakpoint } from '../../shared/hooks/useWindowSize';
 import {
   buildKanbanAddCardEventDetail,
   getSwimlaneOptionsFromWorkflow,
@@ -64,7 +64,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const isVendorPortal = activePortal === 'vendor';
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { width } = useWindowSize();
+  const { width, isMobile } = useBreakpoint();
   const createDashboard = useWorkSpaceReducer((s) => s.createDashboard);
 
   const isKanbanBoard =
@@ -109,7 +109,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     'inhouse-driver': inhouseDriverMenus,
     hotel: hotelPortalMenus,
   };
-  const isMobile = width <= 991;
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
   const userProfile = useAuthReducer((state) => state.userProfile);

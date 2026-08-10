@@ -190,7 +190,30 @@
       }
     }
   }
+}
 
+/* .kanban-accordion-header/.kanban-container (main board + DA Desk, see common.scss) and
+   .workspaces-container (Workspaces, see Workspaces.scss) each already reserve their own
+   left offset for the narrow kanban icon sidebar. .page-cont-wrp's collapsed-sidebar
+   padding-left above is calibrated for the *standard* 300px SideNav's collapsed 72px rail,
+   not the 60/56/50px kanban icon rail — stacking both doubles the gutter on mobile/tablet.
+   Compact has neither wrapper and still needs the generic offset, so scope this to pages
+   that actually contain one. */
+.main-layout.kanban-board-layout .page-cont-wrp:has(.kanban-accordion, .workspaces-container) {
+  @media ($sm-991) {
+    padding-left: 15px;
+  }
+
+  @media (max-width: 767px) {
+    padding-left: 12px;
+  }
+
+  @media (max-width: 479px) {
+    padding-left: 10px;
+  }
+}
+
+.dashboard-wrp {
   .top-sec {
     padding: 25px 10px;
 

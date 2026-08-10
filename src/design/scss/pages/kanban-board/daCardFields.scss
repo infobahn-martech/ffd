@@ -1606,6 +1606,30 @@ a.da-cf-file-name {
   }
 }
 
+// DA Operations tab (.da-cf-ops-grid) and "More" sub-tab (.da-cf-more-grid) share the
+// same fixed-column pattern as .da-cf-summary-cards above but were missing the matching
+// breakpoints — the Vessel/Vessel Owner/Owner/Co-owner row (--fixed4) in particular
+// squeezes into unreadable ~60px columns below ~600px without this.
+@media (max-width: 767px) {
+  .da-cf-ops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .da-cf-fields-grid--fixed4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .da-cf-more-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 479px) {
+  .da-cf-fields-grid--fixed4 {
+    grid-template-columns: 1fr;
+  }
+}
+
 // Status timeline — horizontal step row under the Summary stat cards. Reuses the
 // same accent/surface tokens as .da-cf-summary-card instead of introducing new colors.
 // Wrapped in its own card (same shape language as .da-cf-summary-card) so it reads as

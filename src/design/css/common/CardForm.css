@@ -388,6 +388,22 @@
   padding: 10px 24px;
   background: #f0f1f6;
   flex-shrink: 0;
+  /* With 9-10 tabs this bar has no room to wrap on narrow screens — scroll
+     horizontally inside the bar instead of clipping tabs off-screen. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.cardform-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cardform-tabs::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 4px;
 }
 
 .cardform-tabs .tab {
@@ -399,7 +415,21 @@
   padding: 8px 10px;
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+@media (max-width: 767px) {
+  .cardform-tabs {
+    gap: 10px;
+    padding: 8px 14px;
+  }
+
+  .cardform-tabs .tab {
+    font-size: 13px;
+    padding: 7px 8px;
+  }
 }
 
 .cardform-tabs .tab:not(.active):not(.disabled):hover {
@@ -1969,6 +1999,33 @@
   font-size: 14px;
   cursor: pointer;
   color: #555;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .operation-wrapper {
+    flex-direction: column;
+  }
+
+  .operation-left {
+    width: 100%;
+    max-width: none;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: row;
+    padding: 10px 12px;
+    border-right: none;
+    border-bottom: 1px solid #e2e2e2;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .op-tab {
+    width: auto;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
 }
 
 .op-tab.active {

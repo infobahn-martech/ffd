@@ -155,7 +155,7 @@ input#selectedFile {
 
 .social {
   .modal-content {
-    width: 600px;
+    width: min(600px, calc(100vw - 2rem));
     margin: 0 auto;
 
     .modal-header,
@@ -221,6 +221,13 @@ input#selectedFile {
     padding: 0px;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+
+  // Pairs with .modal-content's flex column at $sm-767 (prospect-modal.scss)
+  // so the body — not the header/footer — absorbs the internal scroll.
+  @media($sm-767) {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 }
 

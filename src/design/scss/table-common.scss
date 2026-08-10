@@ -96,6 +96,11 @@ body {
                 line-height: 26px;
             }
 
+            @media($sm-479) {
+                min-width: 0 !important;
+                width: 100%;
+            }
+
             // @media($sm-1481){
             //     font-size: 20px;
             //     line-height: 30px;   
@@ -181,7 +186,8 @@ body {
 
                 position: relative;
                 padding: 9px 0px 9px 0px;
-                width: 289px;
+                width: 100%;
+                max-width: 289px;
                 border: none;
 
                 @media($sm-1679) {
@@ -290,7 +296,7 @@ body {
     margin-bottom: 0px;
 
     @media($sm-1199) {
-        width: 1200px;
+        min-width: 1200px;
         overflow: scroll;
     }
 
@@ -442,6 +448,11 @@ body {
 
     @media($sm-767) {
         flex-direction: column;
+    }
+
+    @media($sm-479) {
+        padding: 10px 12px;
+        gap: 10px;
     }
 
     .result-txt {
@@ -689,6 +700,13 @@ div[role="tooltip"].role-description-tooltip {
     gap: 12px;
     padding: 12px 0;
     font-size: 14px;
+    flex-wrap: wrap;
+
+    @media($sm-579) {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
 
     &__info {
         color: #666;
@@ -697,6 +715,7 @@ div[role="tooltip"].role-description-tooltip {
     &__controls {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
     }
 

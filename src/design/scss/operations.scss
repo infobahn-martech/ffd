@@ -9154,8 +9154,25 @@ body .modal-backdrop.show {
   }
 
   .operation-left {
+    flex-direction: row;
     flex-wrap: wrap;
     gap: 6px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .operation-left.op-tab-nav--main .op-tab-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-left: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .operation-content-container {
+    flex-direction: column;
+    overflow-y: auto;
   }
 
   .op-tab {

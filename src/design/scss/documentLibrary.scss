@@ -407,6 +407,13 @@
     grid-template-columns: repeat(auto-fill, minmax(260px, 260px));
     gap: 12px;
     overflow: hidden;
+
+    // Below this, a fixed 260px tile can exceed the stacked mobile panel's
+    // available width (panel already goes full-width at $sm-991) and force
+    // horizontal overflow — let tiles shrink and fill the row instead.
+    @media($sm-479) {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
   }
 }
 
