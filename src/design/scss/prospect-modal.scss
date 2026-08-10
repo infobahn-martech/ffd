@@ -657,7 +657,10 @@ span.error.text-danger {
 }
 
 .transport-field__error {
-  height: 16px;
+  // min-height (not height) + visible overflow: a short/absent message keeps
+  // the original compact reserved-space look, but a long one that wraps to
+  // two lines is no longer clipped instead of just growing the row.
+  min-height: 16px;
   margin-top: 2px;
   font-size: 11px;
   line-height: 1.35;
@@ -666,7 +669,7 @@ span.error.text-danger {
   align-items: center;
   white-space: normal;
   word-break: break-word;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Transport Company Modal - Driver Row Layout Updates */

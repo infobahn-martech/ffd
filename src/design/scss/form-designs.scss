@@ -43,7 +43,7 @@
         align-items: center;
         margin-left: 10px;
         color: $txtColor !important;
-        font-size: 13px;
+        font-size: 12px;
         z-index: 0;
 
         .req {
@@ -524,6 +524,14 @@ input[type=number] {
     border-radius: 12px;
     background: #fff;
 
+    // MUI's own error-state border is suppressed below (notchedOutline is
+    // always border:none), so the wrapper needs to pick up the red border
+    // itself — matching .form-control.is-invalid elsewhere — when the inner
+    // DatePickerField reports hasError via its own "is-invalid" class.
+    &:has(.is-invalid) {
+        border-color: #dc3545 !important;
+    }
+
     >.cf-date-picker {
         width: 100%;
         min-width: 0;
@@ -533,15 +541,21 @@ input[type=number] {
         border: none !important;
     }
 
+    // MuiPickersOutlinedInput-root (and the plain MUI equivalents) carry their
+    // own `padding: 0 14px` by default — zeroed here so the sectionsContainer
+    // padding below is the ONE source of horizontal inset, instead of the two
+    // compounding into an inset wider than a normal .form-control's.
     .MuiFormControl-root,
     .MuiPickersTextField-root,
     .MuiInputBase-root,
     .MuiPickersInputBase-root,
-    .MuiPickersOutlinedInput-root {
+    .MuiPickersOutlinedInput-root,
+    .MuiOutlinedInput-root {
         width: 100% !important;
         height: 100% !important;
         min-height: 50px !important;
         margin: 0 !important;
+        padding: 0 !important;
         border: none !important;
         outline: none !important;
         background: transparent !important;
@@ -554,6 +568,11 @@ input[type=number] {
         border: none !important;
     }
 
+    // MuiPickersInputBase-sectionsContainer also carries its own vertical
+    // padding by default (16.5px, or 8.5px at size="small") — zeroed and
+    // replaced with flex centering so the field's height always comes from
+    // the explicit 50px above, matching every other control, regardless of
+    // which `size` prop a given caller passed to the picker.
     .MuiPickersInputBase-sectionsContainer {
         width: 100% !important;
         height: 50px !important;
@@ -561,7 +580,7 @@ input[type=number] {
         display: flex;
         align-items: center;
         padding: 0 44px 0 20px !important;
-        box-sizing: border-box;
+        box-sizing: border-box !important;
     }
 
     .MuiPickersSectionList-root {
@@ -578,6 +597,17 @@ input[type=number] {
         transform: translateY(-50%);
         height: auto;
         margin: 0;
+    }
+
+    .MuiIconButton-root {
+        padding: 4px;
+        width: 28px;
+        height: 28px;
+    }
+
+    .MuiSvgIcon-root {
+        width: 18px;
+        height: 18px;
     }
 
     // Matches the floated-state values of the standard .form-floating > label
