@@ -7,7 +7,7 @@ import { parseApiDateTimeParts } from "../preArrivalDetailApply";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import { isEventFieldRequired } from "../operationConstants";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../../components/form/SearchableSelect";
-import { FiEye } from "react-icons/fi";
+import { FiEye, } from "react-icons/fi";
 import callFileService from "../../../../../../../services/callFileService";
 import { notify } from "../../../../../../../components/Toaster";
 
@@ -33,10 +33,15 @@ FormSection.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export const FormField = ({ label, children, className = "" }) => {
+export const FormField = ({ label, children, className = "", readOnly = false }) => {
   return (
-    <div className={`cf-field ${className}`}>
-      {label && <label>{label}</label>}
+    <div className={`cf-field ${readOnly ? "cf-field--readonly" : ""} ${className}`.trim()}>
+      {label && (
+        <label>
+          {readOnly}
+          {label}
+        </label>
+      )}
       {children}
     </div>
   );
@@ -46,6 +51,7 @@ FormField.propTypes = {
   label: PropTypes.string,
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
+  readOnly: PropTypes.bool,
 };
 
 export const OperationFormCard = ({ className = "", children, topRightAction = null }) => {
@@ -106,14 +112,13 @@ export const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChan
     const dateKey = `${keyPrefix}Date`;
     const timeKey = `${keyPrefix}Time`;
     const isEditable = !editableKeyPrefixes || editableKeyPrefixes.includes(keyPrefix);
-    const baseLabel = isEventFieldRequired(field) ? `${field.event_name} *` : field.event_name;
-    const label = !isViewOnly && !isEditable ? `${baseLabel}` : baseLabel;
+    const label = isEventFieldRequired(field) ? `${field.event_name} *` : field.event_name;
 
     return (
       <FormField
         key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`}
         label={label}
-        className={!isViewOnly && !isEditable ? "cf-field--readonly" : ""}
+        readOnly={!isViewOnly && !isEditable}
       >
         <DateTimePickerField
           dateValue={formValues[dateKey] || ""}

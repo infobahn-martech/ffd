@@ -3350,20 +3350,20 @@
   font-weight: 500;
 }
 
-/* Fields locked independently of the form's overall view/edit mode — needs to read as
-   unmistakably "not editable" even while sibling fields on the same form are live. */
+/* Fields locked independently of the form's overall view/edit mode — the standard
+   disabled look above already applies via the native `disabled` attribute; this only
+   adds a label-level cue (icon + italics) so the lock reads as intentional, not stale UI. */
 .cf-field--readonly > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: #6d6fa0;
   font-style: italic;
 }
 
-.cf-field--readonly .cf-input,
-.cf-field--readonly .cf-select,
-.cf-field--readonly .cf-textarea,
-.cf-field--readonly .operation-inline-radio-row {
-  background: #eef0f7 !important;
-  border: 1px dashed #c7cbe6 !important;
-  border-radius: 10px;
+.cf-field-readonly-icon {
+  flex: 0 0 auto;
+  color: #9195b8;
 }
 
 .cf-input:has(input:disabled),
@@ -4281,13 +4281,6 @@
   .MuiInputBase-root.Mui-disabled .MuiSvgIcon-root {
     opacity: 0.5;
   }
-}
-
-.cf-field--readonly .cf-datetime-picker .cf-datetime-input-field .MuiPickersInputBase-root.Mui-disabled,
-.cf-field--readonly .cf-datetime-picker .cf-datetime-input-field .MuiOutlinedInput-root.Mui-disabled,
-.cf-field--readonly .cf-datetime-picker .cf-datetime-input-field .MuiInputBase-root.Mui-disabled {
-  background: #eef0f7 !important;
-  border: 1px dashed #c7cbe6 !important;
 }
 
 .cf-datetime-picker.is-invalid .cf-datetime-input-field .MuiPickersInputBase-root,

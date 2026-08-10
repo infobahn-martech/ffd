@@ -157,14 +157,12 @@ function Arrival({
       })
       .filter(Boolean);
 
-  const readOnlyLabelSuffix = isViewOnly ? "" : "";
-  const readOnlyFieldClass = isViewOnly ? "" : "cf-field--readonly";
-
   const renderDateTimeField = (label, keyPrefix, required = false, forceDisabled = false) => (
     <FormField
       key={keyPrefix}
-      label={`${required ? `${label} *` : label}${forceDisabled ? readOnlyLabelSuffix : ""}`}
-      className={`cf-field-full ${forceDisabled ? readOnlyFieldClass : ""}`.trim()}
+      label={required ? `${label} *` : label}
+      className="cf-field-full"
+      readOnly={!isViewOnly && forceDisabled}
     >
       <DateTimePickerField
         dateValue={formValues[`${keyPrefix}Date`] || ""}
@@ -673,7 +671,7 @@ function Arrival({
                   editableKeyPrefixes={["actualArrival"]}
                 />
 
-                <FormField label={`Custom Inspection Status${readOnlyLabelSuffix}`} className={readOnlyFieldClass}>
+                <FormField label="Custom Inspection Status" readOnly={!isViewOnly}>
                   <FormSelect
                     value={formValues.customInspectionStatus || ""}
                     onChange={handleChange("customInspectionStatus")}
@@ -684,10 +682,7 @@ function Arrival({
                 </FormField>
 
                 {showCustomInspectionRemarks && (
-                  <FormField
-                    label={`Custom Inspection Remarks *${readOnlyLabelSuffix}`}
-                    className={`cf-field-full ${readOnlyFieldClass}`.trim()}
-                  >
+                  <FormField label="Custom Inspection Remarks *" className="cf-field-full" readOnly={!isViewOnly}>
                     <FormTextarea
                       value={formValues.customsRemarks || ""}
                       onChange={handleChange("customsRemarks")}
@@ -698,7 +693,7 @@ function Arrival({
                   </FormField>
                 )}
 
-                <FormField label={`Crew Immigration Status${readOnlyLabelSuffix}`} className={readOnlyFieldClass}>
+                <FormField label="Crew Immigration Status" readOnly={!isViewOnly}>
                   <FormSelect
                     value={formValues.crewImmigrationStatus || ""}
                     onChange={handleChange("crewImmigrationStatus")}
@@ -709,10 +704,7 @@ function Arrival({
                 </FormField>
 
                 {showCrewImmigrationRemarks && (
-                  <FormField
-                    label={`Crew Immigration Remarks *${readOnlyLabelSuffix}`}
-                    className={`cf-field-full ${readOnlyFieldClass}`.trim()}
-                  >
+                  <FormField label="Crew Immigration Remarks *" className="cf-field-full" readOnly={!isViewOnly}>
                     <FormTextarea
                       value={formValues.crewImmigrationHoldRemarks || ""}
                       onChange={handleChange("crewImmigrationHoldRemarks")}
@@ -723,7 +715,7 @@ function Arrival({
                   </FormField>
                 )}
 
-                <FormField label={`Inward Clearance${readOnlyLabelSuffix}`} className={readOnlyFieldClass}>
+                <FormField label="Inward Clearance" readOnly={!isViewOnly}>
                   <div className="operation-inline-radio-row">
                     <label className="operation-inline-radio">
                       <input
