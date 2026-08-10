@@ -12,7 +12,7 @@
 
 .document-library {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 360px;
+  grid-template-columns: 280px minmax(0, 1fr) 560px;
   height: calc(100vh - 220px);
   min-height: 480px;
   background: #f4f6f9;
@@ -53,8 +53,7 @@
 }
 
 .document-library__panel--preview {
-  width: 360px;
-  min-width: 360px;
+ width: 100%;
   overflow: hidden;
   background: #fafbfc;
 }
@@ -852,8 +851,7 @@
   }
 
   .document-library__panel--preview {
-    width: 340px;
-    min-width: 340px;
+ width: 100%;
   }
 }
 
