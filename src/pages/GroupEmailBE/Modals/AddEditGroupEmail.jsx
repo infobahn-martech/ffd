@@ -194,14 +194,11 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                         {...register(`emails.${index}.email_id`)}
                                     />
                                     <div className="phone-wrapper flex-grow-1">
-                                        <label className="phone-label">
-                                            Email <span className="text-danger">*</span>
-                                        </label>
                                         <input
                                             type="email"
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
-                                            placeholder="email@example.com"
+                                            placeholder=""
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
                                                 pattern: {
@@ -210,6 +207,9 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                                 },
                                             })}
                                         />
+                                        <span className="email-fake-placeholder">
+                                            Email <span className="text-danger">*</span>
+                                        </span>
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger d-block mt-1 small">
                                                 {errors.emails[index].value.message}
