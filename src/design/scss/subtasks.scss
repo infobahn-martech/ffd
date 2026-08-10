@@ -207,6 +207,25 @@
   text-overflow: ellipsis;
 }
 
+.task-tab-doc-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #f1f3f8;
+  color: #5c6370;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #eaf1ff;
+    color: #00368c;
+  }
+}
+
 .task-tab-doc-remove {
   display: inline-flex;
   align-items: center;
@@ -389,11 +408,14 @@
 
 .task-tab-task-card {
   position: relative;
-  padding: 12px 14px 12px 16px;
+  padding: 13px 14px 13px 18px;
   background: #fafbfc;
   border: 1px solid #eef0f4;
-  border-radius: 12px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  border-radius: 14px;
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &::before {
     content: "";
@@ -404,13 +426,14 @@
     width: 3px;
     border-radius: 3px;
     background: transparent;
-    transition: background 0.15s ease;
+    transition: background 0.2s ease;
   }
 
   &:hover {
     background: #ffffff;
     border-color: #dce3ef;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
 
     &::before {
       background: #00368c;
@@ -454,10 +477,11 @@
 
 .task-tab-task-title {
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: #16181d;
   line-height: 1.5;
+  letter-spacing: -0.005em;
   word-break: break-word;
 }
 
@@ -502,7 +526,8 @@
 .task-tab-status-badge {
   display: inline-flex;
   align-items: center;
-  height: 20px;
+  gap: 4px;
+  height: 21px;
   padding: 0 9px;
   border-radius: 999px;
   font-size: 10.5px;
@@ -510,6 +535,10 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .task-tab-status-badge--pending {
@@ -541,6 +570,7 @@
   font-weight: 700;
   color: #ffffff;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px #ffffff, 0 1px 3px rgba(15, 23, 42, 0.15);
 }
 
 .task-tab-task-assignee {
@@ -553,11 +583,22 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  height: 21px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #f1f3f8;
   font-size: 11px;
-  color: #8a8f9c;
+  font-weight: 500;
+  color: #6b7080;
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .task-tab-task-due--overdue {
+  background: #fdeaea;
   color: #c93a3a;
   font-weight: 600;
 }
@@ -567,15 +608,26 @@
   align-items: center;
   gap: 4px;
   max-width: 140px;
+  height: 21px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #eef3fc;
   font-size: 11px;
+  font-weight: 500;
   color: #00368c;
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background 0.15s ease;
+
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover {
-    text-decoration: underline;
+    background: #e0eafc;
+    text-decoration: none;
   }
 }
 
@@ -583,6 +635,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  .task-tab-field-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .task-tab-edit-actions {

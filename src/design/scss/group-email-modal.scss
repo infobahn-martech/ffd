@@ -59,6 +59,7 @@
 
         >.form-control {
             font-size: 13px;
+            font-weight: 400;
             min-height: 48px;
             height: 48px;
             border-radius: 8px;
@@ -68,6 +69,7 @@
 
             &::placeholder {
                 font-weight: 400;
+                color: #9ca3af;
             }
 
             // Keep the border static — no Bootstrap focus/hover/invalid
@@ -101,18 +103,42 @@
             margin-bottom: 0;
         }
 
-        // Row email field uses the same notched-label style as Billing
-        // Entity above; let it shrink/grow within the row's flex layout
+        // Row email field: no label — the placeholder carries the field
+        // name, same treatment as the Coordinates modal's row inputs
         .phone-wrapper {
+            margin-top: 0;
+            margin-bottom: 0;
             flex: 1 1 auto;
             min-width: 0;
         }
 
-        // Buttons sit beside the input itself, not the label — offset by
-        // the same top clearance .phone-wrapper reserves for its notch,
-        // then centered within the input's own height
+        // Fake placeholder ("Email" + a real red "*" span) since a native
+        // placeholder attribute can't be partially colored. Hidden once the
+        // field has a value (native :placeholder-shown toggle).
+        // top is a fixed offset (half of the 48px input height), not 50%
+        // of the wrapper — the wrapper also contains this row's inline
+        // validation error text below the input, which would otherwise
+        // grow the wrapper and pull a percentage-based center down toward
+        // the input's bottom edge once an error shows.
+        .email-fake-placeholder {
+            position: absolute;
+            top: 24px;
+            left: 14px;
+            transform: translateY(-50%);
+            font-size: 13px;
+            font-weight: 400;
+            color: #35475e;
+            line-height: 1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .phone-wrapper > .form-control:not(:placeholder-shown) ~ .email-fake-placeholder {
+            display: none;
+        }
+
+        // Buttons sit beside the input, centered within its height
         .email-row-actions {
-            margin-top: 12px;
             min-height: 48px;
             align-items: center;
         }

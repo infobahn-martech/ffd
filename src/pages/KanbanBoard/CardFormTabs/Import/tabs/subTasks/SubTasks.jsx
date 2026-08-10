@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { FiEdit2, FiPlus, FiCheck, FiClock, FiPaperclip, FiCheckSquare } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiCheck, FiClock, FiPaperclip, FiCheckSquare, FiEye, FiTrash2 } from "react-icons/fi";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../../shared/components/DateTimePickerField";
 import useCommonReducer from "../../../../../../store/CommonReducer";
@@ -123,6 +123,7 @@ function Subtasks({ card }) {
     const [editDueDate, setEditDueDate] = useState("");
     const [editDueTime, setEditDueTime] = useState("");
     const [editDocumentFile, setEditDocumentFile] = useState(null);
+    const [editDocumentRemoved, setEditDocumentRemoved] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [title, setTitle] = useState("");
     const [assignUserId, setAssignUserId] = useState("");
@@ -244,6 +245,7 @@ function Subtasks({ card }) {
         setEditDueDate(task.dueDate ?? "");
         setEditDueTime(task.dueTime ?? "");
         setEditDocumentFile(null);
+        setEditDocumentRemoved(false);
     }, []);
 
     const handleEditCancel = useCallback(() => {
@@ -253,6 +255,7 @@ function Subtasks({ card }) {
         setEditDueDate("");
         setEditDueTime("");
         setEditDocumentFile(null);
+        setEditDocumentRemoved(false);
     }, []);
 
     const handleUpdate = useCallback(async (taskId) => {
@@ -267,6 +270,7 @@ function Subtasks({ card }) {
             const dueDateStr = buildDueDateString(editDueDate, editDueTime);
             if (dueDateStr) formData.append("due_date", dueDateStr);
             if (editDocumentFile) formData.append("document", editDocumentFile);
+            else if (editDocumentRemoved) formData.append("document", "");
             await kanbanBoardService.updateSubtask(formData);
             notify("Task updated successfully.", "success");
             handleEditCancel();
@@ -276,7 +280,7 @@ function Subtasks({ card }) {
         } finally {
             setIsUpdating(false);
         }
-    }, [editDescription, editAssignedTo, editDueDate, editDueTime, editDocumentFile, handleEditCancel, loadSubtasks]);
+    }, [editDescription, editAssignedTo, editDueDate, editDueTime, editDocumentFile, editDocumentRemoved, handleEditCancel, loadSubtasks]);
 
     return (
         <div className="cardform-body cardform-body--feed-tab">
@@ -483,6 +487,32 @@ function Subtasks({ card }) {
                                                                             <span className="task-tab-doc-name" title={editDocumentFile.name}>{editDocumentFile.name}</span>
                                                                             <button type="button" className="task-tab-doc-remove" onClick={() => setEditDocumentFile(null)} disabled={isUpdating}>&times;</button>
                                                                         </div>
+                                                                    ) : task.document && !editDocumentRemoved ? (
+                                                                        <div className="task-tab-doc-chip">
+                                                                            <span className="task-tab-doc-name" title={task.document.name}>{task.document.name}</span>
+                                                                            {task.document.url && (
+                                                                                <a
+                                                                                    className="task-tab-doc-view"
+                                                                                    href={task.document.url}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    title="View document"
+                                                                                    aria-label="View document"
+                                                                                >
+                                                                                    <FiEye size={12} />
+                                                                                </a>
+                                                                            )}
+                                                                            <button
+                                                                                type="button"
+                                                                                className="task-tab-doc-remove"
+                                                                                onClick={() => setEditDocumentRemoved(true)}
+                                                                                disabled={isUpdating}
+                                                                                title="Delete document"
+                                                                                aria-label="Delete document"
+                                                                            >
+                                                                                <FiTrash2 size={12} />
+                                                                            </button>
+                                                                        </div>
                                                                     ) : (
                                                                         <label className="task-tab-doc-upload">
                                                                             <FiPaperclip size={13} />
@@ -509,6 +539,7 @@ function Subtasks({ card }) {
                                                                 <p className="task-tab-task-title">{task.title}</p>
                                                                 <div className="task-tab-task-actions">
                                                                     <span className={`task-tab-status-badge task-tab-status-badge--${task.completed ? "completed" : "pending"}`}>
+                                                                        {task.completed ? <FiCheck size={10} /> : <FiClock size={10} />}
                                                                         {task.completed ? "Completed" : "Pending"}
                                                                     </span>
                                                                     <button
