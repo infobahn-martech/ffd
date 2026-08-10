@@ -961,14 +961,18 @@ function StatusTimelineSection({ steps, onStepClick, isLoading, isAdvancing }) {
           //   already that status), so this sends the *next* step's label instead.
           // - the "up next" pending step (right after the current one) does the same
           //   forward move — clicking the step you're moving TO also completes the
-          //   current one, since both name the same destination status.
+          //   current one, since both name the same destination status. Also allowed
+          //   when the previous step is already "done" (not just "current") — e.g. a
+          //   step toggled via the header sticker/checkbox can land straight on "done"
+          //   without the timeline ever marking it "current", which would otherwise
+          //   strand the following pending step as unclickable.
           // - a "done" step's round moves the DA back one stage, but only the step right
           //   before the current one — reverting is one-by-one too, not a jump straight
           //   back to an arbitrary earlier stage.
           const prevStep = steps[index - 1];
           const nextStep = steps[index + 1];
           const isForwardClickable = step.state === "current" && Boolean(nextStep);
-          const isUpNextClickable = step.state === "pending" && prevStep?.state === "current";
+          const isUpNextClickable = step.state === "pending" && (prevStep?.state === "current" || prevStep?.state === "done");
           const isBackClickable = step.state === "done" && nextStep?.state === "current";
           const isClickable = Boolean(onStepClick) && !isAdvancing && (isForwardClickable || isUpNextClickable || isBackClickable);
           const targetLabel = isForwardClickable ? nextStep.label : step.label;
