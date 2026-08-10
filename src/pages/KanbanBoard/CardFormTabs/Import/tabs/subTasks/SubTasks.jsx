@@ -6,6 +6,7 @@ import DateTimePickerField from "../../../shared/components/DateTimePickerField"
 import useCommonReducer from "../../../../../../store/CommonReducer";
 import { notify } from "../../../../../../components/Toaster";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
+import { DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS, DOCUMENT_UPLOAD_MAX_SIZE, validateDocumentFiles } from "../husbandry/components/Husbandry.constants";
 import "../../../../../../design/scss/invoice.scss";
 import "../../../../../../design/css/common/CardForm.css";
 import "../../../../../../design/scss/subtasks.scss";
@@ -94,6 +95,17 @@ const getAvatarColor = (name) => {
     return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 };
 
+const DOCUMENT_ACCEPT = DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS.join(",");
+const DOCUMENT_TYPE_LABELS = Array.from(
+    new Set(
+        DOCUMENT_UPLOAD_ALLOWED_EXTENSIONS.map((ext) => {
+            const label = ext.replace(".", "").toUpperCase();
+            return label === "JPEG" ? "JPG" : label;
+        })
+    )
+);
+const DOCUMENT_HINT = `Supports ${DOCUMENT_TYPE_LABELS.join(", ")} (max ${DOCUMENT_UPLOAD_MAX_SIZE / (1024 * 1024)}MB)`;
+
 const isTaskOverdue = (task) => {
     if (task.completed || !task.dueDate) return false;
     const due = new Date(`${task.dueDate}T${task.dueTime || "23:59"}:00`);
@@ -174,7 +186,26 @@ function Subtasks({ card }) {
 
     const handleDocumentChange = useCallback((event) => {
         const file = event.target.files?.[0] || null;
-        setDocumentFile(file);
+        event.target.value = "";
+        if (!file) return;
+        const { validFiles, rejectedFiles } = validateDocumentFiles([file]);
+        if (rejectedFiles.length > 0) {
+            notify(`"${rejectedFiles[0].name}" — ${rejectedFiles[0].reason}`, "error");
+            return;
+        }
+        setDocumentFile(validFiles[0]);
+    }, []);
+
+    const handleEditDocumentChange = useCallback((event) => {
+        const file = event.target.files?.[0] || null;
+        event.target.value = "";
+        if (!file) return;
+        const { validFiles, rejectedFiles } = validateDocumentFiles([file]);
+        if (rejectedFiles.length > 0) {
+            notify(`"${rejectedFiles[0].name}" — ${rejectedFiles[0].reason}`, "error");
+            return;
+        }
+        setEditDocumentFile(validFiles[0]);
     }, []);
 
     const handleRemoveDocument = useCallback(() => {
@@ -183,7 +214,7 @@ function Subtasks({ card }) {
 
     const handleSave = useCallback(async () => {
         const trimmedTitle = title.trim();
-        if (!trimmedTitle || !cardId) return;
+        if (!trimmedTitle || !assignUserId || !dueDate || !cardId) return;
 
         const formData = new FormData();
         formData.append("card_id", String(cardId));
@@ -226,7 +257,7 @@ function Subtasks({ card }) {
 
     const handleUpdate = useCallback(async (taskId) => {
         const trimmed = editDescription.trim();
-        if (!trimmed) return;
+        if (!trimmed || !editAssignedTo || !editDueDate) return;
         setIsUpdating(true);
         try {
             const formData = new FormData();
@@ -259,7 +290,7 @@ function Subtasks({ card }) {
                                 <div className="task-tab-field-row">
                                     <div className="task-tab-field">
                                         <label className="task-tab-label" htmlFor="subtask-assignee">
-                                            Assign User
+                                            Assign User <span className="task-tab-required">*</span>
                                         </label>
                                         <div className="task-tab-assignee-row">
                                             <UserOptionAvatar
@@ -291,7 +322,7 @@ function Subtasks({ card }) {
 
                                     <div className="task-tab-field">
                                         <label className="task-tab-label" htmlFor="subtask-due-date">
-                                            Due Date &amp; Time
+                                            Due Date &amp; Time <span className="task-tab-required">*</span>
                                         </label>
                                         <DateTimePickerField
                                             dateValue={dueDate}
@@ -333,18 +364,20 @@ function Subtasks({ card }) {
                                                 <input
                                                     id="subtask-document"
                                                     type="file"
+                                                    accept={DOCUMENT_ACCEPT}
                                                     className="task-tab-doc-input"
                                                     onChange={handleDocumentChange}
                                                     disabled={isSaving}
                                                 />
                                             </label>
                                         )}
+                                        <span className="task-tab-doc-hint">{DOCUMENT_HINT}</span>
                                     </div>
                                 </div>
 
                                 <div className="task-tab-field">
                                     <label className="task-tab-label" htmlFor="subtask-title">
-                                        Task title / description
+                                        Task title / description <span className="task-tab-required">*</span>
                                     </label>
                                     <textarea
                                         id="subtask-title"
@@ -362,7 +395,7 @@ function Subtasks({ card }) {
                                         type="button"
                                         className="task-tab-save-btn"
                                         onClick={handleSave}
-                                        disabled={!title.trim() || isSaving}
+                                        disabled={!title.trim() || !assignUserId || !dueDate || isSaving}
                                     >
                                         <FiPlus size={14} />
                                         {isSaving ? "Saving..." : "Add Task"}
@@ -403,7 +436,7 @@ function Subtasks({ card }) {
                                                     {isEditing ? (
                                                         <div className="task-tab-edit-form">
                                                             <div className="task-tab-field">
-                                                                <label className="task-tab-label">Description</label>
+                                                                <label className="task-tab-label">Description <span className="task-tab-required">*</span></label>
                                                                 <textarea
                                                                     className="task-tab-textarea"
                                                                     rows={3}
@@ -414,7 +447,7 @@ function Subtasks({ card }) {
                                                             </div>
                                                             <div className="task-tab-field-row">
                                                                 <div className="task-tab-field">
-                                                                    <label className="task-tab-label">Assign User</label>
+                                                                    <label className="task-tab-label">Assign User <span className="task-tab-required">*</span></label>
                                                                     <SearchableSelect
                                                                         className="cf-owner-searchable-select"
                                                                         value={editAssignedTo === "" ? "" : String(editAssignedTo)}
@@ -432,7 +465,7 @@ function Subtasks({ card }) {
                                                                     />
                                                                 </div>
                                                                 <div className="task-tab-field">
-                                                                    <label className="task-tab-label">Due Date &amp; Time</label>
+                                                                    <label className="task-tab-label">Due Date &amp; Time <span className="task-tab-required">*</span></label>
                                                                     <DateTimePickerField
                                                                         dateValue={editDueDate}
                                                                         timeValue={editDueTime}
@@ -454,13 +487,14 @@ function Subtasks({ card }) {
                                                                         <label className="task-tab-doc-upload">
                                                                             <FiPaperclip size={13} />
                                                                             <span>Upload document</span>
-                                                                            <input type="file" className="task-tab-doc-input" disabled={isUpdating} onChange={(e) => setEditDocumentFile(e.target.files?.[0] ?? null)} />
+                                                                            <input type="file" accept={DOCUMENT_ACCEPT} className="task-tab-doc-input" disabled={isUpdating} onChange={handleEditDocumentChange} />
                                                                         </label>
                                                                     )}
+                                                                    <span className="task-tab-doc-hint">{DOCUMENT_HINT}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="task-tab-edit-actions">
-                                                                <button type="button" className="task-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || isUpdating}>
+                                                                <button type="button" className="task-tab-save-btn" onClick={() => handleUpdate(task.id)} disabled={!editDescription.trim() || !editAssignedTo || !editDueDate || isUpdating}>
                                                                     <FiCheck size={14} />
                                                                     {isUpdating ? "Saving..." : "Update"}
                                                                 </button>
