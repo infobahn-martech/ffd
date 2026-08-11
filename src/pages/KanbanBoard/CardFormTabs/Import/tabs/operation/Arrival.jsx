@@ -34,46 +34,7 @@ import {
 } from "./arrivalDetailApply";
 import { isEventFieldRequired, OPERATION_STAGE_IDS } from "./operationConstants";
 
-const FALLBACK_ARRIVAL_TIME_OBJECT_FIELDS = [
-  {
-    event_name: "Actual Time of Arrival",
-    keyPrefix: "actualArrival",
-    time_object_id: 11,
-    field_key: "ATA",
-    is_required: "0",
-    sort_order: 1,
-  },
-  {
-    event_name: "Custom Inspection Commenced",
-    keyPrefix: "customInspectionCommenced",
-    time_object_id: 9,
-    field_key: "CIC",
-    sort_order: 2,
-  },
-  {
-    event_name: "Custom Inspection Completed",
-    keyPrefix: "customInspectionCompleted",
-    time_object_id: 10,
-    field_key: "CIC_1",
-    sort_order: 3,
-  },
-  {
-    event_name: "Crew Immigration Commenced",
-    keyPrefix: "crewImmigrationCommenced",
-    time_object_id: 12,
-    field_key: "CIC_2",
-    sort_order: 4,
-  },
-  {
-    event_name: "Crew Immigration Completed",
-    keyPrefix: "crewImmigrationCompleted",
-    time_object_id: 20,
-    field_key: "CIC_3",
-    sort_order: 5,
-  },
-];
-
-/** Marine work permit fields are no longer collected on the Arrival tab — filtered out regardless of source (API or fallback). */
+/** Marine work permit fields are no longer collected on the Arrival tab — filtered out regardless of source. */
 const REMOVED_MARINE_WORK_PERMIT_EVENT_NAMES = new Set([
   "marine work permit applied",
   "marine work permit issued",
@@ -81,8 +42,7 @@ const REMOVED_MARINE_WORK_PERMIT_EVENT_NAMES = new Set([
 ]);
 
 const resolveArrivalTimeObjectFields = (apiFields = []) => {
-  const source =
-    Array.isArray(apiFields) && apiFields.length ? apiFields : FALLBACK_ARRIVAL_TIME_OBJECT_FIELDS;
+  const source = Array.isArray(apiFields) ? apiFields : [];
   return [...source].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 };
 

@@ -19,9 +19,6 @@ import {
   SABER_APPLIED_BY_SEDRES,
   mapEventFields,
   getEventFieldKeyPrefix,
-  FALLBACK_PRE_ARRIVAL_FIELDS,
-  FALLBACK_ARRIVAL_FIELDS,
-  FALLBACK_DEPARTURE_FIELDS,
 } from "./operationConstants";
 
 // Dummy values for view-only mode
@@ -313,28 +310,24 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     };
   }, [preArrivalPortId, preArrivalCallTypeId, currentCallId]);
 
-  const preArrivalEventFields = (eventTypeFieldsByStage[2] || []).length
-    ? eventTypeFieldsByStage[2]
-    : FALLBACK_PRE_ARRIVAL_FIELDS;
+  const preArrivalEventFields = eventTypeFieldsByStage[2] || [];
   const firstPreArrivalField = preArrivalEventFields[0];
   const etaDateKey = firstPreArrivalField ? `${firstPreArrivalField.keyPrefix}Date` : "";
   const etaTimeKey = firstPreArrivalField ? `${firstPreArrivalField.keyPrefix}Time` : "";
   const etaDateValue = etaDateKey ? formValues?.[etaDateKey] || "" : "";
   const etaTimeValue = etaTimeKey ? formValues?.[etaTimeKey] || "" : "";
   const { arrivalStageFields, postArrivalStageFields } = useMemo(() => {
-    const arrivalStageFields = (eventTypeFieldsByStage[3] || []).length
-      ? [...eventTypeFieldsByStage[3]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      : FALLBACK_ARRIVAL_FIELDS.filter((field) => field.stage_id === 2);
+    const arrivalStageFields = [...(eventTypeFieldsByStage[3] || [])].sort(
+      (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+    );
 
-    const postArrivalStageFields = (eventTypeFieldsByStage[4] || []).length
-      ? [...eventTypeFieldsByStage[4]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      : FALLBACK_ARRIVAL_FIELDS.filter((field) => field.stage_id === 3);
+    const postArrivalStageFields = [...(eventTypeFieldsByStage[4] || [])].sort(
+      (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+    );
 
     return { arrivalStageFields, postArrivalStageFields };
   }, [eventTypeFieldsByStage]);
-  const departureEventFields = (eventTypeFieldsByStage[5] || []).length
-    ? eventTypeFieldsByStage[5]
-    : FALLBACK_DEPARTURE_FIELDS;
+  const departureEventFields = eventTypeFieldsByStage[5] || [];
   const viewOnlyFormValues = isDAModule ? { ...formValues, ...getDummyValues() } : formValues;
   const isViewOnly = isDAModule;
 

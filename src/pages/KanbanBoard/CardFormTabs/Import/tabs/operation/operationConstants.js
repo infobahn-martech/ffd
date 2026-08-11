@@ -125,25 +125,3 @@ export const mapEventFields = (responseData) => {
     .sort((a, b) => a.sort_order - b.sort_order);
 };
 
-export const FALLBACK_PRE_ARRIVAL_FIELDS = [
-  { event_name: "Expected Time of Arrival", keyPrefix: "expectedArrival", event_type_id: 1, sort_order: 1 },
-  { event_name: "Expected Commencement of Custom Inspection", keyPrefix: "customsInspection", event_type_id: 2, sort_order: 2 },
-  { event_name: "Expected Commencement of Immigration Clearance for crew", keyPrefix: "immigrationClearance", event_type_id: 3, sort_order: 3 },
-  { event_name: "Expected Completion of Inward Clearance", keyPrefix: "inwardClearance", event_type_id: 4, sort_order: 4 },
-];
-
-export const FALLBACK_ARRIVAL_FIELDS = [
-  { event_name: "Actual Time of Arrival", keyPrefix: "actualArrival", stage_id: 2, sort_order: 1 },
-  { event_name: "Custom Inspection commenced", keyPrefix: "customInspectionCommenced", stage_id: 2, sort_order: 2 },
-  { event_name: "Custom Inspection completed", keyPrefix: "customInspectionCompleted", stage_id: 2, sort_order: 3 },
-  { event_name: "Crew immigration commenced", keyPrefix: "crewImmigrationCommenced", stage_id: 2, sort_order: 4 },
-  { event_name: "Crew immigration completed", keyPrefix: "crewImmigrationCompleted", stage_id: 2, sort_order: 5 },
-  { event_name: "Vessel Inward formalities completed", keyPrefix: "vesselInwardFormalitiesCompleted", stage_id: 3, sort_order: 1 },
-];
-
-export const FALLBACK_DEPARTURE_FIELDS = [
-  { event_name: "Request for outward clearance received", keyPrefix: "outwardClearanceRequestReceived", sort_order: 1 },
-  { event_name: "Outward clearance issued", keyPrefix: "outwardClearanceIssued", sort_order: 2 },
-  { event_name: "Outward clearance delivered", keyPrefix: "outwardClearanceDelivered", sort_order: 3 },
-  { event_name: "Vessel Sailed", keyPrefix: "vesselSailed", sort_order: 4 },
-];
