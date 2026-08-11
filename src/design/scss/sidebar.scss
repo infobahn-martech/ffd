@@ -431,6 +431,14 @@
         z-index: 1001;
     }
 
+    // Header renders its own ".mobile-menu-toggle" hamburger at true mobile
+    // widths ($sm-479, same breakpoint), wired to the same expand state —
+    // showing both here would duplicate it. Keep this one only for the
+    // 480–991px tablet range, where Header doesn't render a toggle.
+    @media ($sm-479) {
+        display: none;
+    }
+
     .sidebar-toggle {
         padding: 5px;
         width: 30px;
@@ -442,6 +450,17 @@
         flex-direction: column;
         justify-content: space-around;
 
+        // Below $sm-991 the sidebar itself sits off-canvas (left: -72px) until
+        // opened, so this toggle floats over the plain page background rather
+        // than the dark sidebar. It needs its own chrome — otherwise the bars
+        // (previously forced white) are invisible against a light page, and
+        // the toggle effectively disappears.
+        @media ($sm-991) {
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+        }
+
         span {
             width: 100%;
             height: 3px;
@@ -449,10 +468,6 @@
             border-radius: 3px;
             display: block;
             transition: all 0.3s ease;
-
-            @media ($sm-991) {
-                background-color: #fff;
-            }
         }
 
         &:hover span {
