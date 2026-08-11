@@ -19,6 +19,7 @@ import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+import { useBreakpoint } from '../../../shared/hooks/useWindowSize';
 import usePermissions from '../../../shared/hooks/usePermissions';
 import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../../../shared/constants/permissions';
 import '../../../design/scss/structure/side-nav/AddDashboardModal.scss';
@@ -69,7 +70,12 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUse
   const canManageDashboardItem = canRenameDashboard || canUpdateDashboardBackground || canDeleteDashboard;
 
   const [filterText, setFilterText] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
+  // Below the $sm-767 breakpoint the full-width text sidebar (260px, per
+  // sidebar.scss) leaves almost no room for page content on a phone, so it
+  // auto-collapses to the existing icon-only stack that this component
+  // already renders but never triggered (no toggle previously set this).
+  const { width } = useBreakpoint();
+  const collapsed = width <= 767;
   const [openActionsId, setOpenActionsId] = useState(null);
   const [backgroundSubOpen, setBackgroundSubOpen] = useState(false);
   const [renameModal, setRenameModal] = useState(null);
