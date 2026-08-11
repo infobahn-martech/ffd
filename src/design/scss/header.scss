@@ -673,10 +673,9 @@
       }
     }
 
-    // Hide certain icons on mobile
     &.icon-btn-hide-mobile {
-      @media (max-width: 767px) {
-        display: none;
+      @media (max-width: 479px) {
+        padding: 4px;
       }
     }
   }

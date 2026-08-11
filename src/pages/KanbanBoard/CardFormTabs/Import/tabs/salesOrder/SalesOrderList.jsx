@@ -1529,7 +1529,7 @@ const SalesOrderList = ({
                         />
                       </div>
                       <div className="sales-order-add-form-field">
-                        <label>Discount</label>
+                        <label>Discount %</label>
                         <input
                           type="number"
                           min="0"
