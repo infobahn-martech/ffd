@@ -148,6 +148,9 @@ const Vessel = () => {
         sort: true,
         thclass: "tb-head",
         width: "200",
+        cell: ({ row }) => (
+          <EllipsisText value={row?.billing_entity} limit={12} />
+        ),
       },
       // {
       //   name: "Owner",
