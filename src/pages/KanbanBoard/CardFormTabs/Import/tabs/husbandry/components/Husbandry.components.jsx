@@ -473,6 +473,21 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
     if (!isOpen) setSearchTerm("");
   }, [isOpen]);
 
+  // The portal is positioned via the trigger's bounding rect at open time only, so
+  // scrolling an ancestor (e.g. an internally-scrollable panel) leaves it stranded
+  // at a stale position. Close it on any scroll outside the dropdown itself.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleScroll = (event) => {
+      if (portalRef.current?.contains(event.target)) return;
+      setIsOpen(false);
+    };
+
+    document.addEventListener("scroll", handleScroll, true);
+    return () => document.removeEventListener("scroll", handleScroll, true);
+  }, [isOpen]);
+
   const selectedOption = options.find(opt => opt.value === value);
   const displayValue = selectedOption ? selectedOption.label : "";
 

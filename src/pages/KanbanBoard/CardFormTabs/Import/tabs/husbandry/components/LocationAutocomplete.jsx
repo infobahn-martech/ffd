@@ -64,6 +64,23 @@ const LocationAutocomplete = ({ value, onChange, placeholder, className = "", on
     };
   }, [isLoaded, error]);
 
+  // The pac-container is positioned via the input's bounding rect at open time and
+  // only repositions on window scroll, so scrolling an internal panel leaves it
+  // floating in the wrong place. Close it on any scroll outside the dropdown itself.
+  useEffect(() => {
+    if (!isLoaded) return undefined;
+
+    const handleScroll = (event) => {
+      if (event.target?.closest?.(".pac-container")) return;
+      if (document.activeElement === inputRef.current) {
+        inputRef.current.blur();
+      }
+    };
+
+    document.addEventListener("scroll", handleScroll, true);
+    return () => document.removeEventListener("scroll", handleScroll, true);
+  }, [isLoaded]);
+
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     setInputValue(newValue);
