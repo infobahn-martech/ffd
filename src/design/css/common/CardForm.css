@@ -1973,6 +1973,53 @@
   hyphens: auto;
 }
 
+/* Footer steps bar on phones: 6 equal-width steps have no room to breathe
+   below ~480px, so let the bar scroll horizontally instead of squeezing
+   every label into 3 wrapped lines. */
+@media (max-width: 767px) {
+  .cardform-footer {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .cardform-steps-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-right: 10px;
+    padding-bottom: 2px;
+  }
+
+  .cardform-steps-wrapper .step-item {
+    flex: 0 0 84px;
+    min-width: 84px;
+  }
+
+  .cardform-steps-wrapper .step-content {
+    height: 24px;
+  }
+
+  .cardform-steps-wrapper .step-circle {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .cardform-steps-wrapper .step-line {
+    left: calc(50% + 12px);
+  }
+
+  .cardform-steps-wrapper .step-label {
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  .cardform-update-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
 .operation-wrapper {
   display: flex;
   width: 100%;

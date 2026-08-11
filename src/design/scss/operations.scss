@@ -1959,6 +1959,77 @@ $send-report-optional: #80868b;
   color: var(--card-color, #{$colorPrimary});
 }
 
+// Mobile nav collapse (Husbandry left nav) — the stacked main+submenu list
+// (screenshot: Crew Management > Crew/Zawil Pass/CG Pass/Transport/Hotel/
+// Medical, each on its own full-width row) pushes real content like the
+// Crew Management timeline far down the page on phones. Collapse it behind
+// a toggle that shows the current selection; expand on tap, collapse again
+// on any selection. Desktop is untouched: the toggle stays hidden and
+// .husbandry-nav-collapsible always renders as before, outside the media query.
+.operation-wrapper.husbandry-wrapper {
+  .husbandry-nav-toggle {
+    display: none;
+  }
+
+  .husbandry-nav-collapsible {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+  }
+}
+
+@media (max-width: 768px) {
+  .operation-wrapper.husbandry-wrapper {
+    .husbandry-nav-toggle {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid $border-color-default;
+      border-radius: $radius-sm;
+      background: #fff;
+      color: $txtColor;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .husbandry-nav-toggle:focus-visible {
+      outline: none;
+      box-shadow: $shadow-focus;
+    }
+
+    .husbandry-nav-toggle-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .husbandry-nav-toggle-chevron {
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .husbandry-nav-toggle[aria-expanded="true"] .husbandry-nav-toggle-chevron {
+      transform: rotate(180deg);
+    }
+
+    .husbandry-nav-collapsible {
+      display: none;
+      width: 100%;
+    }
+
+    .operation-left.husbandry-nav-expanded .husbandry-nav-collapsible {
+      display: flex;
+      margin-top: $space-1;
+    }
+  }
+}
+
 /* ==========================================================
    OPERATION LEFT NAV (OperationTabs.jsx) — Pre Arrival / Arrival /
    Departure / Check List. Copies the literal, cascade-resolved values from

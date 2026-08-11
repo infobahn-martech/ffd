@@ -225,6 +225,11 @@ RouteCell.propTypes = {
 
 export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, onNavigateToTab, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c", crewCount, subTabCounts = {} }) => {
   const hasCrewCount = typeof crewCount === "number";
+  // Mobile-only: the stacked main+submenu list pushes real content far down
+  // the page on phones, so it starts collapsed behind a toggle there. Has no
+  // effect on desktop, where the toggle is hidden by CSS and the list always shows.
+  const [isNavExpanded, setIsNavExpanded] = useState(false);
+  const collapseNav = () => setIsNavExpanded(false);
 
   // Filter main tabs based on selected services
   const allMainTabs = [
@@ -297,8 +302,11 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     subTabs = [];
   }
 
+  const activeMainTabLabel = mainTabs.find((tab) => tab.id === activeMainTab)?.label || "Menu";
+  const activeSubTabLabel = subTabs.find((tab) => tab.id === activeSubTab)?.label;
+
   return (
-    <div className="operation-left" style={{ "--card-color": cardColor }}>
+    <div className={`operation-left ${isNavExpanded ? "husbandry-nav-expanded" : ""}`} style={{ "--card-color": cardColor }}>
       {onBackToServiceSelection && (
         <button
           type="button"
@@ -312,58 +320,80 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
           <span>What services do you need?</span>
         </button>
       )}
-      {mainTabs.map((tab) => {
-        const isActive = activeMainTab === tab.id;
-        const currentSubTabs = isActive ? subTabs : [];
+      <button
+        type="button"
+        className="husbandry-nav-toggle"
+        onClick={() => setIsNavExpanded((prev) => !prev)}
+        aria-expanded={isNavExpanded}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4H14M2 8H14M2 12H14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <span className="husbandry-nav-toggle-label">
+          {activeSubTabLabel ? `${activeMainTabLabel} · ${activeSubTabLabel}` : activeMainTabLabel}
+        </span>
+        <svg className="husbandry-nav-toggle-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <div className="husbandry-nav-collapsible">
+        {mainTabs.map((tab) => {
+          const isActive = activeMainTab === tab.id;
+          const currentSubTabs = isActive ? subTabs : [];
 
-        return (
-          <div key={tab.id} className="op-tab-group">
-            <NavTabButton
-              className="op-tab op-tab-main"
-              active={isActive}
-              onClick={() => onMainTabChange(tab.id)}
-            >
-              <TabIcon id={tab.id} />
-              <span className="op-tab-label">{tab.label}</span>
-              {hasCrewCount && <span className="op-tab-count">{crewCount}</span>}
-            </NavTabButton>
-            {isActive && currentSubTabs.length > 0 && (
-              <div className="op-submenu">
-                {currentSubTabs.map((subTab) => {
-                  const isDirectCrewNav = CREW_DIRECT_NAV_SUBTABS.some((tab) => tab.id === subTab.id);
-                  const handleSubTabClick = () => {
-                    if (isDirectCrewNav && onNavigateToTab) {
-                      onNavigateToTab(subTab.id);
-                      return;
-                    }
-                    onSubTabChange(subTab.id);
-                  };
+          return (
+            <div key={tab.id} className="op-tab-group">
+              <NavTabButton
+                className="op-tab op-tab-main"
+                active={isActive}
+                onClick={() => {
+                  onMainTabChange(tab.id);
+                  collapseNav();
+                }}
+              >
+                <TabIcon id={tab.id} />
+                <span className="op-tab-label">{tab.label}</span>
+                {hasCrewCount && <span className="op-tab-count">{crewCount}</span>}
+              </NavTabButton>
+              {isActive && currentSubTabs.length > 0 && (
+                <div className="op-submenu">
+                  {currentSubTabs.map((subTab) => {
+                    const isDirectCrewNav = CREW_DIRECT_NAV_SUBTABS.some((tab) => tab.id === subTab.id);
+                    const handleSubTabClick = () => {
+                      if (isDirectCrewNav && onNavigateToTab) {
+                        onNavigateToTab(subTab.id);
+                      } else {
+                        onSubTabChange(subTab.id);
+                      }
+                      collapseNav();
+                    };
 
-                  const subTabCount = subTabCounts?.[subTab.id];
-                  const hasSubTabCount = typeof subTabCount === "number";
+                    const subTabCount = subTabCounts?.[subTab.id];
+                    const hasSubTabCount = typeof subTabCount === "number";
 
-                  return (
-                    <NavTabButton
-                      key={subTab.id}
-                      className="op-tab op-tab-sub"
-                      active={activeSubTab === subTab.id}
-                      onClick={handleSubTabClick}
-                    >
-                      <TabIcon id={subTab.id} />
-                      <span className="op-tab-label">{subTab.label}</span>
-                      {hasSubTabCount ? (
-                        <span className="op-tab-count">{subTabCount}</span>
-                      ) : (
-                        hasCrewCount && <span className="op-tab-count">{crewCount}</span>
-                      )}
-                    </NavTabButton>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+                    return (
+                      <NavTabButton
+                        key={subTab.id}
+                        className="op-tab op-tab-sub"
+                        active={activeSubTab === subTab.id}
+                        onClick={handleSubTabClick}
+                      >
+                        <TabIcon id={subTab.id} />
+                        <span className="op-tab-label">{subTab.label}</span>
+                        {hasSubTabCount ? (
+                          <span className="op-tab-count">{subTabCount}</span>
+                        ) : (
+                          hasCrewCount && <span className="op-tab-count">{crewCount}</span>
+                        )}
+                      </NavTabButton>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
