@@ -794,6 +794,40 @@
   .cf-section.general-info-section .general-info-view-with-tasks.general-tab-form-layout .general-info-tasks-rail {
     min-height: 0;
   }
+
+  /* View mode on phones: let the card body scroll as one page instead of each
+     column clipping its own content inside a short inner scrollbox. */
+  .cardform-body.general-tab-body.general-tab-body--view-mode {
+    overflow-y: auto;
+  }
+
+  .general-tab-body--view-mode {
+    .general-sections-wrapper .cf-section.general-info-section .cf-section-body {
+      overflow: visible;
+    }
+
+    .general-view-mode-wrapper {
+      overflow: visible;
+    }
+
+    .general-info-view-with-tasks.general-info-three-column.general-tab-form-layout {
+      overflow: visible;
+
+      .general-info-left,
+      .general-info-middle,
+      .general-info-right {
+        max-height: none;
+        overflow: visible;
+      }
+
+      .general-view-form-scroll,
+      .daily-task-list-scroll,
+      .operation-task-list {
+        max-height: none;
+        overflow-y: visible;
+      }
+    }
+  }
 }
 
 /* View mode: tighter section spacing and aligned three-column layout */
