@@ -351,6 +351,25 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   const cardColor = "#00368c"; // Fixed color for all buttons, effects, and backgrounds
   const [servicesSummary, setServicesSummary] = useState(null);
 
+  // Booking counts reported by each service tab from its own API fetch —
+  // reflects actual saved requests, not just the crew picked in the pending form.
+  const [requestCounts, setRequestCounts] = useState({
+    [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: null,
+    [CREW_MANAGEMENT_SUBTABS.HOTEL]: null,
+    [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: null,
+    [CREW_MANAGEMENT_SUBTABS.CG_PASS]: null,
+    [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: null,
+  });
+
+  const setRequestCount = useCallback((subTab, count) => {
+    setRequestCounts((prev) => (prev[subTab] === count ? prev : { ...prev, [subTab]: count }));
+  }, []);
+  const handleTransportRequestCount = useCallback((count) => setRequestCount(CREW_MANAGEMENT_SUBTABS.TRANSPORT, count), [setRequestCount]);
+  const handleHotelRequestCount = useCallback((count) => setRequestCount(CREW_MANAGEMENT_SUBTABS.HOTEL, count), [setRequestCount]);
+  const handleMedicalRequestCount = useCallback((count) => setRequestCount(CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, count), [setRequestCount]);
+  const handleCgPassRequestCount = useCallback((count) => setRequestCount(CREW_MANAGEMENT_SUBTABS.CG_PASS, count), [setRequestCount]);
+  const handleZawilPassRequestCount = useCallback((count) => setRequestCount(CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, count), [setRequestCount]);
+
   const inboundOrdersCount = useInboundOrderReducer((state) => state.inboundOrdersCount);
   const getInboundOrdersTotal = useInboundOrderReducer((state) => state.getInboundOrdersTotal);
   const landingNotesCount = useLandingNoteReducer((state) => state.landingNotesCount);
@@ -635,6 +654,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
+              onRequestCountChange={handleTransportRequestCount}
             />
           </>
         );
@@ -645,6 +665,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             handleChange={handleChange}
             cardColor={cardColor}
             card={card}
+            onRequestCountChange={handleCgPassRequestCount}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS:
@@ -654,6 +675,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             handleChange={handleChange}
             cardColor={cardColor}
             card={card}
+            onRequestCountChange={handleZawilPassRequestCount}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE:
@@ -680,6 +702,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
+              onRequestCountChange={handleHotelRequestCount}
             />
           </>
         );
@@ -697,6 +720,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
+              onRequestCountChange={handleMedicalRequestCount}
             />
           </>
         );
@@ -869,16 +893,15 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: landingNotesCount,
             [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: dispatchNotesCount,
             [LAUNCH_HIRE_SUBTABS.INBOUND_ORDERS]: inboundOrdersCount,
-            // Each crew service tracks its own selected-crew subset in
-            // formValues — the sidebar badge should show how many crew are
-            // actually assigned to that service, not the total crew list
-            // count (which crewCount falls back to below for the plain
-            // "Crew" tab, the only one with no subset of its own).
-            [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: Array.isArray(formValues?.selectedCrew) ? formValues.selectedCrew.length : 0,
-            [CREW_MANAGEMENT_SUBTABS.HOTEL]: Array.isArray(formValues?.hotelSelectedCrew) ? formValues.hotelSelectedCrew.length : 0,
-            [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: Array.isArray(formValues?.medicalServiceSelectedCrew) ? formValues.medicalServiceSelectedCrew.length : 0,
-            [CREW_MANAGEMENT_SUBTABS.CG_PASS]: Array.isArray(formValues?.cgPassSelectedCrew) ? formValues.cgPassSelectedCrew.length : 0,
-            [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: Array.isArray(formValues?.zawilPassSelectedCrew) ? formValues.zawilPassSelectedCrew.length : 0,
+            // Each service badge shows the number of requests already saved
+            // for this call, as fetched from its own API. Until that tab has
+            // been opened at least once (requestCounts entry still null),
+            // fall back to the crew currently picked in the pending form.
+            [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: requestCounts[CREW_MANAGEMENT_SUBTABS.TRANSPORT] ?? (Array.isArray(formValues?.selectedCrew) ? formValues.selectedCrew.length : 0),
+            [CREW_MANAGEMENT_SUBTABS.HOTEL]: requestCounts[CREW_MANAGEMENT_SUBTABS.HOTEL] ?? (Array.isArray(formValues?.hotelSelectedCrew) ? formValues.hotelSelectedCrew.length : 0),
+            [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: requestCounts[CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE] ?? (Array.isArray(formValues?.medicalServiceSelectedCrew) ? formValues.medicalServiceSelectedCrew.length : 0),
+            [CREW_MANAGEMENT_SUBTABS.CG_PASS]: requestCounts[CREW_MANAGEMENT_SUBTABS.CG_PASS] ?? (Array.isArray(formValues?.cgPassSelectedCrew) ? formValues.cgPassSelectedCrew.length : 0),
+            [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: requestCounts[CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS] ?? (Array.isArray(formValues?.zawilPassSelectedCrew) ? formValues.zawilPassSelectedCrew.length : 0),
             crewChange: Array.isArray(formValues?.crewChangeSelectedCrew) ? formValues.crewChangeSelectedCrew.length : 0,
             portPass: Array.isArray(formValues?.portPassSelectedCrew) ? formValues.portPassSelectedCrew.length : 0,
           }}

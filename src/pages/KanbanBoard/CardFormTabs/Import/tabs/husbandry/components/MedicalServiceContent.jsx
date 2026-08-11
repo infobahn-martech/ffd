@@ -35,7 +35,7 @@ const MEDICAL_REQUEST_COLUMNS = [
   { key: "document", header: "Document", type: "document" },
 ];
 
-const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
+const MedicalServiceContent = ({ formValues, handleChange, cardColor, onRequestCountChange }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
@@ -63,13 +63,16 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     setLoadingMedicalRequests(true);
     try {
       const response = await hospitalService.getMedicalRequests(callId);
-      setMedicalRequests(extractMedicalRequestsFromEnvelope(response));
+      const list = extractMedicalRequestsFromEnvelope(response);
+      setMedicalRequests(list);
+      onRequestCountChange?.(list.length);
     } catch {
       setMedicalRequests([]);
+      onRequestCountChange?.(0);
     } finally {
       setLoadingMedicalRequests(false);
     }
-  }, [callId]);
+  }, [callId, onRequestCountChange]);
 
   useEffect(() => {
     void fetchMedicalRequests();
@@ -549,6 +552,7 @@ MedicalServiceContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  onRequestCountChange: PropTypes.func,
 };
 
 export default MedicalServiceContent;

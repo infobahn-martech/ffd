@@ -1415,6 +1415,35 @@
   padding: 8px;
 }
 
+.cf-multiselect-search {
+  position: sticky;
+  top: -8px;
+  padding: 0 0 8px;
+  margin: -8px -8px 4px;
+  background: #ffffff;
+}
+
+.cf-multiselect-search input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.cf-multiselect-search input:focus {
+  border-color: #7c5cff;
+}
+
+.cf-multiselect-empty {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #8a8f99;
+  text-align: center;
+}
+
 .cf-multiselect-option {
   display: flex;
   align-items: center;

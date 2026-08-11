@@ -11,6 +11,7 @@ const ChecklistMultiSelect = ({
   id: domId = "cl-type-multiselect",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +23,16 @@ const ChecklistMultiSelect = ({
     if (isOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) setSearchTerm("");
+  }, [isOpen]);
+
+  const filteredOptions = searchTerm.trim()
+    ? options.filter((option) =>
+        option.label.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      )
+    : options;
 
   const handleToggle = (optionValue) => {
     const normalizedOptionValue = String(optionValue).trim();
@@ -88,21 +99,36 @@ const ChecklistMultiSelect = ({
       </div>
       {isOpen && (
         <div className="cf-multiselect-dropdown">
-          {options.map((option) => {
-            const normalizedOptionValue = String(option.value).trim();
-            const isSelected = value
-              .map((item) => String(item).trim())
-              .includes(normalizedOptionValue);
-            return (
-              <div
-                key={option.value}
-                className={`cf-multiselect-option ${isSelected ? "selected" : ""}`}
-                onClick={() => handleToggle(option.value)}
-              >
-                <span>{option.label}</span>
-              </div>
-            );
-          })}
+          {options.length > 5 && (
+            <div className="cf-multiselect-search" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search crew..."
+                autoFocus
+              />
+            </div>
+          )}
+          {filteredOptions.length === 0 ? (
+            <div className="cf-multiselect-empty">No matches found</div>
+          ) : (
+            filteredOptions.map((option) => {
+              const normalizedOptionValue = String(option.value).trim();
+              const isSelected = value
+                .map((item) => String(item).trim())
+                .includes(normalizedOptionValue);
+              return (
+                <div
+                  key={option.value}
+                  className={`cf-multiselect-option ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleToggle(option.value)}
+                >
+                  <span>{option.label}</span>
+                </div>
+              );
+            })
+          )}
         </div>
       )}
     </div>

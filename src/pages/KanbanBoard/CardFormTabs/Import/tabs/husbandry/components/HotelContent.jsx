@@ -52,7 +52,7 @@ const unwrapApiList = (axiosData) => {
   return [];
 };
 
-const HotelContent = ({ formValues, handleChange, cardColor }) => {
+const HotelContent = ({ formValues, handleChange, cardColor, onRequestCountChange }) => {
   const requestEmailInputRef = useRef(null);
   const documentsInputRef = useRef(null);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
@@ -81,12 +81,14 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       const response = await hotelService.getHotelRequests(callId);
       const list = extractHotelRequestsFromEnvelope(response);
       setHotelRequests(flattenHotelRequestRows(list));
+      onRequestCountChange?.(list.length);
     } catch {
       setHotelRequests([]);
+      onRequestCountChange?.(0);
     } finally {
       setLoadingHotelRequests(false);
     }
-  }, [callId]);
+  }, [callId, onRequestCountChange]);
 
   useEffect(() => {
     void fetchHotelRequests();
@@ -574,6 +576,7 @@ HotelContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  onRequestCountChange: PropTypes.func,
 };
 
 export default HotelContent;

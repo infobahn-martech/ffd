@@ -108,7 +108,7 @@
 
   const TRANSPORT_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.TRANSPORT];
 
-  const TransportContent = ({ formValues, handleChange, cardColor }) => {
+  const TransportContent = ({ formValues, handleChange, cardColor, onRequestCountChange }) => {
     const requestEmailInputRef = useRef(null);
     const documentsInputRef = useRef(null);
     const [isDraggingEmail, setIsDraggingEmail] = useState(false);
@@ -159,12 +159,14 @@
         const response = await transportContentService.getTransportRequest(callId);
         const list = extractTransportRequestsFromEnvelope(response);
         setTransportRequests(flattenTransportRequestRows(list));
+        onRequestCountChange?.(list.length);
       } catch {
         setTransportRequests([]);
+        onRequestCountChange?.(0);
       } finally {
         setLoadingTransportRequests(false);
       }
-    }, [callId]);
+    }, [callId, onRequestCountChange]);
 
     useEffect(() => {
       void fetchTransportRequests();
@@ -593,6 +595,7 @@
     formValues: PropTypes.object.isRequired,
     handleChange: PropTypes.func.isRequired,
     cardColor: PropTypes.string,
+    onRequestCountChange: PropTypes.func,
   };
 
   export default TransportContent;

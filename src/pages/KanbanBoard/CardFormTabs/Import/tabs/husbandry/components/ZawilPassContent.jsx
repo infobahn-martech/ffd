@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
@@ -19,7 +19,7 @@ const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 const ZAWIL_PASS_ACCENT = SERVICE_ACCENT[CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS];
 
-const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
+const ZawilPassContent = ({ formValues, handleChange, cardColor, card, onRequestCountChange }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
@@ -40,6 +40,10 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
     requestEmailFileField: "zawilPassRequestEmailFile",
     crewField: "zawilPassSelectedCrew",
   });
+
+  useEffect(() => {
+    onRequestCountChange?.(passRequests?.zawil?.length || 0);
+  }, [passRequests, onRequestCountChange]);
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -277,6 +281,7 @@ ZawilPassContent.propTypes = {
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   card: PropTypes.object,
+  onRequestCountChange: PropTypes.func,
 };
 
 export default ZawilPassContent;
