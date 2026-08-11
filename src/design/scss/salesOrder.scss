@@ -479,6 +479,21 @@
   background-image: none;
 }
 
+/* Port / BP Currency use the shared PremiumSelect — so-header-field already
+   draws a border around the field, so drop the control's own border/background
+   to avoid a double border. The opened options list keeps its default/common
+   styling untouched. */
+.so-header-field .so-header-premium-select.cf-searchable-select .cf-multi-select-email-input {
+  border: none !important;
+  background: transparent !important;
+  min-height: auto !important;
+  padding: 0 !important;
+}
+
+.so-header-field .so-header-premium-select.cf-searchable-select .cf-multi-select-email-input:hover {
+  background: transparent !important;
+}
+
 .so-currency-rate {
   font-size: 13.5px;
   font-weight: 600;

@@ -8,6 +8,7 @@ import { PORT_OPTIONS, PORT_OPTIONS_WITH_ID } from "../../../../../../shared/con
 import salesOrderService from "../../../../../../services/salesOrderService";
 import callFileService from "../../../../../../services/callFileService";
 import DatePickerField from "../../../shared/components/DatePickerField";
+import PremiumSelect from "../../../../../../components/form/PremiumSelect";
 import useAlertReducer from "../../../../../../store/AlertReducer";
 import useAuthReducer from "../../../../../../store/AuthReducer";
 import WorkOrderCreationModal from "./WorkOrderCreationModal";
@@ -633,6 +634,16 @@ const SalesOrderList = ({
     if (!soPort || PORT_OPTIONS.includes(soPort)) return PORT_OPTIONS;
     return [soPort, ...PORT_OPTIONS];
   }, [soPort]);
+
+  const bpCurrencySelectOptions = useMemo(
+    () => BP_CURRENCY_OPTIONS.map((c) => ({ value: c, label: c === "EURO" ? "EURO (€)" : c })),
+    []
+  );
+
+  const portSelectOptions = useMemo(
+    () => portOptions.map((p) => ({ value: p, label: p })),
+    [portOptions]
+  );
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
@@ -1701,17 +1712,15 @@ const SalesOrderList = ({
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Port</label>
-              <select
-                className="so-header-select"
+              <PremiumSelect
+                className="so-header-premium-select"
                 value={soPort}
                 onChange={handleChange("soPort")}
+                options={portSelectOptions}
+                placeholder="Select Port..."
+                searchPlaceholder="Search port..."
                 disabled={readOnly}
-              >
-                <option value="">Select Port...</option>
-                {portOptions.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
+              />
             </div>
             <div className="so-header-field">
               <label className="so-header-label">Branch</label>
@@ -1772,17 +1781,15 @@ const SalesOrderList = ({
             </div>
             <div className="so-header-field">
               <label className="so-header-label">BP Currency</label>
-              <select
-                className="so-header-select"
+              <PremiumSelect
+                className="so-header-premium-select"
                 value={soBpCurrency}
                 onChange={handleChange("soBpCurrency")}
+                options={bpCurrencySelectOptions}
+                placeholder="—"
+                searchPlaceholder="Search currency..."
                 disabled={readOnly}
-              >
-                <option value="">—</option>
-                {BP_CURRENCY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
-                ))}
-              </select>
+              />
             </div>
             {soBpCurrency === "USD" && (
               <div className="so-header-field">
