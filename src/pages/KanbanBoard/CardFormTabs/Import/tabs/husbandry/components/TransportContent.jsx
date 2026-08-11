@@ -114,9 +114,10 @@
     const [isDraggingEmail, setIsDraggingEmail] = useState(false);
 
     const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-    const isLaunchHire = formValues.transportLaunchHire !== false;
 
     const [callDetails, setCallDetails] = useState(null);
+    const launchHireEnabled = Number(callDetails?.launch_hire) === 1;
+    const isLaunchHire = launchHireEnabled && formValues.transportLaunchHire !== false;
 
     useEffect(() => {
       if (!callId) {
@@ -480,42 +481,44 @@
                     </FormField>
                   </FieldRow>
 
-                  <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={TRANSPORT_ACCENT}>
-                    <FormField>
-                      <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={isLaunchHire}
-                          onChange={(e) => handleChange("transportLaunchHire")({ target: { value: e.target.checked } })}
-                          style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
-                        />
-                        Launch hire required
-                      </label>
-                    </FormField>
-                    {isLaunchHire && (
-                      <FieldRow>
-                        <FormField label="Location">
-                          <FormSelect
-                            value={formValues.transportLaunchHireLocation || ""}
-                            onChange={handleChange("transportLaunchHireLocation")}
-                            options={LAUNCH_HIRE_LOCATION_OPTIONS}
-                            placeholder="Select location..."
+                  {launchHireEnabled && (
+                    <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={TRANSPORT_ACCENT}>
+                      <FormField>
+                        <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={isLaunchHire}
+                            onChange={(e) => handleChange("transportLaunchHire")({ target: { value: e.target.checked } })}
+                            style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
                           />
-                        </FormField>
-                        <FormField label="Booking Date Time">
-                          <DateTimePickerField
-                            dateValue={formValues.transportLaunchHireBookingDate || ""}
-                            timeValue={formValues.transportLaunchHireBookingTime || ""}
-                            onDateChange={handleChange("transportLaunchHireBookingDate")}
-                            onTimeChange={handleChange("transportLaunchHireBookingTime")}
-                            dateFieldName="transportLaunchHireBookingDate"
-                            timeFieldName="transportLaunchHireBookingTime"
-                            placeholder="Select date and time"
-                          />
-                        </FormField>
-                      </FieldRow>
-                    )}
-                  </FormGroup>
+                          Launch hire required
+                        </label>
+                      </FormField>
+                      {isLaunchHire && (
+                        <FieldRow>
+                          <FormField label="Location">
+                            <FormSelect
+                              value={formValues.transportLaunchHireLocation || ""}
+                              onChange={handleChange("transportLaunchHireLocation")}
+                              options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                              placeholder="Select location..."
+                            />
+                          </FormField>
+                          <FormField label="Booking Date Time">
+                            <DateTimePickerField
+                              dateValue={formValues.transportLaunchHireBookingDate || ""}
+                              timeValue={formValues.transportLaunchHireBookingTime || ""}
+                              onDateChange={handleChange("transportLaunchHireBookingDate")}
+                              onTimeChange={handleChange("transportLaunchHireBookingTime")}
+                              dateFieldName="transportLaunchHireBookingDate"
+                              timeFieldName="transportLaunchHireBookingTime"
+                              placeholder="Select date and time"
+                            />
+                          </FormField>
+                        </FieldRow>
+                      )}
+                    </FormGroup>
+                  )}
 
                   <FormGroup icon="folder" label="Documents *" accent={TRANSPORT_ACCENT}>
                     <FormField className="cf-field-full">

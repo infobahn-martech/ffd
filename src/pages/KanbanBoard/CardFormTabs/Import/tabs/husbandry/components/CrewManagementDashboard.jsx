@@ -264,6 +264,7 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   const [launchDateTimeError, setLaunchDateTimeError] = useState("");
   const [isSubmittingLaunchHire, setIsSubmittingLaunchHire] = useState(false);
   const [launchHireRequested, setLaunchHireRequested] = useState(false);
+  const [launchHireEnabled, setLaunchHireEnabled] = useState(false);
 
   const resolveCallAndVesselIds = useCallback(async () => {
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
@@ -290,6 +291,27 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
   useEffect(() => {
     fetchAllNationalities();
   }, [fetchAllNationalities]);
+
+  // Fetches call detail to check the `launch_hire` flag — the "Request
+  // Launch Hire" action only applies to calls the backend has flagged for it.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { resolvedCallId } = await resolveCallAndVesselIds();
+      if (cancelled || !resolvedCallId) return;
+      try {
+        const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
+        const callDetailData =
+          callDetailResponse?.data?.[0] || callDetailResponse?.data || callDetailResponse?.detail || callDetailResponse;
+        if (!cancelled) setLaunchHireEnabled(Number(callDetailData?.launch_hire) === 1);
+      } catch {
+        // launchHireEnabled stays false — button remains hidden
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [resolveCallAndVesselIds]);
 
   const nationalityOptions = useMemo(
     () =>
@@ -1104,25 +1126,27 @@ const CrewManagementDashboard = ({ formValues, handleChange, cardColor, onNaviga
             </div>
 
             <div className="crew-summary-header-actions">
-              <div className="crew-launch-hire-trigger">
-                <button
-                  type="button"
-                  className="crew-header-btn crew-header-btn--launch-hire crew-header-btn--request-launch-hire"
-                  disabled={!hasCallInfo}
-                  aria-expanded={showLaunchHireForm}
-                  title={!hasCallInfo ? "Call or vessel information is unavailable." : undefined}
-                  onClick={handleLaunchHireButtonClick}
-                >
-                  <FiNavigation size={14} aria-hidden="true" />
-                  <span className="crew-header-btn__label">Request Launch Hire</span>
-                </button>
-                {launchHireRequested && (
-                  <span className="crew-launch-hire-status-chip">
-                    <FiCheck size={12} aria-hidden="true" />
-                    Launch Hire Requested
-                  </span>
-                )}
-              </div>
+              {launchHireEnabled && (
+                <div className="crew-launch-hire-trigger">
+                  <button
+                    type="button"
+                    className="crew-header-btn crew-header-btn--launch-hire crew-header-btn--request-launch-hire"
+                    disabled={!hasCallInfo}
+                    aria-expanded={showLaunchHireForm}
+                    title={!hasCallInfo ? "Call or vessel information is unavailable." : undefined}
+                    onClick={handleLaunchHireButtonClick}
+                  >
+                    <FiNavigation size={14} aria-hidden="true" />
+                    <span className="crew-header-btn__label">Request Launch Hire</span>
+                  </button>
+                  {launchHireRequested && (
+                    <span className="crew-launch-hire-status-chip">
+                      <FiCheck size={12} aria-hidden="true" />
+                      Launch Hire Requested
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className="crew-summary-search">
                 <FiSearch size={14} className="crew-summary-search__icon" />

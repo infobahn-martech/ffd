@@ -5,6 +5,7 @@ import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import hospitalService, { extractMedicalRequestsFromEnvelope } from "../../../../../../../services/hospitalService";
+import callFileService from "../../../../../../../services/callFileService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
@@ -40,7 +41,10 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const fileInputRef = useRef(null);
   const requestEmailInputRef = useRef(null);
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-  const isLaunchHire = formValues.medicalServiceLaunchHire !== false;
+
+  const [callDetails, setCallDetails] = useState(null);
+  const launchHireEnabled = Number(callDetails?.launch_hire) === 1;
+  const isLaunchHire = launchHireEnabled && formValues.medicalServiceLaunchHire !== false;
 
   const [hospitals, setHospitals] = useState([]);
   const [hospitalServices, setHospitalServices] = useState([]);
@@ -70,6 +74,29 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   useEffect(() => {
     void fetchMedicalRequests();
   }, [fetchMedicalRequests]);
+
+  useEffect(() => {
+    if (!callId) {
+      setCallDetails(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    callFileService
+      .getCallDetail(callId)
+      .then(({ data }) => {
+        const details = data?.data || null;
+        if (!cancelled) setCallDetails(details);
+      })
+      .catch(() => {
+        if (!cancelled) setCallDetails(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -417,42 +444,44 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   </FieldRow>
                 </FormGroup>
 
-                <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={MEDICAL_ACCENT}>
-                  <FormField>
-                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={isLaunchHire}
-                        onChange={(e) => handleChange("medicalServiceLaunchHire")({ target: { value: e.target.checked } })}
-                        style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
-                      />
-                      Launch hire required
-                    </label>
-                  </FormField>
-                  {isLaunchHire && (
-                    <FieldRow>
-                      <FormField label="Location">
-                        <FormSelect
-                          value={formValues.medicalServiceLaunchHireLocation || ""}
-                          onChange={handleChange("medicalServiceLaunchHireLocation")}
-                          options={LAUNCH_HIRE_LOCATION_OPTIONS}
-                          placeholder="Select location..."
+                {launchHireEnabled && (
+                  <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={MEDICAL_ACCENT}>
+                    <FormField>
+                      <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={isLaunchHire}
+                          onChange={(e) => handleChange("medicalServiceLaunchHire")({ target: { value: e.target.checked } })}
+                          style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
                         />
-                      </FormField>
-                      <FormField label="Booking Date Time">
-                        <DateTimePickerField
-                          dateValue={formValues.medicalServiceLaunchHireBookingDate || ""}
-                          timeValue={formValues.medicalServiceLaunchHireBookingTime || ""}
-                          onDateChange={handleChange("medicalServiceLaunchHireBookingDate")}
-                          onTimeChange={handleChange("medicalServiceLaunchHireBookingTime")}
-                          dateFieldName="medicalServiceLaunchHireBookingDate"
-                          timeFieldName="medicalServiceLaunchHireBookingTime"
-                          placeholder="Select date and time"
-                        />
-                      </FormField>
-                    </FieldRow>
-                  )}
-                </FormGroup>
+                        Launch hire required
+                      </label>
+                    </FormField>
+                    {isLaunchHire && (
+                      <FieldRow>
+                        <FormField label="Location">
+                          <FormSelect
+                            value={formValues.medicalServiceLaunchHireLocation || ""}
+                            onChange={handleChange("medicalServiceLaunchHireLocation")}
+                            options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                            placeholder="Select location..."
+                          />
+                        </FormField>
+                        <FormField label="Booking Date Time">
+                          <DateTimePickerField
+                            dateValue={formValues.medicalServiceLaunchHireBookingDate || ""}
+                            timeValue={formValues.medicalServiceLaunchHireBookingTime || ""}
+                            onDateChange={handleChange("medicalServiceLaunchHireBookingDate")}
+                            onTimeChange={handleChange("medicalServiceLaunchHireBookingTime")}
+                            dateFieldName="medicalServiceLaunchHireBookingDate"
+                            timeFieldName="medicalServiceLaunchHireBookingTime"
+                            placeholder="Select date and time"
+                          />
+                        </FormField>
+                      </FieldRow>
+                    )}
+                  </FormGroup>
+                )}
 
                 <FormGroup icon="folder" label="Documents *" accent={MEDICAL_ACCENT}>
                   <FormField className="cf-field-full">

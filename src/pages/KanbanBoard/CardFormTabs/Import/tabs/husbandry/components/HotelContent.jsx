@@ -9,6 +9,7 @@ import hotelService, {
   extractHotelRequestsFromEnvelope,
   flattenHotelRequestRows,
 } from "../../../../../../../services/hotelService";
+import callFileService from "../../../../../../../services/callFileService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import CrewSelectionField from "./CrewSelectionField";
@@ -63,7 +64,10 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingHotelRequests, setLoadingHotelRequests] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-  const isLaunchHire = formValues.hotelLaunchHire !== false;
+
+  const [callDetails, setCallDetails] = useState(null);
+  const launchHireEnabled = Number(callDetails?.launch_hire) === 1;
+  const isLaunchHire = launchHireEnabled && formValues.hotelLaunchHire !== false;
 
   const fetchHotelRequests = useCallback(async () => {
     if (!callId) {
@@ -87,6 +91,29 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
   useEffect(() => {
     void fetchHotelRequests();
   }, [fetchHotelRequests]);
+
+  useEffect(() => {
+    if (!callId) {
+      setCallDetails(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    callFileService
+      .getCallDetail(callId)
+      .then(({ data }) => {
+        const details = data?.data || null;
+        if (!cancelled) setCallDetails(details);
+      })
+      .catch(() => {
+        if (!cancelled) setCallDetails(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -435,44 +462,46 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </FieldRow>
                 </FormGroup>
 
-                <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={HOTEL_ACCENT}>
-                  <FormField>
-                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={isLaunchHire}
-                        onChange={(e) => handleChange("hotelLaunchHire")({ target: { value: e.target.checked } })}
-                        style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
-                      />
-                      Launch hire required
-                    </label>
-                  </FormField>
-                  {isLaunchHire && (
-                    <FieldRow>
-                      <FormField label="Location">
-                        <FormSelect
-                          value={formValues.hotelLaunchHireLocation || ""}
-                          onChange={handleChange("hotelLaunchHireLocation")}
-                          options={LAUNCH_HIRE_LOCATION_OPTIONS}
-                          placeholder="Select location..."
+                {launchHireEnabled && (
+                  <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={HOTEL_ACCENT}>
+                    <FormField>
+                      <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={isLaunchHire}
+                          onChange={(e) => handleChange("hotelLaunchHire")({ target: { value: e.target.checked } })}
+                          style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
                         />
-                      </FormField>
-                      <FormField label="Booking Date Time">
-                        <div className="transport-date-time-field">
-                          <DateTimePickerField
-                            dateValue={formValues.hotelLaunchHireBookingDate || ""}
-                            timeValue={formValues.hotelLaunchHireBookingTime || ""}
-                            onDateChange={handleChange("hotelLaunchHireBookingDate")}
-                            onTimeChange={handleChange("hotelLaunchHireBookingTime")}
-                            dateFieldName="hotelLaunchHireBookingDate"
-                            timeFieldName="hotelLaunchHireBookingTime"
-                            placeholder="Select date and time"
+                        Launch hire required
+                      </label>
+                    </FormField>
+                    {isLaunchHire && (
+                      <FieldRow>
+                        <FormField label="Location">
+                          <FormSelect
+                            value={formValues.hotelLaunchHireLocation || ""}
+                            onChange={handleChange("hotelLaunchHireLocation")}
+                            options={LAUNCH_HIRE_LOCATION_OPTIONS}
+                            placeholder="Select location..."
                           />
-                        </div>
-                      </FormField>
-                    </FieldRow>
-                  )}
-                </FormGroup>
+                        </FormField>
+                        <FormField label="Booking Date Time">
+                          <div className="transport-date-time-field">
+                            <DateTimePickerField
+                              dateValue={formValues.hotelLaunchHireBookingDate || ""}
+                              timeValue={formValues.hotelLaunchHireBookingTime || ""}
+                              onDateChange={handleChange("hotelLaunchHireBookingDate")}
+                              onTimeChange={handleChange("hotelLaunchHireBookingTime")}
+                              dateFieldName="hotelLaunchHireBookingDate"
+                              timeFieldName="hotelLaunchHireBookingTime"
+                              placeholder="Select date and time"
+                            />
+                          </div>
+                        </FormField>
+                      </FieldRow>
+                    )}
+                  </FormGroup>
+                )}
 
                 <FormGroup icon="folder" label="Documents *" accent={HOTEL_ACCENT}>
                   <FormField className="cf-field-full">
