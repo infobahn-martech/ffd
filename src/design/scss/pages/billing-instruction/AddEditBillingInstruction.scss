@@ -1,5 +1,23 @@
+.billing-instruction-modal-dialog {
+  // Heading sits too far from the Billing Entity field by default
+  // (Bootstrap's 1rem header padding) — pull it in for this modal only.
+  .modal-header {
+    padding-bottom: 14px;
+  }
+}
+
 .role-modal-sm {
   .billing-instruction-modal {
+    // Bootstrap's default 1rem body top padding + the first field's mt-2
+    // stacked with the header padding above made for a big gap — tighten.
+    &.modal-body {
+      padding-top: 10px;
+    }
+
+    > .lead-form > form > .mt-2:first-child {
+      margin-top: 0 !important;
+    }
+
     .billing-instruction-description-label {
       font-size: 13px !important;
       line-height: 18px;

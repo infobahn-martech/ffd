@@ -382,7 +382,7 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm"
+            className="role-modal-sm billing-instruction-modal-dialog"
             dialgName="modal-dialog modal-dialog-centered modal-dialog-scrollable"
             show={!!showModal}
             closeModal={() => closeModal(null)}
