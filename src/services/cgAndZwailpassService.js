@@ -14,52 +14,74 @@ export const getPassRequests = (callId) =>
 
 /**
  * Normalize pass requests from axios response.
- * Expects data.cg and data.zawil (possibly nested under response.data.data).
+ * Supports both response shapes: a flat array of work orders each carrying
+ * its own `pass_type` ("CG" / "Zawil"), and the older { cg: [...], zawil: [...] }
+ * object (possibly nested under response.data.data).
  */
 export const extractPassRequestsFromEnvelope = (responseEnvelope) => {
   const envelope =
     responseEnvelope?.data?.data ?? responseEnvelope?.data ?? {};
+
+  if (Array.isArray(envelope)) {
+    const cg = [];
+    const zawil = [];
+    envelope.forEach((workOrder) => {
+      const type = String(workOrder?.pass_type ?? "").trim().toLowerCase();
+      if (type === "cg") cg.push(workOrder);
+      else if (type === "zawil") zawil.push(workOrder);
+    });
+    return { cg, zawil };
+  }
+
   const cg = Array.isArray(envelope.cg) ? envelope.cg : [];
   const zawil = Array.isArray(envelope.zawil) ? envelope.zawil : [];
   return { cg, zawil };
 };
 
 /**
- * Flatten work-order pass requests (each with nested `crew[]`) into table rows.
+ * Group work-order pass requests (each with nested `crew[]`) into
+ * expand/collapse-friendly groups for CrewPassRequestsTable. Falls back to
+ * treating each item as its own single-crew group when the response isn't
+ * grouped by work order (legacy flat row shape, no nested `crew`).
  */
-export const flattenPassRequestRows = (workOrders) => {
+export const groupPassRequestRows = (workOrders) => {
   if (!Array.isArray(workOrders) || workOrders.length === 0) return [];
 
-  const hasNestedCrew = workOrders.some((item) => Array.isArray(item?.crew));
-  if (!hasNestedCrew) return workOrders;
-
-  const rows = [];
-  workOrders.forEach((wo) => {
+  return workOrders.map((wo, index) => {
     const woNumber = wo?.wo_number ?? wo?.woNumber ?? "";
-    const woId = wo?.wo_id ?? wo?.id;
-    const crewList = Array.isArray(wo?.crew) ? wo.crew : [];
+    const woId = wo?.wo_id ?? wo?.id ?? `wo-${index}`;
+    const crewList = Array.isArray(wo?.crew) ? wo.crew : null;
 
-    if (crewList.length === 0) {
-      rows.push({
-        wo_number: woNumber,
-        wo_id: woId,
-        crew_pass_id: null,
-      });
-      return;
+    if (crewList) {
+      return {
+        woId,
+        woNumber,
+        woStatus: wo?.wo_status ?? wo?.status,
+        crew: crewList.map((crew) => ({
+          ...crew,
+          wo_number: woNumber || crew?.wo_number,
+          wo_id: woId ?? crew?.wo_id,
+          crew_pass_id: crew?.crew_pass_id ?? crew?.crewPassId,
+          id: crew?.crew_pass_id ?? crew?.crewPassId ?? crew?.id,
+        })),
+      };
     }
 
-    crewList.forEach((crew) => {
-      rows.push({
-        ...crew,
-        wo_number: woNumber || crew?.wo_number,
-        wo_id: woId ?? crew?.wo_id,
-        crew_pass_id: crew?.crew_pass_id ?? crew?.crewPassId,
-        id: crew?.crew_pass_id ?? crew?.crewPassId ?? crew?.id,
-      });
-    });
+    // Legacy flat row — no nested crew[], the row itself is the only entry.
+    return {
+      woId,
+      woNumber,
+      woStatus: wo?.status,
+      crew: [
+        {
+          ...wo,
+          wo_number: woNumber,
+          wo_id: woId,
+          id: wo?.crew_pass_id ?? wo?.id ?? `row-${index}`,
+        },
+      ],
+    };
   });
-
-  return rows;
 };
 
 /**

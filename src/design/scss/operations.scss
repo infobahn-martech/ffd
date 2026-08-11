@@ -5004,6 +5004,52 @@ $send-report-optional: #80868b;
   }
 }
 
+.crew-pass-requests-table__wo-row {
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: -2px;
+  }
+}
+
+.crew-pass-requests-table__wo-row--expanded td {
+  background: #f8fafc;
+  border-bottom-color: #e5e7eb;
+}
+
+.crew-pass-requests-table__wo-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crew-pass-requests-table__expand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: transform 0.15s ease;
+  transform: rotate(-90deg);
+}
+
+.crew-pass-requests-table__expand-icon--open {
+  transform: rotate(0deg);
+}
+
+.crew-pass-requests-table__wo-summary {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.crew-pass-requests-table__crew-row td {
+  background: #fbfcfe;
+}
+
+.crew-pass-requests-table__crew-row .husb-crew-cell {
+  padding-left: 20px;
+}
+
 .crew-pass-requests-table__badge {
   display: inline-flex;
   align-items: center;
