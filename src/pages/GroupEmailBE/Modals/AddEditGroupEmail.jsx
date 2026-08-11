@@ -281,7 +281,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm"
+            className="role-modal-sm group-email-modal-dialog"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}

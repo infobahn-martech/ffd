@@ -1,9 +1,17 @@
+.group-email-modal-dialog {
+    // Heading sits too far from the Billing Entity field by default
+    // (Bootstrap's 1rem header padding) — pull it in for this modal only.
+    .modal-header {
+        padding-bottom: 14px;
+    }
+}
+
 .group-email-modal {
     &.modal-body {
         max-height: 60vh;
         overflow-y: auto;
         overflow-x: visible;
-        padding-top: 8px;
+        padding-top: 10px;
 
         &::-webkit-scrollbar {
             width: 5px;
@@ -26,13 +34,19 @@
     // Billing entity field spacing
     .mb-lg-3 {
         margin-bottom: 1.5rem !important;
+
+        // Remove the Bootstrap mt-2 top margin on the field's own wrapper —
+        // the modal body/header spacing above already gives clearance
+        &.mt-2 {
+            margin-top: 0 !important;
+        }
     }
 
     // phone-wrapper notched label — give top clearance so the label
     // floats visibly above the box border
     .phone-wrapper {
         position: relative;
-        margin-top: 12px;
+        margin-top: 6px;
         margin-bottom: 0;
 
         .phone-label {
