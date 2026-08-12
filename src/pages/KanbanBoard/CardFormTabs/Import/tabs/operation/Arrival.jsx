@@ -18,8 +18,10 @@ import {
   FormSelect,
   FormTextarea,
   extractUploadedAttachments,
+  getAttachmentFile,
   mapAttachmentsForSave,
   OperationEmailPreviewPanel,
+  OperationFileUpload,
   OperationFormCard,
   OperationSaveSection,
   persistAdditionalTimeObjects,
@@ -41,6 +43,9 @@ const REMOVED_MARINE_WORK_PERMIT_EVENT_NAMES = new Set([
   "marine work permit expires",
 ]);
 
+/** Only "Actual Time of Arrival" is user-editable on this tab — every other time field is read-only display. */
+const ARRIVAL_EDITABLE_TIME_FIELD_KEY_PREFIXES = ["actualArrival"];
+
 const resolveArrivalTimeObjectFields = (apiFields = []) => {
   const source = Array.isArray(apiFields) ? apiFields : [];
   return [...source].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
@@ -58,6 +63,7 @@ function Arrival({
   callTypeId = "",
   billingEntityId,
   stageId = OPERATION_STAGE_IDS.ARRIVAL,
+  exportApprovalStatus,
 }) {
   const resolveFormId = (...values) => {
     for (const value of values) {
@@ -197,6 +203,7 @@ function Arrival({
     formValues?.customInspectionStatus === "Failed";
   const showCrewImmigrationRemarks = formValues?.crewImmigrationStatus === "Pending";
   const showInwardClearanceTimestamp = formValues?.inwardClearanceStatus === "Received";
+  const showMwpCancellationLetterUpload = String(exportApprovalStatus ?? "") === "1";
 
   const validateArrivalBeforeSave = () => {
     const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
@@ -221,14 +228,6 @@ function Arrival({
       const remarks = String(formValues?.customsRemarks || "").trim();
       if (!remarks) {
         notify("Custom Inspection Remarks is required when status is On Hold or Failed.", "error");
-        return false;
-      }
-    }
-
-    if (showCrewImmigrationRemarks) {
-      const remarks = String(formValues?.crewImmigrationHoldRemarks || "").trim();
-      if (!remarks) {
-        notify("Crew Immigration Remarks is required when status is Pending.", "error");
         return false;
       }
     }
@@ -387,35 +386,22 @@ function Arrival({
     if (!validateArrivalBeforeSave()) return false;
 
     const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
-    const saveTimeObjects = buildSaveTimeObjectsPayload(combinedArrivalTimeFields, formValues);
+    const editableArrivalTimeFields = combinedArrivalTimeFields.filter((field) =>
+      ARRIVAL_EDITABLE_TIME_FIELD_KEY_PREFIXES.includes(field?.keyPrefix)
+    );
+    const saveTimeObjects = buildSaveTimeObjectsPayload(editableArrivalTimeFields, formValues);
 
     const fd = new FormData();
     fd.append("call_id", String(resolvedCallId));
     fd.append("time_objects", JSON.stringify(saveTimeObjects));
-    fd.append("customs_status", String(formValues?.customInspectionStatus || ""));
-    fd.append("customs_remarks", String(formValues?.customsRemarks || ""));
-    fd.append("immigration_status", String(formValues?.crewImmigrationStatus || ""));
-    fd.append("immigration_remarks", String(formValues?.crewImmigrationHoldRemarks || ""));
-    fd.append("inward_clearance_status", String(formValues?.inwardClearanceStatus || ""));
-    fd.append(
-      "inward_clearance_received_timestamp",
-      toDateTimeValue(
-        formValues?.inwardClearanceReceivedDate,
-        formValues?.inwardClearanceReceivedTime
-      )
-    );
-    fd.append(
-      "mwp_applied",
-      toDateTimeValue(formValues?.mwpAppliedDate, formValues?.mwpAppliedTime)
-    );
-    fd.append(
-      "mwp_received",
-      toDateTimeValue(formValues?.mwpReceivedDate, formValues?.mwpReceivedTime)
-    );
 
-    const createdBy = resolveCreatedBy();
-    if (createdBy) {
-      fd.append("created_by", createdBy);
+    if (showMwpCancellationLetterUpload) {
+      const cancellationLetterFile = getAttachmentFile(
+        (formValues.mwpCancellationLetterAttachments || [])[0]
+      );
+      if (cancellationLetterFile) {
+        fd.append("mwp_cancellation_letter", cancellationLetterFile);
+      }
     }
 
     const arrivalReportBody = resolveReportBodyHtml(
@@ -628,7 +614,7 @@ function Arrival({
                   formValues={formValues}
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
-                  editableKeyPrefixes={["actualArrival"]}
+                  editableKeyPrefixes={ARRIVAL_EDITABLE_TIME_FIELD_KEY_PREFIXES}
                 />
 
                 <FormField label="Custom Inspection Status" readOnly={!isViewOnly}>
@@ -705,6 +691,19 @@ function Arrival({
                 {showInwardClearanceTimestamp &&
                   renderDateTimeField("Inward Clearance Received", "inwardClearanceReceived", true, true)}
 
+                {showMwpCancellationLetterUpload && (
+                  <FormField label="MWP Cancellation Letter" className="cf-field-full">
+                    <OperationFileUpload
+                      files={formValues.mwpCancellationLetterAttachments || []}
+                      onAddFiles={(files) =>
+                        handleChange("mwpCancellationLetterAttachments")({ target: { value: files } })
+                      }
+                      isViewOnly={isViewOnly}
+                      ariaLabel="Upload MWP cancellation letter"
+                    />
+                  </FormField>
+                )}
+
                 <AdditionalTimeObjectsFields
                   value={formValues.arrivalAdditionalTimeObjects || []}
                   onChange={(next) =>
@@ -761,6 +760,7 @@ Arrival.propTypes = {
   callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   billingEntityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   stageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  exportApprovalStatus: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default Arrival;

@@ -130,6 +130,16 @@ export function applyArrivalGetDetailToForm({
   applyDateTimeFieldToForm(root.mwp_applied, "mwpAppliedDate", "mwpAppliedTime", handleChange);
   applyDateTimeFieldToForm(root.mwp_received, "mwpReceivedDate", "mwpReceivedTime", handleChange);
 
+  const mwpCancellationLetterUrl = String(root.mwp_cancellation_letter_url ?? "").trim();
+  if (mwpCancellationLetterUrl) {
+    const mwpCancellationLetterName = String(root.mwp_cancellation_letter ?? "").trim();
+    handleChange("mwpCancellationLetterAttachments")({
+      target: {
+        value: [{ name: mwpCancellationLetterName || "MWP Cancellation Letter", url: mwpCancellationLetterUrl }],
+      },
+    });
+  }
+
   const allFields = [
     ...(Array.isArray(arrivalEventFields) ? arrivalEventFields : []),
     ...(Array.isArray(postArrivalEventFields) ? postArrivalEventFields : []),
