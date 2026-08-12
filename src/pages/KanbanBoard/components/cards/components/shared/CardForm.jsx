@@ -1766,6 +1766,7 @@ function CardForm({
   patchCardBlocker,
   patchCardSticker,
   patchCardTag,
+  initialTab,
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
@@ -2201,6 +2202,17 @@ function CardForm({
       setActiveTopTab(defaultTab);
     }
   }, [showExportTabs, activeTopTab, defaultTab]);
+
+  // Force-select Export Approval once its tab actually becomes available
+  // (showExportTabs resolves async after callDetailSnapshot loads) — lets
+  // callers like the CEO email deep link open straight into that tab.
+  const initialTabAppliedRef = useRef(false);
+  useEffect(() => {
+    if (initialTabAppliedRef.current) return;
+    if (initialTab !== "Export Approval" || !showExportTabs) return;
+    setActiveTopTab("Export Approval");
+    initialTabAppliedRef.current = true;
+  }, [initialTab, showExportTabs]);
 
   useEffect(() => {
     if (lockOperationForExport && activeTopTab === "Operation") {
@@ -2969,6 +2981,7 @@ CardForm.propTypes = {
   patchCardBlocker: PropTypes.func,
   patchCardSticker: PropTypes.func,
   patchCardTag: PropTypes.func,
+  initialTab: PropTypes.string,
 };
 
 export default CardForm;
