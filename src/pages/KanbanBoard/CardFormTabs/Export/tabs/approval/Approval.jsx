@@ -935,6 +935,11 @@ const createEmptyPartySection = () => ({
     // instead of silently dropped.
     useEffect(() => () => debouncedAutoSave.flush(), [debouncedAutoSave]);
 
+    // Credit Controller / Manager / CEO cards are explicitly excluded from
+    // this autosave trigger per user request — those three only persist via
+    // their own action buttons (Approved / Proceed to...), not on every
+    // keystroke. Basic details and the vessel party sections keep autosaving
+    // as before.
     useEffect(() => {
       if (skipNextAutoSaveRef.current) {
         skipNextAutoSaveRef.current = false;
@@ -949,12 +954,6 @@ const createEmptyPartySection = () => ({
       vesselOwnerImages,
       vesselPrincipalImages,
       vesselChartererImages,
-      creditControllerRemarks,
-      creditControllerDocuments,
-      managerComments,
-      managerDocuments,
-      ceoComments,
-      ceoDocuments,
       debouncedAutoSave,
     ]);
 
