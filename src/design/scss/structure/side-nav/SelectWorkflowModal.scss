@@ -181,6 +181,12 @@
     border-color: rgba(0, 54, 140, 0.45);
     box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1), 0 8px 24px rgba(15, 23, 42, 0.08);
     background: linear-gradient(135deg, #f8fbff 0%, #ffffff 55%);
+
+    [data-theme="dark"] & {
+      border-color: var(--color-primary-accent);
+      box-shadow: 0 0 0 3px rgba(45, 110, 238, 0.18), 0 8px 24px rgba(0, 0, 0, 0.35);
+      background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-primary) 55%);
+    }
   }
 
   &:focus-visible {

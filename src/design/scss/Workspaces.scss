@@ -37,6 +37,13 @@
     pointer-events: none;
     user-select: none;
   }
+
+  // Match the dark app header's chrome color exactly (header.scss uses a
+  // hardcoded #0c0f14, darker than --surface-primary's #111a28) so the page
+  // background doesn't visibly seam against the header.
+  [data-theme="dark"] & {
+    background: #0c0f14;
+  }
 }
 
 // Header Section
@@ -311,6 +318,10 @@
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
+  [data-theme="dark"] & {
+    background: linear-gradient(to bottom, #0d1014, #030304);
+  }
+
   @media ($sm-767) {
     padding: 40px 16px;
   }
@@ -412,6 +423,10 @@
     box-shadow: 0 8px 24px rgba(226, 230, 255, 0.5);
     border-color: var(--border-primary);
     background: linear-gradient(to bottom, var(--surface-primary), var(--surface-hover));
+
+    [data-theme="dark"] & {
+      background: linear-gradient(to bottom, #0d1014, #030304);
+    }
   }
 
   &.no-boards {

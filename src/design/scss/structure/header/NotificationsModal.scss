@@ -202,6 +202,10 @@
 
     &.success-background {
       background-color: #E6F7ED;
+
+      [data-theme="dark"] & {
+        background-color: rgba(101, 189, 80, 0.14);
+      }
     }
 
     &.read {

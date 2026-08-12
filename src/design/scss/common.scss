@@ -498,7 +498,7 @@ html {
 }
 
 .kanban-board-loader-overlay-dark {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(30, 27, 75, 0.7);
 }
 
 .kanban-board-loader {
@@ -803,9 +803,12 @@ html {
    Premium / User-attractive
 ================================ */
 
+/* Semi-transparent so a board's custom wallpaper (set on the parent
+   page-cont-wrp) still shows through, dimmed, instead of being hidden
+   behind a flat opaque panel. */
 .kanban-board-wrapper-dark {
   min-height: 100%;
-  background: #0c0f14;
+  // background: rgba(11, 18, 32, 0.88);
 }
 
 .kanban-accordion.kanban-dark-mode {
@@ -843,8 +846,11 @@ html {
 
 }
 
+/* .kanban-container is nested inside .kanban-board-wrapper-dark, which
+   already applies the dark overlay above — stay transparent here so the
+   two don't stack into a solid, wallpaper-hiding layer. */
 .kanban-dark-mode .kanban-container {
-  background: #0c0f14 !important;
+  background: transparent !important;
 }
 
 .kanban-dark-mode .kanban-board {
@@ -1302,14 +1308,24 @@ body.app-dark-mode {
 
 /* Column header top accent in dark — subtle */
 .kanban-dark-mode .column-header-classic {
-  border-top: 3px solid var(--column-color, #60a5fa);
+  border-top: 3px solid color-mix(in srgb, var(--column-color, #60a5fa) 55%, #0b1220);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
 }
 
-/* Card top strip remains visible in dark */
+/* Card top strip — muted toward the dark surface instead of full brand saturation */
 .kanban-dark-mode .kanban-card::before {
-  opacity: 0.9;
+  background-color: color-mix(in srgb, var(--card-color, #2A00FF) 55%, #0b1220);
+  opacity: 1;
+}
+
+/* Avatar badge — same muting so it doesn't glow against the dark card */
+.kanban-dark-mode .card-avatar {
+  background-color: color-mix(in srgb, var(--card-color, #2A00FF) 55%, #0b1220);
+}
+
+.kanban-dark-mode .card-avatar::before {
+  color: color-mix(in srgb, var(--card-color, #2A00FF) 65%, #0b1220);
 }
 
 @keyframes layoutFadeIn {
