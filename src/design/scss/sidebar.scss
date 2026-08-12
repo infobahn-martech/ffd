@@ -973,6 +973,75 @@
     }
 }
 
+// App-wide dark theme (data-theme="dark", toggled via the header sun/moon
+// button) — separate from the per-board .kanban-sidebar-dark layoutView skin
+// above, but reuses the same dark chrome palette for visual consistency.
+[data-theme="dark"] {
+    .kanban-sidebar.kanban-sidebar--workspaces {
+        background: #0c0f14;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: none;
+    }
+
+    .kanban-sidebar:not(.kanban-sidebar--workspaces) {
+        background: #0c0f14;
+        box-shadow: none;
+    }
+
+    .kanban-sidebar-workspaces-nav-item {
+        color: #e4e4e7;
+    }
+
+    .kanban-sidebar-workspaces-nav-item:hover:not(.kanban-sidebar-workspaces-nav-item--active) {
+        background: rgba(255, 255, 255, 0.06);
+        color: #e4e4e7;
+    }
+
+    .kanban-sidebar-workspaces-nav-item--active {
+        background: rgba(59, 130, 246, 0.12);
+        color: #93c5fd;
+    }
+
+    .kanban-sidebar-workspaces-divider {
+        border-top-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .kanban-sidebar-workspaces-filter {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .kanban-sidebar-workspaces-filter-input {
+        color: #e4e4e7;
+    }
+
+    .kanban-sidebar-workspaces-row-main {
+        color: #e4e4e7;
+    }
+
+    .kanban-sidebar-workspaces-row-main:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .kanban-sidebar-workspaces-row-menu {
+        color: var(--text-secondary);
+    }
+
+    .kanban-sidebar-workspaces-row-menu:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #e4e4e7;
+    }
+
+    .kanban-sidebar-workspaces-row--active {
+        background: rgba(59, 130, 246, 0.12);
+    }
+
+    // No pulsing ring in dark mode — the glow was tuned for the light navy
+    // sidebar and reads as a mismatched flash against dark chrome.
+    .kanban-sidebar-icon.active {
+        animation: none;
+    }
+}
+
 .kanban-dashboard-wallpaper-input {
     position: absolute;
     width: 0;

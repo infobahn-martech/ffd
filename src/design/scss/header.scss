@@ -696,3 +696,79 @@
     min-height: 56px;
   }
 }
+
+// App-wide dark theme (data-theme="dark", toggled via the header sun/moon
+// button) — separate from the per-board .sedres-header-dark layoutView skin
+// above, but reuses the same dark chrome palette for visual consistency.
+[data-theme="dark"] .sedres-header {
+  background: #0c0f14;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+
+  .right-section {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+  }
+
+  .user-circle {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+
+    &.active {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+    }
+  }
+
+  .icon-btn {
+    color: var(--text-muted);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fafafa;
+    }
+
+    // No pulsing ring in dark mode — the glow was tuned for the light navy
+    // header and reads as a mismatched flash against dark chrome.
+    &.active {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fafafa;
+      box-shadow: none;
+      animation: none;
+    }
+  }
+
+  .user-dropdown,
+  .settings-dropdown {
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .dropdown-item,
+  .settings-dropdown-item {
+    color: #e4e4e7;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fafafa;
+    }
+  }
+
+  .settings-submenu {
+    background: #0c0f14;
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .settings-submenu-item {
+    color: #e4e4e7;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fafafa;
+    }
+  }
+}

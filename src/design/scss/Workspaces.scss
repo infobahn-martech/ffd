@@ -3348,9 +3348,15 @@ body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspa
   // uses elsewhere. Route them through --color-primary-accent so the "active"
   // blue is consistent across the icon badge and both menus.
   .workspace-icon-wrapper {
-    .workspace-card.expanded & {
-      background: var(--color-primary-accent);
-    }
+    background: var(--surface-hover);
+  }
+
+  .workspace-card:hover .workspace-icon-wrapper {
+    background: var(--surface-secondary);
+  }
+
+  .workspace-card.expanded .workspace-icon-wrapper {
+    background: var(--color-primary-accent);
   }
 
   .workspace-action-btn:hover,
