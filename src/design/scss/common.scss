@@ -35,10 +35,10 @@ body {
 // Base (react-bootstrap) modal chrome — theme-aware defaults for every modal
 // in the app. Feature-specific modal SCSS files load after this one and can
 // still override these with their own more specific selectors.
-.modal-backdrop.show {
-  background-color: var(--modal-overlay);
-  opacity: 1;
-}
+// .modal-backdrop.show {
+//   background-color: var(--modal-overlay);
+//   opacity: 1;
+// }
 
 .modal-content {
   background-color: var(--surface-primary);
