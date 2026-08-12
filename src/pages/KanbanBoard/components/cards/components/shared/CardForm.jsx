@@ -1781,13 +1781,24 @@ function CardForm({
   // rather than reusing the later callDetailSnapshot (which loads after this point).
   const isGroSupervisorRoleViewer =
     isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
+  // The DA Desk board case never takes the "gro" branch regardless of call type
+  // (see effectiveVariant below), so it doesn't need this fetch or its loading state.
+  const needsGroViewCallTypeCheck = isGroSupervisorRoleViewer && !(isDAUser && isDABoardCard);
   const [groViewCallTypeId, setGroViewCallTypeId] = useState(null);
+  const [isGroViewCallTypeLoading, setIsGroViewCallTypeLoading] = useState(false);
   useEffect(() => {
-    if (!show || isAddMode || !isGroSupervisorRoleViewer) return undefined;
+    if (!show || isAddMode || !needsGroViewCallTypeCheck) {
+      setIsGroViewCallTypeLoading(false);
+      return undefined;
+    }
     const callIdRaw = card?.call_id ?? card?.callId;
     const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
-    if (!callId) return undefined;
+    if (!callId) {
+      setIsGroViewCallTypeLoading(false);
+      return undefined;
+    }
     let cancelled = false;
+    setIsGroViewCallTypeLoading(true);
     callFileService
       .getCallDetail(callId)
       .then(({ data }) => {
@@ -1795,12 +1806,19 @@ function CardForm({
       })
       .catch(() => {
         if (!cancelled) setGroViewCallTypeId(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsGroViewCallTypeLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [show, isAddMode, isGroSupervisorRoleViewer, card?.call_id, card?.callId]);
+  }, [show, isAddMode, needsGroViewCallTypeCheck, card?.call_id, card?.callId]);
   const isExportCallForGroView = isExportCallType(groViewCallTypeId);
+  // While the call type is still loading, hold off rendering either the GRO view or
+  // the tab view — otherwise a GRO-role/DA viewer briefly sees the wrong one flash
+  // before this resolves and the real view swaps in.
+  const isDecidingGroExportView = needsGroViewCallTypeCheck && isGroViewCallTypeLoading;
   const effectiveVariant = (() => {
     if (
       (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) &&
@@ -2910,6 +2928,12 @@ function CardForm({
           <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
+        ) : isDecidingGroExportView ? (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
         ) : isGROStyleView ? (
           isCustomVariant ? (
             <CustomCardView ref={groCardViewRef} card={card} userRoleId={userRoleId} />
