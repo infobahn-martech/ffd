@@ -34,6 +34,7 @@ import CrewImmigrationPanel from "./CrewImmigrationPanel";
 import CrewChangePassPanel from "./CrewChangePassPanel";
 import VesselInwardRegistrationView from "./VesselInwardRegistrationView";
 import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
+import { isExportCallType, resolveCallTypeId } from "../../../../../CardFormTabs/shared/utils/callTypes";
 import {
   createEmptyExtraStageFields,
   validateGroExtraStageFields,
@@ -180,6 +181,13 @@ const GROCardView = forwardRef(function GROCardView(
   const callId = resolveGroCallId(card);
   const cardId = resolveGroCardId(card);
   const taskId = useMemo(() => resolveGroTaskId(card), [card]);
+  // Export calls don't go through the GRO task workflow, so they never have a
+  // task_id — that's expected, not an error, and shouldn't surface the
+  // "missing task id" toast below.
+  const isExportTypeCall = useMemo(
+    () => isExportCallType(resolveCallTypeId(card, null, callDetail)),
+    [card, callDetail]
+  );
   const groPortId = useMemo(() => resolveGroPortId(callDetail, card), [callDetail, card]);
 
   const applyTaskDocuments = useCallback((rawList) => {
@@ -1150,7 +1158,9 @@ const GROCardView = forwardRef(function GROCardView(
     }
 
     if (!taskId) {
-      notify("Unable to load documents: missing task id.", "error");
+      if (!isExportTypeCall) {
+        notify("Unable to load documents: missing task id.", "error");
+      }
       setTaskDocumentsData(null);
       setDocuments([]);
     }
@@ -1188,7 +1198,7 @@ const GROCardView = forwardRef(function GROCardView(
     return () => {
       cancelled = true;
     };
-  }, [callId, cardId, taskId, applyDocumentsByTaskResponse]);
+  }, [callId, cardId, taskId, applyDocumentsByTaskResponse, isExportTypeCall]);
 
   const handleInwardCancel = () => {
     setShowInwardClearance(false);
