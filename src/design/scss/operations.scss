@@ -2077,6 +2077,8 @@ $send-report-optional: #80868b;
 
   .op-tab {
     position: relative;
+    isolation: isolate;
+    z-index: 0;
     display: flex;
     align-items: center;
     gap: $space-2;
@@ -2088,7 +2090,7 @@ $send-report-optional: #80868b;
     background: transparent;
     color: $txtColor;
     overflow: hidden;
-    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    transition: background-color 0.18s ease, color 0.18s ease;
 
     [data-theme="dark"] & {
       color: var(--text-primary);
@@ -2103,7 +2105,12 @@ $send-report-optional: #80868b;
     color: $colorPrimary;
   }
 
+  // isolation + z-index keep each tab's background/color transition (and the
+  // hover/active highlight) painting strictly within its own box — without
+  // this, the active tab's highlight could visually bleed into the
+  // neighboring tab's row while the color transition was still animating.
   .op-tab.active {
+    z-index: 1;
     background: rgba(0, 54, 140, 0.08);
     color: $colorPrimary;
     border-left-color: $colorPrimary;
