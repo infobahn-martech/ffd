@@ -181,13 +181,6 @@ const GROCardView = forwardRef(function GROCardView(
   const callId = resolveGroCallId(card);
   const cardId = resolveGroCardId(card);
   const taskId = useMemo(() => resolveGroTaskId(card), [card]);
-  // Export calls don't go through the GRO task workflow, so they never have a
-  // task_id — that's expected, not an error, and shouldn't surface the
-  // "missing task id" toast below.
-  const isExportTypeCall = useMemo(
-    () => isExportCallType(resolveCallTypeId(card, null, callDetail)),
-    [card, callDetail]
-  );
   const groPortId = useMemo(() => resolveGroPortId(callDetail, card), [callDetail, card]);
 
   const applyTaskDocuments = useCallback((rawList) => {
@@ -1158,9 +1151,6 @@ const GROCardView = forwardRef(function GROCardView(
     }
 
     if (!taskId) {
-      if (!isExportTypeCall) {
-        notify("Unable to load documents: missing task id.", "error");
-      }
       setTaskDocumentsData(null);
       setDocuments([]);
     }
@@ -1175,6 +1165,11 @@ const GROCardView = forwardRef(function GROCardView(
         setCallDetail(detail);
 
         if (!taskId) {
+          // Export calls don't go through the GRO task workflow, so a missing
+          // task_id there is expected, not an error — only alarm otherwise.
+          if (!isExportCallType(resolveCallTypeId(card, null, detail))) {
+            notify("Unable to load documents: missing task id.", "error");
+          }
           setTaskDocumentsData(null);
           setDocuments([]);
           return;
@@ -1198,7 +1193,7 @@ const GROCardView = forwardRef(function GROCardView(
     return () => {
       cancelled = true;
     };
-  }, [callId, cardId, taskId, applyDocumentsByTaskResponse, isExportTypeCall]);
+  }, [callId, cardId, taskId, applyDocumentsByTaskResponse, card]);
 
   const handleInwardCancel = () => {
     setShowInwardClearance(false);
