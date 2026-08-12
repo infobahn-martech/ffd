@@ -1,6 +1,6 @@
 .billing-entity-modal {
     .form-control:disabled {
-        background-color: #f2f2f2 !important;
+        background-color: var(--bg-secondary) !important;
         cursor: not-allowed;
     }
 

@@ -37,7 +37,7 @@
 .order-history-empty {
   text-align: center;
   padding: 16px 0;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .order-history-panel {
@@ -59,13 +59,13 @@
 
 .order-history-table-wrap .order-history-chain-table {
   font-size: 13px;
-  background: #fff;
+  background: var(--surface-primary);
 
   thead th {
     font-weight: 600;
     font-size: 12px;
     background: #e2e6ff !important;
-    color: #3e3633 !important;
+    color: var(--text-primary) !important;
     white-space: nowrap;
   }
 
@@ -87,8 +87,8 @@
 }
 
 .order-history-section {
-  background: #ffffff;
-  border: 1px solid #d5d9e2;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   padding: 12px 14px;
 }
@@ -99,7 +99,7 @@
   color: #00368c;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #e2e6ff;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .order-history-fields {
@@ -116,11 +116,11 @@
 }
 
 .order-history-field-label {
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .order-history-field-value {
-  color: #1a1a1a;
+  color: var(--text-primary);
   font-weight: 500;
   text-align: right;
   word-break: break-word;
@@ -128,7 +128,7 @@
 
 .order-history-not-created {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -197,9 +197,9 @@
   justify-content: center;
   font-size: 16px;
   margin-bottom: 8px;
-  background: #f1f3f6;
-  color: #9ca3af;
-  border: 2px solid #e0e3eb;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 2px solid var(--border-primary);
   transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
@@ -213,7 +213,7 @@
 .order-history-step-label {
   font-size: 12px;
   font-weight: 600;
-  color: #202225;
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
@@ -226,18 +226,18 @@
 
 .order-history-step-date {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .order-history-step-party {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-top: 2px;
 }
 
 .order-history-step-empty {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -246,7 +246,7 @@
   min-width: 32px;
   height: 2px;
   margin-top: 18px;
-  background: #e0e3eb;
+  background: var(--bg-secondary);
   position: relative;
   overflow: hidden;
 }

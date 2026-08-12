@@ -40,8 +40,8 @@
         position: relative;
         align-items: center;
         min-height: unset;
-        background: #ffffff;
-        border: 1px solid #edf0f5;
+        background: var(--surface-primary);
+        border: 1px solid var(--border-primary);
         border-radius: 16px;
         box-shadow: 0 16px 40px rgba(12, 35, 76, 0.14), 0 2px 8px rgba(12, 35, 76, 0.06);
         padding: 16px 16px 16px 20px;
@@ -82,7 +82,7 @@
             font-family: 'Manrope', sans-serif;
             font-size: 14px;
             font-weight: 500;
-            color: #0c234c;
+            color: var(--text-primary);
             line-height: 1.4;
         }
 
@@ -119,7 +119,7 @@
         }
 
         .Toastify__progress-track {
-            background-color: #f1f3f7;
+            background-color: var(--bg-secondary);
             height: 3px;
         }
 
@@ -132,7 +132,7 @@
         .Toastify__close-button {
             align-self: center;
             opacity: 0.4;
-            color: #0c234c;
+            color: var(--text-primary);
             transition: opacity 0.2s ease, background-color 0.2s ease;
             border-radius: 50%;
             width: 22px;
@@ -144,7 +144,7 @@
 
             &:hover {
                 opacity: 1;
-                background-color: #f1f3f7;
+                background-color: var(--bg-secondary);
             }
 
             svg {

@@ -104,8 +104,8 @@
 
 .status-dropdown-menu {
   position: fixed;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: visible;
@@ -154,7 +154,7 @@
   transition: all 0.15s ease;
   text-align: left;
   gap: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-primary);
 
   &:last-child {
     border-bottom: none;
@@ -170,7 +170,7 @@
   }
 
   &:hover {
-    background-color: #f8f9fa;
+    background-color: var(--surface-primary);
   }
 
   // Status-specific hover colors
@@ -238,7 +238,7 @@
   }
 
   &.status-default {
-    background-color: #e9ecef;
+    background-color: var(--bg-secondary);
     color: #6c757d;
   }
 }

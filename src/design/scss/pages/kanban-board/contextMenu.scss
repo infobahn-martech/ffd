@@ -10,7 +10,7 @@
 
 .context-menu {
   position: fixed;
-  background: #ffffff;
+  background: var(--surface-primary);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
@@ -18,7 +18,7 @@
   z-index: 1000;
   font-family: "Manrope", sans-serif;
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .context-menu-item {
@@ -31,7 +31,7 @@
 }
 
 .context-menu-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--surface-primary);
 }
 
 .context-menu-item-group {
@@ -45,12 +45,12 @@
   justify-content: center;
   width: 16px;
   height: 16px;
-  color: #666;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
 .context-menu-item:hover .context-menu-icon {
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .context-menu-text {
@@ -61,7 +61,7 @@
 
 .context-menu-divider {
   height: 1px;
-  background-color: #e5e5e5;
+  background-color: var(--bg-secondary);
   margin: 4px 0;
 }
 

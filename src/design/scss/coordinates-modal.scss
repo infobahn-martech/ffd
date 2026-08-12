@@ -3,7 +3,7 @@
 // border is forced to none), so both the default and invalid border color
 // have to be overridden here, scoped to this modal's select only.
 .coordinates-type-select {
-    border-color: #e2e2ea !important;
+    border-color: var(--border-primary) !important;
     border-radius: 8px !important;
 
     &.is-invalid {
@@ -55,7 +55,7 @@
             left: 12px;
             font-size: 12px;
             font-weight: 500;
-            background: #fff;
+            background: var(--surface-primary);
             padding: 0 6px;
             z-index: 2;
         }
@@ -80,14 +80,14 @@
             min-height: 48px;
             height: 48px;
             border-radius: 8px;
-            border: 1px solid #e2e2ea;
+            border: 1px solid var(--border-primary);
             padding: 10px 14px;
             box-sizing: border-box;
 
             // Match the Coordinate type select's placeholder color
             &::placeholder {
                 font-weight: 400;
-                color: #9ca3af;
+                color: var(--text-muted);
             }
 
             // Keep the border static — no Bootstrap focus/hover/invalid
@@ -96,7 +96,7 @@
             &:focus,
             &.is-invalid,
             &.is-invalid:focus {
-                border-color: #e2e2ea;
+                border-color: var(--border-primary);
                 box-shadow: none;
             }
         }
@@ -112,7 +112,7 @@
             transform: translateY(-50%);
             font-size: 13px;
             font-weight: 400;
-            color: #35475e;
+            color: var(--text-primary);
             line-height: 1;
             pointer-events: none;
             white-space: nowrap;

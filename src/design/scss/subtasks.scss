@@ -41,8 +41,8 @@
 }
 
 .task-tab-panel {
-  background: #ffffff;
-  border: 1px solid #e8eaf0;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 10px 28px rgba(15, 23, 42, 0.06);
   display: flex;
@@ -79,14 +79,14 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a8f9c;
+  color: var(--text-secondary);
 }
 
 .task-tab-form-title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .task-tab-field-row {
@@ -107,7 +107,7 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: #8a8f9c;
+  color: var(--text-secondary);
 }
 
 .task-tab-required {
@@ -127,18 +127,18 @@
 
 .task-tab-textarea {
   width: 100%;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 13px;
   font-family: "Manrope", sans-serif;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1.55;
   resize: vertical;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &::placeholder {
-    color: #9aa0ad;
+    color: var(--text-muted);
   }
 
   &:focus {
@@ -148,7 +148,7 @@
   }
 
   &:disabled {
-    background: #f7f9fd;
+    background: var(--surface-primary);
     cursor: not-allowed;
   }
 }
@@ -159,9 +159,9 @@
   justify-content: center;
   gap: 6px;
   height: 38px;
-  border: 1px dashed #c8d4ea;
+  border: 1px dashed var(--border-primary);
   border-radius: 10px;
-  background: #f7f9fd;
+  background: var(--surface-primary);
   color: #00368c;
   font-size: 12px;
   font-weight: 600;
@@ -170,7 +170,7 @@
 
   &:hover {
     border-color: #00368c;
-    background: #eef3fc;
+    background: var(--surface-primary);
   }
 }
 
@@ -183,7 +183,7 @@
   margin-top: 4px;
   font-size: 11px;
   line-height: 1.3;
-  color: #8a8f98;
+  color: var(--text-secondary);
 }
 
 .task-tab-doc-chip {
@@ -192,15 +192,15 @@
   gap: 6px;
   height: 38px;
   padding: 0 6px 0 10px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--surface-primary);
 }
 
 .task-tab-doc-name {
   min-width: 0;
   font-size: 12px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   font-family: "Manrope", sans-serif;
   white-space: nowrap;
   overflow: hidden;
@@ -215,8 +215,8 @@
   height: 22px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #f1f3f8;
-  color: #5c6370;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 
@@ -294,9 +294,9 @@
 }
 
 .task-tab-cancel-btn {
-  background: #ffffff;
-  border: 1px solid #e2e2ea;
-  color: #5c6370;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
   border-radius: 10px;
   height: 38px;
   padding: 0 18px;
@@ -308,9 +308,9 @@
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: #c8d4ea;
+    border-color: var(--border-primary);
     color: #00368c;
-    background: #f7f9fd;
+    background: var(--surface-primary);
   }
 
   &:disabled {
@@ -325,14 +325,14 @@
   gap: 8px;
   padding: 16px 18px 12px;
   flex-shrink: 0;
-  border-bottom: 1px solid #f0f1f5;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .task-tab-list-title {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .task-tab-list-count {
@@ -384,7 +384,7 @@
   height: 100%;
   padding: 24px 16px;
   text-align: center;
-  color: #b0b5c0;
+  color: var(--text-muted);
 }
 
 .task-tab-empty svg {
@@ -394,7 +394,7 @@
 .task-tab-empty p {
   margin: 0;
   font-size: 13px;
-  color: #8a8f9c;
+  color: var(--text-secondary);
 }
 
 .task-tab-list-items {
@@ -409,8 +409,8 @@
 .task-tab-task-card {
   position: relative;
   padding: 13px 14px 13px 18px;
-  background: #fafbfc;
-  border: 1px solid #eef0f4;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 14px;
   transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
@@ -430,8 +430,8 @@
   }
 
   &:hover {
-    background: #ffffff;
-    border-color: #dce3ef;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);
 
@@ -447,8 +447,8 @@
 }
 
 .task-tab-task-card--completed {
-  background: #f6fbf7;
-  border-color: #e2f0e4;
+  background: var(--surface-primary);
+  border-color: var(--border-primary);
 
   &::before {
     background: #2e7d32;
@@ -461,7 +461,7 @@
 
 .task-tab-task-card--editing {
   border-color: #a9c1ee;
-  background: #f5f8fe;
+  background: var(--surface-primary);
 
   &::before {
     background: #00368c;
@@ -479,14 +479,14 @@
   margin: 0;
   font-size: 13.5px;
   font-weight: 650;
-  color: #16181d;
+  color: var(--text-primary);
   line-height: 1.5;
   letter-spacing: -0.005em;
   word-break: break-word;
 }
 
 .task-tab-task-card--completed .task-tab-task-title {
-  color: #8a8f9c;
+  color: var(--text-secondary);
   text-decoration: line-through;
 }
 
@@ -506,7 +506,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #8a8f9c;
+  color: var(--text-secondary);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
@@ -547,7 +547,7 @@
 }
 
 .task-tab-status-badge--completed {
-  background: #e6f4ea;
+  background: var(--bg-secondary);
   color: #2e7d32;
 }
 
@@ -576,7 +576,7 @@
 .task-tab-task-assignee {
   font-size: 12px;
   font-weight: 600;
-  color: #383c44;
+  color: var(--text-primary);
 }
 
 .task-tab-task-due {
@@ -586,10 +586,10 @@
   height: 21px;
   padding: 0 8px;
   border-radius: 999px;
-  background: #f1f3f8;
+  background: var(--bg-secondary);
   font-size: 11px;
   font-weight: 500;
-  color: #6b7080;
+  color: var(--text-secondary);
   white-space: nowrap;
 
   svg {
@@ -611,7 +611,7 @@
   height: 21px;
   padding: 0 8px;
   border-radius: 999px;
-  background: #eef3fc;
+  background: var(--surface-primary);
   font-size: 11px;
   font-weight: 500;
   color: #00368c;

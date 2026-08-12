@@ -18,7 +18,7 @@
   }
 
   .attachments-panel {
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 14px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(15, 23, 42, 0.04);
     overflow: hidden;
@@ -33,14 +33,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 20px;
-    background: #fafbfc;
-    border-bottom: 1px solid #eceef2;
+    background: var(--surface-primary);
+    border-bottom: 1px solid var(--border-primary);
   }
 
   .attachments-list-title {
     font-size: 15px;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0;
     display: flex;
     align-items: center;
@@ -72,8 +72,8 @@
     padding: 0 8px;
     font-size: 12px;
     font-weight: 600;
-    color: #64748b;
-    background: #e8ecf4;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
     border-radius: 999px;
     line-height: 1;
   }
@@ -95,7 +95,7 @@
   }
 
   .attachment-category-accordion {
-    border-bottom: 1px solid #eceef2;
+    border-bottom: 1px solid var(--border-primary);
 
     &:last-child {
       border-bottom: none;
@@ -110,13 +110,13 @@
     margin: 0;
     padding: 14px 20px;
     border: none;
-    background: #ffffff;
+    background: var(--surface-primary);
     cursor: pointer;
     text-align: left;
     transition: background-color 0.2s ease;
 
     &:hover {
-      background: #f8fafc;
+      background: var(--surface-primary);
     }
   }
 
@@ -131,7 +131,7 @@
   .attachment-category-label {
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     margin: 0;
     letter-spacing: -0.01em;
     line-height: 1.35;
@@ -148,9 +148,9 @@
     padding: 0 8px;
     font-size: 12px;
     font-weight: 600;
-    color: #475569;
+    color: var(--text-primary);
     background: #eef2ff;
-    border: 1px solid #e0e7ff;
+    border: 1px solid var(--border-primary);
     border-radius: 999px;
     line-height: 1;
     flex-shrink: 0;
@@ -162,13 +162,13 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    color: #94a3b8;
+    color: var(--text-muted);
     flex-shrink: 0;
     transition: color 0.2s ease, transform 0.2s ease;
   }
 
   .attachment-category-header:hover .attachment-category-chevron {
-    color: #64748b;
+    color: var(--text-secondary);
   }
 
   .attachment-category-body {
@@ -178,7 +178,7 @@
   .attachment-category-empty {
     margin: 4px 0 0;
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--text-muted);
     line-height: 1.5;
   }
 
@@ -192,7 +192,7 @@
   .attachment-category-count {
     font-size: 12px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-secondary);
   }
 
   .attachments-items {
@@ -206,15 +206,15 @@
     align-items: center;
     gap: 14px;
     padding: 16px 18px;
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 12px;
-    border: 1px solid #e8ecf2;
+    border: 1px solid var(--border-primary);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
 
   .attachment-item:hover {
-    border-color: #d4daf0;
+    border-color: var(--border-primary);
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   }
 
@@ -248,7 +248,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 8px;
     flex-shrink: 0;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
@@ -266,7 +266,7 @@
   .attachment-name {
     font-size: 14px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
     margin: 0;
     line-height: 1.35;
     overflow: hidden;
@@ -279,7 +279,7 @@
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #64748b;
+    color: var(--text-secondary);
     flex-wrap: wrap;
     line-height: 1.45;
     min-width: 0;
@@ -292,15 +292,15 @@
 
   .attachment-size {
     font-weight: 500;
-    color: #64748b;
+    color: var(--text-secondary);
   }
 
   .attachment-date {
-    color: #64748b;
+    color: var(--text-secondary);
   }
 
   .attachment-uploader {
-    color: #64748b;
+    color: var(--text-secondary);
     font-style: normal;
   }
 
@@ -316,52 +316,52 @@
   .attachment-action-btn {
     width: 36px;
     height: 36px;
-    border: 1px solid #e8ecf2;
+    border: 1px solid var(--border-primary);
     border-radius: 8px;
-    background: #f8fafc;
+    background: var(--surface-primary);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
     box-shadow: none;
-    color: #64748b;
+    color: var(--text-secondary);
     padding: 0;
   }
 
   .attachment-action-btn:hover:not(:disabled) {
-    background: #f1f5f9;
-    border-color: #d4daf0;
-    color: #475569;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
+    color: var(--text-primary);
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);
   }
 
   .attachment-action-btn.view {
-    color: #64748b;
-    background: #f1f5ff;
-    border-color: #e0e7ff;
+    color: var(--text-secondary);
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
   }
 
   .attachment-action-btn.view:hover:not(:disabled) {
-    color: #475569;
+    color: var(--text-primary);
     background: #e8efff;
-    border-color: #c7d2fe;
+    border-color: var(--border-primary);
   }
 
   .attachment-action-btn.download {
-    color: #64748b;
-    background: #f8fafc;
+    color: var(--text-secondary);
+    background: var(--surface-primary);
   }
 
   .attachment-action-btn.delete {
-    color: #94a3b8;
-    background: #f8fafc;
+    color: var(--text-muted);
+    background: var(--surface-primary);
   }
 
   .attachment-action-btn.delete:hover:not(:disabled) {
-    background: #fef2f2;
-    border-color: #fecaca;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
     color: #dc2626;
   }
 
@@ -376,9 +376,9 @@
   }
 
   .attachment-action-btn:disabled:hover {
-    background: #f8fafc;
-    border-color: #e8ecf2;
-    color: #94a3b8;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
+    color: var(--text-muted);
   }
 
   /* ----------------------------------------------------------
@@ -397,8 +397,8 @@
     flex-direction: column;
     gap: 12px;
     padding: 16px;
-    background: #ffffff;
-    border: 1px solid #e8ecf2;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.03);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -406,7 +406,7 @@
   }
 
   .attachment-card:hover {
-    border-color: #d4daf0;
+    border-color: var(--border-primary);
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
     transform: translateY(-2px);
   }
@@ -425,15 +425,15 @@
   }
 
   .attachment-card .attachment-action-btn.download {
-    color: #64748b;
-    background: #f8fafc;
-    border-color: #e8ecf2;
+    color: var(--text-secondary);
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
   }
 
   .attachment-card .attachment-action-btn.download:hover:not(:disabled) {
-    color: #475569;
-    background: #f1f5f9;
-    border-color: #d4daf0;
+    color: var(--text-primary);
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
   }
 
   .attachment-card-details {
@@ -446,7 +446,7 @@
   .attachment-card-name {
     font-size: 14px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
     line-height: 1.35;
     overflow: hidden;
     display: -webkit-box;
@@ -460,7 +460,7 @@
     flex-direction: column;
     gap: 2px;
     font-size: 12px;
-    color: #64748b;
+    color: var(--text-secondary);
     line-height: 1.45;
     min-width: 0;
   }
@@ -491,13 +491,13 @@
 
   .checklist-section {
     border-top: none;
-    background: #ffffff;
+    background: var(--surface-primary);
   }
 
   .checklist-item-group {
     padding-top: 12px;
     margin-top: 12px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--border-primary);
 
     &:first-child {
       padding-top: 0;
@@ -517,7 +517,7 @@
     margin: 0;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
+    color: var(--text-primary);
     line-height: 1.35;
     flex: 1;
     min-width: 0;
@@ -526,7 +526,7 @@
   .checklist-doc-empty {
     margin: 0;
     font-size: 13px;
-    color: #64748b;
+    color: var(--text-secondary);
     padding: 4px 0 2px;
     line-height: 1.5;
   }
@@ -534,7 +534,7 @@
   .attachments-empty-state {
     text-align: center;
     padding: 32px 24px 36px;
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.55;
   }
@@ -555,7 +555,7 @@
     max-width: 360px;
     font-size: 15px;
     font-weight: 600;
-    color: #334155;
+    color: var(--text-primary);
     line-height: 1.4;
   }
 
@@ -563,7 +563,7 @@
     margin: 0 auto;
     max-width: 360px;
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--text-muted);
     line-height: 1.5;
   }
 

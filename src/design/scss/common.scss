@@ -27,6 +27,120 @@ body {
 
 body {
   font-weight: 400;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  transition: var(--theme-transition);
+}
+
+// Base (react-bootstrap) modal chrome — theme-aware defaults for every modal
+// in the app. Feature-specific modal SCSS files load after this one and can
+// still override these with their own more specific selectors.
+.modal-backdrop.show {
+  background-color: var(--modal-overlay);
+  opacity: 1;
+}
+
+.modal-content {
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+// MUI date/time pickers render their popup (Paper + calendar) in a portal
+// under document.body, styled by MUI's own baseline (no MuiThemeProvider is
+// configured in this app), so it's plain white unless overridden here. This
+// is global — not scoped to any one field wrapper — since a few pages use
+// MUI's DatePicker/TimePicker directly rather than through the shared
+// DatePickerField/DateTimePickerField wrappers. !important matches this
+// codebase's existing convention for beating MUI/Bootstrap library defaults.
+[data-theme="dark"] {
+  .MuiPickersPopper-root .MuiPaper-root,
+  .MuiPickersLayout-root {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .MuiPickersCalendarHeader-label,
+  .MuiPickersCalendarHeader-switchViewButton,
+  .MuiPickersArrowSwitcher-button,
+  .MuiDayCalendar-weekDayLabel,
+  .MuiPickersDay-root,
+  .MuiMultiSectionDigitalClockSection-item,
+  .MuiPickersYear-yearButton,
+  .MuiPickersMonth-monthButton {
+    color: var(--text-primary) !important;
+  }
+
+  .MuiPickersDay-root:hover,
+  .MuiPickersYear-yearButton:hover,
+  .MuiPickersMonth-monthButton:hover,
+  .MuiMultiSectionDigitalClockSection-item:hover {
+    background-color: var(--hover-bg) !important;
+  }
+
+  .MuiPickersDay-root.Mui-selected,
+  .MuiPickersYear-yearButton.Mui-selected,
+  .MuiPickersMonth-monthButton.Mui-selected,
+  .MuiMultiSectionDigitalClockSection-item.Mui-selected {
+    background-color: var(--color-primary-accent) !important;
+    color: var(--text-inverse) !important;
+  }
+
+  .MuiPickersDay-root.Mui-disabled,
+  .MuiPickersYear-yearButton.Mui-disabled,
+  .MuiPickersMonth-monthButton.Mui-disabled {
+    color: var(--text-muted) !important;
+  }
+
+  .MuiPickersDay-today:not(.Mui-selected) {
+    border-color: var(--color-primary-accent) !important;
+  }
+
+  .MuiOutlinedInput-notchedOutline,
+  .MuiPickersInputBase-notchedOutline {
+    border-color: var(--input-border) !important;
+  }
+
+  .MuiInputBase-input,
+  .MuiPickersSectionList-root {
+    color: var(--text-primary) !important;
+  }
+
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root {
+    background-color: var(--input-bg);
+  }
+}
+
+// Recharts default-styled charts (no per-file custom axis/grid/tooltip
+// props) — theme their grid lines, axis text, legend and tooltip generically
+// so individual chart files don't each need JS-level isDark branching.
+.recharts-default-tooltip {
+  background-color: var(--surface-primary) !important;
+  border-color: var(--border-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border-primary);
+}
+
+.recharts-text.recharts-cartesian-axis-tick-value,
+.recharts-polar-angle-axis-tick-value {
+  fill: var(--text-secondary);
+}
+
+.recharts-legend-item-text {
+  color: var(--text-primary) !important;
 }
 
 h1,
@@ -113,15 +227,19 @@ textarea:disabled,
 }
 
 ::-webkit-scrollbar-track {
-  background: #d1ebee;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #aab4c3;
+  background: var(--scrollbar-thumb);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #aab4c3;
+  background: var(--scrollbar-thumb-hover);
+}
+
+html {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .btn {
@@ -139,8 +257,8 @@ textarea:disabled,
   }
 
   &.btn-outline {
-    border: 1px solid #D3E3F8 !important;
-    color: #35475E;
+    border: 1px solid var(--border-primary) !important;
+    color: var(--text-primary);
 
     &.btn-login {
       color: #00368c;
@@ -149,7 +267,7 @@ textarea:disabled,
   }
 
   &.btn-secondary {
-    border: 1px solid #D3E3F8 !important;
+    border: 1px solid var(--border-primary) !important;
     color: #00368c;
     background-color: #DEF0F2;
   }
@@ -190,7 +308,7 @@ textarea:disabled,
     width: 37px;
     height: 20px;
     border-radius: 20px;
-    background-color: #DEDFE5;
+    background-color: var(--bg-secondary);
     position: relative;
     display: flex;
 
@@ -245,7 +363,7 @@ textarea:disabled,
 .btn-common {
   padding: 12px 18px 11px 18px;
   background: transparent;
-  border: 1px solid #DBE7E8;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   display: flex;
   font-size: 17px;
@@ -256,7 +374,7 @@ textarea:disabled,
 
 
   letter-spacing: 0px;
-  color: #767B82;
+  color: var(--text-secondary);
 
   img {
     margin-right: 5px;
@@ -277,7 +395,7 @@ textarea:disabled,
   align-items: center;
   padding: 16px 20px;
   background: rgba(234, 241, 251, 0.82);
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-primary);
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
@@ -324,14 +442,14 @@ textarea:disabled,
 .kanban-accordion-title {
   font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin: 0;
   font-family: 'Manrope', sans-serif;
 }
 
 .kanban-accordion-icon {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
   transition: transform 0.3s ease;
   display: inline-block;
 
@@ -419,7 +537,7 @@ textarea:disabled,
 
 /* Column Box */
 .column {
-  background: #f3f4f8;
+  background: var(--surface-primary);
   border-radius: 10px;
   width: 270px;
   flex-shrink: 0;
@@ -475,14 +593,14 @@ textarea:disabled,
 
 .kanban-classic-layout {
   animation: layoutFadeIn 0.3s ease-out;
-  background: #f0f1f5 !important;
+  background: var(--bg-secondary) !important;
 
   .kanban-board {
     gap: 8px;
   }
 
   .column {
-    background: #f5f6fa;
+    background: var(--surface-primary);
   }
 
   .column-classic .column-header-classic {
@@ -496,12 +614,12 @@ textarea:disabled,
   .column-classic .column-wip-badge {
     font-weight: 500;
     font-size: 13px;
-    color: #5a5a5a;
+    color: var(--text-primary);
     margin-left: 2px;
   }
 
   .column-classic .card-list {
-    background: #eef0f5;
+    background: var(--bg-secondary);
     padding: 8px;
   }
 
@@ -512,7 +630,7 @@ textarea:disabled,
   .kanban-card.kanban-card-classic {
     padding: 6px 8px;
     box-shadow: none;
-    border: 1px solid #e0e2e8;
+    border: 1px solid var(--border-primary);
     border-radius: 6px;
     transition: none;
 
@@ -557,7 +675,7 @@ textarea:disabled,
   }
 
   .card-mini-tag-priority.low {
-    background: #e8f5e9;
+    background: var(--bg-secondary);
     color: #2e7d32;
   }
 
@@ -585,7 +703,7 @@ textarea:disabled,
   }
 
   .column {
-    background: #fafbfc;
+    background: var(--surface-primary);
   }
 
   .column-modern .column-header-modern {
@@ -629,7 +747,7 @@ textarea:disabled,
     padding: 6px;
     border: none;
     background: transparent;
-    color: #6b7280;
+    color: var(--text-secondary);
     cursor: pointer;
     border-radius: 8px;
     display: flex;
@@ -638,7 +756,7 @@ textarea:disabled,
     transition: color 0.2s ease, background 0.2s ease;
 
     &:hover {
-      color: #374151;
+      color: var(--text-primary);
       background: rgba(0, 0, 0, 0.05);
     }
   }
@@ -656,7 +774,7 @@ textarea:disabled,
   .progress-bar-horizontal {
     flex: 1;
     height: 6px;
-    background: #e5e7eb;
+    background: var(--bg-secondary);
     border-radius: 4px;
     overflow: hidden;
     min-width: 52px;
@@ -671,7 +789,7 @@ textarea:disabled,
   .progress-text-horizontal {
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--text-secondary);
     min-width: 28px;
   }
 }
@@ -703,7 +821,7 @@ textarea:disabled,
   }
 
   .kanban-accordion-title-icon {
-    color: #a1a1aa;
+    color: var(--text-muted);
   }
 
   .kanban-accordion-title {
@@ -712,11 +830,11 @@ textarea:disabled,
   }
 
   .kanban-accordion-icon {
-    color: #a1a1aa;
+    color: var(--text-muted);
   }
 
   .accordion-menu-button {
-    color: #a1a1aa;
+    color: var(--text-muted);
 
     &:hover {
       color: #fafafa;
@@ -758,12 +876,12 @@ textarea:disabled,
 }
 
 .kanban-dark-mode .column-count {
-  color: #a1a1aa;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .kanban-dark-mode .column-wip-badge {
-  color: #a1a1aa !important;
+  color: var(--text-muted) !important;
   font-weight: 500;
 }
 
@@ -808,16 +926,16 @@ textarea:disabled,
 }
 
 .kanban-dark-mode .card-time-left {
-  color: #a1a1aa;
+  color: var(--text-muted);
 }
 
 .kanban-dark-mode .card-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  color: #a1a1aa;
+  color: var(--text-muted);
 }
 
 .kanban-dark-mode .card-footer.footer-1 {
-  color: #a1a1aa;
+  color: var(--text-muted);
   border-top: none;
 }
 
@@ -826,7 +944,7 @@ textarea:disabled,
 }
 
 .kanban-dark-mode .footer-1-item {
-  color: #a1a1aa;
+  color: var(--text-muted);
 }
 
 .kanban-dark-mode .progress-text,
@@ -847,7 +965,7 @@ textarea:disabled,
 }
 
 .kanban-dark-mode .card-action-menu-btn {
-  color: #a1a1aa;
+  color: var(--text-muted);
 
   &:hover {
     color: #fafafa;
@@ -917,7 +1035,7 @@ body.app-dark-mode {
     box-shadow: none;
 
     .left-section .top-links .layout-view-label {
-      color: #a1a1aa;
+      color: var(--text-muted);
     }
 
     .layout-view-switch {
@@ -927,7 +1045,7 @@ body.app-dark-mode {
     }
 
     .layout-view-option {
-      color: #a1a1aa;
+      color: var(--text-muted);
       border-radius: 8px;
       font-weight: 500;
 
@@ -960,7 +1078,7 @@ body.app-dark-mode {
     }
 
     .icon-btn {
-      color: #a1a1aa;
+      color: var(--text-muted);
 
       &:hover {
         background: rgba(255, 255, 255, 0.06);
@@ -1009,7 +1127,7 @@ body.app-dark-mode {
         }
 
         &::after {
-          color: #71717a;
+          color: var(--text-secondary);
         }
       }
 
@@ -1062,12 +1180,12 @@ body.app-dark-mode {
       color: #e4e4e7;
 
       &::placeholder {
-        color: #71717a;
+        color: var(--text-secondary);
       }
     }
 
     .kanban-sidebar-workspaces-filter-icon {
-      color: #71717a;
+      color: var(--text-secondary);
     }
 
     .kanban-sidebar-workspaces-row-main {
@@ -1083,7 +1201,7 @@ body.app-dark-mode {
     }
 
     .kanban-sidebar-workspaces-row-menu {
-      color: #71717a;
+      color: var(--text-secondary);
 
       &:hover {
         background: rgba(255, 255, 255, 0.08);
@@ -1113,7 +1231,7 @@ body.app-dark-mode {
   }
 
   .kanban-sidebar-dark .kanban-sidebar-icon {
-    color: #a1a1aa;
+    color: var(--text-muted);
 
     &:hover {
       background: rgba(255, 255, 255, 0.06);
@@ -1218,7 +1336,7 @@ body.app-dark-mode {
 
 .kanban-container::-webkit-scrollbar-thumb,
 .page-cont-wrp::-webkit-scrollbar-thumb {
-  background: #fbfbf5;
+  background: var(--bg-app);
   border-radius: 10px;
 }
 

@@ -7,7 +7,7 @@
 }
 
 .nested-column-parent-header {
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border-primary);
     margin-bottom: 0;
 }
 
@@ -24,9 +24,9 @@
     /* Same width as Ready to Finalize column */
     flex: 0 0 430px;
     /* Don't grow or shrink, maintain fixed width */
-    background: #f5f5f5;
+    background: var(--surface-primary);
     border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-primary);
     display: flex;
     flex-direction: column;
     min-width: 430px;
@@ -34,8 +34,8 @@
 
 .nested-column-header {
     padding: 12px 16px;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
+    background: var(--surface-primary);
+    border-bottom: 1px solid var(--border-primary);
     border-radius: 8px 8px 0 0;
 }
 
@@ -65,7 +65,7 @@
 .nested-column-title {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;

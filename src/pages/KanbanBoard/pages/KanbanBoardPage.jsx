@@ -276,9 +276,9 @@ export default function KanbanBoardPage() {
           style={{
             padding: "8px 16px",
             fontSize: 13,
-            color: isDarkMode ? "#e0e0e0" : "#5c5c5c",
-            background: isDarkMode ? "#2a2a2a" : "#fff3cd",
-            borderBottom: `1px solid ${isDarkMode ? "#444" : "#ffc107"}`,
+            color: "var(--text-primary)",
+            background: "var(--bg-secondary)",
+            borderBottom: "1px solid var(--color-warning)",
           }}
         >
           {boardLoadError}

@@ -4,7 +4,7 @@
 .edit-workflows-container {
   width: 100%;
   min-height: calc(100vh - 74px);
-  background: #f8f9fc;
+  background: var(--surface-primary);
   padding: 0;
   overflow: hidden;
   display: flex;
@@ -43,14 +43,14 @@
 }
 
 .workflows-btn-discard {
-  background: #ffffff;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
   flex: 1;
 
   &:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
   }
 }
 
@@ -63,14 +63,14 @@
 .workflows-btn-undo,
 .workflows-btn-redo {
   flex: 1;
-  background: #f9fafb;
-  color: #9ca3af;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-primary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-primary);
   font-size: 13px;
 
   &:hover:not(:disabled) {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
   }
 }
 
@@ -142,8 +142,8 @@
 .workflows-board-config-card {
   flex: 1;
   min-width: 0;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 20px 22px;
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
@@ -197,7 +197,7 @@
   height: 18px;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -219,11 +219,11 @@
 .workflows-config-select {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font: normal normal 400 14px/1.5 $font-primary;
   color: $txtColor;
-  background: #ffffff;
+  background: var(--surface-primary);
   transition: all 0.2s ease;
 
   &:focus {
@@ -246,11 +246,11 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 24px 28px;
-  background: #f8f9fc;
+  background: var(--surface-primary);
 
   &--empty-workflow {
     padding-top: 20px;
-    background-color: #f1f4fa;
+    background-color: var(--surface-primary);
     background-image: radial-gradient(circle at 1px 1px, rgba(0, 54, 140, 0.06) 1px, transparent 0);
     background-size: 20px 20px;
   }
@@ -261,7 +261,7 @@
     align-items: center;
     justify-content: center;
     min-height: 200px;
-    color: #6b7280;
+    color: var(--text-secondary);
     font-size: 15px;
   }
 
@@ -282,11 +282,11 @@
     width: 100%;
     max-width: none;
     text-align: left;
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 14px;
     padding: 22px 26px;
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-primary);
   }
 
   .workflows-not-found-icon {
@@ -318,14 +318,14 @@
     font-size: 1.2rem;
     font-weight: 600;
     letter-spacing: -0.02em;
-    color: #111827;
+    color: var(--text-primary);
   }
 
   .workflows-not-found-text {
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
-    color: #64748b;
+    color: var(--text-secondary);
   }
 
   .workflows-not-found-cta {
@@ -384,7 +384,7 @@
 }
 
 .workflow-card {
-  background: #ffffff;
+  background: var(--surface-primary);
   border-radius: 12px;
   padding: 24px 32px;
   margin-bottom: 24px;
@@ -439,7 +439,7 @@
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-primary);
   flex-shrink: 0;
 
   @media ($sm-991) {
@@ -558,18 +558,18 @@
   width: 32px;
   height: 32px;
   border: none;
-  background: #f3f4f6;
+  background: var(--bg-secondary);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--text-secondary);
   transition: all 0.2s ease;
 
   &:hover {
-    background: #e5e7eb;
-    color: #374151;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 
   svg {
@@ -587,7 +587,7 @@
 .workflow-title-input {
   font: normal normal 600 18px/1.4 $font-primary;
   color: $txtColor;
-  background: #ffffff;
+  background: var(--surface-primary);
   border: 2px solid #3b82f6;
   border-radius: 6px;
   padding: 4px 12px;
@@ -607,7 +607,7 @@
   height: 28px;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -617,7 +617,7 @@
   padding: 0;
 
   &:hover {
-    background: #f3f4f6;
+    background: var(--bg-secondary);
     color: #3b82f6;
   }
 
@@ -886,7 +886,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   pointer-events: none;
   z-index: 5;
   border: 1px solid #59d38c;
-  background: #f7fff9;
+  background: var(--surface-primary);
   border-radius: 0;
   box-sizing: border-box;
 
@@ -981,10 +981,10 @@ div[role="tooltip"][id^="workflow-info-"] {
   max-width: 170px;
   min-height: 8px;
   padding: 2px 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-primary);
   border-radius: 2px;
-  background: #fafbfc;
-  color: #6b7280;
+  background: var(--surface-primary);
+  color: var(--text-secondary);
   opacity: 0;
   transition: opacity 0.15s ease;
 
@@ -1026,8 +1026,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   justify-content: center;
   padding: 8px 12px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
   font: normal normal 600 13px/1.35 $font-primary;
   color: $txtColor;
   text-align: center;
@@ -1093,7 +1093,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 .workflow-swimlane-label-input {
   font: normal normal 600 13px/1.35 $font-primary;
   color: $txtColor;
-  background: #ffffff;
+  background: var(--surface-primary);
   border: 2px solid #3b82f6;
   border-radius: 4px;
   padding: 4px 8px;
@@ -1116,7 +1116,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-swimlane-icon {
-  color: #9ca3af;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -1127,7 +1127,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   padding: 0;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1136,7 +1136,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-shrink: 0;
 
   &:hover {
-    color: #6b7280;
+    color: var(--text-secondary);
   }
 
   &:disabled {
@@ -1180,16 +1180,16 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-direction: column;
   align-items: center;
   padding: 6px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
   // Lane fill: inline `backgroundColor` from stage `bgColor` / picker (default matches `DEFAULT_STAGE_SWATCH_HEX`)
-  background: #f8fafc;
+  background: var(--surface-primary);
   min-height: 0;
   box-sizing: border-box;
 }
 
 .workflow-swimlane-cell-limit {
   font: normal normal 400 12px/1.4 $font-primary;
-  color: #6b7280;
+  color: var(--text-secondary);
   flex-shrink: 0;
   text-align: center;
   width: 100%;
@@ -1215,7 +1215,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 
 .workflow-swimlane-cell-label {
   font: normal normal 400 12px/1.4 $font-primary;
-  color: #6b7280;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -1236,12 +1236,12 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-width: 0;
   height: 100%;
   padding: 2px 4px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   font: normal normal 400 12px/1.4 $font-primary;
   color: $txtColor;
   text-align: center;
-  background: #ffffff;
+  background: var(--surface-primary);
   box-sizing: border-box;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -1279,7 +1279,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   transition: background 0.15s ease;
 
   &:hover {
-    background: #f3f4f6;
+    background: var(--bg-secondary);
   }
 }
 
@@ -1289,7 +1289,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-height: 40px;
   width: 100%;
   max-height: 56px;
-  border: 1px dashed #d1d5db;
+  border: 1px dashed var(--border-primary);
   border-radius: 2px;
   background: transparent;
   box-sizing: border-box;
@@ -1393,7 +1393,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 
 .workflow-stage-box {
   // background: #ffffff;
-  border: 1px solid #e2e4e8;
+  border: 1px solid var(--border-primary);
   border-radius: 2px;
   padding: 12px 22px 16px;
   min-height: 108px;
@@ -1426,7 +1426,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 // First row styling
 .workflow-stages-row:first-child {
   .workflow-stage-box {
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-primary);
   }
 }
 
@@ -1464,7 +1464,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   border: 1px solid #3b82f6;
   border-radius: 4px;
   box-sizing: border-box;
-  background: #ffffff;
+  background: var(--surface-primary);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
@@ -1480,7 +1480,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   gap: 6px;
   margin-bottom: 8px;
   font: normal normal 400 12px/1.4 $font-primary;
-  color: #6b7280;
+  color: var(--text-secondary);
   align-items: center;
   text-align: center;
   width: 100%;
@@ -1524,7 +1524,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   transition: background 0.15s ease;
 
   &:hover {
-    background: #f3f4f6;
+    background: var(--bg-secondary);
   }
 }
 
@@ -1533,12 +1533,12 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-width: 0;
   height: 100%;
   padding: 2px 4px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   font: normal normal 400 12px/1.4 $font-primary;
   color: $txtColor;
   text-align: center;
-  background: #ffffff;
+  background: var(--surface-primary);
   box-sizing: border-box;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -1576,7 +1576,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   height: 20px;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1586,7 +1586,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-shrink: 0;
 
   &:hover {
-    color: #6b7280;
+    color: var(--text-secondary);
   }
 
   svg {
@@ -1638,7 +1638,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   height: 40px;
   border: 2px solid #10b981;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--surface-primary);
   color: #10b981;
   display: flex;
   align-items: center;

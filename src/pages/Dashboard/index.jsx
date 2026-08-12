@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { FiTrendingUp, FiUsers, FiCheckCircle, FiActivity, FiDollarSign } from "react-icons/fi";
 import dashboardService from "../../services/dashboardService";
+import { useThemeStore } from "../../shared/store/themeStore";
 import "../../design/scss/dashboard.scss";
 import "../../design/scss/pages/dashboard/dashboard-content.scss";
 
@@ -54,6 +55,15 @@ const formatStatValue = (key, value) => {
 
 const Dashboard = () => {
   const [overview, setOverview] = useState(null);
+  const isDark = useThemeStore((state) => state.isDark);
+  const chartGridColor = isDark ? "#293548" : "#e5e7eb";
+  const chartAxisColor = isDark ? "#8f9aaa" : "#6b7280";
+  const chartTooltipStyle = {
+    backgroundColor: isDark ? "#151f2e" : "#fff",
+    border: `1px solid ${isDark ? "#293548" : "#e5e7eb"}`,
+    borderRadius: "8px",
+    color: isDark ? "#f5f7fa" : "#111827",
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -135,15 +145,11 @@ const Dashboard = () => {
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={vesselData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis dataKey="month" stroke={chartAxisColor} />
+              <YAxis stroke={chartAxisColor} />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
+                contentStyle={chartTooltipStyle}
               />
               <Legend />
               <Line
@@ -174,15 +180,11 @@ const Dashboard = () => {
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={serviceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis dataKey="name" stroke={chartAxisColor} />
+              <YAxis stroke={chartAxisColor} />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
+                contentStyle={chartTooltipStyle}
               />
               <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                 {serviceData.map((entry, index) => (
@@ -216,11 +218,7 @@ const Dashboard = () => {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
+                contentStyle={chartTooltipStyle}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -234,15 +232,11 @@ const Dashboard = () => {
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={serviceRequestsData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis dataKey="month" stroke={chartAxisColor} />
+              <YAxis stroke={chartAxisColor} />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
+                contentStyle={chartTooltipStyle}
               />
               <Bar dataKey="requests" radius={[8, 8, 0, 0]} fill="#8b5cf6" />
             </BarChart>
@@ -267,15 +261,11 @@ const Dashboard = () => {
                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis dataKey="month" stroke={chartAxisColor} />
+              <YAxis stroke={chartAxisColor} />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
+                contentStyle={chartTooltipStyle}
                 formatter={(value) => `$${value.toLocaleString()}`}
               />
               <Legend />

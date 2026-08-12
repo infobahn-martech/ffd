@@ -38,7 +38,7 @@
 
     &>label {
         padding: 5px 10px;
-        background-color: #ffffff;
+        background-color: var(--surface-primary);
         display: flex;
         align-items: center;
         margin-left: 10px;
@@ -147,7 +147,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #a8b8d4;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -182,7 +182,7 @@
     padding: 20px;
     border: 2px dashed $borderLight;
     border-radius: 12px;
-    background-color: #f8fcff;
+    background-color: var(--surface-primary);
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
 
@@ -198,7 +198,7 @@
 
     &--error {
         border-color: #dc3545;
-        background-color: #fff5f5;
+        background-color: var(--surface-primary);
     }
 
     &__icon {
@@ -220,7 +220,7 @@
 
     &__formats {
         font-size: 12px;
-        color: #adb5bd;
+        color: var(--text-muted);
         margin-top: 4px;
     }
 
@@ -281,7 +281,7 @@
     padding: 6px;
 
     &.react-select-container {
-        border: 1px solid #bcdee2;
+        border: 1px solid var(--border-primary);
         border-radius: 12px;
         min-height: 50px;
         background-image: none !important;
@@ -308,7 +308,7 @@
             &__placeholder,
             &__single-value {
                 font-size: 13px;
-                color: #35475e;
+                color: var(--text-primary);
             }
 
             &__indicator-separator {
@@ -317,7 +317,7 @@
 
             &__menu {
                 margin-top: 8px;
-                border: 1px solid #d7e4f4;
+                border: 1px solid var(--border-primary);
                 border-radius: 8px;
                 overflow: hidden;
                 box-shadow: 0 10px 28px rgba(16, 42, 67, 0.18);
@@ -329,8 +329,8 @@
 
             &__option {
                 font-size: 12px;
-                color: #2f3c52;
-                background: #fff;
+                color: var(--text-primary);
+                background: var(--surface-primary);
                 transition: background-color 0.12s ease, color 0.12s ease;
                 cursor: pointer;
             }
@@ -385,9 +385,9 @@ label.select-label {
     z-index: 1;
     font-size: 12px;
     top: -8px;
-    background: #fff;
+    background: var(--surface-primary);
     left: 15px;
-    color: #35475e !important;
+    color: var(--text-primary) !important;
 }
 
 .form-control.form-select {
@@ -407,7 +407,7 @@ input[type=number] {
 
 .field-disabled {
     input {
-        color: #79A1A5 !important;
+        color: var(--text-secondary) !important;
     }
 }
 
@@ -433,8 +433,8 @@ input[type=number] {
     top: -9px;
     left: 14px;
     font-size: 12px;
-    color: #35475e;
-    background: #fff;
+    color: var(--text-primary);
+    background: var(--surface-primary);
     padding: 0 6px;
     z-index: 10;
 }
@@ -446,7 +446,7 @@ input[type=number] {
     min-height: 50px !important;
     padding-left: 62px !important;
     /* ensure space for flag */
-    border: 1px solid #bcdee2 !important;
+    border: 1px solid var(--border-primary) !important;
     border-radius: 12px !important;
     font-size: 13px !important;
     line-height: 50px !important;
@@ -520,9 +520,9 @@ input[type=number] {
     box-sizing: border-box;
     padding: 0 !important;
     overflow: visible;
-    border: 1px solid #bcdee2 !important;
+    border: 1px solid var(--border-primary) !important;
     border-radius: 12px;
-    background: #fff;
+    background: var(--surface-primary);
 
     // MUI's own error-state border is suppressed below (notchedOutline is
     // always border:none), so the wrapper needs to pick up the red border
@@ -586,7 +586,7 @@ input[type=number] {
     .MuiPickersSectionList-root {
         width: 100%;
         font-size: 13px;
-        color: #2b3f5c;
+        color: var(--text-primary);
     }
 
     .MuiInputAdornment-root,
@@ -620,7 +620,7 @@ input[type=number] {
         left: 0;
         margin-left: 10px;
         padding: 5px 10px;
-        background-color: #ffffff;
+        background-color: var(--surface-primary);
         display: flex;
         align-items: center;
         height: unset !important;
@@ -640,7 +640,7 @@ input[type=number] {
 
 /* Override any inherited .form-floating border for this date wrapper */
 .form-floating.form-floating.add-edit-modal-date-field {
-    border: 1px solid #bcdee2 !important;
+    border: 1px solid var(--border-primary) !important;
 }
 
 #datepicker-portal {
@@ -666,7 +666,7 @@ input[type=number] {
 }
 
 .premium-datepicker-calendar.react-datepicker {
-    border: 1px solid #d8e4ff;
+    border: 1px solid var(--border-primary);
     border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 18px 36px rgba(0, 35, 104, 0.2);
@@ -675,7 +675,7 @@ input[type=number] {
 
 .premium-datepicker-calendar .react-datepicker__header {
     background: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
-    border-bottom: 1px solid #e3ebff;
+    border-bottom: 1px solid var(--border-primary);
     padding-top: 12px;
 }
 
@@ -686,7 +686,7 @@ input[type=number] {
 }
 
 .premium-datepicker-calendar .react-datepicker__day-name {
-    color: #4f6489;
+    color: var(--text-secondary);
     font-size: 11px;
     font-weight: 700;
 }
@@ -745,8 +745,8 @@ input[type=number] {
     height: 120px;
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid #e6e6e6;
-    background: #f5f5f5;
+    border: 3px solid var(--border-primary);
+    background: var(--surface-primary);
 
     .avatar-image {
         width: 100%;
@@ -760,7 +760,7 @@ input[type=number] {
     position: absolute;
     bottom: 4px;
     right: 4px;
-    background: #e7e7e7;
+    background: var(--bg-secondary);
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -895,7 +895,7 @@ input[type=number] {
     font-weight: 600;
     line-height: 1.2;
 
-    color: #344054;
+    color: var(--text-primary);
     letter-spacing: 0.2px;
 }
 

@@ -10,7 +10,7 @@
       width: 6px;
     }
     &::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: var(--bg-secondary);
       border-radius: 3px;
     }
     &::-webkit-scrollbar-thumb {
@@ -58,7 +58,7 @@
 
   .form-control,
   .form-select {
-    border: 1px solid #e2e2ea;
+    border: 1px solid var(--border-primary);
     border-radius: 10px;
     font-size: 14px;
     padding: 10px 14px;
@@ -106,7 +106,7 @@
     min-height: 120px;
     border: 2px dashed $borderLight;
     border-radius: 12px;
-    background: #fafcfd;
+    background: var(--surface-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -115,7 +115,7 @@
 
     &:hover {
       border-color: #98CBD0;
-      background: #f5f9fa;
+      background: var(--surface-primary);
     }
 
     &.dragging {
@@ -166,7 +166,7 @@
 
   .upload-sub-text {
     font-size: 12px;
-    color: #87ADB1;
+    color: var(--text-muted);
     margin: 0;
   }
 
@@ -200,9 +200,9 @@
     justify-content: space-between;
     gap: 12px;
     padding: 8px 12px;
-    border: 1px solid #e2e2ea;
+    border: 1px solid var(--border-primary);
     border-radius: 8px;
-    background: #fafcfd;
+    background: var(--surface-primary);
 
     .file-name {
       font-size: 13px;
@@ -217,7 +217,7 @@
 
   .form-text.text-muted {
     font-size: 12px;
-    color: #87ADB1;
+    color: var(--text-muted);
     margin-top: 6px;
     display: block;
   }

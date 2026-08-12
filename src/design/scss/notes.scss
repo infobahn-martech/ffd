@@ -40,8 +40,8 @@
 }
 
 .notes-tab-panel {
-  background: #ffffff;
-  border: 1px solid #e8eaf0;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 10px 28px rgba(15, 23, 42, 0.06);
   display: flex;
@@ -65,7 +65,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #8a8f9c;
+  color: var(--text-secondary);
 }
 
 .notes-tab-editing-banner {
@@ -75,7 +75,7 @@
   align-self: flex-start;
   padding: 5px 6px 5px 10px;
   background: #eaf1ff;
-  border: 1px solid #d3e2fb;
+  border: 1px solid var(--border-primary);
   border-radius: 999px;
 }
 
@@ -96,8 +96,8 @@
   height: 20px;
   border: none;
   border-radius: 50%;
-  background: #ffffff;
-  color: #5c6370;
+  background: var(--surface-primary);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 
@@ -134,19 +134,19 @@
   }
 
   .ql-toolbar {
-    border: 1px solid #e2e2ea;
+    border: 1px solid var(--border-primary);
     border-radius: 10px 10px 0 0;
-    background: #fafbfc;
+    background: var(--surface-primary);
     padding: 7px 9px;
     flex-shrink: 0;
   }
 
   .ql-container {
-    border: 1px solid #e2e2ea;
+    border: 1px solid var(--border-primary);
     border-top: none;
     border-radius: 0 0 10px 10px;
     font-size: 13px;
-    background: #ffffff;
+    background: var(--surface-primary);
     flex: 1;
     min-height: 0;
     height: auto;
@@ -161,11 +161,11 @@
     height: auto;
     padding: 12px 14px;
     line-height: 1.55;
-    color: #1a1a1a;
+    color: var(--text-primary);
     overflow-y: auto;
 
     &.ql-blank::before {
-      color: #9aa0ad;
+      color: var(--text-muted);
       font-style: normal;
       font-size: 13px;
     }
@@ -180,7 +180,7 @@
   }
 
   .ql-picker-label {
-    color: #5c6370;
+    color: var(--text-secondary);
   }
 
   &:focus-within {
@@ -197,7 +197,7 @@
   &:hover:not(:focus-within) {
     .ql-toolbar,
     .ql-container {
-      border-color: #c8d4ea;
+      border-color: var(--border-primary);
     }
   }
 }
@@ -211,8 +211,8 @@
   max-width: 300px;
   max-height: 200px;
   overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid #e2e6ee;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
   padding: 4px 0;
@@ -233,7 +233,7 @@
   margin: 0;
   padding: 10px 14px;
   font-size: 12px;
-  color: #8a8f9c;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -252,7 +252,7 @@
 
   &:hover,
   &:focus-visible {
-    background: #f3f6fb;
+    background: var(--surface-primary);
     outline: none;
   }
 }
@@ -263,8 +263,8 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background: #e8ecf4;
-  border: 1px solid #e2e6ee;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -279,13 +279,13 @@
 .notes-tab-mention-avatar-fallback {
   font-size: 12px;
   font-weight: 600;
-  color: #5c6370;
+  color: var(--text-secondary);
   line-height: 1;
 }
 
 .notes-tab-mention-name {
   font-size: 13px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -340,14 +340,14 @@
   gap: 8px;
   padding: 16px 18px 12px;
   flex-shrink: 0;
-  border-bottom: 1px solid #f0f1f5;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .notes-tab-list-title {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .notes-tab-list-count {
@@ -399,7 +399,7 @@
   height: 100%;
   padding: 24px 16px;
   text-align: center;
-  color: #b0b5c0;
+  color: var(--text-muted);
 }
 
 .notes-tab-empty svg {
@@ -409,7 +409,7 @@
 .notes-tab-empty p {
   margin: 0;
   font-size: 13px;
-  color: #8a8f9c;
+  color: var(--text-secondary);
 }
 
 .notes-tab-list-items {
@@ -426,8 +426,8 @@
   display: flex;
   gap: 12px;
   padding: 12px 14px 12px 16px;
-  background: #fafbfc;
-  border: 1px solid #eef0f4;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 
@@ -444,8 +444,8 @@
   }
 
   &:hover {
-    background: #ffffff;
-    border-color: #dce3ef;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
 
     &::before {
@@ -461,7 +461,7 @@
 
 .notes-tab-note-card--editing {
   border-color: #a9c1ee;
-  background: #f5f8fe;
+  background: var(--surface-primary);
 
   &::before {
     background: #00368c;
@@ -497,7 +497,7 @@
   margin: 0;
   font-size: 12.5px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .notes-tab-note-actions {
@@ -519,7 +519,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #8a8f9c;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 
@@ -543,7 +543,7 @@
   margin-top: 4px;
   font-size: 13px;
   line-height: 1.55;
-  color: #383c44;
+  color: var(--text-primary);
   word-break: break-word;
 
   p {
@@ -558,7 +558,7 @@
   margin: 6px 0 0;
   font-size: 11px;
   line-height: 1.4;
-  color: #a4a9b4;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 

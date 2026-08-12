@@ -17,7 +17,7 @@
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 // Match the Dispatch Note item-card hover affordance.
@@ -46,7 +46,7 @@
 .material-edit-form .cf-input input:disabled,
 .material-edit-form .cf-input select:disabled,
 .material-edit-form .date-time-row input:disabled {
-  color: #33364a !important;
+  color: var(--text-primary) !important;
   -webkit-text-fill-color: #33364a !important;
   opacity: 1 !important;
 }
@@ -59,10 +59,10 @@
   .MuiPickersInputBase-root,
   .MuiOutlinedInput-root,
   .MuiInputBase-root {
-    background: #ffffff;
+    background: var(--surface-primary);
 
     &:hover {
-      background: #ffffff;
+      background: var(--surface-primary);
     }
   }
 }

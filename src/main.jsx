@@ -4,6 +4,9 @@ import { MsalProvider } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import router from './router';
 import { msalInstance } from './config/msalConfig';
+import { initTheme } from './shared/store/themeStore';
+
+initTheme();
 
 msalInstance.addEventCallback((event) => {
   if (event.eventType === EventType.LOGIN_SUCCESS && event.payload?.account) {

@@ -178,8 +178,8 @@ const DatePickerField = ({
                 .join(" "),
               sx: {
                 "& .MuiInputBase-input.Mui-disabled": {
-                  WebkitTextFillColor: "rgb(26, 26, 26)",
-                  color: "rgb(26, 26, 26)",
+                  WebkitTextFillColor: "var(--text-primary)",
+                  color: "var(--text-primary)",
                   opacity: 1,
                 },
               },
