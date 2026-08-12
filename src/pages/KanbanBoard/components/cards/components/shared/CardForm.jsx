@@ -28,7 +28,7 @@ import { useDaLocalReachedDates } from "../../../../../../shared/store/daStore";
 import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes, DA } from "../../../../CardFormTabs/Import";
 import { Approval } from "../../../../CardFormTabs/Export";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/Import/tabs/operation/preArrivalDocumentHandling";
-import { isExportCall } from "../../../../CardFormTabs/shared/utils/callTypes";
+import { isExportCall, isExportCallType } from "../../../../CardFormTabs/shared/utils/callTypes";
 import NavTabButton from "../../../../../../components/NavTabButton";
 import GROCardView from "../GRO/User/GROCardView";
 import CoordinatorTransportCardView from "../CoordinatorTransport/CoordinatorTransportCardView";
@@ -1775,10 +1775,37 @@ function CardForm({
   // (tab bar + "DA" tab) instead of the generic GRO fallback view.
   const isDAUser = String(userRoleId ?? "") === "22";
   const isDABoardCard = String(boardId ?? "") === "3";
+  // Export calls don't have GRO tasks, so a GRO Supervisor/DA viewer should see the
+  // standard tab view (with Export Approval) for them, not the GRO card view. This
+  // needs to be known before effectiveVariant is decided below, so it's fetched here
+  // rather than reusing the later callDetailSnapshot (which loads after this point).
+  const isGroSupervisorRoleViewer =
+    isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
+  const [groViewCallTypeId, setGroViewCallTypeId] = useState(null);
+  useEffect(() => {
+    if (!show || isAddMode || !isGroSupervisorRoleViewer) return undefined;
+    const callIdRaw = card?.call_id ?? card?.callId;
+    const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+    if (!callId) return undefined;
+    let cancelled = false;
+    callFileService
+      .getCallDetail(callId)
+      .then(({ data }) => {
+        if (!cancelled) setGroViewCallTypeId(data?.data?.call_type_id ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setGroViewCallTypeId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [show, isAddMode, isGroSupervisorRoleViewer, card?.call_id, card?.callId]);
+  const isExportCallForGroView = isExportCallType(groViewCallTypeId);
   const effectiveVariant = (() => {
     if (
       (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) &&
-      !(isDAUser && isDABoardCard)
+      !(isDAUser && isDABoardCard) &&
+      !isExportCallForGroView
     ) {
       return "gro";
     }
