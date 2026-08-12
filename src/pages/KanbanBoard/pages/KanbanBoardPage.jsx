@@ -23,6 +23,7 @@ import { getFirstUserRoleId } from "../../../shared/helpers/groUserRoles";
 import useAuthReducer from "../../../store/AuthReducer";
 import workflowService from "../../../services/workflowService";
 import { notify } from "../../../components/Toaster";
+import { useThemeStore } from "../../../shared/store/themeStore";
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
   const location = useLocation();
@@ -38,7 +39,7 @@ export default function KanbanBoardPage() {
   const { layoutView, setPageBackground } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
-  const isDarkMode = layoutView === "dark";
+  const { isDark: isDarkMode } = useThemeStore();
 
   const {
     workflows,
