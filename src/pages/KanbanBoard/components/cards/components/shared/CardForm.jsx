@@ -28,7 +28,7 @@ import { useDaLocalReachedDates } from "../../../../../../shared/store/daStore";
 import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes, DA } from "../../../../CardFormTabs/Import";
 import { Approval } from "../../../../CardFormTabs/Export";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../../../CardFormTabs/Import/tabs/operation/preArrivalDocumentHandling";
-import { isExportCall, isExportCallType } from "../../../../CardFormTabs/shared/utils/callTypes";
+import { isExportCall } from "../../../../CardFormTabs/shared/utils/callTypes";
 import NavTabButton from "../../../../../../components/NavTabButton";
 import GROCardView from "../GRO/User/GROCardView";
 import CoordinatorTransportCardView from "../CoordinatorTransport/CoordinatorTransportCardView";
@@ -1775,19 +1775,21 @@ function CardForm({
   // (tab bar + "DA" tab) instead of the generic GRO fallback view.
   const isDAUser = String(userRoleId ?? "") === "22";
   const isDABoardCard = String(boardId ?? "") === "3";
-  // Export calls don't have GRO tasks, so a GRO Supervisor/DA viewer should see the
-  // standard tab view (with Export Approval) for them, not the GRO card view. This
-  // needs to be known before effectiveVariant is decided below, so it's fetched here
-  // rather than reusing the later callDetailSnapshot (which loads after this point).
+  // "vessel" appointment-type calls don't have GRO tasks, so a GRO Supervisor/DA
+  // viewer should see the standard tab view (with Export Approval) for them —
+  // every other appointment type (tug, tug_and_barge, taxi_tug_and_barge) still
+  // gets the GRO card view. This needs to be known before effectiveVariant is
+  // decided below, so it's fetched here rather than reusing the later
+  // callDetailSnapshot (which loads after this point).
   const isGroSupervisorRoleViewer =
     isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
-  // The DA Desk board case never takes the "gro" branch regardless of call type
-  // (see effectiveVariant below), so it doesn't need this fetch or its loading state.
-  const needsGroViewCallTypeCheck = isGroSupervisorRoleViewer && !(isDAUser && isDABoardCard);
-  const [groViewCallTypeId, setGroViewCallTypeId] = useState(null);
+  // The DA Desk board case never takes the "gro" branch regardless of appointment
+  // type (see effectiveVariant below), so it doesn't need this fetch or its loading state.
+  const needsGroViewAppointmentTypeCheck = isGroSupervisorRoleViewer && !(isDAUser && isDABoardCard);
+  const [groViewAppointmentType, setGroViewAppointmentType] = useState(null);
   const [isGroViewCallTypeLoading, setIsGroViewCallTypeLoading] = useState(false);
   useEffect(() => {
-    if (!show || isAddMode || !needsGroViewCallTypeCheck) {
+    if (!show || isAddMode || !needsGroViewAppointmentTypeCheck) {
       setIsGroViewCallTypeLoading(false);
       return undefined;
     }
@@ -1802,10 +1804,10 @@ function CardForm({
     callFileService
       .getCallDetail(callId)
       .then(({ data }) => {
-        if (!cancelled) setGroViewCallTypeId(data?.data?.call_type_id ?? null);
+        if (!cancelled) setGroViewAppointmentType(data?.data?.appointment_type ?? null);
       })
       .catch(() => {
-        if (!cancelled) setGroViewCallTypeId(null);
+        if (!cancelled) setGroViewAppointmentType(null);
       })
       .finally(() => {
         if (!cancelled) setIsGroViewCallTypeLoading(false);
@@ -1813,17 +1815,17 @@ function CardForm({
     return () => {
       cancelled = true;
     };
-  }, [show, isAddMode, needsGroViewCallTypeCheck, card?.call_id, card?.callId]);
-  const isExportCallForGroView = isExportCallType(groViewCallTypeId);
-  // While the call type is still loading, hold off rendering either the GRO view or
-  // the tab view — otherwise a GRO-role/DA viewer briefly sees the wrong one flash
-  // before this resolves and the real view swaps in.
-  const isDecidingGroExportView = needsGroViewCallTypeCheck && isGroViewCallTypeLoading;
+  }, [show, isAddMode, needsGroViewAppointmentTypeCheck, card?.call_id, card?.callId]);
+  const isVesselAppointmentForGroView = String(groViewAppointmentType ?? "").trim() === "vessel";
+  // While the appointment type is still loading, hold off rendering either the GRO
+  // view or the tab view — otherwise a GRO-role/DA viewer briefly sees the wrong one
+  // flash before this resolves and the real view swaps in.
+  const isDecidingGroExportView = needsGroViewAppointmentTypeCheck && isGroViewCallTypeLoading;
   const effectiveVariant = (() => {
     if (
       (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) &&
       !(isDAUser && isDABoardCard) &&
-      !isExportCallForGroView
+      !isVesselAppointmentForGroView
     ) {
       return "gro";
     }
