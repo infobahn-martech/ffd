@@ -14,14 +14,27 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <title>kanban-board</title>
-  <script type="module" crossorigin src="/assets/index-Csd4j-yR.js"></script>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('sedres-theme');
+        var theme = saved === 'light' || saved === 'dark'
+          ? saved
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <script type="module" crossorigin src="/assets/index-CQ7AGOg7.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/mui-9oybptYK.js">
   <link rel="modulepreload" crossorigin href="/assets/msal-Dop2_Au4.js">
   <link rel="modulepreload" crossorigin href="/assets/bootstrap-4jZvaXg8.js">
   <link rel="modulepreload" crossorigin href="/assets/quill-DSnW_iOx.js">
   <link rel="modulepreload" crossorigin href="/assets/dates-CL06ASWW.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-B-t_712r.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-CZyIBihM.css">
+  <link rel="stylesheet" crossorigin href="/assets/index-C3SgYve7.css">
 </head>
 
 <body>
