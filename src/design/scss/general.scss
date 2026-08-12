@@ -3556,6 +3556,41 @@
   }
 }
 
+/* Every rule above hardcodes disabled/read-only text to rgb(26, 26, 26) — fine
+   against the light disabled background, but unreadable against the dark
+   surface. Re-point them at the theme's own text color in dark mode. */
+[data-theme="dark"] .cardform-body.card-form-panel.general-tab-body {
+  .MuiInputBase-input.Mui-disabled,
+  .MuiOutlinedInput-root.Mui-disabled .MuiInputBase-input,
+  .MuiPickersInputBase-root.Mui-disabled .MuiPickersInputBase-input,
+  .MuiPickersSectionList-root,
+  .MuiPickersSectionList-root *,
+  input:disabled,
+  textarea:disabled,
+  select:disabled,
+  .searchable-select.disabled,
+  .searchable-select.disabled *,
+  .cf-searchable-select.disabled,
+  .cf-searchable-select.disabled *,
+  .cf-owner-searchable-select.disabled,
+  .cf-owner-searchable-select.disabled *,
+  .searchable-select__control--is-disabled,
+  .searchable-select__control--is-disabled *,
+  .select-disabled,
+  .select-disabled *,
+  .disabled,
+  .disabled *,
+  .cf-select-value,
+  .cf-select-placeholder,
+  .searchable-select-value,
+  .searchable-select-placeholder,
+  .selected-value,
+  .selected-label {
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+  }
+}
+
 /* ==========================================================
    APPOINTMENT DETAILS LIST (Simplified Mode)
    ========================================================== */
