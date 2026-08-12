@@ -11,6 +11,7 @@ import {
   FiSquare,
   FiLayers,
   FiMoon,
+  FiSun,
   FiBarChart2,
   FiShoppingBag,
   FiActivity,
@@ -29,6 +30,7 @@ import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
+import { useThemeStore } from '../../shared/store/themeStore';
 import NavTabButton from '../../components/NavTabButton';
 import { isRestrictedBoardUser, isPortOperatorUser } from '../../shared/helpers/restrictedBoardUser';
 import { isVendorRole, getRoleId } from '../../shared/helpers/vendorDashboardRoles';
@@ -46,6 +48,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { layoutView, setLayoutView } = useLayoutView();
+  const { isDark, toggleTheme } = useThemeStore();
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
   const dropdownRef = useRef(null);
   const doLogout = useAuthReducer((state) => state.doLogout);
@@ -257,15 +260,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                   <FiLayers className="layout-view-icon" aria-hidden />
                   Compact
                 </button> */}
-                <NavTabButton
-                  className="layout-view-option"
-                  active={layoutView === 'dark'}
-                  onClick={() => { setLayoutView('dark'); pathname === '/compact' && navigate('/kanban-board/operator'); }}
-                  aria-pressed={layoutView === 'dark'}
-                >
-                  <FiMoon className="layout-view-icon" aria-hidden />
-                  Dark
-                </NavTabButton>
               </div>
             </div>
           </div>
@@ -369,6 +363,18 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
             </button> */}
           </>
         )}
+        {/* <Tooltip id="theme-toggle" place="bottom" content={isDark ? 'Switch to light mode' : 'Switch to dark mode'} />
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          onClick={toggleTheme}
+          data-tooltip-id="theme-toggle"
+        >
+          {isDark ? <FiSun /> : <FiMoon />}
+        </button> */}
+
         <Tooltip id="help" place="bottom" content="Help" />
         <button
           className="icon-btn icon-btn-hide-mobile"

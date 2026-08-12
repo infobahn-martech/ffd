@@ -43,7 +43,7 @@
     .profile-inner {
         display: flex;
         justify-content: space-between;
-        border: 1px solid #BCDEE2;
+        border: 1px solid var(--border-primary);
         border-radius: 15px;
         position: relative;
         // align-items: center;
@@ -110,7 +110,7 @@
         .edit-btn {
             background-color: #DEF0F2;
             border-radius: 8px;
-            border: 1px solid #DEF0F2;
+            border: 1px solid var(--border-primary);
             color: #00368C;
 
             @media($sm-1281) {
@@ -138,11 +138,11 @@
 
 
 .custom-label {
-    color: #174043;
+    color: var(--text-primary);
     font-size: 16px;
     position: absolute;
     top: -9px;
-    background: #fff;
+    background: var(--surface-primary);
     left: 20px;
     padding: 0 5px;
     font-weight: 600;

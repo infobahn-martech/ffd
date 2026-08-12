@@ -32,10 +32,10 @@
   font-size: 12px;
   background: transparent;
   font-family: inherit;
-  color: #1a1a1a;
+  color: var(--text-primary);
 
   &::placeholder {
-    color: #999;
+    color: var(--text-muted);
   }
 }
 
@@ -55,7 +55,7 @@
   align-items: center;
   gap: 4px;
   background: #e8eef9;
-  color: #1a1a1a;
+  color: var(--text-primary);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 12px;
@@ -70,7 +70,7 @@
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
-  color: #666;
+  color: var(--text-secondary);
   flex-shrink: 0;
 
   &:hover {
@@ -91,7 +91,7 @@
 
   .cf-multi-select-email-input {
     border-radius: 8px;
-    border: 1.5px solid #e2e2ea;
+    border: 1.5px solid var(--border-primary);
     padding: 10px 14px;
     font-size: 13px;
     min-height: auto;

@@ -30,7 +30,7 @@
 
 /* Enhanced Crew Excel Upload Zone */
 .crew-excel-upload-zone {
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--border-primary);
   background: linear-gradient(to bottom, #ffffff 0%, #fafbff 100%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
@@ -73,18 +73,18 @@
   height: 36px;
   padding: 0 14px;
   margin: 0 0 12px;
-  border: 1px solid #dfe3f0;
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
-  background: #fff;
-  color: #1a1a1a;
+  background: var(--surface-primary);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #f5f7ff;
-    border-color: #c7d2fe;
+    background: var(--surface-primary);
+    border-color: var(--border-primary);
   }
 }
 
@@ -108,7 +108,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   font-family: "Manrope", sans-serif;
   line-height: 1.25;
 }
@@ -121,7 +121,7 @@
 }
 
 .crew-upload-excel-panel {
-  background: #f9fafb;
+  background: var(--surface-primary);
   padding: 16px;
   border-radius: 10px;
   margin-bottom: 24px;
@@ -155,9 +155,9 @@
   min-width: 160px;
   padding: 8px 14px;
   border-radius: 8px;
-  border: 1px solid #e2e6ff;
-  background-color: #ffffff;
-  color: #1a1a1a;
+  border: 1px solid var(--border-primary);
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -173,7 +173,7 @@
 }
 
 .crew-upload-actions__download-btn:hover {
-  background-color: #f8f9ff;
+  background-color: var(--surface-primary);
   border-color: var(--card-color, #2a00ff);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -262,7 +262,7 @@
 
 .crew-excel-upload-zone--compact__formats {
   font-weight: 500;
-  color: #888;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
@@ -295,7 +295,7 @@
   flex: 1 1 auto;
   min-width: 0;
   font-size: 12px;
-  color: #444;
+  color: var(--text-primary);
   font-family: "Manrope", sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -305,7 +305,7 @@
 .crew-excel-upload-zone--compact__uploaded-hint {
   flex-shrink: 0;
   font-size: 11px;
-  color: #999;
+  color: var(--text-muted);
   font-family: "Manrope", sans-serif;
 }
 
@@ -323,7 +323,7 @@
 
 .crew-content-wrapper {
   padding: 0;
-  background: #ffffff;
+  background: var(--surface-primary);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
@@ -338,7 +338,7 @@
   // Sizes to its content (header + legend + table + pagination) rather
   // than stretching to fill the available modal height — avoids a large
   // near-empty card when there are only a few crew rows.
-  background: #ffffff;
+  background: var(--surface-primary);
   border: 1px solid $border-color-default;
   border-radius: $radius-xl;
   border-top: 3px solid var(--card-color, #{$colorPrimary});
@@ -352,7 +352,7 @@
   align-items: center;
   min-height: 72px;
   padding: $space-5 $space-6;
-  background: #ffffff;
+  background: var(--surface-primary);
   transition: none !important;
   animation: none !important;
   transform: none !important;
@@ -389,7 +389,7 @@
 .crew-card__subtitle {
   margin: 0;
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -443,7 +443,7 @@
 .crew-list-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -468,23 +468,23 @@
   gap: $space-2;
   padding: 4px $space-3;
   border-radius: $radius-pill;
-  background: #f8fafc;
+  background: var(--surface-primary);
   border: 1px solid transparent;
 }
 
 .crew-status-legend__item--done {
-  background: color-mix(in srgb, $status-success 8%, white);
-  border-color: color-mix(in srgb, $status-success 20%, white);
+  background: color-mix(in srgb, $status-success 8%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-success 20%, var(--border-primary));
 }
 
 .crew-status-legend__item--in-progress {
-  background: color-mix(in srgb, $status-warning 12%, white);
-  border-color: color-mix(in srgb, $status-warning 25%, white);
+  background: color-mix(in srgb, $status-warning 12%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-warning 25%, var(--border-primary));
 }
 
 .crew-status-legend__item--pending {
-  background: color-mix(in srgb, $status-danger 8%, white);
-  border-color: color-mix(in srgb, $status-danger 20%, white);
+  background: color-mix(in srgb, $status-danger 8%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-danger 20%, var(--border-primary));
 }
 
 .crew-status-legend__dot {
@@ -533,9 +533,9 @@
   height: 38px;
   padding: 0 $space-4;
   border-radius: $radius-pill;
-  border: 1px solid #e2e6ff;
-  background: #ffffff;
-  color: #1a1a1a;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -595,9 +595,9 @@
   height: 38px;
   padding: 0 32px 0 $space-3;
   border-radius: $radius-pill;
-  border: 1px solid #e2e6ff;
-  background-color: #ffffff;
-  color: #1a1a1a;
+  border: 1px solid var(--border-primary);
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -652,7 +652,7 @@
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 320px);
-  background: #fff;
+  background: var(--surface-primary);
 }
 
 .crew-table-scroll {
@@ -669,7 +669,7 @@
   overflow-x: auto;
   width: 100%;
   margin: 0;
-  background: #ffffff;
+  background: var(--surface-primary);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #888 #f1f1f1;
@@ -690,7 +690,7 @@
 .crew-pagination-info {
   font-size: 11.5px;
   font-weight: 500;
-  color: #6b7280 !important;
+  color: var(--text-secondary) !important;
 }
 
 .crew-pagination-actions {
@@ -704,9 +704,9 @@
   height: 32px;
   padding: 0 12px;
   border-radius: $radius-pill;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #64748b;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
   box-shadow: none;
@@ -743,9 +743,9 @@
 }
 
 .crew-pagination-btn:disabled {
-  background: #f1f5f9;
-  color: #a8b3c2;
-  border-color: #e5eaf1;
+  background: var(--surface-primary);
+  color: var(--text-muted);
+  border-color: var(--border-primary);
   box-shadow: none;
   cursor: not-allowed;
   pointer-events: none;
@@ -759,7 +759,7 @@
 }
 
 .crew-table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg-secondary);
 }
 
 .crew-table-container::-webkit-scrollbar-thumb {
@@ -778,7 +778,7 @@
   // horizontally instead of squeezing columns illegible (see
   // .crew-table-container { overflow-x: auto } further up).
   min-width: 1389px;
-  background: #ffffff;
+  background: var(--surface-primary);
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -815,7 +815,7 @@
 .crew-bulk-upload-modal-dialog .modal-content {
   border-radius: 22px;
   overflow: hidden;
-  border: 1px solid #e7ebf4;
+  border: 1px solid var(--border-primary);
   background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
   box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16), 0 10px 24px rgba(16, 24, 40, 0.1);
 }
@@ -826,7 +826,7 @@
   justify-content: space-between;
   gap: 18px;
   padding: 20px 26px 18px;
-  border-bottom: 1px solid #edf1f7;
+  border-bottom: 1px solid var(--border-primary);
   background: linear-gradient(160deg, rgba(255, 255, 255, 1) 0%, rgba(246, 249, 255, 0.8) 100%);
 }
 
@@ -853,14 +853,14 @@
   font-size: 19px;
   line-height: 1.2;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .crew-bulk-upload-wizard__subtitle {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -873,17 +873,17 @@
 .crew-bulk-upload-wizard__step-counter {
   font-size: 12px;
   font-weight: 600;
-  color: #475467;
-  background: #f2f4f7;
-  border: 1px solid #e4e7ec;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 999px;
   padding: 6px 10px;
 }
 
 .crew-bulk-upload-wizard__close-btn {
-  border: 1px solid #e4e7ec;
-  background: #fff;
-  color: #667085;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
   width: 34px;
   height: 34px;
   border-radius: 10px;
@@ -895,9 +895,9 @@
 }
 
 .crew-bulk-upload-wizard__close-btn:hover {
-  color: #101828;
-  background: #f9fafb;
-  border-color: #d0d5dd;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border-color: var(--border-primary);
 }
 
 .crew-bulk-upload-wizard__body {
@@ -907,7 +907,7 @@
 .crew-bulk-upload-wizard__helper {
   margin: 0 0 14px;
   font-size: 12px;
-  color: #667085;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -940,13 +940,13 @@
   margin: 0;
   font-size: 23px;
   font-weight: 700;
-  color: #101828;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .wizard-step-panel__description {
   margin: 7px 0 18px;
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -965,7 +965,7 @@
   min-height: 230px;
   margin: 0 auto;
   border-radius: 18px;
-  border: 1.5px dashed #c8d1df;
+  border: 1.5px dashed var(--border-primary);
   background: radial-gradient(circle at top, rgba(248, 250, 252, 1), rgba(255, 255, 255, 1));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 8px 24px rgba(15, 23, 42, 0.06);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
@@ -1018,7 +1018,7 @@
 .crew-wizard-upload-state__title {
   margin: 0;
   font-size: 15px;
-  color: #101828;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -1029,7 +1029,7 @@
 .crew-wizard-upload-state__desc {
   margin: 0;
   font-size: 12px;
-  color: #667085;
+  color: var(--text-secondary);
   max-width: 520px;
   white-space: nowrap;
   overflow: hidden;
@@ -1047,7 +1047,7 @@
 .crew-wizard-upload-spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #d0d5dd;
+  border: 2px solid var(--border-primary);
   border-top-color: var(--card-color, #2A00FF);
   border-radius: 50%;
   animation: crewWizardSpin 0.9s linear infinite;
@@ -1061,14 +1061,14 @@
 .crew-wizard-upload-sub-text {
   margin-top: 2px;
   font-size: 12px;
-  color: #98a2b3;
+  color: var(--text-muted);
 }
 
 .crew-wizard-inline-error {
   margin-top: 12px;
-  border: 1px solid #fecdd3;
+  border: 1px solid var(--border-primary);
   color: #b42318;
-  background: #fff1f3;
+  background: var(--surface-primary);
   border-radius: 10px;
   padding: 10px 12px;
   text-align: center;
@@ -1078,7 +1078,7 @@
 
 .crew-bulk-upload-wizard__footer {
   padding: 16px 20px 18px;
-  border-top: 1px solid #edf1f7;
+  border-top: 1px solid var(--border-primary);
   background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
 }
 
@@ -1092,9 +1092,9 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  border: 1px solid #e4e7ec;
-  background: #fff;
-  color: #344054;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1103,8 +1103,8 @@
 }
 
 .crew-wizard-nav-btn:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: #d0d5dd;
+  background: var(--surface-primary);
+  border-color: var(--border-primary);
 }
 
 .crew-wizard-nav-btn:disabled {
@@ -1125,9 +1125,9 @@
   min-width: 124px;
   height: 38px;
   border-radius: 12px;
-  border: 1px solid #d0d5dd;
-  background: #fff;
-  color: #475467;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
   padding: 0 10px;
   display: inline-flex;
   align-items: center;
@@ -1140,8 +1140,8 @@
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: #f2f4f7;
-  border: 1px solid #d0d5dd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1186,7 +1186,7 @@
 }
 
 .crew-wizard-step-chip.is-error {
-  border-color: #fecdd3;
+  border-color: var(--border-primary);
   color: #b42318;
   background: linear-gradient(180deg, #fff1f3 0%, #fff8f9 100%);
 }
@@ -1207,7 +1207,7 @@
 
 .crew-wizard-footer-message {
   margin: 0;
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1231,13 +1231,13 @@
 }
 
 .crew-wizard-btn--ghost {
-  border: 1px solid #d0d5dd;
-  background: #fff;
-  color: #344054;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
 }
 
 .crew-wizard-btn--ghost:hover {
-  background: #f8fafc;
+  background: var(--surface-primary);
   border-color: #98a2b3;
 }
 
@@ -1417,7 +1417,7 @@
   padding: 0 $space-4;
   font-size: 12.5px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-primary);
   letter-spacing: 0.1px;
   text-transform: none !important;
   white-space: nowrap;
@@ -1458,18 +1458,18 @@
   padding: 9px 12px;
   font-size: 12px;
   vertical-align: middle;
-  border-bottom: 1px solid #f0f0f0;
-  background: #ffffff;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--surface-primary);
 }
 
 .crew-table-cell {
-  color: #333;
+  color: var(--text-primary);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .crew-table-cell--muted {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 // Crew Name — plain text hierarchy, no avatar (name + ID stacked)
@@ -1492,13 +1492,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .crew-name-id {
   font-size: 11px;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1510,7 +1510,7 @@
   align-items: center;
   font-size: 11px;
   font-weight: 700;
-  color: #686868;
+  color: var(--text-secondary);
   background: color-mix(in srgb, #7c3aed 12%, white);
   border-radius: $radius-pill;
   padding: 4px $space-3;
@@ -1567,8 +1567,8 @@
 // all share these exact rules.
 .crew-doc-btn--preview,
 .crew-doc-btn--uploaded {
-  background: color-mix(in srgb, $status-success 22%, white);
-  border: 1.5px solid color-mix(in srgb, $status-success 65%, white);
+  background: color-mix(in srgb, $status-success 22%, var(--surface-primary));
+  border: 1.5px solid color-mix(in srgb, $status-success 65%, var(--border-primary));
   color: $status-success;
   cursor: pointer;
 }
@@ -1579,29 +1579,29 @@
 
 .crew-doc-btn--preview:hover:not(:disabled),
 .crew-doc-btn--uploaded:hover:not(:disabled) {
-  background: color-mix(in srgb, $status-success 32%, white);
-  border-color: color-mix(in srgb, $status-success 80%, white);
+  background: color-mix(in srgb, $status-success 32%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-success 80%, var(--border-primary));
 }
 
 .crew-doc-btn--missing {
-  background: color-mix(in srgb, $status-danger 16%, white);
-  border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
+  background: color-mix(in srgb, $status-danger 16%, var(--surface-primary));
+  border: 1.5px solid color-mix(in srgb, $status-danger 55%, var(--border-primary));
   color: $status-danger;
   cursor: pointer;
 }
 
 .crew-doc-btn--missing:hover:not(:disabled) {
-  background: color-mix(in srgb, $status-danger 26%, white);
-  border-color: color-mix(in srgb, $status-danger 70%, white);
+  background: color-mix(in srgb, $status-danger 26%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-danger 70%, var(--border-primary));
 }
 
 // Actively uploading is a genuine in-progress state (the one moment these
 // document controls have real transient status), so it takes the amber
 // treatment rather than a plain neutral disabled look.
 .crew-doc-btn--uploading {
-  background: color-mix(in srgb, $status-warning 14%, white);
-  border: 1.5px solid color-mix(in srgb, $status-warning 40%, white);
-  color: color-mix(in srgb, $status-warning 60%, black);
+  background: color-mix(in srgb, $status-warning 14%, var(--surface-primary));
+  border: 1.5px solid color-mix(in srgb, $status-warning 40%, var(--border-primary));
+  color: color-mix(in srgb, $status-warning 60%, var(--text-primary));
   opacity: 1;
   cursor: not-allowed;
 }
@@ -1676,20 +1676,20 @@
 // its STATUS. Background, border, icon color and count text all move
 // together via `color: inherit` below, so status is never a lone dot.
 .crew-status-icon--done {
-  background: color-mix(in srgb, $status-success 12%, white);
-  border-color: color-mix(in srgb, $status-success 35%, white);
+  background: color-mix(in srgb, $status-success 12%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-success 35%, var(--border-primary));
   color: $status-success;
 }
 
 .crew-status-icon--in-progress {
-  background: color-mix(in srgb, $status-warning 16%, white);
-  border-color: color-mix(in srgb, $status-warning 40%, white);
-  color: color-mix(in srgb, $status-warning 60%, black);
+  background: color-mix(in srgb, $status-warning 16%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-warning 40%, var(--border-primary));
+  color: color-mix(in srgb, $status-warning 60%, var(--text-primary));
 }
 
 .crew-status-icon--pending {
-  background: color-mix(in srgb, $status-danger 8%, white);
-  border-color: color-mix(in srgb, $status-danger 32%, white);
+  background: color-mix(in srgb, $status-danger 8%, var(--surface-primary));
+  border-color: color-mix(in srgb, $status-danger 32%, var(--border-primary));
   color: $status-danger;
 }
 
@@ -1705,11 +1705,11 @@
 }
 
 .crew-table tbody tr:hover {
-  background: #f7f8fd;
+  background: var(--surface-primary);
 }
 
 .crew-table tbody tr:hover td {
-  background: #f7f8fd;
+  background: var(--surface-primary);
 }
 
 .crew-list-table tbody tr,
@@ -1820,37 +1820,37 @@
 }
 
 .crew-table-input {
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 12px;
   width: 100%;
   min-width: 100px;
   transition: all 0.2s ease;
-  background: #ffffff;
+  background: var(--surface-primary);
   font-family: "Manrope", sans-serif;
 }
 
 .crew-table-input:hover {
-  border-color: #c5c5d1;
+  border-color: var(--border-primary);
 }
 
 .crew-table-input:focus {
   outline: none;
   border-color: var(--card-color, #e2e6ff);
   box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3);
-  background: #fafaff;
+  background: var(--surface-primary);
 }
 
 .crew-table-input::placeholder {
-  color: #999;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
 .crew-table-empty {
   text-align: center;
   padding: 60px 40px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -1903,7 +1903,7 @@
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: #000000;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -1965,8 +1965,8 @@
   overflow-x: hidden !important;
   z-index: 12000 !important;
   border-radius: 10px !important;
-  border: 1px solid #dbe4ff !important;
-  background: #ffffff !important;
+  border: 1px solid var(--border-primary) !important;
+  background: var(--surface-primary) !important;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16) !important;
   margin-top: 0 !important;
   box-sizing: border-box !important;
@@ -1985,7 +1985,7 @@
 
   .cf-multi-select-option:hover,
   .cf-multi-select-option.is-highlighted {
-    background: #f0f7ff !important;
+    background: var(--surface-primary) !important;
   }
 }
 
@@ -2023,7 +2023,7 @@
 
   .cf-multi-select-email-input:hover,
   .cf-multi-select-email-input:focus-within {
-    background: #f0f7ff !important;
+    background: var(--surface-primary) !important;
   }
 
   .cf-multi-select-email-tags {
@@ -2033,7 +2033,7 @@
   }
 
   .cf-multi-select-placeholder {
-    color: #999;
+    color: var(--text-muted);
     font-weight: 400;
     font-size: 13px;
     white-space: nowrap;
@@ -2042,7 +2042,7 @@
   }
 
   .cf-multi-select-selected-value {
-    color: #1a1a1a;
+    color: var(--text-primary);
     font-weight: 500;
     font-size: 13px;
     white-space: nowrap;
@@ -2058,7 +2058,7 @@
   }
 
   .cf-multi-select-arrow {
-    color: #999;
+    color: var(--text-muted);
     font-size: 10px;
     flex-shrink: 0;
   }
@@ -2101,7 +2101,7 @@
 .crew-service-select-modal__empty {
   margin: 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   text-align: center;
   padding: 20px 0;
 }
@@ -2124,7 +2124,7 @@
 .crew-upload-preview-modal-dialog .modal-content {
   padding: 0;
   border-radius: 20px;
-  border: 1px solid #e7ebf4;
+  border: 1px solid var(--border-primary);
   background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
   box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16), 0 10px 24px rgba(16, 24, 40, 0.1);
   max-height: 80vh;
@@ -2140,7 +2140,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 12px 16px;
-  border-bottom: 1px solid #edf1f7;
+  border-bottom: 1px solid var(--border-primary);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
 }
@@ -2156,7 +2156,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
@@ -2164,14 +2164,14 @@
 .crew-upload-preview-modal__count {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .crew-upload-preview-modal__close-btn {
-  border: 1px solid #e4e7ec;
-  background: #fff;
-  color: #667085;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
   width: 26px;
   height: 26px;
   border-radius: 8px;
@@ -2186,9 +2186,9 @@
 }
 
 .crew-upload-preview-modal__close-btn:hover {
-  color: #101828;
-  background: #f9fafb;
-  border-color: #d0d5dd;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border-color: var(--border-primary);
 }
 
 .crew-upload-preview-modal__body {
@@ -2201,7 +2201,7 @@
 .crew-upload-preview-modal__empty {
   margin: 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   text-align: center;
   padding: 20px 0;
 }
@@ -2225,17 +2225,17 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .crew-select-signcount-input {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--border-primary);
   border-radius: 8px;
   font-size: 13px;
-  color: #0f172a;
+  color: var(--text-primary);
   transition: border-color 0.2s ease;
 }
 
@@ -2293,7 +2293,7 @@
 .crew-select-pagination__info {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 // Icon-only prev/next (no text label) — same round-button language as
@@ -2305,9 +2305,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2391,7 +2391,7 @@
   display: block;
   font-size: 11px;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   letter-spacing: 0.03em;
   margin-bottom: 6px;
 }
@@ -2415,14 +2415,14 @@
   min-width: 130px;
   padding: 8px 10px;
   border-radius: 10px;
-  border: 1.5px solid #e2e8f0;
-  background: #ffffff;
+  border: 1.5px solid var(--border-primary);
+  background: var(--surface-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .crew-movement-radio-card:hover {
-  border-color: #cbd5e1;
+  border-color: var(--border-primary);
 }
 
 .crew-movement-radio-card--selected {
@@ -2445,8 +2445,8 @@
   height: 14px;
   margin-top: 2px;
   border-radius: 50%;
-  border: 2px solid #cbd5e1;
-  background: #ffffff;
+  border: 2px solid var(--border-primary);
+  background: var(--surface-primary);
   transition: all 0.2s ease;
 }
 
@@ -2481,13 +2481,13 @@
 .crew-movement-radio-card__label {
   font-size: 12px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .crew-movement-radio-card__hint {
   font-size: 10px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .crew-movement-helper-text {
@@ -2511,7 +2511,7 @@
 
 .crew-immigration-batches .crew-mgmt-crewlist-block + .crew-mgmt-crewlist-block {
   padding-top: 16px;
-  border-top: 1px dashed #e2e8f0;
+  border-top: 1px dashed var(--border-primary);
 }
 
 /* Crew Immigration's Crew Listing table (8 columns: checkbox, name, DOB,
@@ -2597,15 +2597,15 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1.5px dashed #cbd5e1;
-  background: #ffffff;
+  border: 1.5px dashed var(--border-primary);
+  background: var(--surface-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .crew-list-upload-box:hover {
   border-color: var(--card-color, #00368c);
-  background: #f8faff;
+  background: var(--surface-primary);
 }
 
 .crew-list-upload-box--active {
@@ -2620,8 +2620,8 @@
 }
 
 .crew-list-upload-box--disabled:hover {
-  border-color: #cbd5e1;
-  background: #ffffff;
+  border-color: var(--border-primary);
+  background: var(--surface-primary);
 }
 
 .crew-list-upload-box--completed {
@@ -2633,7 +2633,7 @@
 .crew-list-upload-box--failed {
   border-style: solid;
   border-color: #dc2626;
-  background: #fef2f2;
+  background: var(--surface-primary);
 }
 
 .crew-list-upload-box__icon {
@@ -2644,8 +2644,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  color: #94a3b8;
-  background: #f1f5f9;
+  color: var(--text-muted);
+  background: var(--surface-primary);
 }
 
 .crew-list-upload-box__icon--completed {
@@ -2673,7 +2673,7 @@
 .crew-list-upload-box__title {
   font-size: 12.5px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2682,7 +2682,7 @@
 .crew-list-upload-box__subtitle {
   font-size: 10.5px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2707,8 +2707,8 @@
   max-height: 250px;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
 }
 
@@ -2729,8 +2729,8 @@
   flex: 1;
   padding: 22px 10px;
   border-radius: 10px;
-  border: 1px dashed #e2e8f0;
-  background: #f8fafc;
+  border: 1px dashed var(--border-primary);
+  background: var(--surface-primary);
 }
 
 .crew-uploaded-lists-panel__empty-icon {
@@ -2741,20 +2741,20 @@
   height: 40px;
   margin-bottom: 4px;
   border-radius: 50%;
-  color: #94a3b8;
-  background: #eef2f7;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
 }
 
 .crew-uploaded-lists-panel__empty-title {
   font-size: 12.5px;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .crew-uploaded-lists-panel__empty-subtitle {
   font-size: 11px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .crew-uploaded-lists-panel__stack {
@@ -2787,8 +2787,8 @@
   align-items: start;
   padding: 12px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
 }
 
 .crew-uploaded-card__icon {
@@ -2814,7 +2814,7 @@
 .crew-uploaded-card__title {
   font-size: 12px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2843,7 +2843,7 @@
 .crew-uploaded-card__meta {
   font-size: 10.5px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .crew-uploaded-card__status {
@@ -2875,7 +2875,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: #475569;
+  color: var(--text-primary);
   font-size: 10.5px;
   font-weight: 700;
   cursor: pointer;
@@ -2907,11 +2907,11 @@
   margin: 12px 0 0;
   padding: 24px;
   border-radius: 12px;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--border-primary);
   text-align: center;
   font-size: 13px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 // Passport/Iqama/Visa — equal-width/equal-height 3-column row so the
@@ -2931,8 +2931,8 @@
   gap: 6px;
   padding: 10px 8px;
   border-radius: 12px;
-  border: 1.5px dashed #cbd5e1;
-  background: #ffffff;
+  border: 1.5px dashed var(--border-primary);
+  background: var(--surface-primary);
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2940,7 +2940,7 @@
 
 .crew-dropzone:hover {
   border-color: var(--card-color, #00368c);
-  background: #f8faff;
+  background: var(--surface-primary);
 }
 
 .crew-dropzone--active {
@@ -2955,20 +2955,20 @@
 }
 
 .crew-dropzone--disabled:hover {
-  border-color: #cbd5e1;
-  background: #ffffff;
+  border-color: var(--border-primary);
+  background: var(--surface-primary);
 }
 
 .crew-dropzone--completed {
   border-style: solid;
   border-color: #16a34a;
-  background: #f0fdf4;
+  background: var(--surface-primary);
 }
 
 .crew-dropzone--failed {
   border-style: solid;
   border-color: #dc2626;
-  background: #fef2f2;
+  background: var(--surface-primary);
 }
 
 .crew-dropzone__input {
@@ -2982,8 +2982,8 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  color: #94a3b8;
-  background: #f1f5f9;
+  color: var(--text-muted);
+  background: var(--surface-primary);
 }
 
 .crew-dropzone__icon--completed {
@@ -3013,7 +3013,7 @@
 .crew-dropzone__title {
   font-size: 11.5px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
@@ -3064,7 +3064,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   letter-spacing: -0.5px;
 }
 
@@ -3107,9 +3107,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--surface-primary);
   min-width: 240px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -3120,7 +3120,7 @@
 }
 
 .crew-summary-search__icon {
-  color: #94a3b8;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -3129,12 +3129,12 @@
   outline: none;
   background: transparent;
   font-size: 13px;
-  color: #0f172a;
+  color: var(--text-primary);
   width: 100%;
 }
 
 .crew-summary-search__input::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 // Sign On/Sign Off/All segmented toggle — filters the Crew Summary table,
@@ -3144,7 +3144,7 @@
   align-items: center;
   gap: 2px;
   padding: 3px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-primary);
   border-radius: $radius-pill;
   background: $table-header-bg;
 }
@@ -3157,14 +3157,14 @@
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .crew-summary-movement-filter__btn:hover {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .crew-summary-movement-filter__btn:focus-visible {
@@ -3185,7 +3185,7 @@
 .crew-listing-subtitle {
   margin: 6px 0 0;
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 640px) {
@@ -3196,7 +3196,7 @@
 }
 
 .crew-preview-nationality-select-wrap.is-filled .crew-preview-nationality-select.premium-select.cf-searchable-select .cf-multi-select-email-input:not(:focus-within) {
-  background: #f0f7ff !important;
+  background: var(--surface-primary) !important;
 }
 
 // Crew Summary inline row edit — Action column + editable cell inputs.
@@ -3219,7 +3219,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   padding-right: 26px;
-  background-color: #ffffff;
+  background-color: var(--surface-primary);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'><path d='M6 9L12 15L18 9' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
   background-position: right 8px center;
@@ -3242,7 +3242,7 @@
   .cf-multi-select-email-input {
     border: 1.5px solid color-mix(in srgb, var(--card-color, $status-in-progress-text) 45%, white);
     border-radius: $radius-md;
-    background: #ffffff;
+    background: var(--surface-primary);
     box-shadow: none;
     min-height: 0;
     height: auto;
@@ -3334,20 +3334,20 @@
 }
 
 .crew-action-btn--save {
-  background: color-mix(in srgb, $status-success 22%, white);
-  border: 1.5px solid color-mix(in srgb, $status-success 65%, white);
+  background: color-mix(in srgb, $status-success 22%, var(--surface-primary));
+  border: 1.5px solid color-mix(in srgb, $status-success 65%, var(--border-primary));
   color: $status-success;
 }
 
 .crew-action-btn--cancel {
-  background: color-mix(in srgb, $status-danger 16%, white);
-  border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
+  background: color-mix(in srgb, $status-danger 16%, var(--surface-primary));
+  border: 1.5px solid color-mix(in srgb, $status-danger 55%, var(--border-primary));
   color: $status-danger;
 }
 
 .crew-action-btn--delete {
-  background: color-mix(in srgb, $status-danger 16%, white);
-  border: 1.5px solid color-mix(in srgb, $status-danger 55%, white);
+  background: color-mix(in srgb, $status-danger 16%, var(--surface-primary));
+  border: 1.5px solid color-mix(in srgb, $status-danger 55%, var(--border-primary));
   color: $status-danger;
 }
 
@@ -3360,13 +3360,13 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid color-mix(in srgb, $status-success 25%, white);
+  border: 2px solid color-mix(in srgb, $status-success 25%, var(--border-primary));
   border-top-color: $status-success;
   animation: crewUploadSpin 0.7s linear infinite;
 }
 
 .crew-action-btn--delete .crew-action-btn__spinner {
-  border: 2px solid color-mix(in srgb, $status-danger 25%, white);
+  border: 2px solid color-mix(in srgb, $status-danger 25%, var(--border-primary));
   border-top-color: $status-danger;
 }
 
@@ -3504,8 +3504,8 @@
   gap: 4px;
   padding: 4px 10px;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $status-success 12%, white);
-  border: 1px solid color-mix(in srgb, $status-success 30%, white);
+  background: color-mix(in srgb, $status-success 12%, var(--surface-primary));
+  border: 1px solid color-mix(in srgb, $status-success 30%, var(--border-primary));
   color: $status-success;
   font-size: 12px;
   font-weight: 600;
@@ -3573,12 +3573,12 @@
 .crew-launch-hire-panel__title {
   font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .crew-launch-hire-panel__hint {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 // Deliberately capped (not flex: 1) — a full-width datetime field looked
@@ -3597,17 +3597,17 @@
 .crew-launch-hire-panel__label {
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-primary);
 }
 
 .crew-launch-hire-panel__select {
   height: 40px;
   padding: 0 $space-2;
-  border: 1px solid #dfe3f0;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-size: 13px;
-  color: #1e293b;
-  background: #fff;
+  color: var(--text-primary);
+  background: var(--surface-primary);
 
   &:disabled {
     opacity: 0.6;
@@ -3634,7 +3634,7 @@
   padding: 0 10px;
   border-radius: 8px;
   border-width: 1px;
-  border-color: #dfe3f0;
+  border-color: var(--border-primary);
   box-shadow: none;
 }
 
@@ -3649,7 +3649,7 @@
 }
 
 .crew-launch-hire-batch-select .cf-multiselect-placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-style: normal;
   font-size: 13px;
 }
@@ -3681,12 +3681,12 @@
 }
 
 .crew-launch-hire-batch-select .cf-multiselect-arrow {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-left: 4px;
 }
 
 .crew-launch-hire-batch-select .cf-multiselect-dropdown {
-  border-color: #e5e7eb;
+  border-color: var(--border-primary);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
 }
 
@@ -3751,14 +3751,14 @@
 }
 
 .crew-launch-hire-panel__btn--cancel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #475569;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
 }
 
 .crew-launch-hire-panel__btn--cancel:hover:not(:disabled) {
   background: $table-header-bg;
-  border-color: #cbd5e1;
+  border-color: var(--border-primary);
 }
 
 .crew-launch-hire-panel__btn--submit {
@@ -3782,7 +3782,7 @@
   height: 12px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #ffffff;
+  border-top-color: var(--border-primary);
   animation: crewUploadSpin 0.7s linear infinite;
 }
 

@@ -41,7 +41,7 @@
   height: 8px;
   border: 1px solid #2B7DE9;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface-primary);
   z-index: 10000;
 }
 
@@ -52,16 +52,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d7dee5;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
-  background: #fff;
-  color: #35475E;
+  background: var(--surface-primary);
+  color: var(--text-primary);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   z-index: 10000;
 
   &:hover {
-    background: #f2f6fa;
+    background: var(--surface-primary);
   }
 }
 
@@ -71,8 +71,8 @@
   flex-direction: column;
   min-width: 160px;
   padding: 4px;
-  background: #fff;
-  border: 1px solid #d7dee5;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   z-index: 10001;
@@ -85,18 +85,18 @@
   padding: 7px 10px;
   border-radius: 4px;
   font-size: 13px;
-  color: #35475E;
+  color: var(--text-primary);
   cursor: pointer;
 
   &:hover {
-    background: #f2f6fa;
+    background: var(--surface-primary);
   }
 }
 
 .ql-image-layout-dropdown-divider {
   height: 1px;
   margin: 4px 2px;
-  background: #e5eaf0;
+  background: var(--bg-secondary);
 }
 
 .appointment-acceptance-modal-lg {
@@ -119,7 +119,7 @@
     min-height: 46px;
     height: 46px;
     border-radius: 10px;
-    border: 1px solid #BCDEE2;
+    border: 1px solid var(--border-primary);
     font-size: 14px;
     padding: 10px 14px;
     box-sizing: border-box;
@@ -133,7 +133,7 @@
     }
 
     &:focus {
-      border-color: #BCDEE2;
+      border-color: var(--border-primary);
       box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.1);
       outline: none;
     }
@@ -159,7 +159,7 @@
   .desig-inp > label {
     font-size: 13px;
     font-weight: 500;
-    color: #35475E;
+    color: var(--text-primary);
     margin-bottom: 8px;
   }
 

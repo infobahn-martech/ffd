@@ -31,7 +31,7 @@
 .view-label {
   font-size: 14px;
   font-weight: 600;
-  color: #174043;
+  color: var(--text-primary);
   margin-bottom: 8px;
   line-height: 1.4;
 
@@ -46,12 +46,12 @@
 
 .view-value {
   font-size: 15px;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.5;
   padding: 10px 14px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-primary);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   min-height: 42px;
   display: flex;
   align-items: center;

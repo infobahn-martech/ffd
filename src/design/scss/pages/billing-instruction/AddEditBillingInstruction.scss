@@ -24,11 +24,11 @@
     }
 
     .billing-instruction-description-input {
-      border: 1px solid #e2e2ea;
+      border: 1px solid var(--border-primary);
       font-size: 13px;
 
       &:hover {
-        border-color: #cfd4dc;
+        border-color: var(--border-primary);
       }
 
       &:focus {
@@ -42,7 +42,7 @@
       }
 
       &::placeholder {
-        color: #999;
+        color: var(--text-muted);
         font-size: 13px;
         font-weight: 400;
         padding-left: 0;
@@ -70,6 +70,6 @@
 
   .lead-form .emails-section-label {
     font-size: 13px;
-    color: #35475e;
+    color: var(--text-primary);
   }
 }

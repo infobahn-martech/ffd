@@ -10,7 +10,7 @@ body .role-modal-sm.master-modal-form .modal-dialog {
   }
 
   .form-floating.desig-inp {
-    border-color: #D1EBEE;
+    border-color: var(--border-primary);
   }
 
   .form-floating.desig-inp > .form-control {
@@ -43,7 +43,7 @@ body .role-modal-sm.master-modal-form .modal-dialog {
 
   .phone-wrapper .phone-label {
     font-size: 12px;
-    color: #35475e;
+    color: var(--text-primary);
   }
 
   .phone-wrapper .premium-select.cf-searchable-select,
@@ -64,8 +64,8 @@ body .role-modal-sm.master-modal-form .modal-dialog {
     min-height: 50px;
     box-sizing: border-box;
     border-radius: 12px;
-    border: 1px solid #D1EBEE;
-    background: #fff;
+    border: 1px solid var(--border-primary);
+    background: var(--surface-primary);
     box-shadow: none;
     font-size: 13px;
   }
@@ -86,7 +86,7 @@ body .role-modal-sm.master-modal-form .modal-dialog {
 
   .phone-wrapper .premium-select.cf-searchable-select .cf-multi-select-email-input:hover,
   .phone-wrapper .hospital-service-multi-select .react-select__control:hover {
-    border-color: #bcdee2;
+    border-color: var(--border-primary);
   }
 
   .phone-wrapper .premium-select.cf-searchable-select .cf-multi-select-email-input:focus-within,

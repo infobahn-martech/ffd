@@ -4,7 +4,7 @@
 
 .material-management-content-wrapper {
   padding: 0;
-  background: #ffffff;
+  background: var(--surface-primary);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
@@ -15,13 +15,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 18px 22px;
-  background: #ffffff;
+  background: var(--surface-primary);
 }
 
 .material-list-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -65,7 +65,7 @@
   overflow-y: visible;
   width: 100%;
   margin: 0;
-  background: #ffffff;
+  background: var(--surface-primary);
   -webkit-overflow-scrolling: touch;
   padding: 0 22px 22px 22px;
   border-radius: 12px;
@@ -77,7 +77,7 @@
 }
 
 .material-table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg-secondary);
 }
 
 .material-table-container::-webkit-scrollbar-thumb {
@@ -92,7 +92,7 @@
 .material-table {
   margin: 0;
   width: 100%;
-  background: #ffffff;
+  background: var(--surface-primary);
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -106,8 +106,8 @@
   padding: 12px 16px;
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid #f0f0f0;
-  background: #ffffff;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--surface-primary);
 }
 
 .material-table th:nth-child(1),
@@ -250,7 +250,7 @@
   padding: 0;
 
   &:hover {
-    background: #f0f0f0;
+    background: var(--bg-secondary);
   }
 
   &.edit:hover {
@@ -280,7 +280,7 @@
 
 .material-table-container .table.material-table thead th {
   background: #e2e6ff !important;
-  color: #3e3633;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 12px;
   text-transform: none;
@@ -300,23 +300,23 @@
 
 .material-table-container .table.material-table tbody td {
   font-size: 12px;
-  color: #333;
+  color: var(--text-primary);
   padding: 12px 16px;
   vertical-align: middle;
 }
 
 .material-table-cell {
-  color: #333;
+  color: var(--text-primary);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .material-table tbody tr:nth-child(even) {
-  background: #f8f9fc;
+  background: var(--surface-primary);
 }
 
 .material-table tbody tr:nth-child(even) td {
-  background: #f8f9fc;
+  background: var(--surface-primary);
 }
 
 .material-table tbody tr:hover {
@@ -426,7 +426,7 @@ body .material-management-modal .modal-content {
 
 body .material-management-modal .modal-header {
   padding: 18px 24px;
-  border-bottom: 1px solid #eef0f5;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 body .material-management-modal .modal-body {
@@ -442,7 +442,7 @@ body .material-management-modal .modal-body::-webkit-scrollbar {
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--surface-primary);
   border-radius: 999px;
 }
 
@@ -457,8 +457,8 @@ body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
 
 body .material-management-modal .modal-footer {
   padding: 14px 24px;
-  border-top: 1px solid #eef0f5;
-  background: #fafbfd;
+  border-top: 1px solid var(--border-primary);
+  background: var(--surface-primary);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -474,7 +474,7 @@ body .material-management-modal {
 
   /* Labels */
   .cf-field label {
-    color: #000000 !important;
+    color: var(--text-primary) !important;
   }
 
   /* Buttons — solid brand-blue primary (matches the module's own .material-add-btn)
@@ -517,54 +517,54 @@ body .material-management-modal {
   .btn-secondary,
   .btn.btn-secondary,
   button.btn-secondary {
-    background-color: #ffffff !important;
-    border-color: #dde1ea !important;
-    color: #3e4655 !important;
+    background-color: var(--surface-primary) !important;
+    border-color: var(--border-primary) !important;
+    color: var(--text-primary) !important;
     font-weight: 500;
     box-shadow: none;
     transition: background-color 0.15s ease, border-color 0.15s ease;
 
     &:hover,
     &:focus {
-      background-color: #f5f6fa !important;
-      border-color: #c7cddb !important;
-      color: #3e4655 !important;
+      background-color: var(--surface-primary) !important;
+      border-color: var(--border-primary) !important;
+      color: var(--text-primary) !important;
     }
 
     &:active {
-      background-color: #eef0f5 !important;
-      border-color: #c7cddb !important;
+      background-color: var(--bg-secondary) !important;
+      border-color: var(--border-primary) !important;
     }
   }
 
   /* Input hover states */
   .cf-input:hover {
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
   }
 
   .cf-input:focus-within {
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
     box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
   }
 
   /* Select dropdown hover */
   .cf-select:hover {
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
   }
 
   .cf-select:focus-within {
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
     box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
   }
 
   /* Date and time inputs */
   .cf-input.date-time-row {
     &:hover {
-      border-color: #e2e6ff !important;
+      border-color: var(--border-primary) !important;
     }
 
     &:focus-within {
-      border-color: #e2e6ff !important;
+      border-color: var(--border-primary) !important;
       box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
     }
   }
@@ -575,17 +575,17 @@ body .material-management-modal {
     min-height: 56px !important;
     max-width: 100% !important;
     padding: 8px 16px !important;
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
 
     &:hover {
-      border-color: #e2e6ff !important;
+      border-color: var(--border-primary) !important;
       background: rgba(226, 230, 255, 0.1) !important;
       transform: none !important;
       box-shadow: none !important;
     }
 
     &.dragging {
-      border-color: #e2e6ff !important;
+      border-color: var(--border-primary) !important;
       background: rgba(226, 230, 255, 0.15) !important;
       box-shadow: 0 0 0 4px rgba(226, 230, 255, 0.3) !important;
       transform: none !important;
@@ -606,40 +606,40 @@ body .material-management-modal {
   /* File upload buttons */
   .add-more-files-btn {
     background-color: #e2e6ff !important;
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
     border-width: 1.5px !important;
-    color: #1a1a1a !important;
+    color: var(--text-primary) !important;
     font-weight: 500 !important;
 
     &:hover {
       background-color: #e2e6ff !important;
-      border-color: #e2e6ff !important;
-      color: #1a1a1a !important;
+      border-color: var(--border-primary) !important;
+      color: var(--text-primary) !important;
       opacity: 0.9;
     }
   }
 
   .btn-remove-files {
     background-color: #e2e6ff !important;
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
     border-width: 1.5px !important;
-    color: #1a1a1a !important;
+    color: var(--text-primary) !important;
     font-weight: 500 !important;
 
     &:hover {
       background-color: #e2e6ff !important;
-      border-color: #e2e6ff !important;
-      color: #1a1a1a !important;
+      border-color: var(--border-primary) !important;
+      color: var(--text-primary) !important;
       opacity: 0.9;
     }
   }
 
   .btn-remove-file {
-    border-color: #e2e6ff !important;
+    border-color: var(--border-primary) !important;
 
     &:hover {
       background-color: rgba(226, 230, 255, 0.2) !important;
-      border-color: #e2e6ff !important;
+      border-color: var(--border-primary) !important;
     }
 
     &:hover svg path {
@@ -670,14 +670,14 @@ body .material-management-modal {
      text. Pin it here so it's legible and consistently spaced. */
   .upload-sub-text {
     font-size: 11px !important;
-    color: #666 !important;
+    color: var(--text-secondary) !important;
     margin: 2px 0 0 0 !important;
     line-height: 1.3 !important;
   }
 
   /* Modal title */
   .modal-title {
-    color: #101828 !important;
+    color: var(--text-primary) !important;
     font-size: 17px !important;
     font-weight: 700 !important;
     letter-spacing: -0.01em;
@@ -695,7 +695,7 @@ body .material-management-modal {
 
   .cf-multi-select-email-input {
     padding: 0 14px !important;
-    border: 1.5px solid #e2e2ea !important;
+    border: 1.5px solid var(--border-primary) !important;
     border-radius: 8px !important;
     background: transparent !important;
   }
@@ -709,25 +709,25 @@ body .material-management-modal {
   /* Dropdown search box */
   .cf-multi-select-search {
     padding: 8px 10px;
-    border-bottom: 1px solid #e2e2ea;
+    border-bottom: 1px solid var(--border-primary);
     position: sticky;
     top: 0;
-    background: #fff;
+    background: var(--surface-primary);
     z-index: 1;
   }
 
   .cf-multi-select-search-input {
     width: 100%;
-    border: 1px solid #e2e2ea;
+    border: 1px solid var(--border-primary);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 13px;
-    color: #1a1a1a;
+    color: var(--text-primary);
     outline: none;
     box-sizing: border-box;
 
     &::placeholder {
-      color: #999;
+      color: var(--text-muted);
       font-style: normal;
     }
 
@@ -739,7 +739,7 @@ body .material-management-modal {
   .cf-multi-select-no-results {
     padding: 10px 14px;
     font-size: 13px;
-    color: #999;
+    color: var(--text-muted);
     text-align: center;
   }
 
@@ -747,14 +747,14 @@ body .material-management-modal {
   .cf-input input::placeholder {
     font-size: 13px;
     font-style: normal;
-    color: #999;
+    color: var(--text-muted);
   }
 
   .cf-multi-select-placeholder,
   .cf-select-placeholder {
     font-size: 13px;
     font-style: normal;
-    color: #999;
+    color: var(--text-muted);
   }
 }
 
@@ -774,8 +774,8 @@ body .material-management-modal {
 
 .landing-dropdown-menu {
   position: fixed;
-  background-color: white;
-  border: 1px solid #e2e2ea;
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 99999;
@@ -794,11 +794,11 @@ body .material-management-modal {
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: var(--surface-primary);
   }
 
   &--danger {
@@ -837,14 +837,14 @@ body .material-management-modal {
 
 .landing-edit-item-card {
   margin-bottom: 16px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-primary);
 }
 
 .landing-edit-item-header {
   padding: 12px 16px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-primary);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -856,32 +856,32 @@ body .material-management-modal {
   }
 
   &:hover {
-    background-color: #f0f1f5;
+    background-color: var(--bg-secondary);
   }
 }
 
 .landing-edit-item-body {
   padding: 16px;
-  background-color: #fff;
-  border-top: 1px solid #e2e2ea;
+  background-color: var(--surface-primary);
+  border-top: 1px solid var(--border-primary);
   border-radius: 0 0 8px 8px;
 }
 
 .landing-edit-item-info-label {
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 4px;
   font-size: 13px;
 }
 
 .landing-edit-item-info-value {
-  color: #1a1a1a;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
 .landing-edit-chevron {
   transition: transform 0.3s ease;
-  color: #666;
+  color: var(--text-secondary);
 
   &--open {
     transform: rotate(180deg);
@@ -896,7 +896,7 @@ body .material-management-modal {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #555;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
@@ -905,9 +905,9 @@ body .material-management-modal {
   width: 100%;
   padding: 6px 12px;
   font-size: 14px;
-  color: #1a1a1a;
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
+  color: var(--text-primary);
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   min-height: 36px;
 
@@ -917,7 +917,7 @@ body .material-management-modal {
 }
 
 .landing-view-items-section {
-  border-top: 1px solid #e2e2ea;
+  border-top: 1px solid var(--border-primary);
   padding-top: 20px;
   margin-top: 4px;
 }
@@ -925,9 +925,9 @@ body .material-management-modal {
 .landing-view-item-card {
   margin-bottom: 16px;
   padding: 16px;
-  background-color: #f9f9f9;
+  background-color: var(--surface-primary);
   border-radius: 8px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
 }
 
 .landing-view-item-title {
@@ -938,7 +938,7 @@ body .material-management-modal {
 }
 
 .landing-view-sub-section {
-  border-top: 1px dashed #ccc;
+  border-top: 1px dashed var(--border-primary);
   padding-top: 12px;
   margin-top: 12px;
 }
@@ -946,7 +946,7 @@ body .material-management-modal {
 .landing-view-sub-title {
   font-size: 13px;
   font-weight: 600;
-  color: #555;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
@@ -961,9 +961,9 @@ body .material-management-modal {
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
-  background-color: #f9f9f9;
+  background-color: var(--surface-primary);
 }
 
 .landing-doc-icon {
@@ -982,7 +982,7 @@ body .material-management-modal {
   height: 44px;
   object-fit: cover;
   border-radius: 4px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   flex-shrink: 0;
 }
 
@@ -994,7 +994,7 @@ body .material-management-modal {
 .landing-doc-name {
   font-size: 13px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1002,7 +1002,7 @@ body .material-management-modal {
 
 .landing-doc-remarks {
   font-size: 12px;
-  color: #888;
+  color: var(--text-secondary);
   margin-top: 2px;
 }
 
@@ -1030,7 +1030,7 @@ body .material-management-modal {
 .landing-convert-info-bar {
   margin-bottom: 16px;
   padding: 10px 14px;
-  background: #f0f4ff;
+  background: var(--surface-primary);
   border-radius: 8px;
   font-size: 13px;
   color: #00368c;
@@ -1039,7 +1039,7 @@ body .material-management-modal {
 .landing-convert-section {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e2e2ea;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .landing-convert-section-title {
@@ -1047,7 +1047,7 @@ body .material-management-modal {
   font-weight: 600;
   margin-bottom: 14px;
   margin-top: 0;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .landing-convert-section-header {
@@ -1073,14 +1073,14 @@ body .material-management-modal {
 
 .landing-convert-order-card {
   margin-bottom: 12px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .landing-convert-order-header {
   padding: 10px 16px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-primary);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -1090,7 +1090,7 @@ body .material-management-modal {
 .landing-convert-order-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .landing-convert-order-actions {
@@ -1119,19 +1119,19 @@ body .material-management-modal {
 
 .landing-convert-order-body {
   padding: 16px;
-  background-color: white;
+  background-color: var(--surface-primary);
 }
 
 .landing-convert-dispatch-section {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #e2e2ea;
+  border-top: 1px solid var(--border-primary);
 }
 
 .landing-convert-dispatch-title {
   font-size: 13px;
   font-weight: 600;
-  color: #555;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
@@ -1153,7 +1153,7 @@ body .material-management-modal {
 .landing-convert-checkbox-text {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .landing-convert-error {
@@ -1177,9 +1177,9 @@ body .material-management-modal {
 
 .landing-convert-cancel-btn {
   padding: 10px 20px;
-  background-color: #f5f5f5;
-  color: #333;
-  border: 1px solid #e2e2ea;
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -1225,7 +1225,7 @@ body .material-management-modal {
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: #fff;
+    background-color: var(--surface-primary);
   }
 }
 
@@ -1241,7 +1241,7 @@ body .material-management-modal {
 .landing-table-empty {
   text-align: center;
   padding: 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .landing-table-proof-link {
@@ -1250,7 +1250,7 @@ body .material-management-modal {
 }
 
 .landing-table-proof-none {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .landing-table-description {
@@ -1328,7 +1328,7 @@ body .material-management-modal {
 .dispatch-edit-section {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e2e2ea;
+  border-bottom: 1px solid var(--border-primary);
 
   &--last {
     border-bottom: none;
@@ -1341,12 +1341,12 @@ body .material-management-modal {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .dispatch-edit-item-card {
   margin-bottom: 12px;
-  border: 1px solid #e2e2ea;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -1359,7 +1359,7 @@ body .material-management-modal {
 
 .dispatch-edit-item-header {
   padding: 10px 16px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-primary);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -1367,19 +1367,19 @@ body .material-management-modal {
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f0f1f5;
+    background-color: var(--bg-secondary);
   }
 }
 
 .dispatch-edit-item-label {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .dispatch-edit-item-body {
   padding: 16px;
-  background-color: white;
+  background-color: var(--surface-primary);
 }
 
 .dispatch-edit-chevron {
@@ -1402,7 +1402,7 @@ body .material-management-modal {
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .dispatch-edit-checkbox {
@@ -1436,7 +1436,7 @@ body .material-management-modal {
   justify-content: flex-end;
   gap: 8px;
   padding-top: 12px;
-  border-top: 1px solid #e2e2ea;
+  border-top: 1px solid var(--border-primary);
   margin-top: 12px;
 }
 
@@ -1452,7 +1452,7 @@ body .material-management-modal {
   border-radius: 4px;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: var(--bg-secondary);
   }
 
   img {
@@ -1470,7 +1470,7 @@ body .material-management-modal {
 .dispatch-transport-section {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #e2e2ea;
+  border-top: 1px solid var(--border-primary);
 }
 
 .dispatch-add-order-btn {
@@ -1568,7 +1568,7 @@ body .material-management-modal {
   position: sticky;
   top: 0;
   z-index: 1;
-  background-color: #fff;
+  background-color: var(--surface-primary);
 }
 
 .dispatch-note-actions-th {
@@ -1586,7 +1586,7 @@ body .material-management-modal {
 }
 
 .dispatch-note-no-files {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .dispatch-note-desc-tip {
@@ -1652,7 +1652,7 @@ body .material-management-modal {
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f0f0f0 !important;
+    background-color: var(--bg-secondary) !important;
   }
 }
 
@@ -1673,7 +1673,7 @@ body .material-management-modal {
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f0f0f0 !important;
+    background-color: var(--bg-secondary) !important;
   }
 }
 
@@ -1693,8 +1693,8 @@ body .material-management-modal {
 
 .dispatch-note-dropdown-menu {
   position: fixed;
-  background-color: #fff;
-  border: 1px solid #e2e2ea;
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 99999;
@@ -1713,11 +1713,11 @@ body .material-management-modal {
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #44444f;
+  color: var(--text-primary);
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: var(--surface-primary);
   }
 
   &--danger {
@@ -1816,10 +1816,10 @@ body .material-management-modal .upload-main-text {
 // Inbound Order / Landing Note in dispatch-note.scss — this mirrors that
 // fix for Material Management's own Transportation tab).
 .pac-container {
-  background: #fff !important;
+  background: var(--surface-primary) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid #e2e2ea !important;
+  border: 1px solid var(--border-primary) !important;
   margin-top: 4px !important;
   z-index: 20000 !important;
 

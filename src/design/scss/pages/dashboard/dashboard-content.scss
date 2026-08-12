@@ -2,7 +2,7 @@
 
 .dashboard-container {
   padding: 30px;
-  background: #fbfbf5;
+  background: var(--surface-primary);
   min-height: 100%;
 
   @media (max-width: 991px) {
@@ -22,7 +22,7 @@
 
   .dashboard-subtitle {
     font: normal normal 400 16px/1.5 'Manrope', sans-serif;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin: 0;
   }
 }
@@ -40,12 +40,12 @@
 }
 
 .stat-card {
-  background: #ffffff;
+  background: var(--surface-primary);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -82,13 +82,13 @@
 
 .stat-title {
   font: normal normal 400 14px/1.5 'Manrope', sans-serif;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0 0 8px 0;
 }
 
 .stat-value {
   font: normal normal 600 28px/1.2 'Manrope', sans-serif;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
@@ -120,7 +120,7 @@
   }
 
   .stat-period {
-    color: #9ca3af;
+    color: var(--text-muted);
     font-weight: 400;
   }
 }
@@ -141,11 +141,11 @@
 }
 
 .chart-card {
-  background: #ffffff;
+  background: var(--surface-primary);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
 
   &.chart-card-full {
     grid-column: 1 / -1;
@@ -157,13 +157,13 @@
 
   .chart-title {
     font: normal normal 600 20px/1.4 'Manrope', sans-serif;
-    color: #1a1a1a;
+    color: var(--text-primary);
     margin: 0 0 4px 0;
   }
 
   .chart-subtitle {
     font: normal normal 400 14px/1.5 'Manrope', sans-serif;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin: 0;
   }
 }

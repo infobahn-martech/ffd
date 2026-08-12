@@ -48,18 +48,18 @@ $primary-font: "Manrope", sans-serif;
   /* Contact Number — match the Email/Transport company field's actual
      border (role-modal-sm overrides desig-inp to #e2e2ea) and radius. */
   .phone-wrapper--notched .phone-input {
-    border-color: #e2e2ea !important;
+    border-color: var(--border-primary) !important;
     border-radius: 12px !important;
   }
 
   .phone-wrapper--notched .phone-input:focus,
   .phone-wrapper--notched .phone-input:hover {
-    border-color: #e2e2ea !important;
+    border-color: var(--border-primary) !important;
   }
 
   .phone-wrapper--notched .selected-flag:focus:before,
   .phone-wrapper--notched .selected-flag.open:before {
-    border-color: #e2e2ea !important;
+    border-color: var(--border-primary) !important;
   }
 
   .email-field-wrap {

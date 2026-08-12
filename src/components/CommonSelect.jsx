@@ -115,13 +115,65 @@ function CustomSelect({
       closeMenuOnSelect={!isMulti ? true : false}
       hideSelectedOptions={false}
       styles={{
+        control: (base, state) => ({
+          ...base,
+          backgroundColor: 'var(--input-bg)',
+          borderColor: state.isFocused ? 'var(--color-primary-accent)' : 'var(--input-border)',
+          boxShadow: 'none',
+        }),
         menu: (base) => ({
           ...base,
+          backgroundColor: 'var(--surface-primary)',
           zIndex: 9999,
         }),
         menuPortal: (base) => ({
           ...base,
           zIndex: 9999,
+        }),
+        menuList: (base) => ({
+          ...base,
+          backgroundColor: 'var(--surface-primary)',
+        }),
+        option: (base, state) => ({
+          ...base,
+          backgroundColor: state.isSelected
+            ? 'var(--color-primary-accent)'
+            : state.isFocused
+              ? 'var(--hover-bg)'
+              : 'var(--surface-primary)',
+          color: state.isSelected ? 'var(--text-inverse)' : 'var(--text-primary)',
+        }),
+        singleValue: (base) => ({
+          ...base,
+          color: 'var(--text-primary)',
+        }),
+        multiValue: (base) => ({
+          ...base,
+          backgroundColor: 'var(--bg-secondary)',
+        }),
+        multiValueLabel: (base) => ({
+          ...base,
+          color: 'var(--text-primary)',
+        }),
+        input: (base) => ({
+          ...base,
+          color: 'var(--text-primary)',
+        }),
+        placeholder: (base) => ({
+          ...base,
+          color: 'var(--input-placeholder)',
+        }),
+        indicatorSeparator: (base) => ({
+          ...base,
+          backgroundColor: 'var(--border-primary)',
+        }),
+        dropdownIndicator: (base) => ({
+          ...base,
+          color: 'var(--text-secondary)',
+        }),
+        clearIndicator: (base) => ({
+          ...base,
+          color: 'var(--text-secondary)',
         }),
       }}
       isClearable

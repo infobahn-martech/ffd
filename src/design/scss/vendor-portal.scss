@@ -3,7 +3,7 @@
 /* Vendor Portal – shared shell; Dashboard uses same spacing/cards as main Dashboard */
 .vendor-dashboard-container {
     padding: 30px;
-    background: #f8f9fc;
+    background: var(--surface-primary);
     min-height: 100%;
 
     @media (max-width: 991px) {
@@ -23,7 +23,7 @@
 
     .vendor-dashboard-subtitle {
         font: normal normal 400 16px/1.5 'Manrope', sans-serif;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin: 0;
     }
 }
@@ -53,7 +53,7 @@
 
     .vendor-section-subtitle {
         font: normal normal 400 14px/1.5 $font-primary;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin: 0 0 16px 0;
     }
 }
@@ -74,16 +74,16 @@
 }
 
 .vendor-status-card {
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 12px;
     padding: 16px 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-primary);
     text-align: center;
 
     .vendor-status-label {
         font: normal normal 400 13px/1.4 $font-primary;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin: 0 0 6px 0;
     }
 
@@ -112,10 +112,10 @@
 
 /* Table wrappers – Sedres-style tables */
 .vendor-table-wrapper {
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-primary);
     overflow: hidden;
     margin-bottom: 0;
 }
@@ -128,26 +128,26 @@
         padding: 14px 20px;
         text-align: left;
         font: normal normal 600 13px/1.4 $font-primary;
-        color: #6b7280;
+        color: var(--text-secondary);
         text-transform: none;
         letter-spacing: normal;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
+        background: var(--surface-primary);
+        border-bottom: 1px solid var(--border-primary);
     }
 
     tbody td {
         padding: 14px 20px;
         font: normal normal 400 14px/1.5 $font-primary;
         color: $txtColor;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid var(--border-primary);
     }
 
     tbody tr:nth-of-type(even) td {
-        background-color: #f8f9fc;
+        background-color: var(--surface-primary);
     }
 
     tbody tr:hover td {
-        background: #f9fafb;
+        background: var(--surface-primary);
     }
 
     tbody tr:last-child td {
@@ -174,9 +174,9 @@
 }
 
 .vendor-table .vendor-crew-datetime-input--readonly {
-    background: #f3f4f6;
-    color: #4b5563;
-    border-color: #e5e7eb;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-primary);
     pointer-events: none;
 }
 
@@ -208,7 +208,7 @@
 
 .vendor-table__expanded-content {
     padding: 14px 20px;
-    background: #f8f9fc;
+    background: var(--surface-primary);
     animation: vendorAccordionIn 0.18s ease-out both;
 }
 
@@ -227,7 +227,7 @@
 .vendor-table__state {
     text-align: center;
     padding: 28px 20px;
-    color: #6b7280;
+    color: var(--text-secondary);
     font: normal normal 400 14px/1.5 $font-primary;
 }
 
@@ -269,8 +269,8 @@
     }
 
     &.status-closed {
-        background: #e5e7eb;
-        color: #4b5563;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
     }
 }
 
@@ -289,7 +289,7 @@
     padding: 10px 20px;
     font: normal normal 500 14px/1.5 $font-primary;
     color: $colorPrimary;
-    background: #ffffff;
+    background: var(--surface-primary);
     border: 1px solid $borderLight;
     border-radius: 8px;
     cursor: pointer;
@@ -342,7 +342,7 @@
     padding: 8px 12px;
     font: normal normal 500 13px/1.4 $font-primary;
     color: $colorPrimary;
-    background: #ffffff;
+    background: var(--surface-primary);
     border: 1px solid $borderLight;
     border-radius: 8px;
     cursor: pointer;
@@ -365,6 +365,6 @@
     &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        background: #f3f4f6;
+        background: var(--bg-secondary);
     }
 }

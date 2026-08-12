@@ -2,7 +2,7 @@
   margin: 0 0 2px;
   font-size: 12.5px;
   font-weight: 700;
-  color: #1a2233;
+  color: var(--text-primary);
 }
 
 .comments-tab-comment-header {
@@ -24,10 +24,10 @@
   height: 26px;
   border: none;
   background: transparent;
-  color: #9aa1b0;
+  color: var(--text-muted);
 
   &:hover:not(:disabled) {
-    background: #eef3fb;
+    background: var(--bg-secondary);
     color: #00368c;
   }
 }
@@ -51,7 +51,7 @@
   }
 
   &::-webkit-scrollbar-track {
-    background: #f1f2f6;
+    background: var(--bg-secondary);
     border-radius: 8px;
   }
 
@@ -95,15 +95,15 @@
 /* Modernized comment card: flatter surface, soft hover lift, gradient avatar */
 .comments-tab-comment-card {
   border-radius: 14px;
-  border-color: #eef0f5;
-  background: #ffffff;
+  border-color: var(--border-primary);
+  background: var(--surface-primary);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-    border-color: #e2e6f4;
+    border-color: var(--border-primary);
   }
 }
 
@@ -125,8 +125,8 @@
   width: fit-content;
   max-width: 85%;
   margin-top: 6px;
-  background: #f6f7fb;
-  border: 1px solid #eef0f5;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
 }
 
@@ -156,8 +156,8 @@
   gap: 6px;
   max-width: 100%;
   padding: 5px 10px;
-  background: #f6f7fb;
-  border: 1px solid #eef0f5;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   transition: background 0.15s ease, border-color 0.15s ease;
 
@@ -166,8 +166,8 @@
   }
 
   &:hover {
-    background: #eef3fb;
-    border-color: #d7e0f4;
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
   }
 }
 
@@ -198,7 +198,7 @@
 .comments-tab-upload-label {
   font-size: 11px;
   font-weight: 600;
-  color: #8a8f9c;
+  color: var(--text-secondary);
   letter-spacing: 0.03em;
 }
 
@@ -227,7 +227,7 @@
 .comments-tab-upload-wrapper .upload-main-text {
   font-size: 12px;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .comments-tab-upload-wrapper .upload-sub-text {
@@ -253,7 +253,7 @@
 
   &:focus {
     border-color: #00368c;
-    background: #ffffff;
+    background: var(--surface-primary);
   }
 }
 

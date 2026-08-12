@@ -142,7 +142,7 @@
     flex: 1;
     height: 100%;
     overflow-y: auto;
-    background: #fbfbf5; 
+    background: var(--bg-app);
     transition: padding-left 0.3s ease;
 
     @media ($sm-1481) {

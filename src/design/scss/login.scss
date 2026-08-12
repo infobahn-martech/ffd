@@ -9,6 +9,12 @@
 /*** laptop with HiDPI (High Dots Per Inch) resolution ***/
 /*** WSXGA (Wide Super Extended Graphics Array) resolution ***/
 .login-wrap {
+  // Login page is exempt from dark mode: pin these to light-mode values so
+  // it stays consistent regardless of [data-theme="dark"] on <html>.
+  --surface-primary: #ffffff;
+  --text-primary: #1a273c;
+  --text-muted: #98a2b3;
+
   background: #0c234c url(../img/login-bg.svg) no-repeat top center/cover;
   height: 100vh;
   display: flex;
@@ -170,7 +176,7 @@
 .login-wrap .form-wrap {
   width: 740px;
   border-radius: 30px;
-  background: #ffffff;
+  background: var(--surface-primary);
   display: flex;
   justify-content: center;
   padding: 60px 20px;
@@ -394,7 +400,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #a8b8d4;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -430,7 +436,7 @@
   border: 1px solid #a8b8d4;
   border-radius: 30px;
   font-size: 18px;
-  color: #000000;
+  color: var(--text-primary);
   font-weight: 300;
   font-family: "Manrope", sans-serif;
   width: 100%;
@@ -473,12 +479,12 @@
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt::-moz-placeholder {
   opacity: 1;
-  color: #a8b8d4;
+  color: var(--text-muted);
 }
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt::placeholder {
   opacity: 1;
-  color: #a8b8d4;
+  color: var(--text-muted);
 }
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .error {

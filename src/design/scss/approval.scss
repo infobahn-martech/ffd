@@ -61,7 +61,7 @@
   }
 
   .approval-form-card {
-    background: #ffffff;
+    background: var(--surface-primary);
     border: 1px solid rgba(15, 23, 42, 0.06);
     border-radius: 18px;
     padding: 22px 24px;
@@ -176,7 +176,7 @@
   .form-group-title {
     font-size: 12.5px;
     font-weight: 700;
-    color: #1e1b3a;
+    color: var(--text-primary);
     margin: 0 0 18px 0;
     text-transform: uppercase;
     letter-spacing: 0.6px;
@@ -220,18 +220,18 @@
     animation: approval-fade-in 0.25s ease both;
 
     &--saving {
-      color: #6d6fa0;
-      background: #f1f1fb;
+      color: var(--text-secondary);
+      background: var(--surface-primary);
     }
 
     &--saved {
       color: #16a34a;
-      background: #eefdf3;
+      background: var(--surface-primary);
     }
 
     &--error {
       color: #dc2626;
-      background: #fef2f2;
+      background: var(--surface-primary);
     }
   }
 
@@ -377,18 +377,18 @@
   }
 
   .cf-input {
-    background: #fafafa;
-    border: 1.5px solid #e5e7eb;
+    background: var(--surface-primary);
+    border: 1.5px solid var(--border-primary);
     box-shadow: none;
   }
 
   .cf-input:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
   }
 
   .cf-input:focus-within {
-    background: #ffffff;
+    background: var(--surface-primary);
     border-color: #9ca3af;
     box-shadow: none;
   }
@@ -400,7 +400,7 @@
     cursor: default;
 
     input {
-      color: #6b7280;
+      color: var(--text-secondary);
       cursor: default;
     }
   }
@@ -422,13 +422,13 @@
       margin: 0;
       font-family: "Manrope", sans-serif;
       font-size: 13px;
-      color: #1a1a1a;
+      color: var(--text-primary);
       resize: vertical;
       box-sizing: border-box;
       box-shadow: none;
 
       &::placeholder {
-        color: #999;
+        color: var(--text-muted);
         font-size: 12px;
       }
 
@@ -440,7 +440,7 @@
 
     &:focus-within {
       border-color: #9ca3af;
-      background: #ffffff;
+      background: var(--surface-primary);
     }
 
     // .cf-input's shared disabled styling (general.scss) only covers input/select,
@@ -448,8 +448,8 @@
     // consistently disabled instead of plain/enabled-looking, while still
     // matching the same neutral background as every other field.
     &:has(textarea:disabled) {
-      background: #fafafa !important;
-      border-color: #e5e7eb !important;
+      background: var(--surface-primary) !important;
+      border-color: var(--border-primary) !important;
       opacity: 1;
       cursor: not-allowed;
       box-shadow: none;
@@ -457,7 +457,7 @@
 
     textarea:disabled {
       background: transparent !important;
-      color: #6b7280 !important;
+      color: var(--text-secondary) !important;
       cursor: not-allowed !important;
       opacity: 1;
       font-weight: 500;
@@ -472,7 +472,7 @@
   .approval-helper-text {
     margin: 8px 0 0;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--text-secondary);
     font-style: italic;
     line-height: 1.4;
   }
@@ -516,14 +516,14 @@
 
     &--proceeded {
       background: linear-gradient(135deg, #eef2fd 0%, #e3e9fc 100%);
-      border: 1px solid #c7d3f5;
+      border: 1px solid var(--border-primary);
       color: var(--approval-accent-2);
     }
 
     &--pending {
-      background: #f3f4f6;
-      border: 1px dashed #c4c9d4;
-      color: #667085;
+      background: var(--bg-secondary);
+      border: 1px dashed var(--border-primary);
+      color: var(--text-secondary);
 
       svg {
         animation: approval-save-status-spin 1.6s linear infinite;
@@ -549,9 +549,9 @@
     height: 48px;
     min-height: 48px;
     max-height: 48px;
-    border: 2px dashed #d1d5db;
+    border: 2px dashed var(--border-primary);
     border-radius: 10px;
-    background: #fafafa;
+    background: var(--surface-primary);
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     padding: 0 16px;
@@ -563,7 +563,7 @@
     &:hover,
     &:focus-visible {
       border-color: #9ca3af;
-      background: #f3f4f6;
+      background: var(--bg-secondary);
       box-shadow: none;
       outline: none;
     }
@@ -571,13 +571,13 @@
 
   .approval-document-upload-zone--disabled {
     cursor: not-allowed;
-    background: #f1f2f4;
+    background: var(--bg-secondary);
     opacity: 0.7;
 
     &:hover,
     &:focus-visible {
-      border-color: #d1d5db;
-      background: #f1f2f4;
+      border-color: var(--border-primary);
+      background: var(--bg-secondary);
       box-shadow: none;
     }
   }
@@ -594,7 +594,7 @@
   .approval-document-upload-text {
     margin: 0;
     font-size: 12px;
-    color: #4b5563;
+    color: var(--text-primary);
     text-align: center;
     line-height: 1.2;
     white-space: nowrap;
@@ -642,7 +642,7 @@
 
   .approval-document-upload-filename {
     font-size: 13px;
-    color: #1a1a1a;
+    color: var(--text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -675,8 +675,8 @@
   .approval-document-upload-remove {
     flex-shrink: 0;
     border: none;
-    background: #f0f1f9;
-    color: #6d6fa0;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
     width: 24px;
     height: 24px;
     border-radius: 50%;

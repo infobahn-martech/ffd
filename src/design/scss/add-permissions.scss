@@ -127,7 +127,7 @@
 .permCheckWrp {
     display: flex;
     align-content: center;
-    background-color: #FAFFFF;
+    background-color: var(--surface-primary);
     // border: 1px solid $borderLight;
     padding: 15px 30px;
     border-radius: 12px;
@@ -164,7 +164,7 @@
             }
 
             label:after {
-                background-color: #ffffff;
+                background-color: var(--surface-primary);
             }
 
             input:checked {
@@ -199,8 +199,8 @@
     }
 
     .permCheckWrp {
-        background-color: #FFFFFF;
-        border: 1px solid #BCDEE2;
+        background-color: var(--surface-primary);
+        border: 1px solid var(--border-primary);
         margin-top: 6px;
         margin-bottom: 6px;
 
@@ -213,13 +213,13 @@
 .addPermissions {
     .form-check-input[type=checkbox] {
         border-radius: 0.25em;
-        border: 1px solid #BCDEE2;
+        border: 1px solid var(--border-primary);
     }
 
     label.form-check-label {
         font-size: 12px;
         letter-spacing: 0.24px;
-        color: #174043;
+        color: var(--text-primary);
         font-weight: 500;
     }
 }
@@ -273,7 +273,7 @@
 
     .modal-dialog.custom-mod .modal-footer {
         padding: 20px 0 40px;
-        border-top: 1px solid #d9e2ef;
+        border-top: 1px solid var(--border-primary);
         display: flex;
         justify-content: flex-end;
         gap: 16px;

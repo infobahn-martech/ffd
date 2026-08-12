@@ -109,7 +109,7 @@
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 6px;
   padding: 4px 0;
   white-space: nowrap;
@@ -118,7 +118,7 @@
 
 .card-invoice-label {
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -142,7 +142,7 @@
 .card-header {
   display: flex;
   align-items: center;
-  background: #f7f8ff;
+  background: var(--surface-primary);
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 6px;
@@ -158,7 +158,7 @@
 .card-name {
   font-size: 11px;
   font-weight: 400;
-  color: #666;
+  color: var(--text-secondary);
   margin-left: auto;
   padding: 0 8px;
   font-family: "Manrope", sans-serif;
@@ -178,7 +178,7 @@
 
 .card-title {
   font-size: 13px;
-  color: #111;
+  color: var(--text-primary);
   margin: 4px 0;
   cursor: pointer;
   font-family: "Manrope", sans-serif;
@@ -221,7 +221,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface-primary);
   color: var(--card-color, #2A00FF);
   font-weight: 700;
   font-size: 10px;
@@ -234,11 +234,11 @@
 .card-status-badge {
   font-size: 11px;
   font-weight: 500;
-  color: #555;
+  color: var(--text-primary);
   margin-top: 4px;
   margin-bottom: 4px;
   padding: 3px 6px;
-  background: #f5f5f5;
+  background: var(--surface-primary);
   border-radius: 4px;
   display: inline-block;
   font-family: "Manrope", sans-serif;
@@ -281,7 +281,7 @@
   transform: translate(-50%, -50%);
   font-size: 7px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 
@@ -297,7 +297,7 @@
 
 .card-meta {
   font-size: 11px;
-  color: #444;
+  color: var(--text-primary);
   margin-top: 4px;
   display: flex;
   align-items: center;
@@ -315,9 +315,9 @@
 /* Footer */
 .card-footer {
   margin-top: 6px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-primary);
   font-size: 11px;
-  color: #777;
+  color: var(--text-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -337,7 +337,7 @@
   font-weight: 600;
   font-family: "Manrope", sans-serif;
   font-size: 11px;
-  color: #111;
+  color: var(--text-primary);
 }
 
 .footer-progress {
@@ -348,10 +348,10 @@
 
 .card-tasks {
   margin-top: 6px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-primary);
   padding-top: 6px;
   font-size: 11px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   display: flex;
   justify-content: space-between;
@@ -360,7 +360,7 @@
 
 .card-tasks.has-details {
   font-size: 11px;
-  color: #777;
+  color: var(--text-secondary);
   font-weight: 400;
 }
 
@@ -369,7 +369,7 @@
   height: 0;
   margin: 8px 0 0;
   border: none;
-  border-top: 1px solid #d1d5db;
+  border-top: 1px solid var(--border-primary);
 }
 
 /* Extra Details Section */
@@ -381,7 +381,7 @@
 
 .card-detail-item {
   font-size: 11px;
-  color: #555;
+  color: var(--text-primary);
   margin-bottom: 4px;
   font-weight: 500;
   display: flex;
@@ -448,7 +448,7 @@
   0%,
   100% {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    border-color: #eee;
+    border-color: var(--border-primary);
     border-width: 1px;
   }
 
@@ -472,8 +472,8 @@
   min-height: auto;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -483,7 +483,7 @@
 
 .card-shrunk:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  border-color: #d1d5db;
+  border-color: var(--border-primary);
   transform: translateY(-2px);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -551,7 +551,7 @@
 .card-title-compact {
   font-size: 12px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin: 0;
   padding: 4px 0;
   cursor: pointer;
@@ -588,7 +588,7 @@
 .progress-bar-compact {
   flex: 1;
   height: 5px;
-  background-color: #e5e7eb;
+  background-color: var(--bg-secondary);
   border-radius: 3px;
   overflow: hidden;
   min-width: 40px;
@@ -603,7 +603,7 @@
 .progress-text-compact {
   font-size: 10px;
   font-weight: 700;
-  color: #666;
+  color: var(--text-secondary);
   min-width: 32px;
   text-align: right;
   flex-shrink: 0;
@@ -616,7 +616,7 @@
   align-items: center;
   gap: 4px;
   padding: 2px 6px;
-  background-color: #f3f4f6;
+  background-color: var(--bg-secondary);
   border-radius: 4px;
   cursor: pointer;
   flex-shrink: 0;
@@ -624,13 +624,13 @@
 }
 
 .card-board-id-compact:hover {
-  background-color: #e5e7eb;
+  background-color: var(--bg-secondary);
 }
 
 .board-icon-compact {
   width: 12px;
   height: 12px;
-  color: #666;
+  color: var(--text-secondary);
   stroke-width: 2;
   flex-shrink: 0;
 }
@@ -638,7 +638,7 @@
 .board-id-text-compact {
   font-size: 10px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1;
 }
 
@@ -749,7 +749,7 @@
   padding: 0;
   font-size: 13px;
   line-height: 1.35;
-  color: #111;
+  color: var(--text-primary);
   word-break: normal;
 }
 
@@ -792,8 +792,8 @@
   width: 100%;
   margin: 0 0 6px 0;
   padding: 6px 0;
-  border-top: 1px solid #eaeef3;
-  border-bottom: 1px solid #eaeef3;
+  border-top: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .card-api-sticker-badge {
@@ -817,7 +817,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--border-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 2;
 }
@@ -836,7 +836,7 @@
 .card-api-secondary {
   font-size: 11px;
   font-weight: 500;
-  color: #555;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
   line-height: 1.35;
   display: -webkit-box;
@@ -856,7 +856,7 @@
   min-width: 0;
   padding: 6px 0 4px 0;
   margin: 0;
-  border-top: 1px solid #eaeef3;
+  border-top: 1px solid var(--border-primary);
   box-sizing: border-box;
 }
 
@@ -880,7 +880,7 @@
 .card-api-timeline {
   font-size: 11px;
   font-weight: 600;
-  color: #111;
+  color: var(--text-primary);
   margin: 0;
   line-height: 1.35;
 }
@@ -906,7 +906,7 @@
   gap: 3px;
   font-size: 11px;
   font-weight: 600;
-  color: #555;
+  color: var(--text-primary);
 }
 
 .card-api-summary-row .card-api-kpi .circular-progress {
@@ -936,7 +936,7 @@
 }
 
 .kanban-card-dark.kanban-card--api .card-api-secondary {
-  color: #c4c4c4;
+  color: var(--text-muted);
 }
 
 .kanban-card-dark.kanban-card--api .card-title--api {

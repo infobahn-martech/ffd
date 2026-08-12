@@ -39,7 +39,7 @@ body .customer-pricing-infobhan-modal {
   .cpi-modal-subtitle {
     margin: 0;
     font-size: 13px;
-    color: #6c7a93;
+    color: var(--text-secondary);
   }
 
   .modal-body {
@@ -76,7 +76,7 @@ body .customer-pricing-infobhan-modal {
   /* Section cards ------------------------------------------------------- */
 
   .cpi-section {
-    background: #f8f9fc;
+    background: var(--surface-primary);
     border: 1px solid $border-color-default;
     border-radius: $radius-md;
     padding: $space-3 $space-4;
@@ -139,7 +139,7 @@ body .customer-pricing-infobhan-modal {
 
     .input-group {
       align-items: center;
-      border: 1px solid #dbe7e8;
+      border: 1px solid var(--border-primary);
       border-radius: $radius-md;
     }
 
@@ -167,7 +167,7 @@ body .customer-pricing-infobhan-modal {
 
       &::placeholder {
         font-weight: 400;
-        color: #767b82;
+        color: var(--text-secondary);
       }
     }
   }
@@ -184,7 +184,7 @@ body .customer-pricing-infobhan-modal {
   .cpi-section-helper {
     margin: 2px 0 0;
     font-size: 12px;
-    color: #6c7a93;
+    color: var(--text-secondary);
   }
 
   /* Service Details grid uses the shared .cf-field-grid-2 (form-designs.scss)
@@ -204,7 +204,7 @@ body .customer-pricing-infobhan-modal {
        the global .form-floating rule — pin an explicit common border here so
        all three (and Service Code's premium-select box) match exactly. */
     .form-floating.desig-inp {
-      border: 1px solid #e2e2ea;
+      border: 1px solid var(--border-primary);
       border-radius: $radius-sm;
     }
   }
@@ -238,7 +238,7 @@ body .customer-pricing-infobhan-modal {
 
   /* Service Code: validation text alone is enough — no red border on error. */
   .premium-select.is-invalid .cf-multi-select-email-input {
-    border-color: #e2e2ea;
+    border-color: var(--border-primary);
   }
 
   .form-floating.desig-inp > .form-control {
@@ -372,11 +372,11 @@ body .customer-pricing-infobhan-modal {
   .cpi-loading-state {
     padding: $space-5;
     text-align: center;
-    color: #6c7a93;
+    color: var(--text-secondary);
     font-size: 13px;
     border: 1px dashed $border-color-default;
     border-radius: $radius-md;
-    background: #f8f9fc;
+    background: var(--surface-primary);
   }
 
   .cpi-empty-state--row {

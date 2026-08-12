@@ -8,24 +8,24 @@
 }
 
 .premium-select.cf-searchable-select .cf-multi-select-option.is-highlighted {
-  background: #eceef2;
+  background: var(--bg-secondary);
 }
 
 .premium-select.cf-searchable-select .cf-multi-select-option.selected {
-  background: #dde1e8;
-  color: #1a1a1a;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .premium-select.cf-searchable-select .cf-multi-select-email-input {
   border-radius: 8px;
-  border: 1px solid #e2e2ea;
-  background: #fff;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
   box-shadow: none;
 }
 
 .premium-select.cf-searchable-select .cf-multi-select-email-input:hover {
-  border-color: #cfd4dc;
+  border-color: var(--border-primary);
 }
 
 .premium-select.cf-searchable-select .cf-multi-select-email-input:focus-within {
@@ -35,6 +35,6 @@
 
 .premium-select.cf-searchable-select.disabled .cf-multi-select-email-input,
 .premium-select.cf-searchable-select .cf-multi-select-email-input.disabled {
-  background: #f5f6f8;
+  background: var(--input-disabled-bg);
   opacity: 0.85;
 }

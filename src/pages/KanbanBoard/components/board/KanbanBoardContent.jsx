@@ -27,7 +27,7 @@ export default function KanbanBoardContent({
           padding: 32,
           textAlign: "center",
           fontSize: 14,
-          color: isDarkMode ? "#bdbdbd" : "#616161",
+          color: "var(--text-secondary)",
         }}
       >
         No workflows to display for this board.

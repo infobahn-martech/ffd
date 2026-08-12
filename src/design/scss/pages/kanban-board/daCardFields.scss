@@ -932,7 +932,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1.5px dashed #c7caee;
+  border: 1.5px dashed var(--border-primary);
   border-radius: 8px;
   background: var(--da-sunken);
   padding: 14px;
@@ -1247,12 +1247,12 @@
 
   &:hover {
     color: #e02020;
-    background: #fef2f2;
+    background: var(--surface-primary);
   }
 
   &:active {
     color: #e02020;
-    background: #fef2f2;
+    background: var(--surface-primary);
     transform: scale(0.92);
   }
 }
@@ -1402,12 +1402,12 @@ a.da-cf-file-name {
 
   &--saved {
     color: #16a34a;
-    background: #eefdf3;
+    background: var(--surface-primary);
   }
 
   &--error {
     color: #dc2626;
-    background: #fef2f2;
+    background: var(--surface-primary);
   }
 }
 

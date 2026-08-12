@@ -24,12 +24,12 @@
 
 .cpt-tariff-table {
     font-size: 13px;
-    background: #fff;
+    background: var(--surface-primary);
 
     thead th {
         font-weight: 600;
         font-size: 12px;
-        background: #e8eef5;
+        background: var(--bg-secondary);
         white-space: nowrap;
     }
 
@@ -40,7 +40,7 @@
 
 .cpt-tariff-empty {
     text-align: center;
-    color: #718096;
+    color: var(--text-secondary);
     font-style: italic;
 }
 

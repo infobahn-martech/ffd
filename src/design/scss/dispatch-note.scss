@@ -17,7 +17,7 @@
 // in these edit forms reads as the same color.
 .dispatch-note-edit-form .cf-multi-select-email.disabled .cf-multi-select-selected-value,
 .material-edit-form .cf-multi-select-email.disabled .cf-multi-select-selected-value {
-  color: #33364a !important;
+  color: var(--text-primary) !important;
 }
 
 // Dispatch Date is always an enabled field, but the shared date-picker's
@@ -27,10 +27,10 @@
   .MuiPickersInputBase-root,
   .MuiOutlinedInput-root,
   .MuiInputBase-root {
-    background: #ffffff;
+    background: var(--surface-primary);
 
     &:hover {
-      background: #ffffff;
+      background: var(--surface-primary);
     }
   }
 }
@@ -69,7 +69,7 @@
 
   &--empty {
     background: rgba(107, 114, 128, 0.14);
-    color: #6b7280;
+    color: var(--text-secondary);
   }
 }
 
@@ -93,8 +93,8 @@
 
 .dispatch-launch-hire-card {
   width: 100%;
-  background: #f9fafb;
-  border: 1px solid #e2e2ea;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
   padding: 18px 24px;
 }
@@ -175,7 +175,7 @@
 .dispatch-launch-hire-step-label {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .dispatch-launch-hire-step-field {
@@ -193,17 +193,17 @@
     .MuiPickersInputBase-root,
     .MuiOutlinedInput-root,
     .MuiInputBase-root {
-      background: #ffffff;
+      background: var(--surface-primary);
 
       &:hover,
       &.Mui-focused {
-        background: #ffffff;
+        background: var(--surface-primary);
       }
     }
   }
 
   .cf-multi-select-email-input {
-    background: #ffffff !important;
+    background: var(--surface-primary) !important;
   }
 }
 
@@ -250,11 +250,11 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #fff;
-  border: 1px solid #e2e2ea;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   font-size: 9px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--text-secondary);
   line-height: 1;
 }
 
@@ -356,7 +356,7 @@
 // Gives Transportation its own bordered card like Launch Hire's, tinted to
 // the system blue instead of the default neutral gray.
 .dispatch-transport-form-card {
-  background: #f5f8fd;
+  background: var(--surface-primary);
   border-color: rgba(0, 54, 140, 0.2);
 }
 
@@ -371,8 +371,8 @@
 // longer a DOM descendant of any particular modal wrapper class.
 .cf-select-portal {
   z-index: 100000 !important;
-  background: #fff !important;
-  border: 1px solid #e2e2ea !important;
+  background: var(--surface-primary) !important;
+  border: 1px solid var(--border-primary) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
 
@@ -381,7 +381,7 @@
   // (#3e5cb6) to match its module. Material Management uses the same
   // neutral grey scrollbar as the modal body instead.
   &::-webkit-scrollbar-track {
-    background: #f1f5f9 !important;
+    background: var(--surface-primary) !important;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -408,10 +408,10 @@
 // here would win the cascade sometimes and sink Google's dropdown behind
 // that panel, which looks just as broken as no background at all.
 .pac-container {
-  background: #fff !important;
+  background: var(--surface-primary) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid #e2e2ea !important;
+  border: 1px solid var(--border-primary) !important;
   margin-top: 4px !important;
   z-index: 20000 !important;
 
@@ -479,7 +479,7 @@
   margin-top: 10px;
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -493,12 +493,12 @@
 .dispatch-launch-hire-step--empty {
   .dispatch-launch-hire-step-icon {
     background: transparent;
-    border: 1.5px dashed #d1d5db;
-    color: #b0b6c0;
+    border: 1.5px dashed var(--border-primary);
+    color: var(--text-muted);
   }
 
   .dispatch-launch-hire-step-value {
-    color: #9ca3af;
+    color: var(--text-muted);
     font-weight: 500;
     font-style: italic;
   }
@@ -506,13 +506,13 @@
 
 .dispatch-launch-hire-step-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .dispatch-launch-hire-step-value {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -681,8 +681,8 @@
   align-items: center;
   gap: 14px;
   padding: 16px 18px;
-  background: #f9fafb;
-  border: 1px solid #e2e2ea;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
   animation: dispatchLaunchHireReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(var(--stagger-index, 0) * 90ms + 60ms);
@@ -696,7 +696,7 @@
   // Purple tone ties Order Item field cards back to the Order Items
   // section icon/badge above them.
   &--items {
-    background: #faf9ff;
+    background: var(--surface-primary);
 
     &:hover {
       border-color: rgba(124, 58, 237, 0.3);
@@ -730,13 +730,13 @@
 
 .landing-view-info-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .landing-view-info-value {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -903,7 +903,7 @@
 // — so the step tracker isn't floating transparent against the modal body.
 // Shared across Inbound Orders, Landing Note, and Dispatch Note view modals.
 .landing-view-sub-section--transport-card {
-  background: #f5f8fd;
+  background: var(--surface-primary);
   border: 1px solid rgba(0, 54, 140, 0.2);
   border-radius: 10px;
   padding: 16px 18px;
@@ -926,7 +926,7 @@
   width: 100%;
   margin-bottom: 14px;
   padding-bottom: 14px;
-  border-bottom: 1px dashed #e2e2ea;
+  border-bottom: 1px dashed var(--border-primary);
 }
 
 .landing-view-transport-step {
@@ -941,12 +941,12 @@
   &--empty {
     .landing-view-transport-step-icon {
       background: transparent;
-      border: 1.5px dashed #d1d5db;
-      color: #b0b6c0;
+      border: 1.5px dashed var(--border-primary);
+      color: var(--text-muted);
     }
 
     .landing-view-transport-step-value {
-      color: #9ca3af;
+      color: var(--text-muted);
       font-weight: 500;
       font-style: italic;
     }
@@ -980,11 +980,11 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #fff;
-  border: 1px solid #e2e2ea;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
   font-size: 9px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--text-secondary);
   line-height: 1;
 }
 
@@ -996,13 +996,13 @@
 
 .landing-view-transport-step-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .landing-view-transport-step-value {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

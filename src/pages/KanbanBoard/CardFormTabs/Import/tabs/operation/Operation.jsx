@@ -477,6 +477,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               callTypeId={preArrivalCallTypeId}
               billingEntityId={billingEntityId}
               stageId={OPERATION_STAGE_IDS.ARRIVAL}
+              exportApprovalStatus={callDetailData?.export_approval_status}
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (

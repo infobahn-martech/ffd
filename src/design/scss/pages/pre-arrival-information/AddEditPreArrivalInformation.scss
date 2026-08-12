@@ -10,7 +10,7 @@
       width: 6px;
     }
     &::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: var(--bg-secondary);
       border-radius: 3px;
     }
     &::-webkit-scrollbar-thumb {
@@ -58,7 +58,7 @@
 
   .form-control,
   .form-select {
-    border: 1px solid #BCDEE2;
+    border: 1px solid var(--border-primary);
     border-radius: 10px;
     font-size: 14px;
     padding: 10px 14px;
@@ -83,17 +83,17 @@
   // React Quill editors – match form theme
   .pre-arrival-quill {
     .ql-toolbar {
-      border: 1px solid #BCDEE2;
+      border: 1px solid var(--border-primary);
       border-radius: 10px 10px 0 0;
-      background: #FAFCFD;
+      background: var(--surface-primary);
       padding: 8px 12px;
       border-bottom: none;
     }
 
     .ql-container {
-      border: 1px solid #BCDEE2;
+      border: 1px solid var(--border-primary);
       border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e8e8e8;
+      border-top: 1px solid var(--border-primary);
       font-size: 14px;
     }
 
@@ -104,7 +104,7 @@
       line-height: 1.6;
 
       &::before {
-        color: #87ADB1;
+        color: var(--text-muted);
       }
     }
 
