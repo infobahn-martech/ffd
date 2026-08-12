@@ -64,6 +64,12 @@
     padding: 10px 14px;
     transition: border-color 0.2s, box-shadow 0.2s;
 
+    &::placeholder {
+      font-weight: 400;
+      font-size: 13px;
+      color: #999;
+    }
+
     &:focus {
       border-color: $colorPrimary;
       box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.1);
@@ -73,6 +79,16 @@
     &.is-invalid {
       border-color: #dc3545;
     }
+  }
+
+  // Match Port/Call Type (PremiumSelect) placeholder text to the Name field's
+  // placeholder size above — both 13px.
+  .premium-select .cf-multi-select-placeholder {
+    font-size: 13px;
+  }
+
+  .premium-select .cf-multi-select-selected-value {
+    font-size: 14px;
   }
 
   textarea.form-control {
