@@ -3,7 +3,7 @@
 /* Email Preview–style scrollbar for General tab column scroll regions */
 @mixin general-email-preview-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 
   &::-webkit-scrollbar {
     width: 6px !important;
@@ -15,11 +15,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #aab4c3 !important;
+    background: var(--scrollbar-thumb) !important;
     border-radius: 999px;
 
     &:hover {
-      background: #8b96a8 !important;
+      background: var(--scrollbar-thumb-hover) !important;
     }
   }
 }
@@ -999,6 +999,10 @@
   flex-direction: column;
   position: relative;
 
+  [data-theme="dark"] & {
+    background: linear-gradient(180deg, var(--surface-primary) 0%, var(--surface-secondary) 100%);
+  }
+
   &::before {
     content: "";
     position: absolute;
@@ -1153,6 +1157,10 @@
   background: rgba(248, 250, 252, 0.65);
   padding: 6px;
 
+  [data-theme="dark"] & {
+    background: var(--surface-secondary);
+  }
+
   &::-webkit-scrollbar {
     width: 5px;
   }
@@ -1163,11 +1171,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--scrollbar-thumb);
     border-radius: 3px;
 
     &:hover {
-      background: #94a3b8;
+      background: var(--scrollbar-thumb-hover);
     }
   }
 }
@@ -1609,6 +1617,10 @@
   padding: 12px 18px;
   background: linear-gradient(to right, #f2f1ff 0%, #ffffff 65%);
   border-bottom: 1px solid var(--border-primary);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(to right, var(--surface-hover) 0%, var(--surface-primary) 65%);
+  }
 
   &::before {
     content: "";
@@ -3408,6 +3420,10 @@
   opacity: 1;
   cursor: not-allowed;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
+  }
 }
 
 .cf-owner-select:disabled {
@@ -3416,12 +3432,20 @@
   cursor: not-allowed !important;
   opacity: 1;
   border-color: var(--border-primary) !important;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
+  }
 }
 
 .date-time-row input:disabled {
   background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
   color: var(--text-primary) !important;
   cursor: not-allowed !important;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
+  }
 }
 
 /* Multi-Select Email Disabled Styles — sleek read-only look */
@@ -3431,6 +3455,10 @@
   border-color: var(--border-primary) !important;
   cursor: not-allowed !important;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
+  }
 }
 
 .cf-multi-select-email.disabled .cf-multi-select-arrow,
@@ -4308,6 +4336,11 @@
     background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
     box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
     -webkit-text-fill-color: #33364a !important;
+
+    [data-theme="dark"] & {
+      background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
+      -webkit-text-fill-color: var(--text-primary) !important;
+    }
   }
 
   .MuiPickersInputBase-root.Mui-disabled .MuiSvgIcon-root,

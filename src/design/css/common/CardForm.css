@@ -538,6 +538,10 @@
   border-bottom: 1px solid var(--border-primary);
 }
 
+[data-theme="dark"] .cf-section-header {
+  background: linear-gradient(to right, var(--surface-hover) 0%, var(--surface-primary) 65%);
+}
+
 .cf-section-header::before {
   content: "";
   position: absolute;
@@ -1211,7 +1215,7 @@
   overflow-x: hidden;
   padding: 16px 8px 16px 16px;
   scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .general-view-form-scroll {
@@ -1223,7 +1227,7 @@
   overflow-x: hidden;
   padding: 0 8px 18px 0;
   scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .general-add-form-scroll::-webkit-scrollbar,
@@ -1239,13 +1243,13 @@
 
 .general-add-form-scroll::-webkit-scrollbar-thumb,
 .general-view-form-scroll::-webkit-scrollbar-thumb {
-  background: #aab4c3 !important;
+  background: var(--scrollbar-thumb) !important;
   border-radius: 999px;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-thumb:hover,
 .general-view-form-scroll::-webkit-scrollbar-thumb:hover {
-  background: #8b96a8 !important;
+  background: var(--scrollbar-thumb-hover) !important;
 }
 
 /* Add Card: cap left column height so inner scroll activates */
@@ -2147,7 +2151,7 @@
 .cardform-panel .cf-multi-select-dropdown,
 .cardform-panel .cf-multi-select-options-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .cardform-panel .cf-multi-select-dropdown::-webkit-scrollbar-track,
@@ -2157,18 +2161,18 @@
 
 .cardform-panel .cf-multi-select-dropdown::-webkit-scrollbar-thumb,
 .cardform-panel .cf-multi-select-options-scroll::-webkit-scrollbar-thumb {
-  background: #aab4c3;
+  background: var(--scrollbar-thumb);
 }
 
 .cardform-panel .cf-multi-select-dropdown::-webkit-scrollbar-thumb:hover,
 .cardform-panel .cf-multi-select-options-scroll::-webkit-scrollbar-thumb:hover {
-  background: #8b96a8;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Premium thin scrollbar: right-hand email preview column */
 .general-add-preview-scroll-inner {
   scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9 !important;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track) !important;
 }
 
 .general-add-preview-scroll-inner::-webkit-scrollbar {
@@ -2181,13 +2185,13 @@
 }
 
 .general-add-preview-scroll-inner::-webkit-scrollbar-thumb {
-  background: #aab4c3 !important;
+  background: var(--scrollbar-thumb) !important;
   border-radius: 999px;
   border: none !important;
 }
 
 .general-add-preview-scroll-inner::-webkit-scrollbar-thumb:hover {
-  background: #8b96a8 !important;
+  background: var(--scrollbar-thumb-hover) !important;
 }
 
 /* =======================================

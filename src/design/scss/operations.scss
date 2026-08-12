@@ -6107,6 +6107,11 @@ $send-report-optional: #80868b;
   background: linear-gradient(90deg, #eef1f7 20%, #f8f9fc 45%, #eef1f7 70%);
   background-size: 200% 100%;
   animation: appointmentViewLoadingShimmer 1.25s linear infinite;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(90deg, var(--surface-hover) 20%, var(--surface-secondary) 45%, var(--surface-hover) 70%);
+    background-size: 200% 100%;
+  }
 }
 
 .general-shimmer-line+.general-shimmer-line {
@@ -6464,6 +6469,10 @@ $send-report-optional: #80868b;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-primary) 0%, var(--surface-hover) 100%);
+  }
 }
 
 .document-upload-zone:hover {
@@ -6471,6 +6480,10 @@ $send-report-optional: #80868b;
   background: linear-gradient(135deg, #f8f9ff 0%, #eef0ff 100%);
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(42, 0, 255, 0.1);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%);
+  }
 }
 
 .document-upload-zone:hover .upload-icon-wrapper svg {
@@ -9394,6 +9407,10 @@ body .modal-backdrop.show {
   padding: 17px 21px;
   border-bottom: 1px solid var(--border-primary);
   background: linear-gradient(to right, #f2f1ff 0%, #fafbff 65%);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(to right, var(--surface-hover) 0%, var(--surface-primary) 65%);
+  }
 }
 
 .operation-task-card-title {
