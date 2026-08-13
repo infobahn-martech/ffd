@@ -538,14 +538,9 @@ const createEmptyPartySection = () => ({
     stageWaitMessage,
     statusBadge,
     hideActions = false,
-    isActiveStage = false,
   }) {
     return (
-      <section
-        className={`approval-form-card approval-party-card approval-action-card ${
-          isActiveStage ? "approval-action-card--active" : ""
-        }`.trim()}
-      >
+      <section className="approval-form-card approval-party-card approval-action-card">
         <h3 className="form-group-title">{title}</h3>
         <div className="approval-card-body approval-fields-stack">
           <FormField label={commentsLabel}>
@@ -608,7 +603,6 @@ const createEmptyPartySection = () => ({
       text: PropTypes.string.isRequired,
     }),
     hideActions: PropTypes.bool,
-    isActiveStage: PropTypes.bool,
   };
 
   function PartySectionCard({ title, fields, values, onChange, imageFiles, onImageFilesChange, imagesDisabled, showImageUpload = true }) {
@@ -1173,7 +1167,6 @@ const createEmptyPartySection = () => ({
                   !stageActive.credit_controller ||
                   !canEditCreditControllerSection
                 }
-                isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
               />
 
               {/* Nobody — Controller, Manager (role_id 1 or 3), CEO, or generic
@@ -1243,7 +1236,6 @@ const createEmptyPartySection = () => ({
                     managerApproved ||
                     isStagePassed(effectiveStage, "manager_ofm")
                   }
-                  isActiveStage={stageActive.manager_ofm && isManagerRole}
                 />
               ) : null}
 
@@ -1327,7 +1319,6 @@ const createEmptyPartySection = () => ({
                   // hides them for the CEO too; on hold keeps them visible
                   // for the CEO so they can still click Approved to resume.
                   hideActions={!isCeoRole || ceoApproved}
-                  isActiveStage={isCeoStageUsable && isCeoRole}
                 />
               ) : null}
             </div>

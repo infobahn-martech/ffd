@@ -1158,8 +1158,12 @@ const TopBar = ({
         )}
       </div>
       <div className="cardform-topbar-right">
-        {renderMetaPickerButton("tag", Tag, "Tag")}
-        {renderMetaPickerButton("type", Layers3, "Type")}
+        {/* Deep-link entry points (e.g. CeoApproval) have no board context, so
+            these board-scoped pickers would only ever show "Board id is
+            missing" — hide them entirely rather than display broken controls
+            the viewer isn't there to use anyway. */}
+        {resolvedBoardId ? renderMetaPickerButton("tag", Tag, "Tag") : null}
+        {resolvedBoardId ? renderMetaPickerButton("type", Layers3, "Type") : null}
         {openPicker &&
           openPickerConfig &&
           typeof document !== "undefined" &&
@@ -1182,8 +1186,8 @@ const TopBar = ({
             />,
             document.body
           )}
-        {renderMetaPickerButton("blocker", AlertTriangle, "Blocker")}
-        {renderMetaPickerButton("sticker", Sticker, "Sticker")}
+        {resolvedBoardId ? renderMetaPickerButton("blocker", AlertTriangle, "Blocker") : null}
+        {resolvedBoardId ? renderMetaPickerButton("sticker", Sticker, "Sticker") : null}
         <div className="topbar-color-picker-wrapper">
           <button
             ref={colorPickerTriggerRef}
@@ -2159,6 +2163,25 @@ function CardForm({
     if (!snap || typeof snap !== "object") return null;
     const meta = {};
 
+    // Deep-link entry points (e.g. CeoApproval) hand CardForm a bare
+    // { id, call_id } stub with no title/color of its own. get_call_detail
+    // doesn't return the card's real title (card_name) or color (card_color)
+    // either (confirmed directly against the live API) — vessel_name is a
+    // different field and was previously used as a stand-in here, but that
+    // showed a genuinely different value than the card's real title (e.g.
+    // "AHT CHRYSOLITE" vs the real "test 13"), so it's intentionally not
+    // used as a fallback. Only real card_name/card_color are picked up here;
+    // cards opened from the board already carry their own title/color, so
+    // topbarCard's `{...meta, ...card}` merge (below) always lets those win.
+    const snapTitle = snap.card_name;
+    if (snapTitle != null && String(snapTitle).trim() !== "") {
+      meta.title = String(snapTitle).trim();
+    }
+    const snapColor = snap.card_color;
+    if (snapColor != null && String(snapColor).trim() !== "") {
+      meta.color = String(snapColor).trim();
+    }
+
     const ct = snap.card_type;
     if (ct && typeof ct === "object") {
       if (ct.card_type_id != null) meta.card_type_id = ct.card_type_id;
@@ -2253,13 +2276,18 @@ function CardForm({
   // Force-select Export Approval once its tab actually becomes available
   // (showExportTabs resolves async after callDetailSnapshot loads) — lets
   // callers like the CEO email deep link open straight into that tab.
-  const initialTabAppliedRef = useRef(false);
+  //
+  // The key tracks which (card id, initialTab) pair has already been applied
+  // so that navigating to a different call (e.g. CEO opens a second deep-link
+  // in the same session) resets the guard and the tab-switch fires again.
+  const initialTabAppliedRef = useRef(null);
+  const initialTabKey = `${card?.id ?? card?.card_id ?? ""}:${initialTab ?? ""}`;
   useEffect(() => {
-    if (initialTabAppliedRef.current) return;
+    if (initialTabAppliedRef.current === initialTabKey) return;
     if (initialTab !== "Export Approval" || !showExportTabs) return;
     setActiveTopTab("Export Approval");
-    initialTabAppliedRef.current = true;
-  }, [initialTab, showExportTabs]);
+    initialTabAppliedRef.current = initialTabKey;
+  }, [initialTab, initialTabKey, showExportTabs]);
 
   useEffect(() => {
     if (lockOperationForExport && activeTopTab === "Operation") {
@@ -2578,6 +2606,17 @@ function CardForm({
     }
   }, [show, card?.id, card?.color, isAddMode, isGROStyleView]);
 
+  // Deep-link stub cards (card.color absent — see cardMetaFromSnapshot above)
+  // only learn their real color once get_call_detail resolves; the effect
+  // above never fires for them since card.color never becomes truthy.
+  useEffect(() => {
+    if (!show || isAddMode || isGROStyleView) return;
+    if (card?.color) return;
+    if (cardMetaFromSnapshot?.color) {
+      setTopbarColor(normalizeHexColor(cardMetaFromSnapshot.color, DEFAULT_ACCENT_COLOR));
+    }
+  }, [show, card?.id, card?.color, isAddMode, isGROStyleView, cardMetaFromSnapshot]);
+
   // GRO / custom clearance task card: default emerald header when opening or switching cards.
   useEffect(() => {
     if (!show || isAddMode || !isGROStyleView) return;
@@ -2760,7 +2799,7 @@ function CardForm({
                         });
                       }
                     })
-                    .catch(() => {});
+                    .catch(() => { });
                 }
               }
             });
