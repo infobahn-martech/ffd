@@ -14,12 +14,18 @@ export const normalizeCrewChangeListResponse = (res) => {
   return { rows, pagination };
 };
 
-/** Stable crew id for selection/upload payloads. */
+/** Stable crew id for selection/upload payloads. Falls back to crew_change_id for
+ * rows sourced from crew_pass/get_pass_requests, which has no crew_id. */
 export const getCrewChangeCrewId = (crew) => {
-  const raw = crew?.crew_id ?? crew?.id;
+  const raw = crew?.crew_id ?? crew?.crew_change_id ?? crew?.id;
   if (raw == null || String(raw).trim() === "") return null;
   return raw;
 };
+
+/** Flatten crew_pass/get_pass_requests work orders into a flat crew list, same shape as
+ * normalizeCrewChangeListResponse's rows so crewChangeRowFields/getCrewChangeCrewId work unchanged. */
+export const flattenPassRequestCrew = (workOrders) =>
+  (Array.isArray(workOrders) ? workOrders : []).flatMap((wo) => (Array.isArray(wo?.crew) ? wo.crew : []));
 
 /** Display fields for the crew roster table columns. */
 export const crewChangeRowFields = (crew) => ({

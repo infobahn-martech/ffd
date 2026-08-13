@@ -7,9 +7,13 @@ import crewService from "../../../../../../../services/crewService";
 import groService from "../../../../../../../services/groService";
 import { getPassRequests, extractPassRequestsFromEnvelope } from "../../../../../../../services/cgAndZwailpassService";
 import { groApiErrorMessage } from "./groCardUtils";
-import { crewChangeRowFields, getCrewChangeCrewId, normalizeCrewChangeListResponse } from "./crewChangePassUtils";
+import {
+  crewChangeRowFields,
+  flattenPassRequestCrew,
+  getCrewChangeCrewId,
+  normalizeCrewChangeListResponse,
+} from "./crewChangePassUtils";
 import CrewChangeCgPassGenerateView from "./CrewChangeCgPassGenerateView";
-import CrewPassRequestsTable from "../../../../../CardFormTabs/Import/tabs/husbandry/components/CrewPassRequestsTable";
 
 const PAGE_SIZE = 10;
 
@@ -21,8 +25,11 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const [selectedCrewIds, setSelectedCrewIds] = useState(() => new Set());
   const [view, setView] = useState("roster");
   const [activeTab, setActiveTab] = useState("crewChange");
-  const [passRequests, setPassRequests] = useState({ cg: [], zawil: [] });
+
+  const [passRequestsCg, setPassRequestsCg] = useState([]);
+  const [passRequestsZawil, setPassRequestsZawil] = useState([]);
   const [passRequestsLoading, setPassRequestsLoading] = useState(false);
+  const [passPage, setPassPage] = useState(1);
 
   const [showZawilBulkModal, setShowZawilBulkModal] = useState(false);
   const [zawilBulkFile, setZawilBulkFile] = useState(null);
@@ -62,30 +69,61 @@ export default function CrewChangePassPanel({ callId, portId }) {
     fetchCrewList(1);
   }, [fetchCrewList]);
 
-  const fetchPassRequests = useCallback(() => {
+  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.limit));
+
+  const refreshPassRequests = useCallback(() => {
     if (callId == null || callId === "") {
-      setPassRequests({ cg: [], zawil: [] });
+      setPassRequestsCg([]);
+      setPassRequestsZawil([]);
       return;
     }
     setPassRequestsLoading(true);
     getPassRequests(callId)
-      .then((res) => setPassRequests(extractPassRequestsFromEnvelope(res)))
-      .catch(() => setPassRequests({ cg: [], zawil: [] }))
+      .then((res) => {
+        const { cg, zawil } = extractPassRequestsFromEnvelope(res);
+        setPassRequestsCg(flattenPassRequestCrew(cg));
+        setPassRequestsZawil(flattenPassRequestCrew(zawil));
+      })
+      .catch(() => {
+        setPassRequestsCg([]);
+        setPassRequestsZawil([]);
+      })
       .finally(() => setPassRequestsLoading(false));
   }, [callId]);
 
   useEffect(() => {
-    fetchPassRequests();
-  }, [fetchPassRequests]);
+    refreshPassRequests();
+  }, [refreshPassRequests]);
 
-  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.limit));
-  const pageStartDisplay = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
-  const pageEndDisplay = Math.min(pagination.page * pagination.limit, pagination.total);
+  // Selection is page/list scoped — clear it when the visible list changes.
+  useEffect(() => {
+    setPassPage(1);
+    setSelectedCrewIds(new Set());
+  }, [activeTab]);
+
+  const isPassTab = activeTab === "cg" || activeTab === "zawil";
+  const activePassList = activeTab === "cg" ? passRequestsCg : activeTab === "zawil" ? passRequestsZawil : [];
+  const passTotalPages = Math.max(1, Math.ceil(activePassList.length / PAGE_SIZE));
+  const passPageRows = activePassList.slice((passPage - 1) * PAGE_SIZE, passPage * PAGE_SIZE);
+
+  const displayRows = isPassTab ? passPageRows : rows;
+  const displayLoading = isPassTab ? passRequestsLoading : loading;
+  const activeTotal = isPassTab ? activePassList.length : pagination.total;
+  const activePage = isPassTab ? passPage : pagination.page;
+  const activeTotalPages = isPassTab ? passTotalPages : totalPages;
+  const pageStartDisplay = activeTotal === 0 ? 0 : (activePage - 1) * PAGE_SIZE + 1;
+  const pageEndDisplay = Math.min(activePage * PAGE_SIZE, activeTotal);
 
   const goToPage = (page) => {
-    if (page < 1 || page > totalPages) return;
-    fetchCrewList(page);
+    if (page < 1 || page > activeTotalPages) return;
+    if (isPassTab) setPassPage(page);
+    else fetchCrewList(page);
   };
+
+  const refreshActiveList = useCallback(() => {
+    if (activeTab === "crewChange") fetchCrewList(pagination.page);
+    else refreshPassRequests();
+  }, [activeTab, fetchCrewList, pagination.page, refreshPassRequests]);
 
   const toggleRowSelection = (crewId) => {
     setSelectedCrewIds((prev) => {
@@ -96,12 +134,13 @@ export default function CrewChangePassPanel({ callId, portId }) {
     });
   };
 
-  const headerChecked = rows.length > 0 && rows.every((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
+  const headerChecked =
+    displayRows.length > 0 && displayRows.every((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
 
   const toggleHeaderSelection = (checked) => {
     setSelectedCrewIds((prev) => {
       const next = new Set(prev);
-      rows.forEach((row) => {
+      displayRows.forEach((row) => {
         const id = getCrewChangeCrewId(row);
         if (id == null) return;
         if (checked) next.add(id);
@@ -111,7 +150,9 @@ export default function CrewChangePassPanel({ callId, portId }) {
     });
   };
 
-  const selectedRows = rows.filter((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
+  const selectedRows = (isPassTab ? activePassList : rows).filter((row) =>
+    selectedCrewIds.has(getCrewChangeCrewId(row))
+  );
 
   // CG Pass single-row upload — no popover, just pick a file and it uploads immediately (AI-read).
   const triggerCgSingleUpload = (crew) => {
@@ -133,7 +174,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
       formData.append("crew_id", String(crewId));
       await groService.uploadCgPassAi(formData);
       notify("CG Pass uploaded successfully.", "success");
-      fetchCrewList(pagination.page);
+      refreshActiveList();
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
@@ -162,7 +203,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
       formData.append("crew_id", String(crewId));
       await groService.uploadZawilPassAi(formData);
       notify("Zawil Pass uploaded successfully.", "success");
-      fetchCrewList(pagination.page);
+      refreshActiveList();
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
@@ -199,7 +240,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
       notify("Zawil Pass uploaded successfully.", "success");
       setShowZawilBulkModal(false);
       resetZawilBulkForm();
-      fetchCrewList(pagination.page);
+      refreshPassRequests();
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
@@ -210,7 +251,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const handleGenerateUploaded = () => {
     setView("roster");
     setSelectedCrewIds(new Set());
-    fetchCrewList(pagination.page);
+    refreshPassRequests();
   };
 
   if (view === "generate") {
@@ -256,7 +297,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
             Zawil Pass
           </button>
         </div>
-        {activeTab === "crewChange" && (
+        {activeTab === "cg" && (
           <div className="gro-crew-change-toolbar-actions">
             <button
               type="button"
@@ -266,6 +307,10 @@ export default function CrewChangePassPanel({ callId, portId }) {
             >
               Generate CG Pass
             </button>
+          </div>
+        )}
+        {activeTab === "zawil" && (
+          <div className="gro-crew-change-toolbar-actions">
             <button
               type="button"
               className="gro-pass-segment gro-crew-change-action-btn"
@@ -277,34 +322,22 @@ export default function CrewChangePassPanel({ callId, portId }) {
         )}
       </div>
 
-      {activeTab !== "crewChange" && (
-        <CrewPassRequestsTable
-          title={activeTab === "cg" ? "CG Pass requests" : "Zawil Pass requests"}
-          subtitle={
-            activeTab === "cg" ? "All CG pass bookings for this call" : "All Zawil pass bookings for this call"
-          }
-          requests={activeTab === "cg" ? passRequests.cg : passRequests.zawil}
-          loading={passRequestsLoading}
-          passType={activeTab === "cg" ? "CG" : "Zawil"}
-          accent={activeTab === "cg" ? "blue" : "amber"}
-        />
-      )}
-
-      {activeTab === "crewChange" && (
       <div className="gro-crew-immigration-table-wrap">
         <table className="gro-crew-immigration-table">
           <thead>
             <tr>
-              <th className="gro-pass-table-th-check">
-                <input
-                  type="checkbox"
-                  className="gro-pass-row-check"
-                  checked={headerChecked}
-                  disabled={rows.length === 0}
-                  aria-label="Select all rows on this page"
-                  onChange={(e) => toggleHeaderSelection(e.target.checked)}
-                />
-              </th>
+              {activeTab !== "crewChange" && (
+                <th className="gro-pass-table-th-check">
+                  <input
+                    type="checkbox"
+                    className="gro-pass-row-check"
+                    checked={headerChecked}
+                    disabled={displayRows.length === 0}
+                    aria-label="Select all rows on this page"
+                    onChange={(e) => toggleHeaderSelection(e.target.checked)}
+                  />
+                </th>
+              )}
               <th>Crew Name</th>
               <th>Nationality</th>
               <th>Rank</th>
@@ -317,29 +350,31 @@ export default function CrewChangePassPanel({ callId, portId }) {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {displayLoading ? (
               <tr>
-                <td colSpan={10}>Loading…</td>
+                <td colSpan={activeTab === "crewChange" ? 9 : 10}>Loading…</td>
               </tr>
-            ) : rows.length === 0 ? (
+            ) : displayRows.length === 0 ? (
               <tr>
-                <td colSpan={10}>No crew found.</td>
+                <td colSpan={activeTab === "crewChange" ? 9 : 10}>No crew found.</td>
               </tr>
             ) : (
-              rows.map((row) => {
+              displayRows.map((row) => {
                 const f = crewChangeRowFields(row);
                 const checked = selectedCrewIds.has(f.crewId);
                 return (
                   <tr key={f.crewId}>
-                    <td className="gro-pass-table-td-check">
-                      <input
-                        type="checkbox"
-                        className="gro-pass-row-check"
-                        checked={checked}
-                        aria-label={`Select ${f.crewName}`}
-                        onChange={() => toggleRowSelection(f.crewId)}
-                      />
-                    </td>
+                    {activeTab !== "crewChange" && (
+                      <td className="gro-pass-table-td-check">
+                        <input
+                          type="checkbox"
+                          className="gro-pass-row-check"
+                          checked={checked}
+                          aria-label={`Select ${f.crewName}`}
+                          onChange={() => toggleRowSelection(f.crewId)}
+                        />
+                      </td>
+                    )}
                     <td>{f.crewName}</td>
                     <td>{f.nationality}</td>
                     <td>{f.rank}</td>
@@ -386,27 +421,25 @@ export default function CrewChangePassPanel({ callId, portId }) {
           </tbody>
         </table>
       </div>
-      )}
 
-      {activeTab === "crewChange" && (
       <div className="gro-crew-immigration-pagination">
         <p className="gro-crew-immigration-pagination-text">
-          {`Showing ${pageStartDisplay}-${pageEndDisplay} of ${pagination.total}`}
+          {`Showing ${pageStartDisplay}-${pageEndDisplay} of ${activeTotal}`}
         </p>
         <div className="gro-crew-immigration-pagination-controls">
           <button
             type="button"
             className="gro-crew-immigration-page-btn"
-            onClick={() => goToPage(pagination.page - 1)}
-            disabled={pagination.page === 1}
+            onClick={() => goToPage(activePage - 1)}
+            disabled={activePage === 1}
           >
             Previous
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNo) => (
+          {Array.from({ length: activeTotalPages }, (_, i) => i + 1).map((pageNo) => (
             <button
               key={pageNo}
               type="button"
-              className={`gro-crew-immigration-page-btn${pageNo === pagination.page ? " gro-crew-immigration-page-btn--active" : ""}`}
+              className={`gro-crew-immigration-page-btn${pageNo === activePage ? " gro-crew-immigration-page-btn--active" : ""}`}
               onClick={() => goToPage(pageNo)}
             >
               {pageNo}
@@ -415,14 +448,13 @@ export default function CrewChangePassPanel({ callId, portId }) {
           <button
             type="button"
             className="gro-crew-immigration-page-btn"
-            onClick={() => goToPage(pagination.page + 1)}
-            disabled={pagination.page === totalPages}
+            onClick={() => goToPage(activePage + 1)}
+            disabled={activePage === activeTotalPages}
           >
             Next
           </button>
         </div>
       </div>
-      )}
 
       <input
         ref={cgSingleFileInputRef}
