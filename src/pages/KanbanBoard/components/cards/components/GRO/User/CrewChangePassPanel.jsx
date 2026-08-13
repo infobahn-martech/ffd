@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import { FiUpload } from "react-icons/fi";
+import { FiUpload, FiUploadCloud } from "react-icons/fi";
 import { notify } from "../../../../../../../components/Toaster";
 import crewService from "../../../../../../../services/crewService";
 import groService from "../../../../../../../services/groService";
@@ -32,7 +32,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const [passPage, setPassPage] = useState(1);
 
   const [showZawilBulkModal, setShowZawilBulkModal] = useState(false);
-  const [zawilBulkFile, setZawilBulkFile] = useState(null);
+  const [zawilBulkFiles, setZawilBulkFiles] = useState([]);
   const [zawilBulkSubmitting, setZawilBulkSubmitting] = useState(false);
   const zawilBulkFileInputRef = useRef(null);
 
@@ -213,30 +213,43 @@ export default function CrewChangePassPanel({ callId, portId }) {
   };
 
   const resetZawilBulkForm = () => {
-    setZawilBulkFile(null);
+    setZawilBulkFiles([]);
     if (zawilBulkFileInputRef.current) zawilBulkFileInputRef.current.value = "";
   };
 
+  const addZawilBulkFiles = (fileList) => {
+    const incoming = Array.from(fileList || []);
+    if (incoming.length === 0) return;
+    setZawilBulkFiles((prev) => {
+      const existingKeys = new Set(prev.map((f) => `${f.name}_${f.size}_${f.lastModified}`));
+      const merged = [...prev];
+      incoming.forEach((file) => {
+        const key = `${file.name}_${file.size}_${file.lastModified}`;
+        if (!existingKeys.has(key)) {
+          existingKeys.add(key);
+          merged.push(file);
+        }
+      });
+      return merged;
+    });
+  };
+
+  const removeZawilBulkFile = (index) => {
+    setZawilBulkFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleZawilBulkSubmit = async () => {
-    if (selectedRows.length === 0) {
-      notify("Select at least one crew member first.", "warn");
-      return;
-    }
-    if (!zawilBulkFile) {
-      notify("Please select a file to upload.", "warn");
+    if (zawilBulkFiles.length === 0) {
+      notify("Please select at least one file to upload.", "warn");
       return;
     }
 
     setZawilBulkSubmitting(true);
     try {
-      await Promise.all(
-        selectedRows.map((row) => {
-          const formData = new FormData();
-          formData.append("zawil_document[]", zawilBulkFile);
-          formData.append("crew_id", String(getCrewChangeCrewId(row)));
-          return groService.uploadZawilPassAi(formData);
-        })
-      );
+      const formData = new FormData();
+      formData.append("call_id", String(callId));
+      zawilBulkFiles.forEach((file) => formData.append("zawil_document[]", file));
+      await groService.uploadZawilPassAi(formData);
       notify("Zawil Pass uploaded successfully.", "success");
       setShowZawilBulkModal(false);
       resetZawilBulkForm();
@@ -281,20 +294,20 @@ export default function CrewChangePassPanel({ callId, portId }) {
           <button
             type="button"
             role="tab"
-            aria-selected={activeTab === "cg"}
-            className={`gro-pass-segment${activeTab === "cg" ? " gro-pass-segment--active" : ""}`}
-            onClick={() => setActiveTab("cg")}
-          >
-            CG Pass
-          </button>
-          <button
-            type="button"
-            role="tab"
             aria-selected={activeTab === "zawil"}
             className={`gro-pass-segment${activeTab === "zawil" ? " gro-pass-segment--active" : ""}`}
             onClick={() => setActiveTab("zawil")}
           >
             Zawil Pass
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "cg"}
+            className={`gro-pass-segment${activeTab === "cg" ? " gro-pass-segment--active" : ""}`}
+            onClick={() => setActiveTab("cg")}
+          >
+            CG Pass
           </button>
         </div>
         {activeTab === "cg" && (
@@ -326,7 +339,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
         <table className="gro-crew-immigration-table">
           <thead>
             <tr>
-              {activeTab !== "crewChange" && (
+              {activeTab === "cg" && (
                 <th className="gro-pass-table-th-check">
                   <input
                     type="checkbox"
@@ -352,11 +365,11 @@ export default function CrewChangePassPanel({ callId, portId }) {
           <tbody>
             {displayLoading ? (
               <tr>
-                <td colSpan={activeTab === "crewChange" ? 9 : 10}>Loading…</td>
+                <td colSpan={activeTab === "cg" ? 10 : 9}>Loading…</td>
               </tr>
             ) : displayRows.length === 0 ? (
               <tr>
-                <td colSpan={activeTab === "crewChange" ? 9 : 10}>No crew found.</td>
+                <td colSpan={activeTab === "cg" ? 10 : 9}>No crew found.</td>
               </tr>
             ) : (
               displayRows.map((row) => {
@@ -364,7 +377,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
                 const checked = selectedCrewIds.has(f.crewId);
                 return (
                   <tr key={f.crewId}>
-                    {activeTab !== "crewChange" && (
+                    {activeTab === "cg" && (
                       <td className="gro-pass-table-td-check">
                         <input
                           type="checkbox"
@@ -482,7 +495,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
               }}
             >
               <div
-                className="gro-stage-upload-modal"
+                className="gro-stage-upload-modal gro-stage-upload-modal--multi"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Bulk Upload Zawil Pass"
@@ -492,29 +505,50 @@ export default function CrewChangePassPanel({ callId, portId }) {
                 <div className="gro-inward-popover-body">
                   <button
                     type="button"
-                    className={`gro-stage-upload-dropzone${zawilBulkFile ? " gro-stage-upload-dropzone--has-file" : ""}`}
+                    className={`gro-stage-upload-dropzone${zawilBulkFiles.length > 0 ? " gro-stage-upload-dropzone--has-file" : ""}`}
                     disabled={zawilBulkSubmitting}
                     onClick={() => zawilBulkFileInputRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
                       if (zawilBulkSubmitting) return;
-                      const file = e.dataTransfer?.files?.[0];
-                      if (file) setZawilBulkFile(file);
+                      addZawilBulkFiles(e.dataTransfer?.files);
                     }}
                   >
-                    <span className="gro-stage-upload-dropzone-text">Click to select a file</span>
-                    <span className="gro-stage-upload-filename" title={zawilBulkFile?.name || ""}>
-                      {zawilBulkFile?.name || ""}
-                    </span>
+                    <FiUploadCloud className="gro-stage-upload-dropzone-icon" />
+                    <span className="gro-stage-upload-dropzone-text">Drag & drop files here, or click to browse</span>
                   </button>
                   <input
                     ref={zawilBulkFileInputRef}
                     type="file"
+                    multiple
                     className="gro-premium-upload-input-hidden"
                     disabled={zawilBulkSubmitting}
-                    onChange={(e) => setZawilBulkFile(e.target.files?.[0] ?? null)}
+                    onChange={(e) => {
+                      addZawilBulkFiles(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
+                  {zawilBulkFiles.length > 0 ? (
+                    <ul className="gro-stage-upload-file-list">
+                      {zawilBulkFiles.map((file, index) => (
+                        <li key={`${file.name}_${file.size}_${file.lastModified}`} className="gro-stage-upload-file-item">
+                          <span className="gro-stage-upload-file-item-name" title={file.name}>
+                            {file.name}
+                          </span>
+                          <button
+                            type="button"
+                            className="gro-stage-upload-file-item-remove"
+                            aria-label={`Remove ${file.name}`}
+                            disabled={zawilBulkSubmitting}
+                            onClick={() => removeZawilBulkFile(index)}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
                 <div className="gro-stage-upload-actions gro-inward-popover-footer">
                   <button
@@ -531,10 +565,12 @@ export default function CrewChangePassPanel({ callId, portId }) {
                   <button
                     type="button"
                     className="gro-inward-popover-btn-submit"
-                    disabled={zawilBulkSubmitting}
+                    disabled={zawilBulkSubmitting || zawilBulkFiles.length === 0}
                     onClick={handleZawilBulkSubmit}
                   >
-                    {zawilBulkSubmitting ? "Uploading…" : "Upload Zawil Pass"}
+                    {zawilBulkSubmitting
+                      ? "Uploading…"
+                      : `Upload${zawilBulkFiles.length > 0 ? ` (${zawilBulkFiles.length})` : ""}`}
                   </button>
                 </div>
               </div>

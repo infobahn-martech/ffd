@@ -1295,8 +1295,8 @@
 }
 
 .gro-stage-upload-dropzone-icon {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   color: #00368c;
 }
 
@@ -1323,6 +1323,68 @@
 
 .gro-stage-upload-actions {
   margin: 0;
+}
+
+.gro-stage-upload-modal--multi {
+  width: 460px;
+}
+
+.gro-stage-upload-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  margin: 12px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.gro-stage-upload-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+}
+
+.gro-stage-upload-file-item-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gro-stage-upload-file-item-remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gro-stage-upload-file-item-remove:hover:not(:disabled) {
+  background: var(--surface-primary);
+  color: #d92d20;
+}
+
+.gro-stage-upload-file-item-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .gro-card-view .gro-pass-action-cell {
