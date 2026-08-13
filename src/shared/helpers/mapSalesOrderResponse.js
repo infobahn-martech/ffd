@@ -73,6 +73,7 @@ export function mapSalesOrderResponse(apiData) {
     poStatus: "Draft",
     is_third_party: item.is_third_party,
     woStatus: Number(item.wo_status) || 0,
+    workOrder: item.work_order?.wo_number || "",
     status: item.status || "",
   };
   });
