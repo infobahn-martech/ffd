@@ -45,6 +45,15 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card, onRequest
     onRequestCountChange?.(passRequests?.zawil?.length || 0);
   }, [passRequests, onRequestCountChange]);
 
+  // Discard any draft entered on a previous visit — this tab always opens blank.
+  useEffect(() => {
+    handleChange("zawilPassRequestEmailFile")({ target: { value: [] } });
+    handleChange("zawilPassSelectedCrew")({ target: { value: [] } });
+    handleChange("zawilPassDocuments")({ target: { value: [] } });
+    handleChange("zawilPassDescription")({ target: { value: "" } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fileToAttachment = (file) => ({
     name: file.name,
     file,
