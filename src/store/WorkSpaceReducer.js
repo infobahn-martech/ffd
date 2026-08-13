@@ -5,6 +5,7 @@ import kanbanDashboardService from '../services/kanbanDashboardService';
 
 const useWorkSpaceReducer = create((set, get) => ({
   isLoading: false,
+  workspacesFetched: false,
   errorMessage: '',
   successMessage: '',
   workspaces: [],
@@ -36,9 +37,9 @@ const useWorkSpaceReducer = create((set, get) => ({
       set({ isLoading: true });
       const { data } = await workSpaceService.listAllWorkspaces();
       const workspaces = data?.status === 'success' ? data.data ?? [] : [];
-      set({ workspaces, isLoading: false, errorMessage: '' });
+      set({ workspaces, isLoading: false, workspacesFetched: true, errorMessage: '' });
     } catch (error) {
-      set({ errorMessage: error.message, isLoading: false, workspaces: [] });
+      set({ errorMessage: error.message, isLoading: false, workspacesFetched: true, workspaces: [] });
     }
   },
   listAllDashboards: async () => {

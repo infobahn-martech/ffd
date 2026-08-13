@@ -45,6 +45,15 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card, onRequestCou
     onRequestCountChange?.(passRequests?.cg?.length || 0);
   }, [passRequests, onRequestCountChange]);
 
+  // Discard any draft entered on a previous visit — this tab always opens blank.
+  useEffect(() => {
+    handleChange("cgPassRequestEmailFile")({ target: { value: [] } });
+    handleChange("cgPassSelectedCrew")({ target: { value: [] } });
+    handleChange("cgPassDocuments")({ target: { value: [] } });
+    handleChange("cgPassDescription")({ target: { value: "" } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fileToAttachment = (file) => ({
     name: file.name,
     file,

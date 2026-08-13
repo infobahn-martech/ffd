@@ -673,6 +673,10 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #888 #f1f1f1;
+
+  [data-theme="dark"] & {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
 }
 
 // Quiet card footer — no gradient, subtle single-tone divider, matching the
@@ -685,6 +689,10 @@
   border-top: 1px solid $border-color-default;
   background: #eef2ff !important;
   margin-top: auto;
+
+  [data-theme="dark"] & {
+    background: var(--surface-secondary) !important;
+  }
 }
 
 .crew-pagination-info {
@@ -765,10 +773,18 @@
 .crew-table-container::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 3px;
+
+  [data-theme="dark"] & {
+    background: var(--scrollbar-thumb);
+  }
 }
 
 .crew-table-container::-webkit-scrollbar-thumb:hover {
   background: #555;
+
+  [data-theme="dark"] & {
+    background: var(--scrollbar-thumb-hover);
+  }
 }
 
 .crew-table {
@@ -1383,6 +1399,10 @@
   position: sticky;
   top: 0;
   z-index: 10;
+
+  [data-theme="dark"] & {
+    background: var(--surface-secondary) !important;
+  }
 }
 
 .crew-table-container .table.crew-table thead th {
@@ -1398,6 +1418,11 @@
   vertical-align: middle;
   border-bottom: 1px solid $border-color-default;
   text-align: left;
+
+  [data-theme="dark"] & {
+    background: var(--surface-secondary) !important;
+    color: var(--text-primary) !important;
+  }
 }
 
 .crew-list-table th,

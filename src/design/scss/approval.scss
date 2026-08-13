@@ -24,6 +24,10 @@
     overflow: hidden;
     padding: 20px 24px;
     background: linear-gradient(180deg, #fafbff 0%, #f6f7fc 100%);
+
+    [data-theme="dark"] & {
+      background: linear-gradient(180deg, var(--bg-app) 0%, var(--bg-secondary) 100%);
+    }
   }
 
   .approval-sections-wrapper {
@@ -37,6 +41,10 @@
     padding-right: 4px;
     scrollbar-width: thin;
     scrollbar-color: #c2c8f5 transparent;
+
+    [data-theme="dark"] & {
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
 
     &::-webkit-scrollbar {
       width: 6px;
@@ -52,6 +60,14 @@
 
       &:hover {
         background: var(--approval-accent);
+      }
+
+      [data-theme="dark"] & {
+        background: var(--scrollbar-thumb);
+
+        &:hover {
+          background: var(--scrollbar-thumb-hover);
+        }
       }
     }
   }
@@ -152,6 +168,10 @@
     scrollbar-width: thin;
     scrollbar-color: #d8dbf5 transparent;
 
+    [data-theme="dark"] & {
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+
     &::-webkit-scrollbar {
       width: 4px;
     }
@@ -159,6 +179,10 @@
     &::-webkit-scrollbar-thumb {
       background: #d8dbf5;
       border-radius: 999px;
+
+      [data-theme="dark"] & {
+        background: var(--scrollbar-thumb);
+      }
     }
   }
 
@@ -341,6 +365,12 @@
     box-shadow: 0 8px 20px -14px rgba(234, 88, 12, 0.5);
     animation: approval-fade-in-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 
+    [data-theme="dark"] & {
+      background: linear-gradient(135deg, rgba(234, 88, 12, 0.16) 0%, rgba(234, 88, 12, 0.08) 100%);
+      border-color: rgba(251, 146, 60, 0.4);
+      color: #fdba74;
+    }
+
     svg {
       animation: approval-icon-pulse 1.8s ease-in-out infinite;
       flex-shrink: 0;
@@ -380,6 +410,26 @@
     background: var(--surface-primary);
     border-color: #9ca3af;
     box-shadow: none;
+  }
+
+  // Branch select (.cf-multi-select-email-input) and the date/time pickers
+  // (MUI root) both default to a transparent border and rely on a faint
+  // near-black inset shadow to read as a border — that trick only works on
+  // a light surface, so in dark mode the field edge disappears entirely.
+  // Give them the same explicit var(--border-primary) border as .cf-input
+  // above so they stay visible in both themes.
+  .cf-multi-select-email-input {
+    border-color: var(--border-primary);
+    box-shadow: none;
+  }
+
+  .cf-datetime-input-field {
+    .MuiPickersInputBase-root,
+    .MuiOutlinedInput-root,
+    .MuiInputBase-root {
+      border-color: var(--border-primary) !important;
+      box-shadow: none !important;
+    }
   }
 
   // Read-only Basic Details fields (Date, Requested by, Vessel Name, ETD,
@@ -495,18 +545,35 @@
       background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
       border: 1px solid #a7f3c8;
       color: #15803d;
+
+      [data-theme="dark"] & {
+        background: linear-gradient(135deg, rgba(22, 163, 74, 0.18) 0%, rgba(22, 163, 74, 0.1) 100%);
+        border-color: rgba(74, 222, 128, 0.35);
+        color: #86efac;
+      }
     }
 
     &--hold {
       background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
       border: 1px solid #fed7aa;
       color: #c2410c;
+
+      [data-theme="dark"] & {
+        background: linear-gradient(135deg, rgba(234, 88, 12, 0.18) 0%, rgba(234, 88, 12, 0.1) 100%);
+        border-color: rgba(251, 146, 60, 0.4);
+        color: #fdba74;
+      }
     }
 
     &--proceeded {
       background: linear-gradient(135deg, #eef2fd 0%, #e3e9fc 100%);
       border: 1px solid var(--border-primary);
       color: var(--approval-accent-2);
+
+      [data-theme="dark"] & {
+        background: linear-gradient(135deg, rgba(109, 94, 245, 0.18) 0%, rgba(109, 94, 245, 0.1) 100%);
+        color: #a5b4fc;
+      }
     }
 
     &--pending {

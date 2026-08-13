@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import { FiUpload } from "react-icons/fi";
+import { FiUpload, FiUploadCloud } from "react-icons/fi";
 import { notify } from "../../../../../../../components/Toaster";
 import crewService from "../../../../../../../services/crewService";
 import groService from "../../../../../../../services/groService";
 import { getPassRequests, extractPassRequestsFromEnvelope } from "../../../../../../../services/cgAndZwailpassService";
 import { groApiErrorMessage } from "./groCardUtils";
-import { crewChangeRowFields, getCrewChangeCrewId, normalizeCrewChangeListResponse } from "./crewChangePassUtils";
+import {
+  crewChangeRowFields,
+  flattenPassRequestCrew,
+  getCrewChangeCrewId,
+  normalizeCrewChangeListResponse,
+} from "./crewChangePassUtils";
 import CrewChangeCgPassGenerateView from "./CrewChangeCgPassGenerateView";
-import CrewPassRequestsTable from "../../../../../CardFormTabs/Import/tabs/husbandry/components/CrewPassRequestsTable";
 
 const PAGE_SIZE = 10;
 
@@ -21,11 +25,14 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const [selectedCrewIds, setSelectedCrewIds] = useState(() => new Set());
   const [view, setView] = useState("roster");
   const [activeTab, setActiveTab] = useState("crewChange");
-  const [passRequests, setPassRequests] = useState({ cg: [], zawil: [] });
+
+  const [passRequestsCg, setPassRequestsCg] = useState([]);
+  const [passRequestsZawil, setPassRequestsZawil] = useState([]);
   const [passRequestsLoading, setPassRequestsLoading] = useState(false);
+  const [passPage, setPassPage] = useState(1);
 
   const [showZawilBulkModal, setShowZawilBulkModal] = useState(false);
-  const [zawilBulkFile, setZawilBulkFile] = useState(null);
+  const [zawilBulkFiles, setZawilBulkFiles] = useState([]);
   const [zawilBulkSubmitting, setZawilBulkSubmitting] = useState(false);
   const zawilBulkFileInputRef = useRef(null);
 
@@ -62,30 +69,61 @@ export default function CrewChangePassPanel({ callId, portId }) {
     fetchCrewList(1);
   }, [fetchCrewList]);
 
-  const fetchPassRequests = useCallback(() => {
+  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.limit));
+
+  const refreshPassRequests = useCallback(() => {
     if (callId == null || callId === "") {
-      setPassRequests({ cg: [], zawil: [] });
+      setPassRequestsCg([]);
+      setPassRequestsZawil([]);
       return;
     }
     setPassRequestsLoading(true);
     getPassRequests(callId)
-      .then((res) => setPassRequests(extractPassRequestsFromEnvelope(res)))
-      .catch(() => setPassRequests({ cg: [], zawil: [] }))
+      .then((res) => {
+        const { cg, zawil } = extractPassRequestsFromEnvelope(res);
+        setPassRequestsCg(flattenPassRequestCrew(cg));
+        setPassRequestsZawil(flattenPassRequestCrew(zawil));
+      })
+      .catch(() => {
+        setPassRequestsCg([]);
+        setPassRequestsZawil([]);
+      })
       .finally(() => setPassRequestsLoading(false));
   }, [callId]);
 
   useEffect(() => {
-    fetchPassRequests();
-  }, [fetchPassRequests]);
+    refreshPassRequests();
+  }, [refreshPassRequests]);
 
-  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.limit));
-  const pageStartDisplay = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
-  const pageEndDisplay = Math.min(pagination.page * pagination.limit, pagination.total);
+  // Selection is page/list scoped — clear it when the visible list changes.
+  useEffect(() => {
+    setPassPage(1);
+    setSelectedCrewIds(new Set());
+  }, [activeTab]);
+
+  const isPassTab = activeTab === "cg" || activeTab === "zawil";
+  const activePassList = activeTab === "cg" ? passRequestsCg : activeTab === "zawil" ? passRequestsZawil : [];
+  const passTotalPages = Math.max(1, Math.ceil(activePassList.length / PAGE_SIZE));
+  const passPageRows = activePassList.slice((passPage - 1) * PAGE_SIZE, passPage * PAGE_SIZE);
+
+  const displayRows = isPassTab ? passPageRows : rows;
+  const displayLoading = isPassTab ? passRequestsLoading : loading;
+  const activeTotal = isPassTab ? activePassList.length : pagination.total;
+  const activePage = isPassTab ? passPage : pagination.page;
+  const activeTotalPages = isPassTab ? passTotalPages : totalPages;
+  const pageStartDisplay = activeTotal === 0 ? 0 : (activePage - 1) * PAGE_SIZE + 1;
+  const pageEndDisplay = Math.min(activePage * PAGE_SIZE, activeTotal);
 
   const goToPage = (page) => {
-    if (page < 1 || page > totalPages) return;
-    fetchCrewList(page);
+    if (page < 1 || page > activeTotalPages) return;
+    if (isPassTab) setPassPage(page);
+    else fetchCrewList(page);
   };
+
+  const refreshActiveList = useCallback(() => {
+    if (activeTab === "crewChange") fetchCrewList(pagination.page);
+    else refreshPassRequests();
+  }, [activeTab, fetchCrewList, pagination.page, refreshPassRequests]);
 
   const toggleRowSelection = (crewId) => {
     setSelectedCrewIds((prev) => {
@@ -96,12 +134,13 @@ export default function CrewChangePassPanel({ callId, portId }) {
     });
   };
 
-  const headerChecked = rows.length > 0 && rows.every((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
+  const headerChecked =
+    displayRows.length > 0 && displayRows.every((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
 
   const toggleHeaderSelection = (checked) => {
     setSelectedCrewIds((prev) => {
       const next = new Set(prev);
-      rows.forEach((row) => {
+      displayRows.forEach((row) => {
         const id = getCrewChangeCrewId(row);
         if (id == null) return;
         if (checked) next.add(id);
@@ -111,7 +150,9 @@ export default function CrewChangePassPanel({ callId, portId }) {
     });
   };
 
-  const selectedRows = rows.filter((row) => selectedCrewIds.has(getCrewChangeCrewId(row)));
+  const selectedRows = (isPassTab ? activePassList : rows).filter((row) =>
+    selectedCrewIds.has(getCrewChangeCrewId(row))
+  );
 
   // CG Pass single-row upload — no popover, just pick a file and it uploads immediately (AI-read).
   const triggerCgSingleUpload = (crew) => {
@@ -133,7 +174,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
       formData.append("crew_id", String(crewId));
       await groService.uploadCgPassAi(formData);
       notify("CG Pass uploaded successfully.", "success");
-      fetchCrewList(pagination.page);
+      refreshActiveList();
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
@@ -162,7 +203,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
       formData.append("crew_id", String(crewId));
       await groService.uploadZawilPassAi(formData);
       notify("Zawil Pass uploaded successfully.", "success");
-      fetchCrewList(pagination.page);
+      refreshActiveList();
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
@@ -172,34 +213,47 @@ export default function CrewChangePassPanel({ callId, portId }) {
   };
 
   const resetZawilBulkForm = () => {
-    setZawilBulkFile(null);
+    setZawilBulkFiles([]);
     if (zawilBulkFileInputRef.current) zawilBulkFileInputRef.current.value = "";
   };
 
+  const addZawilBulkFiles = (fileList) => {
+    const incoming = Array.from(fileList || []);
+    if (incoming.length === 0) return;
+    setZawilBulkFiles((prev) => {
+      const existingKeys = new Set(prev.map((f) => `${f.name}_${f.size}_${f.lastModified}`));
+      const merged = [...prev];
+      incoming.forEach((file) => {
+        const key = `${file.name}_${file.size}_${file.lastModified}`;
+        if (!existingKeys.has(key)) {
+          existingKeys.add(key);
+          merged.push(file);
+        }
+      });
+      return merged;
+    });
+  };
+
+  const removeZawilBulkFile = (index) => {
+    setZawilBulkFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleZawilBulkSubmit = async () => {
-    if (selectedRows.length === 0) {
-      notify("Select at least one crew member first.", "warn");
-      return;
-    }
-    if (!zawilBulkFile) {
-      notify("Please select a file to upload.", "warn");
+    if (zawilBulkFiles.length === 0) {
+      notify("Please select at least one file to upload.", "warn");
       return;
     }
 
     setZawilBulkSubmitting(true);
     try {
-      await Promise.all(
-        selectedRows.map((row) => {
-          const formData = new FormData();
-          formData.append("zawil_document[]", zawilBulkFile);
-          formData.append("crew_id", String(getCrewChangeCrewId(row)));
-          return groService.uploadZawilPassAi(formData);
-        })
-      );
+      const formData = new FormData();
+      formData.append("call_id", String(callId));
+      zawilBulkFiles.forEach((file) => formData.append("zawil_document[]", file));
+      await groService.uploadZawilPassAi(formData);
       notify("Zawil Pass uploaded successfully.", "success");
       setShowZawilBulkModal(false);
       resetZawilBulkForm();
-      fetchCrewList(pagination.page);
+      refreshPassRequests();
     } catch (err) {
       notify(groApiErrorMessage(err, "Upload failed."), "error");
     } finally {
@@ -210,7 +264,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
   const handleGenerateUploaded = () => {
     setView("roster");
     setSelectedCrewIds(new Set());
-    fetchCrewList(pagination.page);
+    refreshPassRequests();
   };
 
   if (view === "generate") {
@@ -240,23 +294,23 @@ export default function CrewChangePassPanel({ callId, portId }) {
           <button
             type="button"
             role="tab"
-            aria-selected={activeTab === "cg"}
-            className={`gro-pass-segment${activeTab === "cg" ? " gro-pass-segment--active" : ""}`}
-            onClick={() => setActiveTab("cg")}
-          >
-            CG Pass
-          </button>
-          <button
-            type="button"
-            role="tab"
             aria-selected={activeTab === "zawil"}
             className={`gro-pass-segment${activeTab === "zawil" ? " gro-pass-segment--active" : ""}`}
             onClick={() => setActiveTab("zawil")}
           >
             Zawil Pass
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "cg"}
+            className={`gro-pass-segment${activeTab === "cg" ? " gro-pass-segment--active" : ""}`}
+            onClick={() => setActiveTab("cg")}
+          >
+            CG Pass
+          </button>
         </div>
-        {activeTab === "crewChange" && (
+        {activeTab === "cg" && (
           <div className="gro-crew-change-toolbar-actions">
             <button
               type="button"
@@ -266,6 +320,10 @@ export default function CrewChangePassPanel({ callId, portId }) {
             >
               Generate CG Pass
             </button>
+          </div>
+        )}
+        {activeTab === "zawil" && (
+          <div className="gro-crew-change-toolbar-actions">
             <button
               type="button"
               className="gro-pass-segment gro-crew-change-action-btn"
@@ -277,34 +335,22 @@ export default function CrewChangePassPanel({ callId, portId }) {
         )}
       </div>
 
-      {activeTab !== "crewChange" && (
-        <CrewPassRequestsTable
-          title={activeTab === "cg" ? "CG Pass requests" : "Zawil Pass requests"}
-          subtitle={
-            activeTab === "cg" ? "All CG pass bookings for this call" : "All Zawil pass bookings for this call"
-          }
-          requests={activeTab === "cg" ? passRequests.cg : passRequests.zawil}
-          loading={passRequestsLoading}
-          passType={activeTab === "cg" ? "CG" : "Zawil"}
-          accent={activeTab === "cg" ? "blue" : "amber"}
-        />
-      )}
-
-      {activeTab === "crewChange" && (
       <div className="gro-crew-immigration-table-wrap">
         <table className="gro-crew-immigration-table">
           <thead>
             <tr>
-              <th className="gro-pass-table-th-check">
-                <input
-                  type="checkbox"
-                  className="gro-pass-row-check"
-                  checked={headerChecked}
-                  disabled={rows.length === 0}
-                  aria-label="Select all rows on this page"
-                  onChange={(e) => toggleHeaderSelection(e.target.checked)}
-                />
-              </th>
+              {activeTab === "cg" && (
+                <th className="gro-pass-table-th-check">
+                  <input
+                    type="checkbox"
+                    className="gro-pass-row-check"
+                    checked={headerChecked}
+                    disabled={displayRows.length === 0}
+                    aria-label="Select all rows on this page"
+                    onChange={(e) => toggleHeaderSelection(e.target.checked)}
+                  />
+                </th>
+              )}
               <th>Crew Name</th>
               <th>Nationality</th>
               <th>Rank</th>
@@ -317,29 +363,31 @@ export default function CrewChangePassPanel({ callId, portId }) {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {displayLoading ? (
               <tr>
-                <td colSpan={10}>Loading…</td>
+                <td colSpan={activeTab === "cg" ? 10 : 9}>Loading…</td>
               </tr>
-            ) : rows.length === 0 ? (
+            ) : displayRows.length === 0 ? (
               <tr>
-                <td colSpan={10}>No crew found.</td>
+                <td colSpan={activeTab === "cg" ? 10 : 9}>No crew found.</td>
               </tr>
             ) : (
-              rows.map((row) => {
+              displayRows.map((row) => {
                 const f = crewChangeRowFields(row);
                 const checked = selectedCrewIds.has(f.crewId);
                 return (
                   <tr key={f.crewId}>
-                    <td className="gro-pass-table-td-check">
-                      <input
-                        type="checkbox"
-                        className="gro-pass-row-check"
-                        checked={checked}
-                        aria-label={`Select ${f.crewName}`}
-                        onChange={() => toggleRowSelection(f.crewId)}
-                      />
-                    </td>
+                    {activeTab === "cg" && (
+                      <td className="gro-pass-table-td-check">
+                        <input
+                          type="checkbox"
+                          className="gro-pass-row-check"
+                          checked={checked}
+                          aria-label={`Select ${f.crewName}`}
+                          onChange={() => toggleRowSelection(f.crewId)}
+                        />
+                      </td>
+                    )}
                     <td>{f.crewName}</td>
                     <td>{f.nationality}</td>
                     <td>{f.rank}</td>
@@ -386,27 +434,25 @@ export default function CrewChangePassPanel({ callId, portId }) {
           </tbody>
         </table>
       </div>
-      )}
 
-      {activeTab === "crewChange" && (
       <div className="gro-crew-immigration-pagination">
         <p className="gro-crew-immigration-pagination-text">
-          {`Showing ${pageStartDisplay}-${pageEndDisplay} of ${pagination.total}`}
+          {`Showing ${pageStartDisplay}-${pageEndDisplay} of ${activeTotal}`}
         </p>
         <div className="gro-crew-immigration-pagination-controls">
           <button
             type="button"
             className="gro-crew-immigration-page-btn"
-            onClick={() => goToPage(pagination.page - 1)}
-            disabled={pagination.page === 1}
+            onClick={() => goToPage(activePage - 1)}
+            disabled={activePage === 1}
           >
             Previous
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNo) => (
+          {Array.from({ length: activeTotalPages }, (_, i) => i + 1).map((pageNo) => (
             <button
               key={pageNo}
               type="button"
-              className={`gro-crew-immigration-page-btn${pageNo === pagination.page ? " gro-crew-immigration-page-btn--active" : ""}`}
+              className={`gro-crew-immigration-page-btn${pageNo === activePage ? " gro-crew-immigration-page-btn--active" : ""}`}
               onClick={() => goToPage(pageNo)}
             >
               {pageNo}
@@ -415,14 +461,13 @@ export default function CrewChangePassPanel({ callId, portId }) {
           <button
             type="button"
             className="gro-crew-immigration-page-btn"
-            onClick={() => goToPage(pagination.page + 1)}
-            disabled={pagination.page === totalPages}
+            onClick={() => goToPage(activePage + 1)}
+            disabled={activePage === activeTotalPages}
           >
             Next
           </button>
         </div>
       </div>
-      )}
 
       <input
         ref={cgSingleFileInputRef}
@@ -450,7 +495,7 @@ export default function CrewChangePassPanel({ callId, portId }) {
               }}
             >
               <div
-                className="gro-stage-upload-modal"
+                className="gro-stage-upload-modal gro-stage-upload-modal--multi"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Bulk Upload Zawil Pass"
@@ -460,29 +505,50 @@ export default function CrewChangePassPanel({ callId, portId }) {
                 <div className="gro-inward-popover-body">
                   <button
                     type="button"
-                    className={`gro-stage-upload-dropzone${zawilBulkFile ? " gro-stage-upload-dropzone--has-file" : ""}`}
+                    className={`gro-stage-upload-dropzone${zawilBulkFiles.length > 0 ? " gro-stage-upload-dropzone--has-file" : ""}`}
                     disabled={zawilBulkSubmitting}
                     onClick={() => zawilBulkFileInputRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
                       if (zawilBulkSubmitting) return;
-                      const file = e.dataTransfer?.files?.[0];
-                      if (file) setZawilBulkFile(file);
+                      addZawilBulkFiles(e.dataTransfer?.files);
                     }}
                   >
-                    <span className="gro-stage-upload-dropzone-text">Click to select a file</span>
-                    <span className="gro-stage-upload-filename" title={zawilBulkFile?.name || ""}>
-                      {zawilBulkFile?.name || ""}
-                    </span>
+                    <FiUploadCloud className="gro-stage-upload-dropzone-icon" />
+                    <span className="gro-stage-upload-dropzone-text">Drag & drop files here, or click to browse</span>
                   </button>
                   <input
                     ref={zawilBulkFileInputRef}
                     type="file"
+                    multiple
                     className="gro-premium-upload-input-hidden"
                     disabled={zawilBulkSubmitting}
-                    onChange={(e) => setZawilBulkFile(e.target.files?.[0] ?? null)}
+                    onChange={(e) => {
+                      addZawilBulkFiles(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
+                  {zawilBulkFiles.length > 0 ? (
+                    <ul className="gro-stage-upload-file-list">
+                      {zawilBulkFiles.map((file, index) => (
+                        <li key={`${file.name}_${file.size}_${file.lastModified}`} className="gro-stage-upload-file-item">
+                          <span className="gro-stage-upload-file-item-name" title={file.name}>
+                            {file.name}
+                          </span>
+                          <button
+                            type="button"
+                            className="gro-stage-upload-file-item-remove"
+                            aria-label={`Remove ${file.name}`}
+                            disabled={zawilBulkSubmitting}
+                            onClick={() => removeZawilBulkFile(index)}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
                 <div className="gro-stage-upload-actions gro-inward-popover-footer">
                   <button
@@ -499,10 +565,12 @@ export default function CrewChangePassPanel({ callId, portId }) {
                   <button
                     type="button"
                     className="gro-inward-popover-btn-submit"
-                    disabled={zawilBulkSubmitting}
+                    disabled={zawilBulkSubmitting || zawilBulkFiles.length === 0}
                     onClick={handleZawilBulkSubmit}
                   >
-                    {zawilBulkSubmitting ? "Uploading…" : "Upload Zawil Pass"}
+                    {zawilBulkSubmitting
+                      ? "Uploading…"
+                      : `Upload${zawilBulkFiles.length > 0 ? ` (${zawilBulkFiles.length})` : ""}`}
                   </button>
                 </div>
               </div>

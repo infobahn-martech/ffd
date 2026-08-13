@@ -102,9 +102,12 @@ export default function useKanbanBoardState(selectedBoardId) {
       setBoardLoadError(null);
       reconcileDABoardColumns(mapped, selectedBoardId, setWorkflows);
     } catch (e) {
-      const msg = e?.message ?? String(e);
       setWorkflows([]);
-      setBoardLoadError("Could not load board data.");
+      setBoardLoadError(
+        e?.response?.status === 403
+          ? "You don't have access to this board."
+          : "Could not load board data."
+      );
     } finally {
       setBoardLoading(false);
     }
@@ -145,9 +148,12 @@ export default function useKanbanBoardState(selectedBoardId) {
         });
       } catch (e) {
         if (!cancelled) {
-          const msg = e?.message ?? String(e);
           setWorkflows([]);
-          setBoardLoadError("Could not load board data.");
+          setBoardLoadError(
+            e?.response?.status === 403
+              ? "You don't have access to this board."
+              : "Could not load board data."
+          );
         }
       } finally {
         if (!cancelled) setBoardLoading(false);

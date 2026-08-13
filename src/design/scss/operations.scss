@@ -868,6 +868,10 @@ $send-report-optional: #80868b;
 
   padding: $space-8 $space-5;
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 220px);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-app) 220px);
+  }
 }
 
 .husbandry-service-selection-content {
@@ -888,6 +892,10 @@ $send-report-optional: #80868b;
   box-shadow: 0 14px 32px -16px rgba(0, 54, 140, 0.16), 0 2px 8px rgba(15, 23, 42, 0.04);
   margin-bottom: 24px;
   animation: husbandry-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(125deg, var(--surface-secondary) 0%, var(--surface-primary) 45%, var(--surface-hover) 100%);
+  }
 
   &::before {
     content: "";
@@ -2051,6 +2059,11 @@ $send-report-optional: #80868b;
   padding: $space-5 $space-4;
   gap: $space-1;
 
+  [data-theme="dark"] & {
+    background: var(--bg-secondary);
+    border-right-color: var(--border-primary);
+  }
+
   .op-tab-list {
     display: flex;
     flex-direction: column;
@@ -2064,6 +2077,8 @@ $send-report-optional: #80868b;
 
   .op-tab {
     position: relative;
+    isolation: isolate;
+    z-index: 0;
     display: flex;
     align-items: center;
     gap: $space-2;
@@ -2075,7 +2090,11 @@ $send-report-optional: #80868b;
     background: transparent;
     color: $txtColor;
     overflow: hidden;
-    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    transition: background-color 0.18s ease, color 0.18s ease;
+
+    [data-theme="dark"] & {
+      color: var(--text-primary);
+    }
   }
 
   // Fixed to Crew Management's blue ($colorPrimary), not var(--card-color)
@@ -2086,7 +2105,12 @@ $send-report-optional: #80868b;
     color: $colorPrimary;
   }
 
+  // isolation + z-index keep each tab's background/color transition (and the
+  // hover/active highlight) painting strictly within its own box — without
+  // this, the active tab's highlight could visually bleed into the
+  // neighboring tab's row while the color transition was still animating.
   .op-tab.active {
+    z-index: 1;
     background: rgba(0, 54, 140, 0.08);
     color: $colorPrimary;
     border-left-color: $colorPrimary;
@@ -2382,6 +2406,13 @@ $send-report-optional: #80868b;
   scrollbar-color: #a8b0bd #f1f3f5;
 }
 
+[data-theme="dark"] .operation-two-column-grid--split-scroll .operation-form-column,
+[data-theme="dark"] .operation-two-column-grid--split-scroll .operation-email-column,
+[data-theme="dark"] .operation-prearrival-grid--split-scroll .operation-form-column,
+[data-theme="dark"] .operation-prearrival-grid--split-scroll .operation-email-column {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
 /* Ensure the last field and Save section stay reachable while the left
    form column scrolls independently. Dropdown menus are portaled to the
    body, so the clipped column no longer hides their options. */
@@ -2415,11 +2446,25 @@ $send-report-optional: #80868b;
   border-radius: 10px;
 }
 
+[data-theme="dark"] .operation-two-column-grid--split-scroll .operation-form-column::-webkit-scrollbar-thumb,
+[data-theme="dark"] .operation-two-column-grid--split-scroll .operation-email-column::-webkit-scrollbar-thumb,
+[data-theme="dark"] .operation-prearrival-grid--split-scroll .operation-form-column::-webkit-scrollbar-thumb,
+[data-theme="dark"] .operation-prearrival-grid--split-scroll .operation-email-column::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+
 .operation-two-column-grid--split-scroll .operation-form-column::-webkit-scrollbar-thumb:hover,
 .operation-two-column-grid--split-scroll .operation-email-column::-webkit-scrollbar-thumb:hover,
 .operation-prearrival-grid--split-scroll .operation-form-column::-webkit-scrollbar-thumb:hover,
 .operation-prearrival-grid--split-scroll .operation-email-column::-webkit-scrollbar-thumb:hover {
   background: #7d8794;
+}
+
+[data-theme="dark"] .operation-two-column-grid--split-scroll .operation-form-column::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .operation-two-column-grid--split-scroll .operation-email-column::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .operation-prearrival-grid--split-scroll .operation-form-column::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .operation-prearrival-grid--split-scroll .operation-email-column::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .operation-form-column,
@@ -2774,6 +2819,10 @@ $send-report-optional: #80868b;
   align-items: center;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%);
+  }
 }
 
 .operation-compact-upload-zone:hover:not(.operation-compact-upload-zone--disabled) {
@@ -2781,6 +2830,10 @@ $send-report-optional: #80868b;
   background: linear-gradient(135deg, #f5f6ff 0%, #eef0ff 100%);
   box-shadow: 0 6px 16px rgba(79, 70, 229, 0.1);
   transform: translateY(-1px);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-secondary) 0%, var(--surface-hover) 100%);
+  }
 }
 
 .operation-compact-upload-zone--disabled {
@@ -2824,6 +2877,10 @@ $send-report-optional: #80868b;
   border-top: 1px solid var(--border-primary);
   z-index: 20;
   margin-top: auto;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(to top, var(--surface-primary) 78%, transparent);
+  }
 }
 
 .operation-save-button {
@@ -6107,6 +6164,11 @@ $send-report-optional: #80868b;
   background: linear-gradient(90deg, #eef1f7 20%, #f8f9fc 45%, #eef1f7 70%);
   background-size: 200% 100%;
   animation: appointmentViewLoadingShimmer 1.25s linear infinite;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(90deg, var(--surface-hover) 20%, var(--surface-secondary) 45%, var(--surface-hover) 70%);
+    background-size: 200% 100%;
+  }
 }
 
 .general-shimmer-line+.general-shimmer-line {
@@ -6464,6 +6526,10 @@ $send-report-optional: #80868b;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-primary) 0%, var(--surface-hover) 100%);
+  }
 }
 
 .document-upload-zone:hover {
@@ -6471,6 +6537,10 @@ $send-report-optional: #80868b;
   background: linear-gradient(135deg, #f8f9ff 0%, #eef0ff 100%);
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(42, 0, 255, 0.1);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%);
+  }
 }
 
 .document-upload-zone:hover .upload-icon-wrapper svg {
@@ -9394,6 +9464,10 @@ body .modal-backdrop.show {
   padding: 17px 21px;
   border-bottom: 1px solid var(--border-primary);
   background: linear-gradient(to right, #f2f1ff 0%, #fafbff 65%);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(to right, var(--surface-hover) 0%, var(--surface-primary) 65%);
+  }
 }
 
 .operation-task-card-title {
