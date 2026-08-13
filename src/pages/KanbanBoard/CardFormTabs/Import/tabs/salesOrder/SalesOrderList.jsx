@@ -1112,11 +1112,6 @@ const SalesOrderList = ({
     return eligible.some((order) => selectedSet.has(order.id)) && !isGroupAllSelected(orders, selectedSet, isEligible);
   };
 
-  const handleClearSelection = () => {
-    setSelectedPoItems(new Set());
-    setSelectedWoItems(new Set());
-  };
-
   const canGeneratePO = selectedPoItems.size > 0;
   const canGenerateWorkOrder = selectedWoItems.size > 0;
 
@@ -1904,49 +1899,30 @@ const SalesOrderList = ({
 
         {/* Right: Table view + Accounting Summary — wider column */}
         <div className="so-right-panel">
-          {/* Sticky Bulk Action Bar */}
-          {!isDAModule && (selectedPoItems.size > 0 || selectedWoItems.size > 0) && (
-            <div ref={bulkActionBarRef} className="so-bulk-action-bar">
-              <div className="so-bulk-action-info">
-                <span className="so-bulk-action-count">
-                  {selectedPoItems.size} for PO · {selectedWoItems.size} for Work Order
-                </span>
-                <button
-                  type="button"
-                  onClick={handleClearSelection}
-                  className="so-bulk-btn so-bulk-btn-clear"
-                >
-                  Clear Selection
-                </button>
-              </div>
+          {/* Sticky Bulk Action Bar — each button only appears once its own selection is non-empty */}
+          {!isDAModule && (canGeneratePO || canGenerateWorkOrder) && (
+            <div ref={bulkActionBarRef} className="so-bulk-action-bar so-bulk-action-bar-compact">
               <div className="so-bulk-action-buttons">
-                <button
-                  type="button"
-                  onClick={handleClearSelection}
-                  className="so-bulk-btn so-bulk-btn-cancel"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGeneratePO}
-                  className="so-bulk-btn so-bulk-btn-generate-po"
-                  disabled={!canGeneratePO}
-                  title={!canGeneratePO ? "Select at least one item without a PO No." : undefined}
-                >
-                  <FiClipboard className="so-bulk-btn-icon" />
-                  Generate PO ({selectedPoItems.size})
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGenerateWorkOrder}
-                  className="so-bulk-btn so-bulk-btn-generate-wo"
-                  disabled={!canGenerateWorkOrder}
-                  title={!canGenerateWorkOrder ? "Select at least one item without a Work Order No." : undefined}
-                >
-                  <FiTool className="so-bulk-btn-icon" />
-                  Generate Work Order ({selectedWoItems.size})
-                </button>
+                {canGeneratePO && (
+                  <button
+                    type="button"
+                    onClick={handleGeneratePO}
+                    className="so-bulk-btn so-bulk-btn-generate-po"
+                  >
+                    <FiClipboard className="so-bulk-btn-icon" />
+                    Generate PO ({selectedPoItems.size})
+                  </button>
+                )}
+                {canGenerateWorkOrder && (
+                  <button
+                    type="button"
+                    onClick={handleGenerateWorkOrder}
+                    className="so-bulk-btn so-bulk-btn-generate-wo"
+                  >
+                    <FiTool className="so-bulk-btn-icon" />
+                    Generate Work Order ({selectedWoItems.size})
+                  </button>
+                )}
               </div>
             </div>
           )}

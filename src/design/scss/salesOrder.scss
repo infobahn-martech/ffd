@@ -1153,6 +1153,10 @@
   animation: salesOrderBarSlideUp 0.22s ease-out;
 }
 
+.so-bulk-action-bar-compact {
+  justify-content: flex-end;
+}
+
 @keyframes salesOrderBarSlideUp {
   from {
     opacity: 0;
@@ -1163,19 +1167,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.so-bulk-action-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.so-bulk-action-count {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text-primary);
-  white-space: nowrap;
 }
 
 .so-bulk-action-buttons {
@@ -1225,31 +1216,6 @@
 .so-bulk-btn-icon {
   font-size: 15px;
   flex-shrink: 0;
-}
-
-/* Clear Selection — small neutral outline */
-.so-bulk-btn-clear {
-  background: transparent;
-  color: var(--text-secondary);
-  border-color: var(--border-primary);
-}
-
-.so-bulk-btn-clear:hover:not(:disabled) {
-  background: var(--surface-primary);
-  border-color: var(--border-primary);
-  color: var(--text-primary);
-}
-
-/* Cancel — light grey secondary */
-.so-bulk-btn-cancel {
-  background: var(--surface-primary);
-  color: var(--text-primary);
-  border-color: var(--border-primary);
-}
-
-.so-bulk-btn-cancel:hover:not(:disabled) {
-  background: var(--bg-secondary);
-  border-color: var(--border-primary);
 }
 
 /* Generate PO — soft navy outline */
