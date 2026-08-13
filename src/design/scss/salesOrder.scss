@@ -1306,12 +1306,6 @@
 }
 
 .sales-order-table-container .sales-order-list-table {
-  .col-checkbox {
-    width: 48px;
-    min-width: 48px;
-    max-width: 48px;
-  }
-
   .col-item-no {
     width: 9%;
     min-width: 108px;
@@ -1379,11 +1373,7 @@
     min-width: 190px;
   }
 
-  &:has(thead th.col-checkbox) tbody tr:not(.sales-order-accordion-header-row) td:nth-child(3) .sales-order-table-cell {
-    white-space: normal;
-  }
-
-  &:not(:has(thead th.col-checkbox)) tbody tr:not(.sales-order-accordion-header-row) td:nth-child(2) .sales-order-table-cell {
+  tbody tr:not(.sales-order-accordion-header-row) td:nth-child(2) .sales-order-table-cell {
     white-space: normal;
   }
 }

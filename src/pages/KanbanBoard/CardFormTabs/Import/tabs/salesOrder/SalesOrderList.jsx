@@ -700,8 +700,10 @@ const SalesOrderList = ({
     [callDetailData, card, soPort]
   );
 
-  // State for checkbox selection (exclude DA module)
-  const [selectedItems, setSelectedItems] = useState(new Set());
+  // State for checkbox selection (exclude DA module) — separate sets so a row that already
+  // has a PO can still be selected for Work Order, and vice versa.
+  const [selectedPoItems, setSelectedPoItems] = useState(new Set());
+  const [selectedWoItems, setSelectedWoItems] = useState(new Set());
   const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
   const [isGeneratingWorkOrder, setIsGeneratingWorkOrder] = useState(false);
   const bulkActionBarRef = useRef(null);
@@ -1059,11 +1061,17 @@ const SalesOrderList = ({
     setNewItemForm(EMPTY_NEW_ITEM_FORM);
   };
 
-  // Checkbox selection handlers (only for non-DA module)
-  const handleItemCheckboxChange = (itemId, checked) => {
+  // Checkbox selection handlers (only for non-DA module).
+  // PO and Work Order have their own selection column/state — a row already carrying one
+  // is not selectable for that action, so eligibility is enforced at the checkbox itself
+  // rather than by disabling the whole bulk action after the fact.
+  const isEligibleForPo = (order) => !order.poNo;
+  const isEligibleForWo = (order) => !order.workOrder && Number(order.woStatus) !== 1;
+
+  const handleItemCheckboxToggle = (itemId, checked, setSelected) => {
     if (isDAModule) return; // Exclude DA module
 
-    setSelectedItems((prev) => {
+    setSelected((prev) => {
       const newSet = new Set(prev);
       if (checked) {
         newSet.add(itemId);
@@ -1074,36 +1082,46 @@ const SalesOrderList = ({
     });
   };
 
-  const handleGroupSelectAll = (callFile, orders, checked) => {
+  const handleGroupSelectAll = (orders, checked, isEligible, setSelected) => {
     if (isDAModule) return; // Exclude DA module
 
-    setSelectedItems((prev) => {
+    setSelected((prev) => {
       const newSet = new Set(prev);
-      if (checked) {
-        orders.forEach((order) => newSet.add(order.id));
-      } else {
-        orders.forEach((order) => newSet.delete(order.id));
-      }
+      orders.filter(isEligible).forEach((order) => {
+        if (checked) {
+          newSet.add(order.id);
+        } else {
+          newSet.delete(order.id);
+        }
+      });
       return newSet;
     });
   };
 
-  const isGroupAllSelected = (orders) => {
-    if (isDAModule || orders.length === 0) return false;
-    return orders.every((order) => selectedItems.has(order.id));
+  const isGroupAllSelected = (orders, selectedSet, isEligible) => {
+    if (isDAModule) return false;
+    const eligible = orders.filter(isEligible);
+    if (eligible.length === 0) return false;
+    return eligible.every((order) => selectedSet.has(order.id));
   };
 
-  const isGroupSomeSelected = (orders) => {
-    if (isDAModule || orders.length === 0) return false;
-    return orders.some((order) => selectedItems.has(order.id)) && !isGroupAllSelected(orders);
+  const isGroupSomeSelected = (orders, selectedSet, isEligible) => {
+    if (isDAModule) return false;
+    const eligible = orders.filter(isEligible);
+    if (eligible.length === 0) return false;
+    return eligible.some((order) => selectedSet.has(order.id)) && !isGroupAllSelected(orders, selectedSet, isEligible);
   };
 
   const handleClearSelection = () => {
-    setSelectedItems(new Set());
+    setSelectedPoItems(new Set());
+    setSelectedWoItems(new Set());
   };
 
+  const canGeneratePO = selectedPoItems.size > 0;
+  const canGenerateWorkOrder = selectedWoItems.size > 0;
+
   const handleGenerateWorkOrder = () => {
-    if (selectedItems.size === 0) return;
+    if (!canGenerateWorkOrder) return;
     setShowWorkOrderModal(true);
   };
 
@@ -1112,15 +1130,27 @@ const SalesOrderList = ({
   };
 
   const handleCreateWorkOrder = async () => {
-    if (selectedItems.size === 0 || isGeneratingWorkOrder) return;
+    if (isGeneratingWorkOrder) return;
 
-    const payload = { so_item_ids: Array.from(selectedItems) };
+    // Re-validate against the latest item state right before calling the API —
+    // an item may have already had a Work Order generated since it was selected.
+    const validItemIds = Array.from(selectedWoItems).filter((id) => {
+      const order = displayOrderList.find((o) => o.id === id);
+      return order ? isEligibleForWo(order) : false;
+    });
+    if (validItemIds.length === 0) {
+      useAlertReducer.getState().error("Selected items already have a Work Order No. Please refresh and try again.");
+      setShowWorkOrderModal(false);
+      return;
+    }
+
+    const payload = { so_item_ids: validItemIds };
     setIsGeneratingWorkOrder(true);
     try {
       await salesOrderService.generateWorkOrder(payload.so_item_ids);
       useAlertReducer.getState().success("Work order generated successfully.");
       setShowWorkOrderModal(false);
-      setSelectedItems(new Set());
+      setSelectedWoItems(new Set());
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -1145,8 +1175,18 @@ const SalesOrderList = ({
   };
 
   const handleGeneratePO = () => {
-    if (selectedItems.size === 0) return;
-    setGeneratePOItemIds(Array.from(selectedItems));
+    if (!canGeneratePO) return;
+    // Re-validate against the latest item state — a selected item may have had a PO
+    // generated elsewhere since it was checked.
+    const validItemIds = Array.from(selectedPoItems).filter((id) => {
+      const order = displayOrderList.find((o) => o.id === id);
+      return order ? isEligibleForPo(order) : false;
+    });
+    if (validItemIds.length === 0) {
+      useAlertReducer.getState().error("Selected items already have a PO No. Please refresh and try again.");
+      return;
+    }
+    setGeneratePOItemIds(validItemIds);
     setGeneratePOError(null);
     setShowGeneratePOPopup(true);
   };
@@ -1168,7 +1208,19 @@ const SalesOrderList = ({
   };
 
   const handleConfirmGeneratePO = async (vendorRefNo) => {
-    if (generatePOItemIds.length === 0 || isGeneratingPO) return;
+    if (isGeneratingPO) return;
+
+    // Re-validate against the latest known item state right before calling the API —
+    // an item may have already had a PO generated since this selection was made.
+    const validItemIds = generatePOItemIds.filter((id) => {
+      const order = displayOrderList.find((o) => o.id === id);
+      return order ? isEligibleForPo(order) : false;
+    });
+    if (validItemIds.length === 0) {
+      useAlertReducer.getState().error("Selected items already have a PO No. Please refresh and try again.");
+      setShowGeneratePOPopup(false);
+      return;
+    }
 
     const discountPercentage =
       formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== ""
@@ -1176,7 +1228,7 @@ const SalesOrderList = ({
         : 0;
 
     const payload = {
-      so_item_ids: generatePOItemIds,
+      so_item_ids: validItemIds,
       vendor_ref_no: vendorRefNo || "",
       contact_person: soContactPerson,
       branch,
@@ -1200,7 +1252,7 @@ const SalesOrderList = ({
       useAlertReducer.getState().success("Purchase order generated successfully.");
 
       setShowGeneratePOPopup(false);
-      setSelectedItems(new Set());
+      setSelectedPoItems(new Set());
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -1230,6 +1282,24 @@ const SalesOrderList = ({
     return <th {...thProps}>{label}</th>;
   };
 
+  // "Select all" header for the Work Order No. / PO No. columns — scoped to the currently
+  // visible (paginated) rows, reusing the same group select-all logic as the accordion headers.
+  const renderSelectAllHeader = (label, className, selectedSet, isEligible, setSelected) => (
+    <th className={className}>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        {!isDAModule && (
+          <GroupCheckbox
+            checked={isGroupAllSelected(paginatedOrderList, selectedSet, isEligible)}
+            indeterminate={isGroupSomeSelected(paginatedOrderList, selectedSet, isEligible)}
+            onChange={(e) => handleGroupSelectAll(paginatedOrderList, e.target.checked, isEligible, setSelected)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
+        <span>{label}</span>
+      </div>
+    </th>
+  );
+
   const cellStyle = {
     width: "100%",
     border: "1px solid #ddd",
@@ -1245,21 +1315,11 @@ const SalesOrderList = ({
     const hasWorkOrder = Boolean(order.workOrder) || Number(order.woStatus) === 1;
     const defaultTypeOfPo = !isThirdParty(order.is_third_party) ? "Inhouse" : "";
 
+    const eligibleForPo = isEligibleForPo(order);
+    const eligibleForWo = isEligibleForWo(order);
+
     return (
     <tr key={order.id}>
-      {!isDAModule && (
-        <td>
-          <div className="sales-order-table-cell" style={{ textAlign: "center", padding: "8px", paddingRight: "21px" }}>
-            <input
-              type="checkbox"
-              checked={selectedItems.has(order.id)}
-              onChange={(e) => handleItemCheckboxChange(order.id, e.target.checked)}
-              style={{ width: "18px", height: "18px", cursor: "pointer" }}
-            />
-          </div>
-        </td>
-      )}
-
       {/* Item No */}
       <td>
         <div className="sales-order-table-cell" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
@@ -1348,17 +1408,41 @@ const SalesOrderList = ({
         </div>
       </td>
 
-      {/* Work Order No. */}
+      {/* Work Order No. — checkbox to select for Generate Work Order, or the existing WO number */}
       <td>
-        <div className="sales-order-table-cell">
-          {order.workOrder || "—"}
+        <div className="sales-order-table-cell" style={{ textAlign: "center" }}>
+          {isDAModule ? (
+            order.workOrder || "—"
+          ) : eligibleForWo ? (
+            <input
+              type="checkbox"
+              checked={selectedWoItems.has(order.id)}
+              onChange={(e) => handleItemCheckboxToggle(order.id, e.target.checked, setSelectedWoItems)}
+              aria-label="Select for Generate Work Order"
+              style={{ width: "18px", height: "18px", cursor: "pointer" }}
+            />
+          ) : (
+            order.workOrder || "—"
+          )}
         </div>
       </td>
 
-      {/* PO No. */}
+      {/* PO No. — checkbox to select for Generate PO, or the existing PO number */}
       <td>
-        <div className="sales-order-table-cell">
-          {order.poNo || "—"}
+        <div className="sales-order-table-cell" style={{ textAlign: "center" }}>
+          {isDAModule ? (
+            order.poNo || "—"
+          ) : eligibleForPo ? (
+            <input
+              type="checkbox"
+              checked={selectedPoItems.has(order.id)}
+              onChange={(e) => handleItemCheckboxToggle(order.id, e.target.checked, setSelectedPoItems)}
+              aria-label="Select for Generate PO"
+              style={{ width: "18px", height: "18px", cursor: "pointer" }}
+            />
+          ) : (
+            order.poNo || "—"
+          )}
         </div>
       </td>
 
@@ -1821,11 +1905,11 @@ const SalesOrderList = ({
         {/* Right: Table view + Accounting Summary — wider column */}
         <div className="so-right-panel">
           {/* Sticky Bulk Action Bar */}
-          {!isDAModule && selectedItems.size > 0 && (
+          {!isDAModule && (selectedPoItems.size > 0 || selectedWoItems.size > 0) && (
             <div ref={bulkActionBarRef} className="so-bulk-action-bar">
               <div className="so-bulk-action-info">
                 <span className="so-bulk-action-count">
-                  {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
+                  {selectedPoItems.size} for PO · {selectedWoItems.size} for Work Order
                 </span>
                 <button
                   type="button"
@@ -1847,17 +1931,21 @@ const SalesOrderList = ({
                   type="button"
                   onClick={handleGeneratePO}
                   className="so-bulk-btn so-bulk-btn-generate-po"
+                  disabled={!canGeneratePO}
+                  title={!canGeneratePO ? "Select at least one item without a PO No." : undefined}
                 >
                   <FiClipboard className="so-bulk-btn-icon" />
-                  Generate PO
+                  Generate PO ({selectedPoItems.size})
                 </button>
                 <button
                   type="button"
                   onClick={handleGenerateWorkOrder}
                   className="so-bulk-btn so-bulk-btn-generate-wo"
+                  disabled={!canGenerateWorkOrder}
+                  title={!canGenerateWorkOrder ? "Select at least one item without a Work Order No." : undefined}
                 >
                   <FiTool className="so-bulk-btn-icon" />
-                  Generate Work Order
+                  Generate Work Order ({selectedWoItems.size})
                 </button>
               </div>
             </div>
@@ -1904,7 +1992,6 @@ const SalesOrderList = ({
             <table className="table table-striped sales-order-table sales-order-list-table" style={{ "--card-color": "#e2e6ff" }}>
               <thead>
                 <tr>
-                  {!isDAModule && <th className="col-checkbox"></th>}
                   {renderTableHeader("Item No", "col-item-no")}
                   {renderTableHeader("Item Description", "col-item-desc")}
                   {renderTableHeader("Quantity", "col-qty")}
@@ -1912,8 +1999,8 @@ const SalesOrderList = ({
                   {renderTableHeader("Discount", "col-discount")}
                   {renderTableHeader("Tax Code", "col-tax")}
                   {renderTableHeader("Total Amount", "col-total")}
-                  {renderTableHeader("Work Order No.", "col-work-order")}
-                  {renderTableHeader("PO No.", "col-po-no")}
+                  {renderSelectAllHeader("Work Order No.", "col-work-order", selectedWoItems, isEligibleForWo, setSelectedWoItems)}
+                  {renderSelectAllHeader("PO No.", "col-po-no", selectedPoItems, isEligibleForPo, setSelectedPoItems)}
                   {renderTableHeader("Type of PO", "col-type-po")}
                   {renderTableHeader("Third Party", "col-third-party")}
                   {renderTableHeader("Supporting Documents", "col-documents")}
@@ -1924,7 +2011,7 @@ const SalesOrderList = ({
                 {displayOrderList.length === 0 && !isLoadingSalesOrder && (
                   <tr>
                     <td
-                      colSpan={isDAModule ? 13 : 14}
+                      colSpan={13}
                       style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
                     >
                       No sales order line items for this call.
@@ -1939,8 +2026,10 @@ const SalesOrderList = ({
                   }
 
                   const isExpanded = expandedCallFiles.has(callFile);
-                  const groupAllSelected = isGroupAllSelected(orders);
-                  const groupSomeSelected = isGroupSomeSelected(orders);
+                  const groupAllSelectedPo = isGroupAllSelected(orders, selectedPoItems, isEligibleForPo);
+                  const groupSomeSelectedPo = isGroupSomeSelected(orders, selectedPoItems, isEligibleForPo);
+                  const groupAllSelectedWo = isGroupAllSelected(orders, selectedWoItems, isEligibleForWo);
+                  const groupSomeSelectedWo = isGroupSomeSelected(orders, selectedWoItems, isEligibleForWo);
 
                   return (
                     <React.Fragment key={callFile}>
@@ -1957,16 +2046,27 @@ const SalesOrderList = ({
                         }}
                         style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                       >
-                        <td colSpan={isDAModule ? 13 : 14} style={{ padding: "12px 16px" }}>
+                        <td colSpan={13} style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                               {!isDAModule && (
                                 <GroupCheckbox
-                                  checked={groupAllSelected}
-                                  indeterminate={groupSomeSelected}
+                                  checked={groupAllSelectedPo}
+                                  indeterminate={groupSomeSelectedPo}
                                   onChange={(e) => {
                                     e.stopPropagation();
-                                    handleGroupSelectAll(callFile, orders, e.target.checked);
+                                    handleGroupSelectAll(orders, e.target.checked, isEligibleForPo, setSelectedPoItems);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              )}
+                              {!isDAModule && (
+                                <GroupCheckbox
+                                  checked={groupAllSelectedWo}
+                                  indeterminate={groupSomeSelectedWo}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleGroupSelectAll(orders, e.target.checked, isEligibleForWo, setSelectedWoItems);
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 />
@@ -2127,7 +2227,7 @@ const SalesOrderList = ({
           onClose={handleCloseWorkOrderModal}
           onGenerate={handleCreateWorkOrder}
           isSubmitting={isGeneratingWorkOrder}
-          selectedItems={Array.from(selectedItems)}
+          selectedItems={Array.from(selectedWoItems)}
           salesOrderList={displayOrderList}
           cardColor={cardColor}
           vesselName={soShipName}
