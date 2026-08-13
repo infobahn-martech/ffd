@@ -83,7 +83,7 @@ export default function useKanbanBoardState(selectedBoardId) {
     setAddTargetWorkflowId(null);
   }, [selectedBoardId]);
 
-  const refetchBoard = useCallback(async () => {
+  const refetchBoard = useCallback(async ({ reconcile = true } = {}) => {
     if (!selectedBoardId || isOperatorBoardId(selectedBoardId)) return;
     setBoardLoading(true);
     setBoardLoadError(null);
@@ -100,7 +100,7 @@ export default function useKanbanBoardState(selectedBoardId) {
         return fresh ?? prev;
       });
       setBoardLoadError(null);
-      reconcileDABoardColumns(mapped, selectedBoardId, setWorkflows);
+      if (reconcile) reconcileDABoardColumns(mapped, selectedBoardId, setWorkflows);
     } catch (e) {
       setWorkflows([]);
       setBoardLoadError(
@@ -170,7 +170,9 @@ export default function useKanbanBoardState(selectedBoardId) {
     const handleHideWorkspaces = () => setShowWorkspaces(false);
 
     const handleSubtaskCardCreated = () => {
-      refetchBoard();
+      // Cross-app event, not scoped to this board or to a DA card move — skip the
+      // N+1 DA stage reconcile pass here, it only matters after an actual card move.
+      refetchBoard({ reconcile: false });
     };
 
     window.addEventListener("kanban:show-workspaces", handleShowWorkspaces);
