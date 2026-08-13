@@ -2236,7 +2236,10 @@ function CardForm({
       lastSalesOrderFetchKeyRef.current = null;
       return;
     }
-    if (activeTopTab !== "Sales Order") return;
+    if (activeTopTab !== "Sales Order") {
+      lastSalesOrderFetchKeyRef.current = null;
+      return;
+    }
 
     const callIdRaw = card?.call_id ?? card?.callId;
     const callId = callIdRaw === undefined || callIdRaw === null ? "" : String(callIdRaw).trim();
