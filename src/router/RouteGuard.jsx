@@ -1,5 +1,7 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Navigate, useLocation, useParams } from 'react-router-dom';
 import useAuthReducer from '../store/AuthReducer';
+import useWorkSpaceReducer from '../store/WorkSpaceReducer';
 import { hasRouteAccess } from './rolePermissions';
 import { ROUTE_PATHS } from './paths';
 import {
@@ -15,6 +17,7 @@ import {
 } from '../shared/helpers/vendorDashboardRoles';
 import { checkHasPermission } from '../shared/utils/permissions';
 import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../shared/constants/permissions';
+import { canAccessKanbanBoard } from '../shared/helpers/kanbanBoardAccess';
 
 // `moduleKey`/`submoduleKey`/`actionKey` are optional permission metadata
 // (new module/action permission system).
@@ -29,9 +32,29 @@ import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../shared/constants/perm
 //   authoritative. Use this only once a feature is confirmed migrated.
 function RouteGuard({ children, moduleKey, submoduleKey, actionKey, permissionOnly = false }) {
   const location = useLocation();
+  // `boardId` comes from /kanban-board/:boardId, `id` from /kanban-board/:id/analytics —
+  // both name the same thing: the specific board this route loads data for.
+  const { boardId, id: analyticsBoardId } = useParams();
+  const requestedBoardId = boardId ?? analyticsBoardId ?? null;
+
   const userProfile = useAuthReducer((state) => state.userProfile);
   const isLoggedIn = useAuthReducer((state) => state.isLoggedIn);
   const permissionMap = useAuthReducer((state) => state.permissionMap);
+
+  // Board-instance access (is THIS board_id allowed, not just the /kanban-board
+  // route in general) is derived from the same `workspaces` list the
+  // sidebar/Workspaces page uses to render board links, so nav and direct-URL
+  // access can never drift apart.
+  const workspaces = useWorkSpaceReducer((state) => state.workspaces);
+  const workspacesFetched = useWorkSpaceReducer((state) => state.workspacesFetched);
+  const workspacesLoading = useWorkSpaceReducer((state) => state.isLoading);
+  const listAllWorkspaces = useWorkSpaceReducer((state) => state.listAllWorkspaces);
+
+  useEffect(() => {
+    if (requestedBoardId && !workspacesFetched && !workspacesLoading) {
+      listAllWorkspaces();
+    }
+  }, [requestedBoardId, workspacesFetched, workspacesLoading, listAllWorkspaces]);
 
   // If not logged in, redirect to login
   if (!isLoggedIn) {
@@ -49,12 +72,25 @@ function RouteGuard({ children, moduleKey, submoduleKey, actionKey, permissionOn
     );
   }
 
+  // A specific board was requested but we don't yet know the user's
+  // accessible-board list — never render/fetch the board while this is unknown.
+  if (requestedBoardId && !workspacesFetched) {
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Get user role ID
   const userRoleId = userProfile.role?.role_id;
   const currentPath = location.pathname;
+  const boardAllowed = !requestedBoardId || canAccessKanbanBoard(requestedBoardId, workspaces);
 
   if (isRestrictedBoardUser(userProfile)) {
-    if (!isRestrictedUserAllowedPath(currentPath)) {
+    if (!isRestrictedUserAllowedPath(currentPath) || !boardAllowed) {
       return <Navigate to={RESTRICTED_USER_FALLBACK_PATH} replace />;
     }
     // /workspaces is also this role class's fallback path (and Dashboard,
@@ -94,7 +130,9 @@ function RouteGuard({ children, moduleKey, submoduleKey, actionKey, permissionOn
     ? checkHasPermission(permissionMap, { moduleKey, submoduleKey, actionKey })
     : false;
 
-  const allowed = permissionOnly ? allowedByPermission : (allowedByExistingRole || allowedByPermission);
+  const allowed =
+    (permissionOnly ? allowedByPermission : (allowedByExistingRole || allowedByPermission)) &&
+    boardAllowed;
 
   if (!allowed) {
     // User doesn't have permission, redirect to dashboard
