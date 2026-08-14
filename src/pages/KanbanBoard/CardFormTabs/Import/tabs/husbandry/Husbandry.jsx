@@ -72,11 +72,11 @@ BackToCrewListingLink.propTypes = {
 };
 
 // Service Selection Component
-const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [], servicesSummary }) => {
+const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [], servicesSummary, showLaunchHire = true }) => {
   const categories = servicesSummary?.categories || {};
   const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-  const services = [
+  const allServices = [
     {
       id: MAIN_TABS.CREW_MANAGEMENT,
       label: "Crew Management",
@@ -146,6 +146,10 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [], ser
       bookedSummary: "Track add-on support requests under a single service view.",
     },
   ];
+
+  const services = showLaunchHire
+    ? allServices
+    : allServices.filter((service) => service.id !== "LAUNCH_HIRE");
 
   const totalServices = services.length;
   const bookedCount = bookedServices.length;
@@ -314,6 +318,7 @@ ServiceSelection.propTypes = {
   cardColor: PropTypes.string,
   bookedServices: PropTypes.array,
   servicesSummary: PropTypes.object,
+  showLaunchHire: PropTypes.bool,
 };
 
 // Dummy crew data for DA module Husbandry tab
@@ -331,7 +336,7 @@ const DAMODULE_CREW_DUMMY = [
 ];
 
 // Main Husbandry Component
-function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
+function Husbandry({ card, formValues, handleChange, isDAModule = false, showLaunchHire = true }) {
   const [serviceSelected, setServiceSelected] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]); // Array to track selected services
   const [activeMainTab, setActiveMainTab] = useState(null);
@@ -757,6 +762,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            showLaunchHire={showLaunchHire}
           />
         );
       case LAUNCH_HIRE_SUBTABS.REQUESTS:
@@ -781,6 +787,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            showLaunchHire={showLaunchHire}
           />
         );
       case MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE:
@@ -813,6 +820,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            showLaunchHire={showLaunchHire}
           />
         );
     }
@@ -869,6 +877,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           cardColor={cardColor}
           bookedServices={bookedServices}
           servicesSummary={servicesSummary}
+          showLaunchHire={showLaunchHire}
         />
       </div>
     );
@@ -938,6 +947,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
+              showLaunchHire={showLaunchHire}
             />
           )}
           {activeMainTab === MAIN_TABS.ADD_ON_SERVICES && (
@@ -945,6 +955,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
+              showLaunchHire={showLaunchHire}
             />
           )}
         </div>
@@ -958,6 +969,7 @@ Husbandry.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isDAModule: PropTypes.bool,
+  showLaunchHire: PropTypes.bool,
 };
 
 export default Husbandry;

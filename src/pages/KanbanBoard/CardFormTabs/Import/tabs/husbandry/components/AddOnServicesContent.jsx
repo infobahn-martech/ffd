@@ -32,7 +32,7 @@ const ADD_ON_SERVICE_REQUEST_COLUMNS = [
   { key: "document", header: "Document", accessor: (r) => r?.document_url, type: "document" },
 ];
 
-const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
+const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchHire = true }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
@@ -42,7 +42,7 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingAddOnServiceCatalog, setLoadingAddOnServiceCatalog] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-  const isLaunchHire = formValues.addOnServicesLaunchHire !== false;
+  const isLaunchHire = showLaunchHire && formValues.addOnServicesLaunchHire !== false;
   const {
     addOnServiceRequests,
     isLoadingList,
@@ -374,6 +374,7 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
                     </FormField>
                   </FormGroup>
 
+                  {showLaunchHire && (
                   <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={ADD_ON_SERVICE_ACCENT}>
                     <FormField>
                       <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
@@ -410,6 +411,7 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor }) => {
                       </FieldRow>
                     )}
                   </FormGroup>
+                  )}
 
                   <FormGroup icon="folder" label="Documents" accent={ADD_ON_SERVICE_ACCENT}>
                     <FormField className="cf-field-full">
@@ -476,6 +478,7 @@ AddOnServicesContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  showLaunchHire: PropTypes.bool,
 };
 
 export default AddOnServicesContent;

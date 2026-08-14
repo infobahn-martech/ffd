@@ -322,7 +322,7 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
   );
 };
 
-const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
+const InboundOrdersContent = ({ formValues, handleChange, cardColor, showLaunchHire = true }) => {
   const {
     saveInboundOrder,
     updateInboundOrder,
@@ -1611,6 +1611,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           </div>
 
           {/* Launch Hire Section */}
+          {showLaunchHire && (
           <div className="dispatch-edit-section">
             <div className="dispatch-edit-checkbox-group">
               <label className="dispatch-edit-checkbox-label">
@@ -1698,6 +1699,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               </div>
             )}
           </div>
+          )}
 
           {/* Remarks - after order details */}
           <div className="row g-2 mt-2">
@@ -2643,6 +2645,7 @@ InboundOrdersContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  showLaunchHire: PropTypes.bool,
 };
 
 export default InboundOrdersContent;

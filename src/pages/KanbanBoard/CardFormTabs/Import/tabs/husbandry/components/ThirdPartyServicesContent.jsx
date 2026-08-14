@@ -32,7 +32,7 @@ const unwrapApiList = (axiosData) => {
   return [];
 };
 
-const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
+const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor, showLaunchHire = true }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
@@ -42,7 +42,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingThirdPartyServiceCatalog, setLoadingThirdPartyServiceCatalog] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-  const isLaunchHire = formValues.thirdPartyServicesLaunchHire !== false;
+  const isLaunchHire = showLaunchHire && formValues.thirdPartyServicesLaunchHire !== false;
   const {
     thirdPartyServiceRequests,
     isLoadingList,
@@ -358,6 +358,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                     </FormField>
                   </FormGroup>
 
+                  {showLaunchHire && (
                   <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={THIRD_PARTY_ACCENT}>
                     <FormField>
                       <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
@@ -394,6 +395,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                       </FieldRow>
                     )}
                   </FormGroup>
+                  )}
 
                   <FormGroup icon="folder" label="Documents" accent={THIRD_PARTY_ACCENT}>
                     <FormField className="cf-field-full">
@@ -459,6 +461,7 @@ ThirdPartyServicesContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  showLaunchHire: PropTypes.bool,
 };
 
 export default ThirdPartyServicesContent;

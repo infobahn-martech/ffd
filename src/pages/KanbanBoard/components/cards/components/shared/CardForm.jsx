@@ -1649,7 +1649,8 @@ const renderTabContent = (
   onExportApprovalWorkflowActionCompleted,
   daStatusRefreshToken,
   onAdvanceDaStage,
-  isAdvancingDaStage
+  isAdvancingDaStage,
+  showLaunchHire = true
 ) => {
   const commonProps = {
     card,
@@ -1668,6 +1669,7 @@ const renderTabContent = (
     daStatusRefreshToken,
     onAdvanceDaStage,
     isAdvancingDaStage,
+    showLaunchHire,
   };
 
   if (isDAModule) {
@@ -2165,6 +2167,11 @@ function CardForm({
 
   // Husbandry Call (call_type_id === "4") has no Operation stage.
   const isHusbandryCall = String(formValues.call_type_id ?? "") === "4";
+
+  // Launch Hire is a call-level capability (get_call_detail launch_hire flag).
+  // Husbandry's Launch Hire option/sections stay visible until the snapshot
+  // confirms it's explicitly disabled (0) for this call.
+  const showLaunchHire = Number(callDetailSnapshot?.launch_hire) !== 0;
 
   // For export calls, the "Operation" tab stays visible but disabled until
   // export approval has fully completed (backend sets export_approval_status
@@ -2909,7 +2916,8 @@ function CardForm({
                 refetchCallDetailSnapshot,
                 daStatusRefreshToken,
                 handleDaTimelineStepClick,
-                isAdvancingStage
+                isAdvancingStage,
+                showLaunchHire
               )}
           </>
         )}
