@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
@@ -9,6 +9,7 @@ import { setItem } from "../../shared/helpers/localStorage";
 
 function Index() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
   const {
@@ -18,10 +19,19 @@ function Index() {
   } = useForm();
   const { login, isLoginLoading, isLoggedIn } = useAuthReducer();
 
+  // PrivateRoutes redirects unauthenticated visits to "/" with state.from set to the
+  // originally-requested location (e.g. a CEO email approval link) — send them back
+  // there after login instead of always landing on /workspaces.
+  const getPostLoginRedirect = () => {
+    const from = location.state?.from;
+    return from?.pathname ? `${from.pathname}${from.search || ""}` : "/workspaces";
+  };
+
   useEffect(() => {
     if (isLoggedIn) {
-      navigate("/workspaces");
+      navigate(getPostLoginRedirect(), { replace: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, navigate]);
 
   const onSubmit = async (data) => {
@@ -54,7 +64,7 @@ function Index() {
           },
         },
       });
-      navigate("/workspaces");
+      navigate(getPostLoginRedirect(), { replace: true });
     }
   };
 

@@ -103,6 +103,7 @@ import TaskManagement from "../pages/TaskManagement";
 import TaskRoles from "../pages/TaskChecklist";
 import TugType from "../pages/TugType";
 import BusinessRules from "../pages/BusinessRules";
+import CeoApproval from "../pages/CeoApproval";
 const router = createBrowserRouter(
   [
     {
@@ -336,6 +337,8 @@ const router = createBrowserRouter(
                 { path: "/task-management", element: <RouteGuard><TaskManagement /></RouteGuard> },
                 { path: "/task-roles", element: <RouteGuard><TaskRoles /></RouteGuard> },
                 { path: "/business-rules", element: <RouteGuard><BusinessRules /></RouteGuard> },
+                // CEO Export Approval email deep link
+                { path: ROUTE_PATHS.CEO_APPROVAL, element: <RouteGuard><CeoApproval /></RouteGuard> },
               ],
             },
           ],
