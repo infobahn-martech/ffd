@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, FormGroup, FieldRow, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, FormSelect, FormGroup, FieldRow, PremiumCardHeader, ReactQuillEditor } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../../shared/components/DateTimePickerField";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
@@ -253,6 +253,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor, showLa
     const payload = {
       call_id: Number(callId),
       third_party_service_id: Number(formValues.thirdPartyServiceType),
+      charge_code: formValues.thirdPartyServicesChargeCode || "",
       remarks: formValues.thirdPartyServicesDescription || "",
       launch_hire: isLaunchHire ? 1 : 0,
       location: isLaunchHire ? formValues.thirdPartyServicesLaunchHireLocation || "" : "",
@@ -284,6 +285,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor, showLa
         "top-center"
       );
       handleChange("thirdPartyServiceType")({ target: { value: "" } });
+      handleChange("thirdPartyServicesChargeCode")({ target: { value: "" } });
       handleChange("thirdPartyServicesDescription")({ target: { value: "" } });
       handleChange("thirdPartyServicesRequestEmailDocuments")({ target: { value: [] } });
       handleChange("thirdPartyServicesDocuments")({ target: { value: [] } });
@@ -354,6 +356,17 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor, showLa
                             : "Select service type..."
                         }
                         disabled={loadingThirdPartyServiceCatalog}
+                      />
+                    </FormField>
+                  </FormGroup>
+
+                  <FormGroup icon="notebook" label="Charge Code/Project Name" accent={THIRD_PARTY_ACCENT}>
+                    <FormField>
+                      <FormInput
+                        type="text"
+                        value={formValues.thirdPartyServicesChargeCode || ""}
+                        onChange={handleChange("thirdPartyServicesChargeCode")}
+                        placeholder="Enter charge code / project name..."
                       />
                     </FormField>
                   </FormGroup>

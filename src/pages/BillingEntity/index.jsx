@@ -104,22 +104,6 @@ const BillingEntity = () => {
       contentClass: "table-content",
     },
     {
-      name: "Contact Person",
-      selector: "contact_name",
-      sort: true,
-      width: "220",
-      thclass: "tb-head",
-      contentClass: "table-content",
-    },
-    {
-      name: "Phone No.",
-      selector: "phoneNumber",
-      sort: true,
-      width: "180",
-      thclass: "tb-head",
-      contentClass: "table-content",
-    },
-    {
       name: "Credit Limit",
       selector: "credit_limit",
       sort: false,
