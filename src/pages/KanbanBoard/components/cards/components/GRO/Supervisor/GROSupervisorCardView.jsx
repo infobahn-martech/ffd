@@ -19,6 +19,7 @@ import {
 import GROSupervisorTabs from "./GROSupervisorTabs";
 import GROSupervisorAssignTask from "./GROSupervisorAssignTask";
 import GROSupervisorDocuments from "./GROSupervisorDocuments";
+import { isExportCallType, resolveCallTypeId } from "../../../../../CardFormTabs/shared/utils/callTypes";
 
 const SUPERVISOR_TABS = {
   assign: "assign",
@@ -46,6 +47,12 @@ const parseUsersByRoleResponse = (res) => {
 function GROSupervisorCardView({ card, selectedTask: selectedTaskProp = null }) {
   const tasks = useMemo(() => getGroSupervisorTasksForCard(card), [card]);
   const taskId = useMemo(() => resolveGroSupervisorTaskId(card, selectedTaskProp), [card, selectedTaskProp]);
+  // Export calls don't go through the GRO task workflow, so a missing task_id
+  // there is expected, not an error — fall back to the generic empty message.
+  const isExportTypeCall = useMemo(
+    () => isExportCallType(resolveCallTypeId(card, null, null)),
+    [card]
+  );
 
   const [activeTab, setActiveTab] = useState(SUPERVISOR_TABS.assign);
   const [documents, setDocuments] = useState([]);
@@ -119,7 +126,7 @@ function GROSupervisorCardView({ card, selectedTask: selectedTaskProp = null }) 
     if (!taskId) {
       setDocuments([]);
       setTaskDocumentsData(null);
-      setDocumentsLoadError("Unable to load documents: missing task id.");
+      setDocumentsLoadError(isExportTypeCall ? null : "Unable to load documents: missing task id.");
       setDocumentsLoading(false);
       return undefined;
     }
@@ -149,7 +156,7 @@ function GROSupervisorCardView({ card, selectedTask: selectedTaskProp = null }) 
     return () => {
       cancelled = true;
     };
-  }, [activeTab, taskId]);
+  }, [activeTab, taskId, isExportTypeCall]);
 
   return (
     <div className="gro-card-view gro-supervisor-card-view">

@@ -6,9 +6,7 @@ import {
   extractFullBoardBackground,
 } from "../../../shared/helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
-import daService from "../../../services/daService";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
-import { movePureCardToColumn } from "../utils/columnHelpers";
 import { reorderWorkflowsByPinState } from "../utils/workflowHelpers";
 
 const isDev =
@@ -20,49 +18,6 @@ const isOperatorBoardId = (id) => String(id ?? "").toLowerCase() === "operator";
 const sortByPinState = (mapped) => {
   const pinState = Object.fromEntries(mapped.map((wf) => [wf.id, Boolean(wf.isPinned)]));
   return reorderWorkflowsByPinState(pinState, mapped);
-};
-
-// Centralized DA Desk board (board_id "3") only. Backend gap: api/da/advance_stage doesn't
-// persist the board's own column — confirmed via direct test, a raw page reload still shows a
-// moved DA card back in its pre-move column. DA's own per-call stage (api/da/card/{call_id}) is
-// accurate, so on every load/refetch of this board we fetch it for every card and correct the
-// freshly-loaded layout to match. This is N+1 network calls by design (explicitly requested,
-// board can be slow to settle) — drop this once the backend persists the column itself.
-const reconcileDABoardColumns = async (mappedWorkflows, boardIdParam, setWorkflowsFn) => {
-  if (String(boardIdParam ?? "") !== "3") return;
-
-  const cardRefs = [];
-  for (const wf of mappedWorkflows) {
-    for (const cardId of Object.keys(wf.cards || {})) {
-      const callIdRaw = wf.cards[cardId]?.callId;
-      const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
-      if (callId) cardRefs.push({ workflowId: wf.id, cardId, callId });
-    }
-  }
-  if (cardRefs.length === 0) return;
-
-  const wfById = Object.fromEntries(mappedWorkflows.map((wf) => [wf.id, wf]));
-  const results = await Promise.allSettled(
-    cardRefs.map((ref) => daService.getCardStage(ref.callId))
-  );
-
-  const moves = [];
-  results.forEach((res, i) => {
-    if (res.status !== "fulfilled") return;
-    const columnName = res.value?.data?.data?.column_name;
-    if (!columnName) return;
-    const ref = cardRefs[i];
-    const wf = wfById[ref.workflowId];
-    if (!wf) return;
-    const colKey = Object.keys(wf.columns).find((k) => wf.columns[k]?.title === columnName);
-    const targetColumnId = colKey ? wf.columns[colKey]?.id : null;
-    if (targetColumnId) moves.push({ cardId: ref.cardId, targetColumnId });
-  });
-  if (moves.length === 0) return;
-
-  setWorkflowsFn((prev) =>
-    moves.reduce((acc, move) => movePureCardToColumn(acc, move.cardId, move.targetColumnId), prev)
-  );
 };
 
 export default function useKanbanBoardState(selectedBoardId) {
@@ -100,7 +55,6 @@ export default function useKanbanBoardState(selectedBoardId) {
         return fresh ?? prev;
       });
       setBoardLoadError(null);
-      reconcileDABoardColumns(mapped, selectedBoardId, setWorkflows);
     } catch (e) {
       setWorkflows([]);
       setBoardLoadError(
@@ -143,9 +97,6 @@ export default function useKanbanBoardState(selectedBoardId) {
         setWorkflows(mapped);
         setBoardBackground(extractFullBoardBackground(payload));
         setBoardLoadError(null);
-        reconcileDABoardColumns(mapped, selectedBoardId, (updater) => {
-          if (!cancelled) setWorkflows(updater);
-        });
       } catch (e) {
         if (!cancelled) {
           setWorkflows([]);

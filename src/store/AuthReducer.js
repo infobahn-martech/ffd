@@ -3,6 +3,7 @@ import authService from '../services/authService';
 import { getAuthData, removeItem, setItem, getItem } from '../shared/helpers/localStorage';
 import useAlertReducer from './AlertReducer';
 import { normalizePermissionSections } from '../shared/utils/permissions';
+import { useDaLocalReachedDates, useDaLocalLaunchHire } from '../shared/store/daStore';
 
 const { isLoggedIn } = getAuthData();
 
@@ -153,6 +154,14 @@ const useAuthReducer = create((set) => ({
     removeItem('userEmail');
     removeItem('role_id');
     removeItem('vendor_id');
+
+    // These DA local-only fallback stores (see daStore.js) are in-memory,
+    // keyed by call id (not by user), and only meant to be cleared by a full
+    // page reload — but logout navigates client-side without one, so without
+    // this reset a new user logging in on the same tab would still see the
+    // previous user's unsaved DA field overrides.
+    useDaLocalReachedDates.setState({ reachedDates: {} });
+    useDaLocalLaunchHire.setState({ overrides: {} });
   },
   getUserProfile: async (userId = null, skipApiCall = false) => {
     try {

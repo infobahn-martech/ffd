@@ -1,9 +1,10 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import useAuthReducer from '../store/AuthReducer';
 import { getItem } from '../shared/helpers/localStorage';
 
 function PrivateRoutes() {
+  const location = useLocation();
   const isLoggedIn = useAuthReducer((state) => state.isLoggedIn);
   const getUserProfile = useAuthReducer((state) => state.getUserProfile);
   const isProfileFetchLoading = useAuthReducer(
@@ -30,7 +31,7 @@ function PrivateRoutes() {
     );
 
   if (!isLoggedIn) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // Ensure user profile is loaded

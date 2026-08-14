@@ -34,6 +34,7 @@ import CrewImmigrationPanel from "./CrewImmigrationPanel";
 import CrewChangePassPanel from "./CrewChangePassPanel";
 import VesselInwardRegistrationView from "./VesselInwardRegistrationView";
 import DateTimePickerField from "../../../../../CardFormTabs/shared/components/DateTimePickerField";
+import { isExportCallType, resolveCallTypeId } from "../../../../../CardFormTabs/shared/utils/callTypes";
 import {
   createEmptyExtraStageFields,
   validateGroExtraStageFields,
@@ -1150,7 +1151,6 @@ const GROCardView = forwardRef(function GROCardView(
     }
 
     if (!taskId) {
-      notify("Unable to load documents: missing task id.", "error");
       setTaskDocumentsData(null);
       setDocuments([]);
     }
@@ -1165,6 +1165,11 @@ const GROCardView = forwardRef(function GROCardView(
         setCallDetail(detail);
 
         if (!taskId) {
+          // Export calls don't go through the GRO task workflow, so a missing
+          // task_id there is expected, not an error — only alarm otherwise.
+          if (!isExportCallType(resolveCallTypeId(card, null, detail))) {
+            notify("Unable to load documents: missing task id.", "error");
+          }
           setTaskDocumentsData(null);
           setDocuments([]);
           return;
@@ -1188,7 +1193,7 @@ const GROCardView = forwardRef(function GROCardView(
     return () => {
       cancelled = true;
     };
-  }, [callId, cardId, taskId, applyDocumentsByTaskResponse]);
+  }, [callId, cardId, taskId, applyDocumentsByTaskResponse, card]);
 
   const handleInwardCancel = () => {
     setShowInwardClearance(false);
