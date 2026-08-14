@@ -160,17 +160,6 @@
     }
   }
 
-  .approval-action-card--active {
-    border-color: rgba(109, 94, 245, 0.45);
-    box-shadow: 0 0 0 1px rgba(109, 94, 245, 0.18), 0 16px 32px -18px rgba(109, 94, 245, 0.38);
-    animation: approval-fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both,
-      approval-glow-pulse 2.6s ease-in-out infinite;
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
   .approval-card-body {
     flex: 1;
     min-height: 0;
@@ -787,16 +776,6 @@
     }
   }
 
-  @keyframes approval-glow-pulse {
-    0%,
-    100% {
-      box-shadow: 0 0 0 1px rgba(109, 94, 245, 0.18), 0 16px 32px -18px rgba(109, 94, 245, 0.38);
-    }
-    50% {
-      box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.24), 0 18px 36px -16px rgba(109, 94, 245, 0.46);
-    }
-  }
-
   @keyframes approval-icon-pulse {
     0%,
     100% {
@@ -811,7 +790,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .approval-form-card,
-    .approval-action-card--active,
     .approval-hold-banner,
     .approval-status-badge,
     .approval-save-status,

@@ -7,6 +7,16 @@ import Gateway from '../gateway/gateway';
 const getFullBoard = (boardId) =>
   Gateway.get(`/kanban_board/get_full_board/${boardId}`);
 
+/**
+ * Fetch a single card's header data (card_name, card_color, board_id, call_id).
+ * Used by the CEO email deep link to populate the CardForm header with the
+ * real title and color without loading the entire board.
+ * Response shape: { data: { card_id, card_name, card_color, board_id, call_id, ... } }
+ */
+const getCardById = (cardId) =>
+  Gateway.get(`/kanban_card/get_card/${encodeURIComponent(String(cardId))}`);
+
+
 /** @param {{ card_id: string|number, card_color: string }} payload */
 const updateCardColor = (payload) =>
   Gateway.post('/kanban_card/update_card_color', payload);
@@ -99,6 +109,7 @@ const deleteCardNote = (noteId) =>
 
 export default {
   getFullBoard,
+  getCardById,
   updateCardColor,
   updateCardTitle,
   getCardTypesByBoard,

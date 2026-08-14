@@ -538,14 +538,9 @@ const createEmptyPartySection = () => ({
     stageWaitMessage,
     statusBadge,
     hideActions = false,
-    isActiveStage = false,
   }) {
     return (
-      <section
-        className={`approval-form-card approval-party-card approval-action-card ${
-          isActiveStage ? "approval-action-card--active" : ""
-        }`.trim()}
-      >
+      <section className="approval-form-card approval-party-card approval-action-card">
         <h3 className="form-group-title">{title}</h3>
         <div className="approval-card-body approval-fields-stack">
           <FormField label={commentsLabel}>
@@ -608,7 +603,6 @@ const createEmptyPartySection = () => ({
       text: PropTypes.string.isRequired,
     }),
     hideActions: PropTypes.bool,
-    isActiveStage: PropTypes.bool,
   };
 
   function PartySectionCard({ title, fields, values, onChange, imageFiles, onImageFilesChange, imagesDisabled, showImageUpload = true }) {
@@ -935,6 +929,11 @@ const createEmptyPartySection = () => ({
     // instead of silently dropped.
     useEffect(() => () => debouncedAutoSave.flush(), [debouncedAutoSave]);
 
+    // Credit Controller / Manager / CEO cards are explicitly excluded from
+    // this autosave trigger per user request — those three only persist via
+    // their own action buttons (Approved / Proceed to...), not on every
+    // keystroke. Basic details and the vessel party sections keep autosaving
+    // as before.
     useEffect(() => {
       if (skipNextAutoSaveRef.current) {
         skipNextAutoSaveRef.current = false;
@@ -949,12 +948,6 @@ const createEmptyPartySection = () => ({
       vesselOwnerImages,
       vesselPrincipalImages,
       vesselChartererImages,
-      creditControllerRemarks,
-      creditControllerDocuments,
-      managerComments,
-      managerDocuments,
-      ceoComments,
-      ceoDocuments,
       debouncedAutoSave,
     ]);
 
@@ -1174,7 +1167,6 @@ const createEmptyPartySection = () => ({
                   !stageActive.credit_controller ||
                   !canEditCreditControllerSection
                 }
-                isActiveStage={stageActive.credit_controller && canEditCreditControllerSection}
               />
 
               {/* Nobody — Controller, Manager (role_id 1 or 3), CEO, or generic
@@ -1244,7 +1236,6 @@ const createEmptyPartySection = () => ({
                     managerApproved ||
                     isStagePassed(effectiveStage, "manager_ofm")
                   }
-                  isActiveStage={stageActive.manager_ofm && isManagerRole}
                 />
               ) : null}
 
@@ -1328,7 +1319,6 @@ const createEmptyPartySection = () => ({
                   // hides them for the CEO too; on hold keeps them visible
                   // for the CEO so they can still click Approved to resume.
                   hideActions={!isCeoRole || ceoApproved}
-                  isActiveStage={isCeoStageUsable && isCeoRole}
                 />
               ) : null}
             </div>

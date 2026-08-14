@@ -1158,8 +1158,12 @@ const TopBar = ({
         )}
       </div>
       <div className="cardform-topbar-right">
-        {renderMetaPickerButton("tag", Tag, "Tag")}
-        {renderMetaPickerButton("type", Layers3, "Type")}
+        {/* Deep-link entry points (e.g. CeoApproval) have no board context, so
+            these board-scoped pickers would only ever show "Board id is
+            missing" — hide them entirely rather than display broken controls
+            the viewer isn't there to use anyway. */}
+        {resolvedBoardId ? renderMetaPickerButton("tag", Tag, "Tag") : null}
+        {resolvedBoardId ? renderMetaPickerButton("type", Layers3, "Type") : null}
         {openPicker &&
           openPickerConfig &&
           typeof document !== "undefined" &&
@@ -1182,8 +1186,8 @@ const TopBar = ({
             />,
             document.body
           )}
-        {renderMetaPickerButton("blocker", AlertTriangle, "Blocker")}
-        {renderMetaPickerButton("sticker", Sticker, "Sticker")}
+        {resolvedBoardId ? renderMetaPickerButton("blocker", AlertTriangle, "Blocker") : null}
+        {resolvedBoardId ? renderMetaPickerButton("sticker", Sticker, "Sticker") : null}
         <div className="topbar-color-picker-wrapper">
           <button
             ref={colorPickerTriggerRef}
@@ -1766,6 +1770,7 @@ function CardForm({
   patchCardBlocker,
   patchCardSticker,
   patchCardTag,
+  initialTab,
 }) {
   const userProfile = useAuthReducer((state) => state.userProfile);
   const userRoleId = getFirstUserRoleId(userProfile);
@@ -1774,10 +1779,57 @@ function CardForm({
   // (tab bar + "DA" tab) instead of the generic GRO fallback view.
   const isDAUser = String(userRoleId ?? "") === "22";
   const isDABoardCard = String(boardId ?? "") === "3";
+  // "vessel" appointment-type calls don't have GRO tasks, so a GRO Supervisor/DA
+  // viewer should see the standard tab view (with Export Approval) for them —
+  // every other appointment type (tug, tug_and_barge, taxi_tug_and_barge) still
+  // gets the GRO card view. This needs to be known before effectiveVariant is
+  // decided below, so it's fetched here rather than reusing the later
+  // callDetailSnapshot (which loads after this point).
+  const isGroSupervisorRoleViewer =
+    isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId));
+  // The DA Desk board case never takes the "gro" branch regardless of appointment
+  // type (see effectiveVariant below), so it doesn't need this fetch or its loading state.
+  const needsGroViewAppointmentTypeCheck = isGroSupervisorRoleViewer && !(isDAUser && isDABoardCard);
+  const [groViewAppointmentType, setGroViewAppointmentType] = useState(null);
+  const [isGroViewCallTypeLoading, setIsGroViewCallTypeLoading] = useState(false);
+  useEffect(() => {
+    if (!show || isAddMode || !needsGroViewAppointmentTypeCheck) {
+      setIsGroViewCallTypeLoading(false);
+      return undefined;
+    }
+    const callIdRaw = card?.call_id ?? card?.callId;
+    const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
+    if (!callId) {
+      setIsGroViewCallTypeLoading(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setIsGroViewCallTypeLoading(true);
+    callFileService
+      .getCallDetail(callId)
+      .then(({ data }) => {
+        if (!cancelled) setGroViewAppointmentType(data?.data?.appointment_type ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setGroViewAppointmentType(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsGroViewCallTypeLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [show, isAddMode, needsGroViewAppointmentTypeCheck, card?.call_id, card?.callId]);
+  const isVesselAppointmentForGroView = String(groViewAppointmentType ?? "").trim() === "vessel";
+  // While the appointment type is still loading, hold off rendering either the GRO
+  // view or the tab view — otherwise a GRO-role/DA viewer briefly sees the wrong one
+  // flash before this resolves and the real view swaps in.
+  const isDecidingGroExportView = needsGroViewAppointmentTypeCheck && isGroViewCallTypeLoading;
   const effectiveVariant = (() => {
     if (
       (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) &&
-      !(isDAUser && isDABoardCard)
+      !(isDAUser && isDABoardCard) &&
+      !isVesselAppointmentForGroView
     ) {
       return "gro";
     }
@@ -2111,6 +2163,25 @@ function CardForm({
     if (!snap || typeof snap !== "object") return null;
     const meta = {};
 
+    // Deep-link entry points (e.g. CeoApproval) hand CardForm a bare
+    // { id, call_id } stub with no title/color of its own. get_call_detail
+    // doesn't return the card's real title (card_name) or color (card_color)
+    // either (confirmed directly against the live API) — vessel_name is a
+    // different field and was previously used as a stand-in here, but that
+    // showed a genuinely different value than the card's real title (e.g.
+    // "AHT CHRYSOLITE" vs the real "test 13"), so it's intentionally not
+    // used as a fallback. Only real card_name/card_color are picked up here;
+    // cards opened from the board already carry their own title/color, so
+    // topbarCard's `{...meta, ...card}` merge (below) always lets those win.
+    const snapTitle = snap.card_name;
+    if (snapTitle != null && String(snapTitle).trim() !== "") {
+      meta.title = String(snapTitle).trim();
+    }
+    const snapColor = snap.card_color;
+    if (snapColor != null && String(snapColor).trim() !== "") {
+      meta.color = String(snapColor).trim();
+    }
+
     const ct = snap.card_type;
     if (ct && typeof ct === "object") {
       if (ct.card_type_id != null) meta.card_type_id = ct.card_type_id;
@@ -2201,6 +2272,22 @@ function CardForm({
       setActiveTopTab(defaultTab);
     }
   }, [showExportTabs, activeTopTab, defaultTab]);
+
+  // Force-select Export Approval once its tab actually becomes available
+  // (showExportTabs resolves async after callDetailSnapshot loads) — lets
+  // callers like the CEO email deep link open straight into that tab.
+  //
+  // The key tracks which (card id, initialTab) pair has already been applied
+  // so that navigating to a different call (e.g. CEO opens a second deep-link
+  // in the same session) resets the guard and the tab-switch fires again.
+  const initialTabAppliedRef = useRef(null);
+  const initialTabKey = `${card?.id ?? card?.card_id ?? ""}:${initialTab ?? ""}`;
+  useEffect(() => {
+    if (initialTabAppliedRef.current === initialTabKey) return;
+    if (initialTab !== "Export Approval" || !showExportTabs) return;
+    setActiveTopTab("Export Approval");
+    initialTabAppliedRef.current = initialTabKey;
+  }, [initialTab, initialTabKey, showExportTabs]);
 
   useEffect(() => {
     if (lockOperationForExport && activeTopTab === "Operation") {
@@ -2376,10 +2463,6 @@ function CardForm({
     setActiveTopTab(tab);
   }, []);
 
-  // api/da/card/{call_id} — DA's own source of truth for the card's current stage
-  // (column_name), used below to drive the footer step indicator for DA cards instead
-  // of relying solely on the generic board's local column state.
-  const [daCardStage, setDaCardStage] = useState(null);
   const [isAdvancingStage, setIsAdvancingStage] = useState(false);
   const isDaCardContext = isDAVariant || isDABoard;
   // Local fallback for reached_date since api/da/update_status doesn't persist it yet
@@ -2389,52 +2472,12 @@ function CardForm({
   // picker) so DA.jsx's Summary-tab Status Timeline (a separate fetch of
   // api/da/status_timeline/{call_id}) refetches immediately instead of only on next open.
   const [daStatusRefreshToken, setDaStatusRefreshToken] = useState(0);
-
-  useEffect(() => {
-    if (!show || isAddMode || !isDaCardContext) {
-      setDaCardStage(null);
-      return undefined;
-    }
-    const callIdRaw = card?.call_id ?? card?.callId;
-    const callId = callIdRaw != null ? String(callIdRaw).trim() : "";
-    if (!callId) {
-      setDaCardStage(null);
-      return undefined;
-    }
-
-    let cancelled = false;
-    daService.getCardStage(callId)
-      .then(({ data }) => {
-        if (!cancelled) setDaCardStage(data?.data ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setDaCardStage(null);
-      });
-    return () => { cancelled = true; };
-  }, [show, isAddMode, isDaCardContext, card?.call_id, card?.callId, cardFormSyncKey, daStatusRefreshToken]);
-
-  // DA cards: api/da/card/{call_id}'s current stage carries its own sticker
-  // (current_sticker_id / sticker_name) — whenever the Status Timeline round marker or the
-  // footer stepper moves the DA to a new stage, daCardStage refetches (see effect above) and
-  // this mirrors that stage's sticker onto the header's "Card sticker" picker too, instead of
-  // it staying stuck on whatever sticker was last picked manually. color_code/icon_name aren't
-  // confirmed on this endpoint, so those fall back to the card's current values rather than
-  // being blanked if the backend doesn't send them.
-  useEffect(() => {
-    if (!isDaCardContext || !daCardStage) return;
-    const stickerIdRaw = daCardStage.current_sticker_id ?? daCardStage.sticker_id;
-    if (stickerIdRaw == null || String(stickerIdRaw).trim() === "") return;
-    const nextId = String(stickerIdRaw).trim();
-    const existingId = resolveCardStickerIdFromCard(card);
-    if (existingId != null && String(existingId).trim() === nextId) return;
-    const cardIdRaw = card?.id ?? card?.card_id;
-    if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
-    patchCardSticker?.(String(cardIdRaw).trim(), nextId, {
-      name: daCardStage.sticker_name ?? card?.sticker_name,
-      color_code: daCardStage.sticker_color_code ?? card?.sticker_color_code,
-      icon_name: daCardStage.sticker_icon_name ?? card?.sticker_icon_name,
-    });
-  }, [isDaCardContext, daCardStage, card, patchCardSticker]);
+  // Backend gap confirmed (2026-08-14): get_full_board still doesn't reflect a card's
+  // advance_stage move — the card comes back in its pre-move column even though advance_stage
+  // itself returned status:true. Remember the last successful move for THIS card in-memory
+  // (no extra API call — we already have targetColumnId from the advance_stage response) so
+  // handleClose can re-apply it after the close-refetch overwrites board state wholesale.
+  const lastDaMoveRef = useRef(null);
 
   const handleClose = useCallback(async () => {
     if (isClosingRef.current) return;
@@ -2448,31 +2491,22 @@ function CardForm({
       }
     } catch (e) {
     } finally {
-      // Backend gap: api/da/advance_stage doesn't yet persist the board's own column, so the
-      // refetch above can put a DA card back in its pre-move column. DA's own stage source
-      // (daCardStage, from api/da/card/{call_id}) is accurate — use it to correct the
-      // just-refetched board position for the card we were viewing before closing.
-      if (isDaCardContext && daCardStage?.column_name && card?.id && moveCardToColumn) {
-        const targetColumnId = getColumnIdFromStepLabel(daCardStage.column_name, columns, columnOrder);
-        if (targetColumnId) moveCardToColumn(card.id, targetColumnId);
+      if (lastDaMoveRef.current?.cardId === card?.id && moveCardToColumn) {
+        moveCardToColumn(lastDaMoveRef.current.cardId, lastDaMoveRef.current.targetColumnId);
       }
       close();
       isClosingRef.current = false;
       setIsClosing(false);
     }
-  }, [close, onBoardRefresh, boardId, isDaCardContext, daCardStage, card?.id, moveCardToColumn, columns, columnOrder]);
+  }, [close, onBoardRefresh, boardId, card?.id, moveCardToColumn]);
 
   // Calculate current step from current column (supports sub-columns when columnOrder from DAdata).
-  // For DA cards, prefer the stage reported by api/da/card/{call_id} (column_name) when it
-  // matches one of this board's step labels; falls back to the local column lookup otherwise.
+  // get_full_board is the source of truth for the card's column now that api/da/advance_stage
+  // persists it there — no separate api/da/card/{call_id} lookup needed.
   const currentStep = useMemo(() => {
-    if (isDaCardContext && daCardStage?.column_name) {
-      const stepFromApi = getStepNumberFromColumnTitle(daCardStage.column_name, columns, columnOrder);
-      if (stepFromApi) return stepFromApi;
-    }
     if (!currentColumn) return null;
     return getStepNumberFromColumnId(currentColumn.id, columns, columnOrder);
-  }, [isDaCardContext, daCardStage, currentColumn, columns, columnOrder]);
+  }, [currentColumn, columns, columnOrder]);
 
   const handleStepClick = useCallback((stepLabel, stepNumber) => {
     if (!card?.id) return;
@@ -2496,9 +2530,9 @@ function CardForm({
       setIsAdvancingStage(true);
       daService.advanceStage({ call_id: callId, column_id: targetColumnId })
         .then(({ data }) => {
-          if (data?.status && data?.current_stage) {
-            setDaCardStage((prev) => ({ ...prev, ...data.current_stage }));
+          if (data?.status) {
             setDaStatusRefreshToken((t) => t + 1);
+            lastDaMoveRef.current = { cardId: card.id, targetColumnId };
             if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
           } else {
             notify(data?.message || "Failed to move card to that stage.", "error");
@@ -2521,6 +2555,17 @@ function CardForm({
       setTopbarColor(card.color);
     }
   }, [show, card?.id, card?.color, isAddMode, isGROStyleView]);
+
+  // Deep-link stub cards (card.color absent — see cardMetaFromSnapshot above)
+  // only learn their real color once get_call_detail resolves; the effect
+  // above never fires for them since card.color never becomes truthy.
+  useEffect(() => {
+    if (!show || isAddMode || isGROStyleView) return;
+    if (card?.color) return;
+    if (cardMetaFromSnapshot?.color) {
+      setTopbarColor(normalizeHexColor(cardMetaFromSnapshot.color, DEFAULT_ACCENT_COLOR));
+    }
+  }, [show, card?.id, card?.color, isAddMode, isGROStyleView, cardMetaFromSnapshot]);
 
   // GRO / custom clearance task card: default emerald header when opening or switching cards.
   useEffect(() => {
@@ -2622,9 +2667,9 @@ function CardForm({
         setIsAdvancingStage(true);
         daService.advanceStage({ call_id: callId, column_id: targetColumnId })
           .then(({ data }) => {
-            if (data?.status && data?.current_stage) {
-              setDaCardStage((prev) => ({ ...prev, ...data.current_stage }));
+            if (data?.status) {
               setDaStatusRefreshToken((t) => t + 1);
+              lastDaMoveRef.current = { cardId: card.id, targetColumnId };
               if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
             } else {
               notify(data?.message || "Failed to move card to that stage.", "error");
@@ -2649,9 +2694,8 @@ function CardForm({
   // comes straight back from this same field, see reached_date in mapStatusTimelineResponse).
   // When statusName *also* matches one of the board's columns (e.g. "Ops completed"), it
   // additionally calls api/da/advance_stage — same direct-match lookup the footer stepper's
-  // jump-to-step uses (see handleStepClick above) — so the card's board column and header
-  // sticker (mirrored from daCardStage, see the effect above) move in step with the timeline
-  // instead of only the timeline updating.
+  // jump-to-step uses (see handleStepClick above) — so the card's board column moves in step
+  // with the timeline instead of only the timeline updating.
   const handleDaTimelineStepClick = useCallback(
     (statusName) => {
       if (!isDaCardContext || isAdvancingStage) return;
@@ -2677,35 +2721,33 @@ function CardForm({
 
           return daService.advanceStage({ call_id: callId, column_id: targetColumnId })
             .then(({ data: advanceData }) => {
-              if (advanceData?.status && advanceData?.current_stage) {
-                setDaCardStage((prev) => ({ ...prev, ...advanceData.current_stage }));
-                setDaStatusRefreshToken((t) => t + 1);
-                if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
+              if (!advanceData?.status) return;
+              setDaStatusRefreshToken((t) => t + 1);
+              lastDaMoveRef.current = { cardId: card.id, targetColumnId };
+              if (moveCardToColumn) moveCardToColumn(card.id, targetColumnId);
 
-                // Backend gap: advance_stage's current_stage only carries sticker info
-                // going forward — reverting (the timeline's "done" round) moves the
-                // board column fine but comes back with no current_sticker_id/sticker_id,
-                // so the daCardStage mirror effect above has nothing to patch the header
-                // "Card sticker" with. Fall back to matching a board sticker by name
-                // against the target status label ourselves (same name-match convention
-                // handleTopbarCardStickerChange already relies on for forward moves).
-                const stageStickerId = advanceData.current_stage.current_sticker_id ?? advanceData.current_stage.sticker_id;
-                const cardIdRaw = card?.id ?? card?.card_id;
-                if ((stageStickerId == null || String(stageStickerId).trim() === "") && boardId && cardIdRaw != null) {
-                  kanbanBoardService.getCardStickersByBoard(boardId)
-                    .then(({ data: stickerBody }) => {
-                      const list = unwrapListFromApi(stickerBody, ["card_stickers", "stickers"]).map(normalizeBoardCardStickerRow);
-                      const match = list.find((s) => normalizeLabelForMatch(s.name) === normalizeLabelForMatch(statusName));
-                      if (match?.id) {
-                        patchCardSticker?.(String(cardIdRaw).trim(), match.id, {
-                          name: match.name,
-                          color_code: match.color_code,
-                          icon_name: match.iconKey,
-                        });
-                      }
-                    })
-                    .catch(() => {});
-                }
+              // advance_stage's current_stage (when present) carries the stage's own sticker —
+              // reverting (the timeline's "done" round) sometimes comes back with no
+              // current_sticker_id/sticker_id, so fall back to matching a board sticker by
+              // name against the target status label ourselves (same name-match convention
+              // handleTopbarCardStickerChange already relies on for forward moves).
+              const stageStickerId =
+                advanceData.current_stage?.current_sticker_id ?? advanceData.current_stage?.sticker_id;
+              const cardIdRaw = card?.id ?? card?.card_id;
+              if ((stageStickerId == null || String(stageStickerId).trim() === "") && boardId && cardIdRaw != null) {
+                kanbanBoardService.getCardStickersByBoard(boardId)
+                  .then(({ data: stickerBody }) => {
+                    const list = unwrapListFromApi(stickerBody, ["card_stickers", "stickers"]).map(normalizeBoardCardStickerRow);
+                    const match = list.find((s) => normalizeLabelForMatch(s.name) === normalizeLabelForMatch(statusName));
+                    if (match?.id) {
+                      patchCardSticker?.(String(cardIdRaw).trim(), match.id, {
+                        name: match.name,
+                        color_code: match.color_code,
+                        icon_name: match.iconKey,
+                      });
+                    }
+                  })
+                  .catch(() => {});
               }
             });
         })
@@ -2874,6 +2916,12 @@ function CardForm({
           <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
+        ) : isDecidingGroExportView ? (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
         ) : isGROStyleView ? (
           isCustomVariant ? (
             <CustomCardView ref={groCardViewRef} card={card} userRoleId={userRoleId} />
@@ -2972,6 +3020,7 @@ CardForm.propTypes = {
   patchCardBlocker: PropTypes.func,
   patchCardSticker: PropTypes.func,
   patchCardTag: PropTypes.func,
+  initialTab: PropTypes.string,
 };
 
 export default CardForm;

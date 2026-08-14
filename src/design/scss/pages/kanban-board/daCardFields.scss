@@ -152,8 +152,6 @@
   margin: 0;
 }
 
-// Clearance Details' own autosave pill — a separate api/da/save_appointment_clearance_tab
-// endpoint from the rest of DA Operations' shared save_operation_tab pill above the grid.
 .da-cf-ops-card-header-status {
   margin-left: auto;
 }
@@ -249,10 +247,10 @@
   }
 }
 
-// Each tile's fade-up animation gives it its own stacking layer (same issue as
-// .da-cf-card-panel-tile below), so a tile further down — e.g. Last moved — paints
-// over an earlier tile's open user-search dropdown (e.g. Co-owner). Lift whichever
-// tile currently has its dropdown open above all its siblings.
+// Each tile's fade-up animation gives it its own stacking layer, so a tile further
+// down — e.g. Last moved — paints over an earlier tile's open user-search dropdown
+// (e.g. Co-owner). Lift whichever tile currently has its dropdown open above all
+// its siblings.
 .da-cf-mwp-launch-hire-panel .da-cf-tile:has(.da-cf-user-search-dropdown) {
   z-index: 20;
 }
@@ -451,8 +449,8 @@
   grid-column: 1 / -1;
 }
 
-// Briefly rings the tile a Summary stat card (Inward/Outward Clearance) deep-links to —
-// see highlightedDocTile / navigateToDocTile in DA.jsx. Clears itself after ~2s.
+// Briefly rings a FileDropzone tile when opened with `highlighted` set — see the
+// `highlighted` prop on FileDropzone in DA.jsx. Clears itself after ~2s.
 .da-cf-tile--highlighted {
   border-color: var(--da-accent);
   box-shadow: 0 0 0 3px var(--da-accent-soft);
@@ -483,208 +481,6 @@
   background: var(--da-accent-soft);
   color: var(--da-accent);
   flex-shrink: 0;
-}
-
-// Card sub-tab — a self-contained, framed panel instead of bare tiles
-// floating on the page background, with its own animated header and
-// staggered card entrance. Keeps its own visual boundary so the empty
-// space around it (only 3 fields) reads as normal page margin rather than
-// a broken/half-filled layout.
-.da-cf-card-panel {
-  position: relative;
-  width: 100%;
-  min-height: calc(100vh - 300px);
-  overflow: hidden;
-  border: 1px solid var(--da-line);
-  border-radius: 24px;
-  padding: 36px 40px 44px;
-  background: linear-gradient(150deg, var(--da-accent-soft) 0%, var(--da-surface) 42%, var(--da-sunken) 100%);
-  box-shadow: 0 20px 44px -20px rgba(67, 56, 202, 0.22), 0 2px 8px rgba(15, 23, 42, 0.04);
-  animation: da-cf-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-
-  // Soft decorative glow in the corner — the kind of subtle depth cue that
-  // keeps a mostly-empty panel from reading as flat/plain.
-  &::before {
-    content: "";
-    position: absolute;
-    top: -120px;
-    right: -120px;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--da-accent) 18%, transparent) 0%, transparent 70%);
-    pointer-events: none;
-  }
-}
-
-.da-cf-card-panel-header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 20px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid color-mix(in srgb, var(--da-line) 70%, transparent);
-}
-
-.da-cf-card-panel-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  flex-shrink: 0;
-  background: linear-gradient(150deg, var(--da-accent) 0%, #6d5bd0 100%);
-  color: #fff;
-  box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.55), 0 0 0 0 rgba(67, 56, 202, 0.45);
-  animation: da-cf-icon-pulse 2.6s ease-out 0.6s infinite;
-}
-
-@keyframes da-cf-icon-pulse {
-  0% { box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.55), 0 0 0 0 rgba(67, 56, 202, 0.35); }
-  70% { box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.55), 0 0 0 14px rgba(67, 56, 202, 0); }
-  100% { box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.55), 0 0 0 0 rgba(67, 56, 202, 0); }
-}
-
-.da-cf-card-panel-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-}
-
-.da-cf-card-panel-title {
-  margin: 0;
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-  color: var(--da-ink);
-}
-
-.da-cf-card-panel-subtitle {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--da-ink-soft);
-}
-
-.da-cf-card-panel-grid {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.da-cf-card-panel-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid color-mix(in srgb, var(--da-line) 70%, transparent);
-}
-
-.da-cf-card-panel-save-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: none;
-  background: var(--da-accent);
-  color: #ffffff;
-  border-radius: 10px;
-  padding: 10px 22px;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-
-  &:hover:not(:disabled) {
-    opacity: 0.9;
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.6;
-  }
-}
-
-.da-cf-card-panel-tile {
-  position: relative;
-  opacity: 0;
-  animation: da-cf-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 90ms + 120ms);
-
-  // Each tile's fade-up animation gives it its own stacking layer, so a
-  // tile lower in the grid (e.g. Last moved) paints over an earlier tile's
-  // open user-search dropdown (e.g. Co-owners). Lift whichever tile
-  // currently has its dropdown open above all its siblings.
-  &:has(.da-cf-user-search-dropdown) {
-    z-index: 20;
-  }
-
-  // Tags normally spans the full row (.da-cf-tile--full) so it can hold a
-  // growing chip list — inside this fixed 3-column panel there's room for
-  // it as a normal column instead.
-  .da-cf-tile--full {
-    grid-column: auto;
-  }
-
-  .da-cf-tile {
-    height: 100%;
-    border-radius: 18px;
-    padding: 22px 22px 24px;
-    gap: 14px;
-    background: var(--da-surface);
-    border: 1px solid var(--da-line);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
-
-    &:hover {
-      transform: translateY(-3px);
-      border-color: color-mix(in srgb, var(--tile-accent, var(--da-accent)) 45%, var(--da-line));
-      box-shadow: 0 16px 28px -16px color-mix(in srgb, var(--tile-accent, var(--da-accent)) 50%, transparent);
-    }
-  }
-
-  .da-cf-tile-label {
-    font-size: 12.5px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-
-  .da-cf-tile-icon {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 2px;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--tile-accent, var(--da-accent)) 14%, #ffffff);
-    color: var(--tile-accent, var(--da-accent));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile-accent, var(--da-accent)) 20%, transparent);
-
-    svg {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  .da-cf-input {
-    padding: 12px 14px;
-    border-radius: 11px;
-    font-size: 14.5px;
-    background: var(--da-sunken);
-    border-color: transparent;
-
-    &:focus {
-      background: var(--da-surface);
-      border-color: color-mix(in srgb, var(--tile-accent, var(--da-accent)) 55%, var(--da-line));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--tile-accent, var(--da-accent)) 16%, transparent);
-    }
-  }
 }
 
 .da-cf-input {
@@ -1567,33 +1363,6 @@ a.da-cf-file-name {
   color: var(--da-ink-faint);
 }
 
-// Inward/Outward Clearance cards — clicking jumps to the matching Clearance Copy tile
-// in DA Documents (see navigateToDocTile in DA.jsx).
-.da-cf-summary-card--clickable {
-  position: relative;
-  cursor: pointer;
-
-  &:focus-visible {
-    outline: 2px solid var(--summary-accent, var(--da-accent));
-    outline-offset: 2px;
-  }
-}
-
-.da-cf-summary-card-arrow {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  color: var(--summary-accent, var(--da-accent));
-  opacity: 0.55;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.da-cf-summary-card--clickable:hover .da-cf-summary-card-arrow,
-.da-cf-summary-card--clickable:focus-visible .da-cf-summary-card-arrow {
-  opacity: 1;
-  transform: translate(2px, -2px);
-}
-
 @media (max-width: 992px) {
   .da-cf-summary-cards {
     grid-template-columns: repeat(2, 1fr);
@@ -2074,10 +1843,9 @@ a.da-cf-file-name {
   }
 }
 
-// Appointment & Clearance sub-tab (see AppointmentClearanceSection in DA.jsx) — a 2x2
-// card grid. Only Appointment Email is editable here; the 3 clearance dates are synced
-// from elsewhere in the backend, so there's no step/progress framing, just 4 cards in
-// the same shape language as .da-cf-summary-card (per-card accent via --step-accent).
+// Card-hero grid shared by DA Operations' Launch Hire / Invoice / Sales Order sub-tabs —
+// each field becomes its own card, same shape language as .da-cf-summary-card
+// (per-card accent via --step-accent).
 .da-cf-ac-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
