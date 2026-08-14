@@ -87,6 +87,10 @@ export const routePermissions = {
   "/transport-parties": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.CEO, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.VENDOR],
   "/waste-types": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.CEO, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.VENDOR],
   "/settings": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.CEO],
+  // CEO email-approval deep link — CEO-only. Without this entry, hasRouteAccess's
+  // "unlisted route = allow" fallback let any logged-in user reach the Approve
+  // action by navigating to the URL directly.
+  "/approval/ceo": [ROLE_IDS.CEO],
 };
 
 // Helper function to check if a role has access to a route
