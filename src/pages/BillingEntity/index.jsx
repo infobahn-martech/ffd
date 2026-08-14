@@ -103,6 +103,14 @@ const BillingEntity = () => {
       thclass: "tb-head",
       contentClass: "table-content",
     },
+       {
+      name: "Balance",
+      selector: "balance",
+      sort: true,
+      width: "200",
+      thclass: "tb-head",
+      contentClass: "table-content",
+    },
     {
       name: "Credit Limit",
       selector: "credit_limit",
