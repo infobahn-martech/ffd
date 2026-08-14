@@ -20,11 +20,17 @@ function Index() {
   const { login, isLoginLoading, isLoggedIn } = useAuthReducer();
 
   // PrivateRoutes redirects unauthenticated visits to "/" with state.from set to the
-  // originally-requested location (e.g. a CEO email approval link) — send them back
-  // there after login instead of always landing on /workspaces.
+  // originally-requested location. Only honor that for the CEO email approval deep
+  // link — any other leftover "from" (e.g. a kanban board a previous user on this
+  // same tab/browser was viewing, reached via back button after logout) must not
+  // carry over to whichever different user logs in next; they always land on their
+  // own /workspaces instead.
   const getPostLoginRedirect = () => {
     const from = location.state?.from;
-    return from?.pathname ? `${from.pathname}${from.search || ""}` : "/workspaces";
+    if (from?.pathname?.startsWith("/approval/ceo/")) {
+      return `${from.pathname}${from.search || ""}`;
+    }
+    return "/workspaces";
   };
 
   useEffect(() => {
