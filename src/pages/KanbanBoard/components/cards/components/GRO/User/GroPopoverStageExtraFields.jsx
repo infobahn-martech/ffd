@@ -319,6 +319,22 @@ function GroPopoverStageExtraFields({
     );
   }
 
+  if (stageId === 13) {
+    return (
+      <PopoverFileUploadField
+        label="MWP Cancellation"
+        fieldKey="mwp_cancellation_doc"
+        file={values?.mwp_cancellation_doc}
+        existingFile={existingFiles?.mwp_cancellation_doc}
+        error={errors?.mwp_cancellation_doc}
+        disabled={disabled}
+        fileInputRefs={fileInputRefs}
+        onFileChange={onFileChange}
+        required
+      />
+    );
+  }
+
   return null;
 }
 
