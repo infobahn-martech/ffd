@@ -1297,12 +1297,14 @@ const SalesOrderList = ({
 
   const cellStyle = {
     width: "100%",
-    border: "1px solid #ddd",
+    border: "1px solid var(--border-primary)",
     borderRadius: "4px",
     padding: "4px 8px",
     textAlign: "center",
     fontSize: "14px",
     fontFamily: "inherit",
+    background: "var(--surface-primary)",
+    color: "var(--text-primary)",
   };
 
   // Render a single order row
@@ -1660,7 +1662,7 @@ const SalesOrderList = ({
                             readOnly
                             placeholder="— Select vendor —"
                             className="sales-order-add-form-input"
-                            style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
+                            style={{ flex: 1, cursor: "default" }}
                           />
                           <button
                             type="button"
