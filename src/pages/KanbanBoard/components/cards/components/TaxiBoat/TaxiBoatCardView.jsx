@@ -8,7 +8,7 @@ import groService from "../../../../../../services/groService";
 import launchHireService from "../../../../../../services/launchHireService";
 import DateTimePickerField from "../../../../CardFormTabs/shared/components/DateTimePickerField";
 import SearchableSelect from "../../../../../../components/form/SearchableSelect";
-import { buildApiDateTime } from "../../../../../../shared/helpers/dateTimeFieldUtils";
+import { buildApiDateTime, splitApiDateTimeParts } from "../../../../../../shared/helpers/dateTimeFieldUtils";
 import { formatGroDocumentDisplayName } from "../GRO/User/groCardUtils";
 import PropTypes from "prop-types";
 import { FiFlag, FiAnchor, FiNavigation, FiHome, FiArrowDown, FiArrowUp, FiArrowLeft, FiClock, FiUpload, FiPlus, FiCheckCircle, FiPrinter, FiUser } from "react-icons/fi";
@@ -1833,6 +1833,17 @@ function TaxiBoatCardView({ card, userRoleId = null }) {
       });
     return () => { cancelled = true; };
   }, [bookingId]);
+
+  // get_taxiboat_booking_detail also carries the confirmed location/booking_datetime for
+  // this booking — sync them into the operator's editable fields once loaded, so they
+  // don't sit blank behind the "Select a location" / empty date-time placeholders.
+  useEffect(() => {
+    if (!taxiboatBookingDetail) return;
+    if (taxiboatBookingDetail.location) setLocationEdit(taxiboatBookingDetail.location);
+    const { date, time } = splitApiDateTimeParts(taxiboatBookingDetail.booking_datetime);
+    if (date) setBookingDateEdit(date);
+    if (time) setBookingTimeEdit(time);
+  }, [taxiboatBookingDetail]);
 
   const rawItemType = taxiboatBookingDetail?.item_type ?? null;
   const itemType = KNOWN_ITEM_TYPES.has(rawItemType) ? rawItemType : null;
