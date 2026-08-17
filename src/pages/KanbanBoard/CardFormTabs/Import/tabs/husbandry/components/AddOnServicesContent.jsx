@@ -9,7 +9,13 @@ import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 import addOnService from "../../../../../../../services/addOnService";
 import useAddOnServiceRequestReducer from "../../../../../../../store/AddOnServiceRequestReducer";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
-import { MAIN_TABS, SERVICE_ACCENT, LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
+import {
+  MAIN_TABS,
+  SERVICE_ACCENT,
+  LAUNCH_HIRE_LOCATION_OPTIONS,
+  ADD_ON_SERVICE_TYPE_IDS,
+  TANKER_CLEARANCE_DOCUMENT_NAMES,
+} from "./Husbandry.constants";
 
 const ADD_ON_SERVICE_ACCENT = SERVICE_ACCENT[MAIN_TABS.ADD_ON_SERVICES];
 
@@ -42,7 +48,11 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
   const [loadingAddOnServiceCatalog, setLoadingAddOnServiceCatalog] = useState(false);
 
   const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
-  const isLaunchHire = showLaunchHire && formValues.addOnServicesLaunchHire !== false;
+  const isOthersSelected = formValues.addOnServiceType === "Others";
+  const selectedServiceId = isOthersSelected ? null : Number(formValues.addOnServiceType);
+  const isProvisionDelivery = selectedServiceId === ADD_ON_SERVICE_TYPE_IDS.PROVISION_DELIVERY;
+  const isTankerClearance = selectedServiceId === ADD_ON_SERVICE_TYPE_IDS.TANKER_CLEARANCE;
+  const isLaunchHire = showLaunchHire && !isTankerClearance && formValues.addOnServicesLaunchHire !== false;
   const {
     addOnServiceRequests,
     isLoadingList,
@@ -217,7 +227,23 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
     });
   };
 
-  const isOthersSelected = formValues.addOnServiceType === "Others";
+  const tankerDocuments = formValues.addOnServicesTankerDocuments || {};
+
+  const handleTankerDocumentFileChange = (docName) => (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleChange("addOnServicesTankerDocuments")({
+        target: { value: { ...tankerDocuments, [docName]: fileToAttachment(file) } },
+      });
+    }
+    e.target.value = "";
+  };
+
+  const handleTankerDocumentRemove = (docName) => () => {
+    const next = { ...tankerDocuments };
+    delete next[docName];
+    handleChange("addOnServicesTankerDocuments")({ target: { value: next } });
+  };
 
   const handleSave = useCallback(async () => {
     if (!callId) {
@@ -249,15 +275,28 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
       }
     }
 
+    const tankerDocumentEntries = TANKER_CLEARANCE_DOCUMENT_NAMES.filter(
+      (docName) => tankerDocuments[docName]?.file instanceof File
+    ).map((docName) => ({ name: docName, file: tankerDocuments[docName].file }));
+
     const payload = {
       call_id: Number(callId),
       ...(isOthersSelected
         ? { service_name: formValues.addOnServiceTypeOther || "" }
         : { addon_service_id: Number(formValues.addOnServiceType) }),
       remarks: formValues.addOnServicesDescription || "",
-      launch_hire: isLaunchHire ? 1 : 0,
-      location: isLaunchHire ? formValues.addOnServicesLaunchHireLocation || "" : "",
-      booking_datetime: isLaunchHire ? launchHireBookingDatetime : "",
+      ...(isProvisionDelivery && {
+        handling_required: formValues.addOnServicesHandlingRequired ? "Yes" : "No",
+        pallets_handled: Number(formValues.addOnServicesPalletsHandled) || 0,
+        handling_amount: Number(formValues.addOnServicesHandlingAmount) || 0,
+      }),
+      ...(isTankerClearance
+        ? { document_names: tankerDocumentEntries.map((entry) => entry.name) }
+        : {
+            launch_hire: isLaunchHire ? 1 : 0,
+            location: isLaunchHire ? formValues.addOnServicesLaunchHireLocation || "" : "",
+            booking_datetime: isLaunchHire ? launchHireBookingDatetime : "",
+          }),
     };
 
     const formData = new FormData();
@@ -270,12 +309,18 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
       formData.append("request_email", requestEmailFile);
     }
 
-    normalizeAttachmentList(formValues.addOnServicesDocuments || []).forEach((attachment) => {
-      const file = attachment?.file ?? attachment;
-      if (file instanceof File) {
-        formData.append("attachments[]", file);
-      }
-    });
+    if (isTankerClearance) {
+      tankerDocumentEntries.forEach((entry) => {
+        formData.append("attachments[]", entry.file);
+      });
+    } else {
+      normalizeAttachmentList(formValues.addOnServicesDocuments || []).forEach((attachment) => {
+        const file = attachment?.file ?? attachment;
+        if (file instanceof File) {
+          formData.append("attachments[]", file);
+        }
+      });
+    }
 
     try {
       const response = await createAddOnServiceRequest(formData);
@@ -293,6 +338,10 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
       handleChange("addOnServicesLaunchHireLocation")({ target: { value: "" } });
       handleChange("addOnServicesLaunchHireBookingDate")({ target: { value: "" } });
       handleChange("addOnServicesLaunchHireBookingTime")({ target: { value: "" } });
+      handleChange("addOnServicesHandlingRequired")({ target: { value: false } });
+      handleChange("addOnServicesPalletsHandled")({ target: { value: "" } });
+      handleChange("addOnServicesHandlingAmount")({ target: { value: "" } });
+      handleChange("addOnServicesTankerDocuments")({ target: { value: {} } });
       await getAddOnServiceRequests(callId);
     } catch (error) {
       notify(
@@ -301,7 +350,18 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
         "top-center"
       );
     }
-  }, [callId, formValues, isOthersSelected, isLaunchHire, createAddOnServiceRequest, getAddOnServiceRequests, handleChange]);
+  }, [
+    callId,
+    formValues,
+    isOthersSelected,
+    isProvisionDelivery,
+    isTankerClearance,
+    isLaunchHire,
+    tankerDocuments,
+    createAddOnServiceRequest,
+    getAddOnServiceRequests,
+    handleChange,
+  ]);
 
   const requestEmailAttachments = normalizeAttachmentList(
     formValues.addOnServicesRequestEmailDocuments || []
@@ -352,6 +412,47 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
                     </FormField>
                   )}
 
+                  {isProvisionDelivery && (
+                    <FormGroup icon="billing" label="Handling Details" accent={ADD_ON_SERVICE_ACCENT}>
+                      <FormField>
+                        <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={!!formValues.addOnServicesHandlingRequired}
+                            onChange={(e) => handleChange("addOnServicesHandlingRequired")({ target: { value: e.target.checked } })}
+                            style={{ width: 16, height: 16, accentColor: "var(--card-color)" }}
+                          />
+                          Handling required
+                        </label>
+                      </FormField>
+                      <FieldRow>
+                        <FormField label="Pallets Handled">
+                          <div className="cf-input">
+                            <input
+                              type="number"
+                              min="0"
+                              value={formValues.addOnServicesPalletsHandled || ""}
+                              onChange={handleChange("addOnServicesPalletsHandled")}
+                              placeholder="Enter pallets handled..."
+                            />
+                          </div>
+                        </FormField>
+                        <FormField label="Handling Amount">
+                          <div className="cf-input">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={formValues.addOnServicesHandlingAmount || ""}
+                              onChange={handleChange("addOnServicesHandlingAmount")}
+                              placeholder="Enter handling amount..."
+                            />
+                          </div>
+                        </FormField>
+                      </FieldRow>
+                    </FormGroup>
+                  )}
+
                   <FormGroup icon="mail" label="Request Email" accent={ADD_ON_SERVICE_ACCENT}>
                     <FormField>
                       <div className="transport-upload-box">
@@ -374,7 +475,7 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
                     </FormField>
                   </FormGroup>
 
-                  {showLaunchHire && (
+                  {showLaunchHire && !isTankerClearance && (
                   <FormGroup icon="LAUNCH_HIRE" label="Launch Hire" accent={ADD_ON_SERVICE_ACCENT}>
                     <FormField>
                       <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
@@ -413,27 +514,77 @@ const AddOnServicesContent = ({ formValues, handleChange, cardColor, showLaunchH
                   </FormGroup>
                   )}
 
-                  <FormGroup icon="folder" label="Documents" accent={ADD_ON_SERVICE_ACCENT}>
-                    <FormField className="cf-field-full">
-                      <div className="transport-upload-box">
-                        <AttachmentsList
-                          attachments={documentsAttachments}
-                          onAdd={() => {}}
-                          onRemove={handleDocumentsRemoveAttachment}
-                          cardColor={cardColor}
-                          isDragging={isDragging}
-                          onDragEnter={handleDocumentsDragEnter}
-                          onDragLeave={handleDocumentsDragLeave}
-                          onDragOver={handleDocumentsDragOver}
-                          onDrop={handleDocumentsDrop}
-                          fileInputRef={fileInputRef}
-                          onFileInputChange={handleDocumentsFileInputChange}
-                          accept={DOCUMENTS_ACCEPT_ATTR}
-                          multiple
-                        />
-                      </div>
-                    </FormField>
-                  </FormGroup>
+                  {isTankerClearance ? (
+                    <FormGroup icon="folder" label="Documents" accent={ADD_ON_SERVICE_ACCENT}>
+                      <FormField className="cf-field-full">
+                        <div className="add-on-tanker-documents-list">
+                          {TANKER_CLEARANCE_DOCUMENT_NAMES.map((docName) => {
+                            const attachment = tankerDocuments[docName];
+                            return (
+                              <div
+                                key={docName}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: "8px",
+                                  padding: "8px 0",
+                                  borderBottom: "1px solid var(--husb-border, #e2e8f0)",
+                                  fontSize: "13px",
+                                }}
+                              >
+                                <span>{docName}</span>
+                                {attachment ? (
+                                  <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <span style={{ color: "#64748b" }}>{attachment.name}</span>
+                                    <button
+                                      type="button"
+                                      onClick={handleTankerDocumentRemove(docName)}
+                                      style={{ border: "none", background: "none", cursor: "pointer", color: "#e11d48" }}
+                                    >
+                                      Remove
+                                    </button>
+                                  </span>
+                                ) : (
+                                  <label style={{ cursor: "pointer", color: "var(--card-color)", fontWeight: 500 }}>
+                                    Attach
+                                    <input
+                                      type="file"
+                                      accept={DOCUMENTS_ACCEPT_ATTR}
+                                      onChange={handleTankerDocumentFileChange(docName)}
+                                      style={{ display: "none" }}
+                                    />
+                                  </label>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </FormField>
+                    </FormGroup>
+                  ) : (
+                    <FormGroup icon="folder" label="Documents" accent={ADD_ON_SERVICE_ACCENT}>
+                      <FormField className="cf-field-full">
+                        <div className="transport-upload-box">
+                          <AttachmentsList
+                            attachments={documentsAttachments}
+                            onAdd={() => {}}
+                            onRemove={handleDocumentsRemoveAttachment}
+                            cardColor={cardColor}
+                            isDragging={isDragging}
+                            onDragEnter={handleDocumentsDragEnter}
+                            onDragLeave={handleDocumentsDragLeave}
+                            onDragOver={handleDocumentsDragOver}
+                            onDrop={handleDocumentsDrop}
+                            fileInputRef={fileInputRef}
+                            onFileInputChange={handleDocumentsFileInputChange}
+                            accept={DOCUMENTS_ACCEPT_ATTR}
+                            multiple
+                          />
+                        </div>
+                      </FormField>
+                    </FormGroup>
+                  )}
 
                   <FormGroup icon="notebook" label="Remarks" accent={ADD_ON_SERVICE_ACCENT}>
                     <div className="cgpass-remarks">

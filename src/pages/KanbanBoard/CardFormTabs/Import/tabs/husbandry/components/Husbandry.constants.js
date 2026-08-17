@@ -168,4 +168,27 @@ export const LAUNCH_HIRE_CREW_MOVEMENT_OPTIONS = [
   { value: "SIGN_OFF", label: "Sign Off" },
 ];
 
+// Add-on Service catalog IDs that require a different request payload/UI than
+// the generic add-on service request (see AddOnServicesContent.jsx).
+export const ADD_ON_SERVICE_TYPE_IDS = {
+  PROVISION_DELIVERY: 1,
+  TANKER_CLEARANCE: 4,
+};
+
+// Fixed checklist of documents required for a Tanker Clearance add-on service
+// request. Order here defines the order of document_names[]/attachments[] sent
+// to addon_service/create_addon_service_request.
+export const TANKER_CLEARANCE_DOCUMENT_NAMES = [
+  "Inward Clearance copy",
+  "Marine Terminal Invoice",
+  "Mawani Port Invoice",
+  "Ballast Water Sampling Invoice",
+  "Signed BL & Manifest Copy",
+  "Local Bayan copy",
+  "Sailing Clearance",
+  "Sedres Sales Order",
+  "Sedres Tax Invoice",
+  "Comparison Sheet",
+];
+
 
