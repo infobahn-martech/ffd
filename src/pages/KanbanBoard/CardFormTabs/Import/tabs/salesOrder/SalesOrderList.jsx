@@ -656,6 +656,7 @@ const SalesOrderList = ({
   const [isLoadingItemCodes, setIsLoadingItemCodes] = useState(false);
   const [isLoadingItemDetails, setIsLoadingItemDetails] = useState(false);
   const [isSavingItem, setIsSavingItem] = useState(false);
+  const [itemNoError, setItemNoError] = useState("");
 
   const callId = card?.call_id ?? card?.callId ?? null;
 
@@ -952,6 +953,7 @@ const SalesOrderList = ({
 
   const handleAddNewItem = () => {
     setNewItemForm(EMPTY_NEW_ITEM_FORM);
+    setItemNoError("");
     setIsAccordionOpen(true);
   };
 
@@ -966,6 +968,7 @@ const SalesOrderList = ({
   const handleItemCodeSelect = async (itemCode) => {
     const option = itemCodeOptions.find((o) => o.item_code === itemCode);
     setNewItemForm((prev) => ({ ...prev, itemNo: itemCode, tariffId: option?.tariff_id ?? "" }));
+    setItemNoError("");
 
     if (!option?.tariff_id) return;
 
@@ -991,9 +994,10 @@ const SalesOrderList = ({
 
   const handleSaveNewItem = async () => {
     if (!newItemForm.tariffId || !newItemForm.itemDescription) {
-      alert("Please select an Item No");
+      setItemNoError("Please select an Item No");
       return;
     }
+    setItemNoError("");
     if (!callId) {
       useAlertReducer.getState().error("No call identifier available for this card.");
       return;
@@ -1059,6 +1063,7 @@ const SalesOrderList = ({
   const handleCancel = () => {
     setIsAccordionOpen(false);
     setNewItemForm(EMPTY_NEW_ITEM_FORM);
+    setItemNoError("");
   };
 
   // Checkbox selection handlers (only for non-DA module).
@@ -1573,6 +1578,9 @@ const SalesOrderList = ({
                             <option key={o.tariff_id} value={o.item_code}>{o.item_code}</option>
                           ))}
                         </select>
+                        {itemNoError && (
+                          <span className="sales-order-add-form-error">{itemNoError}</span>
+                        )}
                       </div>
                       <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
                         <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
