@@ -4,7 +4,10 @@ import GroupSettingsIcon from "../../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, ReactQuillEditor, FormGroup, FieldRow, PremiumCardHeader } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
-import hospitalService, { extractMedicalRequestsFromEnvelope } from "../../../../../../../services/hospitalService";
+import hospitalService, {
+  extractMedicalRequestsFromEnvelope,
+  flattenMedicalRequestRows,
+} from "../../../../../../../services/hospitalService";
 import callFileService from "../../../../../../../services/callFileService";
 import { buildPickupDateTime } from "../../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
@@ -18,16 +21,13 @@ const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 
 const MEDICAL_REQUEST_COLUMNS = [
-  { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
   {
-    key: "crew_name",
-    header: "Crew",
-    accessor: (r) =>
-      Array.isArray(r?.crew)
-        ? r.crew.map((c) => c?.crew_name).filter(Boolean).join(", ")
-        : r?.crew_name,
-    type: "crew",
+    key: "wo_number",
+    header: "Work Order",
+    accessor: (r) => r?.wo_number || r?.wo_id || r?.medical_request_id,
+    type: "workorder",
   },
+  { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew", perCrew: true },
   { key: "hospital_name", header: "Hospital", accessor: (r) => r?.hospital_name ?? r?.hospitalName },
   { key: "service_name", header: "Service", accessor: (r) => r?.service_name ?? r?.medical_service_name },
   { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
@@ -64,7 +64,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor, onRequestC
     try {
       const response = await hospitalService.getMedicalRequests(callId);
       const list = extractMedicalRequestsFromEnvelope(response);
-      setMedicalRequests(list);
+      setMedicalRequests(flattenMedicalRequestRows(list));
       onRequestCountChange?.(list.length);
     } catch {
       setMedicalRequests([]);
@@ -539,6 +539,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor, onRequestC
                 emptyMessage="No medical requests found"
                 serviceType="medical"
                 accent={MEDICAL_ACCENT}
+                groupKey="medical_request_id"
               />
             </div>
           </div>

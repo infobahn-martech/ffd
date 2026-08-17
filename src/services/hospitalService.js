@@ -84,6 +84,57 @@ export const extractMedicalRequestsFromEnvelope = (responseEnvelope) => {
   return [];
 };
 
+/**
+ * Flatten work-order medical requests (each with nested `crew[]`) into table rows.
+ */
+export const flattenMedicalRequestRows = (workOrders) => {
+  if (!Array.isArray(workOrders) || workOrders.length === 0) return [];
+
+  const hasNestedCrew = workOrders.some((item) => Array.isArray(item?.crew));
+  if (!hasNestedCrew) return workOrders;
+
+  const rows = [];
+  workOrders.forEach((wo) => {
+    const woNumber = wo?.wo_number ?? wo?.woNumber ?? '';
+    const medicalRequestId = wo?.medical_request_id ?? wo?.id;
+    const hospitalName = wo?.hospital_name ?? wo?.hospitalName ?? '';
+    const serviceName = wo?.service_name ?? wo?.medical_service_name ?? '';
+    const requestedDate = wo?.requested_date ?? wo?.created_date ?? '';
+    const crewList = Array.isArray(wo?.crew) ? wo.crew : [];
+
+    if (crewList.length === 0) {
+      rows.push({
+        wo_number: woNumber,
+        wo_id: wo?.wo_id,
+        medical_request_id: medicalRequestId,
+        hospital_name: hospitalName,
+        service_name: serviceName,
+        requested_date: requestedDate,
+        status: wo?.status ?? '',
+      });
+      return;
+    }
+
+    crewList.forEach((crew) => {
+      rows.push({
+        ...crew,
+        wo_number: woNumber || crew?.wo_number,
+        wo_id: wo?.wo_id ?? crew?.wo_id,
+        medical_request_id: medicalRequestId ?? crew?.medical_request_id,
+        medical_request_crew_id: crew?.medical_request_crew_id ?? crew?.id,
+        hospital_name: hospitalName || crew?.hospital_name,
+        service_name: serviceName || crew?.service_name,
+        requested_date: requestedDate || crew?.requested_date,
+        status: crew?.visit_status ?? crew?.status ?? wo?.status,
+        crew_name: crew?.crew_name ?? crew?.crewName,
+        id: crew?.medical_request_crew_id ?? `${medicalRequestId}-${crew?.crew_change_id}`,
+      });
+    });
+  });
+
+  return rows;
+};
+
 export default {
   addHospital,
   getHospitalData,
