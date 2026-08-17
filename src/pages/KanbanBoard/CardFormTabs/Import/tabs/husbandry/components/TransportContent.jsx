@@ -75,7 +75,13 @@
   };
 
   const TRANSPORT_REQUEST_COLUMNS = [
-    { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew" },
+    {
+      key: "transport_request_id",
+      header: "Request No",
+      accessor: (r) => r?.wo_id ?? r?.transport_request_id,
+      type: "workorder",
+    },
+    { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew", perCrew: true },
     {
       key: "route",
       header: "Route",
@@ -582,6 +588,7 @@
                   emptyMessage="No transport requests found"
                   serviceType="transport"
                   accent={TRANSPORT_ACCENT}
+                  groupKey="transport_request_id"
                 />
               </div>
             </div>

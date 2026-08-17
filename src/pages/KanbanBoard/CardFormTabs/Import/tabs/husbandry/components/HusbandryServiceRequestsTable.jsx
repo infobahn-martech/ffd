@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { format, isValid, parseISO } from "date-fns";
-import { FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiChevronDown, FiEye } from "react-icons/fi";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { PremiumCardHeader, CrewCell, WorkOrderChip, RouteCell } from "./Husbandry.components";
@@ -104,24 +104,54 @@ const HusbandryServiceRequestsTable = ({
   serviceType,
   pageSize,
   accent,
+  groupKey,
 }) => {
   const safeList = useMemo(
     () => (Array.isArray(requests) ? requests : EMPTY_LIST),
     [requests]
   );
-  const count = safeList.length;
+
+  // When groupKey is set, rows sharing that key (e.g. several crew members on
+  // one request) collapse into a single expandable item — same pattern as
+  // CrewPassRequestsTable's work-order grouping, generalized to any column set.
+  const groups = useMemo(() => {
+    if (!groupKey) return null;
+    const order = [];
+    const byId = new Map();
+    safeList.forEach((row) => {
+      const id = row?.[groupKey] ?? `row-${order.length}`;
+      if (!byId.has(id)) {
+        byId.set(id, []);
+        order.push(id);
+      }
+      byId.get(id).push(row);
+    });
+    return order.map((id) => ({ id, rows: byId.get(id) }));
+  }, [safeList, groupKey]);
+
+  const perCrewStart = useMemo(() => columns.findIndex((c) => c.perCrew), [columns]);
+  const perCrewCount = useMemo(
+    () => (perCrewStart === -1 ? 0 : columns.filter((c) => c.perCrew).length),
+    [columns, perCrewStart]
+  );
+
+  const items = groups ?? safeList;
+  const count = items.length;
 
   const [page, setPage] = useState(1);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
   const totalPages = Math.max(1, Math.ceil(count / pageSize) || 1);
 
   const listSignature = useMemo(
     () =>
-      `${count}|${safeList
-        .map((r, i) =>
-          String(r?.id ?? r?.request_id ?? r?.wo_number ?? `row-${i}`)
-        )
-        .join(",")}`,
-    [safeList, count]
+      groups
+        ? `${count}|${groups.map((g) => String(g.id)).join(",")}`
+        : `${count}|${safeList
+            .map((r, i) =>
+              String(r?.id ?? r?.request_id ?? r?.wo_number ?? `row-${i}`)
+            )
+            .join(",")}`,
+    [groups, safeList, count]
   );
 
   useEffect(() => {
@@ -130,15 +160,25 @@ const HusbandryServiceRequestsTable = ({
 
   useEffect(() => {
     setPage(1);
+    setExpandedIds(new Set());
   }, [listSignature]);
 
   const pageSlice = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return safeList.slice(start, start + pageSize);
-  }, [safeList, page, pageSize]);
+    return items.slice(start, start + pageSize);
+  }, [items, page, pageSize]);
 
   const rangeStart = count === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = count === 0 ? 0 : Math.min(page * pageSize, count);
+
+  const toggleGroup = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div
@@ -151,7 +191,7 @@ const HusbandryServiceRequestsTable = ({
         icon={icon}
         title={title}
         subtitle={subtitle}
-        count={loading ? "…" : count}
+        count={loading ? "…" : safeList.length}
         headerClassName="crew-pass-requests-table-card__header"
         titleClassName="crew-pass-requests-table-card__title"
       />
@@ -176,26 +216,158 @@ const HusbandryServiceRequestsTable = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {pageSlice.map((row, idx) => {
-                    const rowKey =
-                      row?.id ??
-                      row?.request_id ??
-                      `${row?.wo_number ?? "row"}-${(page - 1) * pageSize + idx}`;
+                  {pageSlice.map((entry, idx) => {
+                    const rowIndexBase = (page - 1) * pageSize + idx;
+
+                    if (!groups) {
+                      const row = entry;
+                      const rowKey =
+                        row?.id ?? row?.request_id ?? `${row?.wo_number ?? "row"}-${rowIndexBase}`;
+                      return (
+                        <tr key={rowKey}>
+                          {columns.map((col) => (
+                            <td
+                              key={col.key}
+                              className={
+                                col.type === "document"
+                                  ? "crew-pass-requests-table__doc-cell"
+                                  : undefined
+                              }
+                            >
+                              {renderCell(col, row, rowIndexBase)}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    }
+
+                    const group = entry;
+                    const groupRows = group.rows;
+                    const isSingle = groupRows.length <= 1 || perCrewStart === -1;
+
+                    if (isSingle) {
+                      const row = groupRows[0];
+                      return (
+                        <tr key={`grp-${group.id}`}>
+                          {columns.map((col) => (
+                            <td
+                              key={col.key}
+                              className={
+                                col.type === "document"
+                                  ? "crew-pass-requests-table__doc-cell"
+                                  : undefined
+                              }
+                            >
+                              {renderCell(col, row, rowIndexBase)}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    }
+
+                    const isExpanded = expandedIds.has(group.id);
+                    const firstRow = groupRows[0];
+
                     return (
-                      <tr key={rowKey}>
-                        {columns.map((col) => (
-                          <td
-                            key={col.key}
-                            className={
-                              col.type === "document"
-                                ? "crew-pass-requests-table__doc-cell"
-                                : undefined
+                      <Fragment key={`grp-${group.id}`}>
+                        <tr
+                          className={`crew-pass-requests-table__wo-row${
+                            isExpanded ? " crew-pass-requests-table__wo-row--expanded" : ""
+                          }`}
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isExpanded}
+                          onClick={() => toggleGroup(group.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggleGroup(group.id);
                             }
-                          >
-                            {renderCell(col, row, (page - 1) * pageSize + idx)}
-                          </td>
-                        ))}
-                      </tr>
+                          }}
+                        >
+                          {columns.map((col, colIdx) => {
+                            if (colIdx < perCrewStart) {
+                              return (
+                                <td key={col.key}>
+                                  {colIdx === 0 ? (
+                                    <span className="crew-pass-requests-table__wo-cell">
+                                      <span
+                                        className={`crew-pass-requests-table__expand-icon${
+                                          isExpanded ? " crew-pass-requests-table__expand-icon--open" : ""
+                                        }`}
+                                        aria-hidden="true"
+                                      >
+                                        <FiChevronDown size={14} />
+                                      </span>
+                                      {renderCell(col, firstRow, rowIndexBase)}
+                                    </span>
+                                  ) : (
+                                    renderCell(col, firstRow, rowIndexBase)
+                                  )}
+                                </td>
+                              );
+                            }
+                            if (colIdx === perCrewStart) {
+                              return (
+                                <td
+                                  key={col.key}
+                                  colSpan={perCrewCount}
+                                  className="crew-pass-requests-table__wo-summary"
+                                >
+                                  {perCrewStart === 0 && (
+                                    <span
+                                      className={`crew-pass-requests-table__expand-icon${
+                                        isExpanded ? " crew-pass-requests-table__expand-icon--open" : ""
+                                      }`}
+                                      aria-hidden="true"
+                                    >
+                                      <FiChevronDown size={14} />
+                                    </span>
+                                  )}
+                                  {groupRows.length} crew members
+                                </td>
+                              );
+                            }
+                            if (colIdx < perCrewStart + perCrewCount) return null;
+                            return (
+                              <td
+                                key={col.key}
+                                className={
+                                  col.type === "document"
+                                    ? "crew-pass-requests-table__doc-cell"
+                                    : undefined
+                                }
+                              >
+                                {renderCell(col, firstRow, rowIndexBase)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                        {isExpanded &&
+                          groupRows.map((row, crewIdx) => (
+                            <tr
+                              key={row?.id ?? row?.crew_change_id ?? `${group.id}-crew-${crewIdx}`}
+                              className="crew-pass-requests-table__crew-row"
+                            >
+                              {columns.map((col, colIdx) =>
+                                colIdx === 0 ? (
+                                  <td key={col.key} />
+                                ) : (
+                                  <td
+                                    key={col.key}
+                                    className={
+                                      col.type === "document"
+                                        ? "crew-pass-requests-table__doc-cell"
+                                        : undefined
+                                    }
+                                  >
+                                    {renderCell(col, row, crewIdx)}
+                                  </td>
+                                )
+                              )}
+                            </tr>
+                          ))}
+                      </Fragment>
                     );
                   })}
                 </tbody>
@@ -249,12 +421,14 @@ HusbandryServiceRequestsTable.propTypes = {
       toAccessor: PropTypes.func,
       type: PropTypes.oneOf(["status", "date", "document", "workorder", "crew", "route"]),
       render: PropTypes.func,
+      perCrew: PropTypes.bool,
     })
   ).isRequired,
   emptyMessage: PropTypes.string,
   serviceType: PropTypes.string,
   pageSize: PropTypes.number,
   accent: PropTypes.oneOf(["blue", "teal", "purple", "amber", "rose", "slate", "green", "pink"]),
+  groupKey: PropTypes.string,
 };
 
 
@@ -266,6 +440,7 @@ HusbandryServiceRequestsTable.defaultProps = {
   serviceType: "",
   pageSize: DEFAULT_PAGE_SIZE,
   accent: "blue",
+  groupKey: null,
 };
 
 export default HusbandryServiceRequestsTable;
