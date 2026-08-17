@@ -9829,6 +9829,10 @@ body .modal-backdrop.show {
   overflow: hidden;
   transition: border-color 0.2s ease;
 
+  [data-theme="dark"] & {
+    background: linear-gradient(180deg, var(--surface-hover) 0%, var(--surface-primary) 100%);
+  }
+
   &:hover {
     border-color: var(--border-primary);
   }
