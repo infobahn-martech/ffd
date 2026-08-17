@@ -16,8 +16,13 @@ import CrewSelectionField from "./CrewSelectionField";
 import { CREW_MANAGEMENT_SUBTABS, SERVICE_ACCENT, LAUNCH_HIRE_LOCATION_OPTIONS } from "./Husbandry.constants";
 
 const HOTEL_REQUEST_COLUMNS = [
-  { key: "wo_number", header: "Work Order", accessor: (r) => r?.wo_number ?? r?.work_order_no, type: "workorder" },
-  { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew" },
+  {
+    key: "wo_number",
+    header: "Work Order",
+    accessor: (r) => r?.wo_number || r?.work_order_no || r?.hotel_request_id,
+    type: "workorder",
+  },
+  { key: "crew_name", header: "Crew", accessor: (r) => r?.crew_name ?? r?.crewName, type: "crew", perCrew: true },
   { key: "hotel_name", header: "Hotel", accessor: (r) => r?.hotel_name ?? r?.hotelName },
   {
     key: "check_in",
@@ -563,6 +568,7 @@ const HotelContent = ({ formValues, handleChange, cardColor, onRequestCountChang
                 emptyMessage="No hotel requests found"
                 serviceType="hotel"
                 accent={HOTEL_ACCENT}
+                groupKey="hotel_request_id"
               />
             </div>
           </div>
