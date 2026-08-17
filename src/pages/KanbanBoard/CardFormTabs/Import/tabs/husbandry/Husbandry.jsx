@@ -37,6 +37,10 @@ import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer"
 import useLandingNoteReducer from "../../../../../../store/LandingNoteReducer";
 import useDispatchNoteReducer from "../../../../../../store/DispatchNoteReducer";
 import callFileService from "../../../../../../services/callFileService";
+import transportContentService, { extractTransportRequestsFromEnvelope } from "../../../../../../services/transportContentService";
+import hotelService, { extractHotelRequestsFromEnvelope } from "../../../../../../services/hotelService";
+import hospitalService, { extractMedicalRequestsFromEnvelope } from "../../../../../../services/hospitalService";
+import { getPassRequests, extractPassRequestsFromEnvelope } from "../../../../../../services/cgAndZwailpassService";
 
 // Left-nav services that jump straight to their sidebar subtab. CG Pass/
 // Zawil Pass are handled via handleNavigateToTab instead. Crew Change/Port
@@ -403,6 +407,55 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false, showLau
     getLandingNotesTotal,
     getDispatchNotesTotal,
   ]);
+
+  // Fetch each crew-management service's saved request count up front, so the
+  // sidebar badges (Transport/Hotel/Medical/CG Pass/Zawil Pass) are correct on
+  // first render instead of only after the user opens that subtab (which is
+  // when each Content component's own fetch used to run).
+  useEffect(() => {
+    if (isDAModule) return undefined;
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
+    if (!callId) return undefined;
+
+    let cancelled = false;
+
+    transportContentService
+      .getTransportRequest(callId)
+      .then((response) => {
+        if (cancelled) return;
+        setRequestCount(CREW_MANAGEMENT_SUBTABS.TRANSPORT, extractTransportRequestsFromEnvelope(response).length);
+      })
+      .catch(() => {});
+
+    hotelService
+      .getHotelRequests(callId)
+      .then((response) => {
+        if (cancelled) return;
+        setRequestCount(CREW_MANAGEMENT_SUBTABS.HOTEL, extractHotelRequestsFromEnvelope(response).length);
+      })
+      .catch(() => {});
+
+    hospitalService
+      .getMedicalRequests(callId)
+      .then((response) => {
+        if (cancelled) return;
+        setRequestCount(CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, extractMedicalRequestsFromEnvelope(response).length);
+      })
+      .catch(() => {});
+
+    getPassRequests(callId)
+      .then((response) => {
+        if (cancelled) return;
+        const { cg, zawil } = extractPassRequestsFromEnvelope(response);
+        setRequestCount(CREW_MANAGEMENT_SUBTABS.CG_PASS, cg?.length || 0);
+        setRequestCount(CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, zawil?.length || 0);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isDAModule, formValues?.call_id, formValues?.callId, formValues?.card_call_id, setRequestCount]);
 
   useEffect(() => {
     if (isDAModule) return undefined;
