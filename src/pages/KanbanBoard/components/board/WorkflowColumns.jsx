@@ -126,7 +126,11 @@ export default function WorkflowColumns({
                       style={{
                         display: "grid",
                         gridTemplateColumns: group.colKeys
-                          .map((k) => `minmax(${getColumnWidth(workflow.columns[k], collapsedColumnIds, layoutView)}px, 1fr)`)
+                          .map((k) => {
+                            const child = workflow.columns[k];
+                            const w = getColumnWidth(child, collapsedColumnIds, layoutView);
+                            return collapsedColumnIds.has(child.id) ? `${w}px` : `minmax(${w}px, 1fr)`;
+                          })
                           .join(" "),
                         gap: `${BOARD_COLUMN_GAP_PX}px`,
                       }}
